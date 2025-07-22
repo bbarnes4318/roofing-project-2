@@ -555,7 +555,7 @@ app.use('/api/notifications', authenticateToken, notificationRoutes);
 app.use('/api/workflows', authenticateToken, workflowRoutes);
 app.use('/api/alerts', authenticateToken, alertRoutes);
 app.use('/api/ai', authenticateToken, aiRoutes);
-app.use('/api/test-notifications', require('./routes/test-notifications'));
+
 
 // Demo endpoint for adding alerts (no authentication required for demo purposes)
 app.post('/api/demo/add-alerts', async (req, res) => {
