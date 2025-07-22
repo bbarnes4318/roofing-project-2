@@ -1,0 +1,159 @@
+vercI want to make sure that the system is setup to monitor and alert based on the entire project workflow below. Every single step needs to be tracked and alerted to the appropriate team members. I noticed you only had like 7 total steps it appears. It must be this below. 
+
+Also, there must be an area on the settings or setup user interface where the admin can choose the team member that should be alerted based upon each and every step. The user interface setup section should be super simple to understand and use and look sharp and professional. Please make sure this functionality is part of the backend as well:
+
+Lead Phase:
+
+1. Input Customer Information – Office 👩🏼‍💻
+2. Make sure the name is spelled correctly
+3. Make sure the email is correct. Send a confirmation email to confirm email.
+
+4. Complete Questions to Ask Checklist – Office 👩🏼‍💻
+5. Input answers from Question Checklist into notes
+6. Record property details
+
+7. Input Lead Property Information – Office 👩🏼‍💻
+a. Add Home View photos – Maps
+b. Add Street View photos – Google Maps
+c. Add elevation screenshot – PPRBD
+d. Add property age – County Assessor Website
+e. Evaluate ladder requirements – By looking at the room
+
+8. Assign A Project Manager – Office 👩🏼‍💻
+a. Use workflow from Lead Assigning Flowchart
+b. Select and brief the Project Manager
+
+9. Schedule Initial Inspection – Office 👩🏼‍💻
+a. Call Customer and coordinate with PM schedule
+b. Create Calendar Appointment in AL
+
+
+Prospect Phase:
+
+1. Site Inspection – Project Manager 👷🏼
+a. Take site photos
+b. Complete inspection form
+c. Document material colors
+d. Capture Hover photos
+e. Present upgrade options
+
+2. Write Estimate – Project Manager 👷🏼
+a. Fill out Estimate Form
+b. Write initial estimate – AccuLynx
+c. Write Customer Pay Estimates
+d. Send for Approval
+
+3. Insurance Process – Administration 📝
+a. Compare field vs insurance estimates
+b. Identify supplemental items
+c. Draft estimate in Xactimate
+
+4. Agreement Preparation – Administration 📝
+a. Trade cost analysis
+b. Prepare Estimate Forms
+c. Match AL estimates
+d. Calculate customer pay items
+e. Send shingle/class4 email – PDF
+
+5. Agreement Signing – Administration 📝
+a. Review and send signature request
+b. Record in QuickBooks
+c. Process deposit
+Collect signed disclaimers
+
+
+Approved Phase:
+
+Administrative Setup – Administration 📝
+Confirm shingle choice
+Order materials
+Create labor orders
+Send labor order to roofing crew
+
+Pre-Job Actions – Office 👩🏼‍  
+Pull permits
+
+Prepare for Production – Administration 📝
+
+All pictures in Job (Gutter, Ventilation, Elevation)
+
+Verify Labor Order in Scheduler
+- Correct Dates
+- Correct crew
+- Send install schedule email to customer
+
+Verify Material Orders
+- Confirmations from supplier
+- Call if no confirmation
+- Provide special crew instructions
+
+Subcontractor Work
+- Work order in scheduler
+- Schedule subcontractor
+- Communicate with customer
+
+
+Execution Phase:
+
+1. Installation – Field Director 🛠️
+a. Document work start
+b. Capture progress photos
+c. Daily Job Progress Note
+- Work started/finished
+- Days and people needed
+- Format: 2 Guys for 4 hours
+d. Upload Pictures
+
+2. Quality Check – Field + Admin
+a. Completion photos – Roof Supervisor 🛠️
+b. Complete inspection – Roof Supervisor 🛠️
+c. Upload Roof Packet
+d. Verify Packet is complete – Admin 📝
+
+3. Multiple Trades – Administration 📝
+a. Confirm start date
+b. Confirm material/labor for all trades
+
+4. Subcontractor Work – Administration 📝
+a. Confirm dates
+b. Communicate with customer
+
+5. Update Customer – Administration 📝
+a. Notify of completion
+b. Share photos
+c. Send 2nd half payment link
+
+
+2nd Supplement Phase: 
+
+1. Create Supp in Xactimate – Administration 📝
+a. Check Roof Packet & Checklist
+b. Label photos
+c. Add to Xactimate
+d. Submit to insurance
+
+2. Follow-Up Calls – Administration 📝
+a. Call 2x/week until updated estimate
+
+3. Review Approved Supp – Administration 📝
+a. Update trade cost
+b. Prepare counter-supp or email
+c. Add to AL Estimate
+
+4. Customer Update – Administration
+a. Share 2 items minimum
+b. Let them know next steps
+
+
+Completion Phase:
+
+1. Financial Processing – Administration 📝
+a. Verify worksheet
+b. Final invoice & payment link
+c. AR follow-up calls
+
+2. Project Closeout – Office 👩🏼‍💻
+a. Register warranty
+b. Send documentation
+c. Submit insurance paperwork
+d. Send final receipt and close job

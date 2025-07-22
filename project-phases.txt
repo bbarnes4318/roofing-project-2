@@ -1,0 +1,150 @@
+
+**Lead Phase**
+
+**Input Customer Information – Office 👩🏼‍💻
+Make sure the name is spelled correctly
+Make sure the email is correct. Send a confirmation email to confirm email.
+
+**Complete Questions to Ask Checklist – Office 👩🏼‍💻
+Input answers from Question Checklist into notes
+Record property details
+
+**Input Lead Property Information – Office 👩🏼‍💻
+Add Home View photos – Maps
+Add Street View photos – Google Maps
+Add elevation screenshot – PPRBD
+Add property age – County Assessor Website
+Evaluate ladder requirements – By looking at the room
+
+**Assign A Project Manager – Office 👩🏼‍💻
+Use workflow from Lead Assigning Flowchart
+Select and brief the Project Manager
+
+**Schedule Initial Inspection – Office 👩🏼‍💻
+Call Customer and coordinate with PM schedule
+Create Calendar Appointment in AL
+
+
+**Prospect Phase**
+
+**Site Inspection – Project Manager 👷🏼
+Take site photos
+Complete inspection form
+Document material colors
+Capture Hover photos
+Present upgrade options
+
+**Write Estimate – Project Manager 👷🏼
+Fill out Estimate Form
+Write initial estimate – AccuLynx
+Write Customer Pay Estimates
+Send for Approval
+
+**Insurance Process – Administration 📝
+Compare field vs insurance estimates
+Identify supplemental items
+Draft estimate in Xactimate
+
+**Agreement Preparation – Administration 📝
+Trade cost analysis
+Prepare Estimate Forms
+Match AL estimates
+Calculate customer pay items
+Send shingle/class4 email – PDF
+
+**Agreement Signing – Administration 📝
+Review and send signature request
+Record in QuickBooks
+Process deposit
+Collect signed disclaimers
+
+
+**Approved Phase**
+
+**Administrative Setup – Administration 📝
+Confirm shingle choice
+Order materials
+Create labor orders
+Send labor order to roofing crew
+
+**Pre-Job Actions – Office 👩🏼‍💻
+Pull permits
+
+**Prepare for Production – Administration 📝
+All pictures in Job (Gutter, Ventilation, Elevation)
+*Verify Labor Order in Scheduler
+- Correct Dates
+- Correct crew
+- Send install schedule email to customer
+*Verify Material Orders
+- Confirmations from supplier
+- Call if no confirmation
+- Provide special crew instructions
+*Subcontractor Work
+- Work order in scheduler
+- Schedule subcontractor
+- Communicate with customer
+
+
+**Execution Phase**
+
+**Installation – Field Director 🛠️
+Document work start
+Capture progress photos
+*Daily Job Progress Note
+- Work started/finished
+- Days and people needed
+- Format: 2 Guys for 4 hours
+Upload Pictures
+
+**Quality Check – Field + Admin
+Completion photos – Roof Supervisor 🛠️
+Complete inspection – Roof Supervisor 🛠️
+Upload Roof Packet
+Verify Packet is complete – Admin 📝
+
+**Multiple Trades – Administration 📝
+Confirm start date
+Confirm material/labor for all trades
+Subcontractor Work – Administration 📝
+Confirm dates
+Communicate with customer
+Update Customer – Administration 📝
+Notify of completion
+Share photos
+Send 2nd half payment link
+
+
+**2nd Supplement Phase**
+
+**Create Supp in Xactimate – Administration 📝
+Check Roof Packet & Checklist
+Label photos
+Add to Xactimate
+Submit to insurance
+
+**Follow-Up Calls – Administration 📝
+Call 2x/week until updated estimate
+
+**Review Approved Supp – Administration 📝
+Update trade cost
+Prepare counter-supp or email
+Add to AL Estimate
+
+**Customer Update – Administration
+Share 2 items minimum
+Let them know next steps
+
+
+**Completion Phase**
+
+**Financial Processing – Administration 📝
+Verify worksheet
+Final invoice & payment link
+AR follow-up calls
+
+**Project Closeout – Office 👩🏼‍💻
+Register warranty
+Send documentation
+Submit insurance paperwork
+Send final receipt and close job
