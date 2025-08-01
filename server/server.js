@@ -583,11 +583,11 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   
   // Serve static files from React build
-  app.use(express.static(path.join(__dirname, '../build')));
+  app.use(express.static(path.join(__dirname, 'build')));
   
   // Serve React app for all non-API routes
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../build/index.html'));
+    res.sendFile(path.join(__dirname, 'build/index.html'));
   });
 } else {
   app.get('/', (req, res) => {
