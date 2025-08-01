@@ -4,11 +4,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 
-// Initialize Prisma Client for Vercel
-const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['error'] : ['error'],
-  errorFormat: 'pretty',
-});
+// Initialize Prisma Client for Vercel with better error handling
+let prisma;
+
+try {
+  prisma = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error'] : [],
+    errorFormat: 'pretty',
+  });
+} catch (error) {
+  console.error('Failed to initialize Prisma Client:', error);
+  process.exit(1);
+}
 
 const app = express();
 
@@ -29,6 +36,16 @@ app.use(express.json());
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
+
+// Simple health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV,
+    hasDatabase: !!process.env.DATABASE_URL
+  });
+});
 
 // **CRITICAL: Data transformation layers for frontend compatibility**
 const transformProjectForFrontend = (project) => {

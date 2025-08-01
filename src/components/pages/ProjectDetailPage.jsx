@@ -117,6 +117,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     const [expandedProgress, setExpandedProgress] = useState({});
     const [selectedUserGroup, setSelectedUserGroup] = useState('all');
     
+    // Alerts state for expanded functionality - matching dashboard
+    const [expandedAlerts, setExpandedAlerts] = useState(new Set());
+    const [expandedContacts, setExpandedContacts] = useState(new Set());
+    const [expandedPMs, setExpandedPMs] = useState(new Set());
+    
     // Call useWorkflowAlerts at the top level to comply with React hooks rules
     const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts(projects);
 
@@ -301,6 +306,19 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 console.log('🔍 Returning: Back to Current Project Access (default case)');
                 return 'Back to Current Project Access';
         }
+    };
+
+    // Helper functions for alerts - matching dashboard implementation
+    const mapStepToWorkflowStructure = (stepName, phase) => {
+        // Default mapping - this should match your workflow structure
+        return {
+            section: phase === 'LEAD' ? 'Initial Contact' : 
+                    phase === 'PROSPECT' ? 'Preliminary Assessment' :
+                    phase === 'APPROVED' ? 'Contract & Permitting' :
+                    phase === 'EXECUTION' ? 'Installation & Progress' :
+                    phase === 'COMPLETION' ? 'Final Documentation' : 'Unknown Section',
+            lineItem: stepName || 'Unknown Line Item'
+        };
     };
 
     const renderProjectView = () => {
@@ -637,12 +655,6 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                     <span className="font-medium">{alert.userGroup}</span>
                                                                 </>
                                                             )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
                                 )}
                             </div>
                         </div>
