@@ -583,8 +583,8 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   const fs = require('fs');
   
-  // Server runs from /app/server, build files are in /app/build
-  const buildPath = path.join(__dirname, '../build');
+  // Server runs from /app, build files should be in /app/build
+  const buildPath = path.join(__dirname, 'build');
   
   console.log('🏗️ Server directory:', __dirname);
   console.log('🏗️ Build path:', buildPath);
