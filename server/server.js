@@ -583,13 +583,17 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   const fs = require('fs');
   
-  // Determine build path based on how server is run
-  const buildPath = __dirname.endsWith('/server') 
-    ? path.join(__dirname, '../build')  // Running from server directory
-    : path.join(__dirname, 'build');    // Running from root directory
+  // For Digital Ocean deployment - build files are always at /app/build
+  const buildPath = '/app/build';
   
   console.log('🏗️ Server directory:', __dirname);
   console.log('🏗️ Using build path:', buildPath);
+  console.log('🏗️ Build exists?', fs.existsSync(buildPath));
+  
+  // List files in /app directory for debugging
+  if (fs.existsSync('/app')) {
+    console.log('📁 Files in /app:', fs.readdirSync('/app'));
+  }
   
   // Serve static files from React build
   app.use(express.static(buildPath));
