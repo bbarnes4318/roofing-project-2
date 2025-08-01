@@ -301,7 +301,7 @@ const generateMockAlerts = async () => {
   }
 };
 
-// Authentication middleware
+// Authentication middleware - Updated to handle demo tokens
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -310,6 +310,20 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Access denied' });
   }
 
+  // Handle demo tokens for development/testing
+  if (token.startsWith('demo-')) {
+    // Create a demo user object
+    req.user = {
+      id: 'demo-sarah-owner-id',
+      firstName: 'Sarah',
+      lastName: 'Owner',  
+      email: 'sarah@example.com',
+      role: 'ADMIN'
+    };
+    return next();
+  }
+
+  // Handle real JWT tokens
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ success: false, message: 'Invalid token' });
