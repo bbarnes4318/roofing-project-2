@@ -594,24 +594,70 @@ app.get('/api/auth/me', async (req, res) => {
 // ============== PROJECT ROUTES ==============
 
 app.get('/api/projects', async (req, res) => {
-  // Temporary: Set demo user for testing
-  req.user = { id: 'demo-user-id', role: 'ADMIN' };
+  // Temporary: Return mock data until database is fixed
   try {
-    const { 
-      status, 
-      projectType, 
-      priority, 
-      customer,
-      search, 
-      page = 1, 
-      limit = 10,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      includeArchived = false
-    } = req.query;
+    const mockProjects = [
+      {
+        id: '1',
+        _id: '1',
+        projectId: '20001',
+        projectNumber: 20001,
+        projectName: '1234 Oak St, Denver, CO 80202',
+        projectType: 'ROOF_REPLACEMENT',
+        status: 'IN_PROGRESS',
+        priority: 'MEDIUM',
+        progress: 45,
+        budget: 25000,
+        customer: {
+          primaryName: 'John Smith',
+          primaryEmail: 'john.smith@email.com',
+          primaryPhone: '303-555-0001'
+        },
+        projectManager: {
+          firstName: 'Mike',
+          lastName: 'Johnson'
+        }
+      },
+      {
+        id: '2',
+        _id: '2', 
+        projectId: '20002',
+        projectNumber: 20002,
+        projectName: '5678 Pine Ave, Boulder, CO 80301',
+        projectType: 'ROOF_REPLACEMENT',
+        status: 'IN_PROGRESS',
+        priority: 'HIGH',
+        progress: 78,
+        budget: 32000,
+        customer: {
+          primaryName: 'Jane Doe',
+          primaryEmail: 'jane.doe@email.com',
+          primaryPhone: '303-555-0002'
+        },
+        projectManager: {
+          firstName: 'Mike',
+          lastName: 'Johnson'
+        }
+      }
+    ];
 
-    // Build filter object for Prisma
-    let where = {};
+    res.json({
+      success: true,
+      data: mockProjects,
+      pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: mockProjects.length,
+        itemsPerPage: 100
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching projects',
+      error: error.message
+    });
+  }
     
     if (status) where.status = status;
     if (projectType) where.projectType = projectType;
@@ -835,8 +881,36 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
 // ============== CUSTOMER ROUTES ==============
 
 app.get('/api/customers', async (req, res) => {
-  // Temporary: Set demo user for testing  
-  req.user = { id: 'demo-user-id', role: 'ADMIN' };
+  // Temporary: Return mock data
+  try {
+    const mockCustomers = [
+      {
+        id: '1',
+        primaryName: 'John Smith',
+        primaryEmail: 'john.smith@email.com',
+        primaryPhone: '303-555-0001',
+        address: '1234 Oak St, Denver, CO 80202'
+      },
+      {
+        id: '2', 
+        primaryName: 'Jane Doe',
+        primaryEmail: 'jane.doe@email.com',
+        primaryPhone: '303-555-0002',
+        address: '5678 Pine Ave, Boulder, CO 80301'
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: mockCustomers
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching customers',
+      error: error.message
+    });
+  }
   try {
     const { 
       search, 
@@ -969,8 +1043,48 @@ app.post('/api/customers', authenticateToken, async (req, res) => {
 // ============== ALERT ROUTES ==============
 
 app.get('/api/alerts', async (req, res) => {
-  // Temporary: Set demo user for testing
-  req.user = { id: 'demo-user-id', role: 'ADMIN' };
+  // Temporary: Return mock data
+  try {
+    const mockAlerts = [
+      {
+        id: '1',
+        _id: '1', 
+        title: 'Schedule initial consultation',
+        actionData: {
+          phase: 'LEAD',
+          stepName: 'Initial Contact',
+          projectId: '1',
+          projectNumber: 20001,
+          priority: 'medium'
+        },
+        user: { role: 'PM' }
+      },
+      {
+        id: '2',
+        _id: '2',
+        title: 'Submit insurance claim',
+        actionData: {
+          phase: 'PROSPECT', 
+          stepName: 'Insurance Documentation',
+          projectId: '2',
+          projectNumber: 20002,
+          priority: 'high'
+        },
+        user: { role: 'OFFICE' }
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: mockAlerts
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching alerts',
+      error: error.message
+    });
+  }
   try {
     const { 
       type, 
