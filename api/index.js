@@ -593,9 +593,22 @@ app.get('/api/auth/me', async (req, res) => {
 
 // ============== PROJECT ROUTES ==============
 
-app.get('/api/projects', async (req, res) => {
-  // Temporary: Return mock data until database is fixed
+app.get('/api/projects', authenticateToken, async (req, res) => {
   try {
+    const { 
+      status, 
+      projectType, 
+      priority, 
+      customer,
+      search, 
+      page = 1, 
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      includeArchived = false
+    } = req.query;
+
+    // For now, return mock data since we're migrating platforms
     const mockProjects = [
       {
         id: '1',
