@@ -655,6 +655,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                     <span className="font-medium">{alert.userGroup}</span>
                                                                 </>
                                                             )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })
                                 )}
                             </div>
                         </div>
