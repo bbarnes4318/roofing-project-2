@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.12.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -24,10 +23,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && npx prisma generate",
+    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "postinstall": "npx prisma generate"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -53,7 +51,6 @@
   "devDependencies": {
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
-    "prisma": "^6.12.0",
     "tailwindcss": "^3.4.1"
   }
 }
