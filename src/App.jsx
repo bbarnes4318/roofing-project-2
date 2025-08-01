@@ -16,8 +16,10 @@ import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import CustomersPage from './components/pages/CustomersPage';
-import { initialProjects, initialTasks, initialActivityData } from './data/mockData';
+// Removed mock data import
+import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
+import GlobalSearch from './components/common/GlobalSearch';
 
 export default function App() {
     const [activePage, setActivePage] = useState('Overview');
@@ -26,9 +28,11 @@ export default function App() {
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
-    const [activities, setActivities] = useState(initialActivityData);
-    const [tasks, setTasks] = useState(initialTasks);
-    const [projects, setProjects] = useState(initialProjects);
+    const [activities, setActivities] = useState([]);
+    const [tasks, setTasks] = useState([]);
+    const [projects, setProjects] = useState([]);
+    const [projectsLoading, setProjectsLoading] = useState(false);
+    const [projectsError, setProjectsError] = useState(null);
     const profileDropdownRef = useRef(null);
 
     // Get current user data on component mount
@@ -37,6 +41,41 @@ export default function App() {
         if (user) {
             setCurrentUser(user);
         }
+    }, []);
+
+    // Fetch projects from API
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                setProjectsLoading(true);
+                setProjectsError(null);
+                const response = await projectsService.getAll();
+                if (response.success && response.data) {
+                    // Normalize project data to ensure consistent structure
+                    const apiProjects = response.data.projects || response.data;
+                    const normalizedProjects = apiProjects.map(project => ({
+                        ...project,
+                        id: project.id || project._id, // Ensure id field exists
+                        name: project.name || project.projectName, // Ensure name field exists
+                        client: project.client || { name: 'Unknown Client', email: '', phone: '' },
+                        projectManager: project.projectManager || { firstName: 'Sarah', lastName: 'Johnson', email: 'sarah.johnson@company.com', phone: '5559876543' }
+                    }));
+                    setProjects(normalizedProjects);
+                    console.log('✅ Fetched projects from API:', normalizedProjects.length);
+                } else {
+                    console.warn('Failed to fetch projects:', response.message);
+                    setProjects([]);
+                }
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+                setProjectsError(error.message);
+                setProjects([]);
+            } finally {
+                setProjectsLoading(false);
+            }
+        };
+
+        fetchProjects();
     }, []);
 
     // Helper functions for dynamic user data
@@ -243,9 +282,11 @@ export default function App() {
                     selectedProject: null, // <-- Ensure ProjectDetailPage is not shown
                     projectSourceSection: sourceSection,
                     previousPage: activePage,
-                    scrollToProject: project // Pass the project data for scrolling
+                    scrollToProject: project, // Pass the project data for scrolling
+                    dashboardState: project.dashboardState // Preserve the dashboard state for back navigation
                 };
                 console.log('🔍 APP: New navigationState:', newState);
+                console.log('🔍 APP: Preserved dashboard state:', project.dashboardState);
                 return newState;
             });
             setSidebarOpen(false);
@@ -265,19 +306,23 @@ export default function App() {
             selectedProject: projectWithEnhancements,
             projectInitialView: view,
             projectSourceSection: sourceSection,
-            previousPage: navigationState.selectedProject ? navigationState.previousPage : activePage
+            previousPage: navigationState.selectedProject ? navigationState.previousPage : activePage,
+            dashboardState: project.dashboardState // Preserve the dashboard state for back navigation
         };
         
         console.log('🔍 APP: Setting navigationState:', newNavigationState);
+        console.log('🔍 APP: Dashboard state being preserved:', project.dashboardState);
         setNavigationState(newNavigationState);
         setSidebarOpen(false);
     };
 
     // Update handleBackToProjects to use navigationState
-    const handleBackToProjects = () => {
+    const handleBackToProjects = (specificProject = null) => {
       console.log('🔍 BACK_TO_PROJECTS: handleBackToProjects called');
       console.log('🔍 BACK_TO_PROJECTS: projectSourceSection:', navigationState.projectSourceSection);
       console.log('🔍 BACK_TO_PROJECTS: previousPage:', navigationState.previousPage);
+      console.log('🔍 BACK_TO_PROJECTS: selectedProject:', navigationState.selectedProject);
+      console.log('🔍 BACK_TO_PROJECTS: specificProject passed:', specificProject);
       
       // Handle specific case: coming from Activity Feed tab in Project Messages
       if (navigationState.projectSourceSection === 'Project Messages') {
@@ -311,15 +356,45 @@ export default function App() {
         }
       }
       
+      // Handle specific case: coming from Project Phases section (Alerts, Messages, Workflow buttons)
+      if (navigationState.projectSourceSection === 'Project Phases' && navigationState.selectedProject) {
+        console.log('🔍 BACK_TO_PROJECTS: Coming from Project Phases section, returning to Overview with phase restored');
+        // Get the dashboard state from the selected project
+        const dashboardState = navigationState.selectedProject.dashboardState;
+        console.log('🔍 BACK_TO_PROJECTS: Dashboard state from project:', dashboardState);
+        
+        // Clear the selected project and restore the dashboard state
+        setNavigationState(prev => ({
+          ...prev,
+          selectedProject: null,
+          dashboardState: dashboardState
+        }));
+        
+        // Navigate back to Overview page
+        setActivePage('Overview');
+        
+        // Scroll to the project phases section
+        setTimeout(() => {
+          const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
+          if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        
+        return;
+      }
+      
       setNavigationState(prev => ({ ...prev, selectedProject: null }));
       if (navigationState.previousPage === 'Projects') {
         setActivePage('Projects');
-      } else if (navigationState.previousPage === 'Overview') {
-        if (navigationState.projectSourceSection === 'Activity Feed') {
+              } else if (navigationState.previousPage === 'Overview') {
+          // Use the preserved dashboard state from navigationState
+          const dashboardState = navigationState.dashboardState;
+          console.log('🔍 BACK_TO_PROJECTS: Dashboard state for restoration:', dashboardState);
+        
+        if (navigationState.projectSourceSection === 'Project Messages') {
           setActivePage('Overview');
           setTimeout(() => {
-            const activityFeedSection = document.querySelector('[data-section="activity-feed"]');
-            if (activityFeedSection) activityFeedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const projectMessagesSection = document.querySelector('[data-section="project-messages"]');
+            if (projectMessagesSection) projectMessagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
         } else if (navigationState.projectSourceSection === 'Current Alerts') {
           setActivePage('Overview');
@@ -335,6 +410,19 @@ export default function App() {
           }, 100);
         } else if (navigationState.projectSourceSection === 'Project Phases') {
           setActivePage('Overview');
+          console.log('🔍 BACK_TO_PROJECTS: Project Phases - dashboard state being restored:', dashboardState);
+          console.log('🔍 BACK_TO_PROJECTS: selectedPhase in dashboard state:', dashboardState?.selectedPhase);
+          // Store the dashboard state and specific project info for the DashboardPage to restore
+          setNavigationState(prev => {
+            const newState = {
+              ...prev,
+              dashboardState: dashboardState,
+              // If a specific project was passed, store it for highlighting
+              scrollToProject: specificProject || prev.scrollToProject
+            };
+            console.log('🔍 BACK_TO_PROJECTS: New navigation state:', newState);
+            return newState;
+          });
           setTimeout(() => {
             const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
             if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -351,18 +439,38 @@ export default function App() {
       }
     };
     
-    const addActivity = (project, content, subject = 'General Update') => {
-         const newActivity = { 
-             id: Date.now(), 
-             author: getUserFullName(), 
-             avatar: getUserInitials().charAt(0), 
-             content: content, 
-             timestamp: new Date().toISOString(), 
-             projectId: project ? project.id : null, 
-             project: project ? project.name : null,
-             subject: subject
-         };
-         setActivities(prev => [newActivity, ...prev]);
+    const addActivity = async (project, content, subject = 'General Update') => {
+        try {
+            const activityData = {
+                type: 'message_sent',
+                description: content,
+                projectId: project ? project.id : null,
+                priority: 'Medium',
+                metadata: {
+                    subject: subject
+                }
+            };
+            
+            const response = await activitiesService.create(activityData);
+            if (response.success && response.activity) {
+                // Add the new activity to local state
+                setActivities(prev => [response.activity, ...prev]);
+            }
+        } catch (error) {
+            console.error('Error creating activity:', error);
+            // Fallback to local state if API fails
+            const newActivity = { 
+                id: Date.now(), 
+                author: getUserFullName(), 
+                avatar: 'I', // Default to Lead phase initial
+                content: content, 
+                timestamp: new Date().toISOString(), 
+                projectId: project ? project.id : null, 
+                project: project ? project.name : null,
+                subject: subject
+            };
+            setActivities(prev => [newActivity, ...prev]);
+        }
     };
     
     const addTask = (task) => {
@@ -370,7 +478,7 @@ export default function App() {
     };
 
     const handleProjectUpdate = (updatedProject) => {
-        const newProjects = projects.map(p => p.id === updatedProject.id ? updatedProject : p);
+        const newProjects = (projects || []).map(p => p.id === updatedProject.id ? updatedProject : p);
         setProjects(newProjects);
         setNavigationState(prev => ({ ...prev, selectedProject: updatedProject })); // Keep the detail page in sync
     };
@@ -379,12 +487,39 @@ export default function App() {
         setProjects(prev => [project, ...prev]);
     };
 
+    // Handle navigation from search results
+    const handleSearchNavigation = (result) => {
+        const target = result.navigationTarget;
+        
+        switch (target.page) {
+            case 'project-detail':
+                if (target.project) {
+                    handleProjectSelect(target.project, 'Project Workflow', null, 'Global Search');
+                }
+                break;
+            case 'project-messages':
+                if (target.project) {
+                    handleProjectSelect(target.project, 'Messages', null, 'Global Search');
+                }
+                break;
+            case 'customers':
+                navigate('Customers');
+                // Could add customer filtering here if CustomersPage supports it
+                break;
+            case 'projects':
+                navigate('Projects');
+                break;
+            default:
+                console.log('Unhandled search navigation:', target);
+        }
+    };
+
     // Define navigationItems after all state variables are declared
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Projects', icon: <DocumentTextIcon />, page: 'Projects' },
         { name: 'My Alerts', icon: <BellIcon />, page: 'Alerts', badge: tasks.filter(t => t.status === 'pending' || t.status === 'overdue').length },
-        { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Activity Feed', badge: activities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length },
+        { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages', badge: activities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
         { name: 'AI Assistant', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
@@ -405,14 +540,14 @@ export default function App() {
             case 'Overview': return (
               <DashboardPage
                 tasks={tasks}
-                projects={projects}
                 activities={activities}
                 onProjectSelect={handleProjectSelect}
                 onAddActivity={addActivity}
                 colorMode={colorMode}
+                dashboardState={navigationState.dashboardState}
               />
             );
-            case 'Activity Feed': return <ActivityFeedPage projects={projects} onProjectSelect={handleProjectSelect} activities={activities} onAddActivity={addActivity} colorMode={colorMode} />;
+            case 'Project Messages': return <ActivityFeedPage projects={projects} onProjectSelect={handleProjectSelect} activities={activities} onAddActivity={addActivity} colorMode={colorMode} />;
             case 'Projects': return <ProjectsPage onProjectSelect={handleProjectSelect} onProjectActionSelect={handleProjectSelect} onCreateProject={handleCreateProject} projects={projects} colorMode={colorMode} projectSourceSection={navigationState.projectSourceSection} onNavigateBack={handleBackToProjects} scrollToProject={navigationState.scrollToProject} />;
             case 'Customers': return <CustomersPage colorMode={colorMode} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
@@ -466,11 +601,11 @@ export default function App() {
             default: return (
               <DashboardPage
                 tasks={tasks}
-                projects={projects}
                 activities={activities}
                 onProjectSelect={handleProjectSelect}
                 onAddActivity={addActivity}
                 colorMode={colorMode}
+                dashboardState={navigationState.dashboardState}
               />
             );
         }
@@ -493,7 +628,8 @@ export default function App() {
               ${colorMode 
                 ? 'bg-gradient-to-b from-[#181f3a] via-[#232b4d] to-[#1e293b] border-r-2 border-[#3b82f6] text-white' 
                 : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
-              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}> 
+              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+              mobile-safe-area`}> 
                 {/* Sidebar header (logo) */}
                 <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-[#3b82f6] bg-gradient-to-r from-[#232b4d] to-[#1e293b]' : 'border-gray-100/50 bg-gradient-to-r from-white to-gray-50/50'}`}>
                     <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-glow overflow-hidden border-2 ${colorMode ? 'bg-[#232b4d] border-[#3b82f6]' : 'bg-white border-white/50'}`}>
@@ -595,7 +731,7 @@ export default function App() {
                             <span className="flex-1">{item.name}</span>
                             {item.badge && item.badge > 0 && (
                                 <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[7px] font-bold rounded-full ml-2 ${
-                                    item.page === 'Activity Feed' 
+                                    item.page === 'Project Messages' 
                                         ? colorMode 
                                             ? 'bg-blue-500 text-white shadow-lg' 
                                             : 'bg-blue-500 text-white shadow-md'
@@ -631,21 +767,21 @@ export default function App() {
             <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-gradient-to-br from-[#101624] via-[#232b4d] to-[#181f3a] text-white' : ''}`} style={{ minWidth: 0, fontSize: '12px' }}>
                 {/* Desktop header with user profile */}
                 <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-[#232b4d]/80 backdrop-blur-sm border-[#3b82f6]/40 text-white' : 'bg-white/80 backdrop-blur-sm border-gray-200'}`}>
-                    <div className="flex items-center">
+                    <div className="flex items-center flex-1 min-w-0">
                         {activePage === 'Overview' ? (
-                            <div>
+                            <div className="flex-shrink-0">
                                 <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getGreeting()}</h1>
                                 <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-600'}`}>Here's what's happening with your projects today.</p>
                             </div>
                         ) : (
-                            <div>
+                            <div className="flex-shrink-0">
                                 <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                                     {activePage === 'Alerts' ? 'Project Alerts' :
                                      activePage === 'Company Calendar' ? 'Company Calendar' :
                                      activePage === 'AI Assistant' ? 'AI Assistant' :
                                      activePage === 'AI Tools' ? 'AI Training Tools' :
                                      activePage === 'Archived Projects' ? 'Archived Projects' :
-                                     activePage === 'Activity Feed' ? 'Messages' :
+                                     activePage === 'Project Messages' ? 'Messages' :
                                      activePage === 'Estimator' ? 'Estimate Comparison & Analysis' :
                                      activePage === 'Customers' ? 'Customer Management' :
                                      activePage}
@@ -657,17 +793,28 @@ export default function App() {
                                      activePage === 'AI Assistant' ? 'Get intelligent assistance with project management tasks' :
                                      activePage === 'AI Tools' ? 'Advanced AI-powered construction management tools' :
                                      activePage === 'Archived Projects' ? 'Completed projects and historical records' :
-                                     activePage === 'Activity Feed' ? 'Stay up-to-date with activity feeds and manage important project messages in one place.' :
+                                     activePage === 'Project Messages' ? 'Stay up-to-date with activity feeds and manage important project messages in one place.' :
                                      activePage === 'Estimator' ? 'Upload documents to generate a discrepancy report or a pre-estimate advisory.' :
                                      activePage === 'Customers' ? 'Manage customer information, contacts, and project associations' :
                                      'Project management and construction oversight'}
                                 </p>
                             </div>
                         )}
+                        
+                        {/* Global Search - Center */}
+                        <div className="flex-1 max-w-md mx-8">
+                            <GlobalSearch
+                                projects={projects}
+                                activities={activities}
+                                onNavigateToResult={handleSearchNavigation}
+                                colorMode={colorMode}
+                                className="w-full"
+                            />
+                        </div>
                     </div>
                     
                     {/* User Profile & Settings Area */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                         {/* Notifications */}
                         <button className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
                             <BellIcon />

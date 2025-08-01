@@ -155,7 +155,7 @@ const CustomersPage = ({ colorMode }) => {
           {/* Customer avatar */}
           <div className="relative flex-shrink-0">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
-              {customer.name.charAt(0).toUpperCase()}
+              <UserIcon className="w-4 h-4" />
             </div>
             {/* Project count indicator */}
             <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border border-white flex items-center justify-center text-xs font-bold ${
@@ -282,7 +282,7 @@ const CustomersPage = ({ colorMode }) => {
                   </div>
                   
                   <div className="grid gap-1">
-                    {customer.associatedProjects.map((project) => (
+                    {(customer.associatedProjects || []).map((project) => (
                       <div 
                         key={project._id} 
                         className={`p-1 rounded border transition-all duration-200 hover:shadow-sm ${

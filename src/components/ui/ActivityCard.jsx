@@ -24,8 +24,13 @@ const ActivityCard = ({ activity, onProjectSelect, projects, colorMode }) => {
                 className="flex items-center gap-2 p-2 hover:bg-opacity-80 transition-colors"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                {/* Avatar */}
-                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-[8px] shadow-sm">
+                {/* Avatar - Colored background with white text */}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-[8px] shadow-sm ${
+                    activity.avatar === 'I' ? 'bg-slate-400 text-white' : // Lead phase
+                    activity.avatar === 'J' ? 'bg-blue-600 text-white' : // Prospect phase
+                    activity.avatar === 'T' ? 'bg-amber-500 text-white' : // Approved/Execution/Completion phases
+                    'bg-slate-400 text-white' // Default to Lead phase
+                }`}>
                     {activity.avatar}
                 </div>
                 

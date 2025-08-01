@@ -179,10 +179,10 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             { date: '2024-01-10', title: '🛠️ Tool Maintenance Day', type: 'maintenance', time: '8:00 AM' },
             { date: '2024-01-12', title: '📋 Weekly Safety Briefing', type: 'meeting', time: '7:30 AM' },
             { date: '2024-01-15', title: '📅 Safety Training - Fall Protection', type: 'training', time: '10:00 AM' },
-            { date: '2024-01-16', title: '👥 Site Inspection - Downtown Project', type: 'inspection', time: '9:00 AM' },
+            // { date: '2024-01-16', title: '👥 Site Inspection - Downtown Project', type: 'inspection', time: '9:00 AM' },
             { date: '2024-01-17', title: '📝 Permit Application Deadline', type: 'deadline', time: '5:00 PM' },
             { date: '2024-01-19', title: '📋 Weekly Safety Briefing', type: 'meeting', time: '7:30 AM' },
-            { date: '2024-01-22', title: '👥 Supplier Meeting - Materials', type: 'meeting', time: '11:00 AM' },
+            // { date: '2024-01-22', title: '👥 Supplier Meeting - Materials', type: 'meeting', time: '11:00 AM' },
             { date: '2024-01-23', title: '🔧 Vehicle Maintenance', type: 'maintenance', time: '8:00 AM' },
             { date: '2024-01-24', title: '📊 Project Progress Review', type: 'meeting', time: '1:00 PM' },
             { date: '2024-01-26', title: '📋 Weekly Safety Briefing', type: 'meeting', time: '7:30 AM' },
@@ -234,7 +234,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             { date: '2024-04-02', title: '🔧 Spring Equipment Maintenance', type: 'maintenance', time: '8:00 AM' },
             { date: '2024-04-03', title: '👥 New Project Kickoff Meeting', type: 'meeting', time: '10:00 AM' },
             { date: '2024-04-05', title: '📋 Weekly Safety Briefing', type: 'meeting', time: '7:30 AM' },
-            { date: '2024-04-08', title: '👥 Client Site Visit - Wilson Project', type: 'meeting', time: '11:00 AM' },
+            // { date: '2024-04-08', title: '👥 Client Site Visit - Wilson Project', type: 'meeting', time: '11:00 AM' },
             { date: '2024-04-09', title: '🛠️ Electrical Safety Inspection', type: 'inspection', time: '8:00 AM' },
             { date: '2024-04-10', title: '📅 Ladder Safety Training', type: 'training', time: '10:00 AM' },
             { date: '2024-04-12', title: '📋 Weekly Safety Briefing', type: 'meeting', time: '7:30 AM' },
@@ -838,7 +838,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         } focus:outline-none transition-all duration-200`}
                                     >
                                         <option value="">No project</option>
-                                        {projects.map(project => (
+                                        {(projects || []).map(project => (
                                             <option key={project.id} value={project.id}>
                                                 {project.name}
                                             </option>

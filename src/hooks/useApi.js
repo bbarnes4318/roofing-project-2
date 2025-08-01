@@ -23,13 +23,27 @@ export const useApiCall = (apiFunction, dependencies = []) => {
 
   const fetchData = useCallback(async (...args) => {
     try {
+      console.log('🔍 API: Starting API call...', apiFunction.name);
       setLoading(true);
       setError(null);
       const result = await apiFunction(...args);
-      setData(result.data || result);
+      console.log('✅ API: API call successful:', result);
+      // Handle paginated responses by extracting the data array
+      if (result && result.data && Array.isArray(result.data)) {
+        setData(result.data);
+      } else if (result && result.data) {
+        setData(result.data);
+      } else {
+        setData(result);
+      }
     } catch (err) {
+      console.error('❌ API: API call failed:', err);
+      console.error('❌ API: Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data
+      });
       setError(err.response?.data?.message || err.message || 'An error occurred');
-      console.error('API call failed:', err);
     } finally {
       setLoading(false);
     }
@@ -361,7 +375,6 @@ export const useWorkflowAlerts = (params = {}) => {
       setAlerts(response.data || []);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching workflow alerts:', err);
     } finally {
       setLoading(false);
     }

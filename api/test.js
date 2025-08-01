@@ -27,28 +27,8 @@ const mockUser = {
   role: 'admin'
 };
 
-// Mock projects data
-const mockProjects = [
-  {
-    _id: '507f1f77bcf86cd799439012',
-    name: 'Downtown Office Building',
-    type: 'Commercial',
-    status: 'execution',
-    estimateValue: 850000,
-    progress: 45,
-    startDate: '2024-01-15',
-    endDate: '2024-06-30',
-    client: {
-      name: 'ABC Corporation',
-      phone: '555-0123',
-      email: 'contact@abc-corp.com'
-    },
-    location: '123 Main St, Downtown',
-    priority: 'High',
-    projectManager: 'Ken Admin',
-    accountManager: 'Ken Admin'
-  }
-];
+// All mock data removed - no projects will show
+const mockProjects = [];
 
 // ============== AUTH ROUTES ==============
 

@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const { body, validationResult } = require('express-validator');
+const { PrismaClient } = require('@prisma/client');
 const { 
   asyncHandler, 
   sendSuccess, 
@@ -14,9 +15,8 @@ const {
   managerAndAbove, 
   projectManagerAndAbove 
 } = require('../middleware/auth');
-const Document = require('../models/Document');
-const Project = require('../models/Project');
 
+const prisma = new PrismaClient();
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -75,129 +75,221 @@ const upload = multer({
 
 // Validation rules
 const documentValidation = [
-  body('name')
+  body('fileName')
     .optional()
     .trim()
-    .isLength({ min: 1, max: 200 })
-    .withMessage('Document name must be between 1 and 200 characters'),
+    .isLength({ min: 1, max: 255 })
+    .withMessage('Document name must be between 1 and 255 characters'),
   body('description')
     .optional()
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Description must be less than 1000 characters'),
-  body('category')
+  body('fileType')
     .optional()
-    .isIn(['contract', 'permit', 'blueprint', 'photo', 'invoice', 'report', 'specification', 'correspondence', 'other'])
-    .withMessage('Invalid document category'),
+    .isIn(['BLUEPRINT', 'PERMIT', 'INVOICE', 'PHOTO', 'CONTRACT', 'REPORT', 'SPECIFICATION', 'CORRESPONDENCE', 'OTHER'])
+    .withMessage('Invalid document type'),
   body('projectId')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Project ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Project ID must be a valid UUID'),
   body('tags')
     .optional()
     .isArray()
     .withMessage('Tags must be an array'),
-  body('isPrivate')
+  body('isPublic')
     .optional()
     .isBoolean()
-    .withMessage('isPrivate must be a boolean')
+    .withMessage('isPublic must be a boolean')
 ];
+
+// Helper function to get document type from MIME type
+const getDocumentTypeFromMime = (mimeType) => {
+  const mimeToType = {
+    'application/pdf': 'REPORT',
+    'application/msword': 'CONTRACT',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'CONTRACT',
+    'application/vnd.ms-excel': 'INVOICE',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'INVOICE',
+    'application/vnd.ms-powerpoint': 'REPORT',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'REPORT',
+    'text/plain': 'CORRESPONDENCE',
+    'text/csv': 'REPORT',
+    'image/jpeg': 'PHOTO',
+    'image/png': 'PHOTO',
+    'image/gif': 'PHOTO',
+    'image/webp': 'PHOTO',
+    'application/zip': 'OTHER',
+    'application/x-zip-compressed': 'OTHER'
+  };
+  
+  return mimeToType[mimeType] || 'OTHER';
+};
 
 // @desc    Get all documents with filtering and pagination
 // @route   GET /api/documents
 // @access  Private
 router.get('/', asyncHandler(async (req, res) => {
   const { 
-    category, 
     projectId, 
-    uploadedBy,
+    fileType, 
+    uploadedBy, 
     search, 
     page = 1, 
-    limit = 20,
+    limit = 10,
     sortBy = 'createdAt',
-    sortOrder = 'desc',
-    isPrivate
+    sortOrder = 'desc'
   } = req.query;
 
   // Build filter object
-  let filter = {};
-  
-  // Only show public documents or documents uploaded by current user (unless admin/manager)
-  if (!['admin', 'manager'].includes(req.user.role)) {
-    filter.$or = [
-      { isPrivate: false },
-      { uploadedBy: req.user._id }
-    ];
+  let where = {};
+
+  if (projectId) {
+    where.projectId = projectId;
   }
-  
-  if (category) filter.category = category;
-  if (projectId) filter.projectId = parseInt(projectId);
-  if (uploadedBy) filter.uploadedBy = uploadedBy;
-  if (isPrivate !== undefined) filter.isPrivate = isPrivate === 'true';
-  
-  // Add search functionality
+
+  if (fileType) {
+    where.fileType = fileType.toUpperCase();
+  }
+
+  if (uploadedBy) {
+    where.uploadedById = uploadedBy;
+  }
+
   if (search) {
-    filter.$and = filter.$and || [];
-    filter.$and.push({
-      $or: [
-        { name: new RegExp(search, 'i') },
-        { description: new RegExp(search, 'i') },
-        { originalName: new RegExp(search, 'i') },
-        { tags: { $in: [new RegExp(search, 'i')] } },
-        { projectName: new RegExp(search, 'i') }
-      ]
-    });
+    where.OR = [
+      { fileName: { contains: search, mode: 'insensitive' } },
+      { originalName: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
+      { tags: { has: search } }
+    ];
   }
 
   // Calculate pagination
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const take = parseInt(limit);
 
   // Build sort object
-  const sort = {};
-  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+  let orderBy = {};
+  orderBy[sortBy] = sortOrder.toLowerCase();
 
-  // Execute query with pagination
-  const [documents, total] = await Promise.all([
-    Document.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limitNum)
-      .lean(),
-    Document.countDocuments(filter)
-  ]);
+  // Get documents with relations
+  const documents = await prisma.document.findMany({
+    where,
+    include: {
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      uploadedBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      downloads: {
+        select: {
+          id: true,
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      }
+    },
+    orderBy,
+    skip,
+    take
+  });
 
-  sendPaginatedResponse(res, documents, pageNum, limitNum, total, 'Documents retrieved successfully');
+  // Get total count
+  const total = await prisma.document.count({ where });
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(total / take);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  res.json({
+    success: true,
+    data: {
+      documents,
+      pagination: {
+        page: parseInt(page),
+        limit: take,
+        total,
+        totalPages,
+        hasNextPage,
+        hasPrevPage
+      }
+    }
+  });
 }));
 
-// @desc    Get document by ID
+// @desc    Get single document
 // @route   GET /api/documents/:id
 // @access  Private
 router.get('/:id', asyncHandler(async (req, res, next) => {
-  const document = await Document.findOne({ id: parseInt(req.params.id) });
+  const document = await prisma.document.findUnique({
+    where: { id: req.params.id },
+    include: {
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      uploadedBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      downloads: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }
+    }
+  });
 
   if (!document) {
     return next(new AppError('Document not found', 404));
   }
 
-  // Check access permissions
-  const hasAccess = !document.isPrivate || 
-                   document.uploadedBy.toString() === req.user._id.toString() ||
-                   ['admin', 'manager'].includes(req.user.role);
-
-  if (!hasAccess) {
-    return next(new AppError('Access denied', 403));
-  }
-
-  sendSuccess(res, 200, { document }, 'Document retrieved successfully');
+  res.json({
+    success: true,
+    data: { document }
+  });
 }));
 
 // @desc    Upload new document
 // @route   POST /api/documents
 // @access  Private
 router.post('/', upload.single('file'), documentValidation, asyncHandler(async (req, res, next) => {
-  // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -211,72 +303,81 @@ router.post('/', upload.single('file'), documentValidation, asyncHandler(async (
     return next(new AppError('No file uploaded', 400));
   }
 
-  // Get the highest ID and increment
-  const lastDocument = await Document.findOne().sort({ id: -1 });
-  const newId = lastDocument ? lastDocument.id + 1 : 1;
+  const {
+    fileName,
+    description,
+    fileType,
+    projectId,
+    tags,
+    isPublic,
+    uploadedById
+  } = req.body;
 
-  // Get project name if projectId provided
-  let projectName = '';
-  if (req.body.projectId) {
-    const project = await Project.findOne({ id: parseInt(req.body.projectId) });
-    if (project) {
-      projectName = project.name;
-    }
+  // Verify project exists
+  const project = await prisma.project.findUnique({
+    where: { id: projectId }
+  });
+
+  if (!project) {
+    return next(new AppError('Project not found', 404));
+  }
+
+  // Verify uploader exists
+  const uploader = await prisma.user.findUnique({
+    where: { id: uploadedById }
+  });
+
+  if (!uploader) {
+    return next(new AppError('Uploader not found', 404));
   }
 
   // Create document record
-  const documentData = {
-    id: newId,
-    name: req.body.name || req.file.originalname,
-    description: req.body.description || '',
-    category: req.body.category || 'other',
-    projectId: req.body.projectId ? parseInt(req.body.projectId) : null,
-    projectName,
-    originalName: req.file.originalname,
-    fileName: req.file.filename,
-    filePath: req.file.path,
-    mimeType: req.file.mimetype,
-    fileSize: req.file.size,
-    tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-    isPrivate: req.body.isPrivate === 'true',
-    uploadedBy: req.user._id,
-    uploadedByName: req.user.fullName || `${req.user.firstName} ${req.user.lastName}`,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  const document = await Document.create(documentData);
-
-  // Emit real-time update
-  const io = req.app.get('io');
-  io.emit('document_uploaded', {
-    document,
-    uploadedBy: req.user._id,
-    timestamp: new Date()
+  const document = await prisma.document.create({
+    data: {
+      fileName: fileName || req.file.filename,
+      originalName: req.file.originalname,
+      fileUrl: `/uploads/documents/${req.file.filename}`,
+      mimeType: req.file.mimetype,
+      fileSize: req.file.size,
+      fileType: fileType ? fileType.toUpperCase() : getDocumentTypeFromMime(req.file.mimetype),
+      description,
+      tags: tags ? JSON.parse(tags) : [],
+      isPublic: isPublic === 'true',
+      projectId,
+      uploadedById
+    },
+    include: {
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      uploadedBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      }
+    }
   });
 
-  // If project document, emit to project room
-  if (document.projectId) {
-    io.to(`project_${document.projectId}`).emit('project_document_uploaded', {
-      document,
-      timestamp: new Date()
-    });
-  }
-
-  sendSuccess(res, 201, { document }, 'Document uploaded successfully');
+  res.status(201).json({
+    success: true,
+    message: 'Document uploaded successfully',
+    data: { document }
+  });
 }));
 
-// @desc    Update document metadata
+// @desc    Update document
 // @route   PUT /api/documents/:id
-// @access  Private (Only uploader or manager)
-router.put('/:id', [
-  body('name').optional().trim().isLength({ min: 1, max: 200 }),
-  body('description').optional().trim().isLength({ max: 1000 }),
-  body('category').optional().isIn(['contract', 'permit', 'blueprint', 'photo', 'invoice', 'report', 'specification', 'correspondence', 'other']),
-  body('tags').optional().isArray(),
-  body('isPrivate').optional().isBoolean()
-], asyncHandler(async (req, res, next) => {
-  // Check for validation errors
+// @access  Private
+router.put('/:id', documentValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -286,291 +387,246 @@ router.put('/:id', [
     });
   }
 
-  const documentId = parseInt(req.params.id);
-  const document = await Document.findOne({ id: documentId });
+  const documentId = req.params.id;
+  const {
+    fileName,
+    description,
+    fileType,
+    tags,
+    isPublic
+  } = req.body;
 
-  if (!document) {
+  // Check if document exists
+  const existingDocument = await prisma.document.findUnique({
+    where: { id: documentId }
+  });
+
+  if (!existingDocument) {
     return next(new AppError('Document not found', 404));
   }
 
-  // Check permissions
-  const canEdit = document.uploadedBy.toString() === req.user._id.toString() ||
-                 ['admin', 'manager'].includes(req.user.role);
+  // Prepare update data
+  const updateData = {
+    fileName,
+    description,
+    fileType: fileType ? fileType.toUpperCase() : undefined,
+    tags: tags ? JSON.parse(tags) : undefined,
+    isPublic: isPublic === 'true'
+  };
 
-  if (!canEdit) {
-    return next(new AppError('Access denied', 403));
-  }
-
-  // Update document
-  const updatedDocument = await Document.findOneAndUpdate(
-    { id: documentId },
-    { ...req.body, updatedAt: new Date() },
-    { new: true, runValidators: true }
-  );
-
-  // Emit real-time update
-  const io = req.app.get('io');
-  io.emit('document_updated', {
-    document: updatedDocument,
-    updatedBy: req.user._id,
-    timestamp: new Date()
+  // Remove undefined values
+  Object.keys(updateData).forEach(key => {
+    if (updateData[key] === undefined) {
+      delete updateData[key];
+    }
   });
 
-  sendSuccess(res, 200, { document: updatedDocument }, 'Document updated successfully');
+  // Update document
+  const updatedDocument = await prisma.document.update({
+    where: { id: documentId },
+    data: updateData,
+    include: {
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      uploadedBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      }
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Document updated successfully',
+    data: { document: updatedDocument }
+  });
 }));
 
 // @desc    Delete document
 // @route   DELETE /api/documents/:id
-// @access  Private (Only uploader or manager)
+// @access  Private
 router.delete('/:id', asyncHandler(async (req, res, next) => {
-  const documentId = parseInt(req.params.id);
-  const document = await Document.findOne({ id: documentId });
+  const document = await prisma.document.findUnique({
+    where: { id: req.params.id }
+  });
 
   if (!document) {
     return next(new AppError('Document not found', 404));
   }
 
-  // Check permissions
-  const canDelete = document.uploadedBy.toString() === req.user._id.toString() ||
-                   ['admin', 'manager'].includes(req.user.role);
-
-  if (!canDelete) {
-    return next(new AppError('Access denied', 403));
-  }
-
   // Delete file from filesystem
   try {
-    await fs.unlink(document.filePath);
+    const filePath = path.join(__dirname, '..', document.fileUrl);
+    await fs.unlink(filePath);
   } catch (error) {
     console.error('Error deleting file:', error);
     // Continue with database deletion even if file deletion fails
   }
 
-  // Delete document record
-  await Document.findOneAndDelete({ id: documentId });
-
-  // Emit real-time update
-  const io = req.app.get('io');
-  io.emit('document_deleted', {
-    documentId,
-    deletedBy: req.user._id,
-    timestamp: new Date()
+  // Delete from database
+  await prisma.document.delete({
+    where: { id: req.params.id }
   });
 
-  sendSuccess(res, 200, null, 'Document deleted successfully');
+  res.json({
+    success: true,
+    message: 'Document deleted successfully'
+  });
 }));
 
 // @desc    Download document
 // @route   GET /api/documents/:id/download
 // @access  Private
 router.get('/:id/download', asyncHandler(async (req, res, next) => {
-  const document = await Document.findOne({ id: parseInt(req.params.id) });
+  const document = await prisma.document.findUnique({
+    where: { id: req.params.id }
+  });
 
   if (!document) {
     return next(new AppError('Document not found', 404));
   }
 
-  // Check access permissions
-  const hasAccess = !document.isPrivate || 
-                   document.uploadedBy.toString() === req.user._id.toString() ||
-                   ['admin', 'manager'].includes(req.user.role);
-
-  if (!hasAccess) {
-    return next(new AppError('Access denied', 403));
-  }
-
-  // Check if file exists
-  try {
-    await fs.access(document.filePath);
-  } catch (error) {
-    return next(new AppError('File not found on server', 404));
-  }
+  // Record download
+  await prisma.documentDownload.create({
+    data: {
+      documentId: document.id,
+      userId: req.user.id
+    }
+  });
 
   // Update download count
-  await Document.findOneAndUpdate(
-    { id: document.id },
-    { 
-      $inc: { downloadCount: 1 },
-      lastDownloadedAt: new Date(),
-      lastDownloadedBy: req.user._id
+  await prisma.document.update({
+    where: { id: document.id },
+    data: {
+      downloadCount: { increment: 1 },
+      lastDownloadedAt: new Date()
     }
-  );
-
-  // Set headers for download
-  res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
-  res.setHeader('Content-Type', document.mimeType);
+  });
 
   // Send file
-  res.sendFile(path.resolve(document.filePath));
+  const filePath = path.join(__dirname, '..', document.fileUrl);
+  res.download(filePath, document.originalName);
 }));
 
 // @desc    Get documents by project
 // @route   GET /api/documents/project/:projectId
 // @access  Private
-router.get('/project/:projectId', asyncHandler(async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
-  const { category, limit = 50 } = req.query;
+router.get('/project/:projectId', asyncHandler(async (req, res, next) => {
+  const { projectId } = req.params;
+  const { fileType, uploadedBy } = req.query;
 
-  // Build filter object
-  let filter = { projectId };
-  
-  // Only show public documents or documents uploaded by current user (unless admin/manager)
-  if (!['admin', 'manager'].includes(req.user.role)) {
-    filter.$or = [
-      { isPrivate: false },
-      { uploadedBy: req.user._id }
-    ];
+  let where = { projectId };
+
+  if (fileType) {
+    where.fileType = fileType.toUpperCase();
   }
-  
-  if (category) filter.category = category;
 
-  const documents = await Document.find(filter)
-    .sort({ createdAt: -1 })
-    .limit(parseInt(limit))
-    .lean();
-
-  sendSuccess(res, 200, { documents, count: documents.length }, 'Project documents retrieved successfully');
-}));
-
-// @desc    Get documents by category
-// @route   GET /api/documents/category/:category
-// @access  Private
-router.get('/category/:category', asyncHandler(async (req, res) => {
-  const category = req.params.category;
-  const { projectId, limit = 50 } = req.query;
-
-  // Build filter object
-  let filter = { category };
-  
-  // Only show public documents or documents uploaded by current user (unless admin/manager)
-  if (!['admin', 'manager'].includes(req.user.role)) {
-    filter.$or = [
-      { isPrivate: false },
-      { uploadedBy: req.user._id }
-    ];
+  if (uploadedBy) {
+    where.uploadedById = uploadedBy;
   }
-  
-  if (projectId) filter.projectId = parseInt(projectId);
 
-  const documents = await Document.find(filter)
-    .sort({ createdAt: -1 })
-    .limit(parseInt(limit))
-    .lean();
+  const documents = await prisma.document.findMany({
+    where,
+    include: {
+      uploadedBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
 
-  sendSuccess(res, 200, { documents, count: documents.length }, 'Category documents retrieved successfully');
+  res.json({
+    success: true,
+    data: { documents }
+  });
 }));
 
 // @desc    Get document statistics
 // @route   GET /api/documents/stats/overview
-// @access  Private (Manager and above)
-router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => {
-  const stats = await Document.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalDocuments: { $sum: 1 },
-        totalSize: { $sum: '$fileSize' },
-        averageSize: { $avg: '$fileSize' },
-        totalDownloads: { $sum: '$downloadCount' }
-      }
-    }
-  ]);
-
-  const categoryStats = await Document.aggregate([
-    {
-      $group: {
-        _id: '$category',
-        count: { $sum: 1 },
-        totalSize: { $sum: '$fileSize' }
-      }
-    }
-  ]);
-
-  const mimeTypeStats = await Document.aggregate([
-    {
-      $group: {
-        _id: '$mimeType',
-        count: { $sum: 1 }
-      }
-    }
-  ]);
-
-  const uploaderStats = await Document.aggregate([
-    {
-      $group: {
-        _id: '$uploadedBy',
-        count: { $sum: 1 },
-        uploaderName: { $first: '$uploadedByName' }
-      }
-    },
-    {
-      $sort: { count: -1 }
-    },
-    {
-      $limit: 10
-    }
-  ]);
-
-  const overview = stats[0] || {
-    totalDocuments: 0,
-    totalSize: 0,
-    averageSize: 0,
-    totalDownloads: 0
-  };
-
-  sendSuccess(res, 200, {
-    overview,
-    byCategory: categoryStats,
-    byMimeType: mimeTypeStats,
-    topUploaders: uploaderStats
-  }, 'Document statistics retrieved successfully');
-}));
-
-// @desc    Search documents
-// @route   GET /api/documents/search/query
 // @access  Private
-router.get('/search/query', asyncHandler(async (req, res) => {
-  const { q, limit = 10 } = req.query;
+router.get('/stats/overview', asyncHandler(async (req, res) => {
+  const { projectId } = req.query;
 
-  if (!q || q.trim().length < 2) {
-    return res.status(400).json({
-      success: false,
-      message: 'Search query must be at least 2 characters long'
-    });
+  let where = {};
+
+  if (projectId) {
+    where.projectId = projectId;
   }
 
-  const searchRegex = new RegExp(q.trim(), 'i');
-  
-  // Build filter for access control
-  let filter = {
-    $or: [
-      { name: searchRegex },
-      { description: searchRegex },
-      { originalName: searchRegex },
-      { tags: { $in: [searchRegex] } },
-      { projectName: searchRegex }
-    ]
-  };
-
-  // Only show public documents or documents uploaded by current user (unless admin/manager)
-  if (!['admin', 'manager'].includes(req.user.role)) {
-    filter.$and = [
-      filter,
-      {
-        $or: [
-          { isPrivate: false },
-          { uploadedBy: req.user._id }
-        ]
+  const [
+    totalDocuments,
+    totalSize,
+    documentsByType,
+    mostDownloaded,
+    recentUploads
+  ] = await Promise.all([
+    prisma.document.count({ where }),
+    prisma.document.aggregate({
+      where,
+      _sum: { fileSize: true }
+    }),
+    prisma.document.groupBy({
+      by: ['fileType'],
+      where,
+      _count: { fileType: true }
+    }),
+    prisma.document.findMany({
+      where,
+      orderBy: { downloadCount: 'desc' },
+      take: 5,
+      include: {
+        project: {
+          select: {
+            id: true,
+            projectNumber: true,
+            projectName: true
+          }
+        }
       }
-    ];
-  }
+    }),
+    prisma.document.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      include: {
+        uploadedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true
+          }
+        }
+      }
+    })
+  ]);
 
-  const documents = await Document.find(filter)
-    .limit(parseInt(limit))
-    .select('id name category projectName uploadedByName createdAt fileSize')
-    .lean();
-
-  sendSuccess(res, 200, { documents, count: documents.length }, 'Search results retrieved successfully');
+  res.json({
+    success: true,
+    data: {
+      totalDocuments,
+      totalSize: totalSize._sum.fileSize || 0,
+      documentsByType,
+      mostDownloaded,
+      recentUploads
+    }
+  });
 }));
 
 module.exports = router; 

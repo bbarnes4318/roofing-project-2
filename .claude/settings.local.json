@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm start)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(taskkill:*)",
+      "Bash(wmic process where:*)",
+      "Bash(powershell:*)",
+      "Bash(npm run:*)",
+      "Bash(start test-frontend.html)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(npx eslint:*)",
+      "Bash(sed:*)",
+      "Bash(wmic:*)"
+    ],
+    "deny": []
+  },
+  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+}

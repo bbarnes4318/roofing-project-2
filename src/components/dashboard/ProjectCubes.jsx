@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
+import WorkflowProgressService from '../../services/workflowProgress';
+import { useWorkflowStates } from '../../hooks/useWorkflowState';
 
 const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
   // Show all projects instead of just active ones
-  const allProjects = projects;
+  const allProjects = projects || [];
+  
+  // CRITICAL: Use centralized workflow states for 100% consistency
+  const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(allProjects);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -42,114 +47,76 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
     }));
   };
 
-  // Mock function to check for new messages/alerts - replace with actual data source
+  // Check for new messages/alerts from actual project data
   const hasNewMessages = (project) => {
-    // Mock logic - use project ID to determine notifications for consistency
-    return project.id % 3 === 0; // Every 3rd project has new messages
+    // Use actual project data - check if project has unread messages
+    return project.hasUnreadMessages || false;
   };
 
   const hasNewAlerts = (project) => {
-    // Mock logic - use project ID to determine notifications for consistency
-    return project.id % 4 === 0; // Every 4th project has new alerts
+    // Use actual project data - check if project has active alerts
+    return project.hasActiveAlerts || false;
   };
 
-  // Function to determine if project should have multiple trades (3 random projects)
+  // Function to determine if project has multiple trades from actual data
   const shouldHaveMultipleTrades = (projectId) => {
-    // Use project ID to consistently determine which projects get multiple trades
-    return [1, 3, 5].includes(projectId); // Projects with IDs 1, 3, and 5 get multiple trades
+    // This should come from actual project data
+    return false; // Will be determined by actual project trades data
   };
 
-  // Function to get trades for a project
+  // Function to get trades for a project from actual data
   const getProjectTrades = (project) => {
-    if (shouldHaveMultipleTrades(project.id)) {
-      // Multiple trades for selected projects - different numbers for each
-      if (project.id === 1) {
-        // Project 1: Add 2 trades
-        return [
-          { name: 'Roofing', laborProgress: 75, materialsDelivered: true },
-          { name: 'Siding', laborProgress: 45, materialsDelivered: true },
-          { name: 'Windows', laborProgress: 20, materialsDelivered: false }
-        ];
-      } else if (project.id === 3) {
-        // Project 3: Add 3 trades
-        return [
-          { name: 'Roofing', laborProgress: 60, materialsDelivered: true },
-          { name: 'Siding', laborProgress: 30, materialsDelivered: false },
-          { name: 'Windows', laborProgress: 15, materialsDelivered: true },
-          { name: 'Decking', laborProgress: 0, materialsDelivered: false }
-        ];
-      } else if (project.id === 5) {
-        // Project 5: Add 2 trades
-        return [
-          { name: 'Roofing', laborProgress: 85, materialsDelivered: true },
-          { name: 'Siding', laborProgress: 55, materialsDelivered: true },
-          { name: 'Windows', laborProgress: 25, materialsDelivered: false }
-        ];
-      }
-    } else {
-      // Single trade based on project type
-      const tradeName = project.type || 'General';
-      return [
-        { 
-          name: tradeName, 
-          laborProgress: project.progress || 0, 
-          materialsDelivered: Math.random() > 0.3 // 70% chance materials are delivered
-        }
-      ];
+    // Use actual project trades data if available
+    if (project.trades && project.trades.length > 0) {
+      return project.trades;
     }
+    
+    // Default to single trade based on project type if no trades data
+    const tradeName = project.projectType || project.type || 'General';
+    return [
+      { 
+        name: tradeName, 
+        laborProgress: project.progress || 0, 
+        materialsDelivered: project.materialsDelivered || false
+      }
+    ];
   };
 
   const getPhaseColor = (phase) => {
-    switch (phase?.toLowerCase()) {
-      case 'lead':
-      case 'lead phase':
-        return 'from-gray-400 to-gray-600';
-      case 'prospect':
-      case 'prospect phase':
-        return 'from-orange-500 to-orange-600';
-      case 'approved':
-      case 'approved phase':
-        return 'from-green-500 to-green-600';
-      case 'execution':
-      case 'execution phase':
-        return 'from-blue-500 to-blue-600';
-      case 'supplement':
-      case '2nd supplement':
-      case '2nd supplement phase':
-        return 'from-yellow-500 to-yellow-600';
-      case 'completion':
-      case 'completion phase':
-        return 'from-teal-500 to-teal-600';
-      default:
-        return 'from-gray-500 to-gray-600';
-    }
+    // Normalize the phase string to match WorkflowProgressService format
+    const normalizedPhase = phase?.toUpperCase()
+      .replace(/\s*PHASE$/i, '')
+      .replace('2ND SUPPLEMENT', '2ND_SUPP')
+      .replace('SECOND SUPP', '2ND_SUPP');
+    
+    return WorkflowProgressService.getPhaseColor(normalizedPhase);
   };
 
   const getPhaseText = (phase) => {
     if (!phase) return 'Unknown';
-    return phase.replace(/\s*phase$/i, '').replace('Phase-', '').replace('Phase', '').replace(/-Insurance-1st Supplement/i, '-Insurance-1st Supplement');
+    return phase.replace(/\s*phase$/i, '').replace('Phase-', '').replace('Phase', '').replace(/-Insurance-1st Supplement/i, '');
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'lead':
-        return 'from-gray-400 to-gray-600';
+        return 'from-blue-500 to-blue-600';
       case 'prospect':
-        return 'from-orange-500 to-orange-600';
+        return 'from-teal-500 to-teal-600';
       case 'approved':
       case 'approved-phase':
-        return 'from-green-500 to-green-600';
+        return 'from-purple-500 to-purple-600';
       case 'execution':
       case 'active':
       case 'in-progress':
-        return 'from-blue-500 to-blue-600'; // Map active/in-progress to Execution (blue)
+        return 'from-orange-500 to-orange-600'; // Map active/in-progress to Execution (orange)
       case 'supplement':
-        return 'from-yellow-500 to-yellow-600';
+        return 'from-pink-500 to-pink-600';
       case 'completed':
       case 'completion':
-        return 'from-teal-500 to-teal-600';
+        return 'from-green-500 to-green-600';
       default:
-        return 'from-purple-500 to-purple-600'; // Default to Lead (purple)
+        return 'from-blue-500 to-blue-600'; // Default to Lead (blue)
     }
   };
 
@@ -171,7 +138,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
       case 'completion':
         return 'Completion';
       case 'prospect':
-        return 'Insurance-1st Supplement';
+        return 'Prospect';
       default:
         return 'Lead';
     }
@@ -227,7 +194,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
       <div className={`px-6 py-5 border-b ${colorMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-white/80'} rounded-t-2xl`}>
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h2 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-1`}>Current Project Access</h2>
+            <h2 className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-1`}>Current Project Access</h2>
             <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Quick access to project management tools and communications</p>
           </div>
           
@@ -329,92 +296,152 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 <div className={`p-2 border-b ${colorMode ? 'border-slate-600/50 bg-slate-700/50' : 'border-gray-100 bg-gray-50/50'}`}>
                   <div className="flex items-start justify-between mb-1">
                     <div className="flex-1 min-w-0">
+                      {/* Project Number and Primary Contact at top left */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <button
+                          onClick={() => onProjectSelect(project, 'Projects', null, 'Project Cubes')}
+                          className={`text-[9px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                          title={`View project ${project.projectNumber || project.id}`}
+                        >
+                          {project.projectNumber || `PRJ-${project.id}`}
+                        </button>
+                        
+                        {/* Primary Contact with dropdown arrow */}
+                        <button
+                          onClick={() => toggleCustomerInfo(project.id || project._id)}
+                          className={`flex items-center gap-1 text-[9px] font-semibold hover:underline transition-all duration-200 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'}`}
+                        >
+                          <span>{project.client?.name || 'Unknown Client'}</span>
+                          <svg 
+                            className={`w-2.5 h-2.5 transition-transform duration-200 ${expandedCustomers[project.id || project._id] ? 'rotate-180' : ''}`} 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
                       <button
                         onClick={() => onProjectSelect(project, 'Projects', null, 'Project Cubes')}
-                        className={`text-[7px] font-bold truncate text-left w-full hover:underline transition-all duration-200 ${colorMode ? 'text-white hover:text-blue-300' : 'text-gray-800 hover:text-blue-600'}`}
+                        className={`text-[9px] font-bold truncate text-left w-full hover:underline transition-all duration-200 ${colorMode ? 'text-white hover:text-blue-300' : 'text-gray-800 hover:text-blue-600'}`}
                         title={`View ${project.name} details`}
                       >
                         {project.name}
                       </button>
                     </div>
-                    <div className={`ml-2 px-1 py-0.5 rounded-full text-[6px] font-semibold bg-gradient-to-r ${getPhaseColor(project.phase)} text-white shadow-sm`}>
+                    <div className={`ml-2 px-1 py-0.5 ${getPhaseColor(project.phase).bg} rounded-full text-[8px] font-semibold ${getPhaseColor(project.phase).text} shadow-sm`}>
                       {getPhaseText(project.phase)}
                     </div>
                   </div>
                 </div>
                 
-                {/* Customer Information Section - Collapsible */}
-                <div className={`mb-2 rounded-lg border transition-colors ${colorMode ? 'bg-slate-700/20 border-slate-600/30' : 'bg-gray-50/90 border-gray-200/50'}`}>
-                  <button
-                    onClick={() => toggleCustomerInfo(project.id)}
-                    className={`w-full p-1.5 flex items-center justify-between transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-50'}`}
-                  >
-                    <div className="flex items-center gap-1">
-                      <svg className="w-2 h-2 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className={`text-[6px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Customer Info</span>
+                {/* Customer Information Dropdown - Appears when contact name is clicked */}
+                {expandedCustomers[project.id || project._id] && (
+                  <div className={`mb-2 rounded-lg border transition-colors ${colorMode ? 'bg-slate-700/20 border-slate-600/30' : 'bg-gray-50/90 border-gray-200/50'}`}>
+                    <div className="px-1.5 pb-1.5">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Customer Information - Left Column */}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1 mb-1">
+                            <svg className="w-2 h-2 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Customer</span>
+                          </div>
+                          <div className="mb-1">
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                              {project.client?.name || 'Unknown Client'}
+                            </span>
+                          </div>
+                          <div className="mb-1">
+                            <span className={`text-[8px] ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                              {project.client?.address || project.clientAddress || '123 Main Street, City, State 12345'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Phone:</span>
+                            <a 
+                              href={`tel:${(project.client?.phone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+                              title={formatPhoneNumber(project.client?.phone)}
+                            >
+                              {formatPhoneNumber(project.client?.phone)}
+                            </a>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Email:</span>
+                            <a 
+                              href={`mailto:${project.client?.email || 'client@email.com'}`} 
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+                              title={project.client?.email || 'client@email.com'}
+                            >
+                              {project.client?.email || 'client@email.com'}
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Project Manager Information - Right Column */}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1 mb-1">
+                            <svg className="w-2 h-2 text-green-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Manager</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name:</span>
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'Sarah Johnson'}>
+                              {project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'Sarah Johnson'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Phone:</span>
+                            <a 
+                              href={`tel:${(project.pmPhone || project.projectManager?.phone || '(555) 987-6543').replace(/[^\d+]/g, '')}`} 
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-700'}`}
+                              title={formatPhoneNumber(project.pmPhone || project.projectManager?.phone)}
+                            >
+                              {formatPhoneNumber(project.pmPhone || project.projectManager?.phone || '(555) 987-6543')}
+                            </a>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Email:</span>
+                            <a 
+                              href={`mailto:${project.pmEmail || project.projectManager?.email || 'sarah.johnson@company.com'}`} 
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-700'}`}
+                              title={project.pmEmail || project.projectManager?.email || 'sarah.johnson@company.com'}
+                            >
+                              {project.pmEmail || project.projectManager?.email || 'sarah.johnson@company.com'}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <svg 
-                      className={`w-2.5 h-2.5 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedCustomers[project.id] ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  
-                  {expandedCustomers[project.id] && (
-                    <div className="px-1.5 pb-1.5 space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[6px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name:</span>
-                        <span className={`text-[6px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-28`} title={project.client?.name || 'Unknown Client'}>
-                          {project.client?.name || 'Unknown Client'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[6px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone:</span>
-                        <a 
-                          href={`tel:${(project.client?.phone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                          className={`text-[6px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-28 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
-                          title={formatPhoneNumber(project.client?.phone)}
-                        >
-                          {formatPhoneNumber(project.client?.phone)}
-                        </a>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[6px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email:</span>
-                        <a 
-                          href={`mailto:${project.client?.email || 'client@email.com'}`} 
-                          className={`text-[6px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-32 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
-                          title={project.client?.email || 'client@email.com'}
-                        >
-                          {project.client?.email || 'client@email.com'}
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Enhanced Progress Bar Section */}
-                <div className={`p-2 mb-2 rounded-lg ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
+                <div className={`p-2 mb-2 rounded-lg transition-all duration-300 relative ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'} ${expandedProgress[`${project.id || project._id}-materials-labor`] ? (colorMode ? 'border-8 border-blue-400 shadow-2xl shadow-blue-400/50 bg-blue-900/20' : 'border-8 border-blue-500 shadow-2xl shadow-blue-500/50 bg-blue-100') : ''}`}>
                   {/* Row 1: Main Project Progress Bar (clickable to expand) */}
                   <div className="mb-2">
                     <button
-                      onClick={() => toggleProgressExpansion(project.id, 'materials-labor')}
+                      onClick={() => toggleProgressExpansion(project.id || project._id, 'materials-labor')}
                       className={`w-full text-left transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'} rounded p-1`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-[6px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Overall Project Progress</span>
+                        <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Overall Project Progress</span>
                         <div className="flex items-center gap-1">
-                          <span className={`text-[6px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                          <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                             {Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%
                           </span>
                           <svg 
-                            className={`w-2.5 h-2.5 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id}-materials-labor`] ? 'rotate-180' : ''}`} 
+                            className={`w-2.5 h-2.5 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id || project._id}-materials-labor`] ? 'rotate-180' : ''}`} 
                             fill="none" 
                             stroke="currentColor" 
                             viewBox="0 0 24 24"
@@ -425,42 +452,37 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       </div>
                       <div className={`w-full h-2 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                         <div 
-                          className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500" 
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
                           style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
                         ></div>
                       </div>
                     </button>
                     
                     {/* Materials and Labor Progress Bars (expandable) */}
-                    {expandedProgress[`${project.id}-materials-labor`] && (
+                    {expandedProgress[`${project.id || project._id}-materials-labor`] && (
                       <div className="space-y-2 mt-2">
                         {/* Materials Progress */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className={`text-[5px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials Progress</span>
-                            <span className={`text-[5px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                              {Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%
-                            </span>
+                            <span className={`text-[7px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials Progress</span>
+                            <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%</span>
                           </div>
                           <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                             <div 
-                              className="bg-gradient-to-r from-green-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500" 
+                              className="bg-green-500 h-1.5 rounded-full transition-all duration-500" 
                               style={{ width: `${Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%` }}
                             ></div>
                           </div>
                         </div>
-                        
                         {/* Labor Progress */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className={`text-[5px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor Progress</span>
-                            <span className={`text-[5px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                              {Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%
-                            </span>
+                            <span className={`text-[7px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor Progress</span>
+                            <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%</span>
                           </div>
                           <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                             <div 
-                              className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500" 
+                              className="bg-orange-400 h-1.5 rounded-full transition-all duration-500" 
                               style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
                             ></div>
                           </div>
@@ -470,15 +492,15 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                   </div>
 
                   {/* Row 3: Individual Trades Progress Bars (only visible when materials-labor is expanded) */}
-                  {expandedProgress[`${project.id}-materials-labor`] && (
+                  {expandedProgress[`${project.id || project._id}-materials-labor`] && (
                     <div>
                       <button
-                        onClick={() => toggleProgressExpansion(project.id, 'trades')}
+                        onClick={() => toggleProgressExpansion(project.id || project._id, 'trades')}
                         className={`w-full flex items-center justify-between p-1 rounded transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'}`}
                       >
-                        <span className={`text-[6px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Individual Trades</span>
+                        <span className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Individual Trades</span>
                         <svg 
-                          className={`w-2.5 h-2.5 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id}-trades`] ? 'rotate-180' : ''}`} 
+                          className={`w-2.5 h-2.5 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id || project._id}-trades`] ? 'rotate-180' : ''}`} 
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24"
@@ -486,24 +508,38 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
-                      
-                      {expandedProgress[`${project.id}-trades`] && (
+                      {expandedProgress[`${project.id || project._id}-trades`] && (
                         <div className="space-y-2 mt-2">
-                          {projectTrades.map((trade, index) => (
-                            <div key={index}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className={`text-[5px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.name}</span>
-                                <span className={`text-[5px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.laborProgress}%</span>
+                          {projectTrades.map((trade, index) => {
+                            // Cycle through a palette of solid colors
+                            const tradeColors = [
+                              'bg-purple-500',
+                              'bg-pink-500',
+                              'bg-yellow-500',
+                              'bg-teal-500',
+                              'bg-red-500',
+                              'bg-indigo-500',
+                              'bg-cyan-500',
+                              'bg-amber-500',
+                              'bg-lime-500',
+                              'bg-fuchsia-500',
+                            ];
+                            const barColor = tradeColors[index % tradeColors.length];
+                            return (
+                              <div key={index}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className={`text-[7px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.name}</span>
+                                  <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.laborProgress}%</span>
+                                </div>
+                                <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                  <div 
+                                    className={`${barColor} h-1.5 rounded-full transition-all duration-500`} 
+                                    style={{ width: `${trade.laborProgress}%` }}
+                                  ></div>
+                                </div>
                               </div>
-                              <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                <div 
-                                  className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500" 
-                                  style={{ width: `${trade.laborProgress}%` }}
-                                ></div>
-                              </div>
-
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -514,14 +550,14 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 <div className="grid grid-cols-3 gap-2 gap-y-4 mb-4 mt-4">
                   <button
                     onClick={() => onProjectSelect(project, 'Project Workflow')}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
                   >
                     <span className="mb-0.5">🗂️</span>
                     Project Workflow
                   </button>
                   <button
                     onClick={() => onProjectSelect(project, 'Alerts')}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[7px] font-semibold relative ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold relative ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
                   >
                     <span className="mb-0.5">⚠️</span>
                     Alerts
@@ -531,7 +567,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                   </button>
                   <button
                     onClick={() => onProjectSelect(project, 'Messages')}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[7px] font-semibold relative ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold relative ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
                   >
                     <span className="mb-0.5">💬</span>
                     Messages
@@ -542,7 +578,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                   <button
                     onClick={() => {}}
                     disabled={true}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
                   >
                     <span className="mb-0.5">📄</span>
                     Project Documents
@@ -550,7 +586,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                   <button
                     onClick={() => onProjectSelect(project, 'Project Schedule')}
                     disabled
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
                   >
                     <span className="mb-0.5">📅</span>
                     Project Schedules
@@ -563,7 +599,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       };
                       onProjectSelect(projectWithScrollId, 'Projects', null, 'Project Cubes');
                     }}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
                   >
                     <span className="mb-0.5 flex flex-col items-center">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

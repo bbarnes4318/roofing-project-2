@@ -1,8 +1,7 @@
 const cron = require('node-cron');
-const ProjectWorkflow = require('../models/ProjectWorkflow');
-const Notification = require('../models/Notification');
-const User = require('../models/User');
-const Project = require('../models/Project');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 class AlertSchedulerService {
   constructor() {
@@ -51,49 +50,82 @@ class AlertSchedulerService {
       console.log('🔍 Checking workflow alerts...');
       
       // Get all active workflows with populated project data
-      const workflows = await ProjectWorkflow.find({
-        status: { $in: ['not_started', 'in_progress'] }
-      })
-        .populate('project', 'projectName customer')
-        .populate('steps.assignedTo', 'firstName lastName email')
-        .populate('teamAssignments.office teamAssignments.administration teamAssignments.project_manager teamAssignments.field_director teamAssignments.roof_supervisor', 'firstName lastName email');
+      const workflows = await prisma.projectWorkflow.findMany({
+        where: {
+          status: { in: ['NOT_STARTED', 'IN_PROGRESS'] }
+        },
+        include: {
+          project: {
+            select: {
+              id: true,
+              projectName: true,
+                             customer: {
+                 select: {
+                   id: true,
+                   primaryName: true
+                 }
+               }
+            }
+          },
+          steps: {
+            include: {
+              assignedTo: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true
+                }
+              },
+              subTasks: true
+            }
+          },
+
+        }
+      });
 
       let totalAlerts = 0;
       let skippedWorkflows = 0;
 
       for (const workflow of workflows) {
         // CRITICAL: Skip workflows with deleted projects or no steps
-        if (!workflow.project || !workflow.project._id || !workflow.steps || workflow.steps.length === 0) {
+        if (!workflow.project || !workflow.project.id || !workflow.steps || workflow.steps.length === 0) {
           if (!workflow.project) {
-            console.log(`⚠️ Skipping workflow ${workflow._id} - associated project was deleted`);
+            console.log(`⚠️ Skipping workflow ${workflow.id} - associated project was deleted`);
             skippedWorkflows++;
             
             // Clean up orphaned workflows
             try {
-              await ProjectWorkflow.findByIdAndDelete(workflow._id);
-              console.log(`🧹 Cleaned up orphaned workflow ${workflow._id}`);
+              await prisma.projectWorkflow.delete({
+                where: { id: workflow.id }
+              });
+              console.log(`🧹 Cleaned up orphaned workflow ${workflow.id}`);
             } catch (cleanupError) {
-              console.error(`❌ Error cleaning up orphaned workflow ${workflow._id}:`, cleanupError);
+              console.error(`❌ Error cleaning up orphaned workflow ${workflow.id}:`, cleanupError);
             }
           } else if (!workflow.steps || workflow.steps.length === 0) {
-            console.log(`⚠️ Skipping workflow ${workflow._id} - no steps defined`);
+            console.log(`⚠️ Skipping workflow ${workflow.id} - no steps defined`);
             skippedWorkflows++;
           }
           continue;
         }
 
         // Additional validation: Check if project actually exists in database
-        const projectExists = await Project.findById(workflow.project._id);
+        const projectExists = await prisma.project.findUnique({
+          where: { id: workflow.project.id }
+        });
         if (!projectExists) {
-          console.log(`⚠️ Skipping workflow ${workflow._id} - project ${workflow.project._id} not found in database`);
+          console.log(`⚠️ Skipping workflow ${workflow.id} - project ${workflow.project.id} not found in database`);
           skippedWorkflows++;
           
           // Clean up workflow for non-existent project
           try {
-            await ProjectWorkflow.findByIdAndDelete(workflow._id);
-            console.log(`🧹 Cleaned up workflow ${workflow._id} for non-existent project`);
+            await prisma.projectWorkflow.delete({
+              where: { id: workflow.id }
+            });
+            console.log(`🧹 Cleaned up workflow ${workflow.id} for non-existent project`);
           } catch (cleanupError) {
-            console.error(`❌ Error cleaning up workflow ${workflow._id}:`, cleanupError);
+            console.error(`❌ Error cleaning up workflow ${workflow.id}:`, cleanupError);
           }
           continue;
         }
@@ -134,29 +166,29 @@ class AlertSchedulerService {
   // Determine if an alert should be sent and what priority
   determineAlertPriority(step, daysUntilDue, daysOverdue) {
     const alertTriggers = step.alertTriggers || {};
-    const priority = alertTriggers.priority || 'Medium';
+    const priority = alertTriggers.priority || 'MEDIUM';
     
     // If overdue, always send alert
     if (daysOverdue > 0) {
       const overdueIntervals = alertTriggers.overdueIntervals || [1, 3, 7, 14];
       if (overdueIntervals.includes(daysOverdue)) {
-        return 'High'; // Overdue items are always high priority
+        return 'HIGH'; // Overdue items are always high priority
       }
       return null;
     }
 
     // Check based on priority level
     switch (priority) {
-      case 'High': // Urgent - same day
-        if (daysUntilDue <= 0) return 'High';
+      case 'HIGH': // Urgent - same day
+        if (daysUntilDue <= 0) return 'HIGH';
         break;
       
-      case 'Medium': // Important - 24-48 hrs (1-2 days)
-        if (daysUntilDue <= 2 && daysUntilDue >= 0) return 'Medium';
+      case 'MEDIUM': // Important - 24-48 hrs (1-2 days)
+        if (daysUntilDue <= 2 && daysUntilDue >= 0) return 'MEDIUM';
         break;
       
-      case 'Low': // Within a few days (3-5 days)
-        if (daysUntilDue <= 5 && daysUntilDue >= 0) return 'Low';
+      case 'LOW': // Within a few days (3-5 days)
+        if (daysUntilDue <= 5 && daysUntilDue >= 0) return 'LOW';
         break;
     }
 
@@ -184,7 +216,7 @@ class AlertSchedulerService {
       const alertMessage = this.generateAlertMessage(workflow, step, alertPriority, daysUntilDue, daysOverdue);
       
       // Check if we've already sent this alert recently (avoid spam)
-      const recentAlert = await this.checkRecentAlert(workflow.project._id, step.stepId, alertPriority.toLowerCase());
+      const recentAlert = await this.checkRecentAlert(workflow.project.id, step.id, alertPriority.toLowerCase());
       if (recentAlert) {
         return false; // Don't send duplicate alerts
       }
@@ -195,45 +227,29 @@ class AlertSchedulerService {
         // Map priority to lowercase for validation
         const validPriority = alertPriority.toLowerCase();
         
-        // Map alert type based on urgency
-        let notificationType = 'workflow_step_warning';
-        if (daysOverdue > 0) {
-          notificationType = 'workflow_step_overdue';
-        } else if (alertPriority === 'High') {
-          notificationType = 'workflow_step_urgent';
-        }
+                 // Map alert type based on urgency - use valid enum values
+         let notificationType = 'WORKFLOW_ALERT';
         
-        const notification = await Notification.create({
-          user: recipient._id, // Fixed: use 'user' not 'recipient'
-          type: notificationType, // Use valid enum value
-          priority: validPriority, // Use lowercase priority
-          message: alertMessage,
-          relatedProject: workflow.project._id,
-          metadata: {
-            workflowId: workflow._id,
-            stepId: step.stepId,
-            stepName: step.stepName,
-            phase: step.phase,
-            daysUntilDue,
-            daysOverdue,
-            projectName: workflow.project.projectName
-          }
-        });
+                 const notification = await prisma.notification.create({
+           data: {
+             title: `${alertPriority} Priority Alert`,
+             message: alertMessage,
+             type: notificationType,
+             recipientId: recipient.id,
+             actionUrl: `/projects/${workflow.project.id}/workflow`,
+             actionData: {
+               workflowId: workflow.id,
+               stepId: step.id,
+               stepName: step.stepName,
+               phase: step.phase,
+               daysUntilDue,
+               daysOverdue,
+               projectName: workflow.project.projectName,
+               priority: validPriority
+             }
+           }
+         });
         notifications.push(notification);
-      }
-
-      // Emit real-time notifications via Socket.IO
-      const io = require('../server').io;
-      if (io) {
-        for (const notification of notifications) {
-          io.to(`user_${notification.recipient}`).emit('workflow_alert', {
-            notification,
-            type: 'Work Flow Line Item',
-            priority: alertPriority,
-            step: step.stepName,
-            project: workflow.project.projectName
-          });
-        }
       }
 
       console.log(`🔔 Generated ${alertPriority} priority workflow alert for step "${step.stepName}" in project "${workflow.project.projectName}" (${recipients.length} recipients)`);
@@ -251,15 +267,38 @@ class AlertSchedulerService {
 
     // 1. Primary assignee (specific user assigned to step)
     if (step.assignedTo) {
-      recipients.add(step.assignedTo);
+      recipients.add(step.assignedTo.id);
     }
 
     // 2. Team members assigned to the role (from teamAssignments)
     const defaultRole = step.defaultResponsible;
-    if (workflow.teamAssignments && workflow.teamAssignments[defaultRole]) {
-      workflow.teamAssignments[defaultRole].forEach(user => {
-        if (user && user._id) recipients.add(user._id.toString());
-      });
+    if (workflow.teamAssignments) {
+      const teamAssignment = workflow.teamAssignments;
+      if (teamAssignment.office) {
+        teamAssignment.office.forEach(user => {
+          if (user && user.id) recipients.add(user.id);
+        });
+      }
+      if (teamAssignment.administration) {
+        teamAssignment.administration.forEach(user => {
+          if (user && user.id) recipients.add(user.id);
+        });
+      }
+      if (teamAssignment.project_manager) {
+        teamAssignment.project_manager.forEach(user => {
+          if (user && user.id) recipients.add(user.id);
+        });
+      }
+      if (teamAssignment.field_director) {
+        teamAssignment.field_director.forEach(user => {
+          if (user && user.id) recipients.add(user.id);
+        });
+      }
+      if (teamAssignment.roof_supervisor) {
+        teamAssignment.roof_supervisor.forEach(user => {
+          if (user && user.id) recipients.add(user.id);
+        });
+      }
     }
 
     // 3. Alert recipients (primary, escalation, cc)
@@ -287,7 +326,15 @@ class AlertSchedulerService {
 
     // Convert Set to array of user objects
     const recipientIds = Array.from(recipients);
-    const users = await User.find({ _id: { $in: recipientIds } });
+    const users = await prisma.user.findMany({
+      where: { id: { in: recipientIds } },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true
+      }
+    });
     
     return users;
   }
@@ -308,17 +355,17 @@ class AlertSchedulerService {
     }
 
     switch (priority) {
-      case 'High':
+      case 'HIGH':
         if (daysUntilDue === 0) {
           return `🚨 URGENT: ${phase} step "${stepName}" for project "${projectName}" is due TODAY${progressText}. Immediate action required!`;
         } else {
           return `🚨 URGENT: ${phase} step "${stepName}" for project "${projectName}" is due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}${progressText}. High priority!`;
         }
       
-      case 'Medium':
+      case 'MEDIUM':
         return `⚠️ IMPORTANT: ${phase} step "${stepName}" for project "${projectName}" is due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}${progressText}. Please prioritize.`;
       
-      case 'Low':
+      case 'LOW':
         return `📋 REMINDER: ${phase} step "${stepName}" for project "${projectName}" is due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}${progressText}. Please plan accordingly.`;
       
       default:
@@ -330,11 +377,17 @@ class AlertSchedulerService {
   async checkRecentAlert(projectId, stepId, priority) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
-    const recentAlert = await Notification.findOne({
-      relatedProject: projectId,
-      'metadata.stepId': stepId,
-      priority: priority,
-      createdAt: { $gte: oneDayAgo }
+    const recentAlert = await prisma.notification.findFirst({
+      where: {
+        actionData: {
+          path: ['stepId'],
+          equals: stepId
+        },
+        type: 'WORKFLOW_ALERT',
+        createdAt: {
+          gte: oneDayAgo
+        }
+      }
     });
 
     return !!recentAlert;
@@ -352,33 +405,38 @@ class AlertSchedulerService {
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const stats = await Notification.aggregate([
-      {
-        $match: {
-          type: { $in: ['workflow_step_warning', 'workflow_step_overdue', 'workflow_step_urgent'] },
-          createdAt: { $gte: oneWeekAgo }
-        }
-      },
-      {
-        $group: {
-          _id: '$priority',
-          count: { $sum: 1 },
-          last24h: {
-            $sum: {
-              $cond: [
-                { $gte: ['$createdAt', oneDayAgo] },
-                1,
-                0
-              ]
-            }
-          }
-        }
-      }
-    ]);
+         const stats = await prisma.notification.groupBy({
+       by: ['priority'],
+       where: {
+         type: 'WORKFLOW_ALERT',
+         createdAt: { gte: oneWeekAgo }
+       },
+       _count: {
+         id: true
+       }
+     });
+
+     // Get last 24h count
+     const last24hStats = await prisma.notification.groupBy({
+       by: ['priority'],
+       where: {
+         type: 'WORKFLOW_ALERT',
+         createdAt: { gte: oneDayAgo }
+       },
+       _count: {
+         id: true
+       }
+     });
+
+    const totalLast24h = last24hStats.reduce((sum, stat) => sum + stat._count.id, 0);
 
     return {
-      weekly: stats,
-      totalLast24h: stats.reduce((sum, stat) => sum + stat.last24h, 0)
+      weekly: stats.map(stat => ({
+        _id: stat.priority,
+        count: stat._count.id,
+        last24h: last24hStats.find(s => s.priority === stat.priority)?._count.id || 0
+      })),
+      totalLast24h
     };
   }
 }

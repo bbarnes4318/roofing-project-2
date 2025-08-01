@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import ActivityCard from '../ui/ActivityCard';
-import { teamMembers } from '../../data/mockData';
+import ProjectMessagesCard from '../ui/ProjectMessagesCard';
+// import { teamMembers } from '../../data/mockData';
 import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
 
 const mockCoworkers = [
@@ -28,7 +28,7 @@ const initialChats = {
   4: [],
 };
 
-const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Activity Feed', initialTab = 'feed' }) => {
+const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'feed' }) => {
     const [tab, setTab] = useState(initialTab);
     const [message, setMessage] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -43,9 +43,16 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     const [dmInput, setDmInput] = useState('');
     const [chats, setChats] = useState(initialChats);
 
-    // Activity filter state
+    // Activity filter state - updated to match dashboard implementation
     const [activityProjectFilter, setActivityProjectFilter] = useState('');
     const [activitySubjectFilter, setActivitySubjectFilter] = useState('');
+    
+    // Message modal state
+    const [showMessageModal, setShowMessageModal] = useState(false);
+    const [showMessageDropdown, setShowMessageDropdown] = useState(false);
+    const [newMessageProject, setNewMessageProject] = useState('');
+    const [newMessageSubject, setNewMessageSubject] = useState('');
+    const [newMessageText, setNewMessageText] = useState('');
 
     // Filter activities to show only those for the current project
     const projectActivities = activities.filter(activity => activity.projectId === project.id);
@@ -133,11 +140,24 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     };
 
     const selectAllUsers = () => {
-        setSelectedUsers(teamMembers.map(member => member.id));
+        setSelectedUsers([]);
     };
 
     const clearAllUsers = () => {
         setSelectedUsers([]);
+    };
+
+    // Quick reply handler
+    const handleQuickReply = (replyData) => {
+        console.log('Project Messages page quick reply data:', replyData);
+        
+        if (onAddActivity) {
+            // Add the quick reply as a new activity for this project
+            onAddActivity(project, replyData.message, replyData.subject);
+        }
+        
+        // Optional: Show success feedback
+        // You could add a toast notification here
     };
 
     const handleSendDM = () => {
@@ -160,7 +180,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                 className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'feed' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
                 onClick={() => setTab('feed')}
               >
-                Activity Feed
+                Project Messages
               </button>
               <button
                 className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'dm' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
@@ -176,283 +196,228 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
               </button>
             </div>
 
-            {/* Activity Feed Tab */}
+            {/* Project Messages Tab */}
             {tab === 'feed' && (
               <>
-                {/* Main Container - matching Current Activity Feed style */}
-                <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-visible relative`} style={{ width: '100%', minHeight: '750px' }}>
-                    {/* Header with better balanced controls */}
-                    <div className="mb-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <div>
-                                <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Activity Feed</h1>
-                            </div>
-                        </div>
-                        
-                        {/* Controls row - better balanced */}
-                        <div className="flex items-center justify-between gap-2">
-                            {/* Filter dropdowns */}
-                            <div className="flex items-center gap-2">
-                                <select
-                                    value={activityProjectFilter}
-                                    onChange={e => setActivityProjectFilter(e.target.value)}
-                                    className={`w-32 max-w-[140px] truncate text-[8px] font-medium px-1.5 py-1 rounded border transition-colors ${
-                                        colorMode 
-                                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                                    }`}
-                                >
-                                    <option value="">All Projects</option>
-                                    {projects && projects.map(proj => (
-                                        <option key={proj.id} value={proj.id}>
-                                            {proj.name || proj.projectName}
-                                        </option>
-                                    ))}
-                                </select>
-                                
-                                <select
-                                    value={activitySubjectFilter}
-                                    onChange={e => setActivitySubjectFilter(e.target.value)}
-                                    className={`w-32 max-w-[140px] truncate text-[8px] font-medium px-1.5 py-1 rounded border transition-colors ${
-                                        colorMode 
-                                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                                    }`}
-                                >
-                                    <option value="">All Subjects</option>
-                                    {ACTIVITY_FEED_SUBJECTS.map(subject => (
-                                        <option key={subject} value={subject}>
-                                            {subject}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
+                {/* Full Dashboard Project Messages Implementation */}
+                <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h1 className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
+                      </div>
                     </div>
                     
-                    <div className="space-y-2 mt-3 max-h-[350px] overflow-y-auto overflow-x-hidden pb-4 pr-1 custom-scrollbar">
-                        
-                        {/* Activity Cards */}
-                        <div className="space-y-2">
-                            {projectActivities.length === 0 ? (
-                                <div className={`text-center py-3 text-[8px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    No activities found for this project.
-                                </div>
-                            ) : projectActivities.map(activity => (
-                                <ActivityCard 
-                                    key={activity.id} 
-                                    activity={activity} 
-                                    onProjectSelect={handleProjectSelect}
-                                    projects={projects}
-                                    colorMode={colorMode}
-                                />
-                            ))}
-                        </div>
+                    {/* Filter Controls */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
+                      <select 
+                        value={activityProjectFilter} 
+                        onChange={(e) => setActivityProjectFilter(e.target.value)} 
+                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                          colorMode 
+                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        <option value="">All Projects</option>
+                        {(projects || []).map(p => (
+                          <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                        ))}
+                      </select>
+                      
+                      <select 
+                        value={activitySubjectFilter} 
+                        onChange={(e) => setActivitySubjectFilter(e.target.value)} 
+                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                          colorMode 
+                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        <option value="">All Subjects</option>
+                        {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                          <option key={subject} value={subject}>{subject}</option>
+                        ))}
+                      </select>
                     </div>
-
-                    {/* Add POST label */}
-                    <div className={`mt-8 mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <h3 className="text-[10px] font-semibold">Add POST</h3>
+                    
+                    {/* Add Message Dropdown Trigger */}
+                    <div className="mb-3">
+                      <button
+                        onClick={() => setShowMessageDropdown(!showMessageDropdown)}
+                        className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
+                          showMessageDropdown
+                            ? colorMode 
+                              ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
+                              : 'border-blue-400 bg-blue-50 text-blue-700'
+                            : colorMode 
+                              ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
+                              : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>+ Add Message</span>
+                        <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
                     </div>
-
-                    {/* Composer always at the bottom */}
-                    <div className={`mb-8 p-2 pb-8 rounded-lg ${colorMode ? 'bg-[#1e293b]' : 'bg-gray-50'}`} style={{ minHeight: '200px' }}>
-                        <div className="mb-1">
-                            <div className="grid grid-cols-2 gap-2 mb-2">
-                                <div className="flex items-center justify-center">
-                                    <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                        Project: {project.name}
-                                    </span>
-                                </div>
-                                <select
-                                    value={selectedSubject}
-                                    onChange={e => setSelectedSubject(e.target.value)}
-                                    className={`w-full p-1 border rounded text-[9px] ${colorMode ? 'bg-[#1e293b] border-[#3b82f6] text-white' : 'border-gray-300'}`}
-                                    required
-                                >
-                                    <option value="">Select Subject *</option>
-                                    {ACTIVITY_FEED_SUBJECTS.map(subject => (
-                                        <option key={subject} value={subject}>
-                                            {subject}
-                                        </option>
-                                    ))}
-                                </select>
+                    
+                    {/* Add Message Dropdown Form */}
+                    {showMessageDropdown && (
+                      <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          if (newMessageProject && newMessageSubject && newMessageText.trim()) {
+                            // Create new message activity
+                            const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
+                            const newActivity = {
+                              id: `msg_${Date.now()}`,
+                              projectId: parseInt(newMessageProject),
+                              projectName: selectedProject?.name || 'Unknown Project',
+                              projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
+                              subject: newMessageSubject,
+                              description: newMessageText,
+                              user: 'You',
+                              timestamp: new Date().toISOString(),
+                              type: 'message',
+                              priority: 'medium'
+                            };
+                            
+                            // Add to activities via the parent callback
+                            if (onAddActivity) {
+                              onAddActivity(selectedProject, newMessageText, newMessageSubject);
+                            }
+                            
+                            // Close dropdown and reset form
+                            setShowMessageDropdown(false);
+                            setNewMessageProject('');
+                            setNewMessageSubject('');
+                            setNewMessageText('');
+                          }
+                        }} className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className={`block text-xs font-medium mb-1 ${
+                                colorMode ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                Project <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={newMessageProject}
+                                onChange={(e) => setNewMessageProject(e.target.value)}
+                                required
+                                className={`w-full p-2 border rounded text-xs ${
+                                  colorMode 
+                                    ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                    : 'bg-white border-gray-300 text-gray-800'
+                                }`}
+                              >
+                                <option value="">Select Project</option>
+                                {(projects || []).map(project => (
+                                  <option key={project.id} value={project.id}>
+                                    #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.address}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
+                            
+                            <div>
+                              <label className={`block text-xs font-medium mb-1 ${
+                                colorMode ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                Subject <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={newMessageSubject}
+                                onChange={(e) => setNewMessageSubject(e.target.value)}
+                                required
+                                className={`w-full p-2 border rounded text-xs ${
+                                  colorMode 
+                                    ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                    : 'bg-white border-gray-300 text-gray-800'
+                                }`}
+                              >
+                                <option value="">Select Subject</option>
+                                {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                                  <option key={subject} value={subject}>{subject}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className={`block text-xs font-medium mb-1 ${
+                              colorMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Message <span className="text-red-500">*</span>
+                            </label>
                             <textarea
-                                value={message}
-                                onChange={e => setMessage(e.target.value)}
-                                placeholder="Write your message here..."
-                                className={`w-full p-1 border rounded text-[9px] ${colorMode ? 'bg-[#1e293b] border-[#3b82f6] text-white' : 'border-gray-300'}`}
-                                rows="2"
-                            ></textarea>
-                            
-                            {/* Alert functionality */}
-                            <div className="mt-2 space-y-2">
-                                {/* Send as Alert checkbox */}
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="sendAsAlert"
-                                        checked={sendAsAlert}
-                                        onChange={(e) => setSendAsAlert(e.target.checked)}
-                                        className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                                    />
-                                    <label htmlFor="sendAsAlert" className={`text-[9px] font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Send as Alert
-                                    </label>
-                                </div>
-                                
-                                {/* Alert options when checkbox is checked */}
-                                {sendAsAlert && (
-                                    <div className={`p-3 rounded border ${colorMode ? 'bg-[#232b4d] border-[#3b82f6]/30' : 'bg-blue-50 border-blue-200'}`} style={{ marginBottom: '20px' }}>
-                                        {/* Header with alert icon */}
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                                                <span className="text-white text-[8px] font-bold">!</span>
-                                            </div>
-                                            <span className={`text-[9px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                                Alert Configuration
-                                            </span>
-                                        </div>
-                                        
-                                        {/* Priority selection */}
-                                        <div className="mb-3">
-                                            <label className={`block text-[8px] font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                Alert Priority:
-                                            </label>
-                                            <select
-                                                value={alertPriority}
-                                                onChange={(e) => setAlertPriority(e.target.value)}
-                                                className={`w-full p-1.5 border rounded text-[8px] ${colorMode ? 'bg-[#1e293b] border-[#3b82f6] text-white' : 'border-gray-300 bg-white text-gray-800'}`}
-                                            >
-                                                <option value="low">🟢 Low Priority</option>
-                                                <option value="medium">🟡 Medium Priority</option>
-                                                <option value="high">🔴 High Priority</option>
-                                            </select>
-                                        </div>
-                                        
-                                        {/* User selection section with better header */}
-                                        <div className="mb-2">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <label className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                    Send Alert To: {selectedUsers.length > 0 && (
-                                                        <span className={`ml-1 px-1.5 py-0.5 rounded text-[7px] font-bold ${colorMode ? 'bg-blue-700 text-white' : 'bg-blue-100 text-blue-800'}`}>
-                                                            {selectedUsers.length} selected
-                                                        </span>
-                                                    )}
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <button
-                                                        type="button"
-                                                        onClick={selectAllUsers}
-                                                        className={`px-2 py-0.5 rounded text-[7px] font-semibold transition-colors ${
-                                                            colorMode 
-                                                                ? 'bg-green-700 text-white hover:bg-green-600' 
-                                                                : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                        }`}
-                                                    >
-                                                        Select All
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={clearAllUsers}
-                                                        className={`px-2 py-0.5 rounded text-[7px] font-semibold transition-colors ${
-                                                            colorMode 
-                                                                ? 'bg-gray-700 text-white hover:bg-gray-600' 
-                                                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                                                        }`}
-                                                    >
-                                                        Clear
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Enhanced user checkboxes with better styling */}
-                                            <div className={`border rounded p-2 space-y-1.5 ${colorMode ? 'border-gray-600 bg-[#1e293b]' : 'border-gray-200 bg-white'}`} style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                                                {teamMembers.map(member => (
-                                                    <label key={member.id} className={`flex items-center gap-2 cursor-pointer p-1 rounded transition-colors ${
-                                                        selectedUsers.includes(member.id) 
-                                                            ? colorMode 
-                                                                ? 'bg-blue-700/30' 
-                                                                : 'bg-blue-50' 
-                                                            : colorMode 
-                                                                ? 'hover:bg-gray-700/30' 
-                                                                : 'hover:bg-gray-50'
-                                                    }`}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedUsers.includes(member.id)}
-                                                            onChange={() => handleUserToggle(member.id)}
-                                                            className="w-3.5 h-3.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1"
-                                                        />
-                                                        <div className="flex items-center gap-1.5 flex-1">
-                                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-[7px] ${
-                                                                selectedUsers.includes(member.id) 
-                                                                    ? 'bg-gradient-to-br from-blue-600 to-blue-700' 
-                                                                    : 'bg-gradient-to-br from-gray-500 to-gray-600'
-                                                            }`}>
-                                                                {member.name.charAt(0)}
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <span className={`text-[8px] font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                                                                    {member.name}
-                                                                </span>
-                                                                <div className={`text-[7px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                                    {member.role || 'Team Member'}
-                                                                </div>
-                                                            </div>
-                                                            {selectedUsers.includes(member.id) && (
-                                                                <div className="text-green-500 text-[8px]">✓</div>
-                                                            )}
-                                                        </div>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                            
-                                            {/* Warning if no users selected */}
-                                            {selectedUsers.length === 0 && (
-                                                <div className={`mt-2 p-2 rounded border text-[7px] ${colorMode ? 'bg-red-900/20 border-red-700/30 text-red-300' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                                                    ⚠️ Please select at least one team member to send the alert to
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div className="flex justify-between items-center mt-2">
-                                <div className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    {(!selectedSubject || (sendAsAlert && selectedUsers.length === 0)) && (
-                                        <span className="text-black">
-                                            * {!selectedSubject ? 'Subject required' :
-                                               sendAsAlert && selectedUsers.length === 0 ? 'Select users for alert' : ''}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={resetCompose}
-                                        className={`font-bold py-1 px-2 rounded text-[9px] ${colorMode ? 'bg-gray-600 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
-                                    >
-                                        Clear
-                                    </button>
-                                    <button
-                                        onClick={handlePost}
-                                        disabled={!message.trim() || !selectedSubject || (sendAsAlert && selectedUsers.length === 0)}
-                                        className={`font-bold py-1 px-2 rounded text-[9px] ${
-                                            (message.trim() && selectedSubject && (!sendAsAlert || selectedUsers.length > 0))
-                                                ? sendAsAlert 
-                                                    ? 'bg-red-600 text-white hover:bg-red-700'
-                                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                                : 'bg-blue-600 text-white hover:bg-blue-700 opacity-50 cursor-not-allowed'
-                                        }`}
-                                    >
-                                        {sendAsAlert ? 'Send Alert' : 'Post'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                              value={newMessageText}
+                              onChange={(e) => setNewMessageText(e.target.value)}
+                              placeholder="Enter your message here..."
+                              required
+                              rows={3}
+                              className={`w-full p-2 border rounded text-xs resize-none ${
+                                colorMode 
+                                  ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                              }`}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-end gap-2 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowMessageDropdown(false);
+                                setNewMessageProject('');
+                                setNewMessageSubject('');
+                                setNewMessageText('');
+                              }}
+                              className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
+                                colorMode 
+                                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim()}
+                              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                                newMessageProject && newMessageSubject && newMessageText.trim()
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              }`}
+                            >
+                              Send Message
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2 mt-3">
+                    {activities && activities.length === 0 ? (
+                      <div className="text-gray-400 text-center py-3 text-[9px]">
+                        No messages found.
+                      </div>
+                    ) : (
+                      (activities || []).map(activity => (
+                        <ProjectMessagesCard 
+                          key={activity.id} 
+                          activity={activity} 
+                          onProjectSelect={handleProjectSelectWithScroll}
+                          projects={projects}
+                          colorMode={colorMode}
+                          onQuickReply={handleQuickReply}
+                        />
+                      ))
+                    )}
+                  </div>
                 </div>
               </>
             )}
@@ -552,6 +517,138 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                   </form>
                 </div>
               </div>
+            )}
+            
+            {/* Message Composition Modal */}
+            {showMessageModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+                    <div className={`w-full max-w-md mx-4 rounded-lg shadow-xl ${
+                        colorMode ? 'bg-[#232b4d]' : 'bg-white'
+                    }`}>
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className={`text-lg font-semibold ${
+                                    colorMode ? 'text-white' : 'text-gray-800'
+                                }`}>
+                                    Add Message to {project.name}
+                                </h2>
+                                <button
+                                    onClick={() => {
+                                        setShowMessageModal(false);
+                                        setNewMessageSubject('');
+                                        setNewMessageText('');
+                                    }}
+                                    className={`text-gray-400 hover:text-gray-600 transition-colors`}
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                if (newMessageSubject && newMessageText.trim()) {
+                                    // Create new message activity for this specific project
+                                    const newActivity = {
+                                        id: `msg_${Date.now()}`,
+                                        projectId: project.id,
+                                        projectName: project.name,
+                                        projectNumber: project.projectNumber || Math.floor(Math.random() * 90000) + 10000,
+                                        subject: newMessageSubject,
+                                        description: newMessageText,
+                                        user: 'You',
+                                        timestamp: new Date().toISOString(),
+                                        type: 'message',
+                                        priority: 'medium'
+                                    };
+                                    
+                                    // Add to activities via the parent callback
+                                    if (onAddActivity) {
+                                        onAddActivity(project, newMessageText, newMessageSubject);
+                                    }
+                                    
+                                    // Close modal and reset form
+                                    setShowMessageModal(false);
+                                    setNewMessageSubject('');
+                                    setNewMessageText('');
+                                }
+                            }} className="space-y-4">
+                                <div>
+                                    <label className={`block text-sm font-medium mb-2 ${
+                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                    }`}>
+                                        Subject <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={newMessageSubject}
+                                        onChange={(e) => setNewMessageSubject(e.target.value)}
+                                        required
+                                        className={`w-full p-2 border rounded-lg text-sm ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-gray-600 text-white' 
+                                                : 'bg-white border-gray-300 text-gray-800'
+                                        }`}
+                                    >
+                                        <option value="">Select Subject</option>
+                                        {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                                            <option key={subject} value={subject}>{subject}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label className={`block text-sm font-medium mb-2 ${
+                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                    }`}>
+                                        Message <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={newMessageText}
+                                        onChange={(e) => setNewMessageText(e.target.value)}
+                                        placeholder="Enter your message here..."
+                                        required
+                                        rows={4}
+                                        className={`w-full p-2 border rounded-lg text-sm resize-none ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' 
+                                                : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                                        }`}
+                                    />
+                                </div>
+                                
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowMessageModal(false);
+                                            setNewMessageSubject('');
+                                            setNewMessageText('');
+                                        }}
+                                        className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                                            colorMode 
+                                                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={!newMessageSubject || !newMessageText.trim()}
+                                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                            newMessageSubject && newMessageText.trim()
+                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Send Message
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

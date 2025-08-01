@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import ActivityCard from '../ui/ActivityCard';
-import { teamMembers } from '../../data/mockData';
+import ProjectMessagesCard from '../ui/ProjectMessagesCard';
+// import { teamMembers } from '../../data/mockData';
 import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
 
 const mockCoworkers = [
@@ -73,7 +73,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 return;
             }
             
-            console.log('Creating activity feed alert:', {
+            console.log('Creating project messages alert:', {
                 title: selectedSubject,
                 message: message,
                 projectId: selectedProjectId,
@@ -91,6 +91,22 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
         setSendAsAlert(false);
         setSelectedUsers([]);
         setAlertPriority('medium');
+    };
+
+    // Quick reply handler
+    const handleQuickReply = (replyData) => {
+        console.log('Quick reply data:', replyData);
+        
+        // Find the project for the reply
+        const project = projects.find(p => p.id === replyData.projectId);
+        
+        if (project && onAddActivity) {
+            // Add the quick reply as a new activity
+            onAddActivity(project, replyData.message, replyData.subject);
+        }
+        
+        // Optional: Show success feedback
+        // You could add a toast notification here
     };
     
     const resetCompose = () => { 
@@ -114,7 +130,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     };
 
     const selectAllUsers = () => {
-        setSelectedUsers(teamMembers.map(member => member.id));
+        setSelectedUsers([]);
     };
 
     const clearAllUsers = () => {
@@ -146,7 +162,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 className={`px-2 py-1 rounded-t-lg font-semibold text-[8px] transition-all duration-150 ${tab === 'feed' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
                 onClick={() => setTab('feed')}
               >
-                Activity Feed
+                Project Messages
               </button>
               <button
                 className={`px-2 py-1 rounded-t-lg font-semibold text-[8px] transition-all duration-150 ${tab === 'dm' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
@@ -156,14 +172,14 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
               </button>
             </div>
 
-            {/* Activity Feed Tab */}
+            {/* Project Messages Tab */}
             {tab === 'feed' && (
               <>
                 <div className={`${colorMode ? 'bg-[#0f172a] text-white' : 'bg-white text-gray-800'} shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 mb-4`}>
                     <div>
-                        <h1 className={`font-bold text-[9px] leading-tight ${colorMode ? 'text-white' : 'text-[#2D3748]'}`}>My Activity Feed</h1>
+                        <h1 className={`font-bold text-[9px] leading-tight ${colorMode ? 'text-white' : 'text-[#2D3748]'}`}>My Project Messages</h1>
                         <div className={`border-b mt-1 mb-2 ${colorMode ? 'border-gray-600' : 'border-[#E2E8F0]'}`} />
-                        <p className={`mt-1 mb-2 text-[7px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>Your assigned activities and updates from all projects.</p>
+                        <p className={`mt-1 mb-2 text-[7px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>Your project conversations and updates from all projects.</p>
                     </div>
 
                     {/* Filter Controls */}
@@ -180,7 +196,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                 }`}
                             >
                                 <option value="">All Projects</option>
-                                {projects.map(p => (
+                                {(projects || []).map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
                             </select>
@@ -218,12 +234,13 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                 No assigned activities found. {selectedSubject && `Try selecting a different subject or project.`}
                             </div>
                         ) : filteredActivities.map((activity) => (
-                            <ActivityCard 
+                            <ProjectMessagesCard 
                                 key={activity.id} 
                                 activity={activity} 
                                 onProjectSelect={onProjectSelect}
                                 projects={projects}
                                 colorMode={colorMode}
+                                onQuickReply={handleQuickReply}
                             />
                         ))}
                     </div>
@@ -242,8 +259,8 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                         className={`w-full p-1 border rounded text-[7px] ${colorMode ? 'bg-[#1e293b] border-[#3b82f6] text-white' : 'border-gray-300'}`}
                                     >
                                         <option value="">All Projects</option>
-                                        {projects.map(project => (
-                                            <option key={project.id} value={project.id.toString()}>{project.name}</option>
+                                        {(projects || []).map(project => (
+                                            <option key={project.id || project._id} value={(project.id || project._id || '').toString()}>{project.name || project.projectName}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -360,7 +377,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                             
                                             {/* Enhanced user checkboxes with better styling - NO height constraints */}
                                             <div className={`border rounded p-2 space-y-1 ${colorMode ? 'border-gray-600 bg-[#1e293b]' : 'border-gray-200 bg-white'}`}>
-                                                {teamMembers.map(member => (
+                                                {[].map(member => (
                                                     <label key={member.id} className={`flex items-center gap-2 cursor-pointer p-1 rounded transition-colors ${
                                                         selectedUsers.includes(member.id) 
                                                             ? colorMode 

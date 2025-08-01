@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+
 
 // Custom error class
 class AppError extends Error {
@@ -12,26 +12,7 @@ class AppError extends Error {
   }
 }
 
-// Handle Mongoose validation errors
-const handleValidationError = (err) => {
-  const errors = Object.values(err.errors).map(val => val.message);
-  const message = `Invalid input data: ${errors.join('. ')}`;
-  return new AppError(message, 400);
-};
-
-// Handle Mongoose duplicate key errors
-const handleDuplicateKeyError = (err) => {
-  const field = Object.keys(err.keyValue)[0];
-  const value = err.keyValue[field];
-  const message = `${field.charAt(0).toUpperCase() + field.slice(1)} '${value}' already exists`;
-  return new AppError(message, 400);
-};
-
-// Handle Mongoose cast errors
-const handleCastError = (err) => {
-  const message = `Invalid ${err.path}: ${err.value}`;
-  return new AppError(message, 400);
-};
+// Prisma error handlers are now handled inline in the main errorHandler function
 
 // Handle JWT errors
 const handleJWTError = () => new AppError('Invalid token. Please log in again', 401);
@@ -78,7 +59,7 @@ const logError = (err, req) => {
     url: req.originalUrl,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
-    userId: req.user ? req.user._id : 'Anonymous',
+    userId: req.user ? req.user.id : 'Anonymous',
     error: {
       name: err.name,
       message: err.message,
@@ -103,19 +84,30 @@ const errorHandler = (err, req, res, next) => {
   // Log error
   logError(error, req);
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    error = handleValidationError(err);
+  // Prisma validation error
+  if (err.name === 'PrismaClientValidationError') {
+    error = new AppError('Invalid input data', 400);
   }
 
-  // Mongoose duplicate key error
-  if (err.code === 11000) {
-    error = handleDuplicateKeyError(err);
+  // Prisma unique constraint error
+  if (err.code === 'P2002') {
+    const field = err.meta?.target?.[0] || 'field';
+    error = new AppError(`${field.charAt(0).toUpperCase() + field.slice(1)} already exists`, 400);
   }
 
-  // Mongoose cast error
-  if (err.name === 'CastError') {
-    error = handleCastError(err);
+  // Prisma foreign key constraint error
+  if (err.code === 'P2003') {
+    error = new AppError('Referenced record does not exist', 400);
+  }
+
+  // Prisma record not found error
+  if (err.code === 'P2025') {
+    error = new AppError('Record not found', 404);
+  }
+
+  // Prisma connection error
+  if (err.code === 'P1001') {
+    error = new AppError('Database connection failed', 500);
   }
 
   // JWT errors

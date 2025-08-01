@@ -99,7 +99,7 @@ const AIAssistantPage = ({ projects = [] }) => {
             };
         }
         if (input.includes('status')) {
-            const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'in-progress').slice(0, 3);
+            const activeProjects = (projects || []).filter(p => p.status === 'active' || p.status === 'in-progress').slice(0, 3);
             const projectStatusItems = activeProjects.map(project => ({
                 type: 'text',
                 text: `${project.name}: ${project.progress || 0}% complete`
@@ -126,7 +126,7 @@ const AIAssistantPage = ({ projects = [] }) => {
             };
         }
         if (input.includes('analysis') || input.includes('progress')) {
-            const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'in-progress').slice(0, 3);
+            const activeProjects = (projects || []).filter(p => p.status === 'active' || p.status === 'in-progress').slice(0, 3);
             const analysisItems = activeProjects.map(project => ({
                 type: 'text',
                 text: `${project.name}: ${project.progress || 0}% complete - ${project.progress < 50 ? '⚠️ Behind schedule' : project.progress > 80 ? '✅ On track' : '🔄 In progress'}`

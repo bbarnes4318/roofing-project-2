@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend-Backend Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Frontend-Backend Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        async function testBackend() {
+            try {
+                results.innerHTML += '<h3>Testing Backend Connection...</h3>';
+                
+                // Test projects endpoint
+                console.log('Testing projects...');
+                const projectsResponse = await axios.get('http://localhost:5000/api/projects');
+                results.innerHTML += `<p>✅ Projects: ${projectsResponse.data.data.length} projects found</p>`;
+                
+                // Test alerts endpoint
+                console.log('Testing alerts...');
+                const alertsResponse = await axios.get('http://localhost:5000/api/alerts');
+                results.innerHTML += `<p>✅ Alerts: ${alertsResponse.data.data.length} alerts found</p>`;
+                
+                // Test health endpoint
+                console.log('Testing health...');
+                const healthResponse = await axios.get('http://localhost:5000/api/health');
+                results.innerHTML += `<p>✅ Health: ${healthResponse.data.message}</p>`;
+                
+                results.innerHTML += '<h3>✅ All tests passed! Backend is working.</h3>';
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+                if (error.response) {
+                    results.innerHTML += `<p>Status: ${error.response.status}</p>`;
+                    results.innerHTML += `<p>Response: ${JSON.stringify(error.response.data)}</p>`;
+                }
+            }
+        }
+        
+        // Run test on page load
+        testBackend();
+    </script>
+</body>
+</html>

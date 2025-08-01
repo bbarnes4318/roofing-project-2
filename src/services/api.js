@@ -67,7 +67,6 @@ api.interceptors.response.use(
       localStorage.removeItem('authToken');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      console.warn('Authentication failed, but login is disabled');
     }
     return Promise.reject(error);
   }
@@ -209,15 +208,15 @@ export const projectsService = {
     return response.data;
   },
 
-  // Get project workflow
+  // Get project workflow (using test endpoint temporarily)
   getWorkflow: async (projectId) => {
-    const response = await api.get(`/workflows/project/${projectId}`);
+    const response = await api.get(`/test/workflow/${projectId}`);
     return response.data;
   },
 
-  // Update workflow step
+  // Update workflow step (using test endpoint temporarily)
   updateWorkflowStep: async (projectId, stepId, updateData) => {
-    const response = await api.put(`/workflows/project/${projectId}/workflow/${stepId}`, updateData);
+    const response = await api.put(`/test/workflow/${projectId}/step/${stepId}`, updateData);
     return response.data;
   }
 };
@@ -341,6 +340,12 @@ export const activitiesService = {
   // Get recent activities
   getRecent: async (limit = 10) => {
     const response = await api.get(`/activities/recent?limit=${limit}`);
+    return response.data;
+  },
+
+  // Create new activity
+  create: async (activityData) => {
+    const response = await api.post('/activities', activityData);
     return response.data;
   }
 };

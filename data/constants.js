@@ -17,7 +17,7 @@ export const TASK_PRIORITIES = [
 
 export const PROJECT_STATUSES = [
   { value: 'lead', label: 'Lead Phase' },
-  { value: 'prospect', label: 'Prospect Phase-Insurance-1st Supplement' },
+  { value: 'prospect', label: 'Prospect' },
   { value: 'approved', label: 'Approved Phase' },
   { value: 'execution', label: 'Execution Phase' },
   { value: 'supplement', label: '2nd Supplement Phase' },

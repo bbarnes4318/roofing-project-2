@@ -11,10 +11,9 @@ const {
   managerAndAbove, 
   projectManagerAndAbove 
 } = require('../middleware/auth');
-const Project = require('../models/Project');
-const Task = require('../models/Task');
-const Activity = require('../models/Activity');
-const Document = require('../models/Document');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 const router = express.Router();
 
@@ -166,15 +165,25 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
   // Get project context if projectId provided
   let projectContext = {};
   if (projectId) {
-    const project = await Project.findOne({ id: projectId });
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        projectManager: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
+      }
+    });
     if (project) {
       projectContext = {
-        projectName: project.name,
+        projectName: project.projectName,
         progress: project.progress,
         status: project.status,
         estimateValue: project.estimateValue,
         timeline: `${project.startDate} to ${project.endDate}`,
-        projectManager: project.projectManager
+        projectManager: project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : null
       };
     }
   }
@@ -184,7 +193,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 
   // Log the interaction
   const chatLog = {
-    userId: req.user._id,
+            userId: req.user.id,
     userName: req.user.fullName || `${req.user.firstName} ${req.user.lastName}`,
     message,
     response: aiResponse.content,
@@ -197,7 +206,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 
   // Emit real-time update
   const io = req.app.get('io');
-  io.to(`user_${req.user._id}`).emit('ai_response', {
+        io.to(`user_${req.user.id}`).emit('ai_response', {
     message,
     response: aiResponse,
     timestamp: new Date()
@@ -214,24 +223,32 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 // @route   POST /api/ai/analyze-project/:projectId
 // @access  Private
 router.post('/analyze-project/:projectId', asyncHandler(async (req, res, next) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = req.params.projectId;
   
-  const project = await Project.findOne({ id: projectId });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId }
+  });
   if (!project) {
     return next(new AppError('Project not found', 404));
   }
 
   // Get related data
   const [tasks, activities, documents] = await Promise.all([
-    Task.find({ projectId }).lean(),
-    Activity.find({ projectId }).lean(),
-    Document.find({ projectId }).lean()
+    prisma.task.findMany({
+      where: { projectId }
+    }),
+    prisma.activity.findMany({
+      where: { projectId }
+    }),
+    prisma.document.findMany({
+      where: { projectId }
+    })
   ]);
 
   // Prepare analysis context
   const analysisContext = {
     project: {
-      name: project.name,
+      name: project.projectName,
       status: project.status,
       progress: project.progress,
       estimateValue: project.estimateValue,
@@ -292,9 +309,15 @@ router.get('/insights', asyncHandler(async (req, res) => {
 
   // Get recent data for insights
   const [projects, tasks, activities] = await Promise.all([
-    Project.find({ createdAt: { $gte: dateThreshold } }).lean(),
-    Task.find({ createdAt: { $gte: dateThreshold } }).lean(),
-    Activity.find({ createdAt: { $gte: dateThreshold } }).lean()
+    prisma.project.findMany({
+      where: { createdAt: { gte: dateThreshold } }
+    }),
+    prisma.task.findMany({
+      where: { createdAt: { gte: dateThreshold } }
+    }),
+    prisma.activity.findMany({
+      where: { createdAt: { gte: dateThreshold } }
+    })
   ]);
 
   // Generate insights
@@ -361,10 +384,12 @@ router.get('/insights', asyncHandler(async (req, res) => {
 // @route   POST /api/ai/recommendations/:projectId
 // @access  Private (Project Manager and above)
 router.post('/recommendations/:projectId', projectManagerAndAbove, asyncHandler(async (req, res, next) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = req.params.projectId;
   const { focusArea = 'general' } = req.body;
   
-  const project = await Project.findOne({ id: projectId });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId }
+  });
   if (!project) {
     return next(new AppError('Project not found', 404));
   }
@@ -490,18 +515,20 @@ router.post('/recommendations/:projectId', projectManagerAndAbove, asyncHandler(
 // @route   POST /api/ai/process-document/:documentId
 // @access  Private
 router.post('/process-document/:documentId', asyncHandler(async (req, res, next) => {
-  const documentId = parseInt(req.params.documentId);
+  const documentId = req.params.documentId;
   const { analysisType = 'general' } = req.body;
   
-  const document = await Document.findOne({ id: documentId });
+  const document = await prisma.document.findUnique({
+    where: { id: documentId }
+  });
   if (!document) {
     return next(new AppError('Document not found', 404));
   }
 
   // Check access permissions
-  const hasAccess = !document.isPrivate || 
-                   document.uploadedBy.toString() === req.user._id.toString() ||
-                   ['admin', 'manager'].includes(req.user.role);
+  const hasAccess = !document.isPublic || 
+                   document.uploadedById === req.user.id ||
+                   ['ADMIN', 'MANAGER'].includes(req.user.role);
 
   if (!hasAccess) {
     return next(new AppError('Access denied', 403));
@@ -566,16 +593,14 @@ router.post('/process-document/:documentId', asyncHandler(async (req, res, next)
   }
 
   // Update document with analysis
-  await Document.findOneAndUpdate(
-    { id: documentId },
-    { 
-      $set: { 
-        aiAnalysis: analysis,
-        lastAnalyzedAt: new Date(),
-        lastAnalyzedBy: req.user._id
-      }
+  await prisma.document.update({
+    where: { id: documentId },
+    data: { 
+      aiAnalysis: analysis,
+      lastAnalyzedAt: new Date(),
+      lastAnalyzedBy: req.user.id
     }
-  );
+  });
 
   sendSuccess(res, 200, {
     documentId,

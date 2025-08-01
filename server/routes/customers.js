@@ -7,14 +7,99 @@ const {
   formatValidationErrors,
   AppError 
 } = require('../middleware/errorHandler');
-// Authentication middleware removed - all users can manage customers
-const Customer = require('../models/Customer');
-const Project = require('../models/Project');
+const { prisma } = require('../config/prisma');
 
 const router = express.Router();
 
+// **CRITICAL: Data transformation layer for frontend compatibility**
+const transformCustomerForFrontend = (customer) => {
+  if (!customer) return null;
+  
+  return {
+    // Keep both ID formats for compatibility
+    id: customer.id,
+    _id: customer.id,
+    
+    // Primary customer info - map to simple name/email/phone for compatibility
+    name: customer.primaryName,
+    email: customer.primaryEmail,
+    phone: customer.primaryPhone,
+    
+    // Full customer structure
+    primaryName: customer.primaryName,
+    primaryEmail: customer.primaryEmail,
+    primaryPhone: customer.primaryPhone,
+    secondaryName: customer.secondaryName,
+    secondaryEmail: customer.secondaryEmail,
+    secondaryPhone: customer.secondaryPhone,
+    primaryContact: customer.primaryContact,
+    
+    // Address
+    address: customer.address,
+    
+    // Additional fields
+    notes: customer.notes,
+    createdAt: customer.createdAt,
+    updatedAt: customer.updatedAt,
+    
+    // Associated projects (if included)
+    associatedProjects: customer.projects ? customer.projects.map(project => ({
+      id: project.id,
+      _id: project.id,
+      projectId: project.projectNumber?.toString() || project.id,
+      projectNumber: project.projectNumber,
+      projectName: project.projectName,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      budget: project.budget ? parseFloat(project.budget) : 0,
+      progress: project.progress || 0,
+      projectType: project.projectType
+    })) : []
+  };
+};
+
 // Validation rules
 const customerValidation = [
+  body('primaryName')
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Primary customer name must be between 2 and 100 characters'),
+  body('primaryEmail')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid primary email address'),
+  body('primaryPhone')
+    .trim()
+    .matches(/^[\+]?[1-9][\d]{0,15}$/)
+    .withMessage('Please provide a valid primary phone number'),
+  body('secondaryName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Secondary customer name must be between 2 and 100 characters'),
+  body('secondaryEmail')
+    .optional()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid secondary email address'),
+  body('secondaryPhone')
+    .optional()
+    .trim()
+    .matches(/^[\+]?[1-9][\d]{0,15}$/)
+    .withMessage('Please provide a valid secondary phone number'),
+  body('primaryContact')
+    .optional()
+    .isIn(['PRIMARY', 'SECONDARY'])
+    .withMessage('Primary contact must be PRIMARY or SECONDARY'),
+  body('address')
+    .trim()
+    .isLength({ min: 5, max: 500 })
+    .withMessage('Address must be between 5 and 500 characters')
+];
+
+// Legacy validation for backward compatibility
+const legacyCustomerValidation = [
   body('name')
     .trim()
     .isLength({ min: 2, max: 100 })
@@ -46,16 +131,17 @@ router.get('/', asyncHandler(async (req, res) => {
     withProjects = false
   } = req.query;
 
-  // Build filter object
-  let filter = {};
+  // Build filter object for Prisma
+  let where = {};
   
   // Add search functionality
   if (search) {
-    filter.$or = [
-      { name: new RegExp(search, 'i') },
-      { email: new RegExp(search, 'i') },
-      { phone: new RegExp(search, 'i') },
-      { address: new RegExp(search, 'i') }
+    where.OR = [
+      { primaryName: { contains: search, mode: 'insensitive' } },
+      { primaryEmail: { contains: search, mode: 'insensitive' } },
+      { primaryPhone: { contains: search, mode: 'insensitive' } },
+      { secondaryName: { contains: search, mode: 'insensitive' } },
+      { address: { contains: search, mode: 'insensitive' } }
     ];
   }
 
@@ -65,250 +151,302 @@ router.get('/', asyncHandler(async (req, res) => {
   const skip = (pageNum - 1) * limitNum;
 
   // Build sort object
-  const sort = {};
-  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+  const orderBy = {};
+  orderBy[sortBy] = sortOrder === 'desc' ? 'desc' : 'asc';
 
-  // Execute query with pagination
-  let query = Customer.find(filter)
-    .sort(sort)
-    .skip(skip)
-    .limit(limitNum);
+  try {
+    // Execute query with pagination using Prisma
+    const [customers, total] = await Promise.all([
+      prisma.customer.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limitNum,
+        include: withProjects === 'true' ? {
+          projects: {
+            select: {
+              id: true,
+              projectNumber: true,
+              projectName: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              budget: true,
+              progress: true,
+              projectType: true
+            }
+          }
+        } : undefined
+      }),
+      prisma.customer.count({ where })
+    ]);
 
-  // Populate projects if requested
-  if (withProjects === 'true') {
-    query = query.populate('associatedProjects', 'projectName status startDate endDate budget progress');
+    // Transform customers for frontend compatibility
+    const transformedCustomers = customers.map(transformCustomerForFrontend);
+
+    sendPaginatedResponse(res, transformedCustomers, pageNum, limitNum, total, 'Customers retrieved successfully');
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    throw new AppError('Failed to fetch customers', 500);
   }
-
-  const [customers, total] = await Promise.all([
-    query.lean(),
-    Customer.countDocuments(filter)
-  ]);
-
-  sendPaginatedResponse(res, customers, pageNum, limitNum, total, 'Customers retrieved successfully');
 }));
 
 // @desc    Get customer by ID
 // @route   GET /api/customers/:id
 // @access  Private
 router.get('/:id', asyncHandler(async (req, res, next) => {
-  const customer = await Customer.findById(req.params.id)
-    .populate('associatedProjects', 'projectName status startDate endDate budget progress projectType');
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { id: req.params.id },
+      include: {
+        projects: {
+          select: {
+            id: true,
+            projectNumber: true,
+            projectName: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+            budget: true,
+            progress: true,
+            projectType: true
+          }
+        }
+      }
+    });
 
-  if (!customer) {
-    return next(new AppError('Customer not found', 404));
+    if (!customer) {
+      return next(new AppError('Customer not found', 404));
+    }
+
+    // Transform customer for frontend compatibility
+    const transformedCustomer = transformCustomerForFrontend(customer);
+
+    sendSuccess(res, transformedCustomer, 'Customer retrieved successfully');
+  } catch (error) {
+    console.error('Error fetching customer:', error);
+    return next(new AppError('Failed to fetch customer', 500));
   }
-
-  sendSuccess(res, 200, { customer }, 'Customer retrieved successfully');
 }));
 
 // @desc    Create new customer
 // @route   POST /api/customers
 // @access  Private
-router.post('/', customerValidation, asyncHandler(async (req, res, next) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: formatValidationErrors(errors)
+router.post('/', asyncHandler(async (req, res, next) => {
+  try {
+    // Handle both new format (primaryName, primaryEmail, etc.) and legacy format (name, email, phone)
+    let customerData = {};
+    
+    if (req.body.primaryName || req.body.primaryEmail) {
+      // New format validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: formatValidationErrors(errors)
+        });
+      }
+      
+      customerData = {
+        primaryName: req.body.primaryName,
+        primaryEmail: req.body.primaryEmail,
+        primaryPhone: req.body.primaryPhone,
+        secondaryName: req.body.secondaryName || null,
+        secondaryEmail: req.body.secondaryEmail || null,
+        secondaryPhone: req.body.secondaryPhone || null,
+        primaryContact: req.body.primaryContact || 'PRIMARY',
+        address: req.body.address,
+        notes: req.body.notes || null
+      };
+    } else {
+      // Legacy format - map to new schema
+      customerData = {
+        primaryName: req.body.name,
+        primaryEmail: req.body.email,
+        primaryPhone: req.body.phone,
+        secondaryName: null,
+        secondaryEmail: null,
+        secondaryPhone: null,
+        primaryContact: 'PRIMARY',
+        address: req.body.address,
+        notes: req.body.notes || null
+      };
+    }
+
+    // Check if customer with this email already exists
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { primaryEmail: customerData.primaryEmail }
     });
+
+    if (existingCustomer) {
+      return next(new AppError('Customer with this email already exists', 400));
+    }
+
+    // Create customer
+    const customer = await prisma.customer.create({
+      data: customerData
+    });
+
+    // Transform customer for frontend compatibility
+    const transformedCustomer = transformCustomerForFrontend(customer);
+
+    sendSuccess(res, transformedCustomer, 'Customer created successfully', 201);
+  } catch (error) {
+    console.error('Error creating customer:', error);
+    if (error.code === 'P2002') {
+      return next(new AppError('Customer with this email already exists', 400));
+    }
+    return next(new AppError('Failed to create customer', 500));
   }
-
-  // Check if customer with email already exists
-  const existingCustomer = await Customer.findOne({ email: req.body.email });
-  if (existingCustomer) {
-    return next(new AppError('Customer with this email already exists', 400));
-  }
-
-  // Create customer
-  const customerData = {
-    ...req.body,
-    createdAt: new Date()
-  };
-
-  const customer = await Customer.create(customerData);
-
-  // Emit real-time update
-  const io = req.app.get('io');
-  io.emit('customer_created', {
-    customer,
-    createdBy: req.user._id,
-    timestamp: new Date()
-  });
-
-  sendSuccess(res, 201, { customer }, 'Customer created successfully');
 }));
 
 // @desc    Update customer
 // @route   PUT /api/customers/:id
 // @access  Private
-router.put('/:id', [
-  body('name').optional().trim().isLength({ min: 2, max: 100 }),
-  body('email').optional().isEmail().normalizeEmail(),
-  body('phone').optional().trim().matches(/^[\+]?[1-9][\d]{0,15}$/),
-  body('address').optional().trim().isLength({ min: 5, max: 500 })
-], asyncHandler(async (req, res, next) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: formatValidationErrors(errors)
+router.put('/:id', asyncHandler(async (req, res, next) => {
+  try {
+    // Check if customer exists
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { id: req.params.id }
     });
-  }
 
-  // Check if email is being changed and if it already exists
-  if (req.body.email) {
-    const existingCustomer = await Customer.findOne({ 
-      email: req.body.email,
-      _id: { $ne: req.params.id }
+    if (!existingCustomer) {
+      return next(new AppError('Customer not found', 404));
+    }
+
+    // Prepare update data
+    let updateData = {};
+    
+    // Handle both new format and legacy format
+    if (req.body.primaryName || req.body.primaryEmail) {
+      // New format
+      if (req.body.primaryName !== undefined) updateData.primaryName = req.body.primaryName;
+      if (req.body.primaryEmail !== undefined) updateData.primaryEmail = req.body.primaryEmail;
+      if (req.body.primaryPhone !== undefined) updateData.primaryPhone = req.body.primaryPhone;
+      if (req.body.secondaryName !== undefined) updateData.secondaryName = req.body.secondaryName;
+      if (req.body.secondaryEmail !== undefined) updateData.secondaryEmail = req.body.secondaryEmail;
+      if (req.body.secondaryPhone !== undefined) updateData.secondaryPhone = req.body.secondaryPhone;
+      if (req.body.primaryContact !== undefined) updateData.primaryContact = req.body.primaryContact;
+    } else {
+      // Legacy format - map to new schema
+      if (req.body.name !== undefined) updateData.primaryName = req.body.name;
+      if (req.body.email !== undefined) updateData.primaryEmail = req.body.email;
+      if (req.body.phone !== undefined) updateData.primaryPhone = req.body.phone;
+    }
+    
+    if (req.body.address !== undefined) updateData.address = req.body.address;
+    if (req.body.notes !== undefined) updateData.notes = req.body.notes;
+
+    // Check for email conflicts if email is being updated
+    if (updateData.primaryEmail && updateData.primaryEmail !== existingCustomer.primaryEmail) {
+      const emailConflict = await prisma.customer.findUnique({
+        where: { primaryEmail: updateData.primaryEmail }
+      });
+      if (emailConflict) {
+        return next(new AppError('Customer with this email already exists', 400));
+      }
+    }
+
+    // Update customer
+    const updatedCustomer = await prisma.customer.update({
+      where: { id: req.params.id },
+      data: updateData
     });
-    if (existingCustomer) {
+
+    // Transform customer for frontend compatibility
+    const transformedCustomer = transformCustomerForFrontend(updatedCustomer);
+
+    sendSuccess(res, transformedCustomer, 'Customer updated successfully');
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    if (error.code === 'P2002') {
       return next(new AppError('Customer with this email already exists', 400));
     }
+    return next(new AppError('Failed to update customer', 500));
   }
-
-  const customer = await Customer.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true }
-  ).populate('associatedProjects', 'projectName status');
-
-  if (!customer) {
-    return next(new AppError('Customer not found', 404));
-  }
-
-  // Emit real-time update
-  const io = req.app.get('io');
-  io.emit('customer_updated', {
-    customer,
-    updatedBy: req.user._id,
-    timestamp: new Date()
-  });
-
-  sendSuccess(res, 200, { customer }, 'Customer updated successfully');
 }));
 
 // @desc    Delete customer
 // @route   DELETE /api/customers/:id
 // @access  Private
 router.delete('/:id', asyncHandler(async (req, res, next) => {
-  const customer = await Customer.findById(req.params.id);
-
-  if (!customer) {
-    return next(new AppError('Customer not found', 404));
-  }
-
-  // Check if customer has associated projects
-  if (customer.associatedProjects && customer.associatedProjects.length > 0) {
-    return next(new AppError('Cannot delete customer with associated projects. Please reassign or delete projects first.', 400));
-  }
-
-  await Customer.findByIdAndDelete(req.params.id);
-
-  // Emit real-time update
-  const io = req.app.get('io');
-  io.emit('customer_deleted', {
-    customerId: req.params.id,
-    deletedBy: req.user._id,
-    timestamp: new Date()
-  });
-
-  sendSuccess(res, 200, null, 'Customer deleted successfully');
-}));
-
-// @desc    Get customer projects
-// @route   GET /api/customers/:id/projects
-// @access  Private
-router.get('/:id/projects', asyncHandler(async (req, res, next) => {
-  const customer = await Customer.findById(req.params.id);
-
-  if (!customer) {
-    return next(new AppError('Customer not found', 404));
-  }
-
-  const projects = await Project.find({ customer: req.params.id })
-    .populate('teamMembers', 'firstName lastName email role')
-    .populate('projectManager', 'firstName lastName email')
-    .sort({ createdAt: -1 });
-
-  sendSuccess(res, 200, { projects, count: projects.length }, 'Customer projects retrieved successfully');
-}));
-
-// @desc    Add project to customer
-// @route   POST /api/customers/:id/projects
-// @access  Private
-router.post('/:id/projects', [
-  body('projectId')
-    .isMongoId()
-    .withMessage('Valid project ID is required')
-], asyncHandler(async (req, res, next) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: formatValidationErrors(errors)
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { id: req.params.id },
+      include: {
+        projects: true
+      }
     });
+
+    if (!customer) {
+      return next(new AppError('Customer not found', 404));
+    }
+
+    // Check if customer has associated projects
+    if (customer.projects && customer.projects.length > 0) {
+      return next(new AppError('Cannot delete customer with associated projects. Delete or reassign projects first.', 400));
+    }
+
+    // Delete customer
+    await prisma.customer.delete({
+      where: { id: req.params.id }
+    });
+
+    sendSuccess(res, null, 'Customer deleted successfully');
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    return next(new AppError('Failed to delete customer', 500));
   }
-
-  const { projectId } = req.body;
-
-  const [customer, project] = await Promise.all([
-    Customer.findById(req.params.id),
-    Project.findById(projectId)
-  ]);
-
-  if (!customer) {
-    return next(new AppError('Customer not found', 404));
-  }
-
-  if (!project) {
-    return next(new AppError('Project not found', 404));
-  }
-
-  // Check if project is already associated
-  if (customer.associatedProjects.includes(projectId)) {
-    return next(new AppError('Project is already associated with this customer', 400));
-  }
-
-  // Add project to customer
-  customer.associatedProjects.push(projectId);
-  await customer.save();
-
-  // Update project's customer field
-  project.customer = req.params.id;
-  await project.save();
-
-  sendSuccess(res, 200, { customer }, 'Project added to customer successfully');
 }));
 
-// @desc    Remove project from customer
-// @route   DELETE /api/customers/:id/projects/:projectId
+// @desc    Get customer statistics
+// @route   GET /api/customers/stats/overview
 // @access  Private
-router.delete('/:id/projects/:projectId', asyncHandler(async (req, res, next) => {
-  const customer = await Customer.findById(req.params.id);
+router.get('/stats/overview', asyncHandler(async (req, res) => {
+  try {
+    const totalCustomers = await prisma.customer.count();
+    
+    const customersWithSecondary = await prisma.customer.count({
+      where: {
+        secondaryName: { not: null }
+      }
+    });
+    
+    const primaryContactStats = await prisma.customer.groupBy({
+      by: ['primaryContact'],
+      _count: {
+        primaryContact: true
+      }
+    });
+    
+    const recentCustomers = await prisma.customer.count({
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        }
+      }
+    });
 
-  if (!customer) {
-    return next(new AppError('Customer not found', 404));
+    const overview = {
+      totalCustomers,
+      customersWithSecondary,
+      customersWithPrimaryOnly: totalCustomers - customersWithSecondary,
+      recentCustomers,
+      primaryContactDistribution: primaryContactStats
+    };
+
+    sendSuccess(res, overview, 'Customer statistics retrieved successfully');
+  } catch (error) {
+    console.error('Error fetching customer statistics:', error);
+    throw new AppError('Failed to fetch customer statistics', 500);
   }
-
-  // Remove project from customer
-  customer.associatedProjects = customer.associatedProjects.filter(
-    projectId => projectId.toString() !== req.params.projectId
-  );
-  await customer.save();
-
-  sendSuccess(res, 200, { customer }, 'Project removed from customer successfully');
 }));
 
 // @desc    Search customers
-// @route   GET /api/customers/search/query
+// @route   GET /api/customers/search
 // @access  Private
-router.get('/search/query', asyncHandler(async (req, res) => {
+router.get('/search', asyncHandler(async (req, res) => {
   const { q, limit = 10 } = req.query;
 
   if (!q || q.trim().length < 2) {
@@ -318,68 +456,37 @@ router.get('/search/query', asyncHandler(async (req, res) => {
     });
   }
 
-  const customers = await Customer.searchCustomers(q.trim(), { limit: parseInt(limit) });
-
-  sendSuccess(res, 200, { customers, count: customers.length }, 'Search results retrieved successfully');
-}));
-
-// @desc    Get customer statistics
-// @route   GET /api/customers/stats/overview
-// @access  Private
-router.get('/stats/overview', asyncHandler(async (req, res) => {
-  const stats = await Customer.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalCustomers: { $sum: 1 },
-        averageProjects: { $avg: { $size: '$associatedProjects' } }
+  try {
+    const customers = await prisma.customer.findMany({
+      where: {
+        OR: [
+          { primaryName: { contains: q.trim(), mode: 'insensitive' } },
+          { primaryEmail: { contains: q.trim(), mode: 'insensitive' } },
+          { primaryPhone: { contains: q.trim(), mode: 'insensitive' } },
+          { secondaryName: { contains: q.trim(), mode: 'insensitive' } },
+          { address: { contains: q.trim(), mode: 'insensitive' } }
+        ]
+      },
+      take: parseInt(limit),
+      select: {
+        id: true,
+        primaryName: true,
+        primaryEmail: true,
+        primaryPhone: true,
+        secondaryName: true,
+        address: true,
+        createdAt: true
       }
-    }
-  ]);
+    });
 
-  // Get customers with most projects
-  const topCustomers = await Customer.aggregate([
-    {
-      $addFields: {
-        projectCount: { $size: '$associatedProjects' }
-      }
-    },
-    {
-      $match: {
-        projectCount: { $gt: 0 }
-      }
-    },
-    {
-      $sort: { projectCount: -1 }
-    },
-    {
-      $limit: 10
-    },
-    {
-      $project: {
-        name: 1,
-        email: 1,
-        projectCount: 1
-      }
-    }
-  ]);
+    // Transform customers for frontend compatibility
+    const transformedCustomers = customers.map(transformCustomerForFrontend);
 
-  // Get recent customers
-  const recentCustomers = await Customer.find()
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .select('name email createdAt');
-
-  const overview = stats[0] || {
-    totalCustomers: 0,
-    averageProjects: 0
-  };
-
-  sendSuccess(res, 200, {
-    overview,
-    topCustomers,
-    recentCustomers
-  }, 'Customer statistics retrieved successfully');
+    sendSuccess(res, { customers: transformedCustomers }, 'Search results retrieved successfully');
+  } catch (error) {
+    console.error('Error searching customers:', error);
+    throw new AppError('Failed to search customers', 500);
+  }
 }));
 
 module.exports = router; 

@@ -1,0 +1,156 @@
+When we reseed the data, please make the following the names of the users for the demo. 
+
+1. Office
+2. Admin
+3. Project Manager
+4. Field Crew
+5. Roof Supervisor
+6. Field Director
+
+The users above are assigned to the specific sections and sometimes the specific line items below. It will list the user beside the section or line item when they are assigned. We need to build our Alerts system throughout the application to send out alerts based on the following next section and/or next line item that are next in the project workflow. We should send out alerts to the specific user that is assigned to the section and/or line item. Please build this logic and alert system for us. Be sure to properly assign the users and properly setup alerts based on the Project Phases, project workflow, and users. 
+
+
+**Lead**
+1. Input Customer Information – Office
+	a. Make sure the name is spelled correctly
+	b. Make sure the email is correct. Send a confirmation email to confirm email.
+2. Complete Questions to Ask Checklist – Office
+	a. Input answers from Question Checklist into notes
+	b. Record property details
+3. Input Lead Property Information – Office
+	a. Add Home View photos – Maps
+	b. Add Street View photos – Google Maps
+	c. Add elevation screenshot – PPRBD
+	d. Add property age – County Assessor Website
+	e. Evaluate ladder requirements – By looking at the room
+4. Assign A Project Manager – Office
+	a. Use workflow from Lead Assigning Flowchart
+	b. Select and brief the Project Manager
+5. Schedule Initial Inspection – Office
+	a. Call Customer and coordinate with PM schedule
+	b. Create Calendar Appointment in AL
+
+
+**Prospect**
+1. Site Inspection – Project Manager
+	a. Take site photos
+	b. Complete inspection form
+	c. Document material colors
+	d. Capture Hover photos
+	e. Present upgrade options
+2. Write Estimate – Project Manager
+	a. Fill out Estimate Form
+	b. Write initial estimate – AccuLynx
+	c. Write Customer Pay Estimates
+	d. Send for Approval
+3. Insurance Process – Administration
+	a. Compare field vs insurance estimates
+	b. Identify supplemental items
+	c. Draft estimate in Xactimate
+4. Agreement Preparation – Administration
+	a. Trade cost analysis
+	b. Prepare Estimate Forms
+	c. Match AL estimates
+	d. Calculate customer pay items
+	e. Send shingle/class4 email – PDF
+5. Agreement Signing – Administration
+	a. Review and send signature request
+	b. Record in QuickBooks
+	c. Process deposit
+	d. Collect signed disclaimers
+
+
+**Prospect: Non-Insurance**
+*This only applies if the project does not involve an insurance claim*
+
+1. Write Estimate - Project Manager
+	a. Fill out Estimate Forms
+	b. Write initial estimate in AL and send customer for approval
+	c. Follow up with customer for approval
+	d. Let Office know the agreement is ready to sign
+
+2. Agreement Signing - Administration 
+	a. Review agreement with customer and send a signature request
+	b. Record in QuickBooks
+	c. Process deposit
+	d. Send and collect signatures for any applicable disclaimers
+
+
+
+**Approved**
+1. Administrative Setup – Administration 
+	a. Confirm shingle choice
+	b. Order materials
+	c. Create labor orders
+	d. Send labor order to roofing crew
+2. Pre-Job Actions – Office
+	a. Pull permits
+3. Prepare for Production – Administration 
+	a. All pictures in Job (Gutter, Ventilation, Elevation)
+	Verify Labor Order in Scheduler
+	a. Correct Dates
+	b. Correct crew
+	c. Send install schedule email to customer
+	Verify Material Orders
+	a. Confirmations from supplier
+	b. Call if no confirmation
+	c. Provide special crew instructions
+	Subcontractor Work
+	a. Work order in scheduler
+	b. Schedule subcontractor
+	c. Communicate with customer
+
+
+**Execution**
+1. Installation – Field Director
+	a. Document work start
+	b. Capture progress photos
+	c. Upload Pictures
+	* Daily Job Progress Note
+	a. Work started/finished
+	b. Days and people needed
+	c. Format: 2 Guys for 4 hours
+1. Quality Check – Field + Admin
+	a. Completion photos – Roof Supervisor
+	b. Complete inspection – Roof Supervisor
+	c. Upload Roof Packet
+	d. Verify Packet is complete – Admin
+2. Multiple Trades – Administration
+	a. Confirm start date
+	b. Confirm material/labor for all trades
+4. Subcontractor Work – Administration
+	a. Confirm dates
+	b. Communicate with customer
+5. Update Customer – Administration
+	a. Notify of completion
+	b. Share photos
+	c. Send 2nd half payment link
+
+
+**2nd Supp**
+1. Create Supp in Xactimate – Administration
+	a. Check Roof Packet & Checklist
+	b. Label photos
+	c. Add to Xactimate
+	d. Submit to insurance
+2. Follow-Up Calls – Administration
+	a. Call 2x/week until updated estimate
+3. Review Approved Supp – Administration
+	a. Update trade cost
+	b. Prepare counter-supp or email
+	c. Add to AL Estimate
+4. Customer Update – Administration
+	a. Share 2 items minimum
+	b. Let them know next steps
+
+
+**Completion**
+1. Financial Processing – Administration 
+	a. Verify worksheet
+	b. Final invoice & payment link
+	c. AR follow-up calls
+2. Project Closeout – Office 
+	a. Register warranty
+	b. Send documentation
+	c. Submit insurance paperwork
+	d. Send final receipt and close job

@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User');
+const { PrismaClient } = require('@prisma/client');
 const { 
   asyncHandler, 
   AppError, 
@@ -15,6 +15,7 @@ const {
   userRateLimit 
 } = require('../middleware/auth');
 
+const prisma = new PrismaClient();
 const router = express.Router();
 
 // Validation rules
@@ -83,45 +84,50 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
   const { firstName, lastName, email, password, role, phone, position } = req.body;
 
   // Check if user already exists
-  const existingUser = await User.findOne({ email });
+  const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
     return next(new AppError('User already exists with this email', 400));
   }
 
   // Create user
-  const user = await User.create({
-    firstName,
-    lastName,
-    email,
-    password,
-    role: role || 'worker',
-    phone,
-    position,
-    emailVerificationToken: crypto.randomBytes(32).toString('hex'),
-    emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+  const user = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      email,
+      password: await bcrypt.hash(password, 12),
+      role: role ? role.toUpperCase() : 'WORKER',
+      phone,
+      position,
+      emailVerificationToken: crypto.randomBytes(32).toString('hex'),
+      emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+    }
   });
 
   // Generate token
-  const token = user.generateAuthToken();
+  const token = generateToken(user.id);
 
-  // Remove password from response
-  user.password = undefined;
-
-  // TODO: Send verification email
-  // await sendVerificationEmail(user.email, user.emailVerificationToken);
-
-  sendSuccess(res, 201, {
-    user,
-    token,
-    message: 'Registration successful. Please check your email to verify your account.'
-  }, 'User registered successfully');
+  res.status(201).json({
+    success: true,
+    message: 'User registered successfully',
+    data: {
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified
+      },
+      token
+    }
+  });
 }));
 
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-router.post('/login', loginValidation, asyncHandler(async (req, res, next) => {
-  // Check for validation errors
+router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -133,147 +139,188 @@ router.post('/login', loginValidation, asyncHandler(async (req, res, next) => {
 
   const { email, password } = req.body;
 
-  // Find user and include password
-  const user = await User.findOne({ email }).select('+password');
+  // Find user
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    return next(new AppError('Invalid email or password', 401));
+    return next(new AppError('Invalid credentials', 401));
   }
 
   // Check if account is locked
-  if (user.isLocked) {
-    return next(new AppError('Account is temporarily locked due to too many failed login attempts', 423));
-  }
-
-  // Check if account is active
-  if (!user.isActive) {
-    return next(new AppError('Account is deactivated', 401));
+  if (user.lockUntil && user.lockUntil > new Date()) {
+    return next(new AppError('Account is temporarily locked. Please try again later.', 423));
   }
 
   // Check password
-  const isPasswordCorrect = await user.comparePassword(password);
-  if (!isPasswordCorrect) {
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
     // Increment login attempts
-    await user.incLoginAttempts();
-    return next(new AppError('Invalid email or password', 401));
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        loginAttempts: user.loginAttempts + 1,
+        lockUntil: user.loginAttempts >= 4 ? new Date(Date.now() + 15 * 60 * 1000) : null // Lock for 15 minutes after 5 failed attempts
+      }
+    });
+
+    return next(new AppError('Invalid credentials', 401));
   }
 
   // Reset login attempts on successful login
-  if (user.loginAttempts > 0) {
-    await user.resetLoginAttempts();
-  }
-
-  // Update last login
-  user.lastLogin = new Date();
-  user.lastLoginIP = req.ip;
-  user.lastActivity = new Date();
-  await user.save({ validateBeforeSave: false });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      loginAttempts: 0,
+      lockUntil: null,
+      lastLogin: new Date(),
+      lastLoginIP: req.ip
+    }
+  });
 
   // Generate token
-  const token = user.generateAuthToken();
+  const token = generateToken(user.id);
 
-  // Remove password from response
-  user.password = undefined;
-
-  sendSuccess(res, 200, {
-    user,
-    token
-  }, 'Login successful');
+  res.json({
+    success: true,
+    message: 'Login successful',
+    data: {
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        avatar: user.avatar
+      },
+      token
+    }
+  });
 }));
 
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
 router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .populate('projectsAssigned', 'name status')
-    .select('-password');
-
-  sendSuccess(res, 200, { user }, 'User profile retrieved successfully');
-}));
-
-// @desc    Update current user profile
-// @route   PUT /api/auth/me
-// @access  Private
-router.put('/me', authenticateToken, [
-  body('firstName').optional().trim().isLength({ min: 2, max: 50 }),
-  body('lastName').optional().trim().isLength({ min: 2, max: 50 }),
-  body('phone').optional().matches(/^[\+]?[1-9][\d]{0,15}$/),
-  body('position').optional().trim().isLength({ max: 100 }),
-  body('bio').optional().isLength({ max: 500 })
-], asyncHandler(async (req, res, next) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: formatValidationErrors(errors)
-    });
-  }
-
-  const allowedFields = [
-    'firstName', 'lastName', 'phone', 'position', 'bio', 
-    'avatar', 'preferences', 'skills', 'emergencyContact', 'address'
-  ];
-  
-  const updates = {};
-  Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) {
-      updates[key] = req.body[key];
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      avatar: true,
+      phone: true,
+      position: true,
+      department: true,
+      bio: true,
+      isVerified: true,
+      theme: true,
+      notificationPreferences: true,
+      language: true,
+      timezone: true,
+      skills: true,
+      certifications: true,
+      experience: true,
+      emergencyContact: true,
+      address: true,
+      createdAt: true,
+      lastLogin: true
     }
   });
 
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    updates,
-    { new: true, runValidators: true }
-  ).select('-password');
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+  }
 
-  sendSuccess(res, 200, { user }, 'Profile updated successfully');
+  res.json({
+    success: true,
+    data: { user }
+  });
+}));
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
+  const { firstName, lastName, phone, position, department, bio, theme, language, timezone } = req.body;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      firstName,
+      lastName,
+      phone,
+      position,
+      department,
+      bio,
+      theme,
+      language,
+      timezone
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      avatar: true,
+      phone: true,
+      position: true,
+      department: true,
+      bio: true,
+      theme: true,
+      language: true,
+      timezone: true
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Profile updated successfully',
+    data: { user: updatedUser }
+  });
 }));
 
 // @desc    Change password
 // @route   PUT /api/auth/change-password
 // @access  Private
-router.put('/change-password', authenticateToken, [
-  body('currentPassword').notEmpty().withMessage('Current password is required'),
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('New password must be at least 6 characters')
-], asyncHandler(async (req, res, next) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: formatValidationErrors(errors)
-    });
-  }
-
+router.put('/change-password', authenticateToken, asyncHandler(async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
 
-  // Get user with password
-  const user = await User.findById(req.user._id).select('+password');
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
 
-  // Check current password
-  const isCurrentPasswordCorrect = await user.comparePassword(currentPassword);
-  if (!isCurrentPasswordCorrect) {
+  // Verify current password
+  const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isCurrentPasswordValid) {
     return next(new AppError('Current password is incorrect', 400));
   }
 
   // Update password
-  user.password = newPassword;
-  await user.save();
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      password: await bcrypt.hash(newPassword, 12),
+      passwordChangedAt: new Date()
+    }
+  });
 
-  sendSuccess(res, 200, null, 'Password changed successfully');
+  res.json({
+    success: true,
+    message: 'Password changed successfully'
+  });
 }));
 
 // @desc    Forgot password
 // @route   POST /api/auth/forgot-password
 // @access  Public
 router.post('/forgot-password', forgotPasswordValidation, asyncHandler(async (req, res, next) => {
-  // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -285,29 +332,36 @@ router.post('/forgot-password', forgotPasswordValidation, asyncHandler(async (re
 
   const { email } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     return next(new AppError('No user found with that email address', 404));
   }
 
   // Generate reset token
   const resetToken = crypto.randomBytes(32).toString('hex');
-  user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-  await user.save({ validateBeforeSave: false });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordResetToken: resetToken,
+      passwordResetExpires: resetTokenExpiry
+    }
+  });
 
-  // TODO: Send reset email
-  // await sendPasswordResetEmail(user.email, resetToken);
-
-  sendSuccess(res, 200, null, 'Password reset instructions sent to email');
+  // TODO: Send email with reset token
+  // For now, just return the token (in production, send via email)
+  res.json({
+    success: true,
+    message: 'Password reset token sent to email',
+    data: { resetToken } // Remove this in production
+  });
 }));
 
 // @desc    Reset password
 // @route   POST /api/auth/reset-password
 // @access  Public
 router.post('/reset-password', resetPasswordValidation, asyncHandler(async (req, res, next) => {
-  // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -319,81 +373,76 @@ router.post('/reset-password', resetPasswordValidation, asyncHandler(async (req,
 
   const { token, password } = req.body;
 
-  // Hash token and find user
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-  const user = await User.findOne({
-    passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() }
+  const user = await prisma.user.findFirst({
+    where: {
+      passwordResetToken: token,
+      passwordResetExpires: { gt: new Date() }
+    }
   });
 
   if (!user) {
     return next(new AppError('Invalid or expired reset token', 400));
   }
 
-  // Update password
-  user.password = password;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-  await user.save();
+  // Update password and clear reset token
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: await bcrypt.hash(password, 12),
+      passwordResetToken: null,
+      passwordResetExpires: null,
+      passwordChangedAt: new Date()
+    }
+  });
 
-  // Generate new token
-  const authToken = user.generateAuthToken();
-
-  sendSuccess(res, 200, { token: authToken }, 'Password reset successful');
+  res.json({
+    success: true,
+    message: 'Password reset successfully'
+  });
 }));
 
 // @desc    Verify email
-// @route   POST /api/auth/verify-email
+// @route   GET /api/auth/verify-email/:token
 // @access  Public
-router.post('/verify-email', asyncHandler(async (req, res, next) => {
-  const { token } = req.body;
+router.get('/verify-email/:token', asyncHandler(async (req, res, next) => {
+  const { token } = req.params;
 
-  if (!token) {
-    return next(new AppError('Verification token is required', 400));
-  }
-
-  const user = await User.findOne({
-    emailVerificationToken: token,
-    emailVerificationExpires: { $gt: Date.now() }
+  const user = await prisma.user.findFirst({
+    where: {
+      emailVerificationToken: token,
+      emailVerificationExpires: { gt: new Date() }
+    }
   });
 
   if (!user) {
     return next(new AppError('Invalid or expired verification token', 400));
   }
 
-  user.isVerified = true;
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpires = undefined;
-  await user.save({ validateBeforeSave: false });
-
-  sendSuccess(res, 200, null, 'Email verified successfully');
-}));
-
-// @desc    Logout user (client-side token removal)
-// @route   POST /api/auth/logout
-// @access  Private
-router.post('/logout', authenticateToken, asyncHandler(async (req, res) => {
-  // Update last activity
-  await User.findByIdAndUpdate(req.user._id, {
-    lastActivity: new Date()
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    }
   });
 
-  sendSuccess(res, 200, null, 'Logout successful');
+  res.json({
+    success: true,
+    message: 'Email verified successfully'
+  });
 }));
 
-// @desc    Refresh token
-// @route   POST /api/auth/refresh
+// @desc    Logout user
+// @route   POST /api/auth/logout
 // @access  Private
-router.post('/refresh', authenticateToken, userRateLimit(10), asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select('-password');
-  
-  if (!user || !user.isActive) {
-    return next(new AppError('User not found or inactive', 401));
-  }
-
-  const token = user.generateAuthToken();
-
-  sendSuccess(res, 200, { token, user }, 'Token refreshed successfully');
-}));
+router.post('/logout', authenticateToken, (req, res) => {
+  // In a JWT-based system, logout is typically handled client-side
+  // by removing the token. The server doesn't need to do anything.
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
+});
 
 module.exports = router; 

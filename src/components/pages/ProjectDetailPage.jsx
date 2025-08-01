@@ -7,6 +7,8 @@ import TasksAndAlertsPage from './TasksAndAlertsPage';
 import ProjectTimeline from '../../dashboard/ProjectTimeline';
 import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
+import { useWorkflowAlerts } from '../../hooks/useApi';
+import { teamMembers } from '../../data/mockData';
 
 // Helper functions for advanced progress bars (moved to top level)
 
@@ -70,7 +72,7 @@ const getPhaseStyles = (phase) => {
     switch (phase?.toLowerCase()) {
         case 'lead':
         case 'lead phase':
-            return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300';
+            return 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300';
         case 'prospect':
         case 'prospect phase':
             return 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300';
@@ -79,15 +81,16 @@ const getPhaseStyles = (phase) => {
             return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300';
         case 'execution':
         case 'execution phase':
-            return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300';
+            return 'bg-gradient-to-r from-sky-100 to-sky-200 text-sky-800 border border-sky-300';
         case 'supplement':
         case '2nd supplement':
         case '2nd supplement phase':
+        case '2nd supp':
             return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300';
         case 'completion':
         case 'completion phase':
             return 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300';
-        default: return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300';
+        default: return 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300';
     }
 };
 
@@ -112,6 +115,10 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     });
     const scrollRef = useRef(null);
     const [expandedProgress, setExpandedProgress] = useState({});
+    const [selectedUserGroup, setSelectedUserGroup] = useState('all');
+    
+    // Call useWorkflowAlerts at the top level to comply with React hooks rules
+    const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts(projects);
 
     // Toggle progress expansion (updated to match ProjectsPage format)
     const toggleProgressExpansion = (projectId, section, event) => {
@@ -254,9 +261,9 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         switch (previousPage) {
             case 'Overview':
                 // Check if we came from a specific section on the dashboard
-                if (projectSourceSection === 'Activity Feed') {
-                    console.log('🔍 Returning: Back to Activity Feed');
-                    return 'Back to Activity Feed';
+                if (projectSourceSection === 'Project Messages') {
+                    console.log('🔍 Returning: Back to Project Messages');
+                    return 'Back to Project Messages';
                 } else if (projectSourceSection === 'Current Alerts') {
                     console.log('🔍 Returning: Back to Current Alerts');
                     return 'Back to Current Alerts';
@@ -276,8 +283,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 return 'Back to Current Projects';
             case 'Alerts':
                 return 'Back to Project Alerts';
-            case 'Activity Feed':
-                return 'Back to Activity Feed';
+            case 'Project Messages':
+                return 'Back to Project Messages';
             case 'Project Schedules':
                 return 'Back to Project Schedules';
             case 'Company Calendar':
@@ -352,15 +359,295 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 );
             case 'Messages':
                 const projectActivities = activities?.filter(a => a.projectId === project.id || a.projectId === project._id || a.relatedProject === project.id || a.relatedProject === project._id) || [];
-                // Set initial tab to 'feed' (Activity Feed) when coming back from Projects page
-                const initialTab = projectSourceSection === 'Project Messages' ? 'feed' : 'feed';
-                return <ProjectMessagesPage project={projectData} activities={projectActivities} onAddActivity={onAddActivity} colorMode={colorMode} projects={projects} onProjectSelect={onProjectSelect} sourceSection="Project Messages" initialTab={initialTab} />;
+                
+                // Project-specific Project Messages section (copied from dashboard)
+                return (
+                    <div className="w-full" data-section="project-messages">
+                        <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
+                            <div className="mb-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div>
+                                        <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
+                                    </div>
+                                </div>
+                                
+                                {/* Filter Controls */}
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className={`text-[7px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
+                                    <select 
+                                        className={`text-[7px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                        }`}
+                                    >
+                                        <option value="">All Subjects</option>
+                                        <option value="Project Update">Project Update</option>
+                                        <option value="Material Delivery">Material Delivery</option>
+                                        <option value="Site Inspection">Site Inspection</option>
+                                        <option value="Customer Communication">Customer Communication</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-2 mt-3">
+                                {projectActivities.length === 0 ? (
+                                    <div className="text-gray-400 text-center py-3 text-[9px]">
+                                        No messages found for this project.
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 text-center py-3 text-xs">
+                                        Project-specific messages will be displayed here using ProjectMessagesCard components.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
             case 'Alerts':
-                console.log('🔍 PROJECT_DETAIL: Rendering Alerts tab');
-                console.log('🔍 PROJECT_DETAIL: project:', project);
-                console.log('🔍 PROJECT_DETAIL: projects:', projects);
-                console.log('🔍 PROJECT_DETAIL: onProjectSelect:', !!onProjectSelect);
-                return <TasksAndAlertsPage projects={projects} onAddTask={handleAddTask} colorMode={colorMode} onProjectSelect={onProjectSelect} sourceSection="Project Workflow Alerts" />;
+                // Filter alerts for this specific project (using hook values from top level)
+                const projectAlerts = workflowAlerts?.filter(alert => 
+                    alert.projectId === project.id || alert.projectId === project._id
+                ) || [];
+                
+                // Further filter by user group if selected
+                const filteredProjectAlerts = selectedUserGroup === 'all' 
+                    ? projectAlerts 
+                    : projectAlerts.filter(alert => alert.userGroup === selectedUserGroup);
+                
+                const handleCompleteAlert = async (alert, alertIndex) => {
+                    try {
+                        // Step 1: Mark the specific workflow line item as completed
+                        const response = await fetch('/api/workflow/complete-step', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                projectId: alert.projectId,
+                                stepId: alert.stepId,
+                                phase: alert.phase,
+                                section: alert.section,
+                                step: alert.step
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to complete workflow step');
+                        }
+
+                        const result = await response.json();
+                        
+                        // Step 2: Get current workflow state to check for completions
+                        const workflowResponse = await fetch(`/api/workflow/${alert.projectId}`);
+                        if (!workflowResponse.ok) {
+                            throw new Error('Failed to fetch workflow');
+                        }
+                        
+                        const { data: workflow } = await workflowResponse.json();
+                        
+                        // Find current phase and section
+                        const currentPhase = alert.phase;
+                        const currentSection = alert.section;
+                        
+                        // Step 3: Check for section and phase completion
+                        const sectionSteps = workflow.steps?.filter(step => 
+                            step.phase === currentPhase && step.section === currentSection
+                        );
+                        
+                        const completedSectionSteps = sectionSteps?.filter(step => step.isCompleted) || [];
+                        
+                        if (completedSectionSteps.length === sectionSteps.length) {
+                            // Mark section as completed
+                            await fetch('/api/workflow/complete-section', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    projectId: alert.projectId,
+                                    phase: currentPhase,
+                                    section: currentSection
+                                })
+                            });
+                            
+                            // Check if all sections in phase are completed
+                            const phaseSteps = workflow.steps?.filter(step => step.phase === currentPhase);
+                            const completedPhaseSteps = phaseSteps?.filter(step => step.isCompleted) || [];
+                            
+                            if (completedPhaseSteps.length === phaseSteps.length - 1) { // -1 because we just completed one
+                                // Mark phase as completed
+                                await fetch('/api/workflow/complete-phase', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        projectId: alert.projectId,
+                                        phase: currentPhase
+                                    })
+                                });
+                            }
+                        }
+                        
+                        // Emit socket event for real-time updates
+                        if (window.socket) {
+                            window.socket.emit('workflowUpdated', {
+                                projectId: alert.projectId,
+                                stepId: alert.stepId,
+                                phase: alert.phase,
+                                section: alert.section,
+                                isCompleted: true
+                            });
+                        }
+                        
+                        console.log('✅ Alert completed successfully:', result);
+                        
+                    } catch (error) {
+                        console.error('❌ Error completing alert:', error);
+                        // Optionally show user-friendly error message
+                    }
+                };
+                
+                // Project-specific Current Alerts section (copied from dashboard)
+                return (
+                    <div className="w-full" data-section="project-alerts">
+                        <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] rounded-t-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`}>
+                            <div className="mb-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div>
+                                        <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Alerts</h1>
+                                    </div>
+                                </div>
+                                
+                                {/* Filter Controls */}
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
+                                    <select 
+                                        value={selectedUserGroup}
+                                        onChange={(e) => setSelectedUserGroup(e.target.value)}
+                                        className={`text-[10px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                        }`}
+                                    >
+                                        <option value="all">All User Groups</option>
+                                        <option value="PM">PM</option>
+                                        <option value="FIELD">FIELD</option>
+                                        <option value="OFFICE">OFFICE</option>
+                                        <option value="ADMIN">ADMIN</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {/* Scrollable content area with fixed height */}
+                            <div className="h-[650px] overflow-y-auto space-y-2 mt-3">
+                                {alertsLoading ? (
+                                    <div className="text-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                                        <p className={`mt-2 text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading alerts...</p>
+                                    </div>
+                                ) : alertsError ? (
+                                    <div className="text-center py-8">
+                                        <p className="text-red-500 text-sm">Error loading alerts: {alertsError}</p>
+                                    </div>
+                                ) : filteredProjectAlerts.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <div className={`text-6xl mb-4 ${colorMode ? 'text-gray-600' : 'text-gray-300'}`}>🎉</div>
+                                        <p className={`text-sm font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            No alerts for this project
+                                        </p>
+                                        <p className={`text-xs mt-1 ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            All workflow items are up to date!
+                                        </p>
+                                    </div>
+                                ) : (
+                                    filteredProjectAlerts.map((alert, index) => {
+                                        const alertProject = projects?.find(p => p.id === alert.projectId || p._id === alert.projectId);
+                                        const projectNumber = alertProject?.projectNumber || alert.projectNumber || 'N/A';
+                                        const primaryContact = alertProject?.client?.name || alertProject?.customer?.name || alertProject?.clientName || alert.customerName || 'Unknown Customer';
+                                        
+                                        return (
+                                            <div
+                                                key={alert.id || `${alert.projectId}-${alert.stepId}-${index}`}
+                                                className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-lg shadow-sm border transition-all duration-200`}
+                                            >
+                                                <div className="flex items-center gap-2 p-2">
+                                                    {/* User Group Circle */}
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm flex-shrink-0 ${
+                                                        alert.userGroup === 'PM'
+                                                            ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-800 border border-green-300'
+                                                            : alert.userGroup === 'FIELD'
+                                                            ? 'bg-gradient-to-br from-orange-100 to-orange-200 text-orange-800 border border-orange-300'
+                                                            : alert.userGroup === 'OFFICE'
+                                                            ? 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-800 border border-blue-300'
+                                                            : alert.userGroup === 'ADMIN'
+                                                            ? 'bg-gradient-to-br from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
+                                                            : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
+                                                    }`}>
+                                                        {alert.userGroup?.charAt(0) || 'A'}
+                                                    </div>
+                                                    
+                                                    <div className="flex-1 min-w-0">
+                                                        {/* Main row with project info */}
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-4 min-w-0 flex-1">
+                                                                {/* Project Number */}
+                                                                <button
+                                                                    className={`text-sm font-bold transition-colors hover:underline ${ 
+                                                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                                    }`}
+                                                                    onClick={() => {
+                                                                        if (onProjectSelect && alertProject) {
+                                                                            onProjectSelect(alertProject, 'Overview', null, 'Current Alerts');
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {projectNumber}
+                                                                </button>
+                                                                
+                                                                {/* Primary Contact */}
+                                                                <span className={`text-sm font-semibold truncate ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                                    {primaryContact}
+                                                                </span>
+                                                                
+                                                                {/* Alert Description */}
+                                                                <span className={`text-sm font-medium truncate ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                    {alert.step || alert.description || 'Workflow Alert'}
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            {/* Complete Button */}
+                                                            <button
+                                                                onClick={() => handleCompleteAlert(alert, index)}
+                                                                className="px-3 py-1 bg-green-600 text-white text-[11px] font-medium rounded hover:bg-green-700 transition-colors flex-shrink-0"
+                                                            >
+                                                                Complete
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        {/* Phase and Section info */}
+                                                        <div className={`text-[11px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                            <span className="font-medium">{alert.phase}</span>
+                                                            <span className="mx-1">•</span>
+                                                            <span>{alert.section}</span>
+                                                            {alert.userGroup && (
+                                                                <>
+                                                                    <span className="mx-1">•</span>
+                                                                    <span className="font-medium">{alert.userGroup}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
 
             case 'Project Timeline':
                 // Calculate actual dates based on project timeline

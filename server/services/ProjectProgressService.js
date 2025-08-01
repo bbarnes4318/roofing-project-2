@@ -160,7 +160,7 @@ class ProjectProgressService {
      */
     static getProjectTrades(project) {
         const projectType = project.projectType || project.type || 'General';
-        const projectId = project.id || project._id;
+        const projectId = project.id;
 
         // Complex projects get multiple trades
         if (this.shouldHaveMultipleTrades(projectId)) {

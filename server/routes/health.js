@@ -1,5 +1,5 @@
 const express = require('express');
-const { checkDBHealth } = require('../config/db');
+const { checkDBHealth } = require('../config/prisma');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 const router = express.Router();

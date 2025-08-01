@@ -116,7 +116,7 @@ const ArchivedProjectsPage = ({ colorMode, onProjectSelect }) => {
 
     // Get unique years for filter
     const availableYears = useMemo(() => {
-        const years = [...new Set(archivedProjects.map(project => 
+        const years = [...new Set((archivedProjects || []).map(project => 
             new Date(project.archivedAt || project.endDate).getFullYear().toString()
         ))];
         return years.sort((a, b) => b - a);
@@ -124,7 +124,7 @@ const ArchivedProjectsPage = ({ colorMode, onProjectSelect }) => {
 
     // Get unique project types for filter
     const availableTypes = useMemo(() => {
-        const types = [...new Set(archivedProjects.map(project => project.projectType))];
+        const types = [...new Set((archivedProjects || []).map(project => project.projectType))];
         return types.filter(Boolean);
     }, [archivedProjects]);
 

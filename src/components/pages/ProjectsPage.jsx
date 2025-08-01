@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { ChatBubbleLeftRightIcon, ClipboardDocumentCheckIcon, ExclamationTriangleIcon, CalendarIcon, FolderIcon } from '../common/Icons';
 import { getStatusStyles, formatPhoneNumber } from '../../utils/helpers';
 import Modal from '../common/Modal';
-import { useApiCall, useCreateProject, useCustomers } from '../../hooks/useApi';
+import { useApiCall, useCreateProject, useCustomers, useProjects } from '../../hooks/useApi';
 import { projectsService } from '../../services/api';
+import { useWorkflowStates } from '../../hooks/useWorkflowState';
 
 const defaultNewProject = {
     projectName: '',
@@ -29,9 +30,24 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const { createProject, loading: createLoading, error: createError } = useCreateProject();
     const { data: customersData, loading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
     
+    // Fetch projects directly from database
+    const { data: projectsFromDb, loading: projectsLoading, error: projectsError } = useProjects({ limit: 100 });
+    
+    // CRITICAL: Use centralized workflow states for 100% consistency
+    const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
+    
+    // Always use database projects - no fallback to props
+    const projectsData = projectsFromDb || [];
+    const projectsArray = Array.isArray(projectsData) ? projectsData : [];
+    
     // Ensure all arrays are properly handled
     const customers = Array.isArray(customersData) ? customersData : [];
-    const projectsArray = Array.isArray(projects) ? projects : [];
+    
+    // Debug logging
+    console.log('🔍 ProjectsPage - Projects from DB:', projectsFromDb);
+    console.log('🔍 ProjectsPage - Projects from props:', projects);
+    console.log('🔍 ProjectsPage - Final projects array:', projectsArray);
+    console.log('🔍 ProjectsPage - Loading states:', { projectsLoading, projectsError });
 
     // Calculate targetProjectId for component-wide use
     const urlParams = new URLSearchParams(window.location.search);
@@ -142,25 +158,26 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         switch (phase?.toLowerCase()) {
             case 'lead':
             case 'lead phase':
-                return 'from-gray-500 to-gray-600';
+                return 'from-blue-500 to-blue-600';
             case 'prospect':
             case 'prospect phase':
-                return 'from-orange-500 to-orange-600';
+                return 'from-teal-500 to-teal-600';
             case 'approved':
             case 'approved phase':
-                return 'from-green-500 to-green-600';
+                return 'from-purple-500 to-purple-600';
             case 'execution':
             case 'execution phase':
-                return 'from-blue-500 to-blue-600';
+                return 'from-orange-500 to-orange-600';
             case 'supplement':
             case '2nd supplement':
             case '2nd supplement phase':
-                return 'from-yellow-500 to-yellow-600';
+            case '2nd supp':
+                return 'from-pink-500 to-pink-600';
             case 'completion':
             case 'completion phase':
-                return 'from-teal-500 to-teal-600';
+                return 'from-green-500 to-green-600';
             default:
-                return 'from-gray-500 to-gray-600';
+                return 'from-blue-500 to-blue-600';
         }
     };
 
@@ -177,7 +194,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 return 'Lead';
             case 'prospect phase':
             case 'prospect':
-                return 'Prospect-Insurance-1st Supplement';
+                return 'Prospect';
             case 'approved phase':
             case 'approved':
                 return 'Approved';
@@ -271,6 +288,22 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     // Back button function
     const handleBackToSource = () => {
         if (onNavigateBack) {
+            // For Project Phases, we need to pass the specific project info back
+            if (projectSourceSection === 'Project Phases' && targetProjectId) {
+                // Find the specific project that was clicked
+                const specificProject = projectsArray.find(p => String(p.id) === String(targetProjectId));
+                if (specificProject) {
+                    // Create a project object with the scrollToProjectId for highlighting
+                    const projectWithScrollInfo = {
+                        ...specificProject,
+                        scrollToProjectId: String(specificProject.id)
+                    };
+                    // Pass this to the navigation handler
+                    onNavigateBack(projectWithScrollInfo);
+                    return;
+                }
+            }
+            // Default behavior for other cases
             onNavigateBack();
         }
     };
@@ -324,12 +357,13 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </h3>
                             <div className="flex items-center gap-2">
                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
-                                    project.phase === 'Lead' ? 'bg-yellow-100 text-yellow-800' :
-                                    project.phase === 'Prospect' ? 'bg-blue-100 text-blue-800' :
-                                    project.phase === 'Approved' ? 'bg-green-100 text-green-800' :
-                                    project.phase === 'Execution' ? 'bg-purple-100 text-purple-800' :
-                                    project.phase === 'Completion' ? 'bg-gray-100 text-gray-800' :
-                                    'bg-gray-100 text-gray-600'
+                                    project.phase === 'Lead' ? 'bg-slate-400 text-white' :
+                                    project.phase === 'Prospect' ? 'bg-blue-600 text-white' :
+                                    project.phase === 'Approved' ? 'bg-emerald-500 text-white' :
+                                    project.phase === 'Execution' ? 'bg-amber-500 text-white' :
+                                    project.phase === '2nd Supp' ? 'bg-violet-500 text-white' :
+                                    project.phase === 'Completion' ? 'bg-green-900 text-white' :
+                                    'bg-slate-400 text-white'
                                 }`}>
                                     {project.phase}
                                 </span>
@@ -347,7 +381,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         {/* Customer Info Section - 1/3 width */}
                         <div className="flex items-start gap-1.5">
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${colorMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'}`}>
-                                {project.client?.name?.charAt(0) || project.customer?.firstName?.charAt(0) || 'C'}
+                                👤
                             </div>
                             <div className="flex-1">
                                 <div className={`text-xs font-medium ${colorMode ? 'text-white' : 'text-gray-900'} mb-0.5`}>
@@ -404,7 +438,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
 
                     {/* Progress Bar Section - Full Width */}
-                    <div className={`p-2 rounded-lg ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
+                    <div className={`p-2 rounded-lg transition-all duration-200 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'} ${expandedProgress[`${project.id}-materials-labor`] ? (colorMode ? 'border-4 border-blue-400' : 'border-4 border-blue-500') : ''}`}>
                         {/* Main Progress Bar (clickable to expand) */}
                         <button
                             onClick={() => toggleProgressExpansion(project.id, 'materials-labor')}
@@ -426,7 +460,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                             <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                                 <div 
-                                    className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500" 
+                                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-500" 
                                     style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
                                 ></div>
                             </div>
@@ -442,7 +476,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     </div>
                                     <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                                         <div 
-                                            className="bg-gradient-to-r from-green-500 to-emerald-500 h-1 rounded-full transition-all duration-500" 
+                                            className="bg-green-600 h-1 rounded-full transition-all duration-500" 
                                             style={{ width: `${Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%` }}
                                         ></div>
                                     </div>
@@ -455,7 +489,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     </div>
                                     <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                                         <div 
-                                            className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1 rounded-full transition-all duration-500" 
+                                            className="bg-orange-500 h-1 rounded-full transition-all duration-500" 
                                             style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
                                         ></div>
                                     </div>
@@ -481,20 +515,35 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 </button>
                                 {expandedProgress[`${project.id}-trades`] && (
                                     <div className="space-y-1.5 mt-1.5">
-                                        {projectTrades.map((trade, index) => (
-                                            <div key={index}>
-                                                <div className="flex items-center justify-between mb-0.5">
-                                                    <span className={`text-[7px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.name}</span>
-                                                    <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.laborProgress}%</span>
+                                        {projectTrades.map((trade, index) => {
+                                            const tradeColors = [
+                                                'bg-purple-600',
+                                                'bg-pink-500',
+                                                'bg-yellow-400',
+                                                'bg-teal-500',
+                                                'bg-red-500',
+                                                'bg-indigo-500',
+                                                'bg-cyan-500',
+                                                'bg-amber-500',
+                                                'bg-lime-500',
+                                                'bg-fuchsia-500',
+                                            ];
+                                            const barColor = tradeColors[index % tradeColors.length];
+                                            return (
+                                                <div key={index}>
+                                                    <div className="flex items-center justify-between mb-0.5">
+                                                        <span className={`text-[7px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.name}</span>
+                                                        <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.laborProgress}%</span>
+                                                    </div>
+                                                    <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                                        <div 
+                                                            className={`${barColor} h-1 rounded-full transition-all duration-500`} 
+                                                            style={{ width: `${trade.laborProgress}%` }}
+                                                        ></div>
+                                                    </div>
                                                 </div>
-                                                <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                                    <div 
-                                                        className="bg-gradient-to-r from-blue-500 to-green-500 h-1 rounded-full transition-all duration-500" 
-                                                        style={{ width: `${trade.laborProgress}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -577,8 +626,27 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 </button>
             </div>
 
-            {/* Projects list or empty state */}
-            {projectsArray.length === 0 ? (
+            {/* Loading state */}
+            {projectsLoading ? (
+                <div className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg p-6 text-center`}>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
+                    <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Loading projects...
+                    </p>
+                </div>
+            ) : projectsError ? (
+                <div className={`${colorMode ? 'bg-red-900/20 border-red-600/50' : 'bg-red-50 border-red-200'} border rounded-lg p-6 text-center`}>
+                    <div className="mb-3">
+                        <svg className="mx-auto h-10 w-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h3 className={`text-base font-semibold ${colorMode ? 'text-red-300' : 'text-red-800'}`}>Error loading projects</h3>
+                    <p className={`mt-1 text-sm ${colorMode ? 'text-red-400' : 'text-red-600'}`}>
+                        {projectsError}
+                    </p>
+                </div>
+            ) : projectsArray.length === 0 ? (
                 <div className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg p-6 text-center`}>
                     <div className="mb-3">
                         <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

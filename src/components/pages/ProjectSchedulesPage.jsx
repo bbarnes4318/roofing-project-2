@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { initialProjects, crews } from '../../data/mockData';
+// import { initialProjects, crews } from '../../data/mockData';
 import { 
   CheckCircleIcon, 
   XCircleIcon, 
@@ -123,7 +123,7 @@ export default function ProjectSchedulesPage() {
     if (savedProjects) {
       try {
         const parsed = JSON.parse(savedProjects);
-        return initialProjects.map(project => {
+        return [].map(project => {
           const savedProject = parsed.find(p => p.id === project.id);
           if (savedProject) {
             return {
@@ -138,10 +138,10 @@ export default function ProjectSchedulesPage() {
         });
       } catch (error) {
         console.error('Error loading saved schedules:', error);
-        return initialProjects;
+        return [];
       }
     }
-    return initialProjects;
+            return [];
   });
 
   // Load schedules from backend API
@@ -155,7 +155,7 @@ export default function ProjectSchedulesPage() {
         console.log('Loaded schedules from backend:', schedules);
         
         // Merge backend schedule data with projects
-        const updatedProjects = projects.map(project => {
+        const updatedProjects = (projects || []).map(project => {
           const schedule = schedules.find(s => s.projectId === project.id);
           if (schedule) {
             return {
@@ -216,7 +216,7 @@ export default function ProjectSchedulesPage() {
   // Save projects to localStorage whenever they change
   const saveProjectsToStorage = (updatedProjects) => {
     try {
-      const scheduleData = updatedProjects.map(project => ({
+      const scheduleData = (updatedProjects || []).map(project => ({
         id: project.id,
         laborStart: project.laborStart,
         laborEnd: project.laborEnd,
@@ -237,7 +237,7 @@ export default function ProjectSchedulesPage() {
   // Get unique trades
   const trades = useMemo(() => {
     const set = new Set();
-    projects.forEach(p => {
+    (projects || []).forEach(p => {
       if (p.type) set.add(p.type);
     });
     return Array.from(set);
@@ -245,7 +245,7 @@ export default function ProjectSchedulesPage() {
 
   // Filter projects based on search and filters
   const filteredProjects = useMemo(() => {
-    return projects.filter(project => {
+    return (projects || []).filter(project => {
       const matchesSearch = !searchTerm || 
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -546,7 +546,7 @@ export default function ProjectSchedulesPage() {
             >
               <option value="">All Status</option>
               <option value="lead">Lead Phase</option>
-              <option value="prospect">Prospect Phase-Insurance-1st Supplement</option>
+              <option value="prospect">Prospect</option>
               <option value="approved">Approved Phase</option>
               <option value="execution">Execution Phase</option>
               <option value="supplement">2nd Supplement Phase</option>
@@ -819,7 +819,7 @@ export default function ProjectSchedulesPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Project Manager:</span>
-                      <span className="font-medium">{modalProject.projectManager}</span>
+                      <span className="font-medium">{modalProject.projectManager ? `${modalProject.projectManager.firstName} ${modalProject.projectManager.lastName}` : 'Not Assigned'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Value:</span>
@@ -871,7 +871,7 @@ export default function ProjectSchedulesPage() {
                 <h4 className="font-semibold text-gray-900 mb-3">Progress</h4>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-gradient-to-r from-blue-400 to-green-400 h-3 rounded-full transition-all duration-500" 
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-500" 
                     style={{ width: `${modalProject.progress || 0}%` }}
                   ></div>
                 </div>

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../../hooks/useSocket';
-import { projectsService } from '../../services/api';
+import { projectsService, workflowAlertsService } from '../../services/api';
 import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
 
 
 const checklistPhases = [
   {
-    id: 'lead',
+    id: 'LEAD',
     label: '🟨 Lead Phase',
     items: [
       {
@@ -56,7 +57,7 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'prospect',
+    id: 'PROSPECT',
     label: '🟧 Prospect Phase',
     items: [
       {
@@ -113,7 +114,33 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'approved',
+    id: 'PROSPECT_NON_INSURANCE',
+    label: '🟪 Prospect: Non-Insurance Phase',
+    items: [
+      {
+        id: 'write-estimate-non-insurance',
+        label: 'Write Estimate – Project Manager 👷🏼',
+        subtasks: [
+          'Fill out Estimate Forms',
+          'Write initial estimate in AL and send customer for approval',
+          'Follow up with customer for approval',
+          'Let Office know the agreement is ready to sign'
+        ]
+      },
+      {
+        id: 'agreement-signing-non-insurance',
+        label: 'Agreement Signing – Administration 📝',
+        subtasks: [
+          'Review agreement with customer and send a signature request',
+          'Record in QuickBooks',
+          'Process deposit',
+          'Send and collect signatures for any applicable disclaimers'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'APPROVED',
     label: '🟩 Approved Phase',
     items: [
       {
@@ -172,7 +199,7 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'execution',
+    id: 'EXECUTION',
     label: '🔧 Execution Phase',
     items: [
       {
@@ -233,7 +260,7 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'supplement',
+    id: 'SUPPLEMENT',
     label: '🌀 2nd Supplement Phase',
     items: [
       {
@@ -273,7 +300,7 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'completion',
+    id: 'COMPLETION',
     label: '🏁 Completion Phase',
     items: [
       {
@@ -309,6 +336,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [phases, setPhases] = useState(checklistPhases);
   const [highlightedStep, setHighlightedStep] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
+  const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
+  
+  // Use the workflow update hook
+  const { updateWorkflowStep: updateWorkflowStepAPI, updating: workflowUpdating } = useWorkflowUpdate();
 
   // Fetch workflow data from database
   useEffect(() => {
@@ -323,7 +354,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         if (projectId && typeof projectId === 'number') {
           console.log('⚠️ WARNING: Using numeric project ID, this may not work with MongoDB');
           // For now, let's try to use a mock ObjectId based on the numeric ID
-          const mockObjectId = `686b4df0fa7c227b285aba0${projectId.toString().padStart(2, '0')}`;
+          const mockObjectId = `686b4df0fa7c227b285aba0${(projectId || '').toString().padStart(2, '0')}`;
           console.log(`🔄 CONVERTING: Numeric ID ${projectId} to mock ObjectId ${mockObjectId}`);
           
           const response = await projectsService.getWorkflow(mockObjectId);
@@ -336,7 +367,41 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           const response = await projectsService.getWorkflow(projectId);
           
           console.log(`🌐 FETCH: Received workflow data:`, response);
-          setWorkflowData(response.data || response.workflow);
+          const newWorkflowData = response.data || response.workflow;
+          
+          // Preserve optimistic updates
+          setWorkflowData(prevData => {
+            if (!prevData || optimisticUpdates.size === 0) {
+              return newWorkflowData;
+            }
+            
+            // Merge new data while preserving optimistic updates
+            const mergedSteps = [...(newWorkflowData.steps || [])];
+            if (prevData.steps) {
+              prevData.steps.forEach(prevStep => {
+                const stepId = prevStep.id || prevStep.stepId || prevStep._id;
+                if (optimisticUpdates.has(stepId)) {
+                  const existingIndex = mergedSteps.findIndex(s => 
+                    s.id === stepId || s.stepId === stepId || s._id === stepId
+                  );
+                  if (existingIndex >= 0) {
+                    // Keep optimistic state
+                    mergedSteps[existingIndex] = {
+                      ...mergedSteps[existingIndex],
+                      completed: prevStep.completed,
+                      isCompleted: prevStep.isCompleted,
+                      completedAt: prevStep.completedAt
+                    };
+                  }
+                }
+              });
+            }
+            
+            return {
+              ...newWorkflowData,
+              steps: mergedSteps
+            };
+          });
         }
       } catch (error) {
         console.error('❌ FETCH: Error fetching workflow data:', error);
@@ -682,22 +747,179 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   }, [project]);
 
   // Auto-refresh workflow data periodically when on this page
-  useEffect(() => {
-    if (!project) return;
+  // Disabled to prevent overwriting optimistic checkbox updates
+  // useEffect(() => {
+  //   if (!project) return;
+  //   
+  //   const refreshInterval = setInterval(async () => {
+  //     try {
+  //       const projectId = project._id || project.id;
+  //       const response = await projectsService.getWorkflow(projectId);
+  //       setWorkflowData(response.data || response.workflow);
+  //     } catch (error) {
+  //       console.error('❌ WORKFLOW: Auto-refresh failed:', error);
+  //       // Don't show error to user for background refresh
+  //     }
+  //   }, 30000); // Refresh every 30 seconds
+  //   
+  //   return () => clearInterval(refreshInterval);
+  // }, [project]);
+
+  // Helper function to find the next workflow item
+  const findNextWorkflowItem = (completedStepId) => {
+    console.log(`🔍 NEXT_ITEM: Looking for next item after ${completedStepId}`);
     
-    const refreshInterval = setInterval(async () => {
-      try {
-        const projectId = project._id || project.id;
-        const response = await projectsService.getWorkflow(projectId);
-        setWorkflowData(response.data || response.workflow);
-      } catch (error) {
-        console.error('❌ WORKFLOW: Auto-refresh failed:', error);
-        // Don't show error to user for background refresh
+    // Create a flat list of all workflow items in order
+    const allWorkflowItems = [];
+    
+    phases.forEach(phase => {
+      phase.items.forEach(item => {
+        // Add main item
+        const mainStepId = `${phase.id}-${item.id}`;
+        allWorkflowItems.push({
+          stepId: mainStepId,
+          phase: phase.id,
+          phaseLabel: phase.label,
+          itemId: item.id,
+          itemLabel: item.label,
+          type: 'main'
+        });
+        
+        // Add subtasks
+        if (item.subtasks) {
+          item.subtasks.forEach((subtask, subIdx) => {
+            const subtaskStepId = `${phase.id}-${item.id}-${subIdx}`;
+            allWorkflowItems.push({
+              stepId: subtaskStepId,
+              phase: phase.id,
+              phaseLabel: phase.label,
+              itemId: item.id,
+              itemLabel: item.label,
+              subtask: subtask,
+              type: 'subtask'
+            });
+          });
+        }
+        
+        // Add subheadings and their subtasks
+        if (item.subheadings) {
+          item.subheadings.forEach(subheading => {
+            const subheadingStepId = `${phase.id}-${item.id}-${subheading.id}`;
+            allWorkflowItems.push({
+              stepId: subheadingStepId,
+              phase: phase.id,
+              phaseLabel: phase.label,
+              itemId: item.id,
+              itemLabel: item.label,
+              subheading: subheading.label,
+              type: 'subheading'
+            });
+            
+            if (subheading.subtasks) {
+              subheading.subtasks.forEach((subtask, subIdx) => {
+                const subtaskStepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
+                allWorkflowItems.push({
+                  stepId: subtaskStepId,
+                  phase: phase.id,
+                  phaseLabel: phase.label,
+                  itemId: item.id,
+                  itemLabel: item.label,
+                  subheading: subheading.label,
+                  subtask: subtask,
+                  type: 'subheading_subtask'
+                });
+              });
+            }
+          });
+        }
+      });
+    });
+    
+    console.log(`🔍 NEXT_ITEM: All workflow items:`, allWorkflowItems.map(item => item.stepId));
+    
+    // Find current item index
+    const currentIndex = allWorkflowItems.findIndex(item => item.stepId === completedStepId);
+    console.log(`🔍 NEXT_ITEM: Current item index: ${currentIndex}`);
+    
+    if (currentIndex === -1) {
+      console.log(`❌ NEXT_ITEM: Could not find completed step ${completedStepId} in workflow`);
+      return null;
+    }
+    
+    // Get next item
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= allWorkflowItems.length) {
+      console.log(`✅ NEXT_ITEM: Workflow completed! No more items.`);
+      return null;
+    }
+    
+    const nextItem = allWorkflowItems[nextIndex];
+    console.log(`✅ NEXT_ITEM: Found next item:`, nextItem);
+    
+    return nextItem;
+  };
+
+  // Helper function to create alert for next workflow item
+  const createNextWorkflowAlert = async (nextItem) => {
+    if (!nextItem) return;
+    
+    console.log(`🔔 ALERT: Creating alert for next workflow item:`, nextItem);
+    
+    try {
+      // Determine alert title and description based on item type
+      let alertTitle = '';
+      let alertDescription = '';
+      
+      if (nextItem.type === 'main') {
+        alertTitle = nextItem.itemLabel;
+        alertDescription = `Please complete the next workflow step: ${nextItem.itemLabel}`;
+      } else if (nextItem.type === 'subtask') {
+        alertTitle = `${nextItem.itemLabel} - ${nextItem.subtask}`;
+        alertDescription = `Please complete: ${nextItem.subtask} in ${nextItem.itemLabel}`;
+      } else if (nextItem.type === 'subheading') {
+        alertTitle = `${nextItem.itemLabel} - ${nextItem.subheading}`;
+        alertDescription = `Please complete: ${nextItem.subheading} in ${nextItem.itemLabel}`;
+      } else if (nextItem.type === 'subheading_subtask') {
+        alertTitle = `${nextItem.subheading} - ${nextItem.subtask}`;
+        alertDescription = `Please complete: ${nextItem.subtask} in ${nextItem.subheading}`;
       }
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(refreshInterval);
-  }, [project]);
+      
+      // Create alert data
+      const alertData = {
+        title: alertTitle,
+        message: alertDescription,
+        priority: 'medium',
+        projectId: project._id || project.id,
+        stepId: nextItem.stepId,
+        metadata: {
+          stepName: alertTitle,
+          cleanTaskName: alertTitle,
+          phase: nextItem.phase,
+          phaseLabel: nextItem.phaseLabel,
+          projectId: project._id || project.id,
+          projectNumber: project.projectNumber || project.number || '12345',
+          projectName: project.name || project.projectName || 'Unknown Project',
+          workflowId: workflowData?._id || 'unknown',
+          stepId: nextItem.stepId,
+          autoGenerated: true,
+          generatedAt: new Date().toISOString()
+        },
+        type: 'workflow_progression',
+        status: 'pending'
+      };
+      
+      console.log(`🔔 ALERT: Creating alert with data:`, alertData);
+      
+      // Create the alert
+      const response = await workflowAlertsService.create(alertData);
+      console.log(`✅ ALERT: Successfully created alert:`, response);
+      
+      return response;
+    } catch (error) {
+      console.error(`❌ ALERT: Error creating next workflow alert:`, error);
+      // Don't throw error - we don't want to break workflow completion if alert creation fails
+    }
+  };
 
   const updateWorkflowStep = async (stepId, completed) => {
     console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed}`);
@@ -705,7 +927,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     // Store original data for rollback
     const originalWorkflowData = workflowData;
     
-    // Optimistic update
+    // Track this optimistic update
+    setOptimisticUpdates(prev => new Set([...prev, stepId]));
+    
+    // CRITICAL: Immediate optimistic update that persists
     setWorkflowData(prevData => {
       if (!prevData) {
         // Initialize workflow data if it doesn't exist
@@ -725,40 +950,44 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         };
       }
       
-      // Update existing workflow data
+      // Create completely new object to force re-render
       const updatedSteps = [...(prevData.steps || [])];
-      let step = updatedSteps.find(s => 
+      let stepIndex = updatedSteps.findIndex(s => 
         s.id === stepId || 
         s.stepId === stepId || 
         s._id === stepId
       );
       
-      if (!step) {
+      if (stepIndex === -1) {
         // Create new step if it doesn't exist
-        step = {
+        const newStep = {
           id: stepId,
           stepId: stepId,
           _id: stepId,
           completed: completed,
           isCompleted: completed,
+          completedAt: completed ? new Date().toISOString() : null,
           createdAt: new Date().toISOString()
         };
-        updatedSteps.push(step);
+        updatedSteps.push(newStep);
       } else {
-        // Update existing step
-        step.completed = completed;
-        step.isCompleted = completed;
-        if (completed) {
-          step.completedAt = new Date().toISOString();
-        } else {
-          step.completedAt = null;
-        }
+        // Replace the step entirely to force re-render
+        updatedSteps[stepIndex] = {
+          ...updatedSteps[stepIndex],
+          completed: completed,
+          isCompleted: completed,
+          completedAt: completed ? new Date().toISOString() : null,
+          updatedAt: new Date().toISOString()
+        };
       }
       
+      // Return completely new object
       return {
         ...prevData,
         steps: updatedSteps,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        // Add a timestamp to ensure re-render
+        _optimisticUpdate: Date.now()
       };
     });
 
@@ -768,30 +997,91 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     console.log(`🌐 CHECKBOX: Request payload:`, { completed });
     
     try {
-      // Use the actual API service instead of debugger functions
-      const response = await projectsService.updateWorkflowStep(projectId, stepId, { completed });
+      // CRITICAL: Use the new workflow update API that also updates project.phase
+      const response = await updateWorkflowStepAPI(projectId, stepId, completed);
       
-      console.log('✅ CHECKBOX: API call successful, updating with server data');
+      console.log('✅ CHECKBOX: API call successful, server confirmed the update');
       console.log('✅ CHECKBOX: Server response:', response);
+      console.log(`✅ CHECKBOX: New project phase: ${response.phase}, Progress: ${response.progress}%`);
       
-      // Update with server data if available
-      if (response.data || response.workflow) {
-        setWorkflowData(response.data || response.workflow);
+      // Update the project with new phase and progress if onUpdate is available
+      if (onUpdate && response.project) {
+        onUpdate({
+          ...project,
+          phase: response.phase,
+          progress: response.progress
+        });
       }
       
-
+      // Clear optimistic update tracking
+      setOptimisticUpdates(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(stepId);
+        return newSet;
+      });
+      
+      // DON'T overwrite the optimistic update - it's already correct
+      // Just ensure the server state matches our optimistic update
+      if (response?.data?.step) {
+        setWorkflowData(prevData => {
+          const updatedSteps = [...(prevData.steps || [])];
+          let stepIndex = updatedSteps.findIndex(s => 
+            s.id === stepId || 
+            s.stepId === stepId || 
+            s._id === stepId
+          );
+          
+          if (stepIndex >= 0) {
+            // Merge server response with optimistic update
+            updatedSteps[stepIndex] = {
+              ...updatedSteps[stepIndex],
+              ...response.data.step,
+              completed: completed, // Keep our optimistic state
+              isCompleted: completed // Keep our optimistic state
+            };
+          }
+          
+          return {
+            ...prevData,
+            steps: updatedSteps,
+            _serverConfirmed: Date.now()
+          };
+        });
+      }
       
       // Handle automatic section and phase completion
       handleAutomaticCompletion(stepId, completed);
       
+      // Generate alert for next workflow item when step is completed
+      if (completed) {
+        console.log(`🔔 ALERT: Step ${stepId} completed, checking for next workflow item`);
+        const nextItem = findNextWorkflowItem(stepId);
+        if (nextItem) {
+          console.log(`🔔 ALERT: Found next item, creating alert:`, nextItem);
+          // Create alert asynchronously - don't wait for it to complete
+          createNextWorkflowAlert(nextItem).catch(error => {
+            console.error(`❌ ALERT: Failed to create next workflow alert:`, error);
+          });
+        } else {
+          console.log(`🎉 WORKFLOW: No more items - project workflow completed!`);
+        }
+      }
+      
     } catch (error) {
       console.error('❌ CHECKBOX: Failed to update workflow step:', error);
       
-      // Revert optimistic update
+      // Clear optimistic update tracking
+      setOptimisticUpdates(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(stepId);
+        return newSet;
+      });
+      
+      // Revert optimistic update only on error
       setWorkflowData(originalWorkflowData);
       
-      // Just log the error, don't show to user
-      console.warn('Workflow step update failed, but continuing with local state');
+      // Show user-friendly error
+      console.warn('Failed to save checkbox state. Please try again.');
     }
   };
 
@@ -832,8 +1122,6 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   // Helper function to check if a step is completed
   const isStepCompleted = (stepId) => {
     console.log(`🔍 CHECKING: isStepCompleted for "${stepId}"`);
-    console.log(`🔍 CHECKING: workflowData:`, workflowData);
-    console.log(`🔍 CHECKING: workflowData.steps:`, workflowData?.steps);
     
     if (!workflowData || !workflowData.steps) {
       console.log(`🔍 CHECKING: No workflow data or steps, returning false`);
@@ -841,7 +1129,6 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     }
     
     // First try direct ID matching (for backwards compatibility)
-    console.log(`🔍 CHECKING: Looking for direct match in ${workflowData.steps.length} steps`);
     const directMatch = workflowData.steps.find(s => 
       s.id === stepId || 
       s.stepId === stepId || 
@@ -854,11 +1141,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       const result = directMatch.completed || directMatch.isCompleted;
       console.log(`🔍 CHECKING: Direct match result: ${result}`);
       return result;
-    } else {
-      console.log(`🔍 CHECKING: No direct match found`);
     }
     
-    // If no direct match, try to map checklist item to workflow step by name and phase
     // Parse the stepId format: "phase-id-item-id-sub-index"
     const stepIdParts = stepId.split('-');
     if (stepIdParts.length >= 4) {
@@ -875,21 +1159,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           
           // Map phase IDs to workflow phases
           const phaseMapping = {
-            'lead': 'Lead',
-            'prospect': 'Prospect', 
-            'approved': 'Approved',
-            'execution': 'Execution',
-            'supplement': '2nd Supplement',
-            'completion': 'Completion'
+            'lead': 'LEAD',
+            'prospect': 'PROSPECT', 
+            'prospect-non-insurance': 'PROSPECT_NON_INSURANCE',
+            'approved': 'APPROVED',
+            'execution': 'EXECUTION',
+            'supplement': 'SUPPLEMENT',
+            'completion': 'COMPLETION'
           };
           
           const workflowPhase = phaseMapping[phaseId];
           
+          if (!workflowPhase) {
+            console.log(`🔍 CHECKING: No phase mapping for ${phaseId}`);
+            return false;
+          }
+          
           // Find matching workflow step by phase and subtask name
           const matchingStep = workflowData.steps.find(step => {
             // Check if step is in the right phase
-            const stepPhase = step.phase;
-            if (stepPhase !== workflowPhase) return false;
+            if (step.phase !== workflowPhase) return false;
             
             // Check if any of the step's subtasks match our subtask
             if (step.subTasks && Array.isArray(step.subTasks)) {
@@ -917,6 +1206,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           if (matchingStep) {
             console.log(`🔗 CHECKLIST: Mapped checklist item "${subtaskName}" to workflow step "${matchingStep.stepName}"`);
             return matchingStep.completed || matchingStep.isCompleted;
+          } else {
+            console.log(`🔍 CHECKING: No matching workflow step found for "${subtaskName}" in phase "${workflowPhase}"`);
           }
         }
       }
@@ -935,6 +1226,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       return fuzzyMatch.completed || fuzzyMatch.isCompleted;
     }
     
+    console.log(`🔍 CHECKING: No match found for "${stepId}"`);
     return false;
   };
 
@@ -1173,11 +1465,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
                                     data-item-id={item.id}
                                     className={`hover:bg-gray-50 rounded transition-colors ${snapshot.isDragging ? 'bg-blue-50' : ''}`}
                                   >
-                                    <div className="flex items-start cursor-pointer group text-left">
+                                    <div className="flex items-start cursor-pointer group text-left" {...provided.dragHandleProps}>
                                       <span 
                                         className={`flex-1 text-[10px] font-medium group-hover:text-blue-700 transition-all duration-300 text-left ${
                                           allMicrotasksChecked ? 'line-through text-green-600' : 
@@ -1271,7 +1562,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                     type="checkbox"
                                                     className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
                                                     checked={completed}
-                                                    onChange={() => handleCheck(phase.id, item.id, subIdx)}
+                                                    onChange={(e) => {
+                                                      e.stopPropagation();
+                                                      handleCheck(phase.id, item.id, subIdx);
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
                                                   />
                                                   <span className={completed ? 'line-through text-gray-400' : ''}>{sub}</span>
                                                 </li>
@@ -1296,13 +1591,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                       type="checkbox"
                                                       className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
                                                       checked={completed}
-                                                      onChange={() => {
+                                                      onChange={(e) => {
+                                                        e.stopPropagation();
                                                         const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
                                                         const currentlyCompleted = isStepCompleted(stepId);
                                                         const newCompletedState = !currentlyCompleted;
                                                         console.log(`🔄 CHECKBOX SUBHEADING: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
                                                         updateWorkflowStep(stepId, newCompletedState);
                                                       }}
+                                                      onClick={(e) => e.stopPropagation()}
                                                     />
                                                     <span className={completed ? 'line-through text-gray-400' : ''}>{sub}</span>
                                                   </li>

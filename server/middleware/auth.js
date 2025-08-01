@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { prisma } = require('../config/prisma');
 
 // Authenticate JWT token
 const authenticateToken = async (req, res, next) => {
@@ -18,7 +18,9 @@ const authenticateToken = async (req, res, next) => {
     // Check if it's a demo token first
     if (token.startsWith('demo-sarah-owner-token-')) {
       // Find Sarah Owner in the database or create a mock user
-      let sarahOwner = await User.findOne({ firstName: 'Sarah', lastName: 'Owner' });
+      let sarahOwner = await prisma.user.findFirst({ 
+      where: { firstName: 'Sarah', lastName: 'Owner' } 
+    });
       
       if (!sarahOwner) {
         // Create mock user object for demo purposes
@@ -44,7 +46,22 @@ const authenticateToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user from database
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        permissions: true,
+        isActive: true,
+        theme: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
     
     if (!user) {
       return res.status(401).json({
@@ -123,7 +140,22 @@ const optionalAuth = async (req, res, next) => {
 
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).select('-password');
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          permissions: true,
+          isActive: true,
+          theme: true,
+          lastLogin: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
       
       if (user && user.isActive) {
         req.user = user;
@@ -181,7 +213,7 @@ const checkOwnership = (resourceUserField = 'userId') => {
     // Check if user owns the resource
     const resourceUserId = req.body[resourceUserField] || req.params[resourceUserField];
     
-    if (resourceUserId && resourceUserId.toString() !== req.user._id.toString()) {
+    if (resourceUserId && resourceUserId.toString() !== req.user.id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. You can only access your own resources.'
@@ -201,7 +233,7 @@ const userRateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
       return next();
     }
 
-    const userId = req.user._id.toString();
+    const userId = req.user.id.toString();
     const now = Date.now();
     const windowStart = now - windowMs;
 
