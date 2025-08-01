@@ -583,18 +583,12 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   const fs = require('fs');
   
-  // Debug: Log directory structure
-  console.log('🔍 Current directory:', __dirname);
-  console.log('🔍 Parent directory exists:', fs.existsSync(path.join(__dirname, '..')));
-  console.log('🔍 Build directory exists:', fs.existsSync(path.join(__dirname, '../build')));
+  // Determine build path based on how server is run
+  const buildPath = __dirname.endsWith('/server') 
+    ? path.join(__dirname, '../build')  // Running from server directory
+    : path.join(__dirname, 'build');    // Running from root directory
   
-  // Try multiple possible locations for build files
-  const buildPath = fs.existsSync(path.join(__dirname, '../build')) 
-    ? path.join(__dirname, '../build')
-    : fs.existsSync(path.join(__dirname, '../../build'))
-    ? path.join(__dirname, '../../build') 
-    : path.join(__dirname, '../build'); // fallback
-  
+  console.log('🏗️ Server directory:', __dirname);
   console.log('🏗️ Using build path:', buildPath);
   
   // Serve static files from React build
