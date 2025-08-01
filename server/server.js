@@ -581,13 +581,37 @@ app.use('/api/workflow-updates', workflowUpdateRoutes);
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');
+  const fs = require('fs');
+  
+  // Debug: Log directory structure
+  console.log('🔍 Current directory:', __dirname);
+  console.log('🔍 Parent directory exists:', fs.existsSync(path.join(__dirname, '..')));
+  console.log('🔍 Build directory exists:', fs.existsSync(path.join(__dirname, '../build')));
+  
+  // Try multiple possible locations for build files
+  const buildPath = fs.existsSync(path.join(__dirname, '../build')) 
+    ? path.join(__dirname, '../build')
+    : fs.existsSync(path.join(__dirname, '../../build'))
+    ? path.join(__dirname, '../../build') 
+    : path.join(__dirname, '../build'); // fallback
+  
+  console.log('🏗️ Using build path:', buildPath);
   
   // Serve static files from React build
-  app.use(express.static(path.join(__dirname, '../build')));
+  app.use(express.static(buildPath));
   
   // Serve React app for all non-API routes
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../build/index.html'));
+    const indexPath = path.join(buildPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ 
+        error: 'React build not found',
+        searchedPath: indexPath,
+        currentDir: __dirname
+      });
+    }
   });
 } else {
   app.get('/', (req, res) => {
