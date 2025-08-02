@@ -611,13 +611,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       grouped[phase.id] = [];
     });
     
-    tableProjects.forEach(project => {
+    // Ensure tableProjects is an array
+    const safeTableProjects = Array.isArray(tableProjects) ? tableProjects : [];
+    
+    safeTableProjects.forEach(project => {
       const phase = project.phase;
       if (grouped[phase]) {
         grouped[phase].push(project);
       } else {
-        // Default to lead phase if phase not found
-        grouped['lead'].push(project);
+        // Default to LEAD phase if phase not found
+        if (!grouped['LEAD']) {
+          grouped['LEAD'] = [];
+        }
+        grouped['LEAD'].push(project);
       }
     });
     
