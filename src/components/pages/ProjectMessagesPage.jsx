@@ -28,7 +28,7 @@ const initialChats = {
   4: [],
 };
 
-const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'feed' }) => {
+const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'dm' }) => {
     const [tab, setTab] = useState(initialTab);
     const [message, setMessage] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -174,14 +174,8 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
 
     return (
         <div className="w-full max-w-full m-0 p-0">
-            {/* Tabs */}
+            {/* Tabs - Only Direct Messages and AI Directive */}
             <div className="flex gap-2 m-0 p-0">
-              <button
-                className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'feed' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
-                onClick={() => setTab('feed')}
-              >
-                Project Messages
-              </button>
               <button
                 className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'dm' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
                 onClick={() => setTab('dm')}
@@ -196,235 +190,8 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
               </button>
             </div>
 
-            {/* Project Messages Tab */}
-            {tab === 'feed' && (
-              <>
-                {/* Full Dashboard Project Messages Implementation */}
-                <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
-                      </div>
-                    </div>
-                    
-                    {/* Filter Controls */}
-                    <div className="flex items-center gap-2 mb-2 mt-3">
-                      <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
-                      <select 
-                        value={activityProjectFilter} 
-                        onChange={(e) => setActivityProjectFilter(e.target.value)} 
-                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
-                          colorMode 
-                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                        }`}
-                      >
-                        <option value="">All Projects</option>
-                        {(projects || []).map(p => (
-                          <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
-                        ))}
-                      </select>
-                      
-                      <select 
-                        value={activitySubjectFilter} 
-                        onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
-                          colorMode 
-                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                        }`}
-                      >
-                        <option value="">All Subjects</option>
-                        {ACTIVITY_FEED_SUBJECTS.map(subject => (
-                          <option key={subject} value={subject}>{subject}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    {/* Add Message Dropdown Trigger */}
-                    <div className="mb-3">
-                      <button
-                        onClick={() => setShowMessageDropdown(!showMessageDropdown)}
-                        className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
-                          showMessageDropdown
-                            ? colorMode 
-                              ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
-                              : 'border-blue-400 bg-blue-50 text-blue-700'
-                            : colorMode 
-                              ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
-                              : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>+ Add Message</span>
-                        <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    {/* Add Message Dropdown Form */}
-                    {showMessageDropdown && (
-                      <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                        <form onSubmit={(e) => {
-                          e.preventDefault();
-                          if (newMessageProject && newMessageSubject && newMessageText.trim()) {
-                            // Create new message activity
-                            const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
-                            const newActivity = {
-                              id: `msg_${Date.now()}`,
-                              projectId: parseInt(newMessageProject),
-                              projectName: selectedProject?.name || 'Unknown Project',
-                              projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
-                              subject: newMessageSubject,
-                              description: newMessageText,
-                              user: 'You',
-                              timestamp: new Date().toISOString(),
-                              type: 'message',
-                              priority: 'medium'
-                            };
-                            
-                            // Add to activities via the parent callback
-                            if (onAddActivity) {
-                              onAddActivity(selectedProject, newMessageText, newMessageSubject);
-                            }
-                            
-                            // Close dropdown and reset form
-                            setShowMessageDropdown(false);
-                            setNewMessageProject('');
-                            setNewMessageSubject('');
-                            setNewMessageText('');
-                          }
-                        }} className="space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <label className={`block text-xs font-medium mb-1 ${
-                                colorMode ? 'text-gray-300' : 'text-gray-700'
-                              }`}>
-                                Project <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={newMessageProject}
-                                onChange={(e) => setNewMessageProject(e.target.value)}
-                                required
-                                className={`w-full p-2 border rounded text-xs ${
-                                  colorMode 
-                                    ? 'bg-[#232b4d] border-gray-600 text-white' 
-                                    : 'bg-white border-gray-300 text-gray-800'
-                                }`}
-                              >
-                                <option value="">Select Project</option>
-                                {(projects || []).map(project => (
-                                  <option key={project.id} value={project.id}>
-                                    #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.address}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            
-                            <div>
-                              <label className={`block text-xs font-medium mb-1 ${
-                                colorMode ? 'text-gray-300' : 'text-gray-700'
-                              }`}>
-                                Subject <span className="text-red-500">*</span>
-                              </label>
-                              <select
-                                value={newMessageSubject}
-                                onChange={(e) => setNewMessageSubject(e.target.value)}
-                                required
-                                className={`w-full p-2 border rounded text-xs ${
-                                  colorMode 
-                                    ? 'bg-[#232b4d] border-gray-600 text-white' 
-                                    : 'bg-white border-gray-300 text-gray-800'
-                                }`}
-                              >
-                                <option value="">Select Subject</option>
-                                {ACTIVITY_FEED_SUBJECTS.map(subject => (
-                                  <option key={subject} value={subject}>{subject}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <label className={`block text-xs font-medium mb-1 ${
-                              colorMode ? 'text-gray-300' : 'text-gray-700'
-                            }`}>
-                              Message <span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                              value={newMessageText}
-                              onChange={(e) => setNewMessageText(e.target.value)}
-                              placeholder="Enter your message here..."
-                              required
-                              rows={3}
-                              className={`w-full p-2 border rounded text-xs resize-none ${
-                                colorMode 
-                                  ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
-                                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
-                              }`}
-                            />
-                          </div>
-                          
-                          <div className="flex justify-end gap-2 pt-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowMessageDropdown(false);
-                                setNewMessageProject('');
-                                setNewMessageSubject('');
-                                setNewMessageText('');
-                              }}
-                              className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
-                                colorMode 
-                                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                              }`}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim()}
-                              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                                newMessageProject && newMessageSubject && newMessageText.trim()
-                                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              }`}
-                            >
-                              Send Message
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2 mt-3">
-                    {activities && activities.length === 0 ? (
-                      <div className="text-gray-400 text-center py-3 text-[9px]">
-                        No messages found.
-                      </div>
-                    ) : (
-                      (activities || []).map(activity => (
-                        <ProjectMessagesCard 
-                          key={activity.id} 
-                          activity={activity} 
-                          onProjectSelect={handleProjectSelectWithScroll}
-                          projects={projects}
-                          colorMode={colorMode}
-                          onQuickReply={handleQuickReply}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
             {/* Direct Messages Tab */}
-            {tab === 'dm' && (
-              <div className={`w-full flex rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
+            <div className={`w-full flex rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
                 {/* Coworker sidebar */}
                 <div className={`w-44 flex-shrink-0 border-r ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-100 bg-gray-50'} py-3 px-2 flex flex-col`}> 
                   <div className="font-bold text-xs mb-2 px-2 text-gray-400 uppercase tracking-wider">Coworkers</div>
@@ -517,7 +284,6 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                   </form>
                 </div>
               </div>
-            )}
             
             {/* Message Composition Modal */}
             {showMessageModal && (

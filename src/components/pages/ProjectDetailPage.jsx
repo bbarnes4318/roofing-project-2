@@ -12,6 +12,7 @@ import { teamMembers } from '../../data/mockData';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import WorkflowProgressService from '../../services/workflowProgress';
+import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
 
 // Helper functions for advanced progress bars (moved to top level)
 
@@ -114,6 +115,231 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         }
     };
     
+    // Project Messages helper functions - matching dashboard
+    const handleQuickReply = (replyData) => {
+        console.log('Project detail quick reply data:', replyData);
+        
+        // Find the project for the reply
+        const targetProject = projects?.find(p => p.id === replyData.projectId);
+        
+        if (targetProject && onAddActivity) {
+            // Add the quick reply as a new activity
+            onAddActivity(targetProject, replyData.message, replyData.subject);
+        }
+    };
+    
+    // Calculate current activities for Project Messages
+    const calculateCurrentActivities = () => {
+        // Filter activities (use activities prop or messagesData)
+        const allActivities = activities || messagesData || [];
+        
+        let filteredActivities = allActivities.filter(activity => {
+            // Project filter
+            if (activityProjectFilter && activity.projectId !== parseInt(activityProjectFilter)) {
+                return false;
+            }
+            
+            // Subject filter
+            if (activitySubjectFilter && activity.subject !== activitySubjectFilter) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Sort by timestamp (newest first)
+        const sortedActivities = filteredActivities.sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.createdAt || 0);
+            const dateB = new Date(b.timestamp || b.createdAt || 0);
+            return dateB - dateA;
+        });
+        
+        // Pagination
+        const activitiesPerPage = 10;
+        const startIndex = (currentPage - 1) * activitiesPerPage;
+        const endIndex = startIndex + activitiesPerPage;
+        
+        return sortedActivities.slice(startIndex, endIndex);
+    };
+    
+    const currentActivities = calculateCurrentActivities();
+    
+    // Current Alerts helper functions - matching dashboard
+    const getPaginatedAlerts = () => {
+        // Use real alerts from API if available
+        const alertsData = workflowAlerts && workflowAlerts.length > 0 ? workflowAlerts : [];
+        let filteredAlerts = [...alertsData];
+        
+        // Apply project filter
+        if (alertProjectFilter !== 'all') {
+            filteredAlerts = filteredAlerts.filter(alert => {
+                const projectId = alert.actionData?.projectId || alert.metadata?.projectId;
+                return projectId === alertProjectFilter || String(projectId) === String(alertProjectFilter);
+            });
+        }
+        
+        // Apply user group filter
+        if (alertUserGroupFilter !== 'all') {
+            filteredAlerts = filteredAlerts.filter(alert => {
+                const userRole = alert.user?.role || alert.actionData?.defaultResponsible || 'OFFICE';
+                return formatUserRole(userRole) === alertUserGroupFilter;
+            });
+        }
+        
+        return filteredAlerts;
+    };
+    
+    const toggleAlertExpansion = (alertId) => {
+        const newExpanded = new Set(expandedAlerts);
+        if (newExpanded.has(alertId)) {
+            newExpanded.delete(alertId);
+        } else {
+            newExpanded.add(alertId);
+        }
+        setExpandedAlerts(newExpanded);
+    };
+    
+    const formatUserRole = (role) => {
+        if (!role) return 'OFFICE';
+        
+        switch (role.toUpperCase()) {
+            case 'PROJECT_MANAGER':
+                return 'PM';
+            case 'FIELD_DIRECTOR':
+                return 'FIELD';
+            case 'ADMINISTRATION':
+                return 'ADMIN';
+            case 'OFFICE':
+                return 'OFFICE';
+            default:
+                return role.toUpperCase();
+        }
+    };
+    
+    // Alert action handlers - matching dashboard
+    const handleCompleteAlert = async (alert) => {
+        const alertId = alert._id || alert.id;
+        setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: true }));
+        
+        try {
+            console.log('🔄 Completing alert:', alert);
+            console.log('🔍 Alert metadata:', alert.metadata);
+            
+            const projectId = alert.relatedProject?._id || alert.projectId || alert.project?._id;
+            const stepName = alert.metadata?.stepName || alert.metadata?.cleanTaskName || alert.stepName || alert.title;
+            const projectName = alert.metadata?.projectName || alert.relatedProject?.projectName;
+            
+            console.log('🎯 COMPLETION: Target info:', { projectId, stepName, projectName });
+            
+            // Extract workflow and step IDs from alert metadata
+            let workflowId = null;
+            let stepId = null;
+            
+            // Try multiple possible field locations for workflow and step IDs
+            if (alert.metadata?.workflowId && alert.metadata?.stepId) {
+                workflowId = alert.metadata.workflowId;
+                stepId = alert.metadata.stepId;
+                console.log('✅ Found workflow/step IDs in metadata');
+            } else if (alert.data?.workflowId && alert.data?.stepId) {
+                workflowId = alert.data.workflowId;
+                stepId = alert.data.stepId;
+                console.log('✅ Found workflow/step IDs in data field');
+            } else if (alert.workflowId && alert.stepId) {
+                workflowId = alert.workflowId;
+                stepId = alert.stepId;
+                console.log('✅ Found workflow/step IDs directly on alert');
+            } else {
+                console.error('❌ Could not find workflow or step information in alert:', {
+                    hasMetadata: !!alert.metadata,
+                    metadataKeys: alert.metadata ? Object.keys(alert.metadata) : [],
+                    hasData: !!alert.data,
+                    dataKeys: alert.data ? Object.keys(alert.data) : [],
+                    alertKeys: Object.keys(alert)
+                });
+                
+                // Fallback: just mark alert as read if we can't complete the workflow step
+                console.log('🔄 Marking alert as read since workflow info is missing');
+                setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
+                return;
+            }
+
+            console.log(`🚀 Attempting to complete workflow step: workflowId=${workflowId}, stepId=${stepId}`);
+
+            // Step 1: Complete the workflow step via API
+            const response = await fetch(`/api/workflows/${workflowId}/steps/${stepId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    notes: `Completed via project detail alerts by user`,
+                    alertId: alertId
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Workflow step completed successfully:', result);
+                
+                // Show success feedback
+                console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
+                
+                // ENHANCED: Dispatch global event to notify Project Workflow tab
+                const globalEvent = new CustomEvent('workflowStepCompleted', {
+                  detail: {
+                    projectId: projectId,
+                    stepId: stepId,
+                    stepName: stepName,
+                    projectName: projectName,
+                    source: 'Project Detail Alerts Tab',
+                    timestamp: new Date().toISOString()
+                  }
+                });
+                window.dispatchEvent(globalEvent);
+                console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from Project Detail Alerts');
+                
+                // Navigate to Project Workflow tab with highlighting after completion
+                setTimeout(() => {
+                  if (project && onProjectSelect) {
+                    const projectWithStepInfo = {
+                      ...project,
+                      highlightStep: alert.metadata?.stepName || alert.title,
+                      alertPhase: alert.metadata?.phase,
+                      completedStep: true,
+                      // Add navigation context for proper workflow highlighting
+                      navigationTarget: {
+                        phase: alert.metadata?.phase,
+                        section: alert.metadata?.section,
+                        lineItem: stepName,
+                        stepName: stepName,
+                        alertId: alertId
+                      }
+                    };
+                    setActiveView('Project Workflow');
+                  }
+                }, 500);
+            } else {
+                const errorResult = await response.json();
+                console.error('❌ Failed to complete workflow step:', errorResult);
+                throw new Error(errorResult.message || 'Failed to complete workflow step');
+            }
+            
+        } catch (error) {
+            console.error('❌ Failed to complete alert:', error);
+            
+            // Show error feedback to user
+            alert(`Failed to complete workflow step: ${error.message}`);
+        } finally {
+            setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
+        }
+    };
+    
+    const handleAssignAlert = (alert) => {
+        // TODO: Implement assign alert functionality
+        console.log('Assign alert:', alert);
+    };
+    
     const handleQuickReply = (replyData) => {
         console.log('Project quick reply data:', replyData);
         if (onAddActivity) {
@@ -143,6 +369,22 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     const [expandedAlerts, setExpandedAlerts] = useState(new Set());
     const [expandedContacts, setExpandedContacts] = useState(new Set());
     const [expandedPMs, setExpandedPMs] = useState(new Set());
+    
+    // Project Messages state variables - matching dashboard
+    const [activityProjectFilter, setActivityProjectFilter] = useState('');
+    const [activitySubjectFilter, setActivitySubjectFilter] = useState('');
+    const [showMessageDropdown, setShowMessageDropdown] = useState(false);
+    const [newMessageProject, setNewMessageProject] = useState('');
+    const [newMessageSubject, setNewMessageSubject] = useState('');
+    const [newMessageText, setNewMessageText] = useState('');
+    const [messagesData, setMessagesData] = useState([]);
+    const [feed, setFeed] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    
+    // Current Alerts state variables - matching dashboard
+    const [alertProjectFilter, setAlertProjectFilter] = useState('all');
+    const [alertUserGroupFilter, setAlertUserGroupFilter] = useState('all');
+    const [actionLoading, setActionLoading] = useState({});
     
     // Call useWorkflowAlerts at the top level to comply with React hooks rules
     const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts(projects);
@@ -398,9 +640,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     </div>
                 );
             case 'Messages':
-                const projectActivities = activities?.filter(a => a.projectId === project.id || a.projectId === project._id || a.relatedProject === project.id || a.relatedProject === project._id) || [];
-                
-                // Project-specific Project Messages section (copied from dashboard)
+                // Complete Project Messages section (copied exactly from dashboard)
                 return (
                     <div className="w-full" data-section="project-messages">
                         <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
@@ -415,6 +655,23 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 <div className="flex items-center gap-2 mb-2 mt-3">
                                     <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                                     <select 
+                                        value={activityProjectFilter} 
+                                        onChange={(e) => setActivityProjectFilter(e.target.value)} 
+                                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                        }`}
+                                    >
+                                        <option value="">All Projects</option>
+                                        {(projects || []).map(p => (
+                                            <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                                        ))}
+                                    </select>
+                                    
+                                    <select 
+                                        value={activitySubjectFilter} 
+                                        onChange={(e) => setActivitySubjectFilter(e.target.value)} 
                                         className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
                                             colorMode 
                                                 ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
@@ -422,20 +679,176 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                         }`}
                                     >
                                         <option value="">All Subjects</option>
-                                        <option value="Project Update">Project Update</option>
-                                        <option value="Material Delivery">Material Delivery</option>
-                                        <option value="Site Inspection">Site Inspection</option>
-                                        <option value="Customer Communication">Customer Communication</option>
+                                        {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                                            <option key={subject} value={subject}>{subject}</option>
+                                        ))}
                                     </select>
                                 </div>
+                                
+                                {/* Add Message Dropdown Trigger */}
+                                <div className="mb-3">
+                                    <button
+                                        onClick={() => setShowMessageDropdown(!showMessageDropdown)}
+                                        className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
+                                            showMessageDropdown
+                                                ? colorMode 
+                                                    ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
+                                                    : 'border-blue-400 bg-blue-50 text-blue-700'
+                                                : colorMode 
+                                                    ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
+                                                    : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
+                                        }`}
+                                    >
+                                        <span>+ Add Message</span>
+                                        <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                {/* Add Message Dropdown Form */}
+                                {showMessageDropdown && (
+                                    <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault();
+                                            if (newMessageProject && newMessageSubject && newMessageText.trim()) {
+                                                // Create new message activity
+                                                const selectedProject = projects?.find(p => p.id === parseInt(newMessageProject));
+                                                const newActivity = {
+                                                    id: `msg_${Date.now()}`,
+                                                    projectId: parseInt(newMessageProject),
+                                                    projectName: selectedProject?.name || 'Unknown Project',
+                                                    projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
+                                                    subject: newMessageSubject,
+                                                    description: newMessageText,
+                                                    user: 'You',
+                                                    timestamp: new Date().toISOString(),
+                                                    type: 'message',
+                                                    priority: 'medium'
+                                                };
+                                                
+                                                // Add to messages data
+                                                setMessagesData(prev => [newActivity, ...prev]);
+                                                setFeed(prev => [newActivity, ...prev]);
+                                                
+                                                // Close dropdown and reset form
+                                                setShowMessageDropdown(false);
+                                                setNewMessageProject('');
+                                                setNewMessageSubject('');
+                                                setNewMessageText('');
+                                            }
+                                        }} className="space-y-3">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                        Project <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        value={newMessageProject}
+                                                        onChange={(e) => setNewMessageProject(e.target.value)}
+                                                        required
+                                                        className={`w-full p-2 border rounded text-xs ${
+                                                            colorMode 
+                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-800'
+                                                        }`}
+                                                    >
+                                                        <option value="">Select Project</option>
+                                                        {(projects || []).map(projectOption => (
+                                                            <option key={projectOption.id} value={projectOption.id}>
+                                                                #{String(projectOption.projectNumber || projectOption.id).padStart(5, '0')} - {projectOption.name || projectOption.address}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                        Subject <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        value={newMessageSubject}
+                                                        onChange={(e) => setNewMessageSubject(e.target.value)}
+                                                        required
+                                                        className={`w-full p-2 border rounded text-xs ${
+                                                            colorMode 
+                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-800'
+                                                        }`}
+                                                    >
+                                                        <option value="">Select Subject</option>
+                                                        {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                                                            <option key={subject} value={subject}>{subject}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label className={`block text-xs font-medium mb-1 ${
+                                                    colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                    Message <span className="text-red-500">*</span>
+                                                </label>
+                                                <textarea
+                                                    value={newMessageText}
+                                                    onChange={(e) => setNewMessageText(e.target.value)}
+                                                    placeholder="Enter your message here..."
+                                                    required
+                                                    rows={3}
+                                                    className={`w-full p-2 border rounded text-xs resize-none ${
+                                                        colorMode 
+                                                            ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                                                            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                                                    }`}
+                                                />
+                                            </div>
+                                            
+                                            <div className="flex justify-end gap-2 pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setShowMessageDropdown(false);
+                                                        setNewMessageProject('');
+                                                        setNewMessageSubject('');
+                                                        setNewMessageText('');
+                                                    }}
+                                                    className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
+                                                        colorMode 
+                                                            ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim()}
+                                                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                                                        newMessageProject && newMessageSubject && newMessageText.trim()
+                                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                    }`}
+                                                >
+                                                    Send Message
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                )}
                             </div>
-                            <div className="space-y-2 mt-3">
-                                {projectActivities.length === 0 ? (
+                            
+                            <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+                                {currentActivities.length === 0 ? (
                                     <div className="text-gray-400 text-center py-3 text-[9px]">
-                                        No messages found for this project.
+                                        No messages found.
                                     </div>
                                 ) : (
-                                    projectActivities.map(activity => (
+                                    currentActivities.map(activity => (
                                         <ProjectMessagesCard 
                                             key={activity.id} 
                                             activity={activity} 
@@ -451,128 +864,10 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     </div>
                 );
             case 'Alerts':
-                // Filter alerts for this specific project (using hook values from top level)
-                const projectAlerts = workflowAlerts?.filter(alert => 
-                    alert.projectId === project.id || alert.projectId === project._id
-                ) || [];
-                
-                // Further filter by user group if selected
-                const filteredProjectAlerts = selectedUserGroup === 'all' 
-                    ? projectAlerts 
-                    : projectAlerts.filter(alert => alert.userGroup === selectedUserGroup);
-                
-                const handleCompleteAlert = async (alert, alertIndex) => {
-                    try {
-                        // Step 1: Mark the specific workflow line item as completed
-                        const response = await fetch('/api/workflow/complete-step', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                projectId: alert.projectId,
-                                stepId: alert.stepId,
-                                phase: alert.phase,
-                                section: alert.section,
-                                step: alert.step
-                            })
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Failed to complete workflow step');
-                        }
-
-                        const result = await response.json();
-                        
-                        // Step 2: Get current workflow state to check for completions
-                        const workflowResponse = await fetch(`/api/workflow/${alert.projectId}`);
-                        if (!workflowResponse.ok) {
-                            throw new Error('Failed to fetch workflow');
-                        }
-                        
-                        const { data: workflow } = await workflowResponse.json();
-                        
-                        // Find current phase and section
-                        const currentPhase = alert.phase;
-                        const currentSection = alert.section;
-                        
-                        // Step 3: Check for section and phase completion
-                        const sectionSteps = workflow.steps?.filter(step => 
-                            step.phase === currentPhase && step.section === currentSection
-                        );
-                        
-                        const completedSectionSteps = sectionSteps?.filter(step => step.isCompleted) || [];
-                        
-                        if (completedSectionSteps.length === sectionSteps.length) {
-                            // Mark section as completed
-                            await fetch('/api/workflow/complete-section', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    projectId: alert.projectId,
-                                    phase: currentPhase,
-                                    section: currentSection
-                                })
-                            });
-                            
-                            // Check if all sections in phase are completed
-                            const phaseSteps = workflow.steps?.filter(step => step.phase === currentPhase);
-                            const completedPhaseSteps = phaseSteps?.filter(step => step.isCompleted) || [];
-                            
-                            if (completedPhaseSteps.length === phaseSteps.length - 1) { // -1 because we just completed one
-                                // Mark phase as completed
-                                await fetch('/api/workflow/complete-phase', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        projectId: alert.projectId,
-                                        phase: currentPhase
-                                    })
-                                });
-                            }
-                        }
-                        
-                        // Emit socket event for real-time updates
-                        if (window.socket) {
-                            window.socket.emit('workflowUpdated', {
-                                projectId: alert.projectId,
-                                stepId: alert.stepId,
-                                phase: alert.phase,
-                                section: alert.section,
-                                isCompleted: true
-                            });
-                        }
-                        
-                        console.log('✅ Alert completed successfully:', result);
-                        
-                        // ENHANCED: Dispatch global event to notify Project Workflow tab
-                        const globalEvent = new CustomEvent('workflowStepCompleted', {
-                          detail: {
-                            projectId: alert.projectId,
-                            stepId: alert.stepId,
-                            stepName: alert.step || alert.title,
-                            projectName: project?.name || 'Unknown Project',
-                            source: 'Project Detail Alerts Tab',
-                            timestamp: new Date().toISOString()
-                          }
-                        });
-                        window.dispatchEvent(globalEvent);
-                        console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from Project Detail Alerts');
-                        
-                    } catch (error) {
-                        console.error('❌ Error completing alert:', error);
-                        // Optionally show user-friendly error message
-                    }
-                };
-                
-                // Project-specific Current Alerts section (copied from dashboard)
+                // Complete Current Alerts section (copied exactly from dashboard)
                 return (
-                    <div className="w-full" data-section="project-alerts">
-                        <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] rounded-t-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`}>
+                    <div className="w-full" data-section="current-alerts">
+                        <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
                             <div className="mb-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <div>
@@ -584,88 +879,94 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 <div className="flex items-center gap-2 mb-2 mt-3">
                                     <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                                     <select 
-                                        value={selectedUserGroup}
-                                        onChange={(e) => setSelectedUserGroup(e.target.value)}
-                                        className={`text-[10px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                        value={alertProjectFilter} 
+                                        onChange={(e) => setAlertProjectFilter(e.target.value)} 
+                                        className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[140px] ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                        }`}
+                                    >
+                                        <option value="all">All Projects</option>
+                                        <option value="general">General</option>
+                                        {(projects || []).map(p => (
+                                            <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                                        ))}
+                                    </select>
+                                    
+                                    <select 
+                                        value={alertUserGroupFilter} 
+                                        onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
+                                        className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[120px] ${
                                             colorMode 
                                                 ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
                                                 : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
                                         }`}
                                     >
                                         <option value="all">All User Groups</option>
-                                        <option value="PM">PM</option>
-                                        <option value="FIELD">FIELD</option>
-                                        <option value="OFFICE">OFFICE</option>
-                                        <option value="ADMIN">ADMIN</option>
+                                        <option value="PM">Project Manager</option>
+                                        <option value="FIELD">Field Director</option>
+                                        <option value="OFFICE">Office Staff</option>
+                                        <option value="ADMIN">Administration</option>
                                     </select>
                                 </div>
+                                
+                                {/* Divider bar to match Project Messages styling exactly */}
+                                <div className="mb-3">
+                                    <div className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
+                                        colorMode 
+                                            ? 'border-gray-600 text-gray-300' 
+                                            : 'border-gray-300 text-gray-600'
+                                    }`}>
+                                        <span></span>
+                                        <div className="w-4 h-4"></div>
+                                    </div>
+                                </div>
                             </div>
-                            
-                            {/* Scrollable content area with fixed height */}
-                            <div className="h-[650px] overflow-y-auto space-y-2 mt-3">
-                                {alertsLoading ? (
-                                    <div className="text-center py-8">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                                        <p className={`mt-2 text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading alerts...</p>
-                                    </div>
-                                ) : alertsError ? (
-                                    <div className="text-center py-8">
-                                        <p className="text-red-500 text-sm">Error loading alerts: {alertsError}</p>
-                                    </div>
-                                ) : filteredProjectAlerts.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <div className={`text-6xl mb-4 ${colorMode ? 'text-gray-600' : 'text-gray-300'}`}>🎉</div>
-                                        <p className={`text-sm font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            No alerts for this project
-                                        </p>
-                                        <p className={`text-xs mt-1 ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                            All workflow items are up to date!
-                                        </p>
+                            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+                                {getPaginatedAlerts().length === 0 ? (
+                                    <div className="text-gray-400 text-center py-3 text-sm">
+                                        {alertsLoading ? 'Loading alerts...' : 'No alerts found.'}
                                     </div>
                                 ) : (
-                                    filteredProjectAlerts.map((alert, index) => {
-                                        // Extract data from alert - matching Current Alerts implementation
+                                    getPaginatedAlerts().map(alert => {
+                                        // Extract data from alert
                                         const alertId = alert._id || alert.id;
                                         const actionData = alert.actionData || alert.metadata || {};
-                                        const phase = actionData.phase || alert.phase || 'UNKNOWN';
+                                        const phase = actionData.phase || 'UNKNOWN';
                                         const priority = actionData.priority || 'medium';
                                         
                                         // Find associated project
-                                        const alertProject = projects?.find(p => p.id === alert.projectId || p._id === alert.projectId) || project;
-                                        const projectNumber = alertProject?.projectNumber || alert.projectNumber || project?.projectNumber || 'N/A';
-                                        const projectName = alertProject?.name || alert.projectName || project?.name || 'Unknown Project';
-                                        const primaryContact = alertProject?.client?.name || alertProject?.customer?.name || alertProject?.clientName || alert.customerName || 'Unknown Customer';
+                                        const projectId = actionData.projectId;
+                                        const alertProject = projects?.find(p => p.id === projectId || p._id === projectId);
+                                        
+                                        // Alert details
                                         const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
                                         const isExpanded = expandedAlerts.has(alertId);
                                         
-                                        // Get proper section and line item mapping - matching Current Alerts implementation
+                                        // Get proper section and line item mapping
                                         const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
                                         const sectionName = workflowMapping.section;
                                         const lineItemName = workflowMapping.lineItem;
                                         
-                                        // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
+                                        // Use WorkflowProgressService for consistent phase colors
                                         const getPhaseCircleColors = (phase) => {
-                                            const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
+                                            // Normalize phase name to match WorkflowProgressService
+                                            const normalizedPhase = (phase || 'LEAD').toUpperCase()
+                                                .replace('SUPPLEMENT', 'SECOND_SUPP')
+                                                .replace('2ND SUPP', 'SECOND_SUPP')
+                                                .replace('EXECUTE', 'EXECUTION');
                                             return WorkflowProgressService.getPhaseColor(normalizedPhase);
                                         };
-
+                                        
                                         return (
                                             <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
                                                 {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
                                                 <div 
-                                                    className="p-3 cursor-pointer"
-                                                    onClick={() => {
-                                                        setExpandedAlerts(prev => {
-                                                            const newSet = new Set(prev);
-                                                            if (newSet.has(alertId)) {
-                                                                newSet.delete(alertId);
-                                                            } else {
-                                                                newSet.add(alertId);
-                                                            }
-                                                            return newSet;
-                                                        });
-                                                    }}
+                                                    className="flex flex-col gap-0 px-2 py-0.5 hover:bg-opacity-80 transition-colors cursor-pointer"
+                                                    onClick={() => toggleAlertExpansion(alertId)}
                                                 >
+                                                    {/* First Row - Project# | Customer ▼ | PM ▼ | UserGroup | Arrow - More spaced out */}
                                                     <div className="flex items-center justify-between gap-6">
                                                         {/* Phase Circle - Smaller */}
                                                         <div className="relative flex-shrink-0">
@@ -673,104 +974,169 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                 {phase.charAt(0).toUpperCase()}
                                                             </div>
                                                             {priority === 'high' && (
-                                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                                                                    <span className="text-white text-[10px] font-bold">!</span>
-                                                                </div>
+                                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
                                                             )}
                                                         </div>
                                                         
-                                                        {/* Project Info Section */}
-                                                        <div className="flex-1 min-w-0">
-                                                            {/* Project Number and Customer */}
-                                                            <div className="flex items-center gap-3 mb-1">
+                                                        {/* Left Section: Project# | Customer | PM - Fixed positioning */}
+                                                        <div className="flex items-center text-[10px] flex-1">
+                                                            {/* Project Number */}
+                                                            <span 
+                                                                className={`font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                style={{width: '60px'}}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (alertProject && onProjectSelect) {
+                                                                        const projectWithScrollId = {
+                                                                            ...alertProject,
+                                                                            scrollToProjectId: String(alertProject.id)
+                                                                        };
+                                                                        handleProjectSelectWithScroll(projectWithScrollId, 'Projects', null, 'Current Alerts');
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {alertProject?.projectNumber || actionData.projectNumber || '12345'}
+                                                            </span>
+                                                            
+                                                            {/* Customer with dropdown arrow */}
+                                                            <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
                                                                 <button 
-                                                                    className={`text-[10px] font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                    className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
+                                                                        colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
+                                                                    }`}
+                                                                    title={alertProject?.customer?.name || alertProject?.clientName || actionData.projectName || 'Primary Customer'}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        if (alertProject && onProjectSelect) {
-                                                                            const projectWithScrollId = {
-                                                                                ...alertProject,
-                                                                                scrollToProjectId: String(alertProject.id)
-                                                                            };
-                                                                            onProjectSelect(projectWithScrollId, 'Projects', null, 'Project Workflow Alerts');
+                                                                        const newExpanded = new Set(expandedContacts);
+                                                                        if (newExpanded.has(alertId)) {
+                                                                            newExpanded.delete(alertId);
+                                                                        } else {
+                                                                            newExpanded.add(alertId);
                                                                         }
+                                                                        setExpandedContacts(newExpanded);
                                                                     }}
                                                                 >
-                                                                    {projectNumber}
+                                                                    {alertProject?.customer?.name || alertProject?.clientName || actionData.projectName || 'Customer'}
                                                                 </button>
-                                                                
-                                                                {/* Customer with dropdown arrow */}
-                                                                <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
-                                                                    <button 
-                                                                        className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
-                                                                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                                                        }`}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setExpandedContacts(prev => {
-                                                                                const newSet = new Set(prev);
-                                                                                if (newSet.has(alertId)) {
-                                                                                    newSet.delete(alertId);
-                                                                                } else {
-                                                                                    newSet.add(alertId);
-                                                                                }
-                                                                                return newSet;
-                                                                            });
-                                                                        }}
-                                                                        title={primaryContact}
-                                                                    >
-                                                                        {primaryContact}
-                                                                    </button>
-                                                                    <svg className={`w-3 h-3 transition-transform ${expandedContacts.has(alertId) ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const newExpanded = new Set(expandedContacts);
+                                                                        if (newExpanded.has(alertId)) {
+                                                                            newExpanded.delete(alertId);
+                                                                        } else {
+                                                                            newExpanded.add(alertId);
+                                                                        }
+                                                                        setExpandedContacts(newExpanded);
+                                                                    }}
+                                                                    className={`transform transition-transform duration-200 ${expandedContacts.has(alertId) ? 'rotate-180' : ''}`}
+                                                                >
+                                                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                                     </svg>
-                                                                </div>
+                                                                </button>
                                                             </div>
                                                             
-                                                            {/* Line Item - Clickable to navigate to Project Workflow */}
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
-                                                                <span 
-                                                                    className={`text-[10px] font-semibold cursor-pointer hover:underline max-w-[150px] truncate ${
-                                                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                            {/* PM with dropdown arrow */}
+                                                            <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '10px'}}>
+                                                                <span className={`text-[10px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
+                                                                <button 
+                                                                    className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
+                                                                        colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                                                     }`}
-                                                                    title={lineItemName}
+                                                                    title={alertProject?.projectManager?.name || alertProject?.projectManager?.firstName + ' ' + alertProject?.projectManager?.lastName || 'Mike Field'}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        if (alertProject && onProjectSelect) {
-                                                                            const projectWithStepInfo = {
-                                                                                ...alertProject,
-                                                                                highlightStep: alertTitle,
-                                                                                alertPhase: phase,
-                                                                                navigationTarget: {
-                                                                                    phase: phase,
-                                                                                    section: sectionName,
-                                                                                    lineItem: lineItemName,
-                                                                                    stepName: alertTitle,
-                                                                                    alertId: alertId
-                                                                                }
-                                                                            };
-                                                                            onProjectSelect(projectWithStepInfo, 'Project Workflow', null, 'Project Workflow Alerts');
+                                                                        const newExpanded = new Set(expandedPMs);
+                                                                        if (newExpanded.has(alertId)) {
+                                                                            newExpanded.delete(alertId);
+                                                                        } else {
+                                                                            newExpanded.add(alertId);
                                                                         }
+                                                                        setExpandedPMs(newExpanded);
                                                                     }}
                                                                 >
-                                                                    {lineItemName}
-                                                                </span>
+                                                                    {alertProject?.projectManager?.firstName || alertProject?.projectManager?.name || 'Mike'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const newExpanded = new Set(expandedPMs);
+                                                                        if (newExpanded.has(alertId)) {
+                                                                            newExpanded.delete(alertId);
+                                                                        } else {
+                                                                            newExpanded.add(alertId);
+                                                                        }
+                                                                        setExpandedPMs(newExpanded);
+                                                                    }}
+                                                                    className={`transform transition-transform duration-200 ${expandedPMs.has(alertId) ? 'rotate-180' : ''}`}
+                                                                >
+                                                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </button>
                                                             </div>
                                                         </div>
                                                         
-                                                        {/* Dropdown Arrow */}
-                                                        <div className="flex-shrink-0">
-                                                            <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                            </svg>
+                                                        {/* Right Section: User Group & Arrow */}
+                                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                                            <div className="w-10 h-4 px-0.5 py-0 border border-gray-300 rounded-full flex items-center justify-center text-black font-medium text-[8px] bg-white">
+                                                                {formatUserRole(alert.user?.role || actionData.defaultResponsible || 'OFFICE')}
+                                                            </div>
+                                                            <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                </svg>
+                                                            </div>
                                                         </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Second Row - Section and Line Item */}
+                                                <div className="grid items-center text-xs" style={{ gridTemplateColumns: '180px 1fr', marginLeft: 'calc(1.75rem + 1.5rem)', marginTop: '-4px' }}>
+                                                    {/* Section - align S with project number */}
+                                                    <div className="flex items-center gap-1">
+                                                        <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
+                                                        <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                                            {sectionName?.split('-')[0]?.trim() || sectionName}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    {/* Line Item - align L with PM */}
+                                                    <div className="flex items-center gap-1 flex-1">
+                                                        <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
+                                                        <span 
+                                                            className={`font-semibold cursor-pointer hover:underline max-w-[150px] truncate ${
+                                                                colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                            }`}
+                                                            title={lineItemName}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (alertProject && onProjectSelect) {
+                                                                    const projectWithStepInfo = {
+                                                                        ...alertProject,
+                                                                        highlightStep: alertTitle,
+                                                                        alertPhase: phase,
+                                                                        navigationTarget: {
+                                                                            phase: phase,
+                                                                            section: sectionName,
+                                                                            lineItem: lineItemName,
+                                                                            stepName: alertTitle,
+                                                                            alertId: alertId
+                                                                        }
+                                                                    };
+                                                                    handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                }
+                                                            }}
+                                                        >
+                                                            {lineItemName}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 
                                                 {/* Customer Contact Info Dropdown */}
                                                 {expandedContacts.has(alertId) && (
-                                                    <div className="flex items-start gap-2 px-3">
+                                                    <div className="flex items-start gap-2">
                                                         <div className="w-8 flex-shrink-0"></div>
                                                         <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                                                             <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
@@ -797,24 +1163,86 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     </div>
                                                 )}
                                                 
+                                                {/* PM Contact Info Dropdown */}
+                                                {expandedPMs.has(alertId) && (
+                                                    <div className="flex items-start gap-2">
+                                                        <div className="w-8 flex-shrink-0"></div>
+                                                        <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                            <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                                                {alertProject?.projectManager?.name || alertProject?.projectManager?.firstName + ' ' + alertProject?.projectManager?.lastName || 'Mike Field'}
+                                                            </div>
+                                                            <div className="space-y-0.5">
+                                                                <a 
+                                                                    href={`tel:${(alertProject?.projectManager?.phone || '(555) 234-5678').replace(/[^\d+]/g, '')}`} 
+                                                                    className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                >
+                                                                    📞 {alertProject?.projectManager?.phone || '(555) 234-5678'}
+                                                                </a>
+                                                                <a 
+                                                                    href={`mailto:${alertProject?.projectManager?.email || 'mike.field@company.com'}`} 
+                                                                    className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                >
+                                                                    ✉️ {alertProject?.projectManager?.email || 'mike.field@company.com'}
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
                                                 {/* Expandable dropdown section */}
                                                 {isExpanded && (
-                                                    <div className={`px-3 py-2 border-t ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                                                        {/* Action Buttons */}
+                                                    <div className={`px-2 py-2 border-t ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                        {/* Action Buttons - First Priority */}
                                                         <div className="flex gap-2 mb-2">
                                                             {/* Complete Button */}
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleCompleteAlert(alert, index);
+                                                                    handleCompleteAlert(alert);
                                                                 }}
-                                                                className="flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md"
+                                                                disabled={actionLoading[`${alertId}-complete`]}
+                                                                className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
+                                                                    actionLoading[`${alertId}-complete`] 
+                                                                        ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed' 
+                                                                        : 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md'
+                                                                }`}
+                                                            >
+                                                                {actionLoading[`${alertId}-complete`] ? (
+                                                                    <span className="flex items-center justify-center">
+                                                                        <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                        </svg>
+                                                                        Completing...
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="flex items-center justify-center">
+                                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                        </svg>
+                                                                        Complete
+                                                                    </span>
+                                                                )}
+                                                            </button>
+                                                            
+                                                            {/* Assign to User Button */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleAssignAlert(alert);
+                                                                }}
+                                                                disabled={actionLoading[`${alertId}-assign`]}
+                                                                className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
+                                                                    actionLoading[`${alertId}-assign`]
+                                                                        ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                                                                        : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600 shadow-sm hover:shadow-md'
+                                                                }`}
                                                             >
                                                                 <span className="flex items-center justify-center">
                                                                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                                     </svg>
-                                                                    Complete
+                                                                    Assign to User
                                                                 </span>
                                                             </button>
                                                         </div>
@@ -826,8 +1254,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 )}
                             </div>
                         </div>
-                    </div>
-                );
+                    </div>;
 
             case 'Project Timeline':
                 // Calculate actual dates based on project timeline

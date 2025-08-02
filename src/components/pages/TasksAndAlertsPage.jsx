@@ -1,39 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import { authService } from '../../services/api';
-import { useWorkflowAlerts } from '../../hooks/useApi';
-import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useApi';
+import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
+import { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
+import { ACTIVITY_FEED_SUBJECTS, ALERT_SUBJECTS } from '../../data/constants';
+import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
+import { useWorkflowStates } from '../../hooks/useWorkflowState';
 
 const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSection = 'My Alerts' }) => {
+    // Current user state
     const [currentUser, setCurrentUser] = useState(null);
 
-    // State for alerts
+    // Alert-related state
     const [expandedAlerts, setExpandedAlerts] = useState(new Set());
-    const [actionLoading, setActionLoading] = useState({});
     const [expandedContacts, setExpandedContacts] = useState(new Set());
     const [expandedPMs, setExpandedPMs] = useState(new Set());
-    
-    // State for assign modal
-    const [assignModalOpen, setAssignModalOpen] = useState(false);
-    const [selectedAlert, setSelectedAlert] = useState(null);
-    const [teamMembers, setTeamMembers] = useState([]);
-    const [selectedUserId, setSelectedUserId] = useState('');
-    const [assignLoading, setAssignLoading] = useState(false);
-    const [assignDropdownOpen, setAssignDropdownOpen] = useState({});
-    
-    // Fetch workflow alerts using the same hook as DashboardPage
-    const { alerts, loading: alertsLoading, error: alertsError, refresh, acknowledgeAlert, dismissAlert, completeStep, assignAlert } = useWorkflowAlerts({
-        status: 'active'
-    });
-    
-    // Alert sorting
-    const [alertSortConfig, setAlertSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
-    
-    // Alert filtering (same as Current Alerts section)
+    const [actionLoading, setActionLoading] = useState({});
+
+    // Filter state
     const [alertProjectFilter, setAlertProjectFilter] = useState('all');
     const [alertUserGroupFilter, setAlertUserGroupFilter] = useState('all');
-    
-    // Helper functions (copied exactly from DashboardPage)
+
+    // Assignment modal state
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedAlertForAssign, setSelectedAlertForAssign] = useState(null);
+    const [assignToUser, setAssignToUser] = useState('');
+
+    // Fetch real alerts from API
+    const { alerts: workflowAlerts, loading: alertsLoading, error: alertsError, refresh: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'active' });
+
+    // Fetch current user
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const user = await authService.getCurrentUser();
+                setCurrentUser(user);
+            } catch (error) {
+                console.error('Failed to fetch current user:', error);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    // Helper function to format user roles for display
+    const formatUserRole = (role) => {
+        if (!role) return 'OFFICE';
+        
+        switch (role.toUpperCase()) {
+            case 'PROJECT_MANAGER':
+                return 'PM';
+            case 'FIELD_DIRECTOR':
+                return 'FIELD';
+            case 'ADMINISTRATION':
+                return 'ADMIN';
+            case 'OFFICE':
+                return 'OFFICE';
+            default:
+                return role.toUpperCase();
+        }
+    };
+
+    // Scroll and project selection helpers
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -53,93 +80,10 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         }
     };
 
-    // Fetch current user
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const user = await authService.getCurrentUser();
-                setCurrentUser(user);
-            } catch (error) {
-                console.error('Failed to fetch current user:', error);
-            }
-        };
-        fetchUser();
-    }, []);
-
-    const formatUserRole = (role) => {
-        if (!role) return 'OFFICE';
-        
-        switch (role.toUpperCase()) {
-            case 'PROJECT_MANAGER':
-                return 'PM';
-            case 'FIELD_DIRECTOR':
-                return 'FIELD';
-            case 'ADMINISTRATION':
-                return 'ADMIN';
-            case 'OFFICE':
-                return 'OFFICE';
-            default:
-                return role.toUpperCase();
-        }
-    };
-
-    const getProjectName = (projectId) => {
-        if (!projectId) return 'Unknown Project';
-        const project = projects.find(p => p.id === projectId || p._id === projectId);
-        return project ? project.name : 'Unknown Project';
-    };
-
-    const handleProjectClick = (projectId, alert) => {
-        if (onProjectSelect) {
-            console.log('🔍 PROJECT_CLICK: Starting project click handler');
-            console.log('🔍 PROJECT_CLICK: projectId:', projectId);
-            console.log('🔍 PROJECT_CLICK: alert:', alert);
-            console.log('🔍 PROJECT_CLICK: projects array length:', projects?.length);
-            
-            // Find the matching project with more flexible matching
-            let matchingProject = null;
-            
-            if (projectId) {
-                const projectName = alert.metadata?.projectName || alert.relatedProject?.projectName;
-                console.log('🔍 PROJECT_CLICK: extracted projectName:', projectName);
-                
-                matchingProject = projects.find(p => 
-                    p.id === projectId || 
-                    p._id === projectId ||
-                    p.projectNumber === projectId ||
-                    p.projectName === projectName ||
-                    p.name === projectName ||
-                    p.projectName === projectName ||
-                    p.name?.includes(projectName) ||
-                    projectName?.includes(p.name) ||
-                    p.id === projectId ||
-                    p._id === projectId
-                );
-            }
-            
-            console.log('🔍 PROJECT_CLICK: matchingProject found:', !!matchingProject);
-            console.log('🔍 PROJECT_CLICK: matchingProject:', matchingProject);
-            
-            if (matchingProject) {
-                console.log('🚀 Navigating to Projects page for project:', matchingProject.name);
-                console.log('🚀 Source section: My Alerts');
-                // Add scrollToProjectId for Projects page scrolling
-                const projectWithScrollId = {
-                    ...matchingProject,
-                    scrollToProjectId: String(matchingProject.id)
-                };
-                // Navigate to Projects page with scrolling
-                handleProjectSelectWithScroll(projectWithScrollId, 'Projects', null, sourceSection);
-            } else {
-                console.warn('❌ No project found for alert:', alert);
-            }
-        }
-    };
-
-    // Function to sort and filter alerts (copied from DashboardPage)
+    // Function to sort and filter alerts
     const getSortedAlerts = () => {
-        const alertsData = alerts && alerts.length > 0 ? alerts : [];
-        
+        // Use real alerts from API if available, otherwise fallback to mock data
+        const alertsData = workflowAlerts && workflowAlerts.length > 0 ? workflowAlerts : [];
         let filteredAlerts = [...alertsData];
         
         // Apply project filter
@@ -162,52 +106,82 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 return formattedRole === alertUserGroupFilter;
             });
         }
-
+        
+        // Apply sorting
         const sortedAlerts = filteredAlerts.sort((a, b) => {
             const projectA = projects.find(p => p.id === (a.project?._id || a.projectId));
             const projectB = projects.find(p => p.id === (b.project?._id || b.projectId));
             const projectNameA = projectA ? projectA.name : (a.project?.name || 'General');
             const projectNameB = projectB ? projectB.name : (b.project?.name || 'General');
             
-            if (alertSortConfig.key === 'projectName') {
-                if (alertSortConfig.direction === 'asc') {
-                    return projectNameA.localeCompare(projectNameB);
-                } else {
-                    return projectNameB.localeCompare(projectNameA);
-                }
+            // Sort by project name, then by priority (high first), then by creation date
+            if (projectNameA !== projectNameB) {
+                return projectNameA.localeCompare(projectNameB);
             }
-            if (alertSortConfig.key === 'subject') {
-                const subjectA = a.stepName || a.subject || '';
-                const subjectB = b.stepName || b.subject || '';
-                if (alertSortConfig.direction === 'asc') {
-                    return subjectA.localeCompare(subjectB);
-                } else {
-                    return subjectB.localeCompare(subjectA);
-                }
+            
+            const priorityA = a.actionData?.priority || a.metadata?.priority || 'medium';
+            const priorityB = b.actionData?.priority || b.metadata?.priority || 'medium';
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            
+            if (priorityOrder[priorityA] !== priorityOrder[priorityB]) {
+                return priorityOrder[priorityB] - priorityOrder[priorityA];
             }
-            return 0;
+            
+            const dateA = new Date(a.createdAt || a.created || 0);
+            const dateB = new Date(b.createdAt || b.created || 0);
+            return dateB - dateA;
         });
         
         return sortedAlerts;
     };
 
-    const getAllAlerts = () => {
-        return getSortedAlerts();
+    // Get all alerts (no pagination for natural flow)
+    const getPaginatedAlerts = () => {
+        const sortedAlerts = getSortedAlerts();
+        // Return all alerts instead of paginating
+        return sortedAlerts;
     };
 
     const toggleAlertExpansion = (alertId) => {
-        setExpandedAlerts(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(alertId)) {
-                newSet.delete(alertId);
-            } else {
-                newSet.add(alertId);
-            }
-            return newSet;
-        });
+        const newExpanded = new Set(expandedAlerts);
+        if (newExpanded.has(alertId)) {
+            newExpanded.delete(alertId);
+        } else {
+            newExpanded.add(alertId);
+        }
+        setExpandedAlerts(newExpanded);
     };
 
-    // Complete alert handler (same as DashboardPage)
+    const handleAssignAlert = (alert) => {
+        setSelectedAlertForAssign(alert);
+        setShowAssignModal(true);
+    };
+
+    const handleAssignConfirm = async () => {
+        if (!selectedAlertForAssign || !assignToUser) return;
+        
+        const alertId = selectedAlertForAssign._id || selectedAlertForAssign.id;
+        setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: true }));
+        
+        try {
+            console.log('🔄 Assigning alert to user:', assignToUser);
+            
+            // Simulate API call to assign alert
+            setTimeout(() => {
+                console.log('✅ Alert assigned successfully');
+                setShowAssignModal(false);
+                setSelectedAlertForAssign(null);
+                setAssignToUser('');
+                setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Failed to assign alert:', error);
+            setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
+        }
+    };
+
+    // Complete handleCompleteAlert function
     const handleCompleteAlert = async (alert) => {
         const alertId = alert._id || alert.id;
         setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: true }));
@@ -264,7 +238,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    notes: `Completed via My Alerts page by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
+                    notes: `Completed via dashboard alert by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
                     alertId: alertId
                 })
             });
@@ -273,524 +247,400 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 const result = await response.json();
                 console.log('✅ Workflow step completed successfully:', result);
                 
+                // Show success feedback
+                console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
+                
                 // ENHANCED: Dispatch global event to notify Project Workflow tab
                 const globalEvent = new CustomEvent('workflowStepCompleted', {
-                  detail: {
-                    projectId: projectId,
-                    stepId: stepId,
-                    stepName: stepName,
-                    projectName: projectName,
-                    source: 'My Alerts Page Completion',
-                    timestamp: new Date().toISOString()
-                  }
+                    detail: {
+                        projectId: projectId,
+                        stepId: stepId,
+                        stepName: stepName,
+                        projectName: projectName,
+                        source: 'My Alerts Page',
+                        timestamp: new Date().toISOString()
+                    }
                 });
                 window.dispatchEvent(globalEvent);
-                console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from My Alerts');
+                console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event for Project Workflow tab');
                 
-                // Refresh alerts to show updated state
-                await refresh();
+                // Refresh alerts to remove completed alert
+                if (typeof refetchWorkflowAlerts === 'function') {
+                    refetchWorkflowAlerts();
+                }
                 
-                // Navigate to Project Workflow page after completion
+                // Navigate to Project Workflow to show the completion
                 setTimeout(() => {
-                    if (onProjectSelect) {
-                        const project = projects.find(p => p.id === projectId || p._id === projectId);
-                        if (project) {
-                            const projectWithStepInfo = {
-                                ...project,
-                                highlightStep: stepName,
-                                alertPhase: alert.metadata?.phase,
-                                navigationTarget: {
-                                    phase: alert.metadata?.phase,
-                                    section: alert.metadata?.section,
-                                    lineItem: stepName,
-                                    stepName: stepName,
-                                    alertId: alertId
-                                }
-                            };
-                            onProjectSelect(projectWithStepInfo, 'Project Workflow', null, sourceSection);
-                        }
+                    const project = projects.find(p => p.id === projectId);
+                    if (project && onProjectSelect) {
+                        const projectWithStepInfo = {
+                            ...project,
+                            highlightStep: alert.metadata?.stepName || alert.title,
+                            alertPhase: alert.metadata?.phase,
+                            completedStep: true,
+                            navigationTarget: {
+                                phase: alert.metadata?.phase,
+                                section: alert.metadata?.section,
+                                lineItem: stepName,
+                                stepName: stepName,
+                                alertId: alertId
+                            }
+                        };
+                        onProjectSelect(projectWithStepInfo, 'Project Workflow', null, sourceSection);
                     }
                 }, 500);
             } else {
                 const errorResult = await response.json();
                 console.error('❌ Failed to complete workflow step:', errorResult);
-                alert('Failed to complete workflow step: ' + (errorResult.message || 'Unknown error'));
+                throw new Error(errorResult.message || 'Failed to complete workflow step');
             }
+            
         } catch (error) {
-            console.error('❌ Error completing alert:', error);
-            alert('Error completing alert: ' + error.message);
+            console.error('❌ Failed to complete alert:', error);
+            
+            // Show error feedback to user
+            alert(`Failed to complete workflow step: ${error.message}`);
         } finally {
             setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
+            
+            // Remove completed alert from the local state to provide immediate feedback
+            setTimeout(() => {
+                if (typeof refetchWorkflowAlerts === 'function') {
+                    refetchWorkflowAlerts();
+                }
+            }, 500);
         }
     };
 
     return (
-        <div className="h-full flex flex-col">
-            <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`} style={{ width: '100%', height: '750px', paddingBottom: '300px' }}>
-                {/* Header with controls */}
-                <div className="mb-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <div>
-                            <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
+        <div className="w-full max-w-7xl mx-auto" data-section="my-alerts">
+            {/* My Alerts - Current Alerts Section */}
+            <div className="w-full" data-section="current-alerts">
+                <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] rounded-t-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`}>
+                    <div className="mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <div>
+                                <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
+                            </div>
+                        </div>
+                        
+                        {/* Filter Controls */}
+                        <div className="flex items-center gap-2 mb-2 mt-3">
+                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
+                            <select 
+                                value={alertProjectFilter} 
+                                onChange={(e) => setAlertProjectFilter(e.target.value)} 
+                                className={`text-[10px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                    colorMode 
+                                        ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                }`}
+                            >
+                                <option value="all">All Projects</option>
+                                <option value="general">General</option>
+                                {(projects || []).map(p => (
+                                    <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                                ))}
+                            </select>
+                            
+                            <select 
+                                value={alertUserGroupFilter} 
+                                onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
+                                className={`text-[10px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                    colorMode 
+                                        ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                }`}
+                            >
+                                <option value="all">All User Groups</option>
+                                <option value="PM">PM</option>
+                                <option value="FIELD">FIELD</option>
+                                <option value="OFFICE">OFFICE</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
                         </div>
                     </div>
                     
-                    {/* Filter Controls - exactly like Current Alerts */}
-                    <div className="flex items-center gap-2 mb-2 mt-3">
-                        <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
-                        <select 
-                            value={alertProjectFilter} 
-                            onChange={(e) => setAlertProjectFilter(e.target.value)} 
-                            className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
-                                colorMode 
-                                    ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                            }`}
-                        >
-                            <option value="all">All Projects</option>
-                            <option value="general">General</option>
-                            {(projects || []).map(p => (
-                                <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
-                            ))}
-                        </select>
-                        
-                        <select 
-                            value={alertUserGroupFilter} 
-                            onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
-                            className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
-                                colorMode 
-                                    ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                            }`}
-                        >
-                            <option value="all">All User Groups</option>
-                            <option value="PM">PM</option>
-                            <option value="FIELD">FIELD</option>
-                            <option value="OFFICE">OFFICE</option>
-                            <option value="ADMIN">ADMIN</option>
-                        </select>
-                    </div>
-                </div>
+                    {/* Scrollable content area with fixed height */}
+                    <div className="h-[650px] overflow-y-auto space-y-2 mt-3">
+                        {alertsLoading ? (
+                            <div className="text-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                                <p className={`mt-2 text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading alerts...</p>
+                            </div>
+                        ) : alertsError ? (
+                            <div className="text-center py-8">
+                                <p className="text-red-500 text-sm">Error loading alerts: {alertsError}</p>
+                            </div>
+                        ) : getPaginatedAlerts().length === 0 ? (
+                            <div className="text-center py-8">
+                                <div className={`text-6xl mb-4 ${colorMode ? 'text-gray-600' : 'text-gray-300'}`}>🎉</div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    No alerts found
+                                </p>
+                                <p className={`text-xs mt-1 ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    All workflow items are up to date!
+                                </p>
+                            </div>
+                        ) : (
+                            getPaginatedAlerts().map(alert => {
+                                // Extract data from alert - matching Current Alerts implementation
+                                const alertId = alert._id || alert.id;
+                                const actionData = alert.actionData || alert.metadata || {};
+                                const phase = actionData.phase || alert.phase || 'UNKNOWN';
+                                const priority = actionData.priority || 'medium';
+                                
+                                // Find associated project
+                                const projectId = actionData.projectId || alert.projectId;
+                                const project = projects?.find(p => p.id === projectId || p._id === projectId);
+                                const projectNumber = project?.projectNumber || alert.projectNumber || '12345';
+                                const projectName = project?.name || alert.projectName || 'Unknown Project';
+                                const primaryContact = project?.client?.name || project?.customer?.name || project?.clientName || alert.customerName || 'Unknown Customer';
+                                const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
+                                const isExpanded = expandedAlerts.has(alertId);
+                                
+                                // Get proper section and line item mapping - matching Current Alerts implementation
+                                const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
+                                const sectionName = workflowMapping.section;
+                                const lineItemName = workflowMapping.lineItem;
+                                
+                                // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
+                                const getPhaseCircleColors = (phase) => {
+                                    const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
+                                    return WorkflowProgressService.getPhaseColor(normalizedPhase);
+                                };
 
-                {/* Divider bar to match Project Messages styling exactly */}
-                <div className="mb-3">
-                    <div className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
-                        colorMode 
-                            ? 'border-gray-600 text-gray-300' 
-                            : 'border-gray-300 text-gray-600'
-                    }`}>
-                        <span></span>
-                        <div className="w-4 h-4"></div>
+                                return (
+                                    <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
+                                        {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
+                                        <div 
+                                            className="p-3 cursor-pointer"
+                                            onClick={() => {
+                                                setExpandedAlerts(prev => {
+                                                    const newSet = new Set(prev);
+                                                    if (newSet.has(alertId)) {
+                                                        newSet.delete(alertId);
+                                                    } else {
+                                                        newSet.add(alertId);
+                                                    }
+                                                    return newSet;
+                                                });
+                                            }}
+                                        >
+                                            <div className="flex items-center justify-between gap-6">
+                                                {/* Phase Circle - Smaller */}
+                                                <div className="relative flex-shrink-0">
+                                                    <div className={`w-7 h-7 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-xs shadow-sm`}>
+                                                        {phase.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    {priority === 'high' && (
+                                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-[10px] font-bold">!</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                {/* Project Info Section */}
+                                                <div className="flex-1 min-w-0">
+                                                    {/* Project Number and Customer */}
+                                                    <div className="flex items-center gap-3 mb-1">
+                                                        <button 
+                                                            className={`text-[10px] font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (project && onProjectSelect) {
+                                                                    const projectWithScrollId = {
+                                                                        ...project,
+                                                                        scrollToProjectId: String(project.id)
+                                                                    };
+                                                                    handleProjectSelectWithScroll(projectWithScrollId, 'Projects', null, sourceSection);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {projectNumber}
+                                                        </button>
+                                                        
+                                                        {/* Customer with dropdown arrow */}
+                                                        <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
+                                                            <button 
+                                                                className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
+                                                                    colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                                }`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setExpandedContacts(prev => {
+                                                                        const newSet = new Set(prev);
+                                                                        if (newSet.has(alertId)) {
+                                                                            newSet.delete(alertId);
+                                                                        } else {
+                                                                            newSet.add(alertId);
+                                                                        }
+                                                                        return newSet;
+                                                                    });
+                                                                }}
+                                                                title={primaryContact}
+                                                            >
+                                                                {primaryContact}
+                                                            </button>
+                                                            <svg className={`w-3 h-3 transition-transform ${expandedContacts.has(alertId) ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Line Item - Clickable to navigate to Project Workflow */}
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
+                                                        <span 
+                                                            className={`text-[10px] font-semibold cursor-pointer hover:underline max-w-[150px] truncate ${
+                                                                colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                            }`}
+                                                            title={lineItemName}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (project && onProjectSelect) {
+                                                                    const projectWithStepInfo = {
+                                                                        ...project,
+                                                                        highlightStep: alertTitle,
+                                                                        alertPhase: phase,
+                                                                        navigationTarget: {
+                                                                            phase: phase,
+                                                                            section: sectionName,
+                                                                            lineItem: lineItemName,
+                                                                            stepName: alertTitle,
+                                                                            alertId: alertId
+                                                                        }
+                                                                    };
+                                                                    handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {lineItemName}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Dropdown Arrow */}
+                                                <div className="flex-shrink-0">
+                                                    <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Customer Contact Info Dropdown */}
+                                        {expandedContacts.has(alertId) && (
+                                            <div className="flex items-start gap-2 px-3">
+                                                <div className="w-8 flex-shrink-0"></div>
+                                                <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                    <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                                        {project?.customer?.name || project?.clientName || actionData.projectName || 'Primary Customer'}
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                            📍 {project?.customer?.address || project?.clientAddress || '123 Main Street, City, State 12345'}
+                                                        </div>
+                                                        <a 
+                                                            href={`tel:${(project?.customer?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
+                                                            className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                        >
+                                                            📞 {project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
+                                                        </a>
+                                                        <a 
+                                                            href={`mailto:${project?.customer?.email || project?.clientEmail || 'customer@email.com'}`} 
+                                                            className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                        >
+                                                            ✉️ {project?.customer?.email || project?.clientEmail || 'customer@email.com'}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Expandable dropdown section */}
+                                        {isExpanded && (
+                                            <div className={`px-3 py-2 border-t ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                {/* Action Buttons */}
+                                                <div className="flex gap-2 mb-2">
+                                                    {/* Complete Button */}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCompleteAlert(alert);
+                                                        }}
+                                                        disabled={actionLoading[`${alertId}-complete`]}
+                                                        className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
+                                                            actionLoading[`${alertId}-complete`] 
+                                                                ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed' 
+                                                                : 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md'
+                                                        }`}
+                                                    >
+                                                        {actionLoading[`${alertId}-complete`] ? (
+                                                            <span className="flex items-center justify-center">
+                                                                <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                Completing...
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center justify-center">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                Complete
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </div>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                {getAllAlerts().length === 0 ? (
-                    <div className="text-gray-400 text-center py-3 text-sm">
-                        {alertsLoading ? 'Loading alerts...' : 'No alerts found.'}
-                    </div>
-                ) : (
-                    getAllAlerts().map(alert => {
-                        // Extract data from alert
-                        const alertId = alert._id || alert.id;
-                        const actionData = alert.actionData || alert.metadata || {};
-                        const phase = actionData.phase || 'UNKNOWN';
-                        const priority = actionData.priority || 'medium';
-                        
-                        // Find associated project
-                        const projectId = actionData.projectId;
-                        const project = projects?.find(p => p.id === projectId || p._id === projectId);
-                        
-                        // Alert details
-                        const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
-                        const isExpanded = expandedAlerts.has(alertId);
-                        
-                        // Get proper section and line item mapping
-                        const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
-                        const sectionName = workflowMapping.section;
-                        const lineItemName = workflowMapping.lineItem;
-                        
-                        // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
-                        const getPhaseCircleColors = (phase) => {
-                            const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
-                            return WorkflowProgressService.getPhaseColor(normalizedPhase);
-                        };
-                        return (
-                            <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
-                                {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
-                                <div 
-                                    className="flex flex-col gap-0 px-2 py-0.5 hover:bg-opacity-80 transition-colors cursor-pointer"
-                                    onClick={() => toggleAlertExpansion(alertId)}
-                                >
-                                    {/* First Row - Project# | Customer ▼ | PM ▼ | UserGroup | Arrow - More spaced out */}
-                                    <div className="flex items-center justify-between gap-6">
-                                        {/* Phase Circle - Smaller */}
-                                        <div className="relative flex-shrink-0">
-                                            <div className={`w-7 h-7 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-xs shadow-sm`}>
-                                                {phase.charAt(0).toUpperCase()}
-                                            </div>
-                                            {priority === 'high' && (
-                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
-                                            )}
-                                        </div>
-                                        
-                                        {/* Left Section: Project# | Customer | PM - Fixed positioning */}
-                                        <div className="flex items-center text-[10px] flex-1">
-                                            {/* Project Number */}
-                                            <span 
-                                                className={`font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
-                                                style={{width: '60px'}}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (project && onProjectSelect) {
-                                                        const projectWithScrollId = {
-                                                            ...project,
-                                                            scrollToProjectId: String(project.id)
-                                                        };
-                                                        onProjectSelect(projectWithScrollId, 'Projects', null, 'Current Alerts');
-                                                    }
-                                                }}
-                                            >
-                                                {project?.projectNumber || actionData.projectNumber || '12345'}
-                                            </span>
-                                            
-                                            {/* Customer with dropdown arrow */}
-                                            <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
-                                                <button 
-                                                    className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
-                                                        colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
-                                                    }`}
-                                                    title={project?.customer?.name || project?.clientName || actionData.projectName || 'Primary Customer'}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const newExpanded = new Set(expandedContacts);
-                                                        if (newExpanded.has(alertId)) {
-                                                            newExpanded.delete(alertId);
-                                                        } else {
-                                                            newExpanded.add(alertId);
-                                                        }
-                                                        setExpandedContacts(newExpanded);
-                                                    }}
-                                                >
-                                                    {project?.customer?.name || project?.clientName || actionData.projectName || 'Customer'}
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const newExpanded = new Set(expandedContacts);
-                                                        if (newExpanded.has(alertId)) {
-                                                            newExpanded.delete(alertId);
-                                                        } else {
-                                                            newExpanded.add(alertId);
-                                                        }
-                                                        setExpandedContacts(newExpanded);
-                                                    }}
-                                                    className={`transform transition-transform duration-200 ${expandedContacts.has(alertId) ? 'rotate-180' : ''}`}
-                                                >
-                                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            
-                                            {/* PM with dropdown arrow */}
-                                            <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '10px'}}>
-                                                <span className={`text-[10px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
-                                                <button 
-                                                    className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
-                                                        colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
-                                                    }`}
-                                                    title={project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Mike Field'}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const newExpanded = new Set(expandedPMs);
-                                                        if (newExpanded.has(alertId)) {
-                                                            newExpanded.delete(alertId);
-                                                        } else {
-                                                            newExpanded.add(alertId);
-                                                        }
-                                                        setExpandedPMs(newExpanded);
-                                                    }}
-                                                >
-                                                    {project?.projectManager?.firstName || project?.projectManager?.name || 'Mike'}
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const newExpanded = new Set(expandedPMs);
-                                                        if (newExpanded.has(alertId)) {
-                                                            newExpanded.delete(alertId);
-                                                        } else {
-                                                            newExpanded.add(alertId);
-                                                        }
-                                                        setExpandedPMs(newExpanded);
-                                                    }}
-                                                    className={`transform transition-transform duration-200 ${expandedPMs.has(alertId) ? 'rotate-180' : ''}`}
-                                                >
-                                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Right Section: User Group and Dropdown Arrow */}
-                                        <div className="flex items-center gap-2">
-                                            <span className={`px-2 py-1 text-[8px] font-bold rounded-full ${
-                                                actionData.responsibleRole === 'PM' 
-                                                    ? 'bg-blue-100 text-blue-800' 
-                                                    : actionData.responsibleRole === 'FIELD'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : actionData.responsibleRole === 'OFFICE'
-                                                    ? 'bg-purple-100 text-purple-800'
-                                                    : 'bg-gray-100 text-gray-800'
-                                            }`}>
-                                                {actionData.responsibleRole || 'OFFICE'}
-                                            </span>
-                                            
-                                            <svg 
-                                                className={`w-4 h-4 transition-transform duration-200 ${
-                                                    isExpanded ? 'rotate-180' : ''
-                                                } ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} 
-                                                fill="none" 
-                                                stroke="currentColor" 
-                                                viewBox="0 0 24 24" 
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Second Row - Section and Line Item */}
-                                    <div className="flex items-center text-xs" style={{marginLeft: 'calc(1.75rem + 1.5rem)', marginTop: '-4px'}}>
-                                        {/* Section - align S with project number */}
-                                        <div className="flex items-center gap-1" style={{minWidth: '80px'}}>
-                                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
-                                            <span className={`font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                                                {sectionName?.split('-')[0]?.trim() || sectionName}
-                                            </span>
-                                        </div>
-                                        
-                                        {/* Line Item - align L with PM */}
-                                        <div className="flex items-center gap-1 flex-1" style={{marginLeft: '200px'}}>
-                                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
-                                            <span 
-                                                className={`font-semibold cursor-pointer hover:underline max-w-[150px] truncate ${
-                                                    colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                                }`}
-                                                title={lineItemName}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (project && onProjectSelect) {
-                                                        const projectWithStepInfo = {
-                                                            ...project,
-                                                            highlightStep: alertTitle,
-                                                            alertPhase: phase,
-                                                            navigationTarget: {
-                                                                phase: phase,
-                                                                section: sectionName,
-                                                                lineItem: lineItemName,
-                                                                stepName: alertTitle,
-                                                                alertId: alertId
-                                                            }
-                                                        };
-                                                        onProjectSelect(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
-                                                    }
-                                                }}
-                                            >
-                                                {lineItemName}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Customer Contact Info Dropdown */}
-                                    {expandedContacts.has(alertId) && (
-                                        <div className="flex items-start gap-2">
-                                            <div className="w-8 flex-shrink-0"></div>
-                                            <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                                                <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                                    {project?.customer?.name || project?.clientName || actionData.projectName || 'Primary Customer'}
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                        📞 {project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
-                                                    </div>
-                                                    <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                        ✉️ {project?.customer?.email || project?.clientEmail || 'customer@email.com'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    
-                                    {/* PM Contact Info Dropdown */}
-                                    {expandedPMs.has(alertId) && (
-                                        <div className="flex items-start gap-2">
-                                            <div className="w-8 flex-shrink-0"></div>
-                                            <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                                                <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                                    {project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || project?.projectManager?.name || 'Mike Field'}
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                        📞 {project?.projectManager?.phone || '(555) 987-6543'}
-                                                    </div>
-                                                    <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                        ✉️ {project?.projectManager?.email || 'mike.field@company.com'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                {/* Expanded Section with Action Buttons */}
-                                {isExpanded && (
-                                    <div className={`border-t px-3 py-2 ${colorMode ? 'border-gray-600 bg-[#1e293b]' : 'border-gray-200 bg-gray-50'}`}>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex-1">
-                                                <p className={`text-[9px] font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                    Alert Details:
-                                                </p>
-                                                <p className={`text-[8px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                    {alertTitle} - Due: {actionData.dueDate || 'No due date set'}
-                                                </p>
-                                            </div>
-                                            
-                                            <div className="flex gap-1 ml-3">
-                                                {/* Complete Button */}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleCompleteAlert(alertId, alertTitle, phase);
-                                                    }}
-                                                    disabled={actionLoading[`${alertId}-complete`]}
-                                                    className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
-                                                        actionLoading[`${alertId}-complete`]
-                                                            ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                                                            : 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md'
-                                                    }`}
-                                                >
-                                                    {actionLoading[`${alertId}-complete`] ? (
-                                                        <span className="flex items-center justify-center">
-                                                            <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                            Completing...
-                                                        </span>
-                                                    ) : (
-                                                        <span className="flex items-center justify-center">
-                                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                            Complete
-                                                        </span>
-                                                    )}
-                                                </button>
-                                                
-                                                {/* Assign to User Button */}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedAlert(alert);
-                                                        setAssignModalOpen(true);
-                                                    }}
-                                                    disabled={actionLoading[`${alertId}-assign`]}
-                                                    className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
-                                                        actionLoading[`${alertId}-assign`]
-                                                            ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                                                            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600 shadow-sm hover:shadow-md'
-                                                    }`}
-                                                >
-                                                    <span className="flex items-center justify-center">
-                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
-                                                        Assign to User
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })
-                )}
 
-                {/* Assign Modal - same as DashboardPage */}
-                {assignModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className={`bg-white rounded-lg p-4 max-w-md w-full mx-4 ${colorMode ? 'bg-[#1e293b] text-white' : 'bg-white text-gray-800'}`}>
-                            <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                Assign Alert
-                            </h3>
-                            
-                            {selectedAlert && (
-                                <div className={`mb-4 p-3 rounded border ${colorMode ? 'bg-[#232b4d] border-[#3b82f6]/30' : 'bg-gray-50 border-gray-200'}`}>
-                                    <p className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                        Alert: {selectedAlert.metadata?.stepName || selectedAlert.title || 'Unknown Alert'}
-                                    </p>
-                                    <p className={`text-[7px] ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                        Project: {selectedAlert.metadata?.projectName || getProjectName(selectedAlert.project?._id || selectedAlert.projectId)}
-                                    </p>
-                                </div>
-                            )}
-                            
-                            <div className="mb-4">
-                                <label className={`block text-[8px] font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Assign to:
-                                </label>
-                                <select
-                                    value={selectedUserId}
-                                    onChange={(e) => setSelectedUserId(e.target.value)}
-                                    className={`w-full p-2 border rounded text-[8px] ${
-                                        colorMode 
-                                            ? 'bg-[#1e293b] border-[#3b82f6] text-white' 
-                                            : 'border-gray-300 bg-white text-gray-800'
-                                    }`}
-                                >
-                                    <option value="">Select a team member...</option>
-                                    {[].map(member => (
-                                        <option key={member._id} value={member._id}>
-                                            {member.firstName} {member.lastName} ({member.role})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setAssignModalOpen(false)}
-                                    className={`flex-1 px-3 py-2 text-[8px] font-medium rounded border transition-colors ${
-                                        colorMode 
-                                            ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' 
-                                            : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                                    }`}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        // Handle assign functionality here
-                                        setAssignModalOpen(false);
-                                    }}
-                                    disabled={!selectedUserId || assignLoading}
-                                    className={`flex-1 px-3 py-2 text-[8px] font-medium rounded border transition-colors ${
-                                        !selectedUserId || assignLoading
-                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed border-gray-300'
-                                            : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                                    }`}
-                                >
-                                    {assignLoading ? 'Assigning...' : 'Assign'}
-                                </button>
-                            </div>
+            {/* Assignment Modal */}
+            {showAssignModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`bg-white rounded-[20px] p-6 w-96 max-w-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white'}`}>
+                        <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                            Assign Alert to User
+                        </h3>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => {
+                                    setShowAssignModal(false);
+                                    setSelectedAlertForAssign(null);
+                                    setAssignToUser('');
+                                }}
+                                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                    colorMode 
+                                        ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAssignConfirm}
+                                disabled={!assignToUser}
+                                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                    assignToUser
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-gray-400 text-white cursor-not-allowed'
+                                }`}
+                            >
+                                Assign
+                            </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };
