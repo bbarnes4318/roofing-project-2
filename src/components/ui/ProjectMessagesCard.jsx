@@ -50,13 +50,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             });
         }
         
-        // Sort by timestamp (oldest first for chat-like flow)
-        return conversation.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        // Sort by timestamp (newest first for most recent message display)
+        return conversation.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     };
 
     // Generate conversation only once using useMemo to prevent re-generation on every render
     const conversation = useMemo(() => generateConversation(), [activity.id]);
-    const lastMessage = conversation[conversation.length - 1];
+    const lastMessage = conversation[0]; // First item is now the most recent
 
     // Get project data
     const project = projects?.find(p => p.id === activity.projectId);

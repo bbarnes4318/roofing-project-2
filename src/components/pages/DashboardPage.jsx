@@ -182,7 +182,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Sorting state
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [alertSortConfig, setAlertSortConfig] = useState({ key: null, direction: 'asc' });
-  const [activitySortConfig, setActivitySortConfig] = useState({ key: null, direction: 'asc' });
+  const [activitySortConfig, setActivitySortConfig] = useState({ key: 'timestamp', direction: 'desc' });
   
   // UI state
   const [expandedPhases, setExpandedPhases] = useState(new Set());
@@ -465,7 +465,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         let aValue = a[activitySortConfig.key];
         let bValue = b[activitySortConfig.key];
 
-        if (typeof aValue === 'string') {
+        // Handle timestamp sorting as dates
+        if (activitySortConfig.key === 'timestamp') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        } else if (typeof aValue === 'string') {
           aValue = aValue.toLowerCase();
           bValue = bValue.toLowerCase();
         }

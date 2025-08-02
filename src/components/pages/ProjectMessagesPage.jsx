@@ -54,8 +54,10 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     const [newMessageSubject, setNewMessageSubject] = useState('');
     const [newMessageText, setNewMessageText] = useState('');
 
-    // Filter activities to show only those for the current project
-    const projectActivities = activities.filter(activity => activity.projectId === project.id);
+    // Filter activities to show only those for the current project and sort by most recent timestamp first
+    const projectActivities = activities
+        .filter(activity => activity.projectId === project.id)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     // Scroll to top function
     const scrollToTop = () => {
