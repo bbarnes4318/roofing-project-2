@@ -68,24 +68,12 @@ export class SearchService {
 
     // Update the data that can be searched
     updateData({ projects = [], activities = [] }) {
-        console.log('🔍 SearchService.updateData called with:', { 
-            projectsCount: projects?.length || 0, 
-            activitiesCount: activities?.length || 0 
-        });
-        
         this.data.projects = projects || [];
         this.data.activities = activities || [];
         
         // Extract customers and contacts from projects
         this.data.customers = this.extractCustomers(this.data.projects);
         this.data.contacts = this.extractContacts(this.data.projects);
-        
-        console.log('🔍 SearchService data updated:', {
-            projects: this.data.projects.length,
-            activities: this.data.activities.length,
-            customers: this.data.customers.length,
-            contacts: this.data.contacts.length
-        });
     }
 
     // Extract unique customers from projects
@@ -161,36 +149,20 @@ export class SearchService {
     search(query) {
         if (!query || query.trim().length < 1) return [];
         
-        console.log('🔍 SearchService.search called with query:', query);
-        console.log('🔍 Available data:', {
-            projects: this.data.projects.length,
-            activities: this.data.activities.length,
-            customers: this.data.customers.length,
-            contacts: this.data.contacts.length
-        });
-        
         const results = [];
         const queryLower = query.toLowerCase().trim();
         
         // Search projects
-        const projectResults = this.searchProjects(queryLower);
-        console.log('🔍 Project search results:', projectResults.length);
-        results.push(...projectResults);
+        results.push(...this.searchProjects(queryLower));
         
         // Search customers
-        const customerResults = this.searchCustomers(queryLower);
-        console.log('🔍 Customer search results:', customerResults.length);
-        results.push(...customerResults);
+        results.push(...this.searchCustomers(queryLower));
         
         // Search messages/activities
-        const messageResults = this.searchMessages(queryLower);
-        console.log('🔍 Message search results:', messageResults.length);
-        results.push(...messageResults);
+        results.push(...this.searchMessages(queryLower));
         
         // Search contacts
-        const contactResults = this.searchContacts(queryLower);
-        console.log('🔍 Contact search results:', contactResults.length);
-        results.push(...contactResults);
+        results.push(...this.searchContacts(queryLower));
         
         // Sort results by relevance (exact matches first, then fuzzy matches)
         return results.sort((a, b) => {
@@ -209,9 +181,6 @@ export class SearchService {
             // Then by relevance score
             return (b.relevanceScore || 0) - (a.relevanceScore || 0);
         });
-        
-        console.log('🔍 Final search results:', results.length, results);
-        return results;
     }
 
     searchProjects(query) {
@@ -230,12 +199,12 @@ export class SearchService {
             
             // Define searchable fields with weights (enhanced with workflow fields)
             const searchFields = [
-                { key: 'projectNumber', value: project.projectNumber, weight: 10, label: 'Project #' },
+                { key: 'projectNumber', value: project.projectNumber?.toString(), weight: 10, label: 'Project #' },
                 { key: 'name', value: project.name || project.projectName, weight: 9, label: 'Name' },
-                { key: 'address', value: project.address, weight: 8, label: 'Address' },
-                { key: 'customerName', value: project.client?.name || project.customer?.name, weight: 7, label: 'Primary Contact' },
-                { key: 'customerPhone', value: project.client?.phone || project.customer?.phone, weight: 6, label: 'Phone' },
-                { key: 'customerEmail', value: project.client?.email || project.customer?.email, weight: 6, label: 'Email' },
+                { key: 'address', value: project.address || project.projectName, weight: 8, label: 'Address' },
+                { key: 'customerName', value: project.client?.name || project.customer?.name || project.customer?.primaryName, weight: 7, label: 'Primary Contact' },
+                { key: 'customerPhone', value: project.client?.phone || project.customer?.phone || project.customer?.primaryPhone, weight: 6, label: 'Phone' },
+                { key: 'customerEmail', value: project.client?.email || project.customer?.email || project.customer?.primaryEmail, weight: 6, label: 'Email' },
                 { key: 'projectPhase', value: currentPhase, weight: 7, label: 'Project Phase' },
                 { key: 'section', value: currentSection, weight: 6, label: 'Section' },
                 { key: 'lineItem', value: currentLineItem, weight: 6, label: 'Line Item' },
@@ -264,13 +233,14 @@ export class SearchService {
             
             if (matchedFields.length > 0) {
                 const customer = project.client || project.customer;
+                const customerName = customer?.name || customer?.primaryName || 'Unknown Customer';
                 results.push({
                     id: project.id,
                     type: 'project',
                     category: 'Projects',
-                    title: project.projectNumber || 'No Project #',
-                    subtitle: customer?.name || 'Unknown Customer',
-                    description: project.address || 'No address',
+                    title: project.projectNumber?.toString() || 'No Project #',
+                    subtitle: customerName,
+                    description: project.address || project.projectName || 'No address',
                     matchedFields,
                     relevanceScore,
                     data: project,

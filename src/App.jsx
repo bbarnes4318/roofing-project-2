@@ -814,13 +814,6 @@ export default function App() {
                                 colorMode={colorMode}
                                 className="w-full"
                             />
-                            {/* Debug info */}
-                            {console.log('🔍 SEARCH DEBUG:', { 
-                                projectsCount: projects?.length || 0, 
-                                activitiesCount: activities?.length || 0,
-                                projectsLoading,
-                                projectsError 
-                            })}
                         </div>
                     </div>
                     
