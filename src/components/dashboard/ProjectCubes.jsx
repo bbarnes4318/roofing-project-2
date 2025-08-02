@@ -548,7 +548,25 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 {/* Action Boxes Grid - Classic 2x3 Layout */}
                 <div className="grid grid-cols-3 gap-2 gap-y-4 mb-4 mt-4">
                   <button
-                    onClick={() => onProjectSelect(project, 'Project Workflow')}
+                    onClick={() => {
+                      if (onProjectSelect) {
+                        // Get the current workflow state using the centralized service - matching Projects by Phase
+                        const workflowState = WorkflowProgressService.calculateProjectProgress(project);
+                        const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                        
+                        const projectWithWorkflowState = {
+                          ...project,
+                          currentWorkflowStep: currentStep,
+                          workflowState: workflowState,
+                          scrollToCurrentLineItem: true,
+                          sourceSection: 'Project Cubes',
+                          dashboardState: {
+                            scrollToProject: project
+                          }
+                        };
+                        onProjectSelect(projectWithWorkflowState, 'Project Workflow', null, 'Project Cubes');
+                      }
+                    }}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
                   >
                     <span className="mb-0.5">🗂️</span>

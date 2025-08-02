@@ -10,6 +10,8 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import { useWorkflowAlerts } from '../../hooks/useApi';
 import { teamMembers } from '../../data/mockData';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
+import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 // Helper functions for advanced progress bars (moved to top level)
 
@@ -608,85 +610,204 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                     </div>
                                 ) : (
                                     filteredProjectAlerts.map((alert, index) => {
-                                        const alertProject = projects?.find(p => p.id === alert.projectId || p._id === alert.projectId);
-                                        const projectNumber = alertProject?.projectNumber || alert.projectNumber || 'N/A';
-                                        const primaryContact = alertProject?.client?.name || alertProject?.customer?.name || alertProject?.clientName || alert.customerName || 'Unknown Customer';
+                                        // Extract data from alert - matching Current Alerts implementation
+                                        const alertId = alert._id || alert.id;
+                                        const actionData = alert.actionData || alert.metadata || {};
+                                        const phase = actionData.phase || alert.phase || 'UNKNOWN';
+                                        const priority = actionData.priority || 'medium';
                                         
+                                        // Find associated project
+                                        const alertProject = projects?.find(p => p.id === alert.projectId || p._id === alert.projectId) || project;
+                                        const projectNumber = alertProject?.projectNumber || alert.projectNumber || project?.projectNumber || 'N/A';
+                                        const projectName = alertProject?.name || alert.projectName || project?.name || 'Unknown Project';
+                                        const primaryContact = alertProject?.client?.name || alertProject?.customer?.name || alertProject?.clientName || alert.customerName || 'Unknown Customer';
+                                        const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
+                                        const isExpanded = expandedAlerts.has(alertId);
+                                        
+                                        // Get proper section and line item mapping - matching Current Alerts implementation
+                                        const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
+                                        const sectionName = workflowMapping.section;
+                                        const lineItemName = workflowMapping.lineItem;
+                                        
+                                        // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
+                                        const getPhaseCircleColors = (phase) => {
+                                            const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
+                                            return WorkflowProgressService.getPhaseColor(normalizedPhase);
+                                        };
+
                                         return (
-                                            <div
-                                                key={alert.id || `${alert.projectId}-${alert.stepId}-${index}`}
-                                                className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-lg shadow-sm border transition-all duration-200`}
-                                            >
-                                                <div className="flex items-center gap-2 p-2">
-                                                    {/* User Group Circle */}
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm flex-shrink-0 ${
-                                                        alert.userGroup === 'PM'
-                                                            ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-800 border border-green-300'
-                                                            : alert.userGroup === 'FIELD'
-                                                            ? 'bg-gradient-to-br from-orange-100 to-orange-200 text-orange-800 border border-orange-300'
-                                                            : alert.userGroup === 'OFFICE'
-                                                            ? 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-800 border border-blue-300'
-                                                            : alert.userGroup === 'ADMIN'
-                                                            ? 'bg-gradient-to-br from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
-                                                            : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-                                                    }`}>
-                                                        {alert.userGroup?.charAt(0) || 'A'}
-                                                    </div>
-                                                    
-                                                    <div className="flex-1 min-w-0">
-                                                        {/* Main row with project info */}
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-4 min-w-0 flex-1">
-                                                                {/* Project Number */}
-                                                                <button
-                                                                    className={`text-sm font-bold transition-colors hover:underline ${ 
-                                                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                                                    }`}
-                                                                    onClick={() => {
-                                                                        if (onProjectSelect && alertProject) {
-                                                                            onProjectSelect(alertProject, 'Overview', null, 'Current Alerts');
+                                            <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
+                                                {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
+                                                <div 
+                                                    className="p-3 cursor-pointer"
+                                                    onClick={() => {
+                                                        setExpandedAlerts(prev => {
+                                                            const newSet = new Set(prev);
+                                                            if (newSet.has(alertId)) {
+                                                                newSet.delete(alertId);
+                                                            } else {
+                                                                newSet.add(alertId);
+                                                            }
+                                                            return newSet;
+                                                        });
+                                                    }}
+                                                >
+                                                    <div className="flex items-center justify-between gap-6">
+                                                        {/* Phase Circle - Smaller */}
+                                                        <div className="relative flex-shrink-0">
+                                                            <div className={`w-7 h-7 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-xs shadow-sm`}>
+                                                                {phase.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            {priority === 'high' && (
+                                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                                                                    <span className="text-white text-[10px] font-bold">!</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {/* Project Info Section */}
+                                                        <div className="flex-1 min-w-0">
+                                                            {/* Project Number and Customer */}
+                                                            <div className="flex items-center gap-3 mb-1">
+                                                                <button 
+                                                                    className={`text-[10px] font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (alertProject && onProjectSelect) {
+                                                                            const projectWithScrollId = {
+                                                                                ...alertProject,
+                                                                                scrollToProjectId: String(alertProject.id)
+                                                                            };
+                                                                            onProjectSelect(projectWithScrollId, 'Projects', null, 'Project Workflow Alerts');
                                                                         }
                                                                     }}
                                                                 >
                                                                     {projectNumber}
                                                                 </button>
                                                                 
-                                                                {/* Primary Contact */}
-                                                                <span className={`text-sm font-semibold truncate ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                                    {primaryContact}
-                                                                </span>
-                                                                
-                                                                {/* Alert Description */}
-                                                                <span className={`text-sm font-medium truncate ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                                    {alert.step || alert.description || 'Workflow Alert'}
-                                                                </span>
+                                                                {/* Customer with dropdown arrow */}
+                                                                <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
+                                                                    <button 
+                                                                        className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
+                                                                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                                        }`}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setExpandedContacts(prev => {
+                                                                                const newSet = new Set(prev);
+                                                                                if (newSet.has(alertId)) {
+                                                                                    newSet.delete(alertId);
+                                                                                } else {
+                                                                                    newSet.add(alertId);
+                                                                                }
+                                                                                return newSet;
+                                                                            });
+                                                                        }}
+                                                                        title={primaryContact}
+                                                                    >
+                                                                        {primaryContact}
+                                                                    </button>
+                                                                    <svg className={`w-3 h-3 transition-transform ${expandedContacts.has(alertId) ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </div>
                                                             </div>
                                                             
-                                                            {/* Complete Button */}
-                                                            <button
-                                                                onClick={() => handleCompleteAlert(alert, index)}
-                                                                className="px-3 py-1 bg-green-600 text-white text-[11px] font-medium rounded hover:bg-green-700 transition-colors flex-shrink-0"
-                                                            >
-                                                                Complete
-                                                            </button>
+                                                            {/* Line Item - Clickable to navigate to Project Workflow */}
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
+                                                                <span 
+                                                                    className={`text-[10px] font-semibold cursor-pointer hover:underline max-w-[150px] truncate ${
+                                                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                                                    }`}
+                                                                    title={lineItemName}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (alertProject && onProjectSelect) {
+                                                                            const projectWithStepInfo = {
+                                                                                ...alertProject,
+                                                                                highlightStep: alertTitle,
+                                                                                alertPhase: phase,
+                                                                                navigationTarget: {
+                                                                                    phase: phase,
+                                                                                    section: sectionName,
+                                                                                    lineItem: lineItemName,
+                                                                                    stepName: alertTitle,
+                                                                                    alertId: alertId
+                                                                                }
+                                                                            };
+                                                                            onProjectSelect(projectWithStepInfo, 'Project Workflow', null, 'Project Workflow Alerts');
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {lineItemName}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                         
-                                                        {/* Phase and Section info */}
-                                                        <div className={`text-[11px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                            <span className="font-medium">{alert.phase}</span>
-                                                            <span className="mx-1">•</span>
-                                                            <span>{alert.section}</span>
-                                                            {alert.userGroup && (
-                                                                <>
-                                                                    <span className="mx-1">•</span>
-                                                                    <span className="font-medium">{alert.userGroup}</span>
-                                                                </>
-                                                            )}
+                                                        {/* Dropdown Arrow */}
+                                                        <div className="flex-shrink-0">
+                                                            <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                            </svg>
                                                         </div>
                                                     </div>
                                                 </div>
+                                                
+                                                {/* Customer Contact Info Dropdown */}
+                                                {expandedContacts.has(alertId) && (
+                                                    <div className="flex items-start gap-2 px-3">
+                                                        <div className="w-8 flex-shrink-0"></div>
+                                                        <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                            <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                                                {alertProject?.customer?.name || alertProject?.clientName || actionData.projectName || 'Primary Customer'}
+                                                            </div>
+                                                            <div className="space-y-0.5">
+                                                                <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                                    📍 {alertProject?.customer?.address || alertProject?.clientAddress || '123 Main Street, City, State 12345'}
+                                                                </div>
+                                                                <a 
+                                                                    href={`tel:${(alertProject?.customer?.phone || alertProject?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
+                                                                    className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                >
+                                                                    📞 {alertProject?.customer?.phone || alertProject?.clientPhone || '(555) 123-4567'}
+                                                                </a>
+                                                                <a 
+                                                                    href={`mailto:${alertProject?.customer?.email || alertProject?.clientEmail || 'customer@email.com'}`} 
+                                                                    className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                                >
+                                                                    ✉️ {alertProject?.customer?.email || alertProject?.clientEmail || 'customer@email.com'}
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Expandable dropdown section */}
+                                                {isExpanded && (
+                                                    <div className={`px-3 py-2 border-t ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                        {/* Action Buttons */}
+                                                        <div className="flex gap-2 mb-2">
+                                                            {/* Complete Button */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleCompleteAlert(alert, index);
+                                                                }}
+                                                                className="flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md"
+                                                            >
+                                                                <span className="flex items-center justify-center">
+                                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                    Complete
+                                                                </span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )
+                                        );
                                     })
                                 )}
                             </div>
