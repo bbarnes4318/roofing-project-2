@@ -437,7 +437,7 @@ class ProjectService {
         phase: 'LEAD',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         alertDays: 1,
         overdueIntervals: [1, 3, 7, 14],
         dependencies: [],
@@ -455,7 +455,7 @@ class ProjectService {
         phase: 'LEAD',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['lead_1'],
         subTasks: {
           create: [
@@ -471,7 +471,7 @@ class ProjectService {
         phase: 'LEAD',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['lead_2'],
         subTasks: {
           create: [
@@ -490,7 +490,7 @@ class ProjectService {
         phase: 'LEAD',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['lead_3'],
         subTasks: {
           create: [
@@ -506,7 +506,7 @@ class ProjectService {
         phase: 'LEAD',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['lead_4'],
         subTasks: {
           create: [
@@ -524,7 +524,7 @@ class ProjectService {
         phase: 'PROSPECT',
         defaultResponsible: 'PROJECT_MANAGER',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['lead_5'],
         subTasks: {
           create: [
@@ -543,7 +543,7 @@ class ProjectService {
         phase: 'PROSPECT',
         defaultResponsible: 'PROJECT_MANAGER',
         estimatedDuration: 2,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['prospect_1'],
         subTasks: {
           create: [
@@ -561,7 +561,7 @@ class ProjectService {
         phase: 'PROSPECT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 2,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['prospect_2'],
         subTasks: {
           create: [
@@ -578,7 +578,7 @@ class ProjectService {
         phase: 'PROSPECT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['prospect_3'],
         subTasks: {
           create: [
@@ -597,7 +597,7 @@ class ProjectService {
         phase: 'PROSPECT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['prospect_4'],
         subTasks: {
           create: [
@@ -617,7 +617,7 @@ class ProjectService {
         phase: 'APPROVED',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['prospect_5'],
         subTasks: {
           create: [
@@ -635,7 +635,7 @@ class ProjectService {
         phase: 'APPROVED',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['approved_1'],
         subTasks: {
           create: [
@@ -650,7 +650,7 @@ class ProjectService {
         phase: 'APPROVED',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 2,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['approved_2'],
         subTasks: {
           create: [
@@ -676,7 +676,7 @@ class ProjectService {
         phase: 'EXECUTION',
         defaultResponsible: 'FIELD_DIRECTOR',
         estimatedDuration: 5,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['approved_3'],
         subTasks: {
           create: [
@@ -696,7 +696,7 @@ class ProjectService {
         phase: 'EXECUTION',
         defaultResponsible: 'ROOF_SUPERVISOR',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['execution_1'],
         subTasks: {
           create: [
@@ -714,7 +714,7 @@ class ProjectService {
         phase: 'EXECUTION',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['execution_2'],
         subTasks: {
           create: [
@@ -730,7 +730,7 @@ class ProjectService {
         phase: 'EXECUTION',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['execution_3'],
         subTasks: {
           create: [
@@ -746,7 +746,7 @@ class ProjectService {
         phase: 'EXECUTION',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['execution_4'],
         subTasks: {
           create: [
@@ -765,7 +765,7 @@ class ProjectService {
         phase: 'SUPPLEMENT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 2,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['execution_5'],
         subTasks: {
           create: [
@@ -783,7 +783,7 @@ class ProjectService {
         phase: 'SUPPLEMENT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 7,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['supplement_1'],
         subTasks: {
           create: [
@@ -798,7 +798,7 @@ class ProjectService {
         phase: 'SUPPLEMENT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['supplement_2'],
         subTasks: {
           create: [
@@ -815,7 +815,7 @@ class ProjectService {
         phase: 'SUPPLEMENT',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['supplement_3'],
         subTasks: {
           create: [
@@ -833,7 +833,7 @@ class ProjectService {
         phase: 'COMPLETION',
         defaultResponsible: 'ADMINISTRATION',
         estimatedDuration: 2,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['supplement_4'],
         subTasks: {
           create: [
@@ -850,7 +850,7 @@ class ProjectService {
         phase: 'COMPLETION',
         defaultResponsible: 'OFFICE',
         estimatedDuration: 1,
-        alertPriority: 'MEDIUM',
+        alertPriority: 'LOW',
         dependencies: ['completion_1'],
         subTasks: {
           create: [

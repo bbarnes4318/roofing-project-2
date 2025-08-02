@@ -39,7 +39,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     // Alert functionality state
     const [sendAsAlert, setSendAsAlert] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [alertPriority, setAlertPriority] = useState('medium');
+    const [alertPriority, setAlertPriority] = useState('low');
     
     // Direct message state
     const [selectedCoworkerId, setSelectedCoworkerId] = useState(mockCoworkers[0].id);
@@ -122,7 +122,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
         setSelectedSubject('');
         setSendAsAlert(false);
         setSelectedUsers([]);
-        setAlertPriority('medium');
+        setAlertPriority('low');
     };
 
     const resetCompose = () => { 
@@ -130,7 +130,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
         setSelectedSubject(''); 
         setSendAsAlert(false);
         setSelectedUsers([]);
-        setAlertPriority('medium');
+        setAlertPriority('low');
     };
 
     // Helper functions for user selection

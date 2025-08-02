@@ -18,7 +18,7 @@ const defaultNewProject = {
     endDate: '',
     customer: '',
     address: '',
-    priority: 'Medium',
+    priority: 'Low',
     description: '',
     contacts: [
         { name: '', phone: '', email: '', isPrimary: false },

@@ -116,7 +116,7 @@ const convertProjectToTableFormat = (project) => {
     budget: project.estimateValue || 0,
     expenses: 0, // Not available in current project structure
     responsibleTeam: 'Team Alpha', // Default value
-    priority: project.priority || 'Medium',
+    priority: project.priority || 'Low',
     clientName: project.client?.name || 'Unknown',
     clientEmail: project.client?.email || '',
     projectManager: project.projectManager || 'Sarah Johnson', // Default value
@@ -158,7 +158,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [selectedSubject, setSelectedSubject] = useState('');
   const [sendAsAlert, setSendAsAlert] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [alertPriority, setAlertPriority] = useState('medium');
+  const [alertPriority, setAlertPriority] = useState('low');
   
   // Message dropdown state (replaces old modal)
   const [showMessageDropdown, setShowMessageDropdown] = useState(false);
@@ -553,7 +553,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     setSelectedSubject('');
     setSendAsAlert(false);
     setSelectedUsers([]);
-    setAlertPriority('medium');
+    setAlertPriority('low');
   };
 
   // Helper functions for user selection

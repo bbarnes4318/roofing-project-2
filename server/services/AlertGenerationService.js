@@ -48,7 +48,7 @@ class AlertGenerationService {
         const alert = await prisma.workflowAlert.create({
           data: {
             type: 'Work Flow Line Item',
-            priority: step.alertPriority || 'MEDIUM',
+            priority: step.alertPriority || 'LOW',
             status: 'ACTIVE',
             
             // Content

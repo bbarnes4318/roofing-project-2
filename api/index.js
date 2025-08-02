@@ -314,7 +314,7 @@ const generateMockAlerts = async () => {
             id: `alert_${project.id}_${step.id}`,
             _id: `alert_${project.id}_${step.id}`,
             type: 'Work Flow Line Item',
-            priority: step.alertPriority || 'Medium',
+            priority: step.alertPriority || 'Low',
             title: `${step.stepName} - ${project.customer.primaryName}`,
             message: `${step.stepName} is due for project at ${project.projectName}`,
             isRead: false,

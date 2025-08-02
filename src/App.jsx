@@ -446,7 +446,7 @@ export default function App() {
                 type: 'message_sent',
                 description: content,
                 projectId: project ? project.id : null,
-                priority: 'Medium',
+                priority: 'Low',
                 metadata: {
                     subject: subject
                 }

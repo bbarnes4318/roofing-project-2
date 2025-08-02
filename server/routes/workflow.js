@@ -559,7 +559,7 @@ router.put('/project/:projectId/workflow/:stepId', asyncHandler(async (req, res)
           completedAt: completed ? new Date() : null,
           scheduledStartDate: new Date(),
           scheduledEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-          alertPriority: 'MEDIUM',
+          alertPriority: 'LOW',
           alertDays: 1
         }
       });

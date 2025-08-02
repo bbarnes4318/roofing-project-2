@@ -46,7 +46,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     // Alert functionality state
     const [sendAsAlert, setSendAsAlert] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [alertPriority, setAlertPriority] = useState('medium');
+    const [alertPriority, setAlertPriority] = useState('low');
     
     // Direct message state
     const [selectedCoworkerId, setSelectedCoworkerId] = useState(mockCoworkers[0].id);
@@ -90,7 +90,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
         setSelectedSubject('');
         setSendAsAlert(false);
         setSelectedUsers([]);
-        setAlertPriority('medium');
+        setAlertPriority('low');
     };
 
     // Quick reply handler
@@ -115,7 +115,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
         setSelectedSubject(''); 
         setSendAsAlert(false);
         setSelectedUsers([]);
-        setAlertPriority('medium');
+        setAlertPriority('low');
     };
 
     // Helper functions for user selection
