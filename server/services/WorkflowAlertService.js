@@ -244,12 +244,17 @@ class WorkflowAlertService {
       }
       
       if (alertType) {
-        alerts.push({
-          step,
-          alertType,
-          daysUntilDue: daysUntilDue > 0 ? daysUntilDue : 0,
-          daysOverdue: daysOverdue > 0 ? daysOverdue : 0
-        });
+        // Check if this alert should be suppressed due to phase override
+        const shouldSuppress = await this.shouldSuppressAlert(workflow, step);
+        
+        if (!shouldSuppress) {
+          alerts.push({
+            step,
+            alertType,
+            daysUntilDue: daysUntilDue > 0 ? daysUntilDue : 0,
+            daysOverdue: daysOverdue > 0 ? daysOverdue : 0
+          });
+        }
       }
     }
     
@@ -1170,6 +1175,70 @@ class WorkflowAlertService {
     } catch (error) {
       console.error(`❌ Error checking alerts for project ${projectId}:`, error);
       return [];
+    }
+  }
+
+  /**
+   * Check if an alert should be suppressed due to phase override
+   */
+  async shouldSuppressAlert(workflow, step) {
+    try {
+      // Get active phase overrides for this workflow
+      const activeOverrides = await prisma.projectPhaseOverride.findMany({
+        where: {
+          workflowId: workflow.id,
+          isActive: true
+        }
+      });
+
+      if (activeOverrides.length === 0) {
+        return false; // No active overrides, don't suppress
+      }
+
+      // Check if the step's phase is in any of the suppressed phases
+      for (const override of activeOverrides) {
+        if (override.suppressAlertsFor.includes(step.phase)) {
+          console.log(`🔕 Suppressing alert for step "${step.stepName}" in phase "${step.phase}" due to phase override to "${override.toPhase}"`);
+          
+          // Log this suppression for audit trail
+          await this.logSuppressedAlert(override, step);
+          
+          return true; // Suppress this alert
+        }
+      }
+
+      return false; // Don't suppress
+    } catch (error) {
+      console.error('❌ Error checking alert suppression:', error);
+      return false; // Default to not suppressing on error
+    }
+  }
+
+  /**
+   * Log a suppressed alert for audit trail
+   */
+  async logSuppressedAlert(override, step) {
+    try {
+      // Generate a unique alert ID for tracking
+      const originalAlertId = `alert_${override.workflowId}_${step.id}_${Date.now()}`;
+      
+      await prisma.suppressedWorkflowAlert.create({
+        data: {
+          originalAlertId: originalAlertId,
+          overrideId: override.id,
+          suppressedPhase: step.phase,
+          suppressedStepId: step.id,
+          suppressedStepName: step.stepName,
+          originalTitle: `${step.stepName} Alert`,
+          originalMessage: `Alert for step "${step.stepName}" was suppressed due to phase override`,
+          originalPriority: step.alertPriority || 'MEDIUM',
+          suppressionReason: `Phase override from ${override.fromPhase} to ${override.toPhase} - alerts for ${step.phase} phase are suppressed`
+        }
+      });
+
+      console.log(`📝 Logged suppressed alert for step "${step.stepName}" in phase "${step.phase}"`);
+    } catch (error) {
+      console.error('❌ Error logging suppressed alert:', error);
     }
   }
 }

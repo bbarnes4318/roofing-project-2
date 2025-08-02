@@ -90,6 +90,7 @@ model User {
   modifiedWorkflows     ProjectWorkflow[] @relation("LastModifiedBy")
   assignedAlerts        WorkflowAlert[]   @relation("AlertAssignedTo")
   createdAlerts         WorkflowAlert[]   @relation("AlertCreatedBy")
+  performedOverrides    ProjectPhaseOverride[] @relation("OverridePerformedBy")
 
   @@map("users")
 }
@@ -263,6 +264,9 @@ model Project {
   
   // Workflow Alerts
   workflowAlerts WorkflowAlert[]
+  
+  // Phase Overrides
+  phaseOverrides ProjectPhaseOverride[]
 
   @@map("projects")
 }
@@ -367,6 +371,9 @@ model ProjectWorkflow {
   
   // Workflow Alerts
   workflowAlerts WorkflowAlert[]
+  
+  // Phase Overrides
+  phaseOverrides ProjectPhaseOverride[]
 
   @@map("project_workflows")
 }
@@ -963,4 +970,82 @@ enum NotificationType {
   REMINDER
 
   @@map("notification_types")
+}
+
+// ===============================
+// PROJECT PHASE OVERRIDE SYSTEM
+// ===============================
+
+// Model to track phase overrides performed on projects
+model ProjectPhaseOverride {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Project relationship
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Workflow relationship
+  workflowId String          @map("workflow_id")
+  workflow   ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  // Override details
+  fromPhase ProjectPhase @map("from_phase") // Previous phase
+  toPhase   ProjectPhase @map("to_phase")   // New phase user overrode to
+  
+  // User who performed the override
+  overriddenById String @map("overridden_by_id")
+  overriddenBy   User   @relation("OverridePerformedBy", fields: [overriddenById], references: [id])
+
+  // Override metadata
+  reason              String? @db.VarChar(500) // Optional reason for override
+  suppressAlertsFor   ProjectPhase[] // Phases to suppress alerts for
+  autoLogMessage      String  @db.Text // Auto-generated log message
+  
+  // Status tracking
+  isActive Boolean @default(true) // Whether this override is still active
+  
+  // Relationships for logging
+  conversationMessage String? @map("conversation_message_id") // Reference to auto-logged message
+  
+  // Suppressed alerts due to this override
+  suppressedAlerts SuppressedWorkflowAlert[]
+  
+  @@index([projectId])
+  @@index([workflowId])
+  @@index([overriddenById])
+  @@index([createdAt])
+  @@map("project_phase_overrides")
+}
+
+// Model to track suppressed alerts due to phase overrides
+model SuppressedWorkflowAlert {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Alert that was suppressed
+  originalAlertId String @unique @map("original_alert_id")
+  
+  // Override that caused the suppression
+  overrideId String              @map("override_id")
+  override   ProjectPhaseOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+  
+  // Suppression details
+  suppressedPhase     ProjectPhase @map("suppressed_phase")
+  suppressedStepId    String       @map("suppressed_step_id")
+  suppressedStepName  String       @db.VarChar(255) @map("suppressed_step_name")
+  
+  // Alert details for audit trail
+  originalTitle    String @db.VarChar(255) @map("original_title")
+  originalMessage  String @db.Text @map("original_message")
+  originalPriority AlertPriority @map("original_priority")
+  
+  // Suppression metadata
+  suppressionReason String @db.VarChar(500) @map("suppression_reason")
+  
+  @@index([overrideId])
+  @@index([suppressedPhase])
+  @@index([createdAt])
+  @@map("suppressed_workflow_alerts")
 } 

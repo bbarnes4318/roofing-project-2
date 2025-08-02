@@ -57,10 +57,15 @@ export const useRealTimeUpdates = (projectId) => {
         setUpdates(prev => [{ type: 'activity', ...activity }, ...prev.slice(0, 49)]);
       };
 
+      const handlePhaseOverride = (overrideData) => {
+        setUpdates(prev => [{ type: 'phase_override', ...overrideData }, ...prev.slice(0, 49)]);
+      };
+
       socketService.on('projectUpdate', handleProjectUpdate);
       socketService.on('progressUpdate', handleProgressUpdate);
       socketService.on('taskUpdate', handleTaskUpdate);
       socketService.on('activity', handleActivity);
+      socketService.on('phaseOverride', handlePhaseOverride);
 
       // Cleanup
       return () => {
@@ -69,6 +74,7 @@ export const useRealTimeUpdates = (projectId) => {
         socketService.off('progressUpdate', handleProgressUpdate);
         socketService.off('taskUpdate', handleTaskUpdate);
         socketService.off('activity', handleActivity);
+        socketService.off('phaseOverride', handlePhaseOverride);
       };
     }
   }, [isConnected, projectId, socketService]);

@@ -45,6 +45,7 @@ try {
 const alertRoutes = require('./routes/alerts').router;
 const testRoutes = require('./routes/test');
 const workflowUpdateRoutes = require('./routes/workflowUpdates');
+const phaseOverrideRoutes = require('./routes/phaseOverride');
 
 // Import services - TEMPORARILY DISABLED FOR POSTGRESQL MIGRATION
 // const WorkflowAlertService = require('./services/WorkflowAlertService');
@@ -583,6 +584,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/workflow-updates', workflowUpdateRoutes);
+app.use('/api/phase-override', phaseOverrideRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {

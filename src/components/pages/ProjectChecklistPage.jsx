@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSocket } from '../../hooks/useSocket';
+import { useSocket, useRealTimeUpdates } from '../../hooks/useSocket';
 import { projectsService, workflowAlertsService } from '../../services/api';
 import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
+import PhaseOverrideButton from '../ui/PhaseOverrideButton';
 
 
 const checklistPhases = [
@@ -333,10 +334,46 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [loading, setLoading] = useState(true);
   const [addItemFor, setAddItemFor] = useState(null);
   const [newItemLabel, setNewItemLabel] = useState('');
+  
+  // Phase override handler
+  const handlePhaseOverride = async (newPhase, reason) => {
+    try {
+      console.log(`🔄 PHASE OVERRIDE: Updating project phase to ${newPhase}`);
+      
+      // Refresh workflow data after override
+      setTimeout(() => {
+        const refreshWorkflowData = async () => {
+          if (!project) return;
+          
+          try {
+            const projectId = project._id || project.id;
+            const response = await projectsService.getWorkflow(projectId);
+            const newWorkflowData = {
+              ...(response.data || response.workflow),
+              _forceRender: Date.now(),
+              _phaseOverride: true
+            };
+            setWorkflowData(newWorkflowData);
+            console.log('✅ WORKFLOW: Refreshed data after phase override');
+          } catch (error) {
+            console.error('❌ WORKFLOW: Error refreshing after override:', error);
+          }
+        };
+        
+        refreshWorkflowData();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ PHASE OVERRIDE: Error handling phase override:', error);
+    }
+  };
   const [phases, setPhases] = useState(checklistPhases);
   const [highlightedStep, setHighlightedStep] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
+  
+  // Real-time updates for phase override
+  const { updates } = useRealTimeUpdates(project?._id || project?.id);
   
   // Use the workflow update hook
   const { updateWorkflowStep: updateWorkflowStepAPI, updating: workflowUpdating } = useWorkflowUpdate();
@@ -1477,6 +1514,34 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     }
   }, [workflowData, onPhaseCompletionChange, phases]);
 
+  // Listen for real-time phase override updates
+  useEffect(() => {
+    const phaseOverrideUpdate = updates.find(update => update.type === 'phase_override');
+    
+    if (phaseOverrideUpdate && project) {
+      console.log('🔄 REAL-TIME: Received phase override update:', phaseOverrideUpdate);
+      
+      // Refresh workflow data
+      const refreshWorkflowData = async () => {
+        try {
+          const projectId = project._id || project.id;
+          const response = await projectsService.getWorkflow(projectId);
+          const newWorkflowData = {
+            ...(response.data || response.workflow),
+            _forceRender: Date.now(),
+            _phaseOverrideUpdate: true
+          };
+          setWorkflowData(newWorkflowData);
+          console.log('✅ REAL-TIME: Refreshed workflow data after phase override');
+        } catch (error) {
+          console.error('❌ REAL-TIME: Error refreshing workflow after phase override:', error);
+        }
+      };
+      
+      refreshWorkflowData();
+    }
+  }, [updates, project]);
+
   if (loading) {
     return (
       <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border border-gray-200">
@@ -1500,21 +1565,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Compact Header */}
       <div className="p-3 border-b border-gray-200 bg-gray-50">
-        <div className="text-left">
-          <h1 className="text-sm font-semibold text-gray-800 mb-1">Project Workflow</h1>
-          <p className="text-xs text-gray-600">Actionable roadmap for every project phase</p>
-          {process.env.NODE_ENV === 'development' && (
-            <button
-              onClick={() => {
-                console.log('🧪 DEBUG: Current workflow data:', workflowData);
-                console.log('🧪 DEBUG: Current project:', project);
-                console.log('🧪 DEBUG: API base URL:', window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : `${window.location.protocol}//${window.location.host}/api`);
-              }}
-              className="mt-1 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-            >
-              Debug Info
-            </button>
-          )}
+        <div className="flex justify-between items-start">
+          <div className="text-left">
+            <h1 className="text-sm font-semibold text-gray-800 mb-1">Project Workflow</h1>
+            <p className="text-xs text-gray-600">Actionable roadmap for every project phase</p>
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => {
+                  console.log('🧪 DEBUG: Current workflow data:', workflowData);
+                  console.log('🧪 DEBUG: Current project:', project);
+                  console.log('🧪 DEBUG: API base URL:', window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : `${window.location.protocol}//${window.location.host}/api`);
+                }}
+                className="mt-1 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+              >
+                Debug Info
+              </button>
+            )}
+          </div>
+          
+          {/* Override Phase Button */}
+          <PhaseOverrideButton project={project} onPhaseUpdate={handlePhaseOverride} />
         </div>
       </div>
       

@@ -646,5 +646,45 @@ export const usersService = {
   }
 };
 
+// Phase Override Service
+export const phaseOverrideService = {
+  // Get available phases for override
+  getAvailablePhases: async () => {
+    const response = await api.get('/phase-override/phases');
+    return response.data;
+  },
+
+  // Get current phase status for a project
+  getProjectPhaseStatus: async (projectId) => {
+    const response = await api.get(`/phase-override/project/${projectId}/status`);
+    return response.data;
+  },
+
+  // Override project phase
+  overrideProjectPhase: async (projectId, toPhase, reason, userId) => {
+    const response = await api.post(`/phase-override/project/${projectId}/override`, {
+      toPhase,
+      reason,
+      userId
+    });
+    return response.data;
+  },
+
+  // Revert phase override
+  revertPhaseOverride: async (projectId, overrideId, userId) => {
+    const response = await api.post(`/phase-override/project/${projectId}/revert`, {
+      overrideId,
+      userId
+    });
+    return response.data;
+  },
+
+  // Get suppressed alerts for a project
+  getSuppressedAlerts: async (projectId) => {
+    const response = await api.get(`/phase-override/project/${projectId}/suppressed-alerts`);
+    return response.data;
+  }
+};
+
 // Export the main API instance for custom requests
 export default api; 
