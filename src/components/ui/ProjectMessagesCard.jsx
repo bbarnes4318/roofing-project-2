@@ -101,14 +101,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     const [showContactInfo, setShowContactInfo] = useState(false);
 
     return (
-        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[20px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
+        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
             {/* Main message header - Compact 2-row layout */}
             <div 
-                className="flex items-center gap-2 p-2 cursor-pointer hover:bg-opacity-80 transition-colors"
+                className="flex items-center gap-1.5 p-1.5 cursor-pointer hover:bg-opacity-80 transition-colors"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 {/* Phase Circle - Align to top */}
-                <div className={`w-7 h-7 ${getPhaseColors(projectPhase).bg} rounded-full flex items-center justify-center ${getPhaseColors(projectPhase).text} font-bold text-xs shadow-sm flex-shrink-0 self-start`}>
+                <div className={`w-5 h-5 ${getPhaseColors(projectPhase).bg} rounded-full flex items-center justify-center ${getPhaseColors(projectPhase).text} font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
                     {projectPhase.charAt(0).toUpperCase()}
                 </div>
                 
@@ -118,10 +118,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
                             <button
-                                className={`text-xs font-bold transition-colors hover:underline flex-shrink-0 ${
+                                className={`text-[9px] font-bold transition-colors hover:underline flex-shrink-0 ${
                                     colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                 }`}
-                                style={{ width: '60px' }}
+                                style={{ width: '50px' }}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (onProjectSelect && project) {
@@ -138,15 +138,15 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </button>
                             
                             {/* Separator - Fixed position */}
-                            <span className={`text-gray-400 text-xs mx-3`}>|</span>
+                            <span className={`text-gray-400 text-[9px] mx-2`}>|</span>
                             
                             {/* Primary Customer - Fixed width container */}
-                            <div className="flex items-center gap-2 flex-shrink-0" style={{ width: '120px' }}>
+                            <div className="flex items-center gap-1.5 flex-shrink-0" style={{ width: '100px' }}>
                                 <button 
-                                    className={`text-xs font-semibold transition-colors hover:underline truncate ${
+                                    className={`text-[9px] font-semibold transition-colors hover:underline truncate ${
                                         colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                     }`}
-                                    style={{ maxWidth: '100px' }}
+                                    style={{ maxWidth: '80px' }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowContactInfo(!showContactInfo);
@@ -161,24 +161,24 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     }}
                                     className={`transform transition-transform duration-200 ${showContactInfo ? 'rotate-180' : ''}`}
                                 >
-                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
                             </div>
                             
                             {/* Subject - Moved closer to customer, no gap */}
-                            <span className={`text-xs font-medium truncate ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <span className={`text-[9px] font-medium truncate ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                 - {subject}
                             </span>
                         </div>
                         
                         {/* Right side - Message indicator and actions */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
                             {/* New message indicator */}
                             <div className="flex items-center gap-1">
-                                <div className={`w-2 h-2 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
-                                <span className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                                <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                     {conversation.length}
                                 </span>
                             </div>
@@ -200,14 +200,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 }`}
                                 title="Quick Reply"
                             >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                 </svg>
                             </button>
                             
                             {/* Dropdown arrow */}
                             <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
@@ -215,18 +215,18 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                     
                     {/* Row 2: User name (aligned under project number) and message preview */}
-                    <div className="flex items-center gap-2 mt-0">
+                    <div className="flex items-center gap-1.5 mt-0">
                         {/* User name aligned under project number - same width as project number */}
                         <span 
-                            className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                            style={{ width: '60px' }}
+                            className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                            style={{ width: '50px' }}
                         >
                             {lastMessage.user}:
                         </span>
-                        <span className={`text-xs truncate flex-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <span className={`text-[9px] truncate flex-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
                             {lastMessage.comment}
                         </span>
-                        <span className={`text-[10px] ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                        <span className={`text-[8px] ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
                             {formatTimestamp(lastMessage.timestamp)}
                         </span>
                     </div>

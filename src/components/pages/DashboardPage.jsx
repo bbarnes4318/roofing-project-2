@@ -2215,30 +2215,30 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     return WorkflowProgressService.getPhaseColor(normalizedPhase);
                   };
                   return (
-                    <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
+                    <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[12px] shadow-sm border transition-all duration-200 cursor-pointer`}>
                       {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
                       <div 
-                        className="flex flex-col gap-0 px-2 py-0.5 hover:bg-opacity-80 transition-colors cursor-pointer"
+                        className="flex flex-col gap-0 px-1.5 py-0 hover:bg-opacity-80 transition-colors cursor-pointer"
                         onClick={() => toggleAlertExpansion(alertId)}
                       >
                         {/* First Row - Project# | Customer ▼ | PM ▼ | UserGroup | Arrow - More spaced out */}
-                        <div className="flex items-center justify-between gap-6">
+                        <div className="flex items-center justify-between gap-3">
                           {/* Phase Circle - Smaller */}
                           <div className="relative flex-shrink-0">
-                            <div className={`w-7 h-7 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-xs shadow-sm`}>
+                            <div className={`w-5 h-5 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-[9px] shadow-sm`}>
                               {phase.charAt(0).toUpperCase()}
                             </div>
                             {priority === 'high' && (
-                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
+                              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white shadow-sm"></div>
                             )}
                           </div>
                           
                           {/* Left Section: Project# | Customer | PM - Fixed positioning */}
-                          <div className="flex items-center text-[10px] flex-1">
+                          <div className="flex items-center text-[9px] flex-1">
                               {/* Project Number */}
                               <span 
                                 className={`font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
-                                style={{width: '60px'}}
+                                style={{width: '50px'}}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (project && onProjectSelect) {
@@ -2254,9 +2254,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </span>
                               
                               {/* Customer with dropdown arrow */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '80px', marginLeft: '8px'}}>
                                 <button 
-                                  className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
+                                  className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
                                   title={project?.customer?.name || project?.clientName || actionData.projectName || 'Primary Customer'}
@@ -2286,17 +2286,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }}
                                   className={`transform transition-transform duration-200 ${expandedContacts.has(alertId) ? 'rotate-180' : ''}`}
                                 >
-                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </button>
                               </div>
                               
                               {/* PM with dropdown arrow */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '10px'}}>
-                                <span className={`text-[10px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '8px'}}>
+                                <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
-                                  className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
+                                  className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[50px] ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
                                   title={project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Mike Field'}
@@ -2326,7 +2326,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }}
                                   className={`transform transition-transform duration-200 ${expandedPMs.has(alertId) ? 'rotate-180' : ''}`}
                                 >
-                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </button>
@@ -2335,11 +2335,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             
                             {/* Right Section: User Group & Arrow */}
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <div className="w-10 h-4 px-0.5 py-0 border border-gray-300 rounded-full flex items-center justify-center text-black font-medium text-[8px] bg-white">
+                              <div className="w-8 h-3 px-0.5 py-0 border border-gray-300 rounded-full flex items-center justify-center text-black font-medium text-[7px] bg-white">
                                 {formatUserRole(alert.user?.role || actionData.defaultResponsible || 'OFFICE')}
                               </div>
                               <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </div>
@@ -2348,10 +2348,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         </div>
                         
                         {/* Second Row - Section and Line Item */}
-                        <div className="flex items-center text-xs" style={{ marginTop: '-4px' }}>
-                          {/* Section - align S with project number (60px width) */}
-                          <div className="flex items-center gap-1" style={{ width: '180px' }}>
-                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '60px' }}>Section:</span>
+                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px' }}>
+                          {/* Section - align S with project number (50px width) */}
+                          <div className="flex items-center gap-1" style={{ width: '150px' }}>
+                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '50px' }}>Section:</span>
                             <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                               {sectionName?.split('-')[0]?.trim() || sectionName}
                             </span>
@@ -2361,7 +2361,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <div className="flex items-center gap-1 flex-1">
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
-                                className={`font-semibold cursor-pointer hover:underline max-w-[150px] truncate ${
+                                className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
                                   colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                 }`}
                                 title={lineItemName}
