@@ -346,7 +346,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     const [actionLoading, setActionLoading] = useState({});
     
     // Call useWorkflowAlerts at the top level to comply with React hooks rules
-    const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts(projects);
+    const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts({ status: 'active' });
 
     // Calculate current activities for Project Messages (moved after state declarations)
     const calculateCurrentActivities = () => {
