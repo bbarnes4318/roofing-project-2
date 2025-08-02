@@ -68,12 +68,24 @@ export class SearchService {
 
     // Update the data that can be searched
     updateData({ projects = [], activities = [] }) {
-        this.data.projects = projects;
-        this.data.activities = activities;
+        console.log('🔍 SearchService.updateData called with:', { 
+            projectsCount: projects?.length || 0, 
+            activitiesCount: activities?.length || 0 
+        });
+        
+        this.data.projects = projects || [];
+        this.data.activities = activities || [];
         
         // Extract customers and contacts from projects
-        this.data.customers = this.extractCustomers(projects);
-        this.data.contacts = this.extractContacts(projects);
+        this.data.customers = this.extractCustomers(this.data.projects);
+        this.data.contacts = this.extractContacts(this.data.projects);
+        
+        console.log('🔍 SearchService data updated:', {
+            projects: this.data.projects.length,
+            activities: this.data.activities.length,
+            customers: this.data.customers.length,
+            contacts: this.data.contacts.length
+        });
     }
 
     // Extract unique customers from projects
@@ -149,20 +161,36 @@ export class SearchService {
     search(query) {
         if (!query || query.trim().length < 1) return [];
         
+        console.log('🔍 SearchService.search called with query:', query);
+        console.log('🔍 Available data:', {
+            projects: this.data.projects.length,
+            activities: this.data.activities.length,
+            customers: this.data.customers.length,
+            contacts: this.data.contacts.length
+        });
+        
         const results = [];
         const queryLower = query.toLowerCase().trim();
         
         // Search projects
-        results.push(...this.searchProjects(queryLower));
+        const projectResults = this.searchProjects(queryLower);
+        console.log('🔍 Project search results:', projectResults.length);
+        results.push(...projectResults);
         
         // Search customers
-        results.push(...this.searchCustomers(queryLower));
+        const customerResults = this.searchCustomers(queryLower);
+        console.log('🔍 Customer search results:', customerResults.length);
+        results.push(...customerResults);
         
         // Search messages/activities
-        results.push(...this.searchMessages(queryLower));
+        const messageResults = this.searchMessages(queryLower);
+        console.log('🔍 Message search results:', messageResults.length);
+        results.push(...messageResults);
         
         // Search contacts
-        results.push(...this.searchContacts(queryLower));
+        const contactResults = this.searchContacts(queryLower);
+        console.log('🔍 Contact search results:', contactResults.length);
+        results.push(...contactResults);
         
         // Sort results by relevance (exact matches first, then fuzzy matches)
         return results.sort((a, b) => {
@@ -181,6 +209,9 @@ export class SearchService {
             // Then by relevance score
             return (b.relevanceScore || 0) - (a.relevanceScore || 0);
         });
+        
+        console.log('🔍 Final search results:', results.length, results);
+        return results;
     }
 
     searchProjects(query) {
