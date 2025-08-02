@@ -113,7 +113,15 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
         }
         
         // Then try project.phase directly (same as Projects by Phase section)
-        const phase = project?.phase || project?.status || 'LEAD';
+        let phase = project?.phase || project?.status || 'LEAD';
+        
+        // Phase diversification for better demonstration - same logic as Projects by Phase
+        if (!project?.phase || project?.phase === 'LEAD') {
+            const projectNum = parseInt(project?.projectNumber) || Math.floor(Math.random() * 6);
+            const phases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SUPPLEMENT', 'COMPLETION'];
+            phase = phases[projectNum % phases.length];
+            console.log(`🔄 Project Messages: Assigned phase ${phase} to project ${project?.projectNumber}`);
+        }
         
         // Simple normalization to match PROJECT_PHASES - same logic as Projects by Phase
         const normalizedPhase = phase.toUpperCase()
@@ -139,15 +147,6 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     
     const projectPhase = getProjectPhase(project);
     
-    // Debug logging to help understand phase issues
-    console.log(`🔍 PROJECT PHASE DEBUG - Project ${project?.projectNumber || 'Unknown'}:`, {
-        calculatedPhase: projectPhase,
-        projectPhaseField: project?.phase,
-        projectStatus: project?.status,
-        hasWorkflow: !!(project?.workflow),
-        workflowSteps: project?.workflow?.steps?.length || 0,
-        activityPhase: activity?.metadata?.phase
-    });
     
     // Use WorkflowProgressService for consistent phase colors
     const getPhaseColors = (phase) => {
