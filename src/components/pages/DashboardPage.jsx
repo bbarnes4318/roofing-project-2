@@ -1376,7 +1376,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   return (
     <div className={`animate-fade-in w-full max-w-full ${isDarkMode ? 'dark' : ''}`}>
       {/* Full Width - Project Overview by Phase - AT THE TOP */}
-      {tableProjects && tableProjects.length > 0 && (
+      {(
       <div className={`mb-6 border-t-4 border-blue-400 bg-white overflow-hidden relative shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'}`} data-section="project-phases">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -2245,7 +2245,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     setExpandedContacts(newExpanded);
                                   }}
                                 >
-                                  {project?.customer?.name || project?.clientName || actionData.projectName || 'Customer'}
+                                  {project?.customer?.name || project?.clientName || project?.name || 'Customer'}
                                 </button>
                                 <button
                                   onClick={(e) => {
