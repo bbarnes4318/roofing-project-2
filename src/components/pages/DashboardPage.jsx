@@ -1357,8 +1357,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       <div className={`mb-6 border-t-4 border-blue-400 bg-white overflow-hidden relative shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'}`} data-section="project-phases">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Projects by Phase</h2>
-            <p className={`text-xs mt-1 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <h2 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Projects by Phase</h2>
+            <p className={`text-xs mt-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Complete project details organized by phase
             </p>
           </div>
@@ -1843,12 +1843,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h1 className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
+                  <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
                 </div>
               </div>
               
               {/* Filter Controls */}
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 mt-3">
                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                 <select 
                   value={activityProjectFilter} 
@@ -2064,12 +2064,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h1 className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
+                  <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
                 </div>
               </div>
               
               {/* Filter Controls */}
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 mt-3">
                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                 <select 
                   value={alertProjectFilter} 

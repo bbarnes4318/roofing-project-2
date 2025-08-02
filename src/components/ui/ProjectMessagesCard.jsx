@@ -152,12 +152,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 <div className="flex-1 min-w-0">
                     {/* Row 1: Project# | Customer | Subject */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                            {/* Project Number - Clickable blue link */}
+                        <div className="flex items-center min-w-0 flex-1">
+                            {/* Project Number - Fixed width for alignment */}
                             <button
-                                className={`text-xs font-bold transition-colors hover:underline ${
+                                className={`text-xs font-bold transition-colors hover:underline flex-shrink-0 ${
                                     colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                 }`}
+                                style={{ width: '60px' }}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (onProjectSelect && project) {
@@ -173,15 +174,16 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 {projectNumber}
                             </button>
                             
-                            {/* Separator */}
-                            <span className={`text-gray-400 text-xs`}>|</span>
+                            {/* Separator - Fixed position */}
+                            <span className={`text-gray-400 text-xs mx-3`}>|</span>
                             
-                            {/* Primary Customer - Clickable for contact info */}
-                            <div className="flex items-center gap-1">
+                            {/* Primary Customer - Fixed width container */}
+                            <div className="flex items-center gap-1 flex-shrink-0" style={{ width: '140px' }}>
                                 <button 
-                                    className={`text-xs font-semibold transition-colors hover:underline truncate max-w-[100px] ${
+                                    className={`text-xs font-semibold transition-colors hover:underline truncate ${
                                         colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                     }`}
+                                    style={{ maxWidth: '120px' }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowContactInfo(!showContactInfo);
@@ -202,10 +204,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </button>
                             </div>
                             
-                            {/* Separator */}
-                            <span className={`text-gray-400 text-xs`}>|</span>
+                            {/* Separator - Fixed position */}
+                            <span className={`text-gray-400 text-xs mx-3`}>|</span>
                             
-                            {/* Subject */}
+                            {/* Subject - Fixed start position */}
                             <span className={`text-xs font-medium truncate ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {subject}
                             </span>

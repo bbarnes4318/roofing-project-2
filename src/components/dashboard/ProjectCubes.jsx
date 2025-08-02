@@ -194,8 +194,8 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
       <div className={`px-6 py-5 border-b ${colorMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-white/80'} rounded-t-2xl`}>
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h2 className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-1`}>Current Project Access</h2>
-            <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Quick access to project management tools and communications</p>
+            <h2 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-1`}>Current Project Access</h2>
+            <p className={`text-xs mt-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Quick access to project management tools and communications</p>
           </div>
           
           {/* Navigation Info and Controls */}
