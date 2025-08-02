@@ -285,15 +285,65 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         setError('');
 
         try {
-            // Format project data for backend
+            // First, find the primary contact
+            const primaryContact = newProject.contacts.find(contact => contact.isPrimary && contact.name.trim()) ||
+                                 newProject.contacts.find(contact => contact.name.trim());
+
+            // Step 1: Create customer
+            const customerData = {
+                primaryName: newProject.customerName,
+                primaryEmail: primaryContact?.email || 'noemail@example.com', // Fallback email
+                primaryPhone: primaryContact?.phone || '0000000000', // Fallback phone
+                address: newProject.customerName, // Using customer name as address for now
+                notes: `Created from Add Project form`
+            };
+
+            // Check if customer already exists or create new one
+            let customerId;
+            try {
+                // Try to find existing customer
+                const existingCustomers = customers.filter(c => 
+                    c.primaryName === newProject.customerName ||
+                    c.name === newProject.customerName
+                );
+                
+                if (existingCustomers.length > 0) {
+                    customerId = existingCustomers[0].id;
+                } else {
+                    // Create new customer
+                    const customerResponse = await fetch('/api/customers', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(customerData)
+                    });
+                    
+                    if (!customerResponse.ok) {
+                        throw new Error('Failed to create customer');
+                    }
+                    
+                    const customerResult = await customerResponse.json();
+                    customerId = customerResult.data.id;
+                }
+            } catch (error) {
+                console.error('Error creating customer:', error);
+                setError('Failed to create customer. Please try again.');
+                return;
+            }
+
+            // Step 2: Create project with customerId
             const projectData = {
-                projectNumber: parseInt(newProject.projectNumber),
-                projectName: newProject.customerName, // Use customer name as project name for now
+                projectName: newProject.customerName,
                 projectType: newProject.jobType,
-                customerName: newProject.customerName,
-                contacts: newProject.contacts.filter(contact => contact.name.trim()), // Only include contacts with names
+                customerId: customerId,
                 status: 'PENDING',
-                phase: 'LEAD'
+                budget: 1000, // Default budget for now
+                startDate: new Date().toISOString(), // Today as start date
+                endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
+                priority: 'MEDIUM',
+                description: `Project #${newProject.projectNumber} - Contacts: ${newProject.contacts.filter(c => c.name).map(c => c.name).join(', ')}`
             };
 
             const response = await createProject(projectData);
