@@ -365,22 +365,22 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             
             {/* Dropdown section - Professional message thread */}
             {expanded && (
-                <div className={`px-4 py-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`px-2 py-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                     {/* Thread header */}
-                    <div className={`text-xs font-semibold mb-3 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <div className={`text-[9px] font-semibold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                         Message Thread ({conversation.length} messages)
                     </div>
-                    <div className={`max-h-72 overflow-y-auto space-y-4 ${colorMode ? 'scrollbar-dark' : 'scrollbar-light'}`}>
+                    <div className={`max-h-48 overflow-y-auto space-y-2 ${colorMode ? 'scrollbar-dark' : 'scrollbar-light'}`}>
                         {conversation.map((message, index) => (
                             <div key={message.id} className={`flex flex-col ${
                                 message.user === 'You' ? 'items-end' : 'items-start'
                             }`}>
                                 {/* Message header with user and timestamp */}
-                                <div className={`flex items-center gap-2 mb-1 ${
+                                <div className={`flex items-center gap-1 mb-1 ${
                                     message.user === 'You' ? 'flex-row-reverse' : 'flex-row'
                                 }`}>
                                     {/* User avatar */}
-                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ${
+                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white font-bold text-[8px] shadow-sm ${
                                         message.user === 'You' 
                                             ? 'bg-gradient-to-br from-green-500 to-green-600' 
                                             : 'bg-gradient-to-br from-blue-500 to-blue-600'
@@ -388,13 +388,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                         {message.user.split(' ').map(n => n[0]).join('').substring(0, 2)}
                                     </div>
                                     {/* User name */}
-                                    <span className={`text-xs font-semibold ${
+                                    <span className={`text-[9px] font-semibold ${
                                         colorMode ? 'text-gray-200' : 'text-gray-700'
                                     }`}>
                                         {message.user}
                                     </span>
                                     {/* Timestamp */}
-                                    <span className={`text-xs ${
+                                    <span className={`text-[8px] ${
                                         colorMode ? 'text-gray-400' : 'text-gray-500'
                                     }`}>
                                         {formatTimestamp(message.timestamp)}
@@ -406,21 +406,21 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                             setShowQuickReply(true);
                                             setQuickReplyText(`@${message.user}: `);
                                         }}
-                                        className={`ml-2 p-1 rounded transition-colors ${
+                                        className={`ml-1 p-0.5 rounded transition-colors ${
                                             colorMode 
                                                 ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
                                                 : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'
                                         }`}
                                         title={`Reply to ${message.user}`}
                                     >
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                         </svg>
                                     </button>
                                 </div>
                                 
-                                {/* Message content - Professional bubble style */}
-                                <div className={`ml-8 p-3 rounded-lg relative group shadow-sm max-w-[80%] border ${
+                                {/* Message content - Compact bubble style */}
+                                <div className={`ml-5 p-1.5 rounded relative group shadow-sm max-w-[85%] border ${
                                     message.user === 'You' 
                                         ? colorMode 
                                             ? 'bg-green-600 text-white ml-auto mr-0 border-green-500' 
@@ -429,17 +429,17 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                             ? 'bg-[#374151] text-gray-100 border-gray-600' 
                                             : 'bg-white text-gray-800 border-gray-200'
                                 }`}>
-                                    {/* Chat bubble tail */}
-                                    <div className={`absolute top-2 w-3 h-3 transform rotate-45 ${
+                                    {/* Chat bubble tail - smaller */}
+                                    <div className={`absolute top-1 w-2 h-2 transform rotate-45 ${
                                         message.user === 'You'
                                             ? colorMode
-                                                ? 'bg-blue-600 -right-1'
-                                                : 'bg-blue-500 -right-1'
+                                                ? 'bg-green-600 -right-0.5'
+                                                : 'bg-green-500 -right-0.5'
                                             : colorMode
-                                                ? 'bg-[#374151] -left-1'
-                                                : 'bg-gray-100 -left-1'
+                                                ? 'bg-[#374151] -left-0.5'
+                                                : 'bg-white -left-0.5'
                                     }`}></div>
-                                    <div className={`text-sm leading-relaxed relative z-10 ${
+                                    <div className={`text-[9px] leading-tight relative z-10 ${
                                         message.user === 'You' ? 'text-white' : colorMode ? 'text-gray-100' : 'text-gray-800'
                                     }`}>
                                         {message.comment}
@@ -448,7 +448,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 
                                 {/* Separator line except for last message */}
                                 {index < conversation.length - 1 && (
-                                    <div className={`mt-2 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+                                    <div className={`mt-1 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
                                 )}
                             </div>
                         ))}
