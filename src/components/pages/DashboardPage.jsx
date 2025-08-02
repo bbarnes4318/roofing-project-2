@@ -1415,18 +1415,34 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-full">
-              <thead>
-                <tr className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Phase</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project #</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Primary Contact</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>PM</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Progress</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Alerts</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Messages</th>
-                  <th className={`text-left py-2 px-2 font-semibold whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>Workflow</th>
-                </tr>
-              </thead>
+              {(() => {
+                // Filter projects based on selected phase
+                const filteredProjects = !selectedPhase ? [] : selectedPhase === 'all' 
+                  ? projects 
+                  : projects.filter(project => {
+                      const projectPhase = getProjectPhase(project);
+                      return projectPhase.toLowerCase() === selectedPhase.toLowerCase();
+                    });
+                
+                // Only show header if there are filtered projects
+                if (filteredProjects.length > 0) {
+                  return (
+                    <thead>
+                      <tr className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phase</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Project #</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Primary Contact</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>PM</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Alerts</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Messages</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflow</th>
+                      </tr>
+                    </thead>
+                  );
+                }
+                return null;
+              })()}
               <tbody>
                 {(() => {
                   // Show loading state
