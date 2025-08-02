@@ -590,10 +590,9 @@ if (process.env.NODE_ENV === 'production') {
   console.log('🏗️ Build path:', buildPath);
   console.log('🏗️ Build exists?', fs.existsSync(buildPath));
   
-  // List parent directory files to confirm build location
-  const parentDir = path.join(__dirname, '..');
-  if (fs.existsSync(parentDir)) {
-    console.log('📁 Files in parent dir:', fs.readdirSync(parentDir).filter(f => !f.startsWith('.')).slice(0, 10));
+  // List files in /app to see what's actually there
+  if (fs.existsSync('/app')) {
+    console.log('📁 Files in /app:', fs.readdirSync('/app').filter(f => !f.startsWith('.')));
   }
   
   // Serve static files from React build
