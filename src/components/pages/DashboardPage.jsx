@@ -1529,10 +1529,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </div>
                         </td>
                         
-                        {/* Project Number - Second position - 5 digits only - Now clickable link */}
+                        {/* Project Number - Second position - 5 digits only - Navigate to My Projects page */}
                         <td className="py-2 px-2 whitespace-nowrap">
                           <button 
-                            onClick={() => onProjectSelect && onProjectSelect(project)}
+                            onClick={() => {
+                              if (onProjectSelect) {
+                                const projectWithScrollId = {
+                                  ...project,
+                                  scrollToProjectId: String(project.id)
+                                };
+                                onProjectSelect(projectWithScrollId, 'Projects', null, 'Project Phases');
+                              }
+                            }}
                             className={`text-sm font-bold hover:underline cursor-pointer transition-colors ${
                               colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
                             }`}
@@ -1820,23 +1828,29 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </button>
                         </td>
                         
-                        {/* Workflow - Blue outlined oval box */}
+                        {/* Workflow - Navigate to specific line item based on current project state */}
                         <td className="py-2 px-2 whitespace-nowrap">
                           <button
                             onClick={() => {
-                              const projectWithDashboardState = {
-                                ...project,
-                                scrollToWorkflowStepId: 'current_step', // Will be handled by ProjectChecklistPage
-                                navigationTarget: 'workflow',
-                                sourceSection: 'Project Phases',
-                                dashboardState: {
-                                  selectedPhase: phaseConfig.id,
-                                  expandedPhases: Array.from(expandedPhases),
-                                  scrollToProject: project,
-                                  projectSourceSection: 'Project Phases'
-                                }
-                              };
-                              handleProjectSelectWithScroll(projectWithDashboardState, 'Project Checklist', null, 'Project Phases');
+                              if (onProjectSelect) {
+                                // Get the current workflow state using the centralized service
+                                const workflowState = WorkflowProgressService.calculateProjectProgress(project);
+                                const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                                
+                                const projectWithWorkflowState = {
+                                  ...project,
+                                  currentWorkflowStep: currentStep,
+                                  workflowState: workflowState,
+                                  scrollToCurrentLineItem: true,
+                                  sourceSection: 'Project Phases',
+                                  dashboardState: {
+                                    selectedPhase: phaseConfig.id,
+                                    expandedPhases: Array.from(expandedPhases),
+                                    scrollToProject: project
+                                  }
+                                };
+                                handleProjectSelectWithScroll(projectWithWorkflowState, 'Project Workflow', null, 'Project Phases');
+                              }
                             }}
                             className="w-16 h-6 border border-blue-500 text-black text-xs rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
                           >

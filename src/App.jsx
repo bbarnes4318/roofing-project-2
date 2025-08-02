@@ -507,7 +507,11 @@ export default function App() {
                 // Could add customer filtering here if CustomersPage supports it
                 break;
             case 'projects':
-                navigate('Projects');
+                if (target.project) {
+                    handleProjectSelect(target.project, 'Projects', null, 'Global Search');
+                } else {
+                    navigate('Projects');
+                }
                 break;
             default:
                 console.log('Unhandled search navigation:', target);

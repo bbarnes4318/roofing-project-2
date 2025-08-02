@@ -190,16 +190,27 @@ export class SearchService {
             const matchedFields = [];
             let relevanceScore = 0;
             
-            // Define searchable fields with weights
+            // Get current workflow step and phase information
+            const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+            const currentPhase = project.phase || (currentStep ? currentStep.phase : 'LEAD');
+            const currentSection = currentStep ? currentStep.stepName : null;
+            const currentLineItem = currentStep ? currentStep.stepName : null;
+            const responsibleRole = currentStep ? currentStep.defaultResponsible : null;
+            
+            // Define searchable fields with weights (enhanced with workflow fields)
             const searchFields = [
                 { key: 'projectNumber', value: project.projectNumber, weight: 10, label: 'Project #' },
                 { key: 'name', value: project.name || project.projectName, weight: 9, label: 'Name' },
                 { key: 'address', value: project.address, weight: 8, label: 'Address' },
-                { key: 'customerName', value: project.client?.name || project.customer?.name, weight: 7, label: 'Customer' },
+                { key: 'customerName', value: project.client?.name || project.customer?.name, weight: 7, label: 'Primary Contact' },
                 { key: 'customerPhone', value: project.client?.phone || project.customer?.phone, weight: 6, label: 'Phone' },
                 { key: 'customerEmail', value: project.client?.email || project.customer?.email, weight: 6, label: 'Email' },
-                { key: 'projectType', value: project.projectType || project.type, weight: 5, label: 'Type' },
-                { key: 'status', value: project.status || project.phase, weight: 4, label: 'Status' },
+                { key: 'projectPhase', value: currentPhase, weight: 7, label: 'Project Phase' },
+                { key: 'section', value: currentSection, weight: 6, label: 'Section' },
+                { key: 'lineItem', value: currentLineItem, weight: 6, label: 'Line Item' },
+                { key: 'userGroup', value: responsibleRole, weight: 5, label: 'User Group' },
+                { key: 'projectType', value: project.projectType || project.type, weight: 5, label: 'Individual Trade' },
+                { key: 'status', value: project.status, weight: 4, label: 'Status' },
                 { key: 'pmName', value: project.projectManager?.name || 
                     `${project.projectManager?.firstName || ''} ${project.projectManager?.lastName || ''}`.trim(), weight: 3, label: 'PM' }
             ];
@@ -233,9 +244,12 @@ export class SearchService {
                     relevanceScore,
                     data: project,
                     navigationTarget: {
-                        page: 'project-detail',
+                        page: 'projects', // Navigate to My Projects page as requested
                         projectId: project.id,
-                        project: project
+                        project: {
+                            ...project,
+                            scrollToProjectId: String(project.id)
+                        }
                     }
                 });
             }
