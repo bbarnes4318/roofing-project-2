@@ -138,7 +138,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     const [showContactInfo, setShowContactInfo] = useState(false);
 
     return (
-        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-xl shadow-sm border transition-all duration-200 hover:shadow-md`}>
+        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[20px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
             {/* Main message header - Compact 2-row layout */}
             <div 
                 className="flex items-center gap-2 p-2 cursor-pointer hover:bg-opacity-80 transition-colors"
@@ -254,8 +254,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </div>
                     </div>
                     
-                    {/* Row 2: User name and message preview */}
-                    <div className="flex items-center gap-2 mt-0.5">
+                    {/* Row 2: User name and message preview - MOVED CLOSER */}
+                    <div className="flex items-center gap-2 mt-0">
                         <span className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
                             {lastMessage.user}:
                         </span>
@@ -269,26 +269,27 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
             </div>
             
-            {/* Contact Info Dropdown */}
+            {/* Contact Info Dropdown - Match Current Alerts styling exactly */}
             {showContactInfo && (
-                <div className={`px-3 py-2 border-t ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className={`p-3 rounded-lg ${colorMode ? 'bg-[#1e293b]' : 'bg-white'} border ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                        <div className={`text-sm font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                <div className="flex items-start gap-2">
+                    <div className="w-8 flex-shrink-0"></div>
+                    <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                             {primaryCustomer}
                         </div>
-                        <div className="space-y-1">
-                            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <div className="space-y-0.5">
+                            <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                 📍 {project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345'}
                             </div>
                             <a 
                                 href={`tel:${(project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                                className={`block text-xs font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
                             >
                                 📞 {project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
                             </a>
                             <a 
                                 href={`mailto:${project?.client?.email || project?.clientEmail || 'customer@email.com'}`} 
-                                className={`block text-xs font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
                             >
                                 ✉️ {project?.client?.email || project?.clientEmail || 'customer@email.com'}
                             </a>
@@ -415,6 +416,24 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     }`}>
                                         {formatTimestamp(message.timestamp)}
                                     </span>
+                                    {/* Quick Reply Icon for Individual Messages */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowQuickReply(true);
+                                            setQuickReplyText(`@${message.user}: `);
+                                        }}
+                                        className={`ml-2 p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${
+                                            colorMode 
+                                                ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
+                                                : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'
+                                        }`}
+                                        title={`Reply to ${message.user}`}
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                        </svg>
+                                    </button>
                                 </div>
                                 
                                 {/* Message content - Professional bubble style */}
