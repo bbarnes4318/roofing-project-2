@@ -187,6 +187,7 @@ model Project {
 
   // Status and Progress
   status   ProjectStatus @default(PENDING)
+  phase    ProjectPhase? // Current phase based on workflow progress
   archived Boolean       @default(false)
   archivedAt DateTime?
   progress Int           @default(0) // 0-100
@@ -457,7 +458,7 @@ model WorkflowAlert {
   stepName    String   @db.VarChar(255)
   
   // User Group (Responsible Role)
-  responsibleRole ResponsibleRole
+  responsibleRole ResponsibleRole @default(OFFICE)
   
   // Read/Acknowledgement Status
   isRead      Boolean   @default(false)
