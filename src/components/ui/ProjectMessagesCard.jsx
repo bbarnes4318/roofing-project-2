@@ -113,7 +113,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                    {/* Row 1: Project# | Customer | Subject */}
+                    {/* Row 1: Project# | Customer - Subject */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
@@ -141,12 +141,12 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             <span className={`text-gray-400 text-xs mx-3`}>|</span>
                             
                             {/* Primary Customer - Fixed width container */}
-                            <div className="flex items-center gap-1 flex-shrink-0" style={{ width: '140px' }}>
+                            <div className="flex items-center gap-2 flex-shrink-0" style={{ width: '120px' }}>
                                 <button 
                                     className={`text-xs font-semibold transition-colors hover:underline truncate ${
                                         colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                     }`}
-                                    style={{ maxWidth: '120px' }}
+                                    style={{ maxWidth: '100px' }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowContactInfo(!showContactInfo);
@@ -167,12 +167,9 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </button>
                             </div>
                             
-                            {/* Separator - Fixed position */}
-                            <span className={`text-gray-400 text-xs mx-3`}>|</span>
-                            
-                            {/* Subject - Fixed start position */}
+                            {/* Subject - Moved closer to customer, no gap */}
                             <span className={`text-xs font-medium truncate ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {subject}
+                                - {subject}
                             </span>
                         </div>
                         
@@ -217,9 +214,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </div>
                     </div>
                     
-                    {/* Row 2: User name and message preview - MOVED CLOSER */}
+                    {/* Row 2: User name (aligned under project number) and message preview */}
                     <div className="flex items-center gap-2 mt-0">
-                        <span className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {/* User name aligned under project number - same width as project number */}
+                        <span 
+                            className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                            style={{ width: '60px' }}
+                        >
                             {lastMessage.user}:
                         </span>
                         <span className={`text-xs truncate flex-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
