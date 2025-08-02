@@ -674,6 +674,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     });
   };
 
+  const handleProjectSort = (key) => {
+    setSortConfig({
+      key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+    });
+  };
+
   // Alert pagination functions
   const goToAlertPage = (page) => {
     setAlertCurrentPage(page);
@@ -1479,9 +1486,45 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     <thead>
                       <tr className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
                         <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phase</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Project #</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Primary Contact</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>PM</th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <button 
+                            onClick={() => handleProjectSort('projectNumber')}
+                            className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                          >
+                            Project #
+                            {sortConfig.key === 'projectNumber' && (
+                              <span className="text-xs">
+                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </button>
+                        </th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <button 
+                            onClick={() => handleProjectSort('primaryContact')}
+                            className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                          >
+                            Primary Contact
+                            {sortConfig.key === 'primaryContact' && (
+                              <span className="text-xs">
+                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </button>
+                        </th>
+                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <button 
+                            onClick={() => handleProjectSort('projectManager')}
+                            className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                          >
+                            PM
+                            {sortConfig.key === 'projectManager' && (
+                              <span className="text-xs">
+                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </button>
+                        </th>
                         <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</th>
                         <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Alerts</th>
                         <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Messages</th>
@@ -1542,7 +1585,39 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         return projectPhase === selectedPhase;
                       });
                   
-                  return filteredProjects.map((project) => {
+                  // Sort projects if sorting is configured
+                  const sortedProjects = sortConfig.key 
+                    ? [...filteredProjects].sort((a, b) => {
+                        let aValue, bValue;
+                        
+                        if (sortConfig.key === 'projectNumber') {
+                          aValue = a.projectNumber || a.id;
+                          bValue = b.projectNumber || b.id;
+                        } else if (sortConfig.key === 'primaryContact') {
+                          aValue = a.client?.name || a.clientName || '';
+                          bValue = b.client?.name || b.clientName || '';
+                        } else if (sortConfig.key === 'projectManager') {
+                          aValue = typeof a.projectManager === 'object' && a.projectManager !== null
+                            ? (a.projectManager.name || `${a.projectManager.firstName || ''} ${a.projectManager.lastName || ''}`.trim() || '')
+                            : a.projectManager || '';
+                          bValue = typeof b.projectManager === 'object' && b.projectManager !== null
+                            ? (b.projectManager.name || `${b.projectManager.firstName || ''} ${b.projectManager.lastName || ''}`.trim() || '')
+                            : b.projectManager || '';
+                        }
+                        
+                        // Convert to strings for comparison
+                        if (typeof aValue === 'string') {
+                          aValue = aValue.toLowerCase();
+                          bValue = bValue.toLowerCase();
+                        }
+                        
+                        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                        return 0;
+                      })
+                    : filteredProjects;
+                  
+                  return sortedProjects.map((project) => {
                     const projectPhase = getProjectPhase(project);
                     const phaseConfig = PROJECT_PHASES.find(p => p.id === projectPhase) || PROJECT_PHASES[0];
                     
