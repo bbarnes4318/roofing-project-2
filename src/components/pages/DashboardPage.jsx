@@ -2277,8 +2277,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 {project?.projectNumber || actionData.projectNumber || '12345'}
                               </span>
                               
-                              {/* Customer with dropdown arrow - Full width, no truncation */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '8px'}}>
+                              {/* Customer with dropdown arrow - Moved 3 spaces left */}
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '5px'}}>
                                 <button 
                                   ref={(el) => alertContactButtonRefs.current[alertId] = el}
                                   className={`text-[9px] font-semibold cursor-pointer hover:underline ${
@@ -2375,16 +2375,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         
                         {/* Second Row - Section and Line Item */}
                         <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
-                          {/* Section - align S with project number (50px width) */}
-                          <div className="flex items-center gap-1" style={{ width: '210px' }}>
+                          {/* Section label aligned under Project Number, Section value aligned under Customer Name */}
+                          <div className="flex items-center" style={{ width: '210px' }}>
+                            {/* Section label - S aligns under Project Number first digit */}
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '50px' }}>Section:</span>
-                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                            {/* Section value - first letter aligns under Customer's Name first letter (5px left margin adjustment) */}
+                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '2px' }}>
                               {sectionName?.split('-')[0]?.trim() || sectionName}
                             </span>
                           </div>
                           
-                          {/* Line Item - align L with PM (align under PM section) */}
-                          <div className="flex items-center gap-1 flex-1">
+                          {/* Line Item - moved 3 spaces right, L aligns under P of PM */}
+                          <div className="flex items-center gap-1 flex-1" style={{ marginLeft: '23px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
