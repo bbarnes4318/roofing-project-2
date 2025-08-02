@@ -20,6 +20,7 @@ import CustomersPage from './components/pages/CustomersPage';
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
+import { SubjectsProvider } from './contexts/SubjectsContext';
 
 export default function App() {
     const [activePage, setActivePage] = useState('Overview');
@@ -614,9 +615,10 @@ export default function App() {
     };
 
     return (
-        <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
-          ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
-          : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
+        <SubjectsProvider>
+            <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
+              ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
+              : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
             {/* Mobile menu overlay */}
             {sidebarOpen && (
                 <div 
@@ -924,5 +926,6 @@ export default function App() {
                 </div>
             </main>
         </div>
+        </SubjectsProvider>
     );
 }

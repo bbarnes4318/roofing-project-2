@@ -9,7 +9,8 @@ import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflo
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
-import { ACTIVITY_FEED_SUBJECTS, ALERT_SUBJECTS } from '../../data/constants';
+import { ALERT_SUBJECTS } from '../../data/constants';
+import { useSubjects } from '../../contexts/SubjectsContext';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 
@@ -128,6 +129,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Use database data instead of props
   const { data: projectsData, loading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
   const projects = projectsData || [];
+  
+  // Get subjects from context
+  const { subjects } = useSubjects();
   
   // Fetch messages from conversations
   const [messagesData, setMessagesData] = useState([]);
@@ -386,7 +390,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   }, []);
 
   // Subject options for dropdown
-  const subjectOptions = ACTIVITY_FEED_SUBJECTS;
+  const subjectOptions = subjects;
 
   // Scroll to top function
   const scrollToTop = () => {
@@ -2087,7 +2091,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   }`}
                 >
                   <option value="">All Subjects</option>
-                  {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                  {subjects.map(subject => (
                     <option key={subject} value={subject}>{subject}</option>
                   ))}
                 </select>
@@ -2189,7 +2193,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           }`}
                         >
                           <option value="">Select Subject</option>
-                          {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                          {subjects.map(subject => (
                             <option key={subject} value={subject}>{subject}</option>
                           ))}
                         </select>

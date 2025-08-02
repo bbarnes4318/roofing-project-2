@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 // import { teamMembers } from '../../data/mockData';
-import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
+import { useSubjects } from '../../contexts/SubjectsContext';
 
 const mockCoworkers = [
   { id: 1, name: 'Sarah Owner', status: 'online' },
@@ -30,6 +30,9 @@ const initialChats = {
 
 const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'dm' }) => {
     const [tab, setTab] = useState(initialTab);
+    
+    // Get subjects from context
+    const { subjects } = useSubjects();
     const [message, setMessage] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     
@@ -359,7 +362,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                         }`}
                                     >
                                         <option value="">Select Subject</option>
-                                        {ACTIVITY_FEED_SUBJECTS.map(subject => (
+                                        {subjects.map(subject => (
                                             <option key={subject} value={subject}>{subject}</option>
                                         ))}
                                     </select>
