@@ -522,7 +522,6 @@ export default function App() {
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Projects', icon: <DocumentTextIcon />, page: 'Projects' },
-        { name: 'My Alerts', icon: <BellIcon />, page: 'Alerts', badge: tasks.filter(t => t.status === 'pending' || t.status === 'overdue').length },
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages', badge: activities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
@@ -556,7 +555,6 @@ export default function App() {
             case 'Customers': return <CustomersPage colorMode={colorMode} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
-            case 'Alerts': return <TasksAndAlertsPage tasks={tasks} projects={projects} onAddTask={addTask} colorMode={colorMode} onProjectSelect={handleProjectSelect} sourceSection="My Alerts" />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
             case 'Training & Knowledge Base':
               return (
