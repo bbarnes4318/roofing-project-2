@@ -8,9 +8,9 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useApi';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import { authService, messagesService } from '../../services/api';
+import WorkflowProgressService from '../../services/workflowProgress';
 import { ACTIVITY_FEED_SUBJECTS, ALERT_SUBJECTS } from '../../data/constants';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
-import WorkflowProgressService from '../../services/workflowProgress';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 
 // Enhanced activity generation with better variety
@@ -70,15 +70,8 @@ const generateActivitiesFromProjects = (projects) => {
   return activities;
 };
 
-// Project phases configuration
-const PROJECT_PHASES = [
-  { id: 'lead', name: 'Lead', initial: 'L', color: '#E0E7FF', gradientColor: 'from-indigo-200 to-indigo-300', bgColor: 'bg-indigo-50', textColor: 'text-indigo-800', borderColor: 'border-indigo-200' },
-  { id: 'prospect', name: 'Prospect', initial: 'P', color: '#3B82F6', gradientColor: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
-  { id: 'approved', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
-  { id: 'execution', name: 'Execute', initial: 'E', color: '#F59E0B', gradientColor: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
-  { id: 'supplement', name: '2nd Supp', initial: 'S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
-  { id: 'completion', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' }
-];
+// Use centralized phase configuration from WorkflowProgressService
+const PROJECT_PHASES = WorkflowProgressService.getAllPhases();
 
 // DEPRECATED: Use centralized workflow progress instead
 // This function is kept for backward compatibility but should use centralized data
@@ -1224,10 +1217,26 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             refetchWorkflowAlerts();
           }
           
+          // Get old phase before refreshing data
+          const project = projects.find(p => p.id === projectId);
+          const oldPhase = project ? WorkflowProgressService.getProjectPhase(project) : null;
+          
           // Refresh projects data to update progress indicators
           if (typeof refetchProjects === 'function') {
             refetchProjects();
           }
+          
+          // After data refresh, check for phase changes and notify all components
+          setTimeout(() => {
+            const updatedProject = projects.find(p => p.id === projectId);
+            if (updatedProject && oldPhase) {
+              const newPhase = WorkflowProgressService.getProjectPhase(updatedProject);
+              if (oldPhase !== newPhase) {
+                console.log(`🔄 PHASE CHANGE DETECTED: ${oldPhase} → ${newPhase}`);
+                WorkflowProgressService.notifyPhaseChange(updatedProject, oldPhase, newPhase);
+              }
+            }
+          }, 1000); // Wait for data refresh to complete
           
           console.log('✅ REFRESH: Dashboard data refresh initiated');
         } catch (refreshError) {
@@ -1413,27 +1422,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         {/* All Projects Table */}
         <div className="mb-4 overflow-x-auto">
           {(() => {
-            // Get project phase - use project.phase directly without complex transformations
+            // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
             const getProjectPhase = (project) => {
-              const phase = project.phase || 'LEAD';
-              
-              // Simple normalization to match PROJECT_PHASES ids - same logic as Current Alerts
-              const normalizedPhase = phase.toUpperCase()
-                .replace('SUPPLEMENT', 'SUPPLEMENT')
-                .replace('2ND SUPP', 'SUPPLEMENT') 
-                .replace('SECOND_SUPP', 'SUPPLEMENT')
-                .replace('EXECUTE', 'EXECUTION');
-              
-              // Map to PROJECT_PHASES id format
-              switch (normalizedPhase) {
-                case 'LEAD': return 'lead';
-                case 'PROSPECT': return 'prospect';
-                case 'APPROVED': return 'approved';
-                case 'EXECUTION': return 'execution';
-                case 'SUPPLEMENT': return 'supplement';
-                case 'COMPLETION': return 'completion';
-                default: return 'lead';
-              }
+              return WorkflowProgressService.getProjectPhase(project);
             };
 
             return (
@@ -1446,7 +1437,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   ? projects 
                   : projects.filter(project => {
                       const projectPhase = getProjectPhase(project);
-                      return projectPhase.toLowerCase() === selectedPhase.toLowerCase();
+                      return projectPhase === selectedPhase;
                     });
                 
                 // Only show header if there are filtered projects
@@ -1509,12 +1500,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     ? projects 
                     : projects.filter(project => {
                         const projectPhase = getProjectPhase(project);
-                        return projectPhase.toLowerCase() === selectedPhase.toLowerCase();
+                        return projectPhase === selectedPhase;
                       });
                   
                   return filteredProjects.map((project) => {
                     const projectPhase = getProjectPhase(project);
-                    const phaseConfig = PROJECT_PHASES.find(p => p.id.toLowerCase() === projectPhase) || PROJECT_PHASES[0];
+                    const phaseConfig = PROJECT_PHASES.find(p => p.id === projectPhase) || PROJECT_PHASES[0];
                     
                     return (
                       <tr key={project.id} data-project-id={project.id} className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'} hover:bg-gray-50 transition-colors duration-300`}>
@@ -2073,7 +2064,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               )}
             </div>
             
-            <div className="space-y-2 mt-3">
+            <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
               {currentActivities.length === 0 ? (
                 <div className="text-gray-400 text-center py-3 text-[9px]">
                   No messages found.
@@ -2109,7 +2100,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <select 
                   value={alertProjectFilter} 
                   onChange={(e) => setAlertProjectFilter(e.target.value)} 
-                  className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                  className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[140px] ${
                     colorMode 
                       ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
                       : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
@@ -2118,24 +2109,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <option value="all">All Projects</option>
                   <option value="general">General</option>
                   {(projects || []).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
                   ))}
                 </select>
                 
                 <select 
                   value={alertUserGroupFilter} 
                   onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
-                  className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                  className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[120px] ${
                     colorMode 
                       ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
                       : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
                   }`}
                 >
                   <option value="all">All User Groups</option>
-                  <option value="PM">PM</option>
-                  <option value="FIELD">FIELD</option>
-                  <option value="OFFICE">OFFICE</option>
-                  <option value="ADMIN">ADMIN</option>
+                  <option value="PM">Project Manager</option>
+                  <option value="FIELD">Field Director</option>
+                  <option value="OFFICE">Office Staff</option>
+                  <option value="ADMIN">Administration</option>
                 </select>
               </div>
               
@@ -2151,7 +2142,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </div>
               </div>
             </div>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
               {getPaginatedAlerts().length === 0 ? (
                 <div className="text-gray-400 text-center py-3 text-sm">
                   {alertsLoading ? 'Loading alerts...' : 'No alerts found.'}

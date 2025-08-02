@@ -89,45 +89,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
         setShowQuickReply(false);
     };
 
-    // Get project phase for circle color - use WorkflowProgressService if project has workflow data
-    let projectPhase;
-    
-    if (project && project.workflow) {
-        // Use the service to get the current phase from workflow data
-        projectPhase = WorkflowProgressService.getCurrentPhase(project);
-    } else if (activity?.metadata?.phase) {
-        // If activity has phase metadata (like alerts), use that
-        projectPhase = activity.metadata.phase;
-    } else {
-        // Fallback to status mapping or default
-        const rawPhase = project?.status || project?.phase || activity?.phase || 'LEAD';
-        
-        // Map common status values to proper phases
-        const phaseNormalizationMap = {
-            'IN_PROGRESS': 'EXECUTION',
-            'INPROGRESS': 'EXECUTION',
-            'IN PROGRESS': 'EXECUTION',
-            'ACTIVE': 'EXECUTION',
-            'PENDING': 'LEAD',
-            'NEW': 'LEAD',
-            'COMPLETED': 'COMPLETION',
-            'COMPLETE': 'COMPLETION',
-            'FINISHED': 'COMPLETION',
-            'DONE': 'COMPLETION',
-            '2ND SUPP': '2ND_SUPP',
-            '2ND-SUPP': '2ND_SUPP',
-            'SECOND SUPP': '2ND_SUPP'
-        };
-        
-        const upperPhase = String(rawPhase).toUpperCase();
-        
-        if (phaseNormalizationMap[upperPhase]) {
-            projectPhase = phaseNormalizationMap[upperPhase];
-        } else {
-            const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', '2ND_SUPP', 'COMPLETION'];
-            projectPhase = validPhases.includes(upperPhase) ? upperPhase : 'LEAD';
-        }
-    }
+    // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
+    const projectPhase = WorkflowProgressService.getProjectPhase(project, activity);
     
     // Use WorkflowProgressService for consistent phase colors
     const getPhaseColors = (phase) => {
@@ -416,14 +379,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     }`}>
                                         {formatTimestamp(message.timestamp)}
                                     </span>
-                                    {/* Quick Reply Icon for Individual Messages */}
+                                    {/* Quick Reply Icon for Individual Messages - Always visible */}
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setShowQuickReply(true);
                                             setQuickReplyText(`@${message.user}: `);
                                         }}
-                                        className={`ml-2 p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${
+                                        className={`ml-2 p-1 rounded transition-colors ${
                                             colorMode 
                                                 ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
                                                 : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'

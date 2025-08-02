@@ -82,19 +82,18 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
     ];
   };
 
-  const getPhaseColor = (phase) => {
-    // Normalize the phase string to match WorkflowProgressService format
-    const normalizedPhase = phase?.toUpperCase()
-      .replace(/\s*PHASE$/i, '')
-      .replace('2ND SUPPLEMENT', '2ND_SUPP')
-      .replace('SECOND SUPP', '2ND_SUPP');
-    
-    return WorkflowProgressService.getPhaseColor(normalizedPhase);
+  // Use centralized phase detection - SINGLE SOURCE OF TRUTH
+  const getProjectPhase = (project) => {
+    return WorkflowProgressService.getProjectPhase(project);
   };
 
-  const getPhaseText = (phase) => {
-    if (!phase) return 'Unknown';
-    return phase.replace(/\s*phase$/i, '').replace('Phase-', '').replace('Phase', '').replace(/-Insurance-1st Supplement/i, '');
+  const getPhaseColor = (project) => {
+    const phase = getProjectPhase(project);
+    return WorkflowProgressService.getPhaseColor(phase);
+  };
+
+  const getPhaseText = (project) => {
+    return getProjectPhase(project);
   };
 
   const getStatusColor = (status) => {
@@ -331,8 +330,8 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         {project.name}
                       </button>
                     </div>
-                    <div className={`ml-2 px-1 py-0.5 ${getPhaseColor(project.phase).bg} rounded-full text-[8px] font-semibold ${getPhaseColor(project.phase).text} shadow-sm`}>
-                      {getPhaseText(project.phase)}
+                    <div className={`ml-2 px-1 py-0.5 ${getPhaseColor(project).bg} rounded-full text-[8px] font-semibold ${getPhaseColor(project).text} shadow-sm`}>
+                      {getPhaseText(project)}
                     </div>
                   </div>
                 </div>
@@ -723,7 +722,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             ? 'bg-gradient-to-r from-slate-600 to-slate-500 text-white shadow-sm' 
                             : 'bg-gradient-to-r from-gray-200 to-gray-100 text-gray-700 shadow-sm'
                         }`}>
-                          {getPhaseText(project.phase || project.status)}
+                          {getPhaseText(project)}
                         </span>
                         <svg className={`w-4 h-4 transition-all duration-200 ${colorMode ? 'text-gray-400 group-hover:text-blue-400' : 'text-gray-400 group-hover:text-blue-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />

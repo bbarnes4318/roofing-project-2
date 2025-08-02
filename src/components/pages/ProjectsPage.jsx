@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import { useApiCall, useCreateProject, useCustomers, useProjects } from '../../hooks/useApi';
 import { projectsService } from '../../services/api';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const defaultNewProject = {
     projectNumber: '',
@@ -489,17 +490,16 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 {project.name || project.projectName}
                             </h3>
                             <div className="flex items-center gap-2">
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
-                                    project.phase === 'Lead' ? 'bg-slate-400 text-white' :
-                                    project.phase === 'Prospect' ? 'bg-blue-600 text-white' :
-                                    project.phase === 'Approved' ? 'bg-emerald-500 text-white' :
-                                    project.phase === 'Execution' ? 'bg-amber-500 text-white' :
-                                    project.phase === '2nd Supp' ? 'bg-violet-500 text-white' :
-                                    project.phase === 'Completion' ? 'bg-green-900 text-white' :
-                                    'bg-slate-400 text-white'
-                                }`}>
-                                    {project.phase}
-                                </span>
+                                {(() => {
+                                    // Use centralized phase detection
+                                    const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                                    const phaseColors = WorkflowProgressService.getPhaseColor(projectPhase);
+                                    return (
+                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium ${phaseColors.bg} ${phaseColors.text}`}>
+                                            {projectPhase}
+                                        </span>
+                                    );
+                                })()}
                                 <span className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                     {tradesDisplay}
                                 </span>

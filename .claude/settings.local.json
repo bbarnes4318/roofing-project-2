@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(curl:*)",
@@ -15,9 +16,11 @@
       "Bash(grep:*)",
       "Bash(npx eslint:*)",
       "Bash(sed:*)",
-      "Bash(wmic:*)"
+      "Bash(wmic:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
-  },
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+  }
 }

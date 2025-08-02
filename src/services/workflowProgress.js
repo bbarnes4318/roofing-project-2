@@ -284,6 +284,166 @@ class WorkflowProgressService {
     static getPhaseName(phaseKey) {
         return PHASES[phaseKey]?.name || phaseKey;
     }
+
+    /**
+     * CENTRALIZED PHASE DETECTION - Used by ALL components throughout the app
+     * This is the single source of truth for determining project phases
+     * @param {Object} project - Project object with workflow/phase data
+     * @param {Object} activity - Optional activity/alert metadata
+     * @returns {string} Current phase key (LEAD, PROSPECT, APPROVED, EXECUTION, SUPPLEMENT, COMPLETION, etc.)
+     */
+    static getProjectPhase(project, activity = null) {
+        // Priority 1: Use activity metadata phase if provided (for alerts)
+        if (activity?.metadata?.phase) {
+            return this.normalizePhase(activity.metadata.phase);
+        }
+
+        // Priority 2: Use workflow progress if available
+        if (project?.workflow?.steps && project.workflow.steps.length > 0) {
+            // Find the most recently completed step to determine actual current phase
+            const completedSteps = project.workflow.steps
+                .filter(step => step.isCompleted)
+                .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+            
+            const incompleteSteps = project.workflow.steps
+                .filter(step => !step.isCompleted)
+                .sort((a, b) => a.stepId.localeCompare(b.stepId));
+            
+            // If there are incomplete steps, use the phase of the first incomplete step
+            if (incompleteSteps.length > 0) {
+                return this.normalizePhase(incompleteSteps[0].phase);
+            } 
+            // If all steps are complete, use the phase of the last completed step
+            else if (completedSteps.length > 0) {
+                return this.normalizePhase(completedSteps[0].phase);
+            }
+        }
+
+        // Priority 3: Use project.phase field directly
+        if (project?.phase) {
+            return this.normalizePhase(project.phase);
+        }
+
+        // Priority 4: Use project.status and map to phase
+        if (project?.status) {
+            const statusPhaseMap = {
+                'IN_PROGRESS': 'EXECUTION',
+                'INPROGRESS': 'EXECUTION', 
+                'IN PROGRESS': 'EXECUTION',
+                'ACTIVE': 'EXECUTION',
+                'PENDING': 'LEAD',
+                'NEW': 'LEAD',
+                'COMPLETED': 'COMPLETION',
+                'COMPLETE': 'COMPLETION',
+                'FINISHED': 'COMPLETION',
+                'DONE': 'COMPLETION'
+            };
+            const mappedPhase = statusPhaseMap[project.status.toUpperCase()];
+            if (mappedPhase) {
+                return this.normalizePhase(mappedPhase);
+            }
+            return this.normalizePhase(project.status);
+        }
+
+        // Priority 5: Fallback to LEAD
+        return 'LEAD';
+    }
+
+    /**
+     * Normalize phase names to consistent format
+     * @param {string} phase - Raw phase value
+     * @returns {string} Normalized phase key
+     */
+    static normalizePhase(phase) {
+        if (!phase) return 'LEAD';
+        
+        const phaseStr = String(phase).trim();
+        
+        // Handle exact matches first (preserves mixed case from API)
+        const exactMatches = {
+            '2nd Supplement': '2nd Supplement',
+            'Approved': 'Approved', 
+            'Completion': 'Completion'
+        };
+        
+        if (exactMatches[phaseStr]) {
+            return exactMatches[phaseStr];
+        }
+        
+        // Handle case-insensitive normalization
+        const upperPhase = phaseStr.toUpperCase();
+        const normalizations = {
+            'SUPPLEMENT': 'SUPPLEMENT',
+            '2ND SUPP': 'SUPPLEMENT',
+            '2ND-SUPP': 'SUPPLEMENT', 
+            'SECOND SUPP': 'SUPPLEMENT',
+            'SECOND_SUPP': 'SUPPLEMENT',
+            '2ND_SUPP': 'SUPPLEMENT',
+            'EXECUTE': 'EXECUTION'
+        };
+        
+        if (normalizations[upperPhase]) {
+            return normalizations[upperPhase];
+        }
+        
+        // Return uppercase version for standard phases
+        const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'COMPLETION'];
+        if (validPhases.includes(upperPhase)) {
+            return upperPhase;
+        }
+        
+        // Return original for unrecognized phases
+        return phaseStr;
+    }
+
+    /**
+     * Get all possible phases that exist in the system
+     * @returns {Array} Array of phase objects with id, name, color, etc.
+     */
+    static getAllPhases() {
+        return [
+            { id: 'LEAD', name: 'Lead', initial: 'L', color: '#E0E7FF', gradientColor: 'from-indigo-200 to-indigo-300', bgColor: 'bg-indigo-50', textColor: 'text-indigo-800', borderColor: 'border-indigo-200' },
+            { id: 'PROSPECT', name: 'Prospect', initial: 'P', color: '#3B82F6', gradientColor: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
+            { id: 'APPROVED', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
+            { id: 'Approved', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
+            { id: 'EXECUTION', name: 'Execution', initial: 'E', color: '#F59E0B', gradientColor: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
+            { id: 'SUPPLEMENT', name: 'Supplement', initial: 'S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
+            { id: '2nd Supplement', name: '2nd Supplement', initial: '2S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
+            { id: 'COMPLETION', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' },
+            { id: 'Completion', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' }
+        ];
+    }
+
+    /**
+     * Event listeners for phase changes
+     */
+    static phaseChangeListeners = new Set();
+
+    /**
+     * Add listener for phase changes
+     * @param {Function} callback - Function to call when phase changes
+     */
+    static addPhaseChangeListener(callback) {
+        this.phaseChangeListeners.add(callback);
+        return () => this.phaseChangeListeners.delete(callback);
+    }
+
+    /**
+     * Notify all listeners that a project's phase has changed
+     * @param {Object} project - Project that changed
+     * @param {string} oldPhase - Previous phase
+     * @param {string} newPhase - New phase
+     */
+    static notifyPhaseChange(project, oldPhase, newPhase) {
+        console.log(`🔄 PHASE CHANGE: Project ${project.id} changed from ${oldPhase} to ${newPhase}`);
+        this.phaseChangeListeners.forEach(callback => {
+            try {
+                callback(project, oldPhase, newPhase);
+            } catch (error) {
+                console.error('Error in phase change listener:', error);
+            }
+        });
+    }
 }
 
 export default WorkflowProgressService; 

@@ -396,13 +396,9 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                         const sectionName = workflowMapping.section;
                         const lineItemName = workflowMapping.lineItem;
                         
-                        // Use WorkflowProgressService for consistent phase colors
+                        // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
                         const getPhaseCircleColors = (phase) => {
-                            // Normalize phase name to match WorkflowProgressService
-                            const normalizedPhase = (phase || 'LEAD').toUpperCase()
-                                .replace('SUPPLEMENT', 'SECOND_SUPP')
-                                .replace('2ND SUPP', 'SECOND_SUPP')
-                                .replace('EXECUTE', 'EXECUTION');
+                            const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
                             return WorkflowProgressService.getPhaseColor(normalizedPhase);
                         };
                         return (
