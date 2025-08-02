@@ -273,6 +273,20 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 const result = await response.json();
                 console.log('✅ Workflow step completed successfully:', result);
                 
+                // ENHANCED: Dispatch global event to notify Project Workflow tab
+                const globalEvent = new CustomEvent('workflowStepCompleted', {
+                  detail: {
+                    projectId: projectId,
+                    stepId: stepId,
+                    stepName: stepName,
+                    projectName: projectName,
+                    source: 'My Alerts Page Completion',
+                    timestamp: new Date().toISOString()
+                  }
+                });
+                window.dispatchEvent(globalEvent);
+                console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from My Alerts');
+                
                 // Refresh alerts to show updated state
                 await refresh();
                 

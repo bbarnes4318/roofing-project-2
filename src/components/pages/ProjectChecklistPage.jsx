@@ -442,12 +442,35 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           const response = await projectsService.getWorkflow(projectId);
           
           console.log(`🌐 REFRESH: Received workflow data:`, response);
-          setWorkflowData(response.data || response.workflow);
+          
+          // ENHANCED: Force a complete state refresh
+          const newWorkflowData = {
+            ...(response.data || response.workflow),
+            _forceRender: Date.now(),
+            _refreshedAt: new Date().toISOString()
+          };
+          
+          setWorkflowData(newWorkflowData);
           console.log('✅ WORKFLOW: Refreshed data after alert completion');
           
           // Log the completed steps for debugging
           const completedSteps = (response.data || response.workflow)?.steps?.filter(s => s.isCompleted || s.completed) || [];
           console.log('✅ WORKFLOW: Currently completed steps:', completedSteps.map(s => s.stepName || s.name));
+          
+          // ENHANCED: Force component re-render by updating a dummy state
+          setNavigationSuccess({
+            message: 'Workflow updated from alert completion',
+            details: {
+              completedSteps: completedSteps.length,
+              refreshedAt: new Date().toLocaleTimeString()
+            }
+          });
+          
+          // Clear the success message quickly
+          setTimeout(() => {
+            setNavigationSuccess(null);
+          }, 100);
+          
         } catch (error) {
           console.error('❌ WORKFLOW: Error refreshing after completion:', error);
           // Don't show error to user for background refresh
@@ -459,8 +482,81 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       
       // Also refresh after a delay to ensure backend processing is complete
       setTimeout(refreshWorkflowData, 1500);
+      
+      // ENHANCED: Additional refresh after 3 seconds to catch any delayed updates
+      setTimeout(refreshWorkflowData, 3000);
     }
   }, [project?.completedStep, project?.highlightStep]);
+
+  // ENHANCED: Force re-render when workflow data changes to ensure strikethroughs appear
+  useEffect(() => {
+    if (workflowData && workflowData._forceRender) {
+      console.log('🔄 FORCE RENDER: Workflow data changed, forcing component re-render');
+      const completedSteps = workflowData.steps?.filter(s => s.completed || s.isCompleted) || [];
+      console.log('✅ FORCE RENDER: Completed steps count:', completedSteps.length);
+      console.log('✅ FORCE RENDER: Step completion states:', 
+        workflowData.steps?.map(s => ({
+          id: s.id || s.stepId || s._id,
+          completed: s.completed || s.isCompleted || false
+        })) || []
+      );
+    }
+  }, [workflowData?._forceRender, workflowData?.steps]);
+
+  // ENHANCED: Listen for global workflow updates from alert completions
+  useEffect(() => {
+    const handleWorkflowStepCompleted = (event) => {
+      const { projectId: eventProjectId, stepId: eventStepId, stepName } = event.detail || {};
+      const currentProjectId = project?.id || project?._id;
+      
+      console.log('🔊 GLOBAL EVENT: Received workflow step completed event:', event.detail);
+      
+      // Only refresh if this event is for the current project
+      if (eventProjectId && currentProjectId && String(eventProjectId) === String(currentProjectId)) {
+        console.log('🔄 GLOBAL REFRESH: Event matches current project, refreshing workflow data');
+        
+        const refreshFromEvent = async () => {
+          try {
+            const response = await projectsService.getWorkflow(currentProjectId);
+            const newWorkflowData = {
+              ...(response.data || response.workflow),
+              _forceRender: Date.now(),
+              _globalEventRefresh: true,
+              _eventStepId: eventStepId
+            };
+            
+            setWorkflowData(newWorkflowData);
+            console.log('✅ GLOBAL REFRESH: Updated workflow data from global event');
+            
+            // Show brief success message
+            setNavigationSuccess({
+              message: `Step completed: ${stepName || eventStepId}`,
+              details: {
+                source: 'Global Event',
+                refreshedAt: new Date().toLocaleTimeString()
+              }
+            });
+            
+            setTimeout(() => setNavigationSuccess(null), 2000);
+            
+          } catch (error) {
+            console.error('❌ GLOBAL REFRESH: Failed to refresh from global event:', error);
+          }
+        };
+        
+        // Refresh immediately and with delays
+        refreshFromEvent();
+        setTimeout(refreshFromEvent, 1000);
+      }
+    };
+    
+    // Listen for custom workflow completion events
+    window.addEventListener('workflowStepCompleted', handleWorkflowStepCompleted);
+    
+    return () => {
+      window.removeEventListener('workflowStepCompleted', handleWorkflowStepCompleted);
+    };
+  }, [project?.id, project?._id]);
 
   // Enhanced step highlighting from alert navigation with precise targeting
   useEffect(() => {
@@ -946,7 +1042,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           }],
           completedSteps: completed ? [stepId] : [],
           progress: completed ? 100 : 0,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          _forceRender: Date.now() // Force component re-render
         };
       }
       
@@ -970,6 +1067,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           createdAt: new Date().toISOString()
         };
         updatedSteps.push(newStep);
+        console.log(`✅ UPDATE: Created new step ${stepId} with completed: ${completed}`);
       } else {
         // Replace the step entirely to force re-render
         updatedSteps[stepIndex] = {
@@ -979,15 +1077,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           completedAt: completed ? new Date().toISOString() : null,
           updatedAt: new Date().toISOString()
         };
+        console.log(`✅ UPDATE: Updated existing step ${stepId} with completed: ${completed}`);
       }
       
-      // Return completely new object
+      // Return completely new object with force render flag
       return {
         ...prevData,
         steps: updatedSteps,
         updatedAt: new Date().toISOString(),
         // Add a timestamp to ensure re-render
-        _optimisticUpdate: Date.now()
+        _optimisticUpdate: Date.now(),
+        _forceRender: Date.now()
       };
     });
 
@@ -1140,6 +1240,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       console.log(`🔍 CHECKING: Found direct match:`, directMatch);
       const result = directMatch.completed || directMatch.isCompleted;
       console.log(`🔍 CHECKING: Direct match result: ${result}`);
+      
+      // ENHANCED: Force re-render detection
+      if (result) {
+        console.log(`✅ STRIKETHROUGH: Step ${stepId} should show strikethrough`);
+      }
+      
       return result;
     }
     
@@ -1227,6 +1333,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     }
     
     console.log(`🔍 CHECKING: No match found for "${stepId}"`);
+    
+    // ENHANCED: Log all available step IDs for debugging
+    const availableSteps = workflowData.steps.map(s => ({
+      id: s.id || 'no-id',
+      stepId: s.stepId || 'no-stepId',
+      _id: s._id || 'no-_id',
+      stepName: s.stepName || 'no-stepName',
+      completed: s.completed || s.isCompleted || false
+    }));
+    console.log(`🔍 CHECKING: Available steps for comparison:`, availableSteps);
+    
     return false;
   };
 
@@ -1404,7 +1521,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       {/* Navigation Error Message */}
 
 
-      <div className="flex-1 overflow-y-auto px-3 py-2 text-left">
+      <div className="flex-1 overflow-y-auto px-3 py-2 text-left" key={`workflow-${workflowData?._forceRender || 0}`}>
         <div className="space-y-2 text-left">
           {phases.map((phase) => {
             // Determine if all tasks in this phase are completed
@@ -1412,21 +1529,28 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
               // Check regular subtasks
               const regularSubtasksCompleted = !item.subtasks || item.subtasks.length === 0 || item.subtasks.every((_, subIdx) => {
                 const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                return isStepCompleted(stepId);
+                const completed = isStepCompleted(stepId);
+                console.log(`🔍 PHASE COMPLETION: Step ${stepId} completed: ${completed}`);
+                return completed;
               });
               
               // Check subheading subtasks
               const subheadingSubtasksCompleted = !item.subheadings || item.subheadings.length === 0 || item.subheadings.every(subheading =>
                 subheading.subtasks.every((_, subIdx) => {
                   const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                  return isStepCompleted(stepId);
+                  const completed = isStepCompleted(stepId);
+                  console.log(`🔍 PHASE COMPLETION: Subheading step ${stepId} completed: ${completed}`);
+                  return completed;
                 })
               );
               
-              return regularSubtasksCompleted && subheadingSubtasksCompleted;
+              const itemCompleted = regularSubtasksCompleted && subheadingSubtasksCompleted;
+              console.log(`🔍 PHASE COMPLETION: Item ${item.id} completed: ${itemCompleted}`);
+              return itemCompleted;
             });
+            console.log(`🔍 PHASE COMPLETION: Phase ${phase.id} all tasks completed: ${allTasksCompleted}`);
             return (
-              <div key={phase.id} data-phase-id={phase.id} className="bg-white p-2 rounded border border-gray-200 shadow-sm text-left">
+              <div key={`${phase.id}-${workflowData?._forceRender || 0}`} data-phase-id={phase.id} className="bg-white p-2 rounded border border-gray-200 shadow-sm text-left">
                 <div
                   className="flex justify-between items-start cursor-pointer select-none text-left"
                   onClick={() => handlePhaseClick(phase.id)}
@@ -1446,18 +1570,24 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                               // Check regular subtasks
                               const regularSubtasksCompleted = !item.subtasks || item.subtasks.length === 0 || item.subtasks.every((_, subIdx) => {
                                 const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                                return isStepCompleted(stepId);
+                                const completed = isStepCompleted(stepId);
+                                console.log(`🔍 SECTION COMPLETION: Step ${stepId} completed: ${completed}`);
+                                return completed;
                               });
                               
                               // Check subheading subtasks
                               const subheadingSubtasksCompleted = !item.subheadings || item.subheadings.length === 0 || item.subheadings.every(subheading =>
                                 subheading.subtasks.every((_, subIdx) => {
                                   const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                                  return isStepCompleted(stepId);
+                                  const completed = isStepCompleted(stepId);
+                                  console.log(`🔍 SECTION COMPLETION: Subheading step ${stepId} completed: ${completed}`);
+                                  return completed;
                                 })
                               );
                               
-                              return regularSubtasksCompleted && subheadingSubtasksCompleted;
+                              const sectionCompleted = regularSubtasksCompleted && subheadingSubtasksCompleted;
+                              console.log(`🔍 SECTION COMPLETION: Section ${item.id} all microtasks checked: ${sectionCompleted}`);
+                              return sectionCompleted;
                             })();
                             return (
                               <Draggable key={item.id} draggableId={item.id} index={idx}>
@@ -1557,7 +1687,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                               const stepId = `${phase.id}-${item.id}-${subIdx}`;
                                               const completed = isStepCompleted(stepId);
                                               return (
-                                                <li key={subIdx} className="flex items-center gap-1 text-left font-normal">
+                                                <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}`} className="flex items-center gap-1 text-left font-normal">
                                                   <input
                                                     type="checkbox"
                                                     className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
@@ -1586,7 +1716,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                 const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
                                                 const completed = isStepCompleted(stepId);
                                                 return (
-                                                  <li key={subIdx} className="flex items-center gap-1 text-left font-normal">
+                                                  <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}`} className="flex items-center gap-1 text-left font-normal">
                                                     <input
                                                       type="checkbox"
                                                       className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"

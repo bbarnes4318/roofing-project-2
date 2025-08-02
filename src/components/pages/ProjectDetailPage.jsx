@@ -549,6 +549,20 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                         
                         console.log('✅ Alert completed successfully:', result);
                         
+                        // ENHANCED: Dispatch global event to notify Project Workflow tab
+                        const globalEvent = new CustomEvent('workflowStepCompleted', {
+                          detail: {
+                            projectId: alert.projectId,
+                            stepId: alert.stepId,
+                            stepName: alert.step || alert.title,
+                            projectName: project?.name || 'Unknown Project',
+                            source: 'Project Detail Alerts Tab',
+                            timestamp: new Date().toISOString()
+                          }
+                        });
+                        window.dispatchEvent(globalEvent);
+                        console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from Project Detail Alerts');
+                        
                     } catch (error) {
                         console.error('❌ Error completing alert:', error);
                         // Optionally show user-friendly error message

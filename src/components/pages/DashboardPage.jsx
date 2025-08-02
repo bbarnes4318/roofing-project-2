@@ -1014,6 +1014,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         // Show success feedback
         console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
         
+        // ENHANCED: Dispatch global event to notify Project Workflow tab
+        const globalEvent = new CustomEvent('workflowStepCompleted', {
+          detail: {
+            projectId: projectId,
+            stepId: stepId,
+            stepName: stepName,
+            projectName: projectName,
+            source: 'Dashboard Alert Completion',
+            timestamp: new Date().toISOString()
+          }
+        });
+        window.dispatchEvent(globalEvent);
+        console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event for Project Workflow tab');
+        
         // Step 2: Also update the project checklist to ensure synchronization
         if (projectId && stepName) {
           try {
