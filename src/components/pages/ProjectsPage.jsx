@@ -305,10 +305,16 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 secondaryPhone: secondaryContact?.phone || null,
                 primaryContact: 'PRIMARY', // Always set primary as the main contact
                 address: `${newProject.customerName} Project`, // Better default address
-                notes: `Additional contacts: ${newProject.contacts
-                    .filter(c => c.name && c !== primaryContact && c !== secondaryContact)
-                    .map(c => `${c.name} (${c.phone || 'no phone'}, ${c.email || 'no email'})`)
-                    .join('; ')}`
+                notes: `Project created from Add Project form`,
+                // Send all contacts to be created in the new Contact table
+                contacts: newProject.contacts
+                    .filter(contact => contact.name && contact.name.trim()) // Only send contacts with names
+                    .map(contact => ({
+                        name: contact.name.trim(),
+                        phone: contact.phone || null,
+                        email: contact.email || null,
+                        isPrimary: contact.isPrimary || false
+                    }))
             };
 
             // Check if customer already exists or create new one

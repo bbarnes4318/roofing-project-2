@@ -159,8 +159,38 @@ model Customer {
   
   // Relationships
   projects Project[]
+  contacts Contact[] // Multiple contacts per customer
 
   @@map("customers")
+}
+
+// Contact model for proper multiple contact support
+model Contact {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Contact Information
+  name     String  @db.VarChar(100)
+  phone    String? @db.VarChar(20)
+  email    String? @db.VarChar(255)
+  role     String? @db.VarChar(50) // e.g., "Primary", "Secondary", "Billing", "Technical"
+  
+  // Flags
+  isPrimary Boolean @default(false)
+  isActive  Boolean @default(true)
+  
+  // Notes
+  notes     String? @db.VarChar(500)
+  
+  // Relationships
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  // Ensure only one primary contact per customer
+  @@unique([customerId, isPrimary])
+  @@index([customerId])
+  @@map("contacts")
 }
 
 enum ContactType {

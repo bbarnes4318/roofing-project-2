@@ -162,8 +162,10 @@ router.get('/', asyncHandler(async (req, res) => {
         orderBy,
         skip,
         take: limitNum,
-        include: withProjects === 'true' ? {
-          projects: {
+        include: {
+          contacts: true, // Always include contacts
+          ...(withProjects === 'true' ? {
+            projects: {
             select: {
               id: true,
               projectNumber: true,
@@ -175,8 +177,8 @@ router.get('/', asyncHandler(async (req, res) => {
               progress: true,
               projectType: true
             }
-          }
-        } : undefined
+            }
+          } : {})
       }),
       prisma.customer.count({ where })
     ]);
@@ -199,6 +201,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
     const customer = await prisma.customer.findUnique({
       where: { id: req.params.id },
       include: {
+        contacts: true, // Include contacts
         projects: {
           select: {
             id: true,
@@ -283,10 +286,31 @@ router.post('/', asyncHandler(async (req, res, next) => {
       return next(new AppError('Customer with this email already exists', 400));
     }
 
-    // Create customer
-    const customer = await prisma.customer.create({
+    // Create customer with contacts if provided
+    const createData = {
       data: customerData
-    });
+    };
+
+    // If contacts array is provided, create them along with the customer
+    if (req.body.contacts && Array.isArray(req.body.contacts)) {
+      createData.data.contacts = {
+        create: req.body.contacts
+          .filter(contact => contact.name && contact.name.trim()) // Only create contacts with names
+          .map((contact, index) => ({
+            name: contact.name.trim(),
+            phone: contact.phone || null,
+            email: contact.email || null,
+            isPrimary: contact.isPrimary || false,
+            role: contact.isPrimary ? 'Primary Contact' : `Contact ${index + 1}`,
+            isActive: true
+          }))
+      };
+      createData.include = {
+        contacts: true
+      };
+    }
+
+    const customer = await prisma.customer.create(createData);
 
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(customer);
