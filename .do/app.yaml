@@ -5,7 +5,7 @@ services:
   github:
     repo: bbarnes4318/roofing-project-2
     branch: master
-  build_command: npm install && npm run build && cd server && npm install
+  build_command: npm install && npm run build || (echo "Build failed with exit code $?"; exit 1) && ls -la build/ && cd server && npm install
   run_command: NODE_ENV=production node server/server.js
   environment_slug: node-js
   instance_count: 1
