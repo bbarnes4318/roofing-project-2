@@ -171,8 +171,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     </svg>
                                 </button>
                                 
-                                {/* Subject - RIGHT next to customer */}
-                                <span className={`text-[9px] font-medium truncate overflow-hidden whitespace-nowrap ml-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {/* Subject - RIGHT next to customer - BOLD */}
+                                <span className={`text-[9px] font-bold truncate overflow-hidden whitespace-nowrap ml-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                     {subject}
                                 </span>
                             </div>
@@ -221,10 +221,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     
                     {/* Row 2: User name (aligned under project number) and message preview */}
                     <div className="flex items-center gap-1.5 mt-0 overflow-hidden">
-                        {/* User name aligned under project number - same width as project number */}
+                        {/* User name aligned directly under project number - FULL name shown */}
                         <span 
-                            className={`text-[9px] font-medium truncate overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                            style={{ width: '50px' }}
+                            className={`text-[9px] font-medium flex-shrink-0 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                            style={{ width: '80px', textAlign: 'left' }}
                         >
                             {lastMessage.user}:
                         </span>

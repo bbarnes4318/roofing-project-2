@@ -2308,17 +2308,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </select>
               </div>
               
-              {/* Divider bar to match Project Messages styling exactly */}
-              <div className="mb-3">
-                <div className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
-                  colorMode 
-                    ? 'border-gray-600 text-gray-300' 
-                    : 'border-gray-300 text-gray-600'
-                }`}>
-                  <span></span>
-                  <div className="w-4 h-4"></div>
-                </div>
-              </div>
             </div>
             <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
               {getPaginatedAlerts().length === 0 ? (
