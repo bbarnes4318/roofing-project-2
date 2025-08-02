@@ -2332,10 +2332,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 {project?.projectNumber || actionData.projectNumber || '12345'}
                               </span>
                               
-                              {/* Customer with dropdown arrow */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '80px', marginLeft: '8px'}}>
+                              {/* Customer with dropdown arrow - Full width, no truncation */}
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '8px'}}>
                                 <button 
-                                  className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
+                                  className={`text-[9px] font-semibold cursor-pointer hover:underline ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
                                   title={project?.customer?.name || project?.clientName || actionData.projectName || 'Primary Customer'}
@@ -2371,11 +2371,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 </button>
                               </div>
                               
-                              {/* PM with dropdown arrow */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '8px'}}>
+                              {/* PM with dropdown arrow - Moved further right */}
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '20px'}}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
-                                  className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[50px] ${
+                                  className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
                                   title={project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Mike Field'}
@@ -2429,14 +2429,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         {/* Second Row - Section and Line Item */}
                         <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
                           {/* Section - align S with project number (50px width) */}
-                          <div className="flex items-center gap-1" style={{ width: '150px' }}>
+                          <div className="flex items-center gap-1" style={{ width: '210px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '50px' }}>Section:</span>
                             <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                               {sectionName?.split('-')[0]?.trim() || sectionName}
                             </span>
                           </div>
                           
-                          {/* Line Item - align L with PM (starts at 180px from left) */}
+                          {/* Line Item - align L with PM (align under PM section) */}
                           <div className="flex items-center gap-1 flex-1">
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
