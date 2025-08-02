@@ -2206,7 +2206,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </div>
               
             </div>
-            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+            
+            {/* Horizontal line to match Project Messages alignment */}
+            <div className={`border-t mb-3 mt-3 ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+            
+            <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
               {getPaginatedAlerts().length === 0 ? (
                 <div className="text-gray-400 text-center py-3 text-sm">
                   {alertsLoading ? 'Loading alerts...' : 'No alerts found.'}
