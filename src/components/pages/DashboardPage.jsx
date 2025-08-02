@@ -671,6 +671,16 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     setAllMessagesExpanded(false);
   };
 
+  // Alert expansion control handlers
+  const handleExpandAllAlerts = () => {
+    const allAlertIds = new Set(getPaginatedAlerts().map(alert => alert._id || alert.id));
+    setExpandedAlerts(allAlertIds);
+  };
+
+  const handleCollapseAllAlerts = () => {
+    setExpandedAlerts(new Set());
+  };
+
   const handleToggleMessage = (messageId) => {
     const newExpanded = new Set(expandedMessages);
     if (newExpanded.has(messageId)) {
@@ -2269,6 +2279,58 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
+                  {expandedAlerts.size > 0 && (
+                    <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {expandedAlerts.size} of {getPaginatedAlerts().length} alert{getPaginatedAlerts().length !== 1 ? 's' : ''} expanded
+                    </p>
+                  )}
+                </div>
+                
+                {/* Expand/Collapse All Controls */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExpandAllAlerts}
+                    className={`px-2 py-1 text-[9px] font-medium rounded border transition-all duration-200 hover:scale-105 ${
+                      expandedAlerts.size === getPaginatedAlerts().length && getPaginatedAlerts().length > 0
+                        ? colorMode 
+                          ? 'bg-blue-600 text-white border-blue-600' 
+                          : 'bg-blue-500 text-white border-blue-500'
+                        : colorMode 
+                          ? 'bg-[#1e293b] text-blue-300 border-blue-400 hover:bg-blue-600 hover:text-white' 
+                          : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+                    }`}
+                    title="Expand all alert details"
+                    disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === getPaginatedAlerts().length}
+                  >
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                      Expand All
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={handleCollapseAllAlerts}
+                    className={`px-2 py-1 text-[9px] font-medium rounded border transition-all duration-200 hover:scale-105 ${
+                      expandedAlerts.size === 0 || getPaginatedAlerts().length === 0
+                        ? colorMode 
+                          ? 'bg-gray-600 text-gray-300 border-gray-600' 
+                          : 'bg-gray-300 text-gray-500 border-gray-300'
+                        : colorMode 
+                          ? 'bg-[#1e293b] text-gray-300 border-gray-400 hover:bg-gray-600 hover:text-white' 
+                          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}
+                    title="Collapse all alert details"
+                    disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === 0}
+                  >
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                      </svg>
+                      Collapse All
+                    </div>
+                  </button>
                 </div>
               </div>
               
