@@ -89,65 +89,45 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
         setShowQuickReply(false);
     };
 
-    // Get project phase - use SAME logic as Projects by Phase section for consistency
-    const getProjectPhase = (project) => {
-        // First try to get phase from workflow data (most accurate)
-        if (project && project.workflow && project.workflow.steps && project.workflow.steps.length > 0) {
-            // Find the first incomplete step to determine current phase
-            const sortedSteps = project.workflow.steps.sort((a, b) => a.stepId.localeCompare(b.stepId));
-            let currentStep = sortedSteps.find(step => !step.isCompleted);
-            
-            // If all steps are completed, use the last step
-            if (!currentStep) {
-                currentStep = sortedSteps[sortedSteps.length - 1];
-            }
-            
-            if (currentStep && currentStep.phase) {
-                return currentStep.phase.toUpperCase();
-            }
-        }
-        
-        // Then try activity metadata phase
-        if (activity?.metadata?.phase) {
-            return activity.metadata.phase.toUpperCase();
-        }
-        
-        // Then try project.phase directly (same as Projects by Phase section)
-        const phase = project?.phase || project?.status || 'LEAD';
-        
-        // Simple normalization to match PROJECT_PHASES - same logic as Projects by Phase
-        const normalizedPhase = phase.toUpperCase()
-            .replace('SUPPLEMENT', 'SUPPLEMENT')
-            .replace('2ND SUPP', 'SUPPLEMENT') 
-            .replace('SECOND_SUPP', 'SUPPLEMENT')
-            .replace('EXECUTE', 'EXECUTION')
-            .replace('IN_PROGRESS', 'EXECUTION')
-            .replace('INPROGRESS', 'EXECUTION')
-            .replace('IN PROGRESS', 'EXECUTION')
-            .replace('ACTIVE', 'EXECUTION')
-            .replace('PENDING', 'LEAD')
-            .replace('NEW', 'LEAD')
-            .replace('COMPLETED', 'COMPLETION')
-            .replace('COMPLETE', 'COMPLETION')
-            .replace('FINISHED', 'COMPLETION')
-            .replace('DONE', 'COMPLETION');
-        
-        // Validate against known phases
-        const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SUPPLEMENT', 'COMPLETION'];
-        return validPhases.includes(normalizedPhase) ? normalizedPhase : 'LEAD';
-    };
+    // Get project phase for circle color - use WorkflowProgressService if project has workflow data
+    let projectPhase;
     
-    const projectPhase = getProjectPhase(project);
-    
-    // Debug logging to help understand phase issues
-    console.log(`🔍 PROJECT PHASE DEBUG - Project ${project?.projectNumber || 'Unknown'}:`, {
-        calculatedPhase: projectPhase,
-        projectPhaseField: project?.phase,
-        projectStatus: project?.status,
-        hasWorkflow: !!(project?.workflow),
-        workflowSteps: project?.workflow?.steps?.length || 0,
-        activityPhase: activity?.metadata?.phase
-    });
+    if (project && project.workflow) {
+        // Use the service to get the current phase from workflow data
+        projectPhase = WorkflowProgressService.getCurrentPhase(project);
+    } else if (activity?.metadata?.phase) {
+        // If activity has phase metadata (like alerts), use that
+        projectPhase = activity.metadata.phase;
+    } else {
+        // Fallback to status mapping or default
+        const rawPhase = project?.status || project?.phase || activity?.phase || 'LEAD';
+        
+        // Map common status values to proper phases
+        const phaseNormalizationMap = {
+            'IN_PROGRESS': 'EXECUTION',
+            'INPROGRESS': 'EXECUTION',
+            'IN PROGRESS': 'EXECUTION',
+            'ACTIVE': 'EXECUTION',
+            'PENDING': 'LEAD',
+            'NEW': 'LEAD',
+            'COMPLETED': 'COMPLETION',
+            'COMPLETE': 'COMPLETION',
+            'FINISHED': 'COMPLETION',
+            'DONE': 'COMPLETION',
+            '2ND SUPP': '2ND_SUPP',
+            '2ND-SUPP': '2ND_SUPP',
+            'SECOND SUPP': '2ND_SUPP'
+        };
+        
+        const upperPhase = String(rawPhase).toUpperCase();
+        
+        if (phaseNormalizationMap[upperPhase]) {
+            projectPhase = phaseNormalizationMap[upperPhase];
+        } else {
+            const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', '2ND_SUPP', 'COMPLETION'];
+            projectPhase = validPhases.includes(upperPhase) ? upperPhase : 'LEAD';
+        }
+    }
     
     // Use WorkflowProgressService for consistent phase colors
     const getPhaseColors = (phase) => {
