@@ -1412,10 +1412,35 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
         {/* All Projects Table */}
         <div className="mb-4 overflow-x-auto">
-          
+          {(() => {
+            // Get project phase - use project.phase directly without complex transformations
+            const getProjectPhase = (project) => {
+              const phase = project.phase || 'LEAD';
+              
+              // Simple normalization to match PROJECT_PHASES ids - same logic as Current Alerts
+              const normalizedPhase = phase.toUpperCase()
+                .replace('SUPPLEMENT', 'SUPPLEMENT')
+                .replace('2ND SUPP', 'SUPPLEMENT') 
+                .replace('SECOND_SUPP', 'SUPPLEMENT')
+                .replace('EXECUTE', 'EXECUTION');
+              
+              // Map to PROJECT_PHASES id format
+              switch (normalizedPhase) {
+                case 'LEAD': return 'lead';
+                case 'PROSPECT': return 'prospect';
+                case 'APPROVED': return 'approved';
+                case 'EXECUTION': return 'execution';
+                case 'SUPPLEMENT': return 'supplement';
+                case 'COMPLETION': return 'completion';
+                default: return 'lead';
+              }
+            };
+
+            return (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-full">
               {(() => {
+
                 // Filter projects based on selected phase
                 const filteredProjects = !selectedPhase ? [] : selectedPhase === 'all' 
                   ? projects 
@@ -1478,28 +1503,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     );
                   }
                   
-                  // Get project phase - use project.phase directly without complex transformations
-                  const getProjectPhase = (project) => {
-                    const phase = project.phase || 'LEAD';
-                    
-                    // Simple normalization to match PROJECT_PHASES ids - same logic as Current Alerts
-                    const normalizedPhase = phase.toUpperCase()
-                      .replace('SUPPLEMENT', 'SUPPLEMENT')
-                      .replace('2ND SUPP', 'SUPPLEMENT') 
-                      .replace('SECOND_SUPP', 'SUPPLEMENT')
-                      .replace('EXECUTE', 'EXECUTION');
-                    
-                    // Map to PROJECT_PHASES id format
-                    switch (normalizedPhase) {
-                      case 'LEAD': return 'lead';
-                      case 'PROSPECT': return 'prospect';
-                      case 'APPROVED': return 'approved';
-                      case 'EXECUTION': return 'execution';
-                      case 'SUPPLEMENT': return 'supplement';
-                      case 'COMPLETION': return 'completion';
-                      default: return 'lead';
-                    }
-                  };
                   
                   // Filter projects based on selected phase - only show projects when a phase is selected
                   const filteredProjects = !selectedPhase ? [] : selectedPhase === 'all' 
@@ -1847,6 +1850,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </tbody>
             </table>
           </div>
+            );
+          })()}
         </div>
       </div>
       )}
