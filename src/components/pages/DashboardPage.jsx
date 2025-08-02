@@ -139,6 +139,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   console.log('🔍 DASHBOARD: Projects data:', projectsData);
   console.log('🔍 DASHBOARD: Projects array length:', projects.length);
   
+  // URGENT DEBUG: If error, show what's happening
+  if (projectsError) {
+    console.error('🚨 PROJECTS ERROR DETAILS:', {
+      error: projectsError,
+      projectsData: projectsData,
+      loading: projectsLoading
+    });
+  }
+  
   // Posting state
   const [message, setMessage] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -1486,12 +1495,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     );
                   }
                   
-                  // Show error state
-                  if (projectsError) {
+                  // Show error state but still try to show any projects we have
+                  if (projectsError && (!projects || projects.length === 0)) {
                     return (
                       <tr>
                         <td colSpan="8" className="text-center py-8">
-                          <div className="text-red-600">Error loading projects: {projectsError.message}</div>
+                          <div className="text-red-600">Error loading projects: {projectsError}</div>
+                          <button 
+                            onClick={() => refetchProjects()} 
+                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Retry
+                          </button>
                         </td>
                       </tr>
                     );
