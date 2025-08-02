@@ -141,7 +141,9 @@ router.get('/', async (req, res) => {
         projectName: alert.project.projectName,
         projectNumber: alert.project.projectNumber,
         customerName: alert.project.customer?.primaryName,
-        phase: alert.step?.phase || 'UNKNOWN'
+        phase: alert.step?.phase || 'UNKNOWN',
+        workflowId: alert.workflowId,
+        stepId: alert.stepId
       }
     }));
     

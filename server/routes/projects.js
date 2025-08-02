@@ -262,7 +262,11 @@ router.get('/', asyncHandler(async (req, res) => {
         skip,
         take: limitNum,
         include: {
-          customer: true,
+          customer: {
+            include: {
+              contacts: true // Include the new contacts relation
+            }
+          },
           projectManager: {
             select: {
               id: true,
@@ -321,7 +325,11 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
     const project = await prisma.project.findUnique({
       where: { id: req.params.id },
       include: {
-        customer: true,
+        customer: {
+          include: {
+            contacts: true
+          }
+        },
         projectManager: {
           select: {
             id: true,
@@ -455,7 +463,11 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     const project = await prisma.project.create({
       data: projectData,
       include: {
-        customer: true,
+        customer: {
+          include: {
+            contacts: true
+          }
+        },
         projectManager: {
           select: {
             id: true,
@@ -539,7 +551,11 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
       where: { id: req.params.id },
       data: updateData,
       include: {
-        customer: true,
+        customer: {
+          include: {
+            contacts: true
+          }
+        },
         projectManager: {
           select: {
             id: true,
@@ -622,7 +638,11 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
         archivedAt: archived ? new Date() : null
       },
       include: {
-        customer: true,
+        customer: {
+          include: {
+            contacts: true
+          }
+        },
         projectManager: {
           select: {
             id: true,

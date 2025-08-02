@@ -166,19 +166,20 @@ router.get('/', asyncHandler(async (req, res) => {
           contacts: true, // Always include contacts
           ...(withProjects === 'true' ? {
             projects: {
-            select: {
-              id: true,
-              projectNumber: true,
-              projectName: true,
-              status: true,
-              startDate: true,
-              endDate: true,
-              budget: true,
-              progress: true,
-              projectType: true
-            }
+              select: {
+                id: true,
+                projectNumber: true,
+                projectName: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+                budget: true,
+                progress: true,
+                projectType: true
+              }
             }
           } : {})
+        }
       }),
       prisma.customer.count({ where })
     ]);
