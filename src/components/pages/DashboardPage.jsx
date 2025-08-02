@@ -1417,6 +1417,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             const getProjectPhase = (project) => {
               const phase = project.phase || 'LEAD';
               
+              // Debug logging to understand phase distribution
+              console.log(`🔍 PROJECTS BY PHASE DEBUG - Project ${project.projectNumber}:`, {
+                originalPhase: project.phase,
+                projectStatus: project.status,
+                projectId: project.id
+              });
+              
               // Simple normalization to match PROJECT_PHASES ids - same logic as Current Alerts
               const normalizedPhase = phase.toUpperCase()
                 .replace('SUPPLEMENT', 'SUPPLEMENT')
