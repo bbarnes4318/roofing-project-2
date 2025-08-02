@@ -114,7 +114,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 
                 <div className="flex-1 min-w-0">
                     {/* Row 1: Project# | Customer Subject */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between overflow-hidden">
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
                             <button
@@ -164,7 +164,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </button>
                                 
                                 {/* Subject - RIGHT next to customer */}
-                                <span className={`text-[9px] font-medium truncate ml-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <span className={`text-[9px] font-medium truncate overflow-hidden whitespace-nowrap ml-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                     {subject}
                                 </span>
                             </div>
@@ -212,18 +212,18 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                     
                     {/* Row 2: User name (aligned under project number) and message preview */}
-                    <div className="flex items-center gap-1.5 mt-0">
+                    <div className="flex items-center gap-1.5 mt-0 overflow-hidden">
                         {/* User name aligned under project number - same width as project number */}
                         <span 
-                            className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-[9px] font-medium truncate overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                             style={{ width: '50px' }}
                         >
                             {lastMessage.user}:
                         </span>
-                        <span className={`text-[9px] truncate flex-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <span className={`text-[9px] truncate flex-1 overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
                             {lastMessage.comment}
                         </span>
-                        <span className={`text-[8px] ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                        <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
                             {formatTimestamp(lastMessage.timestamp)}
                         </span>
                     </div>
