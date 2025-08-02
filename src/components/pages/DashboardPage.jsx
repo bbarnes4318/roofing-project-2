@@ -231,33 +231,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     }
   }, []);
 
-  // Handle clicking outside to close dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Check if click is outside any dropdown
-      const isInsideDropdown = event.target.closest('[data-dropdown="contact"]') || 
-                              event.target.closest('[data-dropdown="pm"]') ||
-                              event.target.closest('[data-dropdown="progress"]') ||
-                              event.target.closest('[data-dropdown="trades"]') ||
-                              event.target.closest('[data-dropdown="additional-trades"]');
-      
-      if (!isInsideDropdown) {
-        // Close all dropdowns
-        setExpandedContacts(new Set());
-        setExpandedPMs(new Set());
-        setExpandedProgress(new Set());
-        setExpandedTrades(new Set());
-        setExpandedAdditionalTrades(new Set());
-        setContactDropdownPos({});
-        setPmDropdownPos({});
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  // Removed automatic popup closing - popups now require manual close only
 
   // Fetch messages and convert to activity format, with fallback to activities prop
   useEffect(() => {
