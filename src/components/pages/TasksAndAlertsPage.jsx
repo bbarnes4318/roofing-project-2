@@ -317,12 +317,12 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 <div className="mb-3">
                     <div className="flex items-center justify-between mb-2">
                         <div>
-                            <h1 className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>My Alerts</h1>
+                            <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
                         </div>
                     </div>
                     
                     {/* Filter Controls - exactly like Current Alerts */}
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 mt-3">
                         <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                         <select 
                             value={alertProjectFilter} 

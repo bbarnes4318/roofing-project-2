@@ -9,6 +9,7 @@ import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useWorkflowAlerts } from '../../hooks/useApi';
 import { teamMembers } from '../../data/mockData';
+import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 
 // Helper functions for advanced progress bars (moved to top level)
 
@@ -98,6 +99,25 @@ const getPhaseStyles = (phase) => {
 
 const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect }) => {
     console.log('🔍 PROJECT DETAIL PAGE PROPS:');
+    
+    // Helper functions for Project Messages
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
+    const handleProjectSelectWithScroll = (selectedProject, view = 'Project Profile', phase = null, sourceSection = null) => {
+        scrollToTop();
+        if (onProjectSelect) {
+            onProjectSelect(selectedProject, view, phase, sourceSection);
+        }
+    };
+    
+    const handleQuickReply = (replyData) => {
+        console.log('Project quick reply data:', replyData);
+        if (onAddActivity) {
+            onAddActivity(project, replyData.message, replyData.subject);
+        }
+    };
     console.log('🔍 project:', project?.name);
     console.log('🔍 previousPage:', previousPage);
     console.log('🔍 projectSourceSection:', projectSourceSection);
@@ -390,10 +410,10 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 </div>
                                 
                                 {/* Filter Controls */}
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className={`text-[7px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
+                                <div className="flex items-center gap-2 mb-2 mt-3">
+                                    <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                                     <select 
-                                        className={`text-[7px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
                                             colorMode 
                                                 ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
                                                 : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
@@ -413,9 +433,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                         No messages found for this project.
                                     </div>
                                 ) : (
-                                    <div className="text-gray-400 text-center py-3 text-xs">
-                                        Project-specific messages will be displayed here using ProjectMessagesCard components.
-                                    </div>
+                                    projectActivities.map(activity => (
+                                        <ProjectMessagesCard 
+                                            key={activity.id} 
+                                            activity={activity} 
+                                            onProjectSelect={handleProjectSelectWithScroll}
+                                            projects={projects}
+                                            colorMode={colorMode}
+                                            onQuickReply={handleQuickReply}
+                                        />
+                                    ))
                                 )}
                             </div>
                         </div>
@@ -533,12 +560,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                             <div className="mb-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <div>
-                                        <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Alerts</h1>
+                                        <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
                                     </div>
                                 </div>
                                 
                                 {/* Filter Controls */}
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center gap-2 mb-2 mt-3">
                                     <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
                                     <select 
                                         value={selectedUserGroup}
