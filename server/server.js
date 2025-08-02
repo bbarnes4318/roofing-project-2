@@ -583,8 +583,8 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   const fs = require('fs');
   
-  // Build files are in /app/build, server runs from /app
-  const buildPath = '/app/build';
+  // Dockerfile copies React build to /app/public
+  const buildPath = '/app/public';
   
   console.log('🏗️ Server directory:', __dirname);
   console.log('🏗️ Build path:', buildPath);
