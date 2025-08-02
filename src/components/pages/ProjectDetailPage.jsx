@@ -340,12 +340,6 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         console.log('Assign alert:', alert);
     };
     
-    const handleQuickReply = (replyData) => {
-        console.log('Project quick reply data:', replyData);
-        if (onAddActivity) {
-            onAddActivity(project, replyData.message, replyData.subject);
-        }
-    };
     console.log('🔍 project:', project?.name);
     console.log('🔍 previousPage:', previousPage);
     console.log('🔍 projectSourceSection:', projectSourceSection);
@@ -1254,7 +1248,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 )}
                             </div>
                         </div>
-                    </div>;
+                    </div>
+                );
 
             case 'Project Timeline':
                 // Calculate actual dates based on project timeline

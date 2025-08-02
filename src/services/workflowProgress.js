@@ -269,8 +269,7 @@ class WorkflowProgressService {
             PROSPECT: { bg: 'bg-[#3B82F6]', text: 'text-white', hex: '#3B82F6' },
             APPROVED: { bg: 'bg-[#10B981]', text: 'text-white', hex: '#10B981' },
             EXECUTION: { bg: 'bg-[#F59E0B]', text: 'text-white', hex: '#F59E0B' },
-            SECOND_SUPP: { bg: 'bg-[#8B5CF6]', text: 'text-white', hex: '#8B5CF6' },
-            '2ND_SUPP': { bg: 'bg-[#8B5CF6]', text: 'text-white', hex: '#8B5CF6' },
+            SUPPLEMENT: { bg: 'bg-[#8B5CF6]', text: 'text-white', hex: '#8B5CF6' },
             COMPLETION: { bg: 'bg-[#14532D]', text: 'text-white', hex: '#14532D' }
         };
         return colors[phaseKey] || { bg: 'bg-[#E0E7FF]', text: 'text-gray-800', hex: '#E0E7FF' };
@@ -358,28 +357,47 @@ class WorkflowProgressService {
         if (!phase) return 'LEAD';
         
         const phaseStr = String(phase).trim();
-        
-        // Handle exact matches first (preserves mixed case from API)
-        const exactMatches = {
-            '2nd Supplement': '2nd Supplement',
-            'Approved': 'Approved', 
-            'Completion': 'Completion'
-        };
-        
-        if (exactMatches[phaseStr]) {
-            return exactMatches[phaseStr];
-        }
-        
-        // Handle case-insensitive normalization
         const upperPhase = phaseStr.toUpperCase();
+        
+        // Normalize all phase variations to the standard 6 phases
         const normalizations = {
+            // Lead variations
+            'LEAD': 'LEAD',
+            'LEADS': 'LEAD',
+            
+            // Prospect variations  
+            'PROSPECT': 'PROSPECT',
+            'PROSPECTS': 'PROSPECT',
+            
+            // Approved variations
+            'APPROVED': 'APPROVED',
+            'APPROVE': 'APPROVED',
+            
+            // Execution variations
+            'EXECUTION': 'EXECUTION',
+            'EXECUTE': 'EXECUTION',
+            'EXECUTING': 'EXECUTION',
+            'IN_PROGRESS': 'EXECUTION',
+            'INPROGRESS': 'EXECUTION',
+            'IN PROGRESS': 'EXECUTION',
+            'ACTIVE': 'EXECUTION',
+            
+            // Supplement variations
             'SUPPLEMENT': 'SUPPLEMENT',
             '2ND SUPP': 'SUPPLEMENT',
             '2ND-SUPP': 'SUPPLEMENT', 
             'SECOND SUPP': 'SUPPLEMENT',
             'SECOND_SUPP': 'SUPPLEMENT',
             '2ND_SUPP': 'SUPPLEMENT',
-            'EXECUTE': 'EXECUTION'
+            '2ND SUPPLEMENT': 'SUPPLEMENT',
+            'SECOND SUPPLEMENT': 'SUPPLEMENT',
+            
+            // Completion variations
+            'COMPLETION': 'COMPLETION',
+            'COMPLETE': 'COMPLETION',
+            'COMPLETED': 'COMPLETION',
+            'FINISHED': 'COMPLETION',
+            'DONE': 'COMPLETION'
         };
         
         if (normalizations[upperPhase]) {
@@ -387,7 +405,7 @@ class WorkflowProgressService {
         }
         
         // Return uppercase version for standard phases
-        const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'COMPLETION'];
+        const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SUPPLEMENT', 'COMPLETION'];
         if (validPhases.includes(upperPhase)) {
             return upperPhase;
         }
@@ -405,12 +423,9 @@ class WorkflowProgressService {
             { id: 'LEAD', name: 'Lead', initial: 'L', color: '#E0E7FF', gradientColor: 'from-indigo-200 to-indigo-300', bgColor: 'bg-indigo-50', textColor: 'text-indigo-800', borderColor: 'border-indigo-200' },
             { id: 'PROSPECT', name: 'Prospect', initial: 'P', color: '#3B82F6', gradientColor: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
             { id: 'APPROVED', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
-            { id: 'Approved', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
             { id: 'EXECUTION', name: 'Execution', initial: 'E', color: '#F59E0B', gradientColor: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
             { id: 'SUPPLEMENT', name: 'Supplement', initial: 'S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
-            { id: '2nd Supplement', name: '2nd Supplement', initial: '2S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
-            { id: 'COMPLETION', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' },
-            { id: 'Completion', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' }
+            { id: 'COMPLETION', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' }
         ];
     }
 

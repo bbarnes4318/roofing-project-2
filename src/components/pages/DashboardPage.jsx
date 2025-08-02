@@ -2184,11 +2184,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   
                   // Use WorkflowProgressService for consistent phase colors
                   const getPhaseCircleColors = (phase) => {
-                    // Normalize phase name to match WorkflowProgressService
-                    const normalizedPhase = (phase || 'LEAD').toUpperCase()
-                      .replace('SUPPLEMENT', 'SECOND_SUPP')
-                      .replace('2ND SUPP', 'SECOND_SUPP')
-                      .replace('EXECUTE', 'EXECUTION');
+                    // Use centralized phase normalization
+                    const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
                     return WorkflowProgressService.getPhaseColor(normalizedPhase);
                   };
                   return (
