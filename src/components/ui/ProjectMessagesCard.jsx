@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
+import DraggablePopup from './DraggablePopup';
 
 const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion }) => {
     // Use external expansion state if provided, otherwise use internal state
@@ -101,6 +102,9 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
 
     // State for contact info expansion
     const [showContactInfo, setShowContactInfo] = useState(false);
+    
+    // Ref for tracking primary contact button
+    const contactButtonRef = useRef(null);
 
     return (
         <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
@@ -148,6 +152,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             {/* Primary Customer and Subject together */}
                             <div className="flex items-center gap-1 flex-1 min-w-0">
                                 <button 
+                                    ref={contactButtonRef}
                                     className={`text-[9px] font-semibold transition-colors hover:underline truncate ${
                                         colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                     }`}
@@ -238,34 +243,43 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
             </div>
             
-            {/* Contact Info Dropdown - Match Current Alerts styling exactly */}
-            {showContactInfo && (
-                <div className="flex items-start gap-2">
-                    <div className="w-8 flex-shrink-0"></div>
-                    <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                            {primaryCustomer}
-                        </div>
-                        <div className="space-y-0.5">
-                            <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                📍 {project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345'}
-                            </div>
+            {/* Draggable Contact Info Popup */}
+            <DraggablePopup
+                isOpen={showContactInfo}
+                onClose={() => setShowContactInfo(false)}
+                colorMode={colorMode}
+                triggerRef={contactButtonRef}
+            >
+                <div className="space-y-3">
+                    <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                        {primaryCustomer}
+                    </div>
+                    <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} flex items-start gap-2`}>
+                        <span>📍</span>
+                        <span>{project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345'}</span>
+                    </div>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm">📞</span>
                             <a 
-                                href={`tel:${(project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                                className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                href={`tel:${(project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
+                                className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
                             >
-                                📞 {project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
+                                {project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
                             </a>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm">✉️</span>
                             <a 
-                                href={`mailto:${project?.client?.email || project?.clientEmail || 'customer@email.com'}`} 
-                                className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                href={`mailto:${project?.client?.email || project?.clientEmail || 'customer@email.com'}`}
+                                className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
                             >
-                                ✉️ {project?.client?.email || project?.clientEmail || 'customer@email.com'}
+                                {project?.client?.email || project?.clientEmail || 'customer@email.com'}
                             </a>
                         </div>
                     </div>
                 </div>
-            )}
+            </DraggablePopup>
             
             {/* Quick Reply Section */}
             {showQuickReply && (

@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronDownIcon, ChevronLeftIcon } from '../common/Icons';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
+import DraggablePopup from '../ui/DraggablePopup';
 
 import ProjectCubes from '../dashboard/ProjectCubes';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
@@ -203,6 +204,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [expandedPMs, setExpandedPMs] = useState(new Set());
   const [contactDropdownPos, setContactDropdownPos] = useState({});
   const [pmDropdownPos, setPmDropdownPos] = useState({});
+  
+  // Refs for tracking popup trigger buttons
+  const contactButtonRefs = useRef({});
+  const pmButtonRefs = useRef({});
+  const progressButtonRefs = useRef({});
+  
+  // Refs for alert popups
+  const alertContactButtonRefs = useRef({});
+  const alertPmButtonRefs = useRef({});
   const [isDarkMode, setIsDarkMode] = useState(colorMode);
   const [alertExpanded, setAlertExpanded] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -739,19 +749,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const newExpanded = new Set(expandedContacts);
     if (newExpanded.has(contactId)) {
       newExpanded.delete(contactId);
-      setContactDropdownPos(prev => ({ ...prev, [contactId]: null }));
     } else {
       newExpanded.add(contactId);
-      if (buttonElement) {
-        const rect = buttonElement.getBoundingClientRect();
-        setContactDropdownPos(prev => ({ 
-          ...prev, 
-          [contactId]: { 
-            top: rect.bottom + window.scrollY + 5, 
-            left: rect.left + window.scrollX 
-          } 
-        }));
-      }
     }
     setExpandedContacts(newExpanded);
   };
@@ -760,19 +759,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const newExpanded = new Set(expandedPMs);
     if (newExpanded.has(pmId)) {
       newExpanded.delete(pmId);
-      setPmDropdownPos(prev => ({ ...prev, [pmId]: null }));
     } else {
       newExpanded.add(pmId);
-      if (buttonElement) {
-        const rect = buttonElement.getBoundingClientRect();
-        setPmDropdownPos(prev => ({ 
-          ...prev, 
-          [pmId]: { 
-            top: rect.bottom + window.scrollY + 5, 
-            left: rect.left + window.scrollX 
-          } 
-        }));
-      }
     }
     setExpandedPMs(newExpanded);
   };
@@ -1677,6 +1665,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <td className="py-2 px-2 whitespace-nowrap max-w-32 overflow-hidden">
                           <div className="relative" data-dropdown="contact">
                             <button 
+                              ref={(el) => contactButtonRefs.current[project.id] = el}
                               onClick={(e) => toggleContact(project.id, e.currentTarget)}
                               className={`flex items-center gap-1 hover:bg-gray-100 rounded px-1 py-0.5 transition-colors ${
                                 expandedContacts.has(project.id) ? 'bg-gray-100' : ''
@@ -1700,6 +1689,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <td className="py-2 px-2 max-w-24 overflow-hidden relative">
                           <div className="relative">
                             <button 
+                              ref={(el) => pmButtonRefs.current[project.id] = el}
                               onClick={(e) => togglePM(project.id, e.currentTarget)}
                               className={`flex items-center gap-1 hover:bg-gray-100 rounded px-1 py-0.5 transition-colors ${
                                 expandedPMs.has(project.id) ? 'bg-gray-100' : ''
@@ -1725,6 +1715,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <td className="py-2 px-2 whitespace-nowrap">
                           <div className="relative">
                             <button 
+                              ref={(el) => progressButtonRefs.current[project.id] = el}
                               onClick={() => toggleProgress(project.id)}
                               className="flex items-center gap-1 hover:bg-gray-100 rounded px-2 py-1.5 transition-colors w-full min-w-[100px]"
                             >
@@ -1747,166 +1738,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </svg>
                             </button>
                             
-                            {/* Progress Details - Only show when clicked */}
-                            {expandedProgress.has(project.id) && (
-                              <>
-                                <div className="fixed bg-white border-2 border-blue-500 rounded-[20px] shadow-xl z-50 min-w-[250px] max-w-[300px]" data-dropdown="progress" style={{
-                                  top: '50%',
-                                  left: '50%',
-                                  transform: 'translate(-50%, -50%)'
-                                }}>
-                                <div className="p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="text-sm font-semibold text-gray-800">Project Progress Details</div>
-                                    <button 
-                                      onClick={() => toggleProgress(project.id)}
-                                      className="text-gray-500 hover:text-gray-700 text-lg font-bold"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                  
-                                  {/* Overall Progress */}
-                                  <div className="mb-3">
-                                    <div className="flex justify-between items-center mb-1">
-                                      <span className="text-[9px] text-gray-600">Overall Project Progress</span>
-                                      <span className="text-[9px] font-semibold text-gray-800">{getProjectProgress(project)}%</span>
-                                    </div>
-                                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                      <div 
-                                        className="h-full bg-blue-500 rounded-full"
-                                        style={{ width: `${getProjectProgress(project)}%` }}
-                                      ></div>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Materials & Labor Section - First dropdown level */}
-                                  <div data-dropdown="trades">
-                                    <button
-                                      onClick={() => toggleTrades(project.id)}
-                                      className="flex items-center gap-1 text-[10px] font-semibold text-gray-800 mb-1 hover:text-gray-600"
-                                    >
-                                      <span>Materials & Labor</span>
-                                      <svg 
-                                        className={`w-2 h-2 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                      </svg>
-                                    </button>
-                                    
-                                    {/* Materials & Labor - First level dropdown */}
-                                    {expandedTrades.has(project.id) && (
-                                      <div className="space-y-1 mt-2" data-dropdown="trades">
-                                        <div>
-                                          <div className="flex justify-between items-center mb-1">
-                                            <span className="text-[8px] text-gray-600">Materials</span>
-                                            <span className="text-[8px] font-semibold text-gray-800">{project.materialsProgress || 85}%</span>
-                                          </div>
-                                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                            <div 
-                                              className="h-full bg-green-500 rounded-full"
-                                              style={{ width: `${project.materialsProgress || 85}%` }}
-                                            ></div>
-                                          </div>
-                                        </div>
-                                        
-                                        <div>
-                                          <div className="flex justify-between items-center mb-1">
-                                            <span className="text-[8px] text-gray-600">Labor</span>
-                                            <span className="text-[8px] font-semibold text-gray-800">{project.laborProgress || 75}%</span>
-                                          </div>
-                                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                            <div 
-                                              className="h-full bg-orange-500 rounded-full"
-                                              style={{ width: `${project.laborProgress || 75}%` }}
-                                            ></div>
-                                          </div>
-                                        </div>
-                                        
-                                        {/* Additional Trades Section - Second dropdown level */}
-                                        <div className="mt-2" data-dropdown="additional-trades">
-                                          <button
-                                            onClick={() => toggleAdditionalTrades(project.id)}
-                                            className="flex items-center gap-1 text-[10px] font-semibold text-gray-700 mb-1 hover:text-gray-500"
-                                          >
-                                            <span>Additional Trades</span>
-                                            <svg 
-                                              className={`w-4 h-4 transition-transform ${expandedAdditionalTrades.has(project.id) ? 'rotate-180' : ''}`} 
-                                              fill="none" 
-                                              stroke="currentColor" 
-                                              viewBox="0 0 24 24"
-                                            >
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                          </button>
-                                          
-                                          {/* Additional Trades - Second level dropdown */}
-                                          {expandedAdditionalTrades.has(project.id) && (
-                                            <div className="space-y-1 mt-1 ml-2" data-dropdown="additional-trades">
-                                              <div>
-                                                <div className="flex justify-between items-center mb-1">
-                                                  <span className="text-[7px] text-gray-600">Roofing</span>
-                                                  <span className="text-[7px] font-semibold text-gray-800">{project.roofingProgress || 90}%</span>
-                                                </div>
-                                                <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                                  <div 
-                                                    className="h-full bg-purple-500 rounded-full"
-                                                    style={{ width: `${project.roofingProgress || 90}%` }}
-                                                  ></div>
-                                                </div>
-                                              </div>
-                                              
-                                              <div>
-                                                <div className="flex justify-between items-center mb-1">
-                                                  <span className="text-[7px] text-gray-600">Siding</span>
-                                                  <span className="text-[7px] font-semibold text-gray-800">{project.sidingProgress || 60}%</span>
-                                                </div>
-                                                <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                                  <div 
-                                                    className="h-full bg-blue-500 rounded-full"
-                                                    style={{ width: `${project.sidingProgress || 60}%` }}
-                                                  ></div>
-                                                </div>
-                                              </div>
-                                              
-                                              <div>
-                                                <div className="flex justify-between items-center mb-1">
-                                                  <span className="text-[7px] text-gray-600">Windows</span>
-                                                  <span className="text-[7px] font-semibold text-gray-800">{project.windowsProgress || 40}%</span>
-                                                </div>
-                                                <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                                  <div 
-                                                    className="h-full bg-yellow-500 rounded-full"
-                                                    style={{ width: `${project.windowsProgress || 40}%` }}
-                                                  ></div>
-                                                </div>
-                                              </div>
-                                              
-                                              <div>
-                                                <div className="flex justify-between items-center mb-1">
-                                                  <span className="text-[7px] text-gray-600">Gutters</span>
-                                                  <span className="text-[7px] font-semibold text-gray-800">{project.guttersProgress || 30}%</span>
-                                                </div>
-                                                <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                                                  <div 
-                                                    className="h-full bg-red-500 rounded-full"
-                                                    style={{ width: `${project.guttersProgress || 30}%` }}
-                                                  ></div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              </>
-                            )}
                           </div>
                         </td>
                         
@@ -2449,6 +2280,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               {/* Customer with dropdown arrow - Full width, no truncation */}
                               <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '8px'}}>
                                 <button 
+                                  ref={(el) => alertContactButtonRefs.current[alertId] = el}
                                   className={`text-[9px] font-semibold cursor-pointer hover:underline ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
@@ -2489,6 +2321,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '20px'}}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
+                                  ref={(el) => alertPmButtonRefs.current[alertId] = el}
                                   className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
@@ -2587,60 +2420,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </div>
                         </div>
                         
-                        {/* Customer Contact Info Dropdown */}
-                        {expandedContacts.has(alertId) && (
-                          <div className="flex items-start gap-2">
-                            <div className="w-8 flex-shrink-0"></div>
-                            <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                              <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                {project?.customer?.name || project?.clientName || actionData.projectName || 'Primary Customer'}
-                              </div>
-                              <div className="space-y-0.5">
-                                <div className={`${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                  📍 {project?.customer?.address || project?.clientAddress || '123 Main Street, City, State 12345'}
-                                </div>
-                                <a 
-                                  href={`tel:${(project?.customer?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                                  className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
-                                >
-                                  📞 {project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
-                                </a>
-                                <a 
-                                  href={`mailto:${project?.customer?.email || project?.clientEmail || 'customer@email.com'}`} 
-                                  className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
-                                >
-                                  ✉️ {project?.customer?.email || project?.clientEmail || 'customer@email.com'}
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                         
-                        {/* PM Contact Info Dropdown */}
-                        {expandedPMs.has(alertId) && (
-                          <div className="flex items-start gap-2">
-                            <div className="w-8 flex-shrink-0"></div>
-                            <div className={`flex-1 p-2 rounded border text-[9px] ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                              <div className={`font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                {project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Mike Field'}
-                              </div>
-                              <div className="space-y-0.5">
-                                <a 
-                                  href={`tel:${(project?.projectManager?.phone || '(555) 234-5678').replace(/[^\d+]/g, '')}`} 
-                                  className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
-                                >
-                                  📞 {project?.projectManager?.phone || '(555) 234-5678'}
-                                </a>
-                                <a 
-                                  href={`mailto:${project?.projectManager?.email || 'mike.field@company.com'}`} 
-                                  className={`block font-medium transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
-                                >
-                                  ✉️ {project?.projectManager?.email || 'mike.field@company.com'}
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       
                       {/* Expandable dropdown section */}
                       {isExpanded && (
@@ -2760,95 +2540,330 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         </div>
       )}
       
-      {/* Fixed positioned dropdowns rendered outside table structure */}
+      {/* Draggable Contact Popups */}
       {Array.from(expandedContacts).map(projectId => {
         const project = projects?.find(p => p.id === projectId);
-        const position = contactDropdownPos[projectId];
-        if (!project || !position) return null;
+        if (!project) return null;
         
         return (
-          <div 
+          <DraggablePopup
             key={`contact-${projectId}`}
-            className="fixed bg-white border border-gray-200 rounded-[15px] shadow-xl z-[999] min-w-[200px]"
-            style={{
-              top: `${position.top}px`,
-              left: `${position.left}px`
-            }}
+            isOpen={true}
+            onClose={() => toggleContact(projectId)}
+            colorMode={colorMode}
+            triggerRef={contactButtonRefs.current[projectId] ? { current: contactButtonRefs.current[projectId] } : null}
           >
-            <div className="p-2">
-              <div className="text-sm font-semibold text-gray-700 mb-1">
-                {project.client?.name || project.clientName || ''}
+            <div className="space-y-3">
+              <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                {project.client?.name || project.clientName || 'Primary Contact'}
               </div>
-              <div className="text-sm text-gray-600 mb-2">
-                📍 {project.client?.address || project.clientAddress || project.address || '123 Main Street, City, State 12345'}
+              <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} flex items-start gap-2`}>
+                <span>📍</span>
+                <span>{project.client?.address || project.clientAddress || project.address || '123 Main Street, City, State 12345'}</span>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-gray-600">📞</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">📞</span>
                   <a 
                     href={`tel:${project.client?.phone || ''}`}
-                    className="text-sm text-blue-600 hover:underline"
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
                   >
                     {project.client?.phone || 'No phone'}
                   </a>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-gray-600">✉️</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">✉️</span>
                   <a 
                     href={`mailto:${project.client?.email || ''}`}
-                    className="text-sm text-blue-600 hover:underline truncate"
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
                   >
                     {project.client?.email || 'No email'}
                   </a>
                 </div>
               </div>
             </div>
-          </div>
+          </DraggablePopup>
         );
       })}
       
+      {/* Draggable PM Popups */}
       {Array.from(expandedPMs).map(projectId => {
         const project = projects?.find(p => p.id === projectId);
-        const position = pmDropdownPos[projectId];
-        if (!project || !position) return null;
+        if (!project) return null;
         
         return (
-          <div 
+          <DraggablePopup
             key={`pm-${projectId}`}
-            className="fixed bg-white border border-gray-200 rounded-[15px] shadow-xl z-[999] min-w-[200px]"
-            style={{
-              top: `${position.top}px`,
-              left: `${position.left}px`
-            }}
+            isOpen={true}
+            onClose={() => togglePM(projectId)}
+            colorMode={colorMode}
+            triggerRef={pmButtonRefs.current[projectId] ? { current: pmButtonRefs.current[projectId] } : null}
           >
-            <div className="p-2">
-              <div className="text-sm text-gray-700 mb-1">
+            <div className="space-y-3">
+              <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                 {typeof project.projectManager === 'object' && project.projectManager !== null
                   ? (project.projectManager.name || `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() || 'No PM')
-                  : project.projectManager || 'No PM'}
+                  : project.projectManager || 'Project Manager'}
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-gray-600">📞</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">📞</span>
                   <a 
                     href={`tel:${project.pmPhone || project.projectManager?.phone || ''}`}
-                    className="text-sm text-blue-600 hover:underline"
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
                   >
                     {project.pmPhone || project.projectManager?.phone || 'No phone'}
                   </a>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-gray-600">✉️</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">✉️</span>
                   <a 
                     href={`mailto:${project.pmEmail || project.projectManager?.email || ''}`}
-                    className="text-sm text-blue-600 hover:underline truncate"
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
                   >
                     {project.pmEmail || project.projectManager?.email || 'No email'}
                   </a>
                 </div>
               </div>
             </div>
-          </div>
+          </DraggablePopup>
+        );
+      })}
+
+      {/* Draggable Progress Popups */}
+      {Array.from(expandedProgress).map(projectId => {
+        const project = projects?.find(p => p.id === projectId);
+        if (!project) return null;
+        
+        return (
+          <DraggablePopup
+            key={`progress-${projectId}`}
+            isOpen={true}
+            onClose={() => toggleProgress(projectId)}
+            colorMode={colorMode}
+            triggerRef={progressButtonRefs.current[projectId] ? { current: progressButtonRefs.current[projectId] } : null}
+            className="min-w-[300px]"
+          >
+            <div className="space-y-4">
+              <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                Project Progress Details
+              </div>
+              
+              {/* Overall Progress */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Overall Project Progress</span>
+                  <span className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getProjectProgress(project)}%</span>
+                </div>
+                <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
+                  <div 
+                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                    style={{ width: `${getProjectProgress(project)}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              {/* Materials & Labor Section */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => toggleTrades(project.id)}
+                  className={`flex items-center gap-2 text-xs font-semibold hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}
+                >
+                  <span>Materials & Labor</span>
+                  <svg 
+                    className={`w-3 h-3 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* Materials & Labor Details */}
+                {expandedTrades.has(project.id) && (
+                  <div className="space-y-3 ml-4">
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Materials</span>
+                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.materialsProgress || 85}%</span>
+                      </div>
+                      <div className={`w-full h-1.5 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
+                        <div 
+                          className="h-full bg-green-500 rounded-full transition-all duration-300"
+                          style={{ width: `${project.materialsProgress || 85}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Labor</span>
+                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.laborProgress || 75}%</span>
+                      </div>
+                      <div className={`w-full h-1.5 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
+                        <div 
+                          className="h-full bg-orange-500 rounded-full transition-all duration-300"
+                          style={{ width: `${project.laborProgress || 75}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    {/* Additional Trades Section */}
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => toggleAdditionalTrades(project.id)}
+                        className={`flex items-center gap-2 text-xs font-semibold hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}
+                      >
+                        <span>Additional Trades</span>
+                        <svg 
+                          className={`w-3 h-3 transition-transform ${expandedAdditionalTrades.has(project.id) ? 'rotate-180' : ''}`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Additional Trades Details */}
+                      {expandedAdditionalTrades.has(project.id) && (
+                        <div className="space-y-2 ml-4">
+                          {[
+                            { name: 'Roofing', progress: project.roofingProgress || 90, color: 'bg-purple-500' },
+                            { name: 'Siding', progress: project.sidingProgress || 60, color: 'bg-blue-500' },
+                            { name: 'Windows', progress: project.windowsProgress || 40, color: 'bg-yellow-500' },
+                            { name: 'Gutters', progress: project.guttersProgress || 30, color: 'bg-red-500' }
+                          ].map((trade) => (
+                            <div key={trade.name} className="space-y-1">
+                              <div className="flex justify-between items-center">
+                                <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>{trade.name}</span>
+                                <span className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{trade.progress}%</span>
+                              </div>
+                              <div className={`w-full h-1 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
+                                <div 
+                                  className={`h-full ${trade.color} rounded-full transition-all duration-300`}
+                                  style={{ width: `${trade.progress}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DraggablePopup>
+        );
+      })}
+      
+      {/* Draggable Alert Contact Popups */}
+      {Array.from(expandedContacts).map(alertId => {
+        // Skip project contacts - only handle alert contacts
+        const isProjectId = projects?.some(p => p.id === alertId);
+        if (isProjectId) return null;
+        
+        const alert = workflowAlerts?.find(a => (a._id || a.id) === alertId);
+        const project = projects?.find(p => p.id === alert?.projectId);
+        
+        if (!alert) return null;
+        
+        return (
+          <DraggablePopup
+            key={`alert-contact-${alertId}`}
+            isOpen={true}
+            onClose={() => {
+              const newExpanded = new Set(expandedContacts);
+              newExpanded.delete(alertId);
+              setExpandedContacts(newExpanded);
+            }}
+            colorMode={colorMode}
+            triggerRef={alertContactButtonRefs.current[alertId] ? { current: alertContactButtonRefs.current[alertId] } : null}
+          >
+            <div className="space-y-3">
+              <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                {project?.customer?.name || project?.clientName || 'Primary Customer'}
+              </div>
+              <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} flex items-start gap-2`}>
+                <span>📍</span>
+                <span>{project?.customer?.address || project?.clientAddress || '123 Main Street, City, State 12345'}</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">📞</span>
+                  <a 
+                    href={`tel:${(project?.customer?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                  >
+                    {project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">✉️</span>
+                  <a 
+                    href={`mailto:${project?.customer?.email || project?.clientEmail || 'customer@email.com'}`}
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                  >
+                    {project?.customer?.email || project?.clientEmail || 'customer@email.com'}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </DraggablePopup>
+        );
+      })}
+
+      {/* Draggable Alert PM Popups */}
+      {Array.from(expandedPMs).map(alertId => {
+        // Skip project PMs - only handle alert PMs
+        const isProjectId = projects?.some(p => p.id === alertId);
+        if (isProjectId) return null;
+        
+        const alert = workflowAlerts?.find(a => (a._id || a.id) === alertId);
+        const project = projects?.find(p => p.id === alert?.projectId);
+        
+        if (!alert) return null;
+        
+        return (
+          <DraggablePopup
+            key={`alert-pm-${alertId}`}
+            isOpen={true}
+            onClose={() => {
+              const newExpanded = new Set(expandedPMs);
+              newExpanded.delete(alertId);
+              setExpandedPMs(newExpanded);
+            }}
+            colorMode={colorMode}
+            triggerRef={alertPmButtonRefs.current[alertId] ? { current: alertPmButtonRefs.current[alertId] } : null}
+          >
+            <div className="space-y-3">
+              <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                {project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Project Manager'}
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">📞</span>
+                  <a 
+                    href={`tel:${(project?.projectManager?.phone || '(555) 234-5678').replace(/[^\d+]/g, '')}`}
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                  >
+                    {project?.projectManager?.phone || '(555) 234-5678'}
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">✉️</span>
+                  <a 
+                    href={`mailto:${project?.projectManager?.email || 'mike.field@company.com'}`}
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                  >
+                    {project?.projectManager?.email || 'mike.field@company.com'}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </DraggablePopup>
         );
       })}
       
