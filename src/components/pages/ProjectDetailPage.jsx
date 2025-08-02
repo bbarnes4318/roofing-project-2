@@ -1088,16 +1088,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 </div>
                                                 
                                                 {/* Second Row - Section and Line Item */}
-                                                <div className="grid items-center text-xs" style={{ gridTemplateColumns: '180px 1fr', marginLeft: 'calc(1.75rem + 1.5rem)', marginTop: '-4px' }}>
-                                                    {/* Section - align S with project number */}
-                                                    <div className="flex items-center gap-1">
-                                                        <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
+                                                <div className="flex items-center text-xs" style={{ marginTop: '-4px' }}>
+                                                    {/* Section - align S with project number (60px width) */}
+                                                    <div className="flex items-center gap-1" style={{ width: '180px' }}>
+                                                        <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '60px' }}>Section:</span>
                                                         <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                                                             {sectionName?.split('-')[0]?.trim() || sectionName}
                                                         </span>
                                                     </div>
                                                     
-                                                    {/* Line Item - align L with PM */}
+                                                    {/* Line Item - align L with PM (starts at 180px from left) */}
                                                     <div className="flex items-center gap-1 flex-1">
                                                         <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                                                         <span 
