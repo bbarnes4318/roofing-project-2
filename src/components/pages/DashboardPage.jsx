@@ -186,7 +186,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // UI state
   const [expandedPhases, setExpandedPhases] = useState(new Set());
-  const [selectedPhase, setSelectedPhase] = useState('all'); // Start with all projects showing
+  const [selectedPhase, setSelectedPhase] = useState(null); // Start with no projects showing until phase selected
   const [expandedAlerts, setExpandedAlerts] = useState(new Set());
   const [expandedProgress, setExpandedProgress] = useState(new Set());
   const [expandedTrades, setExpandedTrades] = useState(new Set());
