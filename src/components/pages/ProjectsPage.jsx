@@ -288,14 +288,27 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
             // First, find the primary contact
             const primaryContact = newProject.contacts.find(contact => contact.isPrimary && contact.name.trim()) ||
                                  newProject.contacts.find(contact => contact.name.trim());
+            
+            // Find a secondary contact (first non-primary contact with a name)
+            const secondaryContact = newProject.contacts.find(contact => 
+                !contact.isPrimary && contact.name.trim() && contact !== primaryContact
+            );
 
-            // Step 1: Create customer
+            // Step 1: Create customer with proper contact structure
             const customerData = {
                 primaryName: newProject.customerName,
-                primaryEmail: primaryContact?.email || 'noemail@example.com', // Fallback email
-                primaryPhone: primaryContact?.phone || '0000000000', // Fallback phone
-                address: newProject.customerName, // Using customer name as address for now
-                notes: `Created from Add Project form`
+                primaryEmail: primaryContact?.email || 'noemail@example.com',
+                primaryPhone: primaryContact?.phone || '0000000000',
+                // Add secondary contact if available
+                secondaryName: secondaryContact?.name || null,
+                secondaryEmail: secondaryContact?.email || null,
+                secondaryPhone: secondaryContact?.phone || null,
+                primaryContact: 'PRIMARY', // Always set primary as the main contact
+                address: `${newProject.customerName} Project`, // Better default address
+                notes: `Additional contacts: ${newProject.contacts
+                    .filter(c => c.name && c !== primaryContact && c !== secondaryContact)
+                    .map(c => `${c.name} (${c.phone || 'no phone'}, ${c.email || 'no email'})`)
+                    .join('; ')}`
             };
 
             // Check if customer already exists or create new one
@@ -343,7 +356,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 startDate: new Date().toISOString(), // Today as start date
                 endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
                 priority: 'MEDIUM',
-                description: `Project #${newProject.projectNumber} - Contacts: ${newProject.contacts.filter(c => c.name).map(c => c.name).join(', ')}`
+                description: `Project #${newProject.projectNumber}` // Clean description without contact info
             };
 
             const response = await createProject(projectData);
