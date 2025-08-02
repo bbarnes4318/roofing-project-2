@@ -176,8 +176,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     </svg>
                                 </button>
                                 
-                                {/* Subject - RIGHT next to customer - BOLD */}
-                                <span className={`text-[9px] font-bold truncate overflow-hidden whitespace-nowrap ml-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {/* Subject - moved 2 spaces right, all other subjects align below this */}
+                                <span className={`text-[9px] font-bold truncate overflow-hidden whitespace-nowrap ml-4 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                     {subject}
                                 </span>
                             </div>
