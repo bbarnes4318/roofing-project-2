@@ -133,7 +133,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 className={`text-[9px] font-bold transition-colors hover:underline flex-shrink-0 ${
                                     colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                 }`}
-                                style={{ width: '50px' }}
+                                style={{ width: '46px' }}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (onProjectSelect && project) {
