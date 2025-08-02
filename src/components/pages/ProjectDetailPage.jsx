@@ -1088,8 +1088,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 </div>
                                                 
                                                 {/* Second Row - Section and Line Item */}
-                                                <div className="flex items-center text-[9px]" style={{ marginTop: '-2px' }}>
-                                                    {/* Section - align S with project number (60px width) */}
+                                                <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
+                                                    {/* Section - align S with project number (50px width) */}
                                                     <div className="flex items-center gap-1" style={{ width: '150px' }}>
                                                         <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '50px' }}>Section:</span>
                                                         <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
