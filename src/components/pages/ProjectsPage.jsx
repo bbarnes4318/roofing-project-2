@@ -7,8 +7,10 @@ import { projectsService } from '../../services/api';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 
 const defaultNewProject = {
+    projectNumber: '',
     projectName: '',
-    projectType: '',
+    customerName: '',
+    jobType: '',
     status: 'Pending',
     budget: '',
     startDate: '',
@@ -16,7 +18,12 @@ const defaultNewProject = {
     customer: '',
     address: '',
     priority: 'Medium',
-    description: ''
+    description: '',
+    contacts: [
+        { name: '', phone: '', email: '', isPrimary: false },
+        { name: '', phone: '', email: '', isPrimary: false },
+        { name: '', phone: '', email: '', isPrimary: false }
+    ]
 };
 
 const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject, projects, colorMode, projectSourceSection, onNavigateBack, scrollToProject }) => {
@@ -217,19 +224,76 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         setNewProject({ ...newProject, [name]: value });
     };
 
+    // Handle contact input changes
+    const handleContactChange = (index, field, value) => {
+        const updatedContacts = [...newProject.contacts];
+        updatedContacts[index] = { ...updatedContacts[index], [field]: value };
+        setNewProject({ ...newProject, contacts: updatedContacts });
+    };
+
+    // Handle primary contact selection
+    const handlePrimaryContactChange = (index) => {
+        const updatedContacts = newProject.contacts.map((contact, i) => ({
+            ...contact,
+            isPrimary: i === index
+        }));
+        setNewProject({ ...newProject, contacts: updatedContacts });
+    };
+
+    // Add a new contact
+    const addContact = () => {
+        if (newProject.contacts.length < 10) { // Limit to 10 contacts
+            setNewProject({
+                ...newProject,
+                contacts: [...newProject.contacts, { name: '', phone: '', email: '', isPrimary: false }]
+            });
+        }
+    };
+
+    // Remove a contact
+    const removeContact = (index) => {
+        if (newProject.contacts.length > 1) { // Keep at least one contact
+            const updatedContacts = newProject.contacts.filter((_, i) => i !== index);
+            setNewProject({ ...newProject, contacts: updatedContacts });
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!newProject.projectName || !newProject.projectType || !newProject.budget || !newProject.customer || !newProject.address) {
-            setError('Please fill in all required fields');
+        
+        // Validate required fields
+        if (!newProject.projectNumber || !newProject.customerName || !newProject.jobType) {
+            setError('Please fill in all required fields: Project Number, Customer Name, and Job Type');
             return;
+        }
+
+        // Validate that at least one contact has a name
+        const validContacts = newProject.contacts.filter(contact => contact.name.trim());
+        if (validContacts.length === 0) {
+            setError('Please add at least one contact with a name');
+            return;
+        }
+
+        // Ensure one contact is marked as primary (or set the first valid contact as primary)
+        const hasPrimaryContact = validContacts.some(contact => contact.isPrimary);
+        if (!hasPrimaryContact && validContacts.length > 0) {
+            // Auto-set the first valid contact as primary
+            const firstValidIndex = newProject.contacts.findIndex(contact => contact.name.trim());
+            handlePrimaryContactChange(firstValidIndex);
         }
 
         setError('');
 
         try {
+            // Format project data for backend
             const projectData = {
-                ...newProject,
-                budget: parseFloat(newProject.budget)
+                projectNumber: parseInt(newProject.projectNumber),
+                projectName: newProject.customerName, // Use customer name as project name for now
+                projectType: newProject.jobType,
+                customerName: newProject.customerName,
+                contacts: newProject.contacts.filter(contact => contact.name.trim()), // Only include contacts with names
+                status: 'PENDING',
+                phase: 'LEAD'
             };
 
             const response = await createProject(projectData);
@@ -684,28 +748,31 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-4`}>
                         Add New Project
                     </h3>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Project Number */}
                         <div>
                             <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Project Name
+                                Project Number *
                             </label>
                             <input
                                 type="text"
-                                name="name"
-                                value={newProject.name}
+                                name="projectNumber"
+                                value={newProject.projectNumber}
                                 onChange={handleInputChange}
                                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                                     colorMode
                                         ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
                                         : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
-                                placeholder="Enter project name"
+                                placeholder="Enter project number (e.g., 12345)"
                                 required
                             />
                         </div>
+
+                        {/* Customer Name */}
                         <div>
                             <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Customer Name
+                                Customer Name *
                             </label>
                             <input
                                 type="text"
@@ -721,31 +788,15 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 required
                             />
                         </div>
+
+                        {/* Job Type */}
                         <div>
                             <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Customer Phone
-                            </label>
-                            <input
-                                type="tel"
-                                name="customerPhone"
-                                value={newProject.customerPhone}
-                                onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                }`}
-                                placeholder="Enter customer phone"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Project Phase
+                                Job Type *
                             </label>
                             <select
-                                name="phase"
-                                value={newProject.phase}
+                                name="jobType"
+                                value={newProject.jobType}
                                 onChange={handleInputChange}
                                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                                     colorMode
@@ -754,21 +805,138 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 }`}
                                 required
                             >
-                                <option value="">Select a phase</option>
-                                <option value="Pre-Construction">Pre-Construction</option>
-                                <option value="Foundation">Foundation</option>
-                                <option value="Framing">Framing</option>
-                                <option value="Electrical">Electrical</option>
-                                <option value="Plumbing">Plumbing</option>
+                                <option value="">Select job type</option>
+                                <option value="ROOF_REPLACEMENT">Roof Replacement</option>
+                                <option value="KITCHEN_REMODEL">Kitchen Remodel</option>
+                                <option value="BATHROOM_RENOVATION">Bathroom Renovation</option>
+                                <option value="SIDING_INSTALLATION">Siding Installation</option>
+                                <option value="WINDOW_REPLACEMENT">Window Replacement</option>
+                                <option value="FLOORING">Flooring</option>
+                                <option value="PAINTING">Painting</option>
+                                <option value="ELECTRICAL_WORK">Electrical Work</option>
+                                <option value="PLUMBING">Plumbing</option>
                                 <option value="HVAC">HVAC</option>
-                                <option value="Roofing">Roofing</option>
-                                <option value="Siding">Siding</option>
-                                <option value="Interior Finishing">Interior Finishing</option>
-                                <option value="Exterior Finishing">Exterior Finishing</option>
-                                <option value="Final Inspection">Final Inspection</option>
-                                <option value="Punch List">Punch List</option>
-                                <option value="Project Complete">Project Complete</option>
+                                <option value="DECK_CONSTRUCTION">Deck Construction</option>
+                                <option value="LANDSCAPING">Landscaping</option>
+                                <option value="OTHER">Other</option>
                             </select>
+                        </div>
+
+                        {/* Project Contacts Section */}
+                        <div className={`border-t pt-6 ${
+                            colorMode ? 'border-slate-600' : 'border-gray-200'
+                        }`}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className={`text-lg font-semibold ${
+                                    colorMode ? 'text-white' : 'text-gray-800'
+                                }`}>Project Contacts</h4>
+                                <button
+                                    type="button"
+                                    onClick={addContact}
+                                    className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+                                        colorMode
+                                            ? 'border-slate-600 text-gray-300 hover:bg-slate-700'
+                                            : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    + Add Contact
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {newProject.contacts.map((contact, index) => (
+                                    <div key={index} className={`p-4 border rounded-lg ${
+                                        colorMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-200 bg-gray-50'
+                                    }`}>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className={`font-medium ${
+                                                colorMode ? 'text-gray-200' : 'text-gray-700'
+                                            }`}>Contact {index + 1}</span>
+                                            <div className="flex items-center gap-2">
+                                                {/* Set as Primary Radio */}
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="primaryContact"
+                                                        checked={contact.isPrimary}
+                                                        onChange={() => handlePrimaryContactChange(index)}
+                                                        className="text-blue-600 focus:ring-blue-500"
+                                                    />
+                                                    <span className={`text-sm ${
+                                                        colorMode ? 'text-gray-300' : 'text-gray-600'
+                                                    }`}>Set as Primary</span>
+                                                </label>
+                                                {/* Remove Contact Button */}
+                                                {newProject.contacts.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeContact(index)}
+                                                        className={`text-sm text-red-500 hover:text-red-700 ml-3`}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            {/* Name */}
+                                            <div>
+                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                                                    Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={contact.name}
+                                                    onChange={(e) => handleContactChange(index, 'name', e.target.value)}
+                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                                        colorMode
+                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                                    }`}
+                                                    placeholder="Enter contact name"
+                                                />
+                                            </div>
+                                            
+                                            {/* Phone */}
+                                            <div>
+                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                                                    Phone
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    value={contact.phone}
+                                                    onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                                        colorMode
+                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                                    }`}
+                                                    placeholder="Enter phone number"
+                                                />
+                                            </div>
+                                            
+                                            {/* Email */}
+                                            <div>
+                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                                                    Email
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    value={contact.email}
+                                                    onChange={(e) => handleContactChange(index, 'email', e.target.value)}
+                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                                        colorMode
+                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                                    }`}
+                                                    placeholder="Enter email address"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         {error && (
                             <div className="text-red-500 text-sm">{error}</div>
