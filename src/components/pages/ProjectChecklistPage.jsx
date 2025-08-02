@@ -560,12 +560,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
 
   // Enhanced step highlighting from alert navigation with precise targeting
   useEffect(() => {
-    if (project?.highlightStep || project?.navigationTarget) {
+    if (project?.highlightStep || project?.highlightLineItem || project?.targetLineItem || project?.navigationTarget) {
       const navigationTarget = project?.navigationTarget;
-      const stepToFind = project?.highlightStep || navigationTarget?.lineItem;
-      const targetPhase = navigationTarget?.phase || project?.alertPhase;
-      const targetSection = navigationTarget?.section || project?.alertSection;
-      const targetLineItem = navigationTarget?.lineItem;
+      const stepToFind = project?.highlightStep || project?.highlightLineItem || navigationTarget?.lineItem || project?.targetLineItem;
+      const targetPhase = navigationTarget?.phase || project?.targetPhase || project?.alertPhase;
+      const targetSection = navigationTarget?.section || project?.targetSection || project?.alertSection;
+      const targetLineItem = navigationTarget?.lineItem || project?.targetLineItem;
       
       console.log('🎯 WORKFLOW: Enhanced navigation targeting:');
       console.log('🎯 WORKFLOW: Step to find:', stepToFind);

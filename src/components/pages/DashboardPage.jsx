@@ -1862,12 +1862,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 // Get the current workflow state using the centralized service
                                 const workflowState = WorkflowProgressService.calculateProjectProgress(project);
                                 const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                                const currentPhase = WorkflowProgressService.getProjectPhase(project);
                                 
                                 const projectWithWorkflowState = {
                                   ...project,
                                   currentWorkflowStep: currentStep,
                                   workflowState: workflowState,
                                   scrollToCurrentLineItem: true,
+                                  targetPhase: currentPhase,
+                                  targetSection: currentStep?.stepName || currentStep?.name,
+                                  targetLineItem: currentStep?.stepId,
+                                  highlightLineItem: currentStep?.stepId,
                                   sourceSection: 'Project Phases',
                                   dashboardState: {
                                     selectedPhase: phaseConfig.id,
@@ -2366,6 +2371,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     const projectWithStepInfo = {
                                       ...project,
                                       highlightStep: alertTitle,
+                                      highlightLineItem: lineItemName,
+                                      targetPhase: phase,
+                                      targetSection: sectionName,
+                                      targetLineItem: lineItemName,
+                                      scrollToCurrentLineItem: true,
                                       alertPhase: phase,
                                       navigationTarget: {
                                         phase: phase,
