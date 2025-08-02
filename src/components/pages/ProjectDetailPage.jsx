@@ -128,41 +128,6 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         }
     };
     
-    // Calculate current activities for Project Messages
-    const calculateCurrentActivities = () => {
-        // Filter activities (use activities prop or messagesData)
-        const allActivities = activities || messagesData || [];
-        
-        let filteredActivities = allActivities.filter(activity => {
-            // Project filter
-            if (activityProjectFilter && activity.projectId !== parseInt(activityProjectFilter)) {
-                return false;
-            }
-            
-            // Subject filter
-            if (activitySubjectFilter && activity.subject !== activitySubjectFilter) {
-                return false;
-            }
-            
-            return true;
-        });
-        
-        // Sort by timestamp (newest first)
-        const sortedActivities = filteredActivities.sort((a, b) => {
-            const dateA = new Date(a.timestamp || a.createdAt || 0);
-            const dateB = new Date(b.timestamp || b.createdAt || 0);
-            return dateB - dateA;
-        });
-        
-        // Pagination
-        const activitiesPerPage = 10;
-        const startIndex = (currentPage - 1) * activitiesPerPage;
-        const endIndex = startIndex + activitiesPerPage;
-        
-        return sortedActivities.slice(startIndex, endIndex);
-    };
-    
-    const currentActivities = calculateCurrentActivities();
     
     // Current Alerts helper functions - matching dashboard
     const getPaginatedAlerts = () => {
@@ -382,6 +347,42 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     
     // Call useWorkflowAlerts at the top level to comply with React hooks rules
     const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts(projects);
+
+    // Calculate current activities for Project Messages (moved after state declarations)
+    const calculateCurrentActivities = () => {
+        // Filter activities (use activities prop or messagesData)
+        const allActivities = activities || messagesData || [];
+        
+        let filteredActivities = allActivities.filter(activity => {
+            // Project filter
+            if (activityProjectFilter && activity.projectId !== parseInt(activityProjectFilter)) {
+                return false;
+            }
+            
+            // Subject filter
+            if (activitySubjectFilter && activity.subject !== activitySubjectFilter) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Sort by timestamp (newest first)
+        const sortedActivities = filteredActivities.sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.createdAt || 0);
+            const dateB = new Date(b.timestamp || b.createdAt || 0);
+            return dateB - dateA;
+        });
+        
+        // Pagination
+        const activitiesPerPage = 10;
+        const startIndex = (currentPage - 1) * activitiesPerPage;
+        const endIndex = startIndex + activitiesPerPage;
+        
+        return sortedActivities.slice(startIndex, endIndex);
+    };
+    
+    const currentActivities = calculateCurrentActivities();
 
     // Toggle progress expansion (updated to match ProjectsPage format)
     const toggleProgressExpansion = (projectId, section, event) => {
