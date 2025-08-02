@@ -113,7 +113,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                    {/* Row 1: Project# | Customer - Subject */}
+                    {/* Row 1: Project# | Customer Subject */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
@@ -137,11 +137,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 {projectNumber}
                             </button>
                             
-                            {/* Separator - Fixed position */}
-                            <span className={`text-gray-400 text-[9px] mx-2`}>|</span>
-                            
-                            {/* Primary Customer - Fixed width container */}
-                            <div className="flex items-center gap-1.5 flex-shrink-0" style={{ width: '100px' }}>
+                            {/* Primary Customer and Subject together */}
+                            <div className="flex items-center gap-1 flex-1 min-w-0">
                                 <button 
                                     className={`text-[9px] font-semibold transition-colors hover:underline truncate ${
                                         colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
@@ -165,12 +162,12 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
+                                
+                                {/* Subject - RIGHT next to customer */}
+                                <span className={`text-[9px] font-medium truncate ml-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    {subject}
+                                </span>
                             </div>
-                            
-                            {/* Subject - Moved closer to customer, no gap */}
-                            <span className={`text-[9px] font-medium truncate ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                - {subject}
-                            </span>
                         </div>
                         
                         {/* Right side - Message indicator and actions */}
