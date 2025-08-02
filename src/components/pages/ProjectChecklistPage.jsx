@@ -1475,7 +1475,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                           (highlightedStep && (
                                             item.label.toLowerCase().includes(highlightedStep.toLowerCase()) ||
                                             highlightedStep.toLowerCase().includes(item.label.split(' –')[0].toLowerCase().trim())
-                                          )) ? 'bg-gradient-to-r from-yellow-300 to-orange-200 text-blue-900 font-bold px-2 py-1 rounded border-2 border-blue-500 shadow-lg animate-pulse' :
+                                          )) ? 'bg-blue-50 text-blue-800 font-semibold px-2 py-1 rounded border border-blue-200 shadow-sm' :
                                           'text-gray-700'
                                         }`}
                                         onClick={() => handleItemClick(item.id)}

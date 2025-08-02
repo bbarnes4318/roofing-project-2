@@ -105,25 +105,49 @@ export const workflowStructure = {
  */
 export const mapStepToWorkflowStructure = (stepName, phase) => {
   // Normalize phase name
-  const normalizedPhase = phase ? phase.toUpperCase() : 'LEAD';
+  let normalizedPhase = phase ? phase.toString().toUpperCase() : 'LEAD';
+  
+  // Handle phase variations
+  if (normalizedPhase.includes('SUPP')) normalizedPhase = '2ND_SUPP';
+  if (normalizedPhase === 'SECOND_SUPP') normalizedPhase = '2ND_SUPP';
+  if (normalizedPhase === 'SUPPLEMENT') normalizedPhase = '2ND_SUPP';
   
   // Get phase structure
   const phaseStructure = workflowStructure[normalizedPhase];
   if (!phaseStructure) {
     return {
-      section: 'Unknown Section',
-      lineItem: stepName || 'Unknown Line Item',
+      section: 'General Workflow',
+      lineItem: stepName || 'Workflow Step',
       phase: normalizedPhase
     };
   }
   
-  // Try to find matching section by checking if stepName contains section key
+  // Direct exact matches first
+  if (phaseStructure[stepName]) {
+    return {
+      section: phaseStructure[stepName].section,
+      lineItem: stepName,
+      phase: normalizedPhase
+    };
+  }
+  
+  // Try to find matching section by checking step name variations
   for (const [sectionKey, sectionData] of Object.entries(phaseStructure)) {
-    // Check if stepName contains the section key
-    if (stepName && stepName.includes(sectionKey)) {
+    // Check for exact match
+    if (stepName === sectionKey) {
+      return {
+        section: sectionData.section,
+        lineItem: stepName,
+        phase: normalizedPhase
+      };
+    }
+    
+    // Check if stepName contains the section key (case insensitive)
+    if (stepName && stepName.toLowerCase().includes(sectionKey.toLowerCase())) {
       // Try to find specific line item
       const matchingLineItem = sectionData.lineItems.find(item => 
-        stepName.includes(item) || item.includes(stepName)
+        stepName.toLowerCase().includes(item.toLowerCase()) || 
+        item.toLowerCase().includes(stepName.toLowerCase())
       );
       
       return {
@@ -133,9 +157,12 @@ export const mapStepToWorkflowStructure = (stepName, phase) => {
       };
     }
     
-    // Check if stepName matches any of the line items
+    // Check if stepName matches any of the line items (case insensitive)
     const matchingLineItem = sectionData.lineItems.find(item => 
-      stepName && (stepName.includes(item) || item.includes(stepName))
+      stepName && (
+        stepName.toLowerCase().includes(item.toLowerCase()) || 
+        item.toLowerCase().includes(stepName.toLowerCase())
+      )
     );
     
     if (matchingLineItem) {
@@ -147,10 +174,19 @@ export const mapStepToWorkflowStructure = (stepName, phase) => {
     }
   }
   
-  // Default fallback
+  // Fallback with better defaults based on phase
+  const phaseDefaults = {
+    'LEAD': 'Lead Management – Office 👩🏼‍💻',
+    'PROSPECT': 'Prospect Development – Project Manager 👷🏼',
+    'APPROVED': 'Project Setup – Administration 📝',
+    'EXECUTION': 'Project Execution – Field Director 🛠️',
+    '2ND_SUPP': 'Supplement Work – Administration 📝',
+    'COMPLETION': 'Project Completion – Administration 📝'
+  };
+  
   return {
-    section: 'Unknown Section',
-    lineItem: stepName || 'Unknown Line Item', 
+    section: phaseDefaults[normalizedPhase] || 'General Workflow',
+    lineItem: stepName || 'Workflow Step', 
     phase: normalizedPhase
   };
 };
