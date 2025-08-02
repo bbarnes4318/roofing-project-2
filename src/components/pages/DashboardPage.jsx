@@ -187,6 +187,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // UI state
   const [expandedPhases, setExpandedPhases] = useState(new Set());
   const [selectedPhase, setSelectedPhase] = useState(null); // Start with no projects showing until phase selected
+  
+  // Project Messages expansion control
+  const [expandedMessages, setExpandedMessages] = useState(new Set());
+  const [allMessagesExpanded, setAllMessagesExpanded] = useState(false);
   const [expandedAlerts, setExpandedAlerts] = useState(new Set());
   const [expandedProgress, setExpandedProgress] = useState(new Set());
   const [expandedTrades, setExpandedTrades] = useState(new Set());
@@ -679,6 +683,33 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       key,
       direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
     });
+  };
+
+  // Project Messages expansion control handlers
+  const handleExpandAllMessages = () => {
+    const allMessageIds = new Set(currentActivities.map(activity => activity.id));
+    setExpandedMessages(allMessageIds);
+    setAllMessagesExpanded(true);
+  };
+
+  const handleCollapseAllMessages = () => {
+    setExpandedMessages(new Set());
+    setAllMessagesExpanded(false);
+  };
+
+  const handleToggleMessage = (messageId) => {
+    const newExpanded = new Set(expandedMessages);
+    if (newExpanded.has(messageId)) {
+      newExpanded.delete(messageId);
+    } else {
+      newExpanded.add(messageId);
+    }
+    setExpandedMessages(newExpanded);
+    
+    // Update the global state based on current expansion
+    const totalMessages = currentActivities.length;
+    const expandedCount = newExpanded.size;
+    setAllMessagesExpanded(expandedCount === totalMessages);
   };
 
   // Alert pagination functions
@@ -1989,6 +2020,58 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
+                  {expandedMessages.size > 0 && (
+                    <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {expandedMessages.size} of {currentActivities.length} conversation{currentActivities.length !== 1 ? 's' : ''} expanded
+                    </p>
+                  )}
+                </div>
+                
+                {/* Expand/Collapse All Controls */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExpandAllMessages}
+                    className={`px-2 py-1 text-[9px] font-medium rounded border transition-all duration-200 hover:scale-105 ${
+                      expandedMessages.size === currentActivities.length && currentActivities.length > 0
+                        ? colorMode 
+                          ? 'bg-blue-600 text-white border-blue-600' 
+                          : 'bg-blue-500 text-white border-blue-500'
+                        : colorMode 
+                          ? 'bg-[#1e293b] text-blue-300 border-blue-400 hover:bg-blue-600 hover:text-white' 
+                          : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+                    }`}
+                    title="Expand all message conversations"
+                    disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
+                  >
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                      Expand All
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={handleCollapseAllMessages}
+                    className={`px-2 py-1 text-[9px] font-medium rounded border transition-all duration-200 hover:scale-105 ${
+                      expandedMessages.size === 0 || currentActivities.length === 0
+                        ? colorMode 
+                          ? 'bg-gray-600 text-gray-300 border-gray-600' 
+                          : 'bg-gray-300 text-gray-500 border-gray-300'
+                        : colorMode 
+                          ? 'bg-[#1e293b] text-gray-300 border-gray-400 hover:bg-gray-600 hover:text-white' 
+                          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}
+                    title="Collapse all message conversations"
+                    disabled={currentActivities.length === 0 || expandedMessages.size === 0}
+                  >
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                      </svg>
+                      Collapse All
+                    </div>
+                  </button>
                 </div>
               </div>
               
@@ -2197,6 +2280,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     projects={projects}
                     colorMode={colorMode}
                     onQuickReply={handleQuickReply}
+                    isExpanded={expandedMessages.has(activity.id)}
+                    onToggleExpansion={handleToggleMessage}
                   />
                 ))
               )}

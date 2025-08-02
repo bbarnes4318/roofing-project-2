@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 
-const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion }) => {
+    // Use external expansion state if provided, otherwise use internal state
+    const [internalExpanded, setInternalExpanded] = useState(false);
+    const expanded = isExpanded !== undefined ? isExpanded : internalExpanded;
     const [showQuickReply, setShowQuickReply] = useState(false);
     const [quickReplyText, setQuickReplyText] = useState('');
 
@@ -105,7 +107,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             {/* Main message header - Compact 2-row layout */}
             <div 
                 className="flex items-center gap-1.5 p-1.5 cursor-pointer hover:bg-opacity-80 transition-colors"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={() => {
+                    if (onToggleExpansion) {
+                        onToggleExpansion(activity.id);
+                    } else {
+                        setInternalExpanded(!internalExpanded);
+                    }
+                }}
             >
                 {/* Phase Circle - Align to top */}
                 <div className={`w-5 h-5 ${getPhaseColors(projectPhase).bg} rounded-full flex items-center justify-center ${getPhaseColors(projectPhase).text} font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
@@ -203,7 +211,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </button>
                             
                             {/* Dropdown arrow */}
-                            <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <div className={`transform transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
                                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -342,7 +350,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             )}
             
             {/* Dropdown section - Professional message thread */}
-            {isExpanded && (
+            {expanded && (
                 <div className={`px-4 py-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                     {/* Thread header */}
                     <div className={`text-xs font-semibold mb-3 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
