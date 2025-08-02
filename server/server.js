@@ -82,8 +82,14 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", // Allow inline scripts for tracking and development
+        "https://sc.lfeeder.com", // LeadFeeder tracking scripts
+        "https://cdn.jsdelivr.net" // Allow JSDeliver CDN for development tools
+      ],
       imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:", "ws:"], // Allow websocket connections and HTTPS requests
     },
   },
   crossOriginEmbedderPolicy: false
