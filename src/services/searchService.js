@@ -1,5 +1,5 @@
 // Fuzzy matching utility - simple Levenshtein distance-based similarity
-const fuzzyMatch = (text, query, threshold = 0.6) => {
+const fuzzyMatch = (text, query, threshold = 0.3) => {
     if (!text || !query) return false;
     
     text = text.toString().toLowerCase();
@@ -8,8 +8,20 @@ const fuzzyMatch = (text, query, threshold = 0.6) => {
     // Exact match
     if (text.includes(query)) return true;
     
-    // Fuzzy matching for typos
-    if (query.length < 3) return false; // Skip fuzzy for short queries
+    // Partial word matches
+    const textWords = text.split(/\s+/);
+    const queryWords = query.split(/\s+/);
+    
+    for (const queryWord of queryWords) {
+        for (const textWord of textWords) {
+            if (textWord.includes(queryWord) || queryWord.includes(textWord)) {
+                return true;
+            }
+        }
+    }
+    
+    // Fuzzy matching for typos - lowered threshold for more results
+    if (query.length < 2) return false;
     
     return levenshteinSimilarity(text, query) >= threshold;
 };
@@ -197,36 +209,107 @@ export class SearchService {
             const currentLineItem = currentStep ? currentStep.stepName : null;
             const responsibleRole = currentStep ? currentStep.defaultResponsible : null;
             
-            // Define searchable fields with weights (enhanced with workflow fields)
+            // Define comprehensive searchable fields with weights
             const searchFields = [
-                { key: 'projectNumber', value: project.projectNumber?.toString(), weight: 10, label: 'Project #' },
-                { key: 'name', value: project.name || project.projectName, weight: 9, label: 'Name' },
-                { key: 'address', value: project.address || project.projectName, weight: 8, label: 'Address' },
-                { key: 'customerName', value: project.client?.name || project.customer?.name || project.customer?.primaryName, weight: 7, label: 'Primary Contact' },
-                { key: 'customerPhone', value: project.client?.phone || project.customer?.phone || project.customer?.primaryPhone, weight: 6, label: 'Phone' },
-                { key: 'customerEmail', value: project.client?.email || project.customer?.email || project.customer?.primaryEmail, weight: 6, label: 'Email' },
-                { key: 'projectPhase', value: currentPhase, weight: 7, label: 'Project Phase' },
-                { key: 'section', value: currentSection, weight: 6, label: 'Section' },
-                { key: 'lineItem', value: currentLineItem, weight: 6, label: 'Line Item' },
-                { key: 'userGroup', value: responsibleRole, weight: 5, label: 'User Group' },
-                { key: 'projectType', value: project.projectType || project.type, weight: 5, label: 'Individual Trade' },
-                { key: 'status', value: project.status, weight: 4, label: 'Status' },
+                // High priority - exact identifiers
+                { key: 'projectNumber', value: project.projectNumber?.toString(), weight: 15, label: 'Project #' },
+                { key: 'projectId', value: project.id?.toString(), weight: 15, label: 'Project ID' },
+                
+                // High priority - names and addresses
+                { key: 'projectName', value: project.name || project.projectName, weight: 12, label: 'Project Name' },
+                { key: 'address', value: project.address || project.projectName, weight: 11, label: 'Address' },
+                { key: 'location', value: project.location, weight: 10, label: 'Location' },
+                
+                // Customer information - all variations
+                { key: 'customerName', value: project.client?.name || project.customer?.name || project.customer?.primaryName, weight: 10, label: 'Customer Name' },
+                { key: 'customerFirstName', value: project.customer?.firstName, weight: 8, label: 'Customer First Name' },
+                { key: 'customerLastName', value: project.customer?.lastName, weight: 8, label: 'Customer Last Name' },
+                { key: 'customerSecondaryName', value: project.customer?.secondaryName, weight: 7, label: 'Secondary Contact' },
+                { key: 'customerPhone', value: project.client?.phone || project.customer?.phone || project.customer?.primaryPhone, weight: 9, label: 'Customer Phone' },
+                { key: 'customerSecondaryPhone', value: project.customer?.secondaryPhone, weight: 7, label: 'Secondary Phone' },
+                { key: 'customerEmail', value: project.client?.email || project.customer?.email || project.customer?.primaryEmail, weight: 9, label: 'Customer Email' },
+                { key: 'customerSecondaryEmail', value: project.customer?.secondaryEmail, weight: 7, label: 'Secondary Email' },
+                { key: 'customerAddress', value: project.customer?.address, weight: 8, label: 'Customer Address' },
+                
+                // Project Manager information
                 { key: 'pmName', value: project.projectManager?.name || 
-                    `${project.projectManager?.firstName || ''} ${project.projectManager?.lastName || ''}`.trim(), weight: 3, label: 'PM' }
+                    `${project.projectManager?.firstName || ''} ${project.projectManager?.lastName || ''}`.trim(), weight: 8, label: 'Project Manager' },
+                { key: 'pmFirstName', value: project.projectManager?.firstName, weight: 6, label: 'PM First Name' },
+                { key: 'pmLastName', value: project.projectManager?.lastName, weight: 6, label: 'PM Last Name' },
+                { key: 'pmPhone', value: project.projectManager?.phone || project.pmPhone, weight: 7, label: 'PM Phone' },
+                { key: 'pmEmail', value: project.projectManager?.email || project.pmEmail, weight: 7, label: 'PM Email' },
+                
+                // Workflow and status information
+                { key: 'projectPhase', value: currentPhase, weight: 8, label: 'Phase' },
+                { key: 'status', value: project.status, weight: 7, label: 'Status' },
+                { key: 'priority', value: project.priority, weight: 6, label: 'Priority' },
+                { key: 'projectType', value: project.projectType || project.type, weight: 7, label: 'Project Type' },
+                
+                // Workflow details
+                { key: 'section', value: currentSection, weight: 6, label: 'Current Section' },
+                { key: 'lineItem', value: currentLineItem, weight: 6, label: 'Current Line Item' },
+                { key: 'userGroup', value: responsibleRole, weight: 5, label: 'Responsible Role' },
+                
+                // Financial information
+                { key: 'budget', value: project.budget?.toString(), weight: 5, label: 'Budget' },
+                { key: 'estimatedCost', value: project.estimatedCost?.toString(), weight: 4, label: 'Estimated Cost' },
+                { key: 'actualCost', value: project.actualCost?.toString(), weight: 4, label: 'Actual Cost' },
+                
+                // Dates
+                { key: 'startDate', value: project.startDate, weight: 4, label: 'Start Date' },
+                { key: 'endDate', value: project.endDate, weight: 4, label: 'End Date' },
+                
+                // Additional fields
+                { key: 'description', value: project.description, weight: 5, label: 'Description' },
+                { key: 'notes', value: project.notes, weight: 4, label: 'Notes' },
+                
+                // Team members
+                ...((project.teamMembers || []).map(member => ({
+                    key: `teamMember_${member.id}`,
+                    value: member.user ? `${member.user.firstName || ''} ${member.user.lastName || ''}`.trim() : '',
+                    weight: 5,
+                    label: 'Team Member'
+                })))
             ];
             
-            // Check each field for matches
+            // Check each field for matches with enhanced scoring
             searchFields.forEach(field => {
                 if (field.value) {
-                    const value = field.value.toString();
-                    if (value.toLowerCase().includes(query) || fuzzyMatch(value, query)) {
+                    const value = field.value.toString().toLowerCase();
+                    const queryLower = query.toLowerCase();
+                    
+                    let matchScore = 0;
+                    let matchType = '';
+                    
+                    // Exact match (highest score)
+                    if (value === queryLower) {
+                        matchScore = field.weight * 3;
+                        matchType = 'exact';
+                    }
+                    // Starts with query (high score)
+                    else if (value.startsWith(queryLower)) {
+                        matchScore = field.weight * 2.5;
+                        matchType = 'starts';
+                    }
+                    // Contains query (good score)
+                    else if (value.includes(queryLower)) {
+                        matchScore = field.weight * 2;
+                        matchType = 'contains';
+                    }
+                    // Word boundary match (good score)
+                    else if (new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(value)) {
+                        matchScore = field.weight * 1.8;
+                        matchType = 'word';
+                    }
+                    // Fuzzy match (lower score)
+                    else if (fuzzyMatch(value, queryLower)) {
+                        matchScore = field.weight * 0.8;
+                        matchType = 'fuzzy';
+                    }
+                    
+                    if (matchScore > 0) {
                         matchedFields.push(field.label);
-                        relevanceScore += field.weight;
-                        
-                        // Boost score for exact matches
-                        if (value.toLowerCase().includes(query)) {
-                            relevanceScore += field.weight * 0.5;
-                        }
+                        relevanceScore += matchScore;
                     }
                 }
             });
@@ -275,14 +358,32 @@ export class SearchService {
             
             searchFields.forEach(field => {
                 if (field.value) {
-                    const value = field.value.toString();
-                    if (value.toLowerCase().includes(query) || fuzzyMatch(value, query)) {
+                    const value = field.value.toString().toLowerCase();
+                    const queryLower = query.toLowerCase();
+                    
+                    let matchScore = 0;
+                    let matchType = '';
+                    
+                    if (value === queryLower) {
+                        matchScore = field.weight * 3;
+                        matchType = 'exact';
+                    } else if (value.startsWith(queryLower)) {
+                        matchScore = field.weight * 2.5;
+                        matchType = 'starts';
+                    } else if (value.includes(queryLower)) {
+                        matchScore = field.weight * 2;
+                        matchType = 'contains';
+                    } else if (new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(value)) {
+                        matchScore = field.weight * 1.8;
+                        matchType = 'word';
+                    } else if (fuzzyMatch(value, queryLower)) {
+                        matchScore = field.weight * 0.8;
+                        matchType = 'fuzzy';
+                    }
+                    
+                    if (matchScore > 0) {
                         matchedFields.push(field.label);
-                        relevanceScore += field.weight;
-                        
-                        if (value.toLowerCase().includes(query)) {
-                            relevanceScore += field.weight * 0.5;
-                        }
+                        relevanceScore += matchScore;
                     }
                 }
             });
@@ -325,14 +426,32 @@ export class SearchService {
             
             searchFields.forEach(field => {
                 if (field.value) {
-                    const value = field.value.toString();
-                    if (value.toLowerCase().includes(query) || fuzzyMatch(value, query)) {
+                    const value = field.value.toString().toLowerCase();
+                    const queryLower = query.toLowerCase();
+                    
+                    let matchScore = 0;
+                    let matchType = '';
+                    
+                    if (value === queryLower) {
+                        matchScore = field.weight * 3;
+                        matchType = 'exact';
+                    } else if (value.startsWith(queryLower)) {
+                        matchScore = field.weight * 2.5;
+                        matchType = 'starts';
+                    } else if (value.includes(queryLower)) {
+                        matchScore = field.weight * 2;
+                        matchType = 'contains';
+                    } else if (new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(value)) {
+                        matchScore = field.weight * 1.8;
+                        matchType = 'word';
+                    } else if (fuzzyMatch(value, queryLower)) {
+                        matchScore = field.weight * 0.8;
+                        matchType = 'fuzzy';
+                    }
+                    
+                    if (matchScore > 0) {
                         matchedFields.push(field.label);
-                        relevanceScore += field.weight;
-                        
-                        if (value.toLowerCase().includes(query)) {
-                            relevanceScore += field.weight * 0.5;
-                        }
+                        relevanceScore += matchScore;
                     }
                 }
             });
@@ -382,14 +501,32 @@ export class SearchService {
             
             searchFields.forEach(field => {
                 if (field.value) {
-                    const value = field.value.toString();
-                    if (value.toLowerCase().includes(query) || fuzzyMatch(value, query)) {
+                    const value = field.value.toString().toLowerCase();
+                    const queryLower = query.toLowerCase();
+                    
+                    let matchScore = 0;
+                    let matchType = '';
+                    
+                    if (value === queryLower) {
+                        matchScore = field.weight * 3;
+                        matchType = 'exact';
+                    } else if (value.startsWith(queryLower)) {
+                        matchScore = field.weight * 2.5;
+                        matchType = 'starts';
+                    } else if (value.includes(queryLower)) {
+                        matchScore = field.weight * 2;
+                        matchType = 'contains';
+                    } else if (new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(value)) {
+                        matchScore = field.weight * 1.8;
+                        matchType = 'word';
+                    } else if (fuzzyMatch(value, queryLower)) {
+                        matchScore = field.weight * 0.8;
+                        matchType = 'fuzzy';
+                    }
+                    
+                    if (matchScore > 0) {
                         matchedFields.push(field.label);
-                        relevanceScore += field.weight;
-                        
-                        if (value.toLowerCase().includes(query)) {
-                            relevanceScore += field.weight * 0.5;
-                        }
+                        relevanceScore += matchScore;
                     }
                 }
             });
