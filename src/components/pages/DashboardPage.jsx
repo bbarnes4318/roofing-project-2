@@ -152,6 +152,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       loading: projectsLoading
     });
   }
+
+  // Additional debug for navigation back from project workflow
+  useEffect(() => {
+    if (dashboardState) {
+      console.log('🔍 DASHBOARD: Dashboard state received, triggering data refresh if needed');
+      // If we have dashboard state but projects failed to load, try refetching
+      if (projectsError && typeof refetchProjects === 'function') {
+        console.log('🔄 DASHBOARD: Attempting to refetch projects due to navigation state restoration');
+        setTimeout(() => {
+          refetchProjects();
+        }, 500); // Small delay to allow component to settle
+      }
+    }
+  }, [dashboardState, projectsError, refetchProjects]);
   
   // Posting state
   const [message, setMessage] = useState('');
@@ -1560,13 +1574,47 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     return (
                       <tr>
                         <td colSpan="8" className="text-center py-8">
-                          <div className="text-red-600">Error loading projects: {projectsError}</div>
-                          <button 
-                            onClick={() => refetchProjects()} 
-                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                          >
-                            Retry
-                          </button>
+                          <div className="text-red-600 mb-4">
+                            <div className="font-semibold">Error loading projects:</div>
+                            <div className="text-sm">{projectsError}</div>
+                            <div className="text-xs mt-2 text-gray-500">
+                              This often happens after navigating back from Project Workflow. Try refreshing the data.
+                            </div>
+                          </div>
+                          <div className="flex gap-2 justify-center">
+                            <button 
+                              onClick={async () => {
+                                console.log('🔄 RETRY: Attempting to refetch projects...');
+                                console.log('🔄 RETRY: Dashboard state:', dashboardState);
+                                console.log('🔄 RETRY: Current error:', projectsError);
+                                try {
+                                  // Force a clean retry
+                                  setProjectsLoading?.(true);
+                                  await refetchProjects();
+                                  console.log('✅ RETRY: Successfully refetched projects');
+                                } catch (error) {
+                                  console.error('❌ RETRY: Failed to refetch projects:', error);
+                                  // If retry fails, offer page refresh
+                                  if (confirm('Retry failed. Would you like to refresh the entire page?')) {
+                                    window.location.reload();
+                                  }
+                                }
+                              }} 
+                              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                              disabled={projectsLoading}
+                            >
+                              {projectsLoading ? 'Retrying...' : 'Retry'}
+                            </button>
+                            <button 
+                              onClick={() => {
+                                console.log('🔄 REFRESH: User chose to refresh page due to persistent error');
+                                window.location.reload();
+                              }} 
+                              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                            >
+                              Refresh Page
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

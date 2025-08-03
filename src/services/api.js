@@ -62,12 +62,32 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('🚨 API ERROR:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+    
     if (error.response?.status === 401) {
+      console.warn('🔐 UNAUTHORIZED: Clearing auth tokens');
       // Clear invalid token but don't redirect to login since login is disabled
       localStorage.removeItem('authToken');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
+    
+    // Add more specific error messages for common issues
+    if (error.code === 'NETWORK_ERROR' || !error.response) {
+      error.message = 'Network error: Unable to connect to server. Please check your connection and try again.';
+    } else if (error.response?.status >= 500) {
+      error.message = 'Server error: The server is experiencing issues. Please try again later.';
+    } else if (error.response?.status === 404) {
+      error.message = 'Not found: The requested resource could not be found.';
+    }
+    
     return Promise.reject(error);
   }
 );
