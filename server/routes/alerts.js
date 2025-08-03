@@ -157,9 +157,8 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
           select: {
             id: true,
             stepId: true,
+            stepName: true,
             phase: true,
-            section: true,
-            lineItem: true,
             isCompleted: true
           }
         },
@@ -212,13 +211,7 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
     }));
     
     // Send paginated response
-    sendPaginatedResponse(res, {
-      data: transformed,
-      page: pageNum,
-      limit: limitNum,
-      total,
-      message: 'Alerts retrieved successfully'
-    });
+    sendPaginatedResponse(res, transformed, pageNum, limitNum, total, 'Alerts retrieved successfully');
   } catch (error) {
     next(error);
   }
