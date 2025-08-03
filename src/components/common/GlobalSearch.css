@@ -1,0 +1,153 @@
+/* GlobalSearch.css */
+.global-search-container {
+  position: relative;
+  width: 450px;
+}
+
+.global-search-input {
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid #cbd5e0;
+  border-radius: 24px;
+  font-size: 16px;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box; /* Ensures padding doesn't affect final width */
+}
+
+.global-search-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+.search-results-dropdown {
+  display: block;
+  position: absolute;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-top: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  text-align: left; /* Aligns text to the left for results */
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #f7fafc;
+}
+
+.search-result-item-message {
+  padding: 16px;
+  color: #718096;
+  text-align: center;
+}
+
+.project-info {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  margin-right: 16px; /* Add space between info and actions */
+  min-width: 0; /* Prevents text from overflowing */
+}
+
+.phase-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* Phase Colors */
+.phase-indicator.phase-not-started {
+  background-color: #e53e3e; /* Red */
+}
+.phase-indicator.phase-in-progress {
+  background-color: #dd6b20; /* Orange */
+}
+.phase-indicator.phase-completed {
+  background-color: #38a169; /* Green */
+}
+.phase-indicator.phase-on-hold {
+  background-color: #718096; /* Gray */
+}
+
+.project-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.project-name,
+.project-client {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-name {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.project-client {
+  font-size: 0.875rem;
+  color: #4a5568;
+  margin-top: 2px;
+}
+
+.search-highlight {
+  background-color: #ebf8ff;
+  color: #2c5282;
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 1px 0;
+}
+
+.project-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background-color: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.alert-btn:hover {
+  color: #c53030;
+}
+
+.activity-btn:hover {
+  color: #2b6cb0;
+}

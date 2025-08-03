@@ -21,6 +21,7 @@ import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
 import { SubjectsProvider } from './contexts/SubjectsContext';
+import './App.css';
 
 export default function App() {
     const [activePage, setActivePage] = useState('Overview');
@@ -488,6 +489,24 @@ export default function App() {
         setProjects(prev => [project, ...prev]);
     };
 
+    // Handle Create Alert action from search results
+    const handleCreateAlert = (project) => {
+        console.log('ACTION: Creating alert for project:', project);
+        // In a real app, you would open a modal or navigate to create alert page
+        alert(`Creating an alert for "${project.name || project.projectName}"...`);
+        // You could also navigate to the project's alerts section
+        // handleProjectSelect(project, 'Alerts', null, 'Global Search');
+    };
+
+    // Handle Add Activity action from search results  
+    const handleAddActivity = (project) => {
+        console.log('ACTION: Adding activity for project:', project);
+        // In a real app, you would open a modal or navigate to add activity page
+        alert(`Adding an activity for "${project.name || project.projectName}"...`);
+        // You could also navigate to the project's messages section
+        // handleProjectSelect(project, 'Messages', null, 'Global Search');
+    };
+
     // Handle navigation from search results
     const handleSearchNavigation = (result) => {
         const target = result.navigationTarget;
@@ -811,6 +830,8 @@ export default function App() {
                                 projects={projects}
                                 activities={activities}
                                 onNavigateToResult={handleSearchNavigation}
+                                handleCreateAlert={handleCreateAlert}
+                                handleAddActivity={handleAddActivity}
                                 colorMode={colorMode}
                                 className="w-full"
                             />
