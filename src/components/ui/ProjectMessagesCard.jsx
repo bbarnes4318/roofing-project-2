@@ -222,24 +222,38 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </div>
                     </div>
                     
-                    {/* Row 2: Last Response and Original Subject */}
-                    <div className="flex items-center gap-1.5 mt-0 overflow-hidden">
-                        {/* Last Response - moved 1 space left for perfect alignment */}
-                        <span 
-                            className={`text-[9px] font-medium flex-shrink-0 whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                            style={{ marginLeft: '8px', textAlign: 'left' }}
+                    {/* Row 2: Last Response and Original Subject - Fixed Alignment */}
+                    <div className="flex items-baseline gap-0 mt-0 overflow-hidden">
+                        {/* Last Response - Fixed width container for consistent spacing */}
+                        <div 
+                            className="flex-shrink-0"
+                            style={{ width: '170px', marginLeft: '8px' }}
                         >
-                            Last Response: {lastMessage.user}
-                        </span>
+                            <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Last Response: {lastMessage.user}
+                            </span>
+                        </div>
                         
-                        {/* Original Subject - moved 5 spaces left, aligned with baseline */}
-                        <span className={`text-[9px] truncate flex-1 overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`} style={{ marginLeft: '40px' }}>
-                            Original Subject: {subject}
-                        </span>
+                        {/* Original Subject - Perfect vertical alignment across all rows */}
+                        <div className="flex-1 min-w-0">
+                            <span 
+                                className={`text-[9px] truncate block overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                style={{ 
+                                    display: 'inline-block',
+                                    verticalAlign: 'baseline',
+                                    lineHeight: '1'
+                                }}
+                            >
+                                Original Subject: {subject}
+                            </span>
+                        </div>
                         
-                        <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                            {formatTimestamp(lastMessage.timestamp)}
-                        </span>
+                        {/* Timestamp */}
+                        <div className="flex-shrink-0 ml-2">
+                            <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                                {formatTimestamp(lastMessage.timestamp)}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
