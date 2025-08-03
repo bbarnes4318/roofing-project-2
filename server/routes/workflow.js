@@ -6,6 +6,7 @@ const {
   AppError, 
   formatValidationErrors 
 } = require('../middleware/errorHandler');
+const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/workflowMapping');
 
 const router = express.Router();
 
@@ -34,42 +35,56 @@ const transformWorkflowForFrontend = (workflow) => {
     teamAssignments: workflow.teamAssignments,
     createdAt: workflow.createdAt,
     updatedAt: workflow.updatedAt,
-    steps: workflow.steps ? workflow.steps.map(step => ({
-      id: step.id,
-      _id: step.id,
-      stepId: step.stepId,
-      stepName: step.stepName,
-      description: step.description,
-      phase: step.phase,
-      defaultResponsible: step.defaultResponsible,
-      estimatedDuration: step.estimatedDuration,
-      scheduledStartDate: step.scheduledStartDate,
-      scheduledEndDate: step.scheduledEndDate,
-      actualStartDate: step.actualStartDate,
-      actualEndDate: step.actualEndDate,
-      isCompleted: step.isCompleted,
-      completed: step.isCompleted, // Alias for compatibility
-      completedAt: step.completedAt,
-      assignedTo: step.assignedToId,
-      assignedToId: step.assignedToId,
-      alertPriority: step.alertPriority,
-      alertDays: step.alertDays,
-      overdueIntervals: step.overdueIntervals,
-      notes: step.notes,
-      completionNotes: step.completionNotes,
-      dependencies: step.dependencies,
-      subTasks: step.subTasks ? step.subTasks.map(subTask => ({
-        id: subTask.id,
-        _id: subTask.id,
-        subTaskId: subTask.subTaskId,
-        subTaskName: subTask.subTaskName,
-        description: subTask.description,
-        isCompleted: subTask.isCompleted,
-        completedAt: subTask.completedAt,
-        completedById: subTask.completedById,
-        notes: subTask.notes
-      })) : []
-    })) : []
+    steps: workflow.steps ? workflow.steps.map(step => {
+      const transformedStep = transformWorkflowStep(step);
+      return {
+        id: transformedStep.id,
+        _id: transformedStep.id,
+        stepId: transformedStep.stepId,
+        stepName: transformedStep.stepName,
+        description: transformedStep.description,
+        phase: transformedStep.phase,
+        // CRITICAL: Add section and lineItem fields
+        section: transformedStep.section,
+        lineItem: transformedStep.lineItem,
+        isActive: transformedStep.isActive,
+        defaultResponsible: transformedStep.defaultResponsible,
+        estimatedDuration: transformedStep.estimatedDuration,
+        scheduledStartDate: transformedStep.scheduledStartDate,
+        scheduledEndDate: transformedStep.scheduledEndDate,
+        actualStartDate: transformedStep.actualStartDate,
+        actualEndDate: transformedStep.actualEndDate,
+        isCompleted: transformedStep.isCompleted,
+        completed: transformedStep.isCompleted, // Alias for compatibility
+        completedAt: transformedStep.completedAt,
+        assignedTo: transformedStep.assignedToId,
+        assignedToId: transformedStep.assignedToId,
+        alertPriority: transformedStep.alertPriority,
+        alertDays: transformedStep.alertDays,
+        overdueIntervals: transformedStep.overdueIntervals,
+        notes: transformedStep.notes,
+        completionNotes: transformedStep.completionNotes,
+        dependencies: transformedStep.dependencies,
+        subTasks: step.subTasks ? step.subTasks.map(subTask => {
+          const transformedSubTask = transformWorkflowSubTask(subTask, step);
+          return {
+            id: transformedSubTask.id,
+            _id: transformedSubTask.id,
+            subTaskId: transformedSubTask.subTaskId,
+            subTaskName: transformedSubTask.subTaskName,
+            description: transformedSubTask.description,
+            isCompleted: transformedSubTask.isCompleted,
+            completedAt: transformedSubTask.completedAt,
+            completedById: transformedSubTask.completedById,
+            notes: transformedSubTask.notes,
+            // CRITICAL: Add section info to subtasks
+            section: transformedSubTask.section,
+            parentLineItem: transformedSubTask.parentLineItem,
+            phase: transformedSubTask.phase
+          };
+        }) : []
+      };
+    }) : []
   };
 };
 

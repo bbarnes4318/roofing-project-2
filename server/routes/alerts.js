@@ -9,6 +9,7 @@ const {
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
 const { cacheService } = require('../config/redis');
+const { transformWorkflowStep } = require('../utils/workflowMapping');
 
 const router = express.Router();
 
@@ -177,38 +178,49 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
     
     console.log(`🚨 ALERTS ROUTE: Found ${alerts.length} alerts`);
     
-    const transformed = alerts.map(alert => ({
-      _id: alert.id,
-      id: alert.id,
-      type: alert.type,
-      title: alert.title,
-      message: alert.message,
-      stepName: alert.stepName,
-      priority: alert.priority.charAt(0) + alert.priority.slice(1).toLowerCase(),
-      isRead: alert.isRead,
-      read: alert.isRead,
-      createdAt: alert.createdAt,
-      dueDate: alert.dueDate,
-      workflowId: alert.workflowId,
-      stepId: alert.stepId,
-      relatedProject: {
-        _id: alert.project.id,
-        projectName: alert.project.projectName,
-        projectNumber: alert.project.projectNumber,
-        name: alert.project.customer?.primaryName || 'Unknown Customer'
-      },
-      metadata: {
+    const transformed = alerts.map(alert => {
+      // Transform the workflow step to get section and lineItem
+      const transformedStep = alert.step ? transformWorkflowStep(alert.step) : null;
+      
+      return {
+        _id: alert.id,
+        id: alert.id,
+        type: alert.type,
+        title: alert.title,
+        message: alert.message,
         stepName: alert.stepName,
-        cleanTaskName: alert.stepName,
-        projectId: alert.projectId,
-        projectName: alert.project.projectName,
-        projectNumber: alert.project.projectNumber,
-        customerName: alert.project.customer?.primaryName,
-        phase: alert.step?.phase || 'UNKNOWN',
+        priority: alert.priority.charAt(0) + alert.priority.slice(1).toLowerCase(),
+        isRead: alert.isRead,
+        read: alert.isRead,
+        createdAt: alert.createdAt,
+        dueDate: alert.dueDate,
         workflowId: alert.workflowId,
-        stepId: alert.stepId
-      }
-    }));
+        stepId: alert.stepId,
+        // CRITICAL: Add section and lineItem fields
+        section: transformedStep?.section || 'General Workflow',
+        lineItem: transformedStep?.lineItem || alert.stepName,
+        relatedProject: {
+          _id: alert.project.id,
+          projectName: alert.project.projectName,
+          projectNumber: alert.project.projectNumber,
+          name: alert.project.customer?.primaryName || 'Unknown Customer'
+        },
+        metadata: {
+          stepName: alert.stepName,
+          cleanTaskName: alert.stepName,
+          projectId: alert.projectId,
+          projectName: alert.project.projectName,
+          projectNumber: alert.project.projectNumber,
+          customerName: alert.project.customer?.primaryName,
+          phase: alert.step?.phase || 'UNKNOWN',
+          // CRITICAL: Add section and lineItem to metadata
+          section: transformedStep?.section || 'General Workflow',
+          lineItem: transformedStep?.lineItem || alert.stepName,
+          workflowId: alert.workflowId,
+          stepId: alert.stepId
+        }
+      };
+    });
     
     // Send paginated response
     sendPaginatedResponse(res, transformed, pageNum, limitNum, total, 'Alerts retrieved successfully');

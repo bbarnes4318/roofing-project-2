@@ -9,6 +9,7 @@ const {
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
 const { cacheService } = require('../config/redis');
+const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/workflowMapping');
 
 const router = express.Router();
 
@@ -103,8 +104,19 @@ const transformProjectForFrontend = (project) => {
       role: member.role || member.user?.role || ''
     })) : [],
     
-    // Workflow and phase mapping
-    workflow: project.workflow,
+    // Workflow and phase mapping with section/lineItem transformation
+    workflow: project.workflow ? {
+      ...project.workflow,
+      steps: project.workflow.steps ? project.workflow.steps.map(step => {
+        const transformedStep = transformWorkflowStep(step);
+        return {
+          ...transformedStep,
+          subTasks: step.subTasks ? step.subTasks.map(subTask => 
+            transformWorkflowSubTask(subTask, step)
+          ) : []
+        };
+      }) : []
+    } : null,
     phase: getProjectPhase(project),
     
     // Additional fields for compatibility
@@ -314,7 +326,17 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
                   stepName: true,
                   phase: true,
                   isCompleted: true,
-                  completedAt: true
+                  completedAt: true,
+                  actualStartDate: true,
+                  subTasks: {
+                    select: {
+                      id: true,
+                      subTaskId: true,
+                      subTaskName: true,
+                      isCompleted: true,
+                      completedAt: true
+                    }
+                  }
                 },
                 orderBy: {
                   stepId: 'asc'
