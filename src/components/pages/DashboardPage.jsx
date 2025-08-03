@@ -1588,13 +1588,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 console.log('🔄 RETRY: Dashboard state:', dashboardState);
                                 console.log('🔄 RETRY: Current error:', projectsError);
                                 try {
-                                  // Force a clean retry
-                                  setProjectsLoading?.(true);
                                   await refetchProjects();
                                   console.log('✅ RETRY: Successfully refetched projects');
                                 } catch (error) {
                                   console.error('❌ RETRY: Failed to refetch projects:', error);
                                   // If retry fails, offer page refresh
+                                  // eslint-disable-next-line no-restricted-globals
                                   if (confirm('Retry failed. Would you like to refresh the entire page?')) {
                                     window.location.reload();
                                   }
