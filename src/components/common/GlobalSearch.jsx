@@ -141,8 +141,9 @@ export default function GlobalSearch({
 
   useEffect(() => {
     const performSearch = async () => {
-      if (query.length < 2) {
+      if (query.length < 1) {
         setSearchResults([]);
+        setLoading(false);
         return;
       }
       setLoading(true);
@@ -171,7 +172,7 @@ export default function GlobalSearch({
       setLoading(false);
     };
 
-    const debounceTimeout = setTimeout(performSearch, 300);
+    const debounceTimeout = setTimeout(performSearch, 150);
     return () => clearTimeout(debounceTimeout);
   }, [query, searchService, nlSearchService]);
 
@@ -274,7 +275,7 @@ export default function GlobalSearch({
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsFocused(true)}
       />
-      {isFocused && query.length > 1 && (
+      {isFocused && query.length > 0 && (
         <div className={`search-results-dropdown ${colorMode ? 'bg-[#1e293b] border-gray-600' : ''}`}>
           {loading && <div className="search-result-item-message">Loading...</div>}
           {!loading && Object.keys(groupedResults).length === 0 && (
@@ -298,7 +299,11 @@ export default function GlobalSearch({
               
               {/* Results */}
               {results.map((result, index) => (
-                <div key={`${category}-${index}`} className="search-result-item">
+                <div 
+                  key={`${category}-${index}`} 
+                  className="search-result-item cursor-pointer"
+                  onClick={() => handleResultClick(result)}
+                >
                   <div className="project-info">
                     <span className={`phase-indicator ${phaseColorMap[result.data.phase] || 'phase-not-started'}`}></span>
                     <div className="project-details">
@@ -313,6 +318,13 @@ export default function GlobalSearch({
                         <Highlight 
                           text={result.subtitle} 
                           matches={getMatchesForField(result, 'client')} 
+                          query={query}
+                        />
+                      </span>
+                      <span className="text-xs text-gray-500 truncate">
+                        <Highlight 
+                          text={result.description} 
+                          matches={getMatchesForField(result, 'address')} 
                           query={query}
                         />
                       </span>

@@ -14,7 +14,7 @@ const formatPhoneNumber = (phone) => {
 const projectOptions = {
     includeScore: true,
     includeMatches: true,
-    threshold: 0.4,
+    threshold: 0.2,
     keys: [
         { name: "projectNumber", weight: 15 },
         { name: "name", weight: 12 },
@@ -44,7 +44,7 @@ const projectOptions = {
 const customerOptions = {
     includeScore: true,
     includeMatches: true,
-    threshold: 0.4,
+    threshold: 0.2,
     keys: [
         { name: "name", weight: 10 },
         { name: "primaryName", weight: 10 },
@@ -63,7 +63,7 @@ const customerOptions = {
 const messageOptions = {
     includeScore: true,
     includeMatches: true,
-    threshold: 0.4,
+    threshold: 0.2,
     keys: [
         { name: "subject", weight: 8 },
         { name: "content", weight: 6 },
@@ -156,8 +156,8 @@ export class SearchService {
             results.push(...this.formatMessageResults(messageResults));
         }
         
-        // Sort by Fuse score (lower is better)
-        return results.sort((a, b) => (a.fuseScore || 1) - (b.fuseScore || 1));
+        // Sort by Fuse score (lower is better) and limit total results
+        return results.sort((a, b) => (a.fuseScore || 1) - (b.fuseScore || 1)).slice(0, 50);
     }
 
     formatProjectResults(fuseResults) {

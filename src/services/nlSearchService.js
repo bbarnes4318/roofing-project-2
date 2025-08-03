@@ -23,7 +23,7 @@ class NaturalLanguageSearchService {
             const confidence = nlpResult.score || 0;
 
             // If confidence is too low, fall back to conventional search
-            if (confidence < 0.5) {
+            if (confidence < 0.3) {
                 console.log('🔍 Low NLP confidence, using conventional search');
                 return this.conventionalSearchService.search(query);
             }
