@@ -155,6 +155,9 @@ router.get('/', asyncHandler(async (req, res) => {
   const orderBy = {};
   orderBy[sortBy] = sortOrder === 'desc' ? 'desc' : 'asc';
 
+  console.log('🔍 CUSTOMERS: Starting query with params:', { search, page, limit, sortBy, sortOrder, withProjects });
+  console.log('🔍 CUSTOMERS: Where clause:', where);
+  
   try {
     // Execute query with pagination using Prisma
     const [customers, total] = await Promise.all([
@@ -185,13 +188,28 @@ router.get('/', asyncHandler(async (req, res) => {
       prisma.customer.count({ where })
     ]);
 
+    console.log(`🔍 CUSTOMERS: Found ${customers.length} customers from database`);
+    
     // Transform customers for frontend compatibility
-    const transformedCustomers = customers.map(transformCustomerForFrontend);
+    let transformedCustomers;
+    try {
+      transformedCustomers = customers.map(transformCustomerForFrontend);
+      console.log(`✅ CUSTOMERS: Transformed ${transformedCustomers.length} customers successfully`);
+    } catch (transformError) {
+      console.error('❌ CUSTOMERS: Error transforming customers:', transformError);
+      throw new AppError(`Failed to transform customer data: ${transformError.message}`, 500);
+    }
 
     sendPaginatedResponse(res, transformedCustomers, pageNum, limitNum, total, 'Customers retrieved successfully');
   } catch (error) {
     console.error('Error fetching customers:', error);
-    throw new AppError('Failed to fetch customers', 500);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    throw new AppError(`Failed to fetch customers: ${error.message}`, 500);
   }
 }));
 
