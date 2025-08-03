@@ -304,20 +304,17 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
           workflow: {
             select: {
               id: true,
-              currentPhase: true,
-              isActive: true,
+              currentStepIndex: true,
+              overallProgress: true,
+              status: true,
               steps: {
                 select: {
                   id: true,
                   stepId: true,
+                  stepName: true,
                   phase: true,
-                  section: true,
-                  lineItem: true,
                   isCompleted: true,
                   completedAt: true
-                },
-                where: {
-                  isActive: true
                 },
                 orderBy: {
                   stepId: 'asc'
