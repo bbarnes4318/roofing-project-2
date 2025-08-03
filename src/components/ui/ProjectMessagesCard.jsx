@@ -224,16 +224,16 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     
                     {/* Row 2: Last Response and Original Subject */}
                     <div className="flex items-center gap-1.5 mt-0 overflow-hidden">
-                        {/* Last Response - shifted 2 spaces right, no width restriction to prevent cutoff */}
+                        {/* Last Response - moved 1 space left for perfect alignment */}
                         <span 
                             className={`text-[9px] font-medium flex-shrink-0 whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                            style={{ marginLeft: '16px', textAlign: 'left' }}
+                            style={{ marginLeft: '8px', textAlign: 'left' }}
                         >
                             Last Response: {lastMessage.user}
                         </span>
                         
-                        {/* Original Subject - shifted 10 spaces right */}
-                        <span className={`text-[9px] truncate flex-1 overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`} style={{ marginLeft: '80px' }}>
+                        {/* Original Subject - moved 5 spaces left, aligned with baseline */}
+                        <span className={`text-[9px] truncate flex-1 overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`} style={{ marginLeft: '40px' }}>
                             Original Subject: {subject}
                         </span>
                         
