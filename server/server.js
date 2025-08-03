@@ -27,7 +27,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const projectRoutes = require('./routes/projects');
 const taskRoutes = require('./routes/tasks');
-// const activityRoutes = require('./routes/activities'); // Removed - Activity model doesn't exist
+const activityRoutes = require('./routes/activities'); // Re-added - now uses Message model
 const messageRoutes = require('./routes/messages');
 const documentRoutes = require('./routes/documents');
 const calendarRoutes = require('./routes/calendar');
@@ -589,7 +589,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/tasks', taskRoutes);
-// app.use('/api/activities', activityRoutes); // Removed - Activity model doesn't exist
+app.use('/api/activities', activityRoutes); // Re-added - now uses Message model
 app.use('/api/messages', messageRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/calendar-events', calendarRoutes);
