@@ -255,7 +255,7 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
   orderBy[sortBy] = sortOrder === 'desc' ? 'desc' : 'asc';
 
   try {
-    // Execute query with pagination and population using Prisma
+    // Execute simplified query to avoid include errors
     const [projects, total] = await Promise.all([
       prisma.project.findMany({
         where,
@@ -263,75 +263,9 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
         skip,
         take: limitNum,
         include: {
-          customer: {
-            select: {
-              id: true,
-              primaryName: true,
-              primaryEmail: true,
-              primaryPhone: true,
-              secondaryName: true,
-              secondaryEmail: true,
-              secondaryPhone: true,
-              address: true
-            }
-          },
-          projectManager: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-              role: true
-            }
-          },
-          teamMembers: {
-            select: {
-              id: true,
-              role: true,
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
-                  role: true
-                }
-              }
-            },
-            take: 10 // Limit team members for performance
-          },
-          workflow: {
-            select: {
-              id: true,
-              currentPhase: true,
-              isActive: true,
-              steps: {
-                select: {
-                  id: true,
-                  stepId: true,
-                  phase: true,
-                  section: true,
-                  lineItem: true,
-                  isCompleted: true,
-                  completedAt: true
-                },
-                where: {
-                  isActive: true
-                },
-                orderBy: {
-                  stepId: 'asc'
-                }
-              }
-            }
-          },
-          _count: {
-            select: {
-              tasks: true,
-              documents: true,
-              workflowAlerts: true
-            }
-          }
+          customer: true,
+          projectManager: true,
+          workflow: true
         }
       }),
       prisma.project.count({ where })
