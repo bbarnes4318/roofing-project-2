@@ -52,7 +52,17 @@ const alertRoutes = require('./routes/alerts').router;
 const testRoutes = require('./routes/test');
 const workflowUpdateRoutes = require('./routes/workflowUpdates');
 const phaseOverrideRoutes = require('./routes/phaseOverride');
-const workflowImportRoutes = require('./routes/workflowImport');
+
+// Try to load workflow import routes (requires xlsx, csv-parse, multer)
+let workflowImportRoutes;
+try {
+  console.log('🔧 SERVER: Loading workflow import routes...');
+  workflowImportRoutes = require('./routes/workflowImport');
+  console.log('✅ SERVER: Workflow import routes loaded successfully');
+} catch (error) {
+  console.error('⚠️ SERVER: Workflow import routes not available:', error.message);
+  console.log('⚠️ SERVER: Workflow import functionality will be disabled');
+}
 
 // Import services - TEMPORARILY DISABLED FOR POSTGRESQL MIGRATION
 // const WorkflowAlertService = require('./services/WorkflowAlertService');
@@ -606,7 +616,12 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/workflow-updates', workflowUpdateRoutes);
 app.use('/api/phase-override', phaseOverrideRoutes);
-app.use('/api/workflow-import', workflowImportRoutes);
+if (workflowImportRoutes) {
+  app.use('/api/workflow-import', workflowImportRoutes);
+  console.log('✅ SERVER: Workflow import routes registered at /api/workflow-import');
+} else {
+  console.log('⚠️ SERVER: Workflow import routes not registered due to missing dependencies');
+}
 app.use('/api/search', searchRoutes);
 
 // Serve React build files in production

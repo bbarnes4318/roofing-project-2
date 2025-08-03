@@ -23,7 +23,8 @@ WORKDIR /app
 
 # Copy backend package files
 COPY server/package*.json ./
-RUN npm install
+# Install all dependencies including xlsx, csv-parse, multer
+RUN npm install --production=false
 
 # Copy backend source
 COPY server ./
