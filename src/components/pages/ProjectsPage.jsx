@@ -486,17 +486,57 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 <div className={`p-2 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
                     <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                            {/* Project Number in top-left */}
-                            <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-900'} truncate mb-0.5`}>
-                                Project #{project.projectNumber || '12345'}
+                            {/* Project Number in top-left - no 'Project #' text */}
+                            <h3 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'} truncate mb-2`}>
+                                {project.projectNumber || '12345'}
                             </h3>
-                            {/* Customer Name below project number */}
-                            <div className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                {project.client?.name || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
-                            </div>
-                            {/* Customer Address below customer name */}
-                            <div className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
+                            
+                            {/* Redesigned Customer Information Area */}
+                            <div className="space-y-3">
+                                {/* Customer Name - Larger, more prominent */}
+                                <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
+                                    {project.client?.name || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
+                                </div>
+                                
+                                {/* Customer Contact Information - Phone and Email in clean layout */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
+                                            <span className="text-xs">📞</span>
+                                        </div>
+                                        <a 
+                                            href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '(555) 000-0000').replace(/[^\d+]/g, '')}`}
+                                            className={`text-sm font-semibold hover:underline transition-colors ${
+                                                colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-700 hover:text-blue-900'
+                                            }`}
+                                        >
+                                            {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '(555) 000-0000'}
+                                        </a>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
+                                            <span className="text-xs">✉️</span>
+                                        </div>
+                                        <a 
+                                            href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'customer@email.com'}`}
+                                            className={`text-sm font-semibold hover:underline transition-colors ${
+                                                colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-700 hover:text-green-900'
+                                            }`}
+                                        >
+                                            {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'customer@email.com'}
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                {/* Customer Address - Better styling with icon background */}
+                                <div className="flex items-start gap-3">
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${colorMode ? 'bg-purple-500/20' : 'bg-purple-50'}`}>
+                                        <span className="text-xs">📍</span>
+                                    </div>
+                                    <div className={`text-sm ${colorMode ? 'text-gray-200' : 'text-gray-700'} font-medium leading-relaxed flex-1`}>
+                                        {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         {/* Project Phase and Type on the right */}
