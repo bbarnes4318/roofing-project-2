@@ -2282,7 +2282,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </span>
                               
                               {/* Customer with dropdown arrow - Moved 2 more spaces left */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '3px'}}>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '2px'}}>
                                 <button 
                                   ref={(el) => alertContactButtonRefs.current[alertId] = el}
                                   className={`text-[9px] font-semibold cursor-pointer hover:underline ${
