@@ -6,7 +6,8 @@ import DraggablePopup from '../ui/DraggablePopup';
 import ProjectCubes from '../dashboard/ProjectCubes';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useApi';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
+import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -128,7 +129,7 @@ const convertProjectToTableFormat = (project) => {
 const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colorMode, dashboardState }) => {
   console.log('🔍 DASHBOARD: Component rendering...');
   // Use database data instead of props
-  const { data: projectsData, loading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
+  const { data: projectsData, isLoading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
   const projects = projectsData || [];
   
   // Get subjects from context
@@ -238,7 +239,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [actionLoading, setActionLoading] = useState({});
   
   // Fetch real alerts from API
-  const { alerts: workflowAlerts, loading: alertsLoading, error: alertsError, refresh: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'active' });
+  const { data: workflowAlerts, isLoading: alertsLoading, error: alertsError, refetch: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'active' });
   
   // Debug alerts loading
   console.log('🔍 DASHBOARD: Alerts loading state:', alertsLoading);

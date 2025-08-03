@@ -7,7 +7,7 @@ import TasksAndAlertsPage from './TasksAndAlertsPage';
 import ProjectTimeline from '../../dashboard/ProjectTimeline';
 import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useWorkflowAlerts } from '../../hooks/useApi';
+import { useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { teamMembers } from '../../data/mockData';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';

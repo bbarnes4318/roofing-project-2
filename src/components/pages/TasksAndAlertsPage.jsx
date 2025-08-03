@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useApi';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';

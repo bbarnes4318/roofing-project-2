@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
   ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, UserGroupIcon, FolderIcon, ArchiveBoxIcon
 } from './components/common/Icons';
@@ -22,6 +24,35 @@ import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
 import { SubjectsProvider } from './contexts/SubjectsContext';
 import './App.css';
+
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // How long the data stays fresh (stale time)
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      // How long the data stays in cache when not being used
+      gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
+      // Retry failed requests
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
+          return false;
+        }
+        // Retry up to 3 times for other errors
+        return failureCount < 3;
+      },
+      // Refetch on window focus for fresh data
+      refetchOnWindowFocus: true,
+      // Refetch when coming back online
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      // Retry mutations once on failure
+      retry: 1,
+    },
+  },
+});
 
 export default function App() {
     const [activePage, setActivePage] = useState('Overview');
@@ -668,7 +699,8 @@ export default function App() {
     };
 
     return (
-        <SubjectsProvider>
+        <QueryClientProvider client={queryClient}>
+            <SubjectsProvider>
             <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
               ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
               : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
@@ -982,5 +1014,7 @@ export default function App() {
             </main>
         </div>
         </SubjectsProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
     );
 }

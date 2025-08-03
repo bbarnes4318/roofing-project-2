@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { ChatBubbleLeftRightIcon, ClipboardDocumentCheckIcon, ExclamationTriangleIcon, CalendarIcon, FolderIcon } from '../common/Icons';
 import { getStatusStyles, formatPhoneNumber } from '../../utils/helpers';
 import Modal from '../common/Modal';
-import { useApiCall, useCreateProject, useCustomers, useProjects } from '../../hooks/useApi';
+import { useProjects, useCustomers, useCreateProject } from '../../hooks/useQueryApi';
 import { projectsService } from '../../services/api';
+import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
 
@@ -35,11 +36,11 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [projectToArchive, setProjectToArchive] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
-    const { createProject, loading: createLoading, error: createError } = useCreateProject();
-    const { data: customersData, loading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
+    const createProjectMutation = useCreateProject();
+    const { data: customersData, isLoading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
     
     // Fetch projects directly from database
-    const { data: projectsFromDb, loading: projectsLoading, error: projectsError } = useProjects({ limit: 100 });
+    const { data: projectsFromDb, isLoading: projectsLoading, error: projectsError } = useProjects({ limit: 100 });
     
     // CRITICAL: Use centralized workflow states for 100% consistency
     const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
@@ -366,21 +367,19 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 description: `Project #${newProject.projectNumber}` // Clean description without contact info
             };
 
-            const response = await createProject(projectData);
+            const response = await createProjectMutation.mutateAsync(projectData);
             
-            if (response.success) {
-                // Close modal and reset form
-                setIsModalOpen(false);
-                setNewProject(defaultNewProject);
-                
-                // Optionally trigger a refresh of the projects list
-                if (onCreateProject) {
-                    onCreateProject(response.data.project);
-                }
-                
-                // Show success message
-                console.log('Project created successfully:', response.data.project);
+            // Close modal and reset form
+            setIsModalOpen(false);
+            setNewProject(defaultNewProject);
+            
+            // Optionally trigger a refresh of the projects list
+            if (onCreateProject) {
+                onCreateProject(response.data || response);
             }
+            
+            // Show success message
+            console.log('Project created successfully:', response.data || response);
         } catch (err) {
             console.error('Error creating project:', err);
             setError(err.message || 'Failed to create project');
@@ -900,46 +899,35 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
             {/* Loading state */}
             {projectsLoading ? (
-                <div className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg p-6 text-center`}>
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
-                    <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        Loading projects...
-                    </p>
+                <div className="space-y-3">
+                    {[1, 2, 3].map(i => (
+                        <ProjectCardSkeleton key={i} colorMode={colorMode} />
+                    ))}
                 </div>
             ) : projectsError ? (
-                <div className={`${colorMode ? 'bg-red-900/20 border-red-600/50' : 'bg-red-50 border-red-200'} border rounded-lg p-6 text-center`}>
-                    <div className="mb-3">
-                        <svg className="mx-auto h-10 w-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                    </div>
-                    <h3 className={`text-base font-semibold ${colorMode ? 'text-red-300' : 'text-red-800'}`}>Error loading projects</h3>
-                    <p className={`mt-1 text-sm ${colorMode ? 'text-red-400' : 'text-red-600'}`}>
-                        {projectsError}
-                    </p>
-                </div>
+                <ErrorState 
+                    message={projectsError?.message || 'Unable to load projects. Please try again.'}
+                    onRetry={() => window.location.reload()}
+                    colorMode={colorMode}
+                />
             ) : projectsArray.length === 0 ? (
-                <div className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg p-6 text-center`}>
-                    <div className="mb-3">
-                        <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </div>
-                    <h3 className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>No projects yet</h3>
-                    <p className={`mt-1 text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        Get started by creating your first project
-                    </p>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className={`mt-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            colorMode
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-blue-500 hover:bg-blue-600 text-white'
-                        }`}
-                    >
-                        Create Your First Project
-                    </button>
-                </div>
+                <EmptyState 
+                    title="No projects yet"
+                    description="Get started by creating your first project"
+                    action={
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className={`mt-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                colorMode
+                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                            }`}
+                        >
+                            Create Your First Project
+                        </button>
+                    }
+                    colorMode={colorMode}
+                />
             ) : (
                 <div className="space-y-3">
                     {projectsArray.map((p) => (<ProjectCard key={p.id} project={p} />))}
@@ -1146,8 +1134,10 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 ))}
                             </div>
                         </div>
-                        {error && (
-                            <div className="text-red-500 text-sm">{error}</div>
+                        {(error || createProjectMutation.error) && (
+                            <div className="text-red-500 text-sm">
+                                {error || createProjectMutation.error?.message || 'An error occurred'}
+                            </div>
                         )}
                         <div className="flex justify-end space-x-3 pt-4">
                             <button
@@ -1167,9 +1157,13 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200"
+                                disabled={createProjectMutation.isLoading}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
                             >
-                                Create Project
+                                {createProjectMutation.isLoading && (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                )}
+                                {createProjectMutation.isLoading ? 'Creating...' : 'Create Project'}
                             </button>
                         </div>
                     </form>

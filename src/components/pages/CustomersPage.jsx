@@ -13,7 +13,7 @@ import {
   EnvelopeIcon,
   MapPinIcon
 } from '../common/Icons';
-import { useCustomers, useCreateCustomer } from '../../hooks/useApi';
+import { useCustomers, useCreateCustomer } from '../../hooks/useQueryApi';
 import { customersService } from '../../services/api';
 import Modal from '../common/Modal';
 
