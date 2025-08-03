@@ -1878,9 +1878,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       )}
 
       {/* Main Dashboard Layout - Two Column */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 items-start overflow-visible">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 mb-12 items-start overflow-visible">
         {/* Left Column - Project Messages */}
-        <div className="w-full" data-section="project-messages">
+        <div className="w-full pr-3" data-section="project-messages">
           <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
@@ -2155,7 +2155,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </div>
         </div>
         {/* Right Column - Current Alerts */}
-        <div className="w-full" data-section="current-alerts">
+        <div className="w-full pl-3" data-section="current-alerts">
           <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
@@ -2255,7 +2255,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             </div>
             
             {/* Horizontal line to match Project Messages alignment */}
-            <div className={`border-t mb-3 mt-3 ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+            <div className={`border-t mb-3 mt-0 ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
             
             <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
               {getPaginatedAlerts().length === 0 ? (
