@@ -135,10 +135,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         const alertsData = workflowAlerts && workflowAlerts.length > 0 ? workflowAlerts : [];
         let filteredAlerts = [...alertsData];
         
-        // Apply project filter
+        // CRITICAL: Always filter by current project when in project detail view
+        filteredAlerts = filteredAlerts.filter(alert => {
+            const projectId = alert.actionData?.projectId || alert.metadata?.projectId || alert.projectId || alert.relatedProject?._id || alert.relatedProject?.id;
+            return projectId === project.id || String(projectId) === String(project.id) || projectId === project._id || String(projectId) === String(project._id);
+        });
+        
+        // Apply additional project filter (if user has applied a specific filter)
         if (alertProjectFilter !== 'all') {
             filteredAlerts = filteredAlerts.filter(alert => {
-                const projectId = alert.actionData?.projectId || alert.metadata?.projectId;
+                const projectId = alert.actionData?.projectId || alert.metadata?.projectId || alert.projectId;
                 return projectId === alertProjectFilter || String(projectId) === String(alertProjectFilter);
             });
         }
@@ -354,7 +360,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         const allActivities = activities || messagesData || [];
         
         let filteredActivities = allActivities.filter(activity => {
-            // Project filter
+            // CRITICAL: Always filter by current project when in project detail view
+            if (activity.projectId !== project.id && activity.projectId !== parseInt(project.id)) {
+                return false;
+            }
+            
+            // Additional project filter (if user has applied a specific filter)
             if (activityProjectFilter && activity.projectId !== parseInt(activityProjectFilter)) {
                 return false;
             }

@@ -5,12 +5,13 @@ import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
 import PhaseOverrideButton from '../ui/PhaseOverrideButton';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 
 const checklistPhases = [
   {
     id: 'LEAD',
-    label: '🟨 Lead Phase',
+    label: 'Lead Phase',
     items: [
       {
         id: 'input-customer-info',
@@ -59,7 +60,7 @@ const checklistPhases = [
   },
   {
     id: 'PROSPECT',
-    label: '🟧 Prospect Phase',
+    label: 'Prospect Phase',
     items: [
       {
         id: 'site-inspection',
@@ -116,7 +117,7 @@ const checklistPhases = [
   },
   {
     id: 'PROSPECT_NON_INSURANCE',
-    label: '🟪 Prospect: Non-Insurance Phase',
+    label: 'Prospect: Non-Insurance Phase',
     items: [
       {
         id: 'write-estimate-non-insurance',
@@ -142,7 +143,7 @@ const checklistPhases = [
   },
   {
     id: 'APPROVED',
-    label: '🟩 Approved Phase',
+    label: 'Approved Phase',
     items: [
       {
         id: 'admin-setup',
@@ -201,7 +202,7 @@ const checklistPhases = [
   },
   {
     id: 'EXECUTION',
-    label: '🔧 Execution Phase',
+    label: 'Execution Phase',
     items: [
       {
         id: 'installation',
@@ -262,7 +263,7 @@ const checklistPhases = [
   },
   {
     id: 'SUPPLEMENT',
-    label: '🌀 2nd Supplement Phase',
+    label: '2nd Supplement Phase',
     items: [
       {
         id: 'create-supp',
@@ -302,7 +303,7 @@ const checklistPhases = [
   },
   {
     id: 'COMPLETION',
-    label: '🏁 Completion Phase',
+    label: 'Completion Phase',
     items: [
       {
         id: 'financial-processing',
@@ -371,6 +372,23 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [highlightedStep, setHighlightedStep] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
+  
+  // Get phase colors from WorkflowProgressService to match dashboard
+  const getPhaseColor = (phaseId) => {
+    // Map phase IDs to the color service's expected format
+    const phaseMap = {
+      'LEAD': 'LEAD',
+      'PROSPECT': 'PROSPECT', 
+      'PROSPECT_NON_INSURANCE': 'PROSPECT',
+      'APPROVED': 'APPROVED',
+      'EXECUTION': 'EXECUTION',
+      'SUPPLEMENT': 'SUPPLEMENT',
+      'COMPLETION': 'COMPLETION'
+    };
+    
+    const mappedPhase = phaseMap[phaseId] || 'LEAD';
+    return WorkflowProgressService.getPhaseColor(mappedPhase);
+  };
   
   // Real-time updates for phase override
   const { updates } = useRealTimeUpdates(project?._id || project?.id);
@@ -1620,12 +1638,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
             });
             console.log(`🔍 PHASE COMPLETION: Phase ${phase.id} all tasks completed: ${allTasksCompleted}`);
             return (
-              <div key={`${phase.id}-${workflowData?._forceRender || 0}`} data-phase-id={phase.id} className="bg-white p-2 rounded border border-gray-200 shadow-sm text-left">
+              <div key={`${phase.id}-${workflowData?._forceRender || 0}`} data-phase-id={phase.id} className={`p-2 rounded border shadow-sm text-left ${getPhaseColor(phase.id).bg}`}>
                 <div
                   className="flex justify-between items-start cursor-pointer select-none text-left"
                   onClick={() => handlePhaseClick(phase.id)}
                 >
-                  <h3 className={`text-xs font-semibold text-gray-800 text-left transition-all duration-200 ${allTasksCompleted ? 'line-through text-green-700' : ''}`}
+                  <h3 className={`text-xs font-semibold text-left transition-all duration-200 ${allTasksCompleted ? 'line-through text-green-700' : getPhaseColor(phase.id).text}`}
                   >
                     {phase.label} {allTasksCompleted && <span title="Phase Complete" className="ml-1">🎉</span>}
                   </h3>
