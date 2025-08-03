@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { SearchService } from "../../services/searchService";
+import NaturalLanguageSearchService from "../../services/nlSearchService";
 import "./GlobalSearch.css";
 
 // Helper component for highlighting matched text using Fuse.js matches
@@ -66,6 +67,49 @@ const Highlight = ({ text, matches = [], query = "" }) => {
   return <span>{result}</span>;
 };
 
+// Helper function to detect natural language queries
+const isNaturalLanguageQuery = (query) => {
+  const nlIndicators = [
+    // Intent verbs
+    'show', 'find', 'get', 'list', 'search', 'display',
+    // Time references
+    'last', 'past', 'previous', 'this', 'current', 'today', 'yesterday',
+    'week', 'month', 'quarter', 'year',
+    // Status words
+    'completed', 'finished', 'done', 'progress', 'ongoing', 'pending',
+    'active', 'hold', 'paused',
+    // Phase words
+    'lead', 'approved', 'execution', 'completion',
+    // Project types
+    'roof', 'roofing', 'repair', 'replacement', 'inspection',
+    // Question words
+    'what', 'which', 'who', 'when', 'where', 'how',
+    // Connective words that indicate natural language
+    'from', 'with', 'all', 'projects', 'customers'
+  ];
+  
+  const queryLower = query.toLowerCase();
+  const words = queryLower.split(/\s+/);
+  
+  // Check if query contains multiple words (3+) with natural language indicators
+  if (words.length >= 3) {
+    const hasNLIndicator = nlIndicators.some(indicator => queryLower.includes(indicator));
+    return hasNLIndicator;
+  }
+  
+  // Check for specific natural language patterns
+  const nlPatterns = [
+    /show me.*projects/i,
+    /find.*projects/i,
+    /projects from/i,
+    /completed.*projects/i,
+    /.*last (week|month|quarter|year)/i,
+    /.*this (week|month)/i
+  ];
+  
+  return nlPatterns.some(pattern => pattern.test(query));
+};
+
 // Main search component
 export default function GlobalSearch({ 
   projects = [], 
@@ -82,9 +126,15 @@ export default function GlobalSearch({
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef(null);
 
-  // Initialize search service with data
+  // Initialize both conventional and NL search services
   const searchService = useMemo(() => {
     const service = new SearchService();
+    service.updateData({ projects, activities });
+    return service;
+  }, [projects, activities]);
+
+  const nlSearchService = useMemo(() => {
+    const service = new NaturalLanguageSearchService();
     service.updateData({ projects, activities });
     return service;
   }, [projects, activities]);
@@ -97,15 +147,33 @@ export default function GlobalSearch({
       }
       setLoading(true);
       
-      // Use the search service instead of the promise-based interface
-      const results = searchService.search(query);
-      setSearchResults(results);
+      try {
+        // Determine if this looks like a natural language query
+        const isNaturalLanguage = isNaturalLanguageQuery(query);
+        
+        let results;
+        if (isNaturalLanguage) {
+          console.log('🤖 Using NL search for:', query);
+          results = await nlSearchService.search(query);
+        } else {
+          console.log('🔍 Using conventional search for:', query);
+          results = searchService.search(query);
+        }
+        
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search error:', error);
+        // Fallback to conventional search on error
+        const fallbackResults = searchService.search(query);
+        setSearchResults(fallbackResults);
+      }
+      
       setLoading(false);
     };
 
-    const debounceTimeout = setTimeout(performSearch, 250);
+    const debounceTimeout = setTimeout(performSearch, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [query, searchService]);
+  }, [query, searchService, nlSearchService]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -201,7 +269,7 @@ export default function GlobalSearch({
       <input
         type="text"
         className={`global-search-input ${colorMode ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' : ''}`}
-        placeholder="Search projects, clients, materials..."
+        placeholder="Search or ask: 'show me completed projects from last month'"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsFocused(true)}

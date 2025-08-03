@@ -30,6 +30,7 @@ const aiRoutes = require('./routes/ai');
 const healthRoutes = require('./routes/health');
 const customerRoutes = require('./routes/customers');
 const notificationRoutes = require('./routes/notifications');
+const searchRoutes = require('./routes/search');
 
 let workflowRoutes;
 try {
@@ -585,6 +586,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/workflow-updates', workflowUpdateRoutes);
 app.use('/api/phase-override', phaseOverrideRoutes);
+app.use('/api/search', searchRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
