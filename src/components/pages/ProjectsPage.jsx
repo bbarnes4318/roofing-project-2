@@ -482,93 +482,130 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 data-project-id={String(project.id)}
                 className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md`}
             >
-                {/* Compact Header */}
+                {/* Compact Header - Project Number and Phase */}
                 <div className={`p-2 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
                     <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                            <h3 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} truncate mb-0.5`}>
-                                {project.name || project.projectName}
+                            {/* Project Number in top-left */}
+                            <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-900'} truncate mb-0.5`}>
+                                Project #{project.projectNumber || '12345'}
                             </h3>
-                            <div className="flex items-center gap-2">
-                                {(() => {
-                                    // Use centralized phase detection
-                                    const projectPhase = WorkflowProgressService.getProjectPhase(project);
-                                    const phaseColors = WorkflowProgressService.getPhaseColor(projectPhase);
-                                    return (
-                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium ${phaseColors.bg} ${phaseColors.text}`}>
-                                            {projectPhase}
-                                        </span>
-                                    );
-                                })()}
-                                <span className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    {tradesDisplay}
-                                </span>
+                            {/* Customer Name below project number */}
+                            <div className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                {project.client?.name || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
                             </div>
+                            {/* Customer Address below customer name */}
+                            <div className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
+                            </div>
+                        </div>
+                        {/* Project Phase and Type on the right */}
+                        <div className="flex items-center gap-2">
+                            {(() => {
+                                // Use centralized phase detection
+                                const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                                const phaseColors = WorkflowProgressService.getPhaseColor(projectPhase);
+                                return (
+                                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium ${phaseColors.bg} ${phaseColors.text}`}>
+                                        {projectPhase}
+                                    </span>
+                                );
+                            })()}
+                            <span className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {tradesDisplay}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Compact Customer Info */}
+                {/* Secondary Contacts and Project Manager - All three boxes in one row */}
                 <div className="p-2 space-y-2">
-                    <div className="grid grid-cols-3 gap-3 items-start">
-                        {/* Customer Info Section - 1/3 width */}
-                        <div className="flex items-start gap-1.5">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${colorMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'}`}>
-                                👤
+                    <div className="grid grid-cols-3 gap-2">
+                        {/* Secondary Customer 1 */}
+                        <div className={`p-2 rounded-lg border ${colorMode ? 'bg-slate-700/30 border-slate-600/40' : 'bg-gray-50 border-gray-200'}`}>
+                            <div className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
+                                {project.customer?.secondaryName || 'Secondary Customer'}
                             </div>
-                            <div className="flex-1">
-                                <div className={`text-xs font-medium ${colorMode ? 'text-white' : 'text-gray-900'} mb-0.5`}>
-                                    {project.client?.name || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">📞</span>
+                                    <a 
+                                        href={`tel:${project.customer?.secondaryPhone || '(555) 000-0001'}`}
+                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                    >
+                                        {project.customer?.secondaryPhone || '(555) 000-0001'}
+                                    </a>
                                 </div>
-                                <div className="space-y-0.5">
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[10px]">📞</span>
-                                        <a 
-                                            href={`tel:${project.client?.phone || project.customer?.phoneNumber || '(555) 000-0000'}`}
-                                            className={`text-[9px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
-                                        >
-                                            {project.client?.phone || project.customer?.phoneNumber || '(555) 000-0000'}
-                                        </a>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[10px]">✉️</span>
-                                        <a 
-                                            href={`mailto:${project.client?.email || project.customer?.email || 'customer@email.com'}`}
-                                            className={`text-[9px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
-                                        >
-                                            {project.client?.email || project.customer?.email || 'customer@email.com'}
-                                        </a>
-                                    </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">✉️</span>
+                                    <a 
+                                        href={`mailto:${project.customer?.secondaryEmail || 'secondary@email.com'}`}
+                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                    >
+                                        {project.customer?.secondaryEmail || 'secondary@email.com'}
+                                    </a>
                                 </div>
                             </div>
                         </div>
                         
-                        {/* Materials Section - 1/3 width */}
-                        <div className={`p-2 rounded-lg opacity-50 ${colorMode ? 'bg-slate-600/30 border border-slate-500/20' : 'bg-gray-100 border border-gray-300'}`}>
-                            <div className="flex items-center gap-1 mb-1">
-                                <span className="text-sm opacity-60">📦</span>
-                                <span className={`text-xs font-semibold ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    Materials
-                                </span>
+                        {/* Secondary Customer 2 */}
+                        <div className={`p-2 rounded-lg border ${colorMode ? 'bg-slate-700/30 border-slate-600/40' : 'bg-gray-50 border-gray-200'}`}>
+                            <div className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
+                                Secondary Customer 2
                             </div>
-                            <div className={`text-xs font-bold ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {project.materialsDeliveryStart ? project.materialsDeliveryStart : 'TBD'}
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">📞</span>
+                                    <a 
+                                        href="tel:(555) 000-0002"
+                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                    >
+                                        (555) 000-0002
+                                    </a>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">✉️</span>
+                                    <a 
+                                        href="mailto:secondary2@email.com"
+                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                    >
+                                        secondary2@email.com
+                                    </a>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Labor Section - 1/3 width */}
-                        <div className={`p-2 rounded-lg opacity-50 ${colorMode ? 'bg-slate-600/30 border border-slate-500/20' : 'bg-gray-100 border border-gray-300'}`}>
-                            <div className="flex items-center gap-1 mb-1">
-                                <span className="text-sm opacity-60">👷</span>
-                                <span className={`text-xs font-semibold ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    Labor
-                                </span>
+                        
+                        {/* Project Manager - Third box beside secondary contacts */}
+                        <div className={`p-2 rounded-lg border ${colorMode ? 'bg-slate-700/30 border-slate-600/40' : 'bg-gray-50 border-gray-200'}`}>
+                            <div className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
+                                PM: {project.projectManager?.firstName || project.projectManager?.name || 'Mike Rodriguez'}
                             </div>
-                            <div className={`text-xs font-bold ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {project.laborStart ? project.laborStart : 'TBD'}
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">📞</span>
+                                    <a 
+                                        href={`tel:${project.projectManager?.phone || '(555) 234-5678'}`}
+                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                    >
+                                        {project.projectManager?.phone || '(555) 234-5678'}
+                                    </a>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">✉️</span>
+                                    <a 
+                                        href={`mailto:${project.projectManager?.email || 'mike@company.com'}`}
+                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                    >
+                                        {project.projectManager?.email || 'mike@company.com'}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                {/* Keep the existing content below this */}
+                <div className="p-2 space-y-2">
 
                     {/* Progress Bar Section - Full Width */}
                     <div className={`p-2 rounded-lg transition-all duration-200 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'} ${expandedProgress[`${project.id}-materials-labor`] ? (colorMode ? 'border-4 border-blue-400' : 'border-4 border-blue-500') : ''}`}>
