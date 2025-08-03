@@ -98,7 +98,7 @@ const generateMockAlerts = async () => {
 // @desc    Get all alerts for current user (or all alerts if user has permission)
 // @route   GET /api/alerts
 // @access  Private
-router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, res) => {
+router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, res, next) => {
   const {
     status = 'ACTIVE',
     priority,
@@ -128,8 +128,9 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
 
   console.log('🚨 ALERTS ROUTE: Fetching workflow alerts...');
   
-  // Execute query with pagination
-  const [alerts, total] = await Promise.all([
+  try {
+    // Execute query with pagination
+    const [alerts, total] = await Promise.all([
     prisma.workflowAlert.findMany({
       where,
       skip,
