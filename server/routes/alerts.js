@@ -131,7 +131,7 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
   try {
     // Execute query with pagination
     const [alerts, total] = await Promise.all([
-    prisma.workflowAlert.findMany({
+      prisma.workflowAlert.findMany({
       where,
       skip,
       take: limitNum,
