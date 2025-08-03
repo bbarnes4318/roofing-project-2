@@ -482,105 +482,233 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 data-project-id={String(project.id)}
                 className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md`}
             >
-                {/* Compact Header - Project Number and Phase */}
-                <div className={`p-2 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                            {/* Project Number in top-left - no 'Project #' text */}
-                            <h3 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'} truncate mb-2`}>
+                {/* Redesigned Header - Project Number with Phase and Type */}
+                <div className={`p-3 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className="flex items-start justify-between">
+                        {/* Left side - Project Number with Phase and Type */}
+                        <div className="flex items-center gap-3">
+                            <h3 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                 {project.projectNumber || '12345'}
                             </h3>
-                            
-                            {/* Redesigned Customer Information Area */}
-                            <div className="space-y-3">
-                                {/* Customer Name - Larger, more prominent */}
-                                <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
-                                    {project.client?.name || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
-                                </div>
-                                
-                                {/* Customer Contact Information - Phone and Email in clean layout */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
-                                            <span className="text-xs">📞</span>
-                                        </div>
-                                        <a 
-                                            href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '(555) 000-0000').replace(/[^\d+]/g, '')}`}
-                                            className={`text-sm font-semibold hover:underline transition-colors ${
-                                                colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-700 hover:text-blue-900'
-                                            }`}
-                                        >
-                                            {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '(555) 000-0000'}
-                                        </a>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
-                                            <span className="text-xs">✉️</span>
-                                        </div>
-                                        <a 
-                                            href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'customer@email.com'}`}
-                                            className={`text-sm font-semibold hover:underline transition-colors ${
-                                                colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-700 hover:text-green-900'
-                                            }`}
-                                        >
-                                            {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'customer@email.com'}
-                                        </a>
-                                    </div>
-                                </div>
-                                
-                                {/* Customer Address - Better styling with icon background */}
-                                <div className="flex items-start gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${colorMode ? 'bg-purple-500/20' : 'bg-purple-50'}`}>
-                                        <span className="text-xs">📍</span>
-                                    </div>
-                                    <div className={`text-sm ${colorMode ? 'text-gray-200' : 'text-gray-700'} font-medium leading-relaxed flex-1`}>
-                                        {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Project Phase and Type on the right */}
-                        <div className="flex items-center gap-2">
                             {(() => {
                                 // Use centralized phase detection
                                 const projectPhase = WorkflowProgressService.getProjectPhase(project);
                                 const phaseColors = WorkflowProgressService.getPhaseColor(projectPhase);
                                 return (
-                                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium ${phaseColors.bg} ${phaseColors.text}`}>
+                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border ${colorMode ? 'border-slate-500/30' : 'border-white/50'}`}>
                                         {projectPhase}
                                     </span>
                                 );
                             })()}
-                            <span className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colorMode ? 'bg-slate-600/60 text-slate-200 border border-slate-500/30' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
                                 {tradesDisplay}
                             </span>
                         </div>
                     </div>
+                    
+                    {/* Customer Information Section - Redesigned */}
+                    <div className="mt-3 space-y-2">
+                        {/* Customer Name - Adjusted size and styling */}
+                        <div className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
+                            {project.client?.name || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
+                        </div>
+                        
+                        {/* Customer Contact Information - Compact layout */}
+                        <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-1.5">
+                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
+                                    <span className="text-[10px]">📞</span>
+                                </div>
+                                <a 
+                                    href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '(555) 000-0000').replace(/[^\d+]/g, '')}`}
+                                    className={`text-sm font-medium hover:underline transition-colors ${
+                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                    }`}
+                                >
+                                    {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '(555) 000-0000'}
+                                </a>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
+                                    <span className="text-[10px]">✉️</span>
+                                </div>
+                                <a 
+                                    href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'customer@email.com'}`}
+                                    className={`text-sm font-medium hover:underline transition-colors ${
+                                        colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
+                                    }`}
+                                >
+                                    {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'customer@email.com'}
+                                </a>
+                            </div>
+                        </div>
+                        
+                        {/* Customer Address - Compact styling */}
+                        <div className="flex items-start gap-1.5">
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center mt-0.5 ${colorMode ? 'bg-purple-500/20' : 'bg-purple-50'}`}>
+                                <span className="text-[10px]">📍</span>
+                            </div>
+                            <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} font-normal leading-relaxed flex-1`}>
+                                {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Secondary Contacts and Project Manager - All three boxes in one row */}
-                <div className="p-2 space-y-2">
+                {/* Progress Bar Section - Moved Above Secondary Info */}
+                <div className="p-3">
+                    {/* Modern Progress Bar */}
+                    <div className={`p-3 rounded-xl transition-all duration-300 backdrop-blur-sm ${colorMode ? 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border border-slate-600/40 shadow-lg' : 'bg-gradient-to-r from-white/90 to-gray-50/90 border border-gray-200/50 shadow-md'} ${expandedProgress[`${project.id}-materials-labor`] ? (colorMode ? 'ring-2 ring-blue-400/50 shadow-blue-500/10' : 'ring-2 ring-blue-500/50 shadow-blue-500/10') : ''}`}>
+                        {/* Main Progress Bar Header */}
+                        <button
+                            onClick={() => toggleProgressExpansion(project.id, 'materials-labor')}
+                            className={`w-full text-left transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/30' : 'hover:bg-gray-100/70'} rounded-lg p-2`}
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <span className={`text-sm font-bold tracking-wide ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Progress</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%</span>
+                                    <svg 
+                                        className={`w-4 h-4 transition-transform duration-300 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id}-materials-labor`] ? 'rotate-180' : ''}`} 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            {/* Modern Progress Bar */}
+                            <div className={`w-full h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                <div className="relative h-full">
+                                    <div 
+                                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-700 ease-out shadow-lg" 
+                                        style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
+                                    ></div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full animate-pulse"></div>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        {/* Expanded Progress Details */}
+                        {expandedProgress[`${project.id}-materials-labor`] && (
+                            <div className="space-y-3 mt-3 pl-2">
+                                {/* Materials Progress */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials Delivered</span>
+                                        <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%</span>
+                                    </div>
+                                    <div className={`w-full h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div 
+                                            className="bg-gradient-to-r from-green-500 to-green-600 h-full rounded-full transition-all duration-700 ease-out" 
+                                            style={{ width: `${Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                                
+                                {/* Labor Progress */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor Completed</span>
+                                        <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%</span>
+                                    </div>
+                                    <div className={`w-full h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div 
+                                            className="bg-gradient-to-r from-orange-500 to-orange-600 h-full rounded-full transition-all duration-700 ease-out" 
+                                            style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                                
+                                {/* Trades Details Button */}
+                                <div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleProgressExpansion(project.id, 'trades');
+                                        }}
+                                        className={`w-full flex items-center justify-between p-2 rounded-lg transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'}`}
+                                    >
+                                        <span className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Individual Trades</span>
+                                        <svg 
+                                            className={`w-3 h-3 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id}-trades`] ? 'rotate-180' : ''}`} 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    
+                                    {/* Individual Trade Progress */}
+                                    {expandedProgress[`${project.id}-trades`] && (
+                                        <div className="space-y-2 mt-2 pl-3">
+                                            {projectTrades.map((trade, index) => {
+                                                const tradeColors = [
+                                                    'from-purple-500 to-purple-600',
+                                                    'from-pink-500 to-pink-600',
+                                                    'from-yellow-500 to-yellow-600',
+                                                    'from-teal-500 to-teal-600',
+                                                    'from-red-500 to-red-600',
+                                                    'from-indigo-500 to-indigo-600',
+                                                    'from-cyan-500 to-cyan-600',
+                                                    'from-amber-500 to-amber-600',
+                                                    'from-lime-500 to-lime-600',
+                                                    'from-fuchsia-500 to-fuchsia-600',
+                                                ];
+                                                const barColor = tradeColors[index % tradeColors.length];
+                                                return (
+                                                    <div key={index}>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.name}</span>
+                                                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.laborProgress}%</span>
+                                                        </div>
+                                                        <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden shadow-inner ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                                            <div 
+                                                                className={`bg-gradient-to-r ${barColor} h-full rounded-full transition-all duration-700 ease-out`} 
+                                                                style={{ width: `${trade.laborProgress}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                
+                {/* Secondary Contacts and Project Manager - Below Progress Bar */}
+                <div className="px-3 pb-3 space-y-2">
                     <div className="grid grid-cols-3 gap-2">
-                        {/* Secondary Customer 1 */}
-                        <div className={`p-2 rounded-lg border ${colorMode ? 'bg-slate-700/30 border-slate-600/40' : 'bg-gray-50 border-gray-200'}`}>
-                            <div className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
+                        {/* Enhanced Secondary Customer 1 */}
+                        <div className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-slate-700/50 border-slate-600/50 hover:bg-slate-700/70' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                            <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-2 flex items-center gap-2`}>
+                                <span className="text-sm">👤</span>
                                 {project.customer?.secondaryName || 'Secondary Customer'}
                             </div>
-                            <div className="space-y-0.5">
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px]">📞</span>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">📞</span>
                                     <a 
                                         href={`tel:${project.customer?.secondaryPhone || '(555) 000-0001'}`}
-                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                        className={`text-xs font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                        }`}
                                     >
                                         {project.customer?.secondaryPhone || '(555) 000-0001'}
                                     </a>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px]">✉️</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">✉️</span>
                                     <a 
                                         href={`mailto:${project.customer?.secondaryEmail || 'secondary@email.com'}`}
-                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                        className={`text-xs font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
+                                        }`}
                                     >
                                         {project.customer?.secondaryEmail || 'secondary@email.com'}
                                     </a>
@@ -588,26 +716,31 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                         </div>
                         
-                        {/* Secondary Customer 2 */}
-                        <div className={`p-2 rounded-lg border ${colorMode ? 'bg-slate-700/30 border-slate-600/40' : 'bg-gray-50 border-gray-200'}`}>
-                            <div className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
+                        {/* Enhanced Secondary Customer 2 */}
+                        <div className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-slate-700/50 border-slate-600/50 hover:bg-slate-700/70' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                            <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-2 flex items-center gap-2`}>
+                                <span className="text-sm">👤</span>
                                 Secondary Customer 2
                             </div>
-                            <div className="space-y-0.5">
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px]">📞</span>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">📞</span>
                                     <a 
                                         href="tel:(555) 000-0002"
-                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                        className={`text-xs font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                        }`}
                                     >
                                         (555) 000-0002
                                     </a>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px]">✉️</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">✉️</span>
                                     <a 
                                         href="mailto:secondary2@email.com"
-                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                        className={`text-xs font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
+                                        }`}
                                     >
                                         secondary2@email.com
                                     </a>
@@ -615,26 +748,31 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                         </div>
                         
-                        {/* Project Manager - Third box beside secondary contacts */}
-                        <div className={`p-2 rounded-lg border ${colorMode ? 'bg-slate-700/30 border-slate-600/40' : 'bg-gray-50 border-gray-200'}`}>
-                            <div className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>
+                        {/* Enhanced Project Manager */}
+                        <div className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-gradient-to-br from-blue-700/40 to-purple-700/40 border-blue-600/50 hover:from-blue-700/60 hover:to-purple-700/60' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100'}`}>
+                            <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-2 flex items-center gap-2`}>
+                                <span className="text-sm">🛠️</span>
                                 PM: {project.projectManager?.firstName || project.projectManager?.name || 'Mike Rodriguez'}
                             </div>
-                            <div className="space-y-0.5">
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px]">📞</span>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">📞</span>
                                     <a 
                                         href={`tel:${project.projectManager?.phone || '(555) 234-5678'}`}
-                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                        className={`text-xs font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-blue-200 hover:text-blue-100' : 'text-blue-700 hover:text-blue-900'
+                                        }`}
                                     >
                                         {project.projectManager?.phone || '(555) 234-5678'}
                                     </a>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px]">✉️</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">✉️</span>
                                     <a 
                                         href={`mailto:${project.projectManager?.email || 'mike@company.com'}`}
-                                        className={`text-[8px] text-blue-600 hover:text-blue-800 hover:underline transition-colors`}
+                                        className={`text-xs font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-green-200 hover:text-green-100' : 'text-green-700 hover:text-green-900'
+                                        }`}
                                     >
                                         {project.projectManager?.email || 'mike@company.com'}
                                     </a>
@@ -644,173 +782,97 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
                 
-                {/* Keep the existing content below this */}
-                <div className="p-2 space-y-2">
-
-                    {/* Progress Bar Section - Full Width */}
-                    <div className={`p-2 rounded-lg transition-all duration-200 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'} ${expandedProgress[`${project.id}-materials-labor`] ? (colorMode ? 'border-4 border-blue-400' : 'border-4 border-blue-500') : ''}`}>
-                        {/* Main Progress Bar (clickable to expand) */}
-                        <button
-                            onClick={() => toggleProgressExpansion(project.id, 'materials-labor')}
-                            className={`w-full text-left transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'} rounded p-0.5`}
-                        >
-                            <div className="flex items-center justify-between mb-0.5">
-                                <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Progress</span>
-                                <div className="flex items-center gap-1">
-                                    <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%</span>
-                                    <svg 
-                                        className={`w-2 h-2 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id}-materials-labor`] ? 'rotate-180' : ''}`} 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                <div 
-                                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-500" 
-                                    style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
-                                ></div>
-                            </div>
-                        </button>
-                        {/* Materials and Labor Progress Bars (expandable) */}
-                        {expandedProgress[`${project.id}-materials-labor`] && (
-                            <div className="space-y-1.5 mt-1.5">
-                                {/* Materials Progress */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-0.5">
-                                        <span className={`text-[7px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials</span>
-                                        <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%</span>
-                                    </div>
-                                    <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                        <div 
-                                            className="bg-green-600 h-1 rounded-full transition-all duration-500" 
-                                            style={{ width: `${Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                                {/* Labor Progress */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-0.5">
-                                        <span className={`text-[7px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor</span>
-                                        <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%</span>
-                                    </div>
-                                    <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                        <div 
-                                            className="bg-orange-500 h-1 rounded-full transition-all duration-500" 
-                                            style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {/* Individual Trades Progress Bars (only visible when materials-labor is expanded) */}
-                        {expandedProgress[`${project.id}-materials-labor`] && (
-                            <div>
-                                <button
-                                    onClick={() => toggleProgressExpansion(project.id, 'trades')}
-                                    className={`w-full flex items-center justify-between p-0.5 rounded transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'}`}
-                                >
-                                    <span className={`text-[7px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Trades</span>
-                                    <svg 
-                                        className={`w-2 h-2 transition-transform duration-200 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${expandedProgress[`${project.id}-trades`] ? 'rotate-180' : ''}`} 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                {expandedProgress[`${project.id}-trades`] && (
-                                    <div className="space-y-1.5 mt-1.5">
-                                        {projectTrades.map((trade, index) => {
-                                            const tradeColors = [
-                                                'bg-purple-600',
-                                                'bg-pink-500',
-                                                'bg-yellow-400',
-                                                'bg-teal-500',
-                                                'bg-red-500',
-                                                'bg-indigo-500',
-                                                'bg-cyan-500',
-                                                'bg-amber-500',
-                                                'bg-lime-500',
-                                                'bg-fuchsia-500',
-                                            ];
-                                            const barColor = tradeColors[index % tradeColors.length];
-                                            return (
-                                                <div key={index}>
-                                                    <div className="flex items-center justify-between mb-0.5">
-                                                        <span className={`text-[7px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.name}</span>
-                                                        <span className={`text-[7px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{trade.laborProgress}%</span>
-                                                    </div>
-                                                    <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                                        <div 
-                                                            className={`${barColor} h-1 rounded-full transition-all duration-500`} 
-                                                            style={{ width: `${trade.laborProgress}%` }}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Compact Action Buttons */}
-                    <div className="grid grid-cols-3 gap-1">
-                        {/* Row 1: Workflow, Alerts, Messages */}
+                {/* Enhanced Action Buttons (Cubes) */}
+                <div className="p-3">
+                    <div className="grid grid-cols-3 gap-2">
+                        {/* Row 1: Enhanced Workflow, Alerts, Messages */}
                         <button
                             onClick={() => onProjectSelect(project, 'Project Workflow')}
-                            className={`flex flex-col items-center justify-center p-1 rounded transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
+                                colorMode 
+                                    ? 'bg-gradient-to-br from-slate-700/80 to-slate-800/80 border-slate-600/60 text-white hover:from-slate-600/90 hover:to-slate-700/90 hover:border-slate-500 hover:shadow-slate-900/30' 
+                                    : 'bg-gradient-to-br from-white to-gray-50 border-gray-300 text-gray-800 hover:from-blue-50 hover:to-blue-100 hover:border-blue-400 hover:shadow-blue-200/50'
+                            }`}
                         >
-                            <span className="text-[9px] mb-0.5">⚙️</span>
-                            Workflow
+                            <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">⚙️</span>
+                            <span className="text-center leading-tight">Workflow</span>
                         </button>
+                        
                         <button
                             onClick={() => onProjectSelect(project, 'Alerts')}
-                            className={`flex flex-col items-center justify-center p-1 rounded transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
+                                colorMode 
+                                    ? 'bg-gradient-to-br from-red-700/70 to-red-800/70 border-red-600/60 text-white hover:from-red-600/80 hover:to-red-700/80 hover:border-red-500 hover:shadow-red-900/30' 
+                                    : 'bg-gradient-to-br from-red-50 to-red-100 border-red-300 text-red-800 hover:from-red-100 hover:to-red-200 hover:border-red-400 hover:shadow-red-200/50'
+                            }`}
                         >
-                            <span className="text-[9px] mb-0.5">🚨</span>
-                            Alerts
+                            <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">🚨</span>
+                            <span className="text-center leading-tight">Alerts</span>
                         </button>
+                        
                         <button
                             onClick={() => onProjectSelect(project, 'Messages')}
-                            className={`flex flex-col items-center justify-center p-1 rounded transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
+                                colorMode 
+                                    ? 'bg-gradient-to-br from-green-700/70 to-green-800/70 border-green-600/60 text-white hover:from-green-600/80 hover:to-green-700/80 hover:border-green-500 hover:shadow-green-900/30' 
+                                    : 'bg-gradient-to-br from-green-50 to-green-100 border-green-300 text-green-800 hover:from-green-100 hover:to-green-200 hover:border-green-400 hover:shadow-green-200/50'
+                            }`}
                         >
-                            <span className="text-[9px] mb-0.5">💬</span>
-                            Messages
+                            <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">💬</span>
+                            <span className="text-center leading-tight">Messages</span>
                         </button>
+                        
                         {/* Row 2: Back button (if needed), Documents, Schedule */}
                         {showCardBackButton ? (
                             <button
                                 onClick={handleBackToSource}
-                                className={`flex flex-col items-center justify-center p-1 rounded transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-orange-600/80 border-orange-500/80 text-white hover:bg-orange-700/90 hover:border-orange-600' : 'bg-orange-100 border-orange-300 text-orange-800 hover:bg-orange-200 hover:border-orange-400'}`}
+                                className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
+                                    colorMode 
+                                        ? 'bg-gradient-to-br from-orange-700/80 to-orange-800/80 border-orange-600/70 text-white hover:from-orange-600/90 hover:to-orange-700/90 hover:border-orange-500 hover:shadow-orange-900/30' 
+                                        : 'bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 text-orange-800 hover:from-orange-200 hover:to-orange-300 hover:border-orange-400 hover:shadow-orange-200/50'
+                                }`}
                             >
-                                <span className="text-[9px] mb-0.5">⬅️</span>
-                                Back
+                                <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">⬅️</span>
+                                <span className="text-center leading-tight">Back</span>
                             </button>
                         ) : (
-                            <div />
+                            <button
+                                onClick={() => onProjectSelect(project, 'Analytics')}
+                                className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
+                                    colorMode 
+                                        ? 'bg-gradient-to-br from-purple-700/70 to-purple-800/70 border-purple-600/60 text-white hover:from-purple-600/80 hover:to-purple-700/80 hover:border-purple-500 hover:shadow-purple-900/30' 
+                                        : 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300 text-purple-800 hover:from-purple-100 hover:to-purple-200 hover:border-purple-400 hover:shadow-purple-200/50'
+                                }`}
+                            >
+                                <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">📊</span>
+                                <span className="text-center leading-tight">Analytics</span>
+                            </button>
                         )}
+                        
                         <button
                             onClick={() => onProjectSelect(project, 'Documents')}
                             disabled
-                            className={`flex flex-col items-center justify-center p-1 rounded transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/30 border-slate-500/20 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md cursor-not-allowed opacity-50 ${
+                                colorMode 
+                                    ? 'bg-gradient-to-br from-slate-600/30 to-slate-700/30 border-slate-500/20 text-gray-400' 
+                                    : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-200 text-gray-400'
+                            }`}
                         >
-                            <span className="text-[9px] mb-0.5">📁</span>
-                            Documents
+                            <span className="text-lg mb-1">📁</span>
+                            <span className="text-center leading-tight">Documents</span>
                         </button>
+                        
                         <button
                             onClick={() => onProjectSelect(project, 'Project Schedule')}
                             disabled
-                            className={`flex flex-col items-center justify-center p-1 rounded transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/30 border-slate-500/20 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md cursor-not-allowed opacity-50 ${
+                                colorMode 
+                                    ? 'bg-gradient-to-br from-slate-600/30 to-slate-700/30 border-slate-500/20 text-gray-400' 
+                                    : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-200 text-gray-400'
+                            }`}
                         >
-                            <span className="text-[9px] mb-0.5">📅</span>
-                            Schedule
+                            <span className="text-lg mb-1">📅</span>
+                            <span className="text-center leading-tight">Schedule</span>
                         </button>
                     </div>
                 </div>
