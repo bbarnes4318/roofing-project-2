@@ -1,3 +1,6 @@
+console.log('🚀 Starting Kenstruction server...');
+console.log(`📅 Startup time: ${new Date().toISOString()}`);
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -9,6 +12,8 @@ const morgan = require('morgan');
 
 const xss = require('xss-clean');
 require('dotenv').config();
+
+console.log('✅ Required modules loaded successfully');
 
 // Import database connection
 const { connectDatabase } = require('./config/prisma');
@@ -65,18 +70,32 @@ const io = socketIo(server, {
   }
 });
 
-// Connect to PostgreSQL
-connectDatabase().catch(console.error);
-
-// Initialize WorkflowAlertService after database connection
-setTimeout(() => {
-  console.log('🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete');
-  
-  // Start the Alert Scheduler for workflow alerts
-  console.log('⏰ Alert Scheduler ENABLED - PostgreSQL migration complete');
-  const alertScheduler = require('./services/AlertSchedulerService');
-  alertScheduler.start();
-}, 2000);
+// Connect to PostgreSQL with better error handling
+connectDatabase()
+  .then(() => {
+    console.log('✅ Database connection established, initializing services...');
+    
+    // Initialize WorkflowAlertService after database connection
+    setTimeout(() => {
+      try {
+        console.log('🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete');
+        
+        // Start the Alert Scheduler for workflow alerts
+        console.log('⏰ Alert Scheduler ENABLED - PostgreSQL migration complete');
+        const alertScheduler = require('./services/AlertSchedulerService');
+        alertScheduler.start();
+      } catch (error) {
+        console.error('❌ Failed to initialize alert services:', error.message);
+        // Don't exit - continue without alert services if needed
+      }
+    }, 2000);
+  })
+  .catch(error => {
+    console.error('❌ Database connection failed:', error.message);
+    console.error('🔍 Error details:', error);
+    // Continue startup without database for debugging
+    console.log('⚠️  Continuing startup without database connection...');
+  });
 
 // Security Middleware
 app.use(helmet({
@@ -714,14 +733,32 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-// Start server
+// Start server with comprehensive logging
 const PORT = process.env.PORT || 8080;
 console.log(`🔧 Debug: PORT from env = ${process.env.PORT}, final PORT = ${PORT}`);
-server.listen(PORT, '0.0.0.0', () => {
+console.log(`🔧 Debug: NODE_ENV = ${process.env.NODE_ENV}`);
+console.log(`🔧 Debug: DATABASE_URL present = ${!!process.env.DATABASE_URL}`);
+console.log(`🔧 Debug: JWT_SECRET present = ${!!process.env.JWT_SECRET}`);
+
+server.listen(PORT, '0.0.0.0', (err) => {
+  if (err) {
+    console.error('❌ Server failed to start:', err);
+    process.exit(1);
+  }
+  
   console.log(`🚀 Kenstruction server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API Base URL: http://0.0.0.0:${PORT}/api`);
   console.log(`📡 Socket.IO server ready for real-time connections`);
+  console.log(`✅ Server startup completed successfully`);
+});
+
+// Add server error handling
+server.on('error', (error) => {
+  console.error('❌ Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use`);
+  }
 });
 
 module.exports = { app, server, io };

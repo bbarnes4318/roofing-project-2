@@ -217,6 +217,10 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
       limit: limitNum,
       total,
       message: 'Alerts retrieved successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
 }));
 
 // @desc    Create general alert
