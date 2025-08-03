@@ -706,5 +706,54 @@ export const phaseOverrideService = {
   }
 };
 
+// Workflow Import Service
+export const workflowImportService = {
+  // Upload file for parsing
+  uploadFile: async (formData) => {
+    const response = await api.post('/workflow-import/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  // Get preview data for an import session
+  getPreview: async (importId) => {
+    const response = await api.get(`/workflow-import/preview/${importId}`);
+    return response.data;
+  },
+
+  // Confirm and execute import
+  confirmImport: async (importId, data) => {
+    const response = await api.post(`/workflow-import/confirm/${importId}`, data);
+    return response.data;
+  },
+
+  // Download template file
+  downloadTemplate: async (format = 'xlsx') => {
+    const response = await api.get('/workflow-import/template', {
+      params: { format },
+      responseType: 'blob'
+    });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `workflow_template.${format}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
+  // Cancel import session
+  cancelImport: async (importId) => {
+    const response = await api.delete(`/workflow-import/cancel/${importId}`);
+    return response.data;
+  }
+};
+
 // Export the main API instance for custom requests
 export default api; 
