@@ -176,10 +176,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     </svg>
                                 </button>
                                 
-                                {/* Subject - positioned for consistent alignment across all rows */}
-                                <span className={`text-[9px] font-bold truncate overflow-hidden whitespace-nowrap ml-6 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    {subject}
-                                </span>
+                                {/* Spacer for consistent alignment - subject moved to row 2 */}
+                                <span className="ml-6"></span>
                             </div>
                         </div>
                         
@@ -224,18 +222,21 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </div>
                     </div>
                     
-                    {/* Row 2: User name (aligned under project number) and message preview */}
+                    {/* Row 2: Last Response and Original Subject */}
                     <div className="flex items-center gap-1.5 mt-0 overflow-hidden">
-                        {/* User name aligned directly under project number - SINGLE ROW, NO WRAPPING */}
+                        {/* Last Response - aligned under project number */}
                         <span 
                             className={`text-[9px] font-medium flex-shrink-0 whitespace-nowrap overflow-hidden ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                            style={{ width: '46px', textAlign: 'left' }}
+                            style={{ width: '100px', textAlign: 'left' }}
                         >
-                            {lastMessage.user}:
+                            Last Response: {lastMessage.user}
                         </span>
+                        
+                        {/* Original Subject */}
                         <span className={`text-[9px] truncate flex-1 overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {lastMessage.comment}
+                            Original Subject: {subject}
                         </span>
+                        
                         <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
                             {formatTimestamp(lastMessage.timestamp)}
                         </span>
@@ -250,33 +251,77 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 colorMode={colorMode}
                 triggerRef={contactButtonRef}
             >
-                <div className="space-y-3">
-                    <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                        {primaryCustomer}
+                <div className="space-y-2 max-w-[280px]">
+                    {/* Primary Customer */}
+                    <div className={`text-xs font-semibold border-b ${colorMode ? 'text-white border-gray-600' : 'text-gray-900 border-gray-200'} pb-1`}>
+                        Primary Customer
                     </div>
-                    <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} flex items-start gap-2`}>
+                    <div className="space-y-1">
+                        <div className={`text-xs font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                            {project?.customer?.primaryName || project?.client?.name || project?.clientName || primaryCustomer}
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px]">📞</span>
+                            <a 
+                                href={`tel:${(project?.customer?.primaryPhone || project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
+                                className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                            >
+                                {project?.customer?.primaryPhone || project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
+                            </a>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px]">✉️</span>
+                            <a 
+                                href={`mailto:${project?.customer?.primaryEmail || project?.client?.email || project?.clientEmail || 'customer@email.com'}`}
+                                className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                            >
+                                {project?.customer?.primaryEmail || project?.client?.email || project?.clientEmail || 'customer@email.com'}
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {/* Secondary Customer (if exists) */}
+                    {(project?.customer?.secondaryName || project?.customer?.secondaryPhone || project?.customer?.secondaryEmail) && (
+                        <>
+                            <div className={`text-xs font-semibold border-b ${colorMode ? 'text-white border-gray-600' : 'text-gray-900 border-gray-200'} pb-1 pt-2`}>
+                                Secondary Customer
+                            </div>
+                            <div className="space-y-1">
+                                {project?.customer?.secondaryName && (
+                                    <div className={`text-xs font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                                        {project.customer.secondaryName}
+                                    </div>
+                                )}
+                                {project?.customer?.secondaryPhone && (
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-[10px]">📞</span>
+                                        <a 
+                                            href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
+                                            className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                                        >
+                                            {project.customer.secondaryPhone}
+                                        </a>
+                                    </div>
+                                )}
+                                {project?.customer?.secondaryEmail && (
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-[10px]">✉️</span>
+                                        <a 
+                                            href={`mailto:${project.customer.secondaryEmail}`}
+                                            className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                                        >
+                                            {project.customer.secondaryEmail}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                    
+                    {/* Project Address */}
+                    <div className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-600'} flex items-start gap-1 pt-1 border-t ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
                         <span>📍</span>
-                        <span>{project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345'}</span>
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm">📞</span>
-                            <a 
-                                href={`tel:${(project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
-                                className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
-                            >
-                                {project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
-                            </a>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm">✉️</span>
-                            <a 
-                                href={`mailto:${project?.client?.email || project?.clientEmail || 'customer@email.com'}`}
-                                className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
-                            >
-                                {project?.client?.email || project?.clientEmail || 'customer@email.com'}
-                            </a>
-                        </div>
+                        <span className="leading-tight">{project?.customer?.address || project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345'}</span>
                     </div>
                 </div>
             </DraggablePopup>
