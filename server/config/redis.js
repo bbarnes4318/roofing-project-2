@@ -7,10 +7,15 @@ const redisConfig = {
   password: process.env.REDIS_PASSWORD || undefined,
   db: process.env.REDIS_DB || 0,
   retryStrategy: (times) => {
-    const delay = Math.min(times * 50, 2000);
+    // Stop retrying after 3 attempts to reduce log spam
+    if (times > 3) {
+      return null; // Stop retrying
+    }
+    const delay = Math.min(times * 1000, 5000);
     return delay;
   },
   maxRetriesPerRequest: 3,
+  lazyConnect: true, // Don't connect automatically
   enableReadyCheck: true,
   connectTimeout: 10000,
 };
@@ -24,11 +29,11 @@ const initRedis = () => {
     // Only initialize Redis if URL is provided (for production)
     if (process.env.REDIS_URL) {
       redis = new Redis(process.env.REDIS_URL);
-    } else if (process.env.NODE_ENV === 'production') {
-      // In production, use configured Redis
+    } else if (process.env.NODE_ENV === 'production' && process.env.REDIS_HOST) {
+      // In production, only connect if REDIS_HOST is explicitly set
       redis = new Redis(redisConfig);
     } else {
-      // In development, Redis is optional - use in-memory cache fallback
+      // Redis is optional - use in-memory cache fallback
       console.log('🟡 Redis not configured - using in-memory cache fallback');
       return null;
     }

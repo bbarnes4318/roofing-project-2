@@ -313,8 +313,6 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
                   stepId: true,
                   stepName: true,
                   phase: true,
-                  section: true,
-                  lineItem: true,
                   isCompleted: true,
                   completedAt: true
                 },
