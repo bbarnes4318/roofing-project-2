@@ -238,17 +238,12 @@ export class SearchService {
     }
 }
 
-// Export a simple interface that matches the provided template
+// Note: The main SearchService class above is used by the GlobalSearch component
+// The searchService export below is kept for backward compatibility but not used
 export const searchService = {
     search: (query) => {
+        console.warn('⚠️  Using legacy searchService - should use SearchService class instead');
         return new Promise((resolve) => {
-            if (!query) {
-                return resolve([]);
-            }
-            
-            // In a real application, you would get this data from your app state
-            // For now, return empty results since this will be properly initialized
-            // when integrated with the main app
             resolve([]);
         });
     }

@@ -80,6 +80,40 @@ export default function App() {
         fetchProjects();
     }, []);
 
+    // Fetch activities from API
+    useEffect(() => {
+        const fetchActivities = async () => {
+            try {
+                console.log('🔍 Fetching activities from API...');
+                const response = await activitiesService.getAll();
+                if (response.success && response.data) {
+                    // Normalize activity data to ensure consistent structure
+                    const apiActivities = Array.isArray(response.data) ? response.data : 
+                                        Array.isArray(response.data.activities) ? response.data.activities : [];
+                    const normalizedActivities = apiActivities.map(activity => ({
+                        ...activity,
+                        id: activity.id || activity._id, // Ensure id field exists
+                        projectId: activity.projectId || activity.project_id, // Normalize project reference
+                        subject: activity.subject || activity.title, // Ensure subject field
+                        content: activity.content || activity.description || activity.message,
+                        author: activity.author || activity.user || activity.createdBy || 'Unknown User',
+                        timestamp: activity.timestamp || activity.createdAt || activity.date || new Date().toISOString()
+                    }));
+                    setActivities(normalizedActivities);
+                    console.log('✅ Fetched activities from API:', normalizedActivities.length);
+                } else {
+                    console.warn('Failed to fetch activities:', response.message);
+                    setActivities([]);
+                }
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+                setActivities([]);
+            }
+        };
+
+        fetchActivities();
+    }, []);
+
     // Helper functions for dynamic user data
     const getGreeting = () => {
         if (!currentUser) return "Good afternoon!";
