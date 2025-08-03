@@ -2283,6 +2283,21 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   const sectionName = workflowMapping.section;
                   const lineItemName = workflowMapping.lineItem;
                   
+                  // Extract user group from section name (after the "–" character)
+                  const getUserGroupFromSection = (sectionName) => {
+                    if (!sectionName) return 'OFFICE';
+                    const parts = sectionName.split('–');
+                    if (parts.length < 2) return 'OFFICE';
+                    const roleText = parts[1].trim();
+                    if (roleText.includes('Office')) return 'OFFICE';
+                    if (roleText.includes('Project Manager')) return 'PM';
+                    if (roleText.includes('Administration')) return 'ADMIN';
+                    if (roleText.includes('Field Director')) return 'FIELD';
+                    return 'OFFICE';
+                  };
+                  
+                  const correctUserGroup = getUserGroupFromSection(sectionName);
+                  
                   // Use WorkflowProgressService for consistent phase colors
                   const getPhaseCircleColors = (phase) => {
                     // Use centralized phase normalization
@@ -2369,7 +2384,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </div>
                               
                               {/* PM with dropdown arrow - Moved 2 more spaces right */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '24px'}}>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '36px'}}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
                                   ref={(el) => alertPmButtonRefs.current[alertId] = el}
@@ -2413,7 +2428,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             {/* Right Section: User Group & Arrow */}
                             <div className="flex items-center gap-2 flex-shrink-0">
                               <div className="w-8 h-3 px-0.5 py-0 border border-gray-300 rounded-full flex items-center justify-center text-black font-medium text-[7px] bg-white">
-                                {formatUserRole(alert.user?.role || actionData.defaultResponsible || 'OFFICE')}
+                                {correctUserGroup}
                               </div>
                               <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2425,14 +2440,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         </div>
                         
                         {/* Second Row - Section and Line Item */}
-                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
+                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '36px' }}>
                           {/* Section label aligned under Project Number, Section value aligned under Customer Name */}
                           <div className="flex items-center" style={{ width: '210px' }}>
                             {/* Section label - moved 1 space right closer to its value */}
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '49px' }}>Section:</span>
                             {/* Section value - first letter aligns under Customer's Name first letter (5px left margin adjustment) */}
                             <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '8px' }}>
-                              {sectionName?.split('-')[0]?.trim() || sectionName}
+                              {sectionName?.split('–')[0]?.trim() || sectionName}
                             </span>
                           </div>
                           
