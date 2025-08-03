@@ -2432,7 +2432,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             {/* Section label - moved 1 space right closer to its value */}
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '49px' }}>Section:</span>
                             {/* Section value - first letter aligns under Customer's Name first letter (5px left margin adjustment) */}
-                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '2px' }}>
+                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '8px' }}>
                               {sectionName?.split('-')[0]?.trim() || sectionName}
                             </span>
                           </div>
