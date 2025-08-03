@@ -1,6 +1,5 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
 const { 
   asyncHandler, 
   sendSuccess, 
@@ -12,8 +11,7 @@ const {
   managerAndAbove, 
   projectManagerAndAbove 
 } = require('../middleware/auth');
-
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
 const router = express.Router();
 
 // Validation rules
@@ -109,8 +107,9 @@ router.get('/', asyncHandler(async (req, res) => {
   let orderBy = {};
   orderBy[sortBy] = sortOrder.toLowerCase();
 
-  // Execute query with pagination
-  const [activities, total] = await Promise.all([
+  try {
+    // Execute query with pagination
+    const [activities, total] = await Promise.all([
     prisma.activity.findMany({
       where,
       include: {
@@ -144,21 +143,25 @@ router.get('/', asyncHandler(async (req, res) => {
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
 
-  res.json({
-    success: true,
-    data: {
-      activities,
-      pagination: {
-        page: parseInt(page),
-        limit: take,
-        total,
-        totalPages,
-        hasNextPage,
-        hasPrevPage
-      }
-    },
-    message: 'Activities retrieved successfully'
-  });
+    res.json({
+      success: true,
+      data: {
+        activities,
+        pagination: {
+          page: parseInt(page),
+          limit: take,
+          total,
+          totalPages,
+          hasNextPage,
+          hasPrevPage
+        }
+      },
+      message: 'Activities retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching activities:', error);
+    throw new AppError('Failed to fetch activities', 500);
+  }
 }));
 
 // @desc    Get single activity
