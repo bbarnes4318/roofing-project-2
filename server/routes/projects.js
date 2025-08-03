@@ -8,6 +8,7 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
+const { cacheService } = require('../config/redis');
 
 const router = express.Router();
 
@@ -198,7 +199,7 @@ const projectValidation = [
 // @desc    Get all projects with filtering and pagination
 // @route   GET /api/projects
 // @access  Private
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req, res) => {
   const { 
     status, 
     projectType, 
@@ -206,7 +207,7 @@ router.get('/', asyncHandler(async (req, res) => {
     customer,
     search, 
     page = 1, 
-    limit = 10,
+    limit = 50, // Increased default limit for better performance
     sortBy = 'createdAt',
     sortOrder = 'desc',
     includeArchived = false
@@ -262,7 +263,18 @@ router.get('/', asyncHandler(async (req, res) => {
         skip,
         take: limitNum,
         include: {
-          customer: true,
+          customer: {
+            select: {
+              id: true,
+              primaryName: true,
+              primaryEmail: true,
+              primaryPhone: true,
+              secondaryName: true,
+              secondaryEmail: true,
+              secondaryPhone: true,
+              address: true
+            }
+          },
           projectManager: {
             select: {
               id: true,
@@ -274,7 +286,9 @@ router.get('/', asyncHandler(async (req, res) => {
             }
           },
           teamMembers: {
-            include: {
+            select: {
+              id: true,
+              role: true,
               user: {
                 select: {
                   id: true,
@@ -284,15 +298,38 @@ router.get('/', asyncHandler(async (req, res) => {
                   role: true
                 }
               }
-            }
+            },
+            take: 10 // Limit team members for performance
           },
           workflow: {
-            include: {
+            select: {
+              id: true,
+              currentPhase: true,
+              isActive: true,
               steps: {
-                include: {
-                  subTasks: true
+                select: {
+                  id: true,
+                  stepId: true,
+                  phase: true,
+                  section: true,
+                  lineItem: true,
+                  isCompleted: true,
+                  completedAt: true
+                },
+                where: {
+                  isActive: true
+                },
+                orderBy: {
+                  stepId: 'asc'
                 }
               }
+            }
+          },
+          _count: {
+            select: {
+              tasks: true,
+              documents: true,
+              workflowAlerts: true
             }
           }
         }
@@ -569,6 +606,9 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     // Transform project for frontend compatibility
     const transformedProject = transformProjectForFrontend(updatedProject);
 
+    // Invalidate cache for projects
+    await cacheService.invalidateRelated('project', req.params.id);
+
     sendSuccess(res, transformedProject, 'Project updated successfully');
   } catch (error) {
     console.error('Error updating project:', error);
@@ -592,6 +632,9 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
     await prisma.project.delete({
       where: { id: req.params.id }
     });
+
+    // Invalidate cache for projects
+    await cacheService.invalidateRelated('project', req.params.id);
 
     sendSuccess(res, null, 'Project deleted successfully');
   } catch (error) {
@@ -638,6 +681,9 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
 
     // Transform project for frontend compatibility
     const transformedProject = transformProjectForFrontend(updatedProject);
+
+    // Invalidate cache for projects
+    await cacheService.invalidateRelated('project', req.params.id);
 
     sendSuccess(res, transformedProject, `Project ${archived ? 'archived' : 'unarchived'} successfully`);
   } catch (error) {

@@ -8,6 +8,7 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
+const { cacheService } = require('../config/redis');
 
 const router = express.Router();
 
@@ -97,20 +98,82 @@ const generateMockAlerts = async () => {
 // @desc    Get all alerts for current user (or all alerts if user has permission)
 // @route   GET /api/alerts
 // @access  Private
-router.get('/', async (req, res) => {
-  try {
-    console.log('🚨 ALERTS ROUTE: Fetching workflow alerts...');
-    
-    const alerts = await prisma.workflowAlert.findMany({
-      take: 50,
-      where: { status: 'ACTIVE' },
+router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, res) => {
+  const {
+    status = 'ACTIVE',
+    priority,
+    assignedToId,
+    projectId,
+    page = 1,
+    limit = 50,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = req.query;
+
+  // Build filter object
+  const where = {};
+  if (status) where.status = status;
+  if (priority) where.priority = priority;
+  if (assignedToId) where.assignedToId = assignedToId;
+  if (projectId) where.projectId = projectId;
+
+  // Calculate pagination
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const skip = (pageNum - 1) * limitNum;
+
+  // Build sort object
+  const orderBy = {};
+  orderBy[sortBy] = sortOrder;
+
+  console.log('🚨 ALERTS ROUTE: Fetching workflow alerts...');
+  
+  // Execute query with pagination
+  const [alerts, total] = await Promise.all([
+    prisma.workflowAlert.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy,
       include: {
-        project: { include: { customer: true }},
-        step: true,
-        assignedTo: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        project: {
+          select: {
+            id: true,
+            projectNumber: true,
+            projectName: true,
+            status: true,
+            customer: {
+              select: {
+                id: true,
+                primaryName: true,
+                primaryEmail: true,
+                primaryPhone: true
+              }
+            }
+          }
+        },
+        step: {
+          select: {
+            id: true,
+            stepId: true,
+            phase: true,
+            section: true,
+            lineItem: true,
+            isCompleted: true
+          }
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    }),
+    prisma.workflowAlert.count({ where })
+  ]);
     
     console.log(`🚨 ALERTS ROUTE: Found ${alerts.length} alerts`);
     
@@ -147,42 +210,14 @@ router.get('/', async (req, res) => {
       }
     }));
     
-    res.json({
-      success: true,
-      message: 'Alerts retrieved successfully',
+    // Send paginated response
+    sendPaginatedResponse(res, {
       data: transformed,
-      pagination: {
-        currentPage: 1,
-        totalPages: Math.ceil(alerts.length / 20),
-        totalItems: alerts.length,
-        itemsPerPage: alerts.length,
-        hasNextPage: false,
-        hasPrevPage: false,
-        nextPage: null,
-        prevPage: null
-      },
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('🚨 ALERTS ROUTE: Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch alerts',
-      data: [],
-      pagination: {
-        currentPage: 1,
-        totalPages: 0,
-        totalItems: 0,
-        itemsPerPage: 20,
-        hasNextPage: false,
-        hasPrevPage: false,
-        nextPage: null,
-        prevPage: null
-      }
-    });
-  }
-});
+      page: pageNum,
+      limit: limitNum,
+      total,
+      message: 'Alerts retrieved successfully'
+}));
 
 // @desc    Create general alert
 // @route   POST /api/alerts

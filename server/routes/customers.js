@@ -8,6 +8,7 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
+const { cacheService } = require('../config/redis');
 
 const router = express.Router();
 
@@ -316,6 +317,9 @@ router.post('/', asyncHandler(async (req, res, next) => {
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(customer);
 
+    // Invalidate cache for customers
+    await cacheService.invalidateRelated('customer', customer.id);
+    
     sendSuccess(res, transformedCustomer, 'Customer created successfully', 201);
   } catch (error) {
     console.error('Error creating customer:', error);
@@ -382,6 +386,9 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(updatedCustomer);
 
+    // Invalidate cache for customers
+    await cacheService.invalidateRelated('customer', req.params.id);
+    
     sendSuccess(res, transformedCustomer, 'Customer updated successfully');
   } catch (error) {
     console.error('Error updating customer:', error);
@@ -418,6 +425,9 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
       where: { id: req.params.id }
     });
 
+    // Invalidate cache for customers
+    await cacheService.invalidateRelated('customer', req.params.id);
+    
     sendSuccess(res, null, 'Customer deleted successfully');
   } catch (error) {
     console.error('Error deleting customer:', error);
