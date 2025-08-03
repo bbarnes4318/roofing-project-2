@@ -2308,7 +2308,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[12px] shadow-sm border transition-all duration-200 cursor-pointer`}>
                       {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
                       <div 
-                        className="flex flex-col gap-0 px-1.5 py-0 hover:bg-opacity-80 transition-colors cursor-pointer"
+                        className="flex flex-col gap-0 px-1.5 py-1 hover:bg-opacity-80 transition-colors cursor-pointer"
                         onClick={() => toggleAlertExpansion(alertId)}
                       >
                         {/* First Row - Project# | Customer ▼ | PM ▼ | UserGroup | Arrow - More spaced out */}
