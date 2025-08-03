@@ -1,77 +1,11 @@
-import { NlpManager } from 'node-nlp';
+import BrowserNLP from './browserNLP';
 import { SearchService } from './searchService';
 
 class NaturalLanguageSearchService {
     constructor() {
-        this.nlpManager = new NlpManager({ languages: ['en'], forceNER: true });
+        this.nlpManager = new BrowserNLP();
         this.conventionalSearchService = new SearchService();
-        this.isInitialized = false;
-        
-        // Initialize the NLP manager
-        this.initializeNLP();
-    }
-
-    async initializeNLP() {
-        // Add entity definitions for roofing domain
-        this.nlpManager.addNamedEntityText('status', 'completed', ['en'], ['completed', 'finished', 'done', 'complete']);
-        this.nlpManager.addNamedEntityText('status', 'in-progress', ['en'], ['in progress', 'ongoing', 'active', 'current', 'working']);
-        this.nlpManager.addNamedEntityText('status', 'not-started', ['en'], ['not started', 'pending', 'new', 'upcoming']);
-        this.nlpManager.addNamedEntityText('status', 'on-hold', ['en'], ['on hold', 'paused', 'suspended', 'delayed']);
-
-        this.nlpManager.addNamedEntityText('phase', 'lead', ['en'], ['lead', 'leads', 'prospect']);
-        this.nlpManager.addNamedEntityText('phase', 'approved', ['en'], ['approved', 'approval', 'contract']);
-        this.nlpManager.addNamedEntityText('phase', 'execution', ['en'], ['execution', 'construction', 'building', 'work']);
-        this.nlpManager.addNamedEntityText('phase', 'completion', ['en'], ['completion', 'completed', 'finished']);
-
-        this.nlpManager.addNamedEntityText('timeframe', 'last-week', ['en'], ['last week', 'past week', 'previous week']);
-        this.nlpManager.addNamedEntityText('timeframe', 'last-month', ['en'], ['last month', 'past month', 'previous month']);
-        this.nlpManager.addNamedEntityText('timeframe', 'last-quarter', ['en'], ['last quarter', 'past quarter', 'previous quarter', 'past 3 months']);
-        this.nlpManager.addNamedEntityText('timeframe', 'last-year', ['en'], ['last year', 'past year', 'previous year']);
-        this.nlpManager.addNamedEntityText('timeframe', 'today', ['en'], ['today', 'this day']);
-        this.nlpManager.addNamedEntityText('timeframe', 'this-week', ['en'], ['this week', 'current week']);
-        this.nlpManager.addNamedEntityText('timeframe', 'this-month', ['en'], ['this month', 'current month']);
-
-        this.nlpManager.addNamedEntityText('project-type', 'roof', ['en'], ['roof', 'roofing', 'roofs', 'shingle', 'shingles']);
-        this.nlpManager.addNamedEntityText('project-type', 'repair', ['en'], ['repair', 'repairs', 'fix', 'maintenance']);
-        this.nlpManager.addNamedEntityText('project-type', 'replacement', ['en'], ['replacement', 'replace', 'new roof']);
-        this.nlpManager.addNamedEntityText('project-type', 'inspection', ['en'], ['inspection', 'inspect', 'assessment']);
-
-        // Add intents for different types of searches
-        this.nlpManager.addDocument('en', 'show me %status% projects', 'search.by.status');
-        this.nlpManager.addDocument('en', 'find %status% projects', 'search.by.status');
-        this.nlpManager.addDocument('en', 'list %status% projects', 'search.by.status');
-        this.nlpManager.addDocument('en', '%status% projects', 'search.by.status');
-
-        this.nlpManager.addDocument('en', 'show me projects from %timeframe%', 'search.by.timeframe');
-        this.nlpManager.addDocument('en', 'find projects from %timeframe%', 'search.by.timeframe');
-        this.nlpManager.addDocument('en', 'projects from %timeframe%', 'search.by.timeframe');
-
-        this.nlpManager.addDocument('en', 'show me %phase% projects', 'search.by.phase');
-        this.nlpManager.addDocument('en', 'find %phase% projects', 'search.by.phase');
-        this.nlpManager.addDocument('en', '%phase% projects', 'search.by.phase');
-
-        this.nlpManager.addDocument('en', 'show me %project-type% projects', 'search.by.type');
-        this.nlpManager.addDocument('en', 'find %project-type% projects', 'search.by.type');
-        this.nlpManager.addDocument('en', '%project-type% projects', 'search.by.type');
-
-        this.nlpManager.addDocument('en', 'find customer %any%', 'search.customer');
-        this.nlpManager.addDocument('en', 'show customer %any%', 'search.customer');
-        this.nlpManager.addDocument('en', 'customer %any%', 'search.customer');
-
-        this.nlpManager.addDocument('en', 'project %any%', 'search.project');
-        this.nlpManager.addDocument('en', 'find project %any%', 'search.project');
-        this.nlpManager.addDocument('en', 'show project %any%', 'search.project');
-
-        // Add responses (not used but required by NLP manager)
-        this.nlpManager.addAnswer('en', 'search.by.status', 'Searching for projects by status');
-        this.nlpManager.addAnswer('en', 'search.by.timeframe', 'Searching for projects by timeframe');
-        this.nlpManager.addAnswer('en', 'search.by.phase', 'Searching for projects by phase');
-        this.nlpManager.addAnswer('en', 'search.by.type', 'Searching for projects by type');
-        this.nlpManager.addAnswer('en', 'search.customer', 'Searching for customer');
-        this.nlpManager.addAnswer('en', 'search.project', 'Searching for project');
-
-        await this.nlpManager.train();
-        this.isInitialized = true;
+        this.isInitialized = true; // Browser NLP is immediately ready
     }
 
     updateData(data) {
@@ -79,32 +13,32 @@ class NaturalLanguageSearchService {
     }
 
     async search(query) {
-        // Wait for initialization if not ready
-        if (!this.isInitialized) {
-            await this.initializeNLP();
-        }
+        try {
+            // Process the query with Browser NLP
+            const nlpResult = await this.nlpManager.process('en', query.toLowerCase());
+            
+            // Extract structured data from NLP result
+            const intent = nlpResult.intent;
+            const entities = nlpResult.entities || [];
+            const confidence = nlpResult.score || 0;
 
-        // Process the query with NLP
-        const nlpResult = await this.nlpManager.process('en', query.toLowerCase());
-        
-        // Extract structured data from NLP result
-        const intent = nlpResult.intent;
-        const entities = nlpResult.entities || [];
-        const confidence = nlpResult.score || 0;
+            // If confidence is too low, fall back to conventional search
+            if (confidence < 0.5) {
+                console.log('🔍 Low NLP confidence, using conventional search');
+                return this.conventionalSearchService.search(query);
+            }
 
-        // If confidence is too low, fall back to conventional search
-        if (confidence < 0.5) {
-            console.log('🔍 Low NLP confidence, using conventional search');
+            console.log('🤖 NLP Intent:', intent, 'Entities:', entities, 'Confidence:', confidence);
+
+            // Build structured query based on intent and entities
+            const structuredQuery = this.buildStructuredQuery(intent, entities, query);
+            
+            // Execute the search
+            return this.executeStructuredSearch(structuredQuery, query);
+        } catch (error) {
+            console.error('🚨 NLP search error, falling back to conventional search:', error);
             return this.conventionalSearchService.search(query);
         }
-
-        console.log('🤖 NLP Intent:', intent, 'Entities:', entities, 'Confidence:', confidence);
-
-        // Build structured query based on intent and entities
-        const structuredQuery = this.buildStructuredQuery(intent, entities, query);
-        
-        // Execute the search
-        return this.executeStructuredSearch(structuredQuery, query);
     }
 
     buildStructuredQuery(intent, entities, originalQuery) {
@@ -112,7 +46,8 @@ class NaturalLanguageSearchService {
             intent: intent,
             filters: {},
             searchText: null,
-            originalQuery
+            originalQuery,
+            confidence: entities.length > 0 ? Math.max(...entities.map(e => e.confidence || 0.7)) : 0.5
         };
 
         // Extract entities into filters
@@ -127,11 +62,14 @@ class NaturalLanguageSearchService {
                 case 'timeframe':
                     query.filters.timeframe = entity.resolution.value;
                     break;
-                case 'project-type':
+                case 'projectType':
                     query.filters.projectType = entity.resolution.value;
                     break;
+                case 'searchText':
+                    query.searchText = entity.resolution.value;
+                    break;
                 default:
-                    // For 'any' entities, treat as search text
+                    // For other entities, treat as search text
                     if (!query.searchText) {
                         query.searchText = entity.sourceText;
                     }

@@ -149,7 +149,7 @@ export default function GlobalSearch({
       
       try {
         // Determine if this looks like a natural language query
-        const isNaturalLanguage = isNaturalLanguageQuery(query);
+        const isNaturalLanguage = nlSearchService.nlpManager.isNaturalLanguageQuery(query);
         
         let results;
         if (isNaturalLanguage) {
