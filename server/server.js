@@ -697,25 +697,30 @@ app.use(errorHandler);
 process.on('unhandledRejection', (err, promise) => {
   console.error('❌ Unhandled Promise Rejection:', err.message);
   console.error('🔍 Stack:', err.stack);
-  // Close server & exit process
-  server.close(() => {
-    process.exit(1);
-  });
+  // Log but don't exit in production - let the container restart if needed
+  if (process.env.NODE_ENV !== 'production') {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
 });
 
 process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught Exception:', err.message);
   console.error('🔍 Stack:', err.stack);
-  process.exit(1);
+  // Log but don't exit in production - let the container restart if needed
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 console.log(`🔧 Debug: PORT from env = ${process.env.PORT}, final PORT = ${PORT}`);
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Kenstruction server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`🔗 API Base URL: http://0.0.0.0:${PORT}/api`);
   console.log(`📡 Socket.IO server ready for real-time connections`);
 });
 
