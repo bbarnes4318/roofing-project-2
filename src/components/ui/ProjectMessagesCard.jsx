@@ -226,9 +226,9 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     
                     {/* Row 2: User name (aligned under project number) and message preview */}
                     <div className="flex items-center gap-1.5 mt-0 overflow-hidden">
-                        {/* User name aligned directly under project number - FULL name shown */}
+                        {/* User name aligned directly under project number - SINGLE ROW, NO WRAPPING */}
                         <span 
-                            className={`text-[9px] font-medium flex-shrink-0 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-[9px] font-medium flex-shrink-0 whitespace-nowrap overflow-hidden ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                             style={{ width: '46px', textAlign: 'left' }}
                         >
                             {lastMessage.user}:
