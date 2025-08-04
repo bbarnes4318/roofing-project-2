@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
+import { API_BASE_URL } from '../../services/api';
 
 const mockUser = {
   name: 'Sarah Owner',
@@ -45,6 +46,13 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   const [editingSubject, setEditingSubject] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Project import state
+  const [workflowTemplates, setWorkflowTemplates] = useState([]);
+  const [selectedWorkflowTemplate, setSelectedWorkflowTemplate] = useState('');
+  const [importFile, setImportFile] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResults, setImportResults] = useState(null);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -98,13 +106,86 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     }
   };
 
+  // Project import functions
+  const fetchWorkflowTemplates = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/project-import/templates`);
+      const data = await response.json();
+      if (data.success) {
+        setWorkflowTemplates(data.data);
+        if (data.data.length > 0) {
+          setSelectedWorkflowTemplate(data.data[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching workflow templates:', error);
+    }
+  };
+
+  const handleProjectImport = async () => {
+    if (!importFile || !selectedWorkflowTemplate) {
+      showSuccessMessage('Please select a file and workflow template');
+      return;
+    }
+
+    setImportLoading(true);
+    const formData = new FormData();
+    formData.append('file', importFile);
+    formData.append('workflowTemplateId', selectedWorkflowTemplate);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/project-import/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setImportResults(data.data);
+        showSuccessMessage(`Import completed: ${data.data.successful.length} projects created successfully`);
+        setImportFile(null);
+      } else {
+        showSuccessMessage(`Import failed: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('Error importing projects:', error);
+      showSuccessMessage('Import failed due to an error');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const downloadSampleFile = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/project-import/sample`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'project-import-sample.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading sample file:', error);
+      showSuccessMessage('Failed to download sample file');
+    }
+  };
+
+  // Load workflow templates on component mount
+  useEffect(() => {
+    fetchWorkflowTemplates();
+  }, []);
+
   const tabs = [
     { id: 'profile', label: 'Profile', icon: '👤' },
     { id: 'preferences', label: 'Preferences', icon: '⚙️' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'security', label: 'Security', icon: '🔒' },
     { id: 'company', label: 'Company', icon: '🏢' },
-    { id: 'data-import', label: 'Data Import', icon: '📊' },
+    { id: 'project-import', label: 'Project Import', icon: '🏗️' },
+    { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
     { id: 'subjects', label: 'Subjects', icon: '📝' }
   ];
 
@@ -675,6 +756,307 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     </div>
   );
 
+  const renderProjectImportTab = () => (
+    <div className="space-y-6">
+      <div className={`border rounded-lg p-4 ${
+        colorMode 
+          ? 'bg-blue-900/20 border-blue-500/40' 
+          : 'bg-blue-50 border-blue-200'
+      }`}>
+        <h3 className={`font-medium mb-2 ${
+          colorMode ? 'text-blue-300' : 'text-blue-900'
+        }`}>📋 Project Data Import</h3>
+        <p className={`text-sm mb-3 ${
+          colorMode ? 'text-blue-200' : 'text-blue-700'
+        }`}>
+          Import your project data with customer information, addresses, budgets, and more.
+        </p>
+        <div className={`text-xs space-y-1 ${
+          colorMode ? 'text-blue-200' : 'text-blue-600'
+        }`}>
+          <p><strong>Required Columns:</strong> customerName, projectAddress</p>
+          <p><strong>Optional Columns:</strong> projectNumber, customerEmail, customerPhone, city, state, zipCode, projectType, projectValue, notes</p>
+        </div>
+      </div>
+
+      {/* Workflow Template Selection */}
+      <div className={`border rounded-lg p-4 ${
+        colorMode 
+          ? 'bg-purple-900/20 border-purple-500/40' 
+          : 'bg-purple-50 border-purple-200'
+      }`}>
+        <h3 className={`font-medium mb-2 ${
+          colorMode ? 'text-purple-300' : 'text-purple-900'
+        }`}>🔧 Workflow Template</h3>
+        <p className={`text-sm mb-3 ${
+          colorMode ? 'text-purple-200' : 'text-purple-700'
+        }`}>
+          Select the workflow template to assign to imported projects
+        </p>
+        <select
+          value={selectedWorkflowTemplate}
+          onChange={(e) => setSelectedWorkflowTemplate(e.target.value)}
+          className={`w-full p-2 rounded border text-sm ${
+            colorMode 
+              ? 'bg-[#232b4d] border-gray-600 text-white' 
+              : 'bg-white border-gray-300 text-gray-800'
+          }`}
+        >
+          <option value="">Select a workflow template...</option>
+          {workflowTemplates.map((template) => (
+            <option key={template.id} value={template.id}>
+              {template.name} ({template.phases?.join(', ') || 'All Phases'})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Download Template */}
+      <div className={`border rounded-lg p-4 ${
+        colorMode 
+          ? 'bg-green-900/20 border-green-500/40' 
+          : 'bg-green-50 border-green-200'
+      }`}>
+        <h3 className={`font-medium mb-2 ${
+          colorMode ? 'text-green-300' : 'text-green-900'
+        }`}>📄 Download Template</h3>
+        <p className={`text-sm mb-3 ${
+          colorMode ? 'text-green-200' : 'text-green-700'
+        }`}>
+          Use our template to ensure your project data is formatted correctly
+        </p>
+        <button
+          onClick={downloadSampleFile}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+        >
+          📋 Download CSV Template
+        </button>
+      </div>
+
+      {/* Upload Area */}
+      <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        colorMode 
+          ? 'border-gray-600 hover:border-gray-500' 
+          : 'border-gray-300 hover:border-gray-400'
+      }`}>
+        <div className="text-4xl mb-4">🏗️</div>
+        {importFile ? (
+          <div className="space-y-3">
+            <div className={`p-3 rounded border ${
+              colorMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-100 border-gray-300'
+            }`}>
+              <p className={`text-sm font-medium ${
+                colorMode ? 'text-white' : 'text-gray-800'
+              }`}>
+                Selected: {importFile.name}
+              </p>
+              <p className={`text-xs ${
+                colorMode ? 'text-gray-300' : 'text-gray-600'
+              }`}>
+                Size: {(importFile.size / 1024).toFixed(1)} KB
+              </p>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={handleProjectImport}
+                disabled={importLoading || !selectedWorkflowTemplate}
+                className={`px-6 py-2 rounded font-medium transition-colors ${
+                  importLoading || !selectedWorkflowTemplate
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {importLoading ? '🔄 Importing...' : '📤 Import Projects'}
+              </button>
+              <button
+                onClick={() => {
+                  setImportFile(null);
+                  setImportResults(null);
+                }}
+                className={`px-4 py-2 rounded border transition-colors ${
+                  colorMode 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <label className="cursor-pointer">
+              <span className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                Choose Project File
+              </span>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setImportFile(file);
+                    setImportResults(null);
+                  }
+                }}
+                className="hidden"
+              />
+            </label>
+            <p className={`mt-2 text-sm ${
+              colorMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              Upload your Excel or CSV file with project data
+            </p>
+            <p className={`mt-1 text-xs ${
+              colorMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              Supported formats: .xlsx, .xls, .csv (max 10MB)
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Import Results */}
+      {importResults && (
+        <div className={`border rounded-lg p-4 ${
+          importResults.failed.length > 0
+            ? colorMode
+              ? 'bg-yellow-900/20 border-yellow-500/40'
+              : 'bg-yellow-50 border-yellow-200'
+            : colorMode
+              ? 'bg-green-900/20 border-green-500/40'
+              : 'bg-green-50 border-green-200'
+        }`}>
+          <h3 className={`font-medium mb-2 ${
+            importResults.failed.length > 0
+              ? colorMode ? 'text-yellow-300' : 'text-yellow-900'
+              : colorMode ? 'text-green-300' : 'text-green-900'
+          }`}>📊 Import Results</h3>
+          <div className={`text-sm space-y-2 ${
+            importResults.failed.length > 0
+              ? colorMode ? 'text-yellow-200' : 'text-yellow-800'
+              : colorMode ? 'text-green-200' : 'text-green-800'
+          }`}>
+            <p><strong>Total:</strong> {importResults.total}</p>
+            <p><strong>Successful:</strong> {importResults.successful.length}</p>
+            <p><strong>Failed:</strong> {importResults.failed.length}</p>
+          </div>
+          
+          {importResults.successful.length > 0 && (
+            <div className="mt-4">
+              <h4 className={`font-medium text-sm mb-2 ${
+                colorMode ? 'text-green-300' : 'text-green-900'
+              }`}>✅ Successfully Imported Projects:</h4>
+              <div className="space-y-1">
+                {importResults.successful.slice(0, 5).map((project, index) => (
+                  <div key={index} className={`text-xs p-2 rounded ${
+                    colorMode ? 'bg-green-900/30' : 'bg-green-100'
+                  }`}>
+                    <strong>{project.projectNumber}</strong> - {project.customerName}
+                  </div>
+                ))}
+                {importResults.successful.length > 5 && (
+                  <p className={`text-xs ${
+                    colorMode ? 'text-green-300' : 'text-green-700'
+                  }`}>
+                    ... and {importResults.successful.length - 5} more
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {importResults.failed.length > 0 && (
+            <div className="mt-4">
+              <h4 className={`font-medium text-sm mb-2 ${
+                colorMode ? 'text-red-300' : 'text-red-900'
+              }`}>❌ Failed Imports:</h4>
+              <div className="space-y-1">
+                {importResults.failed.slice(0, 3).map((failed, index) => (
+                  <div key={index} className={`text-xs p-2 rounded ${
+                    colorMode ? 'bg-red-900/30' : 'bg-red-100'
+                  }`}>
+                    <strong>Row {failed.row}:</strong> {failed.error}
+                  </div>
+                ))}
+                {importResults.failed.length > 3 && (
+                  <p className={`text-xs ${
+                    colorMode ? 'text-red-300' : 'text-red-700'
+                  }`}>
+                    ... and {importResults.failed.length - 3} more errors
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Example Data */}
+      <div className={`border rounded-lg p-4 ${
+        colorMode 
+          ? 'bg-yellow-900/20 border-yellow-500/40' 
+          : 'bg-yellow-50 border-yellow-200'
+      }`}>
+        <h3 className={`font-medium mb-2 ${
+          colorMode ? 'text-yellow-300' : 'text-yellow-900'
+        }`}>💡 Example Project Data</h3>
+        <div className="overflow-x-auto">
+          <table className={`min-w-full text-xs border-collapse ${
+            colorMode ? 'border-gray-600' : 'border-gray-300'
+          }`}>
+            <thead>
+              <tr className={colorMode ? 'bg-yellow-900/40' : 'bg-yellow-100'}>
+                <th className={`px-2 py-1 text-left border ${
+                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
+                }`}>customerName</th>
+                <th className={`px-2 py-1 text-left border ${
+                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
+                }`}>projectAddress</th>
+                <th className={`px-2 py-1 text-left border ${
+                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
+                }`}>customerPhone</th>
+                <th className={`px-2 py-1 text-left border ${
+                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
+                }`}>projectValue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>John Smith</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>123 Main St, Dallas TX</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>(555) 123-4567</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>15000</td>
+              </tr>
+              <tr>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>Jane Doe</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>456 Oak Ave, Dallas TX</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>(555) 987-6543</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>3500</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -687,7 +1069,9 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         return renderSecurityTab();
       case 'company':
         return renderCompanyTab();
-      case 'data-import':
+      case 'project-import':
+        return renderProjectImportTab();
+      case 'workflow-import':
         return <WorkflowImportPage />;
       case 'subjects':
         return renderSubjectsTab();

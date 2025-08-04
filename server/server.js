@@ -65,6 +65,17 @@ try {
   console.log('⚠️ SERVER: Workflow import functionality will be disabled');
 }
 
+// Try to load project import routes (requires xlsx, csv-parser, multer)
+let projectImportRoutes;
+try {
+  console.log('🔧 SERVER: Loading project import routes...');
+  projectImportRoutes = require('./routes/projectImport');
+  console.log('✅ SERVER: Project import routes loaded successfully');
+} catch (error) {
+  console.error('⚠️ SERVER: Project import routes not available:', error.message);
+  console.log('⚠️ SERVER: Project import functionality will be disabled');
+}
+
 // Import services - TEMPORARILY DISABLED FOR POSTGRESQL MIGRATION
 // const WorkflowAlertService = require('./services/WorkflowAlertService');
 // const AlertSchedulerService = require('./services/AlertSchedulerService');
@@ -623,6 +634,12 @@ if (workflowImportRoutes) {
   console.log('✅ SERVER: Workflow import routes registered at /api/workflow-import');
 } else {
   console.log('⚠️ SERVER: Workflow import routes not registered due to missing dependencies');
+}
+if (projectImportRoutes) {
+  app.use('/api/project-import', projectImportRoutes);
+  console.log('✅ SERVER: Project import routes registered at /api/project-import');
+} else {
+  console.log('⚠️ SERVER: Project import routes not registered due to missing dependencies');
 }
 app.use('/api/search', searchRoutes);
 
