@@ -466,7 +466,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         return (
             <div 
                 data-project-id={String(project.id)}
-                className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md min-h-[320px]`}
+                className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md`}
             >
                 {/* Redesigned Header - Project Number with Phase and Type */}
                 <div className={`p-3 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
@@ -713,22 +713,19 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 )}
                 
-                {/* Simple Progress Bar - Consistent with Dashboard Design */}
+                {/* UnifiedProgressTracker */}
                 <div className="p-3">
-                    <div className={`p-2 rounded-lg ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
-                        <div className="flex items-center justify-between mb-1">
-                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Progress</span>
-                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                {Math.round(getProgressForProject(project))}%
-                            </span>
-                        </div>
-                        <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                            <div 
-                                className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
-                                style={{ width: `${Math.round(getProgressForProject(project))}%` }}
-                            ></div>
-                        </div>
-                    </div>
+                    <UnifiedProgressTracker 
+                        project={project}
+                        projectTrades={projectTrades}
+                        colorMode={colorMode}
+                        showPhase={false}
+                        showProjectNumber={false}
+                        showCustomerName={false}
+                        showProjectType={false}
+                        showProjectManager={false}
+                        showOnlyProgressBar={true}
+                    />
                 </div>
             </div>
         );
@@ -784,7 +781,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     colorMode={colorMode}
                 />
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="space-y-3">
                     {projectsArray.map((p) => (<ProjectCard key={p.id} project={p} />))}
                 </div>
             )}
