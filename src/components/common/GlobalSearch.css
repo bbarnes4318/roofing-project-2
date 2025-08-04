@@ -25,40 +25,58 @@
 .search-icon {
   width: 20px;
   height: 20px;
-  color: #9CA3AF;
-  transition: color 0.3s ease;
+  color: #8B93FF;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(99, 102, 241, 0.1));
 }
 
 .global-search-container:hover .search-icon {
-  color: #6B7280;
+  color: #6366F1;
+  transform: scale(1.05);
 }
 
 .global-search-container:focus-within .search-icon {
-  color: #3B82F6;
+  color: #4F46E5;
+  transform: scale(1.1);
 }
 
 /* ========================= */
-/* SEARCH INPUT - MODERN DESIGN */
+/* SEARCH INPUT - BUBBLES THEME */
 /* ========================= */
 .global-search-input {
   width: 100%;
   padding: 14px 45px 14px 50px;
-  border: 2px solid transparent;
-  border-radius: 12px;
+  border: 1px solid #E0E7FF;
+  border-radius: 25px;
   font-size: 15px;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
   
-  /* Modern flat design with subtle depth */
-  background: #F9FAFB;
-  color: #111827;
+  /* Bubble-inspired gradient background */
+  background: linear-gradient(135deg, #F8FAFF 0%, #EEF4FF 50%, #E0E7FF 100%);
+  color: #1E293B;
   box-shadow: 
-    0 1px 2px 0 rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(209, 213, 219, 0.3);
+    0 2px 8px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   
   position: relative;
   overflow: hidden;
+}
+
+/* Subtle bubble animation overlay */
+.global-search-input::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 20% 80%, rgba(167, 185, 255, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(129, 140, 248, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(199, 210, 254, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  animation: bubbleFloat 8s ease-in-out infinite;
 }
 
 .global-search-input::placeholder {
@@ -73,21 +91,23 @@
   position: absolute;
   right: 12px;
   padding: 6px;
-  background: transparent;
+  background: rgba(99, 102, 241, 0.1);
   border: none;
   cursor: pointer;
-  color: #9CA3AF;
-  transition: all 0.2s ease;
-  border-radius: 6px;
+  color: #8B93FF;
+  transition: all 0.3s ease;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
+  backdrop-filter: blur(4px);
 }
 
 .search-clear-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #6B7280;
+  background: rgba(99, 102, 241, 0.2);
+  color: #6366F1;
+  transform: scale(1.1);
 }
 
 .search-clear-btn:active {
@@ -98,24 +118,26 @@
 /* HOVER STATES */
 /* ========================= */
 .global-search-input:hover {
-  background: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFF 50%, #EEF4FF 100%);
+  border-color: #C7D2FE;
   box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 0 0 1px rgba(209, 213, 219, 0.5);
+    0 4px 12px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
 }
 
 /* ========================= */
-/* FOCUS STATES */
+/* FOCUS STATES - NO DOUBLE BORDER */
 /* ========================= */
 .global-search-input:focus {
   outline: none;
-  background: #FFFFFF;
-  border-color: #3B82F6;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFF 100%);
+  border-color: #6366F1;
   box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    0 0 0 3px rgba(99, 102, 241, 0.2),
+    0 6px 16px rgba(99, 102, 241, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 /* ========================= */
@@ -161,6 +183,21 @@
 .dark-mode ~ .search-clear-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #9CA3AF;
+}
+
+/* ========================= */
+/* BUBBLE ANIMATIONS */
+/* ========================= */
+@keyframes bubbleFloat {
+  0%, 100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateX(10px) translateY(-5px) rotate(1deg);
+  }
+  66% {
+    transform: translateX(-5px) translateY(-8px) rotate(-1deg);
+  }
 }
 
 /* ========================= */
