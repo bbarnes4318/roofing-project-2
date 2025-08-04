@@ -92,6 +92,8 @@ model User {
   createdAlerts         WorkflowAlert[]   @relation("AlertCreatedBy")
   performedOverrides    ProjectPhaseOverride[] @relation("OverridePerformedBy")
   authoredMessages      ProjectMessage[]  @relation("MessageAuthor")
+  roleAssignments       RoleAssignment[]  @relation("RoleAssignments")
+  assignedRoles         RoleAssignment[]  @relation("AssignedRoles")
 
   @@map("users")
 }
@@ -1134,4 +1136,46 @@ model SuppressedWorkflowAlert {
   @@index([suppressedPhase])
   @@index([createdAt])
   @@map("suppressed_workflow_alerts")
+}
+
+// ===============================
+// **NEW: ROLE MANAGEMENT SYSTEM**
+// ===============================
+
+model RoleAssignment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Role Information
+  roleType    RoleType @map("role_type")
+  
+  // User Assignment
+  userId      String @map("user_id")
+  user        User   @relation("RoleAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Assignment Tracking
+  assignedAt    DateTime @map("assigned_at")
+  assignedById  String?  @map("assigned_by_id")
+  assignedBy    User?    @relation("AssignedRoles", fields: [assignedById], references: [id])
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  // Ensure only one user per role type
+  @@unique([roleType], name: "unique_role_assignment")
+  @@index([userId])
+  @@index([roleType])
+  @@index([assignedAt])
+  @@map("role_assignments")
+}
+
+// Role types for the application
+enum RoleType {
+  PRODUCT_MANAGER
+  FIELD_DIRECTOR
+  OFFICE_STAFF
+  ADMINISTRATION
+
+  @@map("role_types")
 } 

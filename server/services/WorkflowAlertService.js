@@ -471,6 +471,25 @@ class WorkflowAlertService {
     const recipients = [];
     
     try {
+      // PRIORITY 1: Get role assignments from Settings first
+      const roleAssignments = await prisma.roleAssignment.findMany({
+        where: { isActive: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+              isActive: true
+            }
+          }
+        }
+      });
+
+      console.log(`🎯 ROLE MANAGEMENT: Found ${roleAssignments.length} active role assignments from Settings`);
+
       // Get the project with team members
       const project = await prisma.project.findUnique({
         where: { id: workflow.project.id },
@@ -525,69 +544,97 @@ class WorkflowAlertService {
           console.log(`❌ Assigned user not found or inactive`);
         }
       } else {
-        console.log(`🔍 No assigned user, looking for users with role: ${step.defaultResponsible}`);
+        console.log(`🔍 ROLE MANAGEMENT: No assigned user, looking for users with role: ${step.defaultResponsible}`);
         
-        // Map workflow roles to actual database roles
-        const roleMapping = {
-          'OFFICE': ['ADMIN', 'MANAGER'],
-          'ADMINISTRATION': ['ADMIN', 'MANAGER'],
-          'PROJECT_MANAGER': ['PROJECT_MANAGER', 'MANAGER'],
-          'FIELD_DIRECTOR': ['PROJECT_MANAGER', 'MANAGER'],
-          'ROOF_SUPERVISOR': ['PROJECT_MANAGER', 'WORKER', 'MANAGER']
+        // PRIORITY: Use role assignments from Settings
+        const roleTypeMapping = {
+          'OFFICE': 'OFFICE_STAFF',
+          'ADMINISTRATION': 'ADMINISTRATION', 
+          'PROJECT_MANAGER': 'PRODUCT_MANAGER',
+          'FIELD_DIRECTOR': 'FIELD_DIRECTOR',
+          'ROOF_SUPERVISOR': 'FIELD_DIRECTOR'
         };
+
+        const targetRoleType = roleTypeMapping[step.defaultResponsible];
         
-        const mappedRoles = roleMapping[step.defaultResponsible] || [step.defaultResponsible];
-        console.log(`   Mapped roles: ${step.defaultResponsible} -> [${mappedRoles.join(', ')}]`);
-        
-        // Fall back to users with the mapped responsible roles
-        const roleUsers = await prisma.user.findMany({
-          where: {
-            role: { in: mappedRoles },
-            isActive: true
-          }
-        });
-        
-        console.log(`   Found ${roleUsers.length} users with mapped roles: [${mappedRoles.join(', ')}]`);
-        
-        if (roleUsers.length > 0) {
-          recipients.push(...roleUsers);
-          console.log(`👥 Added ${roleUsers.length} users with mapped roles from ${step.defaultResponsible}:`);
-          roleUsers.forEach(user => {
-            console.log(`     - ${user.firstName} ${user.lastName} (${user.role})`);
-          });
-        } else {
-          // If no users with specific role, fall back to admin/manager users
-          console.log(`⚠️ No users found with role: ${step.defaultResponsible}, falling back to admin/manager users`);
+        if (targetRoleType) {
+          console.log(`🎯 ROLE MANAGEMENT: Looking for Settings role assignment: ${targetRoleType}`);
           
-          const fallbackUsers = await prisma.user.findMany({
+          const roleAssignment = roleAssignments.find(ra => ra.roleType === targetRoleType);
+          
+          if (roleAssignment && roleAssignment.user && roleAssignment.user.isActive) {
+            recipients.push(roleAssignment.user);
+            console.log(`✅ ROLE MANAGEMENT: Added user from Settings role assignment: ${roleAssignment.user.firstName} ${roleAssignment.user.lastName} (${targetRoleType})`);
+          } else {
+            console.log(`⚠️ ROLE MANAGEMENT: No active user assigned to role ${targetRoleType} in Settings, falling back to role mapping`);
+          }
+        }
+
+        // FALLBACK: Use traditional role mapping if no Settings assignment found
+        if (recipients.length === 0) {
+          console.log(`🔄 ROLE MANAGEMENT: Using fallback role mapping for: ${step.defaultResponsible}`);
+          
+          const roleMapping = {
+            'OFFICE': ['ADMIN', 'MANAGER'],
+            'ADMINISTRATION': ['ADMIN', 'MANAGER'],
+            'PROJECT_MANAGER': ['PROJECT_MANAGER', 'MANAGER'],
+            'FIELD_DIRECTOR': ['PROJECT_MANAGER', 'MANAGER'],
+            'ROOF_SUPERVISOR': ['PROJECT_MANAGER', 'WORKER', 'MANAGER']
+          };
+          
+          const mappedRoles = roleMapping[step.defaultResponsible] || [step.defaultResponsible];
+          console.log(`   Mapped roles: ${step.defaultResponsible} -> [${mappedRoles.join(', ')}]`);
+          
+          // Fall back to users with the mapped responsible roles
+          const roleUsers = await prisma.user.findMany({
             where: {
-              role: { in: ['ADMIN', 'MANAGER'] },
+              role: { in: mappedRoles },
               isActive: true
             }
           });
           
-          console.log(`   Found ${fallbackUsers.length} admin/manager users`);
-          
-          if (fallbackUsers.length > 0) {
-            recipients.push(...fallbackUsers);
-            console.log(`👥 Added ${fallbackUsers.length} fallback admin/manager users:`);
-            fallbackUsers.forEach(user => {
+          console.log(`   Found ${roleUsers.length} users with mapped roles: [${mappedRoles.join(', ')}]`);
+        
+          if (roleUsers.length > 0) {
+            recipients.push(...roleUsers);
+            console.log(`👥 ROLE MANAGEMENT: Added ${roleUsers.length} users with mapped roles from ${step.defaultResponsible}:`);
+            roleUsers.forEach(user => {
               console.log(`     - ${user.firstName} ${user.lastName} (${user.role})`);
             });
           } else {
-            console.log(`❌ No admin/manager users found either!`);
+            // If no users with specific role, fall back to admin/manager users
+            console.log(`⚠️ ROLE MANAGEMENT: No users found with role: ${step.defaultResponsible}, falling back to admin/manager users`);
             
-            // Let's see what users actually exist
-            const allUsers = await prisma.user.findMany({
-              where: { isActive: true },
-              select: { firstName: true, lastName: true, role: true, email: true }
+            const fallbackUsers = await prisma.user.findMany({
+              where: {
+                role: { in: ['ADMIN', 'MANAGER'] },
+                isActive: true
+              }
             });
-            console.log(`   🔧 DEBUG: Found ${allUsers.length} active users in total:`);
-            allUsers.slice(0, 5).forEach(user => {
-              console.log(`     - ${user.firstName} ${user.lastName} (${user.role}) - ${user.email}`);
-            });
-            if (allUsers.length > 5) {
-              console.log(`     ... and ${allUsers.length - 5} more`);
+            
+            console.log(`   Found ${fallbackUsers.length} admin/manager users`);
+            
+            if (fallbackUsers.length > 0) {
+              recipients.push(...fallbackUsers);
+              console.log(`👥 ROLE MANAGEMENT: Added ${fallbackUsers.length} fallback admin/manager users:`);
+              fallbackUsers.forEach(user => {
+                console.log(`     - ${user.firstName} ${user.lastName} (${user.role})`);
+              });
+            } else {
+              console.log(`❌ ROLE MANAGEMENT: No admin/manager users found either!`);
+              
+              // Let's see what users actually exist
+              const allUsers = await prisma.user.findMany({
+                where: { isActive: true },
+                select: { firstName: true, lastName: true, role: true, email: true }
+              });
+              console.log(`   🔧 DEBUG: Found ${allUsers.length} active users in total:`);
+              allUsers.slice(0, 5).forEach(user => {
+                console.log(`     - ${user.firstName} ${user.lastName} (${user.role}) - ${user.email}`);
+              });
+              if (allUsers.length > 5) {
+                console.log(`     ... and ${allUsers.length - 5} more`);
+              }
             }
           }
         }

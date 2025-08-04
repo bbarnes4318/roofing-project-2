@@ -3,6 +3,7 @@ import { ChatBubbleLeftRightIcon, ClipboardDocumentCheckIcon, ExclamationTriangl
 import { getStatusStyles, formatPhoneNumber } from '../../utils/helpers';
 import Modal from '../common/Modal';
 import { useProjects, useCustomers, useCreateProject } from '../../hooks/useQueryApi';
+import { API_BASE_URL } from '../../services/api';
 import { projectsService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
@@ -15,6 +16,7 @@ const defaultNewProject = {
     projectName: '',
     customerName: '',
     jobType: '',
+    projectManager: '', // New field for Project Manager
     status: 'Pending',
     budget: '',
     startDate: '',
@@ -39,6 +41,11 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [actionLoading, setActionLoading] = useState(false);
     const createProjectMutation = useCreateProject();
     const { data: customersData, isLoading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
+    
+    // Role management state
+    const [availableUsers, setAvailableUsers] = useState([]);
+    const [defaultRoles, setDefaultRoles] = useState({});
+    const [usersLoading, setUsersLoading] = useState(true);
     
     // Removed drag and drop state - reverted to original layout
     
@@ -95,6 +102,60 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
             }, 500);
         }
     }, [projectsArray, scrollToProject, targetProjectId]);
+
+    // Load users and default role assignments for project manager field
+    useEffect(() => {
+        const loadUsersAndDefaults = async () => {
+            try {
+                setUsersLoading(true);
+                
+                // Load available users
+                const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (usersResponse.ok) {
+                    const usersData = await usersResponse.json();
+                    if (usersData.success) {
+                        setAvailableUsers(usersData.data);
+                        console.log('✅ Loaded users for project creation:', usersData.data.length);
+                    }
+                }
+                
+                // Load default role assignments
+                const defaultsResponse = await fetch(`${API_BASE_URL}/roles/defaults`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (defaultsResponse.ok) {
+                    const defaultsData = await defaultsResponse.json();
+                    if (defaultsData.success) {
+                        setDefaultRoles(defaultsData.data);
+                        
+                        // Pre-fill project manager if default exists
+                        if (defaultsData.data.projectManager) {
+                            setNewProject(prev => ({
+                                ...prev,
+                                projectManager: defaultsData.data.projectManager.id
+                            }));
+                            console.log('✅ Pre-filled project manager with default:', defaultsData.data.projectManager.name);
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading users and defaults:', error);
+            } finally {
+                setUsersLoading(false);
+            }
+        };
+        
+        loadUsersAndDefaults();
+    }, []);
 
 
     // Function to determine if project should have multiple trades (3 random projects)
@@ -625,7 +686,38 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     <div className="grid grid-cols-3 gap-2">
                         {/* Row 1 */}
                         <button
-                            onClick={() => onProjectSelect(project, 'Project Workflow')}
+                            onClick={() => {
+                              // ENHANCED: Get current workflow state and add highlighting like Current Alerts
+                              const workflowState = WorkflowProgressService.calculateProjectProgress(project);
+                              const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                              const currentPhase = WorkflowProgressService.getProjectPhase(project);
+                              
+                              const projectWithWorkflowState = {
+                                ...project,
+                                currentWorkflowStep: currentStep,
+                                workflowState: workflowState,
+                                scrollToCurrentLineItem: true,
+                                targetPhase: currentPhase,
+                                targetSection: currentStep?.stepName || currentStep?.name,
+                                targetLineItem: currentStep?.stepId,
+                                highlightLineItem: currentStep?.stepId,
+                                sourceSection: 'My Projects',
+                                // Add navigation context for proper workflow highlighting like Current Alerts
+                                navigationTarget: {
+                                  phase: currentPhase,
+                                  section: currentStep?.stepName || currentStep?.name,
+                                  lineItem: currentStep?.stepName || currentStep?.name,
+                                  stepName: currentStep?.stepName || currentStep?.name,
+                                  stepId: currentStep?.stepId,
+                                  highlightMode: 'line-item',
+                                  scrollBehavior: 'smooth',
+                                  targetElementId: `line-item-${(currentStep?.stepName || currentStep?.name || '').replace(/\s+/g, '-').toLowerCase()}`,
+                                  highlightColor: '#3B82F6',
+                                  highlightDuration: 3000
+                                }
+                              };
+                              onProjectSelect(projectWithWorkflowState, 'Project Workflow');
+                            }}
                             className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
                                 colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50'
                             }`}
@@ -709,7 +801,15 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>My Projects ({projectsArray.length})</h2>
                 <div className="flex-1" />
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        // Reset form to defaults with project manager pre-filled
+                        const resetProject = { 
+                            ...defaultNewProject,
+                            projectManager: defaultRoles.projectManager?.id || ''
+                        };
+                        setNewProject(resetProject);
+                        setIsModalOpen(true);
+                    }}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         colorMode
                             ? 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -739,7 +839,15 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     description="Get started by creating your first project"
                     action={
                         <button
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => {
+                                // Reset form to defaults with project manager pre-filled
+                                const resetProject = { 
+                                    ...defaultNewProject,
+                                    projectManager: defaultRoles.projectManager?.id || ''
+                                };
+                                setNewProject(resetProject);
+                                setIsModalOpen(true);
+                            }}
                             className={`mt-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 colorMode
                                     ? 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -839,6 +947,42 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 <option value="LANDSCAPING">Landscaping</option>
                                 <option value="OTHER">Other</option>
                             </select>
+                        </div>
+
+                        {/* Project Manager - MANDATORY FIELD */}
+                        <div>
+                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                Project Manager *
+                                <span className={`text-xs ml-2 ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                    (Pre-filled from Settings)
+                                </span>
+                            </label>
+                            <select
+                                name="projectManager"
+                                value={newProject.projectManager}
+                                onChange={handleInputChange}
+                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                    colorMode
+                                        ? 'bg-slate-700 border-slate-600 text-white'
+                                        : 'bg-white border-gray-300 text-gray-900'
+                                }`}
+                                required
+                                disabled={usersLoading}
+                            >
+                                <option value="">
+                                    {usersLoading ? 'Loading project managers...' : 'Select Project Manager'}
+                                </option>
+                                {availableUsers.map(user => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.name} ({user.role})
+                                    </option>
+                                ))}
+                            </select>
+                            {defaultRoles.projectManager && (
+                                <div className={`mt-1 text-xs ${colorMode ? 'text-green-400' : 'text-green-600'}`}>
+                                    ✓ Default: {defaultRoles.projectManager.name}
+                                </div>
+                            )}
                         </div>
 
                         {/* Project Contacts Section */}

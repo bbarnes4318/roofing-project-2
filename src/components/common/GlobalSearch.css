@@ -296,8 +296,30 @@
 }
 
 /* ========================= */
-/* DROPDOWN WITH MODERN THEME - FIXED POSITIONING */
+/* DROPDOWN WITH MODERN THEME - SIMPLE POSITIONING */
 /* ========================= */
+.search-results-dropdown-simple {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+  text-align: left;
+  animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 8px;
+}
+
+/* Keep original for legacy support */
 .search-results-dropdown {
   display: block;
   position: fixed;
@@ -330,7 +352,8 @@
 }
 
 /* Dark mode dropdown */
-.search-results-dropdown.bg-\[\#1e293b\] {
+.search-results-dropdown.bg-\[\#1e293b\],
+.search-results-dropdown-simple.bg-\[\#1e293b\] {
   background: #1F2937;
   border-color: #374151;
 }
@@ -551,29 +574,35 @@
 /* ========================= */
 /* SCROLLBAR STYLING */
 /* ========================= */
-.search-results-dropdown::-webkit-scrollbar {
+.search-results-dropdown::-webkit-scrollbar,
+.search-results-dropdown-simple::-webkit-scrollbar {
   width: 6px;
 }
 
-.search-results-dropdown::-webkit-scrollbar-track {
+.search-results-dropdown::-webkit-scrollbar-track,
+.search-results-dropdown-simple::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.search-results-dropdown::-webkit-scrollbar-thumb {
+.search-results-dropdown::-webkit-scrollbar-thumb,
+.search-results-dropdown-simple::-webkit-scrollbar-thumb {
   background: #D1D5DB;
   border-radius: 3px;
 }
 
-.search-results-dropdown::-webkit-scrollbar-thumb:hover {
+.search-results-dropdown::-webkit-scrollbar-thumb:hover,
+.search-results-dropdown-simple::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
 }
 
 /* Dark mode scrollbar */
-.search-results-dropdown.bg-\[\#1e293b\]::-webkit-scrollbar-thumb {
+.search-results-dropdown.bg-\[\#1e293b\]::-webkit-scrollbar-thumb,
+.search-results-dropdown-simple.bg-\[\#1e293b\]::-webkit-scrollbar-thumb {
   background: #4B5563;
 }
 
-.search-results-dropdown.bg-\[\#1e293b\]::-webkit-scrollbar-thumb:hover {
+.search-results-dropdown.bg-\[\#1e293b\]::-webkit-scrollbar-thumb:hover,
+.search-results-dropdown-simple.bg-\[\#1e293b\]::-webkit-scrollbar-thumb:hover {
   background: #6B7280;
 }
 

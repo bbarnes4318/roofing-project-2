@@ -40,6 +40,18 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState(30);
 
+  // Role assignments state
+  const [roleAssignments, setRoleAssignments] = useState({
+    productManager: '',
+    fieldDirector: '',
+    officeStaff: '',
+    administration: ''
+  });
+
+  // Available users for dropdowns (loaded from API)
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+
   // Subjects management state
   const { subjects, addSubject, editSubject, deleteSubject, resetToDefaults } = useSubjects();
   const [newSubject, setNewSubject] = useState('');
@@ -105,6 +117,125 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       showSuccessMessage('Subjects reset to defaults!');
     }
   };
+
+  // Role assignment functions
+  const handleRoleAssignment = async (roleType, userId) => {
+    try {
+      setRoleAssignments(prev => ({
+        ...prev,
+        [roleType]: userId
+      }));
+      
+      // Save to API
+      const response = await fetch(`${API_BASE_URL}/roles/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          roleType: roleType,
+          userId: userId
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        const selectedUser = availableUsers.find(user => user.id === userId);
+        showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
+      } else {
+        throw new Error(data.message || 'Failed to assign role');
+      }
+      
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      // Revert state on error
+      setRoleAssignments(prev => ({
+        ...prev,
+        [roleType]: ''
+      }));
+      showSuccessMessage(`Failed to assign role: ${error.message}`);
+    }
+  };
+
+  const getRoleDisplayName = (roleType) => {
+    const roleNames = {
+      productManager: 'Product Manager',
+      fieldDirector: 'Field Director', 
+      officeStaff: 'Office Staff',
+      administration: 'Administration'
+    };
+    return roleNames[roleType] || roleType;
+  };
+
+  const getUserDisplayName = (userId) => {
+    const user = availableUsers.find(u => u.id === userId);
+    return user ? `${user.name} (${user.email})` : 'Select a user...';
+  };
+
+  // Load users and role assignments from API on mount
+  useEffect(() => {
+    const loadUsersAndRoles = async () => {
+      try {
+        setUsersLoading(true);
+        
+        // Load available users
+        const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          if (usersData.success) {
+            setAvailableUsers(usersData.data);
+            console.log('✅ Loaded users for role assignments:', usersData.data.length);
+          }
+        }
+        
+        // Load current role assignments
+        const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (rolesResponse.ok) {
+          const rolesData = await rolesResponse.json();
+          if (rolesData.success) {
+            // Transform API data to expected format
+            const formattedRoles = {
+              productManager: rolesData.data.productManager?.userId || '',
+              fieldDirector: rolesData.data.fieldDirector?.userId || '',
+              officeStaff: rolesData.data.officeStaff?.userId || '',
+              administration: rolesData.data.administration?.userId || ''
+            };
+            setRoleAssignments(formattedRoles);
+            console.log('✅ Loaded role assignments:', formattedRoles);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error loading users and roles:', error);
+        // Fallback to mock data if API fails
+        setAvailableUsers([
+          { id: '1', name: 'Sarah Owner', email: 'sarah.owner@kenstruction.com', role: 'Owner' },
+          { id: '2', name: 'Mike Rodriguez', email: 'mike.rodriguez@kenstruction.com', role: 'Project Manager' },
+          { id: '3', name: 'Jennifer Williams', email: 'jennifer.williams@kenstruction.com', role: 'Field Supervisor' },
+          { id: '4', name: 'David Chen', email: 'david.chen@kenstruction.com', role: 'Office Manager' },
+          { id: '5', name: 'Lisa Johnson', email: 'lisa.johnson@kenstruction.com', role: 'Administrator' },
+          { id: '6', name: 'Tom Anderson', email: 'tom.anderson@kenstruction.com', role: 'Field Director' },
+          { id: '7', name: 'Maria Garcia', email: 'maria.garcia@kenstruction.com', role: 'Office Staff' }
+        ]);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+    
+    loadUsersAndRoles();
+  }, []);
 
   // Project import functions
   const fetchWorkflowTemplates = async () => {
@@ -183,6 +314,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     { id: 'preferences', label: 'Preferences', icon: '⚙️' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'security', label: 'Security', icon: '🔒' },
+    { id: 'roles', label: 'Roles', icon: '👥' },
     { id: 'company', label: 'Company', icon: '🏢' },
     { id: 'project-import', label: 'Project Import', icon: '🏗️' },
     { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
@@ -469,6 +601,275 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderRolesTab = () => (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className={`border rounded-lg p-4 ${
+        colorMode 
+          ? 'bg-blue-900/20 border-blue-500/40' 
+          : 'bg-blue-50 border-blue-200'
+      }`}>
+        <h3 className={`font-medium mb-2 ${
+          colorMode ? 'text-blue-300' : 'text-blue-900'
+        }`}>👥 Default Role Assignments</h3>
+        <p className={`text-sm mb-2 ${
+          colorMode ? 'text-blue-200' : 'text-blue-700'
+        }`}>
+          Assign default users to key roles for new projects. These users will automatically receive alerts and messages for their assigned roles.
+        </p>
+        <div className={`text-xs space-y-1 ${
+          colorMode ? 'text-blue-200' : 'text-blue-600'
+        }`}>
+          <p><strong>Note:</strong> Project Manager assignment is mandatory for each project (but can be changed per project)</p>
+          <p><strong>Alerts:</strong> Users will receive notifications based on their role assignments</p>
+        </div>
+      </div>
+
+      {/* Role Assignment Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Product Manager */}
+        <div className={`border rounded-lg p-4 ${
+          colorMode 
+            ? 'bg-purple-900/20 border-purple-500/40' 
+            : 'bg-purple-50 border-purple-200'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🎯</span>
+            <h4 className={`font-semibold ${
+              colorMode ? 'text-purple-300' : 'text-purple-900'
+            }`}>Product Manager</h4>
+          </div>
+          <p className={`text-xs mb-3 ${
+            colorMode ? 'text-purple-200' : 'text-purple-700'
+          }`}>
+            Oversees product development, strategy, and client requirements
+          </p>
+          <select
+            value={roleAssignments.productManager}
+            onChange={(e) => handleRoleAssignment('productManager', e.target.value)}
+            className={`w-full p-2 rounded border text-sm ${
+              colorMode 
+                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            <option value="">Select Product Manager...</option>
+            {availableUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+          {roleAssignments.productManager && (
+            <div className={`mt-2 p-2 rounded text-xs ${
+              colorMode ? 'bg-purple-900/40 text-purple-200' : 'bg-purple-100 text-purple-800'
+            }`}>
+              <strong>Current:</strong> {getUserDisplayName(roleAssignments.productManager).split(' (')[0]}
+            </div>
+          )}
+        </div>
+
+        {/* Field Director */}
+        <div className={`border rounded-lg p-4 ${
+          colorMode 
+            ? 'bg-orange-900/20 border-orange-500/40' 
+            : 'bg-orange-50 border-orange-200'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🏗️</span>
+            <h4 className={`font-semibold ${
+              colorMode ? 'text-orange-300' : 'text-orange-900'
+            }`}>Field Director</h4>
+          </div>
+          <p className={`text-xs mb-3 ${
+            colorMode ? 'text-orange-200' : 'text-orange-700'
+          }`}>
+            Manages field operations, crews, and on-site project execution
+          </p>
+          <select
+            value={roleAssignments.fieldDirector}
+            onChange={(e) => handleRoleAssignment('fieldDirector', e.target.value)}
+            className={`w-full p-2 rounded border text-sm ${
+              colorMode 
+                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            <option value="">Select Field Director...</option>
+            {availableUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+          {roleAssignments.fieldDirector && (
+            <div className={`mt-2 p-2 rounded text-xs ${
+              colorMode ? 'bg-orange-900/40 text-orange-200' : 'bg-orange-100 text-orange-800'
+            }`}>
+              <strong>Current:</strong> {getUserDisplayName(roleAssignments.fieldDirector).split(' (')[0]}
+            </div>
+          )}
+        </div>
+
+        {/* Office Staff */}
+        <div className={`border rounded-lg p-4 ${
+          colorMode 
+            ? 'bg-green-900/20 border-green-500/40' 
+            : 'bg-green-50 border-green-200'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">📋</span>
+            <h4 className={`font-semibold ${
+              colorMode ? 'text-green-300' : 'text-green-900'
+            }`}>Office Staff</h4>
+          </div>
+          <p className={`text-xs mb-3 ${
+            colorMode ? 'text-green-200' : 'text-green-700'
+          }`}>
+            Handles scheduling, documentation, permits, and client communications
+          </p>
+          <select
+            value={roleAssignments.officeStaff}
+            onChange={(e) => handleRoleAssignment('officeStaff', e.target.value)}
+            className={`w-full p-2 rounded border text-sm ${
+              colorMode 
+                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            <option value="">Select Office Staff...</option>
+            {availableUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+          {roleAssignments.officeStaff && (
+            <div className={`mt-2 p-2 rounded text-xs ${
+              colorMode ? 'bg-green-900/40 text-green-200' : 'bg-green-100 text-green-800'
+            }`}>
+              <strong>Current:</strong> {getUserDisplayName(roleAssignments.officeStaff).split(' (')[0]}
+            </div>
+          )}
+        </div>
+
+        {/* Administration */}
+        <div className={`border rounded-lg p-4 ${
+          colorMode 
+            ? 'bg-red-900/20 border-red-500/40' 
+            : 'bg-red-50 border-red-200'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">⚙️</span>
+            <h4 className={`font-semibold ${
+              colorMode ? 'text-red-300' : 'text-red-900'
+            }`}>Administration</h4>
+          </div>
+          <p className={`text-xs mb-3 ${
+            colorMode ? 'text-red-200' : 'text-red-700'
+          }`}>
+            Manages system settings, user accounts, and administrative tasks
+          </p>
+          <select
+            value={roleAssignments.administration}
+            onChange={(e) => handleRoleAssignment('administration', e.target.value)}
+            className={`w-full p-2 rounded border text-sm ${
+              colorMode 
+                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            <option value="">Select Administrator...</option>
+            {availableUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+          {roleAssignments.administration && (
+            <div className={`mt-2 p-2 rounded text-xs ${
+              colorMode ? 'bg-red-900/40 text-red-200' : 'bg-red-100 text-red-800'
+            }`}>
+              <strong>Current:</strong> {getUserDisplayName(roleAssignments.administration).split(' (')[0]}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Summary Card */}
+      <div className={`border rounded-lg p-4 ${
+        colorMode 
+          ? 'bg-gray-800/50 border-gray-600' 
+          : 'bg-gray-50 border-gray-200'
+      }`}>
+        <h4 className={`font-semibold mb-3 ${
+          colorMode ? 'text-white' : 'text-gray-900'
+        }`}>📊 Current Role Assignments</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div className={`p-2 rounded ${
+            colorMode ? 'bg-gray-700/50' : 'bg-white'
+          }`}>
+            <div className={`font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              🎯 Product Manager
+            </div>
+            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {roleAssignments.productManager 
+                ? getUserDisplayName(roleAssignments.productManager).split(' (')[0]
+                : 'Not assigned'
+              }
+            </div>
+          </div>
+          <div className={`p-2 rounded ${
+            colorMode ? 'bg-gray-700/50' : 'bg-white'
+          }`}>
+            <div className={`font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              🏗️ Field Director
+            </div>
+            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {roleAssignments.fieldDirector 
+                ? getUserDisplayName(roleAssignments.fieldDirector).split(' (')[0]
+                : 'Not assigned'
+              }
+            </div>
+          </div>
+          <div className={`p-2 rounded ${
+            colorMode ? 'bg-gray-700/50' : 'bg-white'
+          }`}>
+            <div className={`font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              📋 Office Staff
+            </div>
+            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {roleAssignments.officeStaff 
+                ? getUserDisplayName(roleAssignments.officeStaff).split(' (')[0]
+                : 'Not assigned'
+              }
+            </div>
+          </div>
+          <div className={`p-2 rounded ${
+            colorMode ? 'bg-gray-700/50' : 'bg-white'
+          }`}>
+            <div className={`font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              ⚙️ Administration
+            </div>
+            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {roleAssignments.administration 
+                ? getUserDisplayName(roleAssignments.administration).split(' (')[0]
+                : 'Not assigned'
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Info Footer */}
+      <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'} space-y-1`}>
+        <p>💡 <strong>Automatic Notifications:</strong> Users assigned to roles will automatically receive relevant alerts and messages.</p>
+        <p>🔄 <strong>Project Manager Override:</strong> While a default is set, Project Manager can be changed for each individual project.</p>
+        <p>💾 <strong>Auto-Save:</strong> Role assignments are saved automatically when changed.</p>
       </div>
     </div>
   );
@@ -1067,6 +1468,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         return renderNotificationsTab();
       case 'security':
         return renderSecurityTab();
+      case 'roles':
+        return renderRolesTab();
       case 'company':
         return renderCompanyTab();
       case 'project-import':

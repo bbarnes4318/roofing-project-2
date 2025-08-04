@@ -53,6 +53,7 @@ const alertRoutes = require('./routes/alerts').router;
 const testRoutes = require('./routes/test');
 const workflowUpdateRoutes = require('./routes/workflowUpdates');
 const phaseOverrideRoutes = require('./routes/phaseOverride');
+const roleRoutes = require('./routes/roles');
 
 // Try to load workflow import routes (requires xlsx, csv-parse, multer)
 let workflowImportRoutes;
@@ -642,6 +643,7 @@ if (projectImportRoutes) {
   console.log('⚠️ SERVER: Project import routes not registered due to missing dependencies');
 }
 app.use('/api/search', searchRoutes);
+app.use('/api/roles', roleRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {

@@ -262,6 +262,32 @@ router.post('/:workflowId/steps/:stepId/complete', asyncHandler(async (req, res)
       });
     }
     
+    // CRITICAL FIX: Mark the completed step's alert as dismissed FIRST
+    if (alertId) {
+      try {
+        await prisma.workflowAlert.updateMany({
+          where: { 
+            OR: [
+              { id: alertId },
+              { AND: [
+                { projectId: workflow.project.id },
+                { stepId: step.id },
+                { status: 'ACTIVE' }
+              ]}
+            ]
+          },
+          data: { 
+            status: 'COMPLETED',
+            isRead: true,
+            completedAt: new Date()
+          }
+        });
+        console.log(`✅ WORKFLOW: Marked alert ${alertId} as completed`);
+      } catch (alertError) {
+        console.error('❌ WORKFLOW: Error updating alert status:', alertError);
+      }
+    }
+
     // Update the step to completed
     const updatedStep = await prisma.workflowStep.update({
       where: { id: step.id },
@@ -332,34 +358,14 @@ router.post('/:workflowId/steps/:stepId/complete', asyncHandler(async (req, res)
         }
       });
       
-      // CRITICAL: Generate alert for the newly activated step
-      const WorkflowAlertService = require('../services/WorkflowAlertService');
-      
-      // Create immediate alert for the next step
-      const alertInfo = {
-        step: nextStep,
-        alertType: 'urgent', // New steps are urgent by default
-        daysUntilDue: nextStep.scheduledEndDate ? 
-          Math.ceil((new Date(nextStep.scheduledEndDate) - new Date()) / (1000 * 60 * 60 * 24)) : 1,
-        daysOverdue: 0
-      };
-      
-      // Get recipients for the alert
-      const recipients = await WorkflowAlertService.getAlertRecipients(workflow, nextStep, 'urgent');
-      
-      // Create alerts for each recipient
-      for (const recipient of recipients) {
-        await WorkflowAlertService.createWorkflowAlert(
-          workflow,
-          nextStep,
-          recipient,
-          'urgent',
-          alertInfo.daysUntilDue,
-          0
-        );
+      // CRITICAL FIX: Use WorkflowUpdateService to properly generate alerts
+      const WorkflowUpdateService = require('../services/workflowUpdateService');
+      try {
+        await WorkflowUpdateService.generateNextStepAlerts(workflow.project.id);
+        console.log(`📨 WORKFLOW: Generated new alerts for remaining steps`);
+      } catch (alertError) {
+        console.error('❌ WORKFLOW: Error generating new step alerts:', alertError);
       }
-      
-      console.log(`📨 WORKFLOW: Generated alerts for next step to ${recipients.length} recipients`);
     }
     
     // ENHANCED: Generate project messages for step completion

@@ -559,7 +559,24 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                           currentWorkflowStep: currentStep,
                           workflowState: workflowState,
                           scrollToCurrentLineItem: true,
+                          targetPhase: WorkflowProgressService.getProjectPhase(project),
+                          targetSection: currentStep?.stepName || currentStep?.name,
+                          targetLineItem: currentStep?.stepId,
+                          highlightLineItem: currentStep?.stepId,
                           sourceSection: 'Project Cubes',
+                          // ENHANCED: Add navigation context for proper workflow highlighting like Current Alerts
+                          navigationTarget: {
+                            phase: WorkflowProgressService.getProjectPhase(project),
+                            section: currentStep?.stepName || currentStep?.name,
+                            lineItem: currentStep?.stepName || currentStep?.name,
+                            stepName: currentStep?.stepName || currentStep?.name,
+                            stepId: currentStep?.stepId,
+                            highlightMode: 'line-item',
+                            scrollBehavior: 'smooth',
+                            targetElementId: `line-item-${(currentStep?.stepName || currentStep?.name || '').replace(/\s+/g, '-').toLowerCase()}`,
+                            highlightColor: '#3B82F6',
+                            highlightDuration: 3000
+                          },
                           dashboardState: {
                             scrollToProject: project
                           }

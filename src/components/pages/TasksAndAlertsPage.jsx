@@ -499,16 +499,31 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 if (project && onProjectSelect) {
+                                                                    // ENHANCED: Use the same comprehensive navigation as Current Alerts
                                                                     const projectWithStepInfo = {
                                                                         ...project,
                                                                         highlightStep: alertTitle,
                                                                         alertPhase: phase,
+                                                                        scrollToCurrentLineItem: true,
+                                                                        targetPhase: phase,
+                                                                        targetSection: sectionName,
+                                                                        targetLineItem: lineItemName,
+                                                                        highlightLineItem: alertTitle,
+                                                                        sourceSection: sourceSection,
                                                                         navigationTarget: {
                                                                             phase: phase,
                                                                             section: sectionName,
                                                                             lineItem: lineItemName,
                                                                             stepName: alertTitle,
-                                                                            alertId: alertId
+                                                                            stepId: actionData.stepId,
+                                                                            workflowId: actionData.workflowId,
+                                                                            alertId: alertId,
+                                                                            highlightMode: 'line-item',
+                                                                            scrollBehavior: 'smooth',
+                                                                            // Add element targeting for precise highlighting
+                                                                            targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                            highlightColor: '#3B82F6',
+                                                                            highlightDuration: 3000
                                                                         }
                                                                     };
                                                                     handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);

@@ -13,6 +13,121 @@ const { transformWorkflowStep } = require('../utils/workflowMapping');
 
 const router = express.Router();
 
+// **CRITICAL: Generate real-time alerts based on actual workflow states**
+const generateRealTimeAlerts = async () => {
+  try {
+    console.log('🔍 GENERATING REAL-TIME ALERTS from workflow states...');
+    
+    // Get all active projects with their workflows and current steps
+    const projects = await prisma.project.findMany({
+      where: {
+        status: { in: ['ACTIVE', 'IN_PROGRESS'] }
+      },
+      include: {
+        customer: true,
+        projectManager: true,
+        workflow: {
+          include: {
+            steps: {
+              where: { 
+                isCompleted: false // Get all incomplete steps
+              },
+              orderBy: { stepOrder: 'asc' }
+            }
+          }
+        }
+      }
+    });
+
+    const realTimeAlerts = [];
+    
+    for (const project of projects) {
+      if (!project.workflow || !project.workflow.steps.length) {
+        console.log(`⚠️ Project ${project.projectName} has no active workflow steps`);
+        continue;
+      }
+
+      // Get the current active step (first incomplete step)
+      const currentStep = project.workflow.steps[0];
+      if (!currentStep) continue;
+
+      console.log(`📋 Creating alert for project: ${project.projectName}, step: ${currentStep.stepName}`);
+
+      // Transform the step to get proper section and line item
+      const transformedStep = transformWorkflowStep({
+        stepName: currentStep.stepName,
+        phase: project.currentPhase || project.phase || currentStep.phase
+      });
+
+      const alert = {
+        id: `realtime_${project.id}_${currentStep.id}`,
+        _id: `realtime_${project.id}_${currentStep.id}`,
+        type: 'Work Flow Line Item',
+        priority: currentStep.alertPriority || 'MEDIUM',
+        status: 'ACTIVE',
+        title: `${currentStep.stepName} - ${project.customer?.primaryName || project.projectName}`,
+        message: `${currentStep.stepName} is ready to begin for project ${project.projectName}`,
+        stepName: currentStep.stepName,
+        isRead: false,
+        read: false,
+        createdAt: new Date(),
+        dueDate: currentStep.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+        workflowId: project.workflow.id,
+        stepId: currentStep.id,
+        projectId: project.id,
+        section: transformedStep?.section || 'General Workflow',
+        lineItem: transformedStep?.lineItem || currentStep.stepName,
+        relatedProject: {
+          id: project.id,
+          _id: project.id,
+          projectNumber: project.projectNumber,
+          projectName: project.projectName,
+          address: project.projectName,
+          customer: {
+            id: project.customer?.id,
+            name: project.customer?.primaryName,
+            primaryName: project.customer?.primaryName,
+            phone: project.customer?.primaryPhone,
+            email: project.customer?.primaryEmail,
+            address: project.customer?.address
+          },
+          projectManager: project.projectManager ? {
+            id: project.projectManager.id,
+            firstName: project.projectManager.firstName,
+            lastName: project.projectManager.lastName
+          } : null
+        },
+        metadata: {
+          projectId: project.id,
+          projectNumber: project.projectNumber,
+          projectName: project.projectName,
+          customerName: project.customer?.primaryName,
+          customerPhone: project.customer?.primaryPhone,
+          customerEmail: project.customer?.primaryEmail,
+          customerAddress: project.customer?.address,
+          address: project.projectName,
+          stepName: currentStep.stepName,
+          stepId: currentStep.id,
+          workflowId: project.workflow.id,
+          phase: project.currentPhase || project.phase || currentStep.phase,
+          section: transformedStep?.section || 'General Workflow',
+          lineItem: transformedStep?.lineItem || currentStep.stepName,
+          cleanTaskName: transformedStep?.lineItem || currentStep.stepName
+        }
+      };
+
+      realTimeAlerts.push(alert);
+    }
+
+    console.log(`✅ Generated ${realTimeAlerts.length} real-time alerts from workflow states`);
+    return realTimeAlerts;
+    
+  } catch (error) {
+    console.error('❌ Error generating real-time alerts:', error);
+    return [];
+  }
+};
+
 // **CRITICAL: Mock alerts for frontend compatibility while we transition**
 const generateMockAlerts = async () => {
   try {
@@ -217,24 +332,26 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
     
     console.log(`🚨 ALERTS ROUTE: Found ${alerts.length} alerts from database`);
     
-    // If no alerts found, generate mock alerts
+    // CRITICAL FIX: Generate real alerts from workflow states instead of mock data
     let finalAlerts = alerts;
     if (alerts.length === 0) {
-      console.log('🚨 ALERTS ROUTE: No alerts in database, generating mock alerts');
-      const mockAlerts = await generateMockAlerts();
-      // Filter mock alerts based on status if provided
+      console.log('🚨 ALERTS ROUTE: No alerts in database, checking for active workflow steps...');
+      
+      // Generate real alerts based on active workflow steps
+      const realAlerts = await generateRealTimeAlerts();
+      
+      // Filter real alerts based on status if provided
       if (where.status) {
-        finalAlerts = mockAlerts.filter(alert => {
-          // Map mock alert priority to match filter
-          const alertStatus = where.status === 'ACTIVE' && !alert.isRead ? 'ACTIVE' : 'COMPLETED';
+        finalAlerts = realAlerts.filter(alert => {
+          const alertStatus = alert.status || 'ACTIVE';
           return alertStatus === where.status;
         }).slice(0, limitNum);
       } else {
-        finalAlerts = mockAlerts.slice(0, limitNum);
+        finalAlerts = realAlerts.slice(0, limitNum);
       }
-      console.log(`🚨 ALERTS ROUTE: Generated ${finalAlerts.length} mock alerts`);
+      console.log(`🚨 ALERTS ROUTE: Generated ${finalAlerts.length} real-time alerts`);
       
-      // Return mock alerts directly with proper response format
+      // Return real alerts with proper response format
       return sendPaginatedResponse(res, finalAlerts, pageNum, limitNum, finalAlerts.length, 'Alerts retrieved successfully');
     }
     
