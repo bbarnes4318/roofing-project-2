@@ -477,21 +477,67 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 {/* Header - Project Number with Phase and Type */}
                 <div className={`p-3 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
                     <div className="flex items-start justify-between">
-                        {/* Left side - Project Number with Phase and Type */}
-                        <div className="flex items-center gap-3">
+                        {/* Left side - Project Number with Phase, Section, Line Item and Type */}
+                        <div className="flex items-center gap-3 flex-wrap">
                             <h3 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                 {project.projectNumber || '12345'}
                             </h3>
+                            
                             {(() => {
                                 // Use centralized phase detection
                                 const projectPhase = WorkflowProgressService.getProjectPhase(project);
                                 const phaseColors = WorkflowProgressService.getPhaseColor(projectPhase);
+                                
+                                // Get current workflow state (section and line item)
+                                const workflowState = getWorkflowState(project.id);
+                                const currentSection = workflowState?.currentSection?.name || 'Initial Setup';
+                                const currentLineItem = workflowState?.currentLineItem?.description || 'Getting Started';
+                                
                                 return (
-                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border ${colorMode ? 'border-slate-500/30' : 'border-white/50'}`}>
-                                        {projectPhase}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {/* Phase Badge */}
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border ${colorMode ? 'border-slate-500/30' : 'border-white/50'}`}>
+                                            {projectPhase}
+                                        </span>
+                                        
+                                        {/* Workflow Progress Indicator */}
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-l-4 border-l-blue-500 ${
+                                            colorMode 
+                                                ? 'bg-slate-700/80 border border-slate-600/50 text-slate-200' 
+                                                : 'bg-blue-50/80 border border-blue-200/50 text-gray-700'
+                                        }`}>
+                                            <div className="flex items-center gap-1.5">
+                                                {/* Section Icon */}
+                                                <div className={`w-2 h-2 rounded-full ${
+                                                    colorMode ? 'bg-blue-400' : 'bg-blue-500'
+                                                }`}></div>
+                                                
+                                                {/* Section and Line Item */}
+                                                <div className="flex flex-col">
+                                                    <div className={`text-[10px] font-bold uppercase tracking-wider ${
+                                                        colorMode ? 'text-blue-400' : 'text-blue-600'
+                                                    }`}>
+                                                        {currentSection}
+                                                    </div>
+                                                    <div className={`text-[9px] font-medium ${
+                                                        colorMode ? 'text-slate-300' : 'text-gray-600'
+                                                    }`}>
+                                                        {currentLineItem.length > 25 ? `${currentLineItem.substring(0, 25)}...` : currentLineItem}
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Progress Arrow */}
+                                                <div className={`ml-1 ${colorMode ? 'text-blue-400' : 'text-blue-500'}`}>
+                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 );
                             })()}
+                            
                             <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colorMode ? 'bg-slate-600/60 text-slate-200 border border-slate-500/30' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
                                 {tradesDisplay}
                             </span>
