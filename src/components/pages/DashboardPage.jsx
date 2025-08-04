@@ -2385,8 +2385,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 </button>
                               </div>
                               
-                              {/* PM with dropdown arrow - Moved 7 spaces left from previous position */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '8px'}}>
+                              {/* PM with dropdown arrow - Moved to the right for better alignment */}
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '10px'}}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
                                   ref={(el) => alertPmButtonRefs.current[alertId] = el}
