@@ -505,8 +505,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                         </div>
                         
-                        {/* Customer Contact Information and Project Cubes - Side by Side */}
-                        <div className="flex items-start justify-between gap-4">
+                        {/* Three Column Layout: Customer Info | Project Cubes | Space for Future Element */}
+                        <div className="grid grid-cols-3 gap-4">
                             {/* Customer Contact Information - Left Side */}
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center gap-1.5">
@@ -537,62 +537,72 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 </div>
                             </div>
                             
-                            {/* Project Cubes - Right Side (Replicated from Dashboard) */}
-                            <div className="grid grid-cols-3 gap-1.5 max-w-[180px]">
-                                <button
-                                    onClick={() => onProjectSelect(project, 'Project Workflow')}
-                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
-                                >
-                                    <span className="mb-0.5 text-[10px]">🗂️</span>
-                                    Workflow
-                                </button>
-                                
-                                <button
-                                    onClick={() => onProjectSelect(project, 'Alerts')}
-                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
-                                >
-                                    <span className="mb-0.5 text-[10px]">⚠️</span>
-                                    Alerts
-                                </button>
-                                
-                                <button
-                                    onClick={() => onProjectSelect(project, 'Messages')}
-                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
-                                >
-                                    <span className="mb-0.5 text-[10px]">💬</span>
-                                    Messages
-                                </button>
-                                
-                                <button
-                                    onClick={() => {}}
-                                    disabled={true}
-                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
-                                >
-                                    <span className="mb-0.5 text-[10px]">📄</span>
-                                    Documents
-                                </button>
-                                
-                                <button
-                                    onClick={() => onProjectSelect(project, 'Project Schedule')}
-                                    disabled
-                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
-                                >
-                                    <span className="mb-0.5 text-[10px]">📅</span>
-                                    Schedule
-                                </button>
-                                
-                                <button
-                                    onClick={() => onProjectSelect(project, 'Projects')}
-                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
-                                >
-                                    <span className="mb-0.5 text-[10px]">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                            <circle cx="12" cy="8" r="4" fill="#2563eb" />
-                                            <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
-                                        </svg>
-                                    </span>
-                                    Profile
-                                </button>
+                            {/* Project Cubes - Center (Smaller and more compact) */}
+                            <div className="flex justify-center">
+                                <div className="grid grid-cols-3 gap-1 max-w-[150px]">
+                                    <button
+                                        onClick={() => onProjectSelect(project, 'Project Workflow')}
+                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
+                                    >
+                                        <span className="mb-0.5 text-[9px]">🗂️</span>
+                                        Workflow
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => onProjectSelect(project, 'Alerts')}
+                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
+                                    >
+                                        <span className="mb-0.5 text-[9px]">⚠️</span>
+                                        Alerts
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => onProjectSelect(project, 'Messages')}
+                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
+                                    >
+                                        <span className="mb-0.5 text-[9px]">💬</span>
+                                        Messages
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => {}}
+                                        disabled={true}
+                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    >
+                                        <span className="mb-0.5 text-[9px]">📄</span>
+                                        Documents
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => onProjectSelect(project, 'Project Schedule')}
+                                        disabled
+                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    >
+                                        <span className="mb-0.5 text-[9px]">📅</span>
+                                        Schedule
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => onProjectSelect(project, 'Projects')}
+                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                                    >
+                                        <span className="mb-0.5 text-[9px]">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                                                <circle cx="12" cy="8" r="4" fill="#2563eb" />
+                                                <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
+                                            </svg>
+                                        </span>
+                                        Profile
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Right Side - Reserved for Future Element */}
+                            <div className="flex items-center justify-end">
+                                {/* Space reserved for future element */}
+                                <div className={`text-xs ${colorMode ? 'text-gray-500' : 'text-gray-400'} italic`}>
+                                    {/* Future element placeholder */}
+                                </div>
                             </div>
                         </div>
                     </div>
