@@ -181,6 +181,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [newMessageProject, setNewMessageProject] = useState('');
   const [newMessageSubject, setNewMessageSubject] = useState('');
   const [newMessageText, setNewMessageText] = useState('');
+  const [newMessageRecipients, setNewMessageRecipients] = useState([]);
+  const [attachTask, setAttachTask] = useState(false);
+  const [taskAssignee, setTaskAssignee] = useState('');
 
   // Activity feed filter state (separate from posting state)
   const [activityProjectFilter, setActivityProjectFilter] = useState('');
@@ -459,11 +462,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   const _recentTasks = tasks.slice(0, 3);
 
-  // Pagination logic with subject filtering and sorting
+  // Get current user (for now using Sarah Owner as default)
+  const currentUser = 'sarah-owner'; // In production, this would come from auth context
+  
+  // Pagination logic with subject filtering, sorting, and recipient filtering
   const filteredActivities = feed.filter(activity => {
     const projectMatch = !activityProjectFilter || activity.projectId === parseInt(activityProjectFilter);
     const subjectMatch = !activitySubjectFilter || activity.subject === activitySubjectFilter;
-    return projectMatch && subjectMatch;
+    
+    // Check if user should see this message
+    let recipientMatch = true;
+    if (activity.recipients && activity.recipients.length > 0) {
+      // Only show messages where current user is a recipient or "all" was selected
+      recipientMatch = activity.recipients.includes('all') || 
+                      activity.recipients.includes(currentUser) ||
+                      activity.user === 'You'; // Show messages sent by current user
+    }
+    
+    return projectMatch && subjectMatch && recipientMatch;
   });
 
   // Sort activities if sorting is configured
@@ -1886,7 +1902,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
+                  <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>My Project Messages</h1>
                   {expandedMessages.size > 0 && (
                     <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                       {expandedMessages.size} of {currentActivities.length} conversation{currentActivities.length !== 1 ? 's' : ''} expanded
@@ -1997,7 +2013,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                   <form onSubmit={(e) => {
                     e.preventDefault();
-                    if (newMessageProject && newMessageSubject && newMessageText.trim()) {
+                    if (newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
                       // Create new message activity
                       const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
                       const newActivity = {
@@ -2010,7 +2026,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         user: 'You',
                         timestamp: new Date().toISOString(),
                         type: 'message',
-                        priority: 'medium'
+                        priority: 'medium',
+                        recipients: newMessageRecipients,
+                        hasTask: attachTask,
+                        taskAssignedTo: attachTask ? taskAssignee : null
                       };
                       
                       // Add to messages data
@@ -2022,8 +2041,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       setNewMessageProject('');
                       setNewMessageSubject('');
                       setNewMessageText('');
+                      setNewMessageRecipients([]);
+                      setAttachTask(false);
+                      setTaskAssignee('');
                     }
                   }} className="space-y-3">
+                    {/* First Row: Project and To fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className={`block text-xs font-medium mb-1 ${
@@ -2054,6 +2077,45 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <label className={`block text-xs font-medium mb-1 ${
                           colorMode ? 'text-gray-300' : 'text-gray-700'
                         }`}>
+                          To <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={newMessageRecipients || ''}
+                          onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                            setNewMessageRecipients(selectedOptions);
+                          }}
+                          multiple
+                          required
+                          className={`w-full p-2 border rounded text-xs ${
+                            colorMode 
+                              ? 'bg-[#232b4d] border-gray-600 text-white' 
+                              : 'bg-white border-gray-300 text-gray-800'
+                          }`}
+                          style={{ minHeight: '60px' }}
+                        >
+                          <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
+                          <option value="sarah-owner">Sarah Owner</option>
+                          <option value="mike-rodriguez">Mike Rodriguez (PM)</option>
+                          <option value="john-smith">John Smith</option>
+                          <option value="jane-doe">Jane Doe</option>
+                          <option value="bob-wilson">Bob Wilson</option>
+                          <option value="alice-johnson">Alice Johnson</option>
+                        </select>
+                        <p className={`text-[10px] mt-1 ${
+                          colorMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          Hold Ctrl/Cmd to select multiple recipients
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Second Row: Subject and Task Assignment */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className={`block text-xs font-medium mb-1 ${
+                          colorMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
                           Subject <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -2071,6 +2133,39 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             <option key={subject} value={subject}>{subject}</option>
                           ))}
                         </select>
+                      </div>
+                      
+                      <div>
+                        <label className={`block text-xs font-medium mb-1 ${
+                          colorMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          <input
+                            type="checkbox"
+                            checked={attachTask || false}
+                            onChange={(e) => setAttachTask(e.target.checked)}
+                            className="mr-1"
+                          />
+                          Attach Task
+                        </label>
+                        {attachTask && (
+                          <select
+                            value={taskAssignee || ''}
+                            onChange={(e) => setTaskAssignee(e.target.value)}
+                            className={`w-full p-2 border rounded text-xs ${
+                              colorMode 
+                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                : 'bg-white border-gray-300 text-gray-800'
+                            }`}
+                          >
+                            <option value="">Assign Task To...</option>
+                            <option value="sarah-owner">Sarah Owner</option>
+                            <option value="mike-rodriguez">Mike Rodriguez (PM)</option>
+                            <option value="john-smith">John Smith</option>
+                            <option value="jane-doe">Jane Doe</option>
+                            <option value="bob-wilson">Bob Wilson</option>
+                            <option value="alice-johnson">Alice Johnson</option>
+                          </select>
+                        )}
                       </div>
                     </div>
                     
@@ -2102,6 +2197,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           setNewMessageProject('');
                           setNewMessageSubject('');
                           setNewMessageText('');
+                          setNewMessageRecipients([]);
+                          setAttachTask(false);
+                          setTaskAssignee('');
                         }}
                         className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
                           colorMode 
@@ -2113,9 +2211,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       </button>
                       <button
                         type="submit"
-                        disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim()}
+                        disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
                         className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                          newMessageProject && newMessageSubject && newMessageText.trim()
+                          newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
