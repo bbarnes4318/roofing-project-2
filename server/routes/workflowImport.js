@@ -494,6 +494,17 @@ router.post('/confirm/:importId', asyncHandler(async (req, res) => {
       }
     });
     
+    // CRITICAL: Trigger alert generation for the newly created workflow
+    console.log(`🚨 WORKFLOW IMPORT: Triggering alert generation for project ${project.id}`);
+    try {
+      const WorkflowAlertService = require('../services/WorkflowAlertService');
+      const alerts = await WorkflowAlertService.checkAlertsForProject(project.id);
+      console.log(`✅ WORKFLOW IMPORT: Generated ${alerts.length} alerts for imported workflow`);
+    } catch (alertError) {
+      console.error('❌ WORKFLOW IMPORT: Error generating alerts:', alertError);
+      // Don't fail the import if alert generation fails
+    }
+    
     // Clean up import data
     delete global.workflowImports[importId];
     

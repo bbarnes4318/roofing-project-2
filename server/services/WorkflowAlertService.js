@@ -180,13 +180,35 @@ class WorkflowAlertService {
       if (isNewProject) {
         console.log(`🆕 New project detected: ${workflow.project.projectName}`);
         
-        // Create alerts for the first section (should be LEAD phase first section)
-        const firstSection = this.getSectionsForPhase('LEAD')[0];
-        if (firstSection) {
-          const alerts = await this.createSectionAlerts(workflow, 'LEAD', firstSection);
-          alertsToSend.push(...alerts);
-          console.log(`📨 Created ${alerts.length} alerts for first section: ${firstSection}`);
+        // CRITICAL: Create alerts for ALL active (incomplete) steps in current workflow
+        // This handles CSV imports that start at any phase/section/line item
+        const activeSteps = workflow.steps.filter(step => !step.isCompleted);
+        
+        console.log(`📋 Creating alerts for ${activeSteps.length} active steps in new project`);
+        
+        for (const step of activeSteps) {
+          const stepKey = `${workflow.id}_step_${step.id}`;
+          
+          if (!this.hasRecentAlert(stepKey, 'section_start')) {
+            console.log(`🔥 Creating alert for active step: ${step.stepName} (${step.phase})`);
+            
+            const recipients = await this.getAlertRecipients(workflow, step, 'section_start');
+            
+            for (const recipient of recipients) {
+              try {
+                const alert = await this.createWorkflowAlert(workflow, step, recipient, 'section_start', 0, 0);
+                alertsToSend.push(alert);
+              } catch (error) {
+                console.error(`❌ Failed to create alert for step ${step.stepName}:`, error);
+              }
+            }
+            
+            // Mark this step as having alerts sent
+            this.markAlertSent(stepKey, 'section_start');
+          }
         }
+        
+        console.log(`📨 Created ${alertsToSend.length} alerts for new project workflow`);
       } else {
         // Check for recently completed sections that should trigger next section alerts
         const nextActiveSection = this.getNextActiveSection(workflow);
@@ -338,7 +360,7 @@ class WorkflowAlertService {
         
         for (const recipient of recipients) {
           try {
-            const alert = await this.createWorkflowAlert(recipient, alertData);
+            const alert = await this.createWorkflowAlert(workflow, step, recipient, 'section_start', 0, 0);
             alerts.push(alert);
           } catch (error) {
             console.error(`❌ Failed to create section alert for user ${recipient.id}:`, error);
@@ -636,28 +658,43 @@ class WorkflowAlertService {
       const priority = this.getAlertPriority(alertType);
       console.log(`   Priority: ${priority}`);
       
-      // Determine correct notification type
-      let notificationType;
-      switch (alertType) {
-        case 'warning':
-          notificationType = 'WORKFLOW_ALERT';
-          break;
-        case 'urgent':
-          notificationType = 'WORKFLOW_ALERT';
-          break;
-        case 'overdue':
-          notificationType = 'WORKFLOW_ALERT';
-          break;
-        default:
-          notificationType = 'WORKFLOW_ALERT';
-      }
+      // CRITICAL: Create actual WorkflowAlert record instead of just Notification
+      const workflowAlert = await prisma.workflowAlert.create({
+        data: {
+          type: 'Work Flow Line Item',
+          priority: priority,
+          status: 'ACTIVE',
+          title: `${step.stepName} - ${project.customer?.primaryName || projectName}`,
+          message: message,
+          stepName: step.stepName,
+          responsibleRole: step.defaultResponsible || 'OFFICE',
+          isRead: false,
+          dueDate: step.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+          projectId: project.id,
+          workflowId: workflow.id,
+          stepId: step.id,
+          assignedToId: recipient.id,
+          createdById: null, // System generated
+          metadata: {
+            alertType: alertType,
+            daysUntilDue: daysUntilDue || 0,
+            daysOverdue: daysOverdue || 0,
+            phase: step.phase,
+            section: this.getSectionFromStepName(step.stepName),
+            lineItem: step.stepName,
+            projectName: projectName,
+            customerName: project.customer?.primaryName,
+            cleanTaskName: this.getCleanTaskName(step.stepName)
+          }
+        }
+      });
       
-      // Create notification
+      // Also create notification for immediate UI updates
       const notification = await prisma.notification.create({
         data: {
           title: `Workflow Alert: ${step.stepName}`,
           message: message,
-          type: notificationType,
+          type: 'WORKFLOW_ALERT',
           recipientId: recipient.id,
           actionUrl: `/projects/${project.id}/workflow`,
           actionData: {
@@ -668,15 +705,17 @@ class WorkflowAlertService {
             phase: step.phase,
             daysUntilDue: daysUntilDue || 0,
             daysOverdue: daysOverdue || 0,
-            projectName: projectName
+            projectName: projectName,
+            workflowAlertId: workflowAlert.id
           }
         }
       });
       
       console.log(`📨 ✅ Successfully created ${alertType} alert for ${recipient.firstName} ${recipient.lastName} - ${step.phase}: ${step.stepName}`);
+      console.log(`   WorkflowAlert ID: ${workflowAlert.id}`);
       console.log(`   Notification ID: ${notification.id}`);
       
-      return notification;
+      return workflowAlert;
       
     } catch (error) {
       console.error('❌ Error creating workflow alert:', error.message);
