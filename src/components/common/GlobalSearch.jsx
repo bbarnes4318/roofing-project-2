@@ -267,14 +267,34 @@ export default function GlobalSearch({
 
   return (
     <div className={`global-search-container ${className}`} ref={searchContainerRef}>
+      {/* Search Icon */}
+      <div className="search-icon-wrapper">
+        <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      
       <input
         type="text"
-        className={`global-search-input ${colorMode ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' : ''}`}
-        placeholder="Search or ask: 'show me completed projects from last month'"
+        className={`global-search-input ${colorMode ? 'dark-mode' : ''}`}
+        placeholder="Search projects, customers, or alerts..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsFocused(true)}
       />
+      
+      {/* Clear button when there's text */}
+      {query && (
+        <button 
+          className="search-clear-btn"
+          onClick={() => setQuery('')}
+          type="button"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
       {isFocused && query.length > 0 && (
         <div className={`search-results-dropdown ${colorMode ? 'bg-[#1e293b] border-gray-600' : ''}`}>
           {loading && <div className="search-result-item-message">Loading...</div>}
