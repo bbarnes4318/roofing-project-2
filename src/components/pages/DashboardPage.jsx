@@ -2484,7 +2484,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                         stepId: actionData.stepId,
                                         workflowId: actionData.workflowId,
                                         highlightMode: 'line-item',
-                                        scrollBehavior: 'smooth'
+                                        scrollBehavior: 'smooth',
+                                        // Add element targeting for precise highlighting
+                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                        highlightColor: '#3B82F6',
+                                        highlightDuration: 3000
                                       }
                                     };
                                     handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');

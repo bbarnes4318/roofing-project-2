@@ -121,11 +121,17 @@ const mapStepToWorkflowStructure = (stepName, phase) => {
     };
   }
   
-  // Direct exact matches first
+  // Direct exact matches first - but return specific line item, not section name
   if (phaseStructure[stepName]) {
+    const sectionData = phaseStructure[stepName];
+    // Return the first line item instead of the section name for stepName
+    const firstLineItem = sectionData.lineItems && sectionData.lineItems.length > 0 
+      ? sectionData.lineItems[0] 
+      : stepName;
+    
     return {
-      section: phaseStructure[stepName].section,
-      lineItem: stepName,
+      section: sectionData.section,
+      lineItem: firstLineItem,
       phase: normalizedPhase
     };
   }

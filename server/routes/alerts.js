@@ -45,6 +45,12 @@ const generateMockAlerts = async () => {
           // Use the project's current phase, not the step's phase
           const projectPhase = project.currentPhase || project.phase || currentStep.phase;
           
+          // CRITICAL: Transform the step to get proper section and line item
+          const transformedStep = transformWorkflowStep({
+            stepName: currentStep.stepName,
+            phase: projectPhase
+          });
+          
           mockAlerts.push({
             id: `alert_${project.id}_${currentStep.id}`,
             _id: `alert_${project.id}_${currentStep.id}`,
@@ -60,6 +66,9 @@ const generateMockAlerts = async () => {
             workflowId: project.workflow.id,
             stepId: currentStep.id,
             stepName: currentStep.stepName,
+            // Add transformed section and line item to main alert object
+            section: transformedStep?.section || 'General Workflow',
+            lineItem: transformedStep?.lineItem || currentStep.stepName,
             relatedProject: {
               id: project.id,
               _id: project.id,
@@ -93,7 +102,11 @@ const generateMockAlerts = async () => {
               stepId: currentStep.stepId,
               workflowId: project.workflow.id,
               phase: projectPhase, // Use project's current phase
-              description: currentStep.description
+              description: currentStep.description,
+              // Add transformed section and line item to metadata
+              section: transformedStep?.section || 'General Workflow',
+              lineItem: transformedStep?.lineItem || currentStep.stepName,
+              cleanTaskName: transformedStep?.lineItem || currentStep.stepName
             }
           });
         }
