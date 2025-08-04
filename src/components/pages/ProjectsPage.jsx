@@ -7,6 +7,7 @@ import { projectsService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
+import UnifiedProgressTracker from '../ui/UnifiedProgressTracker';
 
 const defaultNewProject = {
     projectNumber: '',
@@ -31,7 +32,6 @@ const defaultNewProject = {
 const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject, projects, colorMode, projectSourceSection, onNavigateBack, scrollToProject }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newProject, setNewProject] = useState(defaultNewProject);
-    const [expandedProgress, setExpandedProgress] = useState({});
     const [error, setError] = useState('');
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [projectToArchive, setProjectToArchive] = useState(null);
@@ -45,25 +45,6 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     // CRITICAL: Use centralized workflow states for 100% consistency
     const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
     
-    // Helper functions for phase-based progress
-    const getPhaseIndex = (phase) => {
-        const phases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', '2ND SUPP', 'COMPLETION'];
-        return phases.indexOf(phase) !== -1 ? phases.indexOf(phase) : 0;
-    };
-
-    const getPhaseProgress = (project, targetPhase) => {
-        if (!project.workflow || !project.workflow.steps) return 0;
-        
-        const phaseSteps = project.workflow.steps.filter(step => 
-            step.phase === targetPhase || 
-            (targetPhase === '2ND SUPP' && step.phase === 'SECOND_SUPP')
-        );
-        
-        if (phaseSteps.length === 0) return 0;
-        
-        const completedSteps = phaseSteps.filter(step => step.isCompleted);
-        return Math.round((completedSteps.length / phaseSteps.length) * 100);
-    };
     
     // Always use database projects - no fallback to props
     const projectsData = projectsFromDb || [];
@@ -112,20 +93,6 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }
     }, [projectsArray, scrollToProject, targetProjectId]);
 
-    // Toggle progress expansion
-    const toggleProgressExpansion = (projectId, section, event) => {
-        // Prevent default behavior to avoid unwanted scrolling
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        
-        const key = `${projectId}-${section}`;
-        setExpandedProgress(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
 
     // Function to determine if project should have multiple trades (3 random projects)
     const shouldHaveMultipleTrades = (projectId) => {
@@ -746,113 +713,18 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 )}
                 
-                {/* Project Progress Section - Moved to Bottom with Dashboard-Style Dropdown */}
+                {/* Unified Progress Tracker - Cutting-Edge Combined Component */}
                 <div className="p-3">
-                    <button
-                        onClick={() => toggleProgressExpansion(project.id || project._id, 'progress')}
-                        className={`w-full p-3 rounded-lg transition-all duration-200 ${colorMode ? 'bg-slate-800/50 border border-slate-700 hover:bg-slate-800/70' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'}`}
-                    >
-                        {/* Project Progress Header - Clickable */}
-                        <div className="flex items-center justify-between mb-3">
-                            <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Progress</span>
-                            <div className="flex items-center gap-2">
-                                <span className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                    {getProgressForProject(project)}%
-                                </span>
-                                <svg 
-                                    className={`w-4 h-4 transition-transform duration-200 ${colorMode ? 'text-gray-400' : 'text-gray-600'} ${expandedProgress[`${project.id || project._id}-progress`] ? 'rotate-180' : ''}`} 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                        
-                        {/* Overall Progress Bar */}
-                        <div className={`w-full h-4 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
-                            <div 
-                                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 ease-out"
-                                style={{ width: `${getProgressForProject(project)}%` }}
-                            />
-                        </div>
-                    </button>
-                    
-                    {/* Expandable Progress Details - Dashboard Style */}
-                    {expandedProgress[`${project.id || project._id}-progress`] && (
-                        <div className="mt-3 space-y-3">
-                            {/* Phase Indicators */}
-                            <div className="grid grid-cols-6 gap-2">
-                                {['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', '2ND SUPP', 'COMPLETION'].map((phase, index) => {
-                                    const currentPhase = getPhaseForProject(project);
-                                    const phaseProgress = getPhaseProgress(project, phase);
-                                    const isCurrentPhase = currentPhase === phase;
-                                    const isPastPhase = getPhaseIndex(currentPhase) > getPhaseIndex(phase);
-                                    
-                                    return (
-                                        <div key={phase} className="text-center">
-                                            <div className="relative mb-1">
-                                                <div 
-                                                    className={`w-full h-2 rounded-full overflow-hidden ${
-                                                        colorMode ? 'bg-slate-700' : 'bg-gray-200'
-                                                    }`}
-                                                >
-                                                    <div 
-                                                        className={`h-full rounded-full transition-all duration-500 ${
-                                                            isPastPhase ? 'bg-green-500' :
-                                                            isCurrentPhase ? 'bg-blue-500' :
-                                                            'bg-gray-400'
-                                                        }`}
-                                                        style={{ 
-                                                            width: isPastPhase ? '100%' : 
-                                                                   isCurrentPhase ? `${phaseProgress}%` : 
-                                                                   '0%' 
-                                                        }}
-                                                    />
-                                                </div>
-                                                {isCurrentPhase && (
-                                                    <div className="absolute -top-1 -right-1">
-                                                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className={`text-[10px] font-medium ${
-                                                isCurrentPhase ? (colorMode ? 'text-blue-300' : 'text-blue-600') :
-                                                isPastPhase ? (colorMode ? 'text-green-300' : 'text-green-600') :
-                                                (colorMode ? 'text-gray-500' : 'text-gray-400')
-                                            }`}>
-                                                {phase === '2ND SUPP' ? '2ND SUPP' : phase}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            
-                            {/* Materials and Labor Progress Bars - Dashboard Style */}
-                            <div className="space-y-3">
-                                <div>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials Progress</span>
-                                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>75%</span>
-                                    </div>
-                                    <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                        <div className="bg-green-500 h-2 rounded-full transition-all duration-500" style={{ width: '75%' }}></div>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor Progress</span>
-                                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getProgressForProject(project)}%</span>
-                                    </div>
-                                    <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                        <div className="bg-orange-400 h-2 rounded-full transition-all duration-500" style={{ width: `${getProgressForProject(project)}%` }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <UnifiedProgressTracker 
+                        project={project}
+                        colorMode={colorMode}
+                        onNavigateToWorkflow={(selectedProject, phase) => {
+                            // Navigate to workflow page for the selected project and phase
+                            if (onProjectSelect) {
+                                onProjectSelect(selectedProject, 'Workflow', phase);
+                            }
+                        }}
+                    />
                 </div>
             </div>
         );
