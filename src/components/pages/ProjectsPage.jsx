@@ -484,56 +484,74 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
     // Draggable Button Component
     const DraggableButton = ({ projectId, buttonIndex, children, onClick, className, disabled }) => {
-        const buttonState = getButtonState(projectId, buttonIndex);
+        const [buttonState, setLocalButtonState] = useState(() => getButtonState(projectId, buttonIndex));
         const [isDragging, setIsDragging] = useState(false);
+        
+        const handleDrag = (e, data) => {
+            setIsDragging(true);
+            const newState = {
+                ...buttonState,
+                x: data.x,
+                y: data.y
+            };
+            setLocalButtonState(newState);
+            updateButtonState(projectId, buttonIndex, newState);
+        };
+
+        const handleResize = (e, data) => {
+            const newState = {
+                ...buttonState,
+                width: data.size.width,
+                height: data.size.height
+            };
+            setLocalButtonState(newState);
+            updateButtonState(projectId, buttonIndex, newState);
+        };
         
         return (
             <Draggable
-                position={{ x: buttonState.x, y: buttonState.y }}
-                onDrag={(e, data) => {
-                    setIsDragging(true);
-                    updateButtonState(projectId, buttonIndex, {
-                        ...buttonState,
-                        x: data.x,
-                        y: data.y
-                    });
-                }}
-                onStop={() => setIsDragging(false)}
+                defaultPosition={{ x: buttonState.x, y: buttonState.y }}
+                onDrag={handleDrag}
+                onStop={() => setTimeout(() => setIsDragging(false), 100)}
                 bounds="parent"
-                grid={[5, 5]} // Snap to 5px grid
+                grid={[5, 5]}
                 disabled={disabled}
+                handle=".drag-handle"
             >
-                <div style={{ position: 'absolute', cursor: isDragging ? 'grabbing' : 'grab' }}>
+                <div style={{ 
+                    position: 'absolute', 
+                    cursor: isDragging ? 'grabbing' : 'grab',
+                    userSelect: 'none'
+                }}>
                     <ResizableBox
                         width={buttonState.width}
                         height={buttonState.height}
                         minConstraints={[30, 30]}
-                        maxConstraints={[100, 100]}
-                        onResize={(e, data) => {
-                            updateButtonState(projectId, buttonIndex, {
-                                ...buttonState,
-                                width: data.size.width,
-                                height: data.size.height
-                            });
-                        }}
+                        maxConstraints={[120, 120]}
+                        onResize={handleResize}
                         resizeHandles={['se', 'sw', 'ne', 'nw', 'n', 's', 'e', 'w']}
                     >
-                        <button
+                        <div
+                            className={`drag-handle ${className}`}
+                            style={{ 
+                                width: '100%', 
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: `${Math.max(8, Math.min(buttonState.width, buttonState.height) / 5)}px`,
+                                cursor: isDragging ? 'grabbing' : 'grab',
+                                position: 'relative'
+                            }}
                             onClick={(e) => {
                                 if (!isDragging) {
                                     onClick(e);
                                 }
                             }}
-                            className={className}
-                            disabled={disabled}
-                            style={{ 
-                                width: '100%', 
-                                height: '100%',
-                                fontSize: `${Math.min(buttonState.width, buttonState.height) / 6}px`
-                            }}
                         >
                             {children}
-                        </button>
+                        </div>
                     </ResizableBox>
                 </div>
             </Draggable>
@@ -628,7 +646,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                             
                             {/* Project Cubes - Center (Draggable and Resizable) */}
-                            <div className="relative" style={{ minHeight: '120px', width: '200px' }}>
+                            <div className="relative overflow-visible" style={{ minHeight: '140px', width: '220px', position: 'relative' }}>
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={0}
