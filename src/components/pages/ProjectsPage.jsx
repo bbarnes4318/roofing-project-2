@@ -8,6 +8,9 @@ import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoade
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
 import UnifiedProgressTracker from '../ui/UnifiedProgressTracker';
+import Draggable from 'react-draggable';
+import { ResizableBox } from 'react-resizable';
+import 'react-resizable/css/styles.css';
 
 const defaultNewProject = {
     projectNumber: '',
@@ -38,6 +41,9 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [actionLoading, setActionLoading] = useState(false);
     const createProjectMutation = useCreateProject();
     const { data: customersData, isLoading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
+    
+    // State for draggable buttons - store per project
+    const [buttonStates, setButtonStates] = useState({});
     
     // Fetch projects directly from database
     const { data: projectsFromDb, isLoading: projectsLoading, error: projectsError } = useProjects({ limit: 100 });
@@ -450,6 +456,90 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }
     };
 
+    // Helper function to initialize button state for a project
+    const getButtonState = (projectId, buttonIndex) => {
+        const key = `${projectId}-${buttonIndex}`;
+        if (!buttonStates[key]) {
+            // Default positions and sizes
+            const defaultPositions = [
+                { x: 0, y: 0, width: 45, height: 50 },     // Workflow
+                { x: 50, y: 0, width: 45, height: 50 },    // Alerts
+                { x: 100, y: 0, width: 45, height: 50 },   // Messages
+                { x: 0, y: 55, width: 45, height: 50 },    // Documents
+                { x: 50, y: 55, width: 45, height: 50 },   // Schedule
+                { x: 100, y: 55, width: 45, height: 50 }   // Profile
+            ];
+            return defaultPositions[buttonIndex];
+        }
+        return buttonStates[key];
+    };
+    
+    const updateButtonState = (projectId, buttonIndex, newState) => {
+        const key = `${projectId}-${buttonIndex}`;
+        setButtonStates(prev => ({
+            ...prev,
+            [key]: newState
+        }));
+    };
+
+    // Draggable Button Component
+    const DraggableButton = ({ projectId, buttonIndex, children, onClick, className, disabled }) => {
+        const buttonState = getButtonState(projectId, buttonIndex);
+        const [isDragging, setIsDragging] = useState(false);
+        
+        return (
+            <Draggable
+                position={{ x: buttonState.x, y: buttonState.y }}
+                onDrag={(e, data) => {
+                    setIsDragging(true);
+                    updateButtonState(projectId, buttonIndex, {
+                        ...buttonState,
+                        x: data.x,
+                        y: data.y
+                    });
+                }}
+                onStop={() => setIsDragging(false)}
+                bounds="parent"
+                grid={[5, 5]} // Snap to 5px grid
+                disabled={disabled}
+            >
+                <div style={{ position: 'absolute', cursor: isDragging ? 'grabbing' : 'grab' }}>
+                    <ResizableBox
+                        width={buttonState.width}
+                        height={buttonState.height}
+                        minConstraints={[30, 30]}
+                        maxConstraints={[100, 100]}
+                        onResize={(e, data) => {
+                            updateButtonState(projectId, buttonIndex, {
+                                ...buttonState,
+                                width: data.size.width,
+                                height: data.size.height
+                            });
+                        }}
+                        resizeHandles={['se', 'sw', 'ne', 'nw', 'n', 's', 'e', 'w']}
+                    >
+                        <button
+                            onClick={(e) => {
+                                if (!isDragging) {
+                                    onClick(e);
+                                }
+                            }}
+                            className={className}
+                            disabled={disabled}
+                            style={{ 
+                                width: '100%', 
+                                height: '100%',
+                                fontSize: `${Math.min(buttonState.width, buttonState.height) / 6}px`
+                            }}
+                        >
+                            {children}
+                        </button>
+                    </ResizableBox>
+                </div>
+            </Draggable>
+        );
+    };
+
     // At the top, after extracting scrollToProjectId/targetProjectId and projectSourceSection:
     // (Assume targetProjectId is already set as in the current code)
     const showHeaderBackButton = !((projectSourceSection === 'Activity Feed' || projectSourceSection === 'My Alerts' || projectSourceSection === 'Current Alerts' || projectSourceSection === 'Project Cubes' || projectSourceSection === 'Project Phases') && targetProjectId);
@@ -537,64 +627,78 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 </div>
                             </div>
                             
-                            {/* Project Cubes - Center (Smaller and more compact) */}
-                            <div className="flex justify-center">
-                                <div className="grid grid-cols-3 gap-1 max-w-[150px]">
-                                    <button
-                                        onClick={() => onProjectSelect(project, 'Project Workflow')}
-                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
-                                    >
-                                        <span className="mb-0.5 text-[9px]">🗂️</span>
-                                        Workflow
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => onProjectSelect(project, 'Alerts')}
-                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
-                                    >
-                                        <span className="mb-0.5 text-[9px]">⚠️</span>
-                                        Alerts
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => onProjectSelect(project, 'Messages')}
-                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
-                                    >
-                                        <span className="mb-0.5 text-[9px]">💬</span>
-                                        Messages
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => {}}
-                                        disabled={true}
-                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
-                                    >
-                                        <span className="mb-0.5 text-[9px]">📄</span>
-                                        Documents
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => onProjectSelect(project, 'Project Schedule')}
-                                        disabled
-                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
-                                    >
-                                        <span className="mb-0.5 text-[9px]">📅</span>
-                                        Schedule
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => onProjectSelect(project, 'Projects')}
-                                        className={`group flex flex-col items-center justify-center p-1.5 rounded-md shadow-sm transition-all duration-200 border text-[7px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
-                                    >
-                                        <span className="mb-0.5 text-[9px]">
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                                <circle cx="12" cy="8" r="4" fill="#2563eb" />
-                                                <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
-                                            </svg>
-                                        </span>
-                                        Profile
-                                    </button>
-                                </div>
+                            {/* Project Cubes - Center (Draggable and Resizable) */}
+                            <div className="relative" style={{ minHeight: '120px', width: '200px' }}>
+                                <DraggableButton
+                                    projectId={project.id}
+                                    buttonIndex={0}
+                                    onClick={() => onProjectSelect(project, 'Project Workflow')}
+                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
+                                    disabled={false}
+                                >
+                                    <span className="text-xs">🗂️</span>
+                                    <span className="text-[10px]">Workflow</span>
+                                </DraggableButton>
+                                
+                                <DraggableButton
+                                    projectId={project.id}
+                                    buttonIndex={1}
+                                    onClick={() => onProjectSelect(project, 'Alerts')}
+                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
+                                    disabled={false}
+                                >
+                                    <span className="text-xs">⚠️</span>
+                                    <span className="text-[10px]">Alerts</span>
+                                </DraggableButton>
+                                
+                                <DraggableButton
+                                    projectId={project.id}
+                                    buttonIndex={2}
+                                    onClick={() => onProjectSelect(project, 'Messages')}
+                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
+                                    disabled={false}
+                                >
+                                    <span className="text-xs">💬</span>
+                                    <span className="text-[10px]">Messages</span>
+                                </DraggableButton>
+                                
+                                <DraggableButton
+                                    projectId={project.id}
+                                    buttonIndex={3}
+                                    onClick={() => {}}
+                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    disabled={true}
+                                >
+                                    <span className="text-xs">📄</span>
+                                    <span className="text-[10px]">Documents</span>
+                                </DraggableButton>
+                                
+                                <DraggableButton
+                                    projectId={project.id}
+                                    buttonIndex={4}
+                                    onClick={() => onProjectSelect(project, 'Project Schedule')}
+                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    disabled={true}
+                                >
+                                    <span className="text-xs">📅</span>
+                                    <span className="text-[10px]">Schedule</span>
+                                </DraggableButton>
+                                
+                                <DraggableButton
+                                    projectId={project.id}
+                                    buttonIndex={5}
+                                    onClick={() => onProjectSelect(project, 'Projects')}
+                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                                    disabled={false}
+                                >
+                                    <span className="text-xs">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                            <circle cx="12" cy="8" r="4" fill="#2563eb" />
+                                            <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
+                                        </svg>
+                                    </span>
+                                    <span className="text-[10px]">Profile</span>
+                                </DraggableButton>
                             </div>
                             
                             {/* Right Side - Reserved for Future Element */}
