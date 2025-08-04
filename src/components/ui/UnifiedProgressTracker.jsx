@@ -9,6 +9,19 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
     const [animateProgress, setAnimateProgress] = useState(false);
     const progressRef = useRef(null);
 
+    // Extract section from step name
+    const extractSection = (stepName) => {
+        if (!stepName) return 'General';
+        if (stepName.includes('Inspection')) return 'Inspection';
+        if (stepName.includes('Contract')) return 'Contract & Permitting';
+        if (stepName.includes('Material')) return 'Material & Installation';
+        if (stepName.includes('Quality')) return 'Quality Control';
+        if (stepName.includes('Final')) return 'Final Review';
+        if (stepName.includes('Initial')) return 'Initial Assessment';
+        if (stepName.includes('Approval')) return 'Approval Process';
+        return 'Operations';
+    };
+
     // Calculate all progress metrics
     const progressData = useMemo(() => {
         if (!project) return null;
@@ -53,19 +66,6 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
             percentComplete: overallProgress || 0
         };
     }, [project]);
-
-    // Extract section from step name
-    const extractSection = (stepName) => {
-        if (!stepName) return 'General';
-        if (stepName.includes('Inspection')) return 'Inspection';
-        if (stepName.includes('Contract')) return 'Contract & Permitting';
-        if (stepName.includes('Material')) return 'Material & Installation';
-        if (stepName.includes('Quality')) return 'Quality Control';
-        if (stepName.includes('Final')) return 'Final Review';
-        if (stepName.includes('Initial')) return 'Initial Assessment';
-        if (stepName.includes('Approval')) return 'Approval Process';
-        return 'Operations';
-    };
 
     // Animate progress on mount
     useEffect(() => {
