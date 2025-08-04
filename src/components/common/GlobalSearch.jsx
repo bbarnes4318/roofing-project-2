@@ -284,12 +284,6 @@ export default function GlobalSearch({
 
   // Calculate dropdown position to keep it visible
   const calculateDropdownPosition = () => {
-    if (savedPosition) {
-      // Use saved position if user has customized it
-      setDropdownPosition(savedPosition);
-      return;
-    }
-
     if (searchContainerRef.current) {
       const rect = searchContainerRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
@@ -297,17 +291,18 @@ export default function GlobalSearch({
       const dropdownHeight = 400;
       const dropdownWidth = 450;
       
-      // Default: position below and align with search bar
+      // ALWAYS position below search bar and align with left edge
       let top = rect.bottom + 8;
       let left = rect.left;
       
-      // Ensure dropdown fits on screen
+      // Ensure dropdown fits on screen height
       if (top + dropdownHeight > viewportHeight) {
         top = rect.top - dropdownHeight - 8;
       }
       
+      // CRITICAL: Keep dropdown on screen horizontally
       if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth - 20;
+        left = Math.max(20, viewportWidth - dropdownWidth - 20);
       }
       
       // Ensure it's not too far left
@@ -315,7 +310,11 @@ export default function GlobalSearch({
         left = 20;
       }
       
-      setDropdownPosition({ top: Math.max(10, top), left: Math.max(10, left) });
+      // Force position to be reasonable - never use saved position that goes off screen
+      const finalLeft = Math.max(20, Math.min(left, viewportWidth - dropdownWidth - 20));
+      const finalTop = Math.max(10, Math.min(top, viewportHeight - dropdownHeight - 10));
+      
+      setDropdownPosition({ top: finalTop, left: finalLeft });
     }
   };
 
@@ -343,16 +342,11 @@ export default function GlobalSearch({
     localStorage.setItem('searchDropdownPosition', JSON.stringify(dropdownPosition));
   };
 
-  // Load saved position on mount
+  // Clear any bad saved position on mount
   useEffect(() => {
-    const saved = localStorage.getItem('searchDropdownPosition');
-    if (saved) {
-      try {
-        setSavedPosition(JSON.parse(saved));
-      } catch (e) {
-        // Ignore invalid saved data
-      }
-    }
+    // Clear any saved position that might be off-screen
+    localStorage.removeItem('searchDropdownPosition');
+    setSavedPosition(null);
   }, []);
 
   const handleInputFocus = () => {
@@ -499,14 +493,27 @@ export default function GlobalSearch({
               </div>
               <span className="text-xs font-medium">Search Results - Drag to reposition</span>
             </div>
-            {showSaveButton && (
+            <div className="flex gap-2">
+              {showSaveButton && (
+                <button
+                  onClick={saveDropdownPosition}
+                  className="save-position-btn px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  Save Position
+                </button>
+              )}
               <button
-                onClick={saveDropdownPosition}
-                className="save-position-btn px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                onClick={() => {
+                  localStorage.removeItem('searchDropdownPosition');
+                  setSavedPosition(null);
+                  calculateDropdownPosition();
+                  setShowSaveButton(false);
+                }}
+                className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
               >
-                Save Position
+                Reset Position
               </button>
-            )}
+            </div>
           </div>
           {loading && <div className="search-result-item-message">Loading...</div>}
           {!loading && Object.keys(groupedResults).length === 0 && (
