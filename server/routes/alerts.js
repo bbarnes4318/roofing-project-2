@@ -56,8 +56,10 @@ const generateMockAlerts = async () => {
             read: false,
             createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last week
             dueDate: currentStep.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+            // CRITICAL: Add workflow and step IDs to main alert object for completion
             workflowId: project.workflow.id,
             stepId: currentStep.id,
+            stepName: currentStep.stepName,
             relatedProject: {
               id: project.id,
               _id: project.id,
