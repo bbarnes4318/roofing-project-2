@@ -24,7 +24,11 @@ const generateMockAlerts = async () => {
         workflow: {
           include: {
             steps: {
-              where: { isCompleted: false }
+              where: { 
+                isCompleted: false,
+                isActive: true  // Only get the current active step
+              },
+              orderBy: { stepOrder: 'asc' }
             }
           }
         }
@@ -35,20 +39,25 @@ const generateMockAlerts = async () => {
     
     projects.forEach((project, index) => {
       if (project.workflow && project.workflow.steps.length > 0) {
-        project.workflow.steps.forEach((step, stepIndex) => {
+        // Only create alert for the FIRST active step (current step)
+        const currentStep = project.workflow.steps[0];
+        if (currentStep) {
+          // Use the project's current phase, not the step's phase
+          const projectPhase = project.currentPhase || project.phase || currentStep.phase;
+          
           mockAlerts.push({
-            id: `alert_${project.id}_${step.id}`,
-            _id: `alert_${project.id}_${step.id}`,
+            id: `alert_${project.id}_${currentStep.id}`,
+            _id: `alert_${project.id}_${currentStep.id}`,
             type: 'Work Flow Line Item',
-            priority: step.alertPriority || 'Low',
-            title: `${step.stepName} - ${project.customer.primaryName}`,
-            message: `${step.stepName} is due for project at ${project.projectName}`,
+            priority: currentStep.alertPriority || 'Low',
+            title: `${currentStep.stepName} - ${project.customer.primaryName}`,
+            message: `${currentStep.stepName} is due for project at ${project.projectName}`,
             isRead: false,
             read: false,
             createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last week
-            dueDate: step.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+            dueDate: currentStep.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
             workflowId: project.workflow.id,
-            stepId: step.id,
+            stepId: currentStep.id,
             relatedProject: {
               id: project.id,
               _id: project.id,
@@ -78,14 +87,14 @@ const generateMockAlerts = async () => {
               customerEmail: project.customer.primaryEmail,
               customerAddress: project.customer.address,
               address: project.projectName,
-              stepName: step.stepName,
-              stepId: step.stepId,
+              stepName: currentStep.stepName,
+              stepId: currentStep.stepId,
               workflowId: project.workflow.id,
-              phase: step.phase,
-              description: step.description
+              phase: projectPhase, // Use project's current phase
+              description: currentStep.description
             }
           });
-        });
+        }
       }
     });
 

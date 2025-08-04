@@ -2473,12 +2473,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       targetLineItem: lineItemName,
                                       scrollToCurrentLineItem: true,
                                       alertPhase: phase,
+                                      // Enhanced navigation target with unique identifiers
                                       navigationTarget: {
                                         phase: phase,
                                         section: sectionName,
                                         lineItem: lineItemName,
                                         stepName: alertTitle,
-                                        alertId: alertId
+                                        alertId: alertId,
+                                        // Add unique identifiers for precise targeting
+                                        stepId: actionData.stepId,
+                                        workflowId: actionData.workflowId,
+                                        highlightMode: 'line-item',
+                                        scrollBehavior: 'smooth'
                                       }
                                     };
                                     handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
