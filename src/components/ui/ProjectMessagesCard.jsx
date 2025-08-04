@@ -235,10 +235,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </button>
                             </div>
                             
-                            {/* Subject - Moved to Row 1 */}
-                            <div className="flex-1 min-w-0 ml-2">
+                            {/* Subject - Aligned and moved right */}
+                            <div className="flex-1 min-w-0" style={{ marginLeft: '24px' }}>
                                 <span 
-                                    className={`text-[9px] truncate block overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                    className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                     style={{ 
                                         display: 'inline-block',
                                         verticalAlign: 'baseline',
@@ -303,10 +303,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </span>
                         </div>
                         
-                        {/* To - Dynamic recipient display */}
-                        <div className="flex-1 min-w-0">
+                        {/* To - Aligned with Subject field above */}
+                        <div className="flex-1 min-w-0" style={{ marginLeft: '24px' }}>
                             <span 
-                                className={`text-[9px] truncate block overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                 style={{ 
                                     display: 'inline-block',
                                     verticalAlign: 'baseline',
