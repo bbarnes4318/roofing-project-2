@@ -755,5 +755,8 @@ export const workflowImportService = {
   }
 };
 
+// Export API_BASE_URL for components that need direct fetch access
+export { API_BASE_URL };
+
 // Export the main API instance for custom requests
 export default api; 
