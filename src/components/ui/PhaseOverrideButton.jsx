@@ -125,7 +125,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
       {/* Override Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-md hover:bg-orange-100 hover:border-orange-300 transition-colors"
+        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:border-blue-300 transition-colors"
         title="Override project phase"
       >
         <span>Override Phase</span>
@@ -203,7 +203,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Enter reason for override..."
-                className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows="3"
                 maxLength="500"
               />
@@ -220,7 +220,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
               <button
                 onClick={handleConfirmOverride}
                 disabled={loading}
-                className="flex-1 px-4 py-2 text-xs font-medium text-white bg-orange-600 border border-orange-600 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Overriding...' : 'Confirm Override'}
               </button>

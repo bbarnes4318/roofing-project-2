@@ -1583,7 +1583,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Compact Header */}
       <div className="p-3 border-b border-gray-200 bg-gray-50">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <div className="text-left">
             <h1 className="text-sm font-semibold text-gray-800 mb-1">Project Workflow</h1>
             <p className="text-xs text-gray-600">Actionable roadmap for every project phase</p>
@@ -1638,15 +1638,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
             });
             console.log(`🔍 PHASE COMPLETION: Phase ${phase.id} all tasks completed: ${allTasksCompleted}`);
             return (
-              <div key={`${phase.id}-${workflowData?._forceRender || 0}`} data-phase-id={phase.id} className={`p-2 rounded border shadow-sm text-left ${getPhaseColor(phase.id).bg}`}>
+              <div key={`${phase.id}-${workflowData?._forceRender || 0}`} data-phase-id={phase.id} className="p-2 rounded border shadow-sm text-left bg-white">
                 <div
                   className="flex justify-between items-start cursor-pointer select-none text-left"
                   onClick={() => handlePhaseClick(phase.id)}
                 >
-                  <h3 className={`text-xs font-semibold text-left transition-all duration-200 ${allTasksCompleted ? 'line-through text-green-700' : getPhaseColor(phase.id).text}`}
-                  >
-                    {phase.label} {allTasksCompleted && <span title="Phase Complete" className="ml-1">🎉</span>}
-                  </h3>
+                  <div className="flex items-center">
+                    <div className={`w-3 h-3 rounded-full mr-2 ${getPhaseColor(phase.id).bg}`}></div>
+                    <h3 className={`text-xs font-semibold text-left transition-all duration-200 ${allTasksCompleted ? 'line-through text-green-700' : 'text-gray-800'}`}>
+                      {phase.label} {allTasksCompleted && <span title="Phase Complete" className="ml-1">🎉</span>}
+                    </h3>
+                  </div>
                 </div>
                 {openPhase === phase.id && (
                   <DragDropContext onDragEnd={result => handleDragEnd(result, phase.id)}>
