@@ -482,56 +482,83 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }));
     };
 
-    // Fixed Draggable Button - No Constraints
+    // Working Draggable Button - Fixed Positioning
     const DraggableButton = ({ projectId, buttonIndex, onClick, className, disabled, icon, text }) => {
         const initialState = getButtonState(projectId, buttonIndex);
-        const [position, setPosition] = useState({ x: initialState.x, y: initialState.y });
-        const [size, setSize] = useState({ width: initialState.width, height: initialState.height });
+        const [position, setPosition] = useState({ x: Math.max(0, initialState.x), y: Math.max(0, initialState.y) });
+        const [size, setSize] = useState({ width: Math.max(50, initialState.width), height: Math.max(50, initialState.height) });
         const [isDragging, setIsDragging] = useState(false);
         
         return (
             <Draggable
+                position={position}
                 onDrag={(e, data) => {
-                    setPosition({ x: data.x, y: data.y });
+                    // Keep within bounds
+                    const newX = Math.max(0, Math.min(250, data.x));
+                    const newY = Math.max(0, Math.min(150, data.y));
+                    setPosition({ x: newX, y: newY });
                     setIsDragging(true);
                 }}
-                onStop={() => {
+                onStop={(e, data) => {
                     setIsDragging(false);
-                    updateButtonState(projectId, buttonIndex, { ...position, ...size });
+                    const newX = Math.max(0, Math.min(250, data.x));
+                    const newY = Math.max(0, Math.min(150, data.y));
+                    const finalPosition = { x: newX, y: newY };
+                    setPosition(finalPosition);
+                    updateButtonState(projectId, buttonIndex, { ...finalPosition, ...size });
                 }}
             >
-                <div style={{ position: 'absolute', left: position.x, top: position.y }}>
+                <div>
                     <ResizableBox
                         width={size.width}
                         height={size.height}
+                        minConstraints={[40, 40]}
+                        maxConstraints={[120, 120]}
                         onResize={(e, { size: newSize }) => {
-                            setSize(newSize);
-                            updateButtonState(projectId, buttonIndex, { ...position, ...newSize });
+                            // Ensure valid size
+                            const validSize = {
+                                width: Math.max(40, Math.min(120, newSize.width)),
+                                height: Math.max(40, Math.min(120, newSize.height))
+                            };
+                            setSize(validSize);
+                            updateButtonState(projectId, buttonIndex, { ...position, ...validSize });
                         }}
-                        resizeHandles={['se', 'sw', 'ne', 'nw']}
+                        resizeHandles={['se']}
                     >
                         <div
                             className={className}
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 if (!isDragging && !disabled) {
                                     onClick();
                                 }
                             }}
                             style={{
-                                width: '100%',
-                                height: '100%',
+                                width: size.width + 'px',
+                                height: size.height + 'px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: isDragging ? 'grabbing' : 'grab',
                                 userSelect: 'none',
-                                padding: '4px',
-                                boxSizing: 'border-box'
+                                padding: '2px',
+                                boxSizing: 'border-box',
+                                minWidth: '40px',
+                                minHeight: '40px'
                             }}
                         >
-                            <div style={{ fontSize: Math.max(12, size.width / 4) + 'px' }}>{icon}</div>
-                            <div style={{ fontSize: Math.max(8, size.width / 8) + 'px', textAlign: 'center' }}>{text}</div>
+                            <div style={{ fontSize: Math.max(10, size.width / 5) + 'px', lineHeight: 1 }}>
+                                {icon}
+                            </div>
+                            <div style={{ 
+                                fontSize: Math.max(6, size.width / 8) + 'px', 
+                                textAlign: 'center',
+                                lineHeight: 1.1,
+                                marginTop: '2px'
+                            }}>
+                                {text}
+                            </div>
                         </div>
                     </ResizableBox>
                 </div>
@@ -627,7 +654,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                             
                             {/* Project Cubes - Center (Draggable and Resizable) */}
-                            <div style={{ position: 'relative', minHeight: '200px', width: '300px' }}>
+                            <div style={{ 
+                                position: 'relative', 
+                                minHeight: '200px', 
+                                width: '300px',
+                                border: '1px dashed #ccc',
+                                borderRadius: '8px',
+                                backgroundColor: colorMode ? 'rgba(15, 23, 42, 0.3)' : 'rgba(248, 250, 252, 0.5)'
+                            }}>
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={0}
