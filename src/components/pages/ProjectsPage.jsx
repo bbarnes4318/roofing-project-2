@@ -40,8 +40,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const createProjectMutation = useCreateProject();
     const { data: customersData, isLoading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
     
-    // State for draggable buttons - store per project
-    const [buttonStates, setButtonStates] = useState({});
+    // Removed drag and drop state - reverted to original layout
     
     // Fetch projects directly from database
     const { data: projectsFromDb, isLoading: projectsLoading, error: projectsError } = useProjects({ limit: 100 });
@@ -454,216 +453,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }
     };
 
-    // Helper function to initialize button state for a project
-    const getButtonState = (projectId, buttonIndex) => {
-        const key = `${projectId}-${buttonIndex}`;
-        if (!buttonStates[key]) {
-            // Better default positions and sizes for 300x200 container
-            const defaultPositions = [
-                { x: 10, y: 10, width: 80, height: 60 },    // Workflow - top left
-                { x: 110, y: 10, width: 80, height: 60 },   // Alerts - top center
-                { x: 210, y: 10, width: 80, height: 60 },   // Messages - top right
-                { x: 10, y: 80, width: 80, height: 60 },    // Documents - bottom left
-                { x: 110, y: 80, width: 80, height: 60 },   // Schedule - bottom center
-                { x: 210, y: 80, width: 80, height: 60 }    // Profile - bottom right
-            ];
-            return defaultPositions[buttonIndex];
-        }
-        return buttonStates[key];
-    };
-    
-    const updateButtonState = (projectId, buttonIndex, newState) => {
-        const key = `${projectId}-${buttonIndex}`;
-        setButtonStates(prev => ({
-            ...prev,
-            [key]: newState
-        }));
-    };
-
-    // Working Native Drag & Drop Button Component
-    const DraggableButton = ({ projectId, buttonIndex, onClick, className, disabled, icon, text }) => {
-        const initialState = getButtonState(projectId, buttonIndex);
-        const [position, setPosition] = useState({ x: initialState.x, y: initialState.y });
-        const [size, setSize] = useState({ width: initialState.width, height: initialState.height });
-        const [isDragging, setIsDragging] = useState(false);
-        const [isResizing, setIsResizing] = useState(false);
-        const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-        const [startSize, setStartSize] = useState({ width: 0, height: 0 });
-        const [startMousePos, setStartMousePos] = useState({ x: 0, y: 0 });
-        
-        // Container boundaries (the dashed border container)
-        const CONTAINER_WIDTH = 300;
-        const CONTAINER_HEIGHT = 200;
-        const MIN_SIZE = 30;
-        const MAX_SIZE = 120;
-        
-        const handleDragStart = (e) => {
-            if (e.target.closest('.resize-handle')) return;
-            e.preventDefault();
-            e.stopPropagation();
-            
-            setIsDragging(true);
-            setDragOffset({
-                x: e.clientX - position.x,
-                y: e.clientY - position.y
-            });
-        };
-        
-        const handleResizeStart = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            setIsResizing(true);
-            setStartSize({ width: size.width, height: size.height });
-            setStartMousePos({ x: e.clientX, y: e.clientY });
-        };
-        
-        const handleMouseMove = (e) => {
-            if (isDragging) {
-                const newX = Math.max(0, Math.min(CONTAINER_WIDTH - size.width, e.clientX - dragOffset.x));
-                const newY = Math.max(0, Math.min(CONTAINER_HEIGHT - size.height, e.clientY - dragOffset.y));
-                setPosition({ x: newX, y: newY });
-            } else if (isResizing) {
-                const deltaX = e.clientX - startMousePos.x;
-                const deltaY = e.clientY - startMousePos.y;
-                
-                const newWidth = Math.max(MIN_SIZE, Math.min(MAX_SIZE, startSize.width + deltaX));
-                const newHeight = Math.max(MIN_SIZE, Math.min(MAX_SIZE, startSize.height + deltaY));
-                
-                // Ensure button doesn't exceed container bounds when resizing
-                const maxWidth = CONTAINER_WIDTH - position.x;
-                const maxHeight = CONTAINER_HEIGHT - position.y;
-                
-                setSize({
-                    width: Math.min(newWidth, maxWidth),
-                    height: Math.min(newHeight, maxHeight)
-                });
-            }
-        };
-        
-        const handleMouseUp = () => {
-            if (isDragging) {
-                setIsDragging(false);
-                updateButtonState(projectId, buttonIndex, { ...position, ...size });
-            }
-            if (isResizing) {
-                setIsResizing(false);
-                updateButtonState(projectId, buttonIndex, { ...position, ...size });
-            }
-        };
-        
-        const handleClick = (e) => {
-            // Only trigger click if we're not dragging/resizing and not disabled
-            if (!isDragging && !isResizing && !disabled) {
-                onClick();
-            }
-        };
-        
-        // Attach global mouse event listeners
-        useEffect(() => {
-            if (isDragging || isResizing) {
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-                document.body.style.userSelect = 'none';
-                document.body.style.cursor = isDragging ? 'grabbing' : 'se-resize';
-            }
-            
-            return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-                document.body.style.userSelect = '';
-                document.body.style.cursor = '';
-            };
-        }, [isDragging, isResizing, dragOffset, position, size, startSize, startMousePos]);
-        
-        return (
-            <div
-                style={{
-                    position: 'absolute',
-                    left: `${position.x}px`,
-                    top: `${position.y}px`,
-                    width: `${size.width}px`,
-                    height: `${size.height}px`,
-                    cursor: isDragging ? 'grabbing' : 'grab',
-                    userSelect: 'none',
-                    zIndex: isDragging || isResizing ? 1000 : 1
-                }}
-                onMouseDown={handleDragStart}
-            >
-                <div
-                    className={`${className} ${isDragging ? 'shadow-lg' : ''} ${disabled ? 'opacity-50' : ''}`}
-                    onClick={handleClick}
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        pointerEvents: disabled ? 'none' : 'auto'
-                    }}
-                >
-                    {/* Icon */}
-                    <div style={{ 
-                        fontSize: `${Math.max(12, Math.min(24, size.width / 3))}px`,
-                        marginBottom: '2px'
-                    }}>
-                        {icon}
-                    </div>
-                    
-                    {/* Text */}
-                    <div style={{ 
-                        fontSize: `${Math.max(8, Math.min(12, size.width / 6))}px`,
-                        textAlign: 'center',
-                        lineHeight: '1.1',
-                        maxWidth: '90%',
-                        overflow: 'hidden'
-                    }}>
-                        {text}
-                    </div>
-                    
-                    {/* Resize Handle - Only show when not disabled */}
-                    {!disabled && (
-                        <div
-                            className="resize-handle"
-                            onMouseDown={handleResizeStart}
-                            style={{
-                                position: 'absolute',
-                                bottom: '0px',
-                                right: '0px',
-                                width: '12px',
-                                height: '12px',
-                                background: isResizing ? '#2563eb' : '#3b82f6',
-                                cursor: 'se-resize',
-                                borderRadius: '0 0 4px 0',
-                                opacity: 0.8,
-                                transition: 'opacity 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.opacity = '1'}
-                            onMouseLeave={(e) => e.target.style.opacity = '0.8'}
-                        />
-                    )}
-                    
-                    {/* Visual feedback for dragging */}
-                    {isDragging && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: '-2px',
-                                left: '-2px',
-                                right: '-2px',
-                                bottom: '-2px',
-                                border: '2px dashed #3b82f6',
-                                borderRadius: '6px',
-                                pointerEvents: 'none'
-                            }}
-                        />
-                    )}
-                </div>
-            </div>
-        );
-    };
+    // Removed all drag and drop functionality - reverted to original static buttons
 
     // At the top, after extracting scrollToProjectId/targetProjectId and projectSourceSection:
     // (Assume targetProjectId is already set as in the current code)
@@ -678,12 +468,13 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         
         // Determine if this card should show the back button
         const showCardBackButton = (projectSourceSection === 'Activity Feed' || projectSourceSection === 'My Alerts' || projectSourceSection === 'Current Alerts' || projectSourceSection === 'Project Cubes' || projectSourceSection === 'Project Phases' || projectSourceSection === 'Project Messages' || projectSourceSection === 'Project Workflow Alerts') && String(project.id) === String(targetProjectId);
+        
         return (
             <div 
                 data-project-id={String(project.id)}
                 className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md`}
             >
-                {/* Redesigned Header - Project Number with Phase and Type */}
+                {/* Header - Project Number with Phase and Type */}
                 <div className={`p-3 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
                     <div className="flex items-start justify-between">
                         {/* Left side - Project Number with Phase and Type */}
@@ -707,228 +498,63 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         </div>
                     </div>
                     
-                    {/* Customer Information Section with Project Cubes */}
+                    {/* Customer Information */}
                     <div className="mt-3 space-y-3">
-                        {/* Customer Name and Address Together */}
+                        {/* Customer Name and Address */}
                         <div className="space-y-1">
                             <div className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
                                 {project.client?.name || project.customer?.primaryName || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
                             </div>
-                            {/* Address directly below name */}
                             <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} font-normal leading-relaxed`}>
                                 {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
                             </div>
                         </div>
                         
-                        {/* Three Column Layout: Customer Info | Project Cubes | Space for Future Element */}
-                        <div className="grid grid-cols-3 gap-4">
-                            {/* Customer Contact Information - Left Side */}
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-1.5">
-                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
-                                        <span className="text-[10px]">📞</span>
-                                    </div>
-                                    <a 
-                                        href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
-                                        className={`text-sm font-medium hover:underline transition-colors ${
-                                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                        }`}
-                                    >
-                                        {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || 'Add phone'}
-                                    </a>
+                        {/* Customer Contact Info */}
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1.5">
+                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
+                                    <span className="text-[10px]">📞</span>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
-                                        <span className="text-[10px]">✉️</span>
-                                    </div>
-                                    <a 
-                                        href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || ''}`}
-                                        className={`text-sm font-medium hover:underline transition-colors ${
-                                            colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
-                                        }`}
-                                    >
-                                        {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'Add email'}
-                                    </a>
-                                </div>
+                                <a 
+                                    href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
+                                    className={`text-sm font-medium hover:underline transition-colors ${
+                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                    }`}
+                                >
+                                    {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || 'Add phone'}
+                                </a>
                             </div>
-                            
-                            {/* Project Cubes - Center (Draggable and Resizable) */}
-                            <div style={{ 
-                                position: 'relative', 
-                                minHeight: '200px', 
-                                width: '300px',
-                                border: '1px dashed #ccc',
-                                borderRadius: '8px',
-                                backgroundColor: colorMode ? 'rgba(15, 23, 42, 0.3)' : 'rgba(248, 250, 252, 0.5)'
-                            }}>
-                                <DraggableButton
-                                    projectId={project.id}
-                                    buttonIndex={0}
-                                    onClick={() => onProjectSelect(project, 'Project Workflow')}
-                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50'}`}
-                                    icon="🗂️"
-                                    text="Workflow"
-                                    disabled={false}
-                                />
-                                
-                                <DraggableButton
-                                    projectId={project.id}
-                                    buttonIndex={1}
-                                    onClick={() => onProjectSelect(project, 'Alerts')}
-                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50'}`}
-                                    icon="⚠️"
-                                    text="Alerts"
-                                    disabled={false}
-                                />
-                                
-                                <DraggableButton
-                                    projectId={project.id}
-                                    buttonIndex={2}
-                                    onClick={() => onProjectSelect(project, 'Messages')}
-                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50'}`}
-                                    icon="💬"
-                                    text="Messages"
-                                    disabled={false}
-                                />
-                                
-                                <DraggableButton
-                                    projectId={project.id}
-                                    buttonIndex={3}
-                                    onClick={() => {}}
-                                    className={`rounded-md shadow-sm border opacity-50 cursor-not-allowed ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
-                                    icon="📄"
-                                    text="Documents"
-                                    disabled={true}
-                                />
-                                
-                                <DraggableButton
-                                    projectId={project.id}
-                                    buttonIndex={4}
-                                    onClick={() => onProjectSelect(project, 'Project Schedule')}
-                                    className={`rounded-md shadow-sm border opacity-50 cursor-not-allowed ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
-                                    icon="📅"
-                                    text="Schedule"
-                                    disabled={true}
-                                />
-                                
-                                <DraggableButton
-                                    projectId={project.id}
-                                    buttonIndex={5}
-                                    onClick={() => onProjectSelect(project, 'Projects')}
-                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'}`}
-                                    icon="👤"
-                                    text="Profile"
-                                    disabled={false}
-                                />
-                            </div>
-                            
-                            {/* Right Side - Reserved for Future Element */}
-                            <div className="flex items-center justify-end">
-                                {/* Space reserved for future element */}
-                                <div className={`text-xs ${colorMode ? 'text-gray-500' : 'text-gray-400'} italic`}>
-                                    {/* Future element placeholder */}
+                            <div className="flex items-center gap-1.5">
+                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
+                                    <span className="text-[10px]">✉️</span>
                                 </div>
+                                <a 
+                                    href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || ''}`}
+                                    className={`text-sm font-medium hover:underline transition-colors ${
+                                        colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
+                                    }`}
+                                >
+                                    {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'Add email'}
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                {/* Additional Household Members and Project Manager - Moved Up */}
-                <div className="px-3 pb-3 space-y-2">
-                    <div className="grid grid-cols-3 gap-2">
-                        {/* Secondary Customer 1 - Conditional Rendering */}
-                        {project.customer?.secondaryName ? (
-                            <div className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-slate-700/50 border-slate-600/50 hover:bg-slate-700/70' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
-                                <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-2 flex items-center gap-2`}>
-                                    <span className="text-sm">👤</span>
-                                    {project.customer.secondaryName}
-                                </div>
-                                <div className="space-y-1.5">
-                                    {project.customer?.secondaryPhone && (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs">📞</span>
-                                            <a 
-                                                href={`tel:${project.customer.secondaryPhone}`}
-                                                className={`text-xs font-medium hover:underline transition-colors ${
-                                                    colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                                }`}
-                                            >
-                                                {project.customer.secondaryPhone}
-                                            </a>
-                                        </div>
-                                    )}
-                                    {project.customer?.secondaryEmail && (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs">✉️</span>
-                                            <a 
-                                                href={`mailto:${project.customer.secondaryEmail}`}
-                                                className={`text-xs font-medium hover:underline transition-colors ${
-                                                    colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
-                                                }`}
-                                            >
-                                                {project.customer.secondaryEmail}
-                                            </a>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className={`p-3 rounded-lg border-2 border-dashed shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-slate-800/30 border-slate-600/50 hover:bg-slate-800/50' : 'bg-gray-50/50 border-gray-300 hover:bg-gray-100/50'}`}>
-                                <div className="text-center">
-                                    <div className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
-                                        Additional Household Member
-                                    </div>
-                                    <button className={`text-xs px-2 py-1 rounded transition-colors ${colorMode ? 'bg-slate-600 hover:bg-slate-500 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}>
-                                        + Add Contact
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {/* Additional Contact Slot */}
-                        <div className={`p-3 rounded-lg border-2 border-dashed shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-slate-800/30 border-slate-600/50 hover:bg-slate-800/50' : 'bg-gray-50/50 border-gray-300 hover:bg-gray-100/50'}`}>
-                            <div className="text-center">
-                                <div className={`text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
-                                    Additional Household Member
-                                </div>
-                                <button className={`text-xs px-2 py-1 rounded transition-colors ${colorMode ? 'bg-slate-600 hover:bg-slate-500 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}>
-                                    + Add Contact
-                                </button>
-                            </div>
-                        </div>
-                        
-                        {/* Enhanced Project Manager */}
-                        <div className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${colorMode ? 'bg-gradient-to-br from-blue-700/40 to-purple-700/40 border-blue-600/50 hover:from-blue-700/60 hover:to-purple-700/60' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100'}`}>
-                            <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-2 flex items-center gap-2`}>
-                                <span className="text-sm">🛠️</span>
-                                PM: {project.projectManager?.firstName || project.projectManager?.name || 'Mike Rodriguez'}
-                            </div>
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs">📞</span>
-                                    <a 
-                                        href={`tel:${project.projectManager?.phone || '(555) 234-5678'}`}
-                                        className={`text-xs font-medium hover:underline transition-colors ${
-                                            colorMode ? 'text-blue-200 hover:text-blue-100' : 'text-blue-700 hover:text-blue-900'
-                                        }`}
-                                    >
-                                        {project.projectManager?.phone || '(555) 234-5678'}
-                                    </a>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs">✉️</span>
-                                    <a 
-                                        href={`mailto:${project.projectManager?.email || 'mike@company.com'}`}
-                                        className={`text-xs font-medium hover:underline transition-colors ${
-                                            colorMode ? 'text-green-200 hover:text-green-100' : 'text-green-700 hover:text-green-900'
-                                        }`}
-                                    >
-                                        {project.projectManager?.email || 'mike@company.com'}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                {/* Progress Bar Section */}
+                <div className="p-3">
+                    <UnifiedProgressTracker 
+                        project={project}
+                        projectTrades={projectTrades}
+                        colorMode={colorMode}
+                        showPhase={false}
+                        showProjectNumber={false}
+                        showCustomerName={false}
+                        showProjectType={false}
+                        showProjectManager={false}
+                        showOnlyProgressBar={true}
+                    />
                 </div>
                 
                 {/* Back Button (if needed from source navigation) */}
@@ -948,19 +574,83 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 )}
                 
-                {/* UnifiedProgressTracker */}
-                <div className="p-3">
-                    <UnifiedProgressTracker 
-                        project={project}
-                        projectTrades={projectTrades}
-                        colorMode={colorMode}
-                        showPhase={false}
-                        showProjectNumber={false}
-                        showCustomerName={false}
-                        showProjectType={false}
-                        showProjectManager={false}
-                        showOnlyProgressBar={true}
-                    />
+                {/* 6 Project Action Buttons - Bottom Section */}
+                <div className="px-3 pb-3">
+                    <div className="grid grid-cols-3 gap-2">
+                        {/* Row 1 */}
+                        <button
+                            onClick={() => onProjectSelect(project, 'Project Workflow')}
+                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50'
+                            }`}
+                        >
+                            <div className="text-center">
+                                <div className="text-lg mb-1">🗂️</div>
+                                <div className="text-xs font-medium">Workflow</div>
+                            </div>
+                        </button>
+                        
+                        <button
+                            onClick={() => onProjectSelect(project, 'Alerts')}
+                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50'
+                            }`}
+                        >
+                            <div className="text-center">
+                                <div className="text-lg mb-1">⚠️</div>
+                                <div className="text-xs font-medium">Alerts</div>
+                            </div>
+                        </button>
+                        
+                        <button
+                            onClick={() => onProjectSelect(project, 'Messages')}
+                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50'
+                            }`}
+                        >
+                            <div className="text-center">
+                                <div className="text-lg mb-1">💬</div>
+                                <div className="text-xs font-medium">Messages</div>
+                            </div>
+                        </button>
+                        
+                        {/* Row 2 */}
+                        <button
+                            disabled={true}
+                            className={`p-3 rounded-lg border shadow-sm opacity-50 cursor-not-allowed ${
+                                colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'
+                            }`}
+                        >
+                            <div className="text-center">
+                                <div className="text-lg mb-1">📄</div>
+                                <div className="text-xs font-medium">Documents</div>
+                            </div>
+                        </button>
+                        
+                        <button
+                            disabled={true}
+                            className={`p-3 rounded-lg border shadow-sm opacity-50 cursor-not-allowed ${
+                                colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'
+                            }`}
+                        >
+                            <div className="text-center">
+                                <div className="text-lg mb-1">📅</div>
+                                <div className="text-xs font-medium">Schedule</div>
+                            </div>
+                        </button>
+                        
+                        <button
+                            onClick={() => onProjectSelect(project, 'Projects')}
+                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'
+                            }`}
+                        >
+                            <div className="text-center">
+                                <div className="text-lg mb-1">👤</div>
+                                <div className="text-xs font-medium">Profile</div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         );
