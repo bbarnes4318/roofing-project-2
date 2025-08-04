@@ -1929,54 +1929,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </select>
               </div>
               
-              {/* Expand/Collapse Controls */}
-              <div className="flex items-center justify-end gap-1 mb-2">
-                <button
-                  onClick={handleExpandAllMessages}
-                  className={`px-2 py-1 text-[8px] font-medium rounded border transition-colors ${
-                    expandedMessages.size === currentActivities.length && currentActivities.length > 0
-                      ? colorMode 
-                        ? 'bg-blue-600 text-white border-blue-600' 
-                        : 'bg-blue-500 text-white border-blue-500'
-                      : colorMode 
-                        ? 'bg-[#1e293b] text-blue-300 border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600' 
-                        : 'bg-white text-blue-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400'
-                  }`}
-                  title="Expand all message conversations"
-                  disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
-                >
-                  <div className="flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                    </svg>
-                    Expand All
-                  </div>
-                </button>
-                
-                <button
-                  onClick={handleCollapseAllMessages}
-                  className={`px-2 py-1 text-[8px] font-medium rounded border transition-colors ${
-                    expandedMessages.size === 0 || currentActivities.length === 0
-                      ? colorMode 
-                        ? 'bg-gray-600 text-gray-400 border-gray-600' 
-                        : 'bg-gray-200 text-gray-500 border-gray-300'
-                      : colorMode 
-                        ? 'bg-[#1e293b] text-gray-300 border-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-500' 
-                        : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                  }`}
-                  title="Collapse all message conversations"
-                  disabled={currentActivities.length === 0 || expandedMessages.size === 0}
-                >
-                  <div className="flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                    Collapse All
-                  </div>
-                </button>
-              </div>
-              
-              {/* Add Message Dropdown Trigger */}
+              {/* Add Message Dropdown Trigger with Expand/Collapse Controls */}
               <div className="mb-3">
                 <button
                   onClick={() => setShowMessageDropdown(!showMessageDropdown)}
@@ -1991,9 +1944,60 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   }`}
                 >
                   <span>+ Add Message</span>
-                  <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Condensed Expand/Collapse Controls - Left of Dropdown Arrow */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExpandAllMessages();
+                        }}
+                        className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
+                          expandedMessages.size === currentActivities.length && currentActivities.length > 0
+                            ? colorMode 
+                              ? 'bg-blue-600 text-white border-blue-600' 
+                              : 'bg-blue-500 text-white border-blue-500'
+                            : colorMode 
+                              ? 'bg-[#1e293b] text-blue-300 border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600' 
+                              : 'bg-white text-blue-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400'
+                        }`}
+                        title="Expand all message conversations"
+                        disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
+                      >
+                        <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </button>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCollapseAllMessages();
+                        }}
+                        className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
+                          expandedMessages.size === 0 || currentActivities.length === 0
+                            ? colorMode 
+                              ? 'bg-gray-600 text-gray-400 border-gray-600' 
+                              : 'bg-gray-200 text-gray-500 border-gray-300'
+                            : colorMode 
+                              ? 'bg-[#1e293b] text-gray-300 border-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-500' 
+                              : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+                        }`}
+                        title="Collapse all message conversations"
+                        disabled={currentActivities.length === 0 || expandedMessages.size === 0}
+                      >
+                        <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Dropdown Arrow */}
+                    <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </button>
               </div>
               
@@ -2146,6 +2150,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     onProjectSelect={handleProjectSelectWithScroll}
                     projects={projects}
                     colorMode={colorMode}
+                    useRealData={true}
                     onQuickReply={handleQuickReply}
                     isExpanded={expandedMessages.has(activity.id)}
                     onToggleExpansion={handleToggleMessage}
@@ -2170,47 +2175,48 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </div>
               </div>
               
-              {/* Filter Controls */}
-              <div className="flex items-center gap-2 mb-2 mt-3">
-                <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
-                <select 
-                  value={alertProjectFilter} 
-                  onChange={(e) => setAlertProjectFilter(e.target.value)} 
-                  className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[140px] ${
-                    colorMode 
-                      ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  <option value="all">All Projects</option>
-                  <option value="general">General</option>
-                  {(projects || []).map(p => (
-                    <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
-                  ))}
-                </select>
+              {/* Filter Controls with Expand/Collapse Controls */}
+              <div className="flex items-center justify-between gap-2 mb-2 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by:</span>
+                  <select 
+                    value={alertProjectFilter} 
+                    onChange={(e) => setAlertProjectFilter(e.target.value)} 
+                    className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[140px] ${
+                      colorMode 
+                        ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    <option value="all">All Projects</option>
+                    <option value="general">General</option>
+                    {(projects || []).map(p => (
+                      <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                    ))}
+                  </select>
+                  
+                  <select 
+                    value={alertUserGroupFilter} 
+                    onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
+                    className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[120px] ${
+                      colorMode 
+                        ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    <option value="all">All User Groups</option>
+                    <option value="PM">Project Manager</option>
+                    <option value="FIELD">Field Director</option>
+                    <option value="OFFICE">Office Staff</option>
+                    <option value="ADMIN">Administration</option>
+                  </select>
+                </div>
                 
-                <select 
-                  value={alertUserGroupFilter} 
-                  onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
-                  className={`text-[9px] font-medium px-2 py-1 rounded border transition-colors min-w-[120px] ${
-                    colorMode 
-                      ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  <option value="all">All User Groups</option>
-                  <option value="PM">Project Manager</option>
-                  <option value="FIELD">Field Director</option>
-                  <option value="OFFICE">Office Staff</option>
-                  <option value="ADMIN">Administration</option>
-                </select>
-              </div>
-              
-              {/* Expand/Collapse Controls */}
-              <div className="flex items-center justify-end gap-1 mb-2">
-                <button
-                  onClick={handleExpandAllAlerts}
-                  className={`px-2 py-1 text-[8px] font-medium rounded border transition-colors ${
+                {/* Condensed Expand/Collapse Controls - Right side */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleExpandAllAlerts}
+                    className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
                     expandedAlerts.size === getPaginatedAlerts().length && getPaginatedAlerts().length > 0
                       ? colorMode 
                         ? 'bg-blue-600 text-white border-blue-600' 
@@ -2222,17 +2228,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   title="Expand all alert details"
                   disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === getPaginatedAlerts().length}
                 >
-                  <div className="flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
-                    Expand All
-                  </div>
                 </button>
                 
-                <button
-                  onClick={handleCollapseAllAlerts}
-                  className={`px-2 py-1 text-[8px] font-medium rounded border transition-colors ${
+                  <button
+                    onClick={handleCollapseAllAlerts}
+                    className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
                     expandedAlerts.size === 0 || getPaginatedAlerts().length === 0
                       ? colorMode 
                         ? 'bg-gray-600 text-gray-400 border-gray-600' 
@@ -2244,13 +2247,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   title="Collapse all alert details"
                   disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === 0}
                 >
-                  <div className="flex items-center gap-1">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                     </svg>
-                    Collapse All
-                  </div>
-                </button>
+                  </button>
+                </div>
               </div>
               
             </div>

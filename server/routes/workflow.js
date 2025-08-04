@@ -362,6 +362,16 @@ router.post('/:workflowId/steps/:stepId/complete', asyncHandler(async (req, res)
       console.log(`📨 WORKFLOW: Generated alerts for next step to ${recipients.length} recipients`);
     }
     
+    // ENHANCED: Generate project messages for step completion
+    try {
+      const ProjectMessageService = require('../services/ProjectMessageService');
+      const messages = await ProjectMessageService.onWorkflowStepCompletion(updatedStep, workflow.project);
+      console.log(`📨 WORKFLOW: Generated ${messages.length} project messages for step completion`);
+    } catch (messageError) {
+      console.error('⚠️ WORKFLOW: Error generating project messages:', messageError);
+      // Don't fail the workflow completion if message generation fails
+    }
+    
     console.log(`✅ WORKFLOW: Step completed, new progress: ${newProgress}%`);
     
     res.status(200).json({

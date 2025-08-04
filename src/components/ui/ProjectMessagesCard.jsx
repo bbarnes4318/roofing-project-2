@@ -1,13 +1,30 @@
 import React, { useState, useMemo, useRef } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import DraggablePopup from './DraggablePopup';
+import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
 
-const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion }) => {
+const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false }) => {
     // Use external expansion state if provided, otherwise use internal state
     const [internalExpanded, setInternalExpanded] = useState(false);
     const expanded = isExpanded !== undefined ? isExpanded : internalExpanded;
     const [showQuickReply, setShowQuickReply] = useState(false);
     const [quickReplyText, setQuickReplyText] = useState('');
+
+    // Get project data
+    const project = projects?.find(p => p.id === activity.projectId);
+    
+    // Fetch real project messages if enabled
+    const { 
+        data: projectMessagesData, 
+        isLoading: messagesLoading,
+        error: messagesError 
+    } = useProjectMessages(activity.projectId, {
+        limit: 10,
+        includeReplies: true
+    });
+    
+    const createMessage = useCreateProjectMessage();
+    const markAsRead = useMarkMessageAsRead();
 
     const formatTimestamp = (timestamp) => {
         const date = new Date(timestamp);
@@ -57,34 +74,75 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
         return conversation.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     };
 
-    // Generate conversation only once using useMemo to prevent re-generation on every render
-    const conversation = useMemo(() => generateConversation(), [activity.id]);
+    // Use real data if available and enabled, otherwise generate mock conversation
+    const conversation = useMemo(() => {
+        if (useRealData && projectMessagesData?.data?.length > 0) {
+            // Transform real project messages to conversation format
+            const realMessages = projectMessagesData.data.flatMap(message => {
+                const mainMessage = {
+                    id: message.id,
+                    user: message.authorName,
+                    comment: message.content,
+                    timestamp: message.createdAt
+                };
+                
+                const replies = message.replies?.map(reply => ({
+                    id: reply.id,
+                    user: reply.authorName,
+                    comment: reply.content,
+                    timestamp: reply.createdAt
+                })) || [];
+                
+                return [mainMessage, ...replies];
+            });
+            
+            // Sort by timestamp (newest first)
+            return realMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        } else {
+            // Fall back to mock data
+            return generateConversation();
+        }
+    }, [activity.id, useRealData, projectMessagesData]);
+    
     const lastMessage = conversation[0]; // First item is now the most recent
 
-    // Get project data
-    const project = projects?.find(p => p.id === activity.projectId);
+    // Get project data (already defined above)
     const projectNumber = project?.projectNumber || activity.projectNumber || '12345';
     const primaryCustomer = project?.client?.name || project?.clientName || activity.projectName || 'Primary Customer';
     const subject = activity.subject || 'Project Update';
 
     // Quick reply handlers
-    const handleQuickReplySubmit = (e) => {
+    const handleQuickReplySubmit = async (e) => {
         e.preventDefault();
         if (!quickReplyText.trim()) return;
         
-        if (onQuickReply) {
-            onQuickReply({
-                projectId: activity.projectId,
-                projectNumber: projectNumber,
-                primaryCustomer: primaryCustomer,
-                subject: subject,
-                message: quickReplyText.trim(),
-                replyToActivity: activity
-            });
+        try {
+            if (useRealData && activity.projectId) {
+                // Use real API to create message
+                await createMessage.mutateAsync({
+                    projectId: activity.projectId,
+                    content: quickReplyText.trim(),
+                    subject: `Re: ${subject}`,
+                    priority: 'MEDIUM'
+                });
+            } else if (onQuickReply) {
+                // Fall back to legacy quick reply handler
+                onQuickReply({
+                    projectId: activity.projectId,
+                    projectNumber: projectNumber,
+                    primaryCustomer: primaryCustomer,
+                    subject: subject,
+                    message: quickReplyText.trim(),
+                    replyToActivity: activity
+                });
+            }
+            
+            setQuickReplyText('');
+            setShowQuickReply(false);
+        } catch (error) {
+            console.error('Failed to send quick reply:', error);
+            // Could add toast notification here
         }
-        
-        setQuickReplyText('');
-        setShowQuickReply(false);
     };
 
     const handleQuickReplyCancel = () => {

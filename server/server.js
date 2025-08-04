@@ -29,6 +29,7 @@ const projectRoutes = require('./routes/projects');
 const taskRoutes = require('./routes/tasks');
 const activityRoutes = require('./routes/activities'); // Re-added - now uses Message model
 const messageRoutes = require('./routes/messages');
+const projectMessageRoutes = require('./routes/projectMessages');
 const documentRoutes = require('./routes/documents');
 const calendarRoutes = require('./routes/calendar');
 const aiRoutes = require('./routes/ai');
@@ -602,6 +603,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/activities', activityRoutes); // Re-added - now uses Message model
 app.use('/api/messages', messageRoutes);
+app.use('/api/project-messages', projectMessageRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/calendar-events', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);

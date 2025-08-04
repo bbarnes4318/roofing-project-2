@@ -91,6 +91,7 @@ model User {
   assignedAlerts        WorkflowAlert[]   @relation("AlertAssignedTo")
   createdAlerts         WorkflowAlert[]   @relation("AlertCreatedBy")
   performedOverrides    ProjectPhaseOverride[] @relation("OverridePerformedBy")
+  authoredMessages      ProjectMessage[]  @relation("MessageAuthor")
 
   @@map("users")
 }
@@ -267,6 +268,9 @@ model Project {
   
   // Phase Overrides
   phaseOverrides ProjectPhaseOverride[]
+  
+  // Project Messages
+  projectMessages ProjectMessage[]
 
   @@map("projects")
 }
@@ -737,6 +741,88 @@ enum DocumentType {
   OTHER
 
   @@map("document_types")
+}
+
+// ===============================
+// PROJECT MESSAGE SYSTEM
+// ===============================
+
+// Project-specific messaging system for workflow progress communications
+model ProjectMessage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Message Content
+  content     String      @db.Text
+  subject     String      @db.VarChar(255)
+  messageType ProjectMessageType @default(WORKFLOW_UPDATE)
+  
+  // Message Priority
+  priority MessagePriority @default(MEDIUM)
+  
+  // User Information
+  authorId    String? @map("author_id")
+  author      User?   @relation("MessageAuthor", fields: [authorId], references: [id])
+  authorName  String  @db.VarChar(100) // Cached for performance
+  authorRole  String? @db.VarChar(50)
+  
+  // Project Context
+  projectId     String  @map("project_id")
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectNumber Int
+  
+  // Workflow Context
+  workflowId    String? @map("workflow_id")
+  stepId        String? @map("step_id")
+  stepName      String? @db.VarChar(255)
+  phase         ProjectPhase?
+  section       String? @db.VarChar(255)
+  lineItem      String? @db.VarChar(255)
+  
+  // Auto-generation flags
+  isSystemGenerated Boolean @default(false)
+  isWorkflowMessage Boolean @default(false)
+  
+  // Thread/Reply system
+  parentMessageId String?        @map("parent_message_id")
+  parentMessage   ProjectMessage? @relation("MessageReplies", fields: [parentMessageId], references: [id])
+  replies         ProjectMessage[] @relation("MessageReplies")
+  
+  // Read status tracking
+  readBy     String[] @default([])
+  readCount  Int      @default(0)
+  
+  // Metadata
+  metadata Json? // Store additional context like completion percentages, etc.
+  
+  @@index([projectId, createdAt])
+  @@index([workflowId, stepId])
+  @@index([phase])
+  @@index([isSystemGenerated])
+  @@index([authorId])
+  @@map("project_messages")
+}
+
+enum ProjectMessageType {
+  WORKFLOW_UPDATE
+  PHASE_COMPLETION
+  STEP_COMPLETION
+  USER_MESSAGE
+  SYSTEM_NOTIFICATION
+  ALERT_DISCUSSION
+  PROJECT_MILESTONE
+  
+  @@map("project_message_types")
+}
+
+enum MessagePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  
+  @@map("message_priorities")
 }
 
 // ===============================
