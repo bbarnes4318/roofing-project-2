@@ -238,17 +238,83 @@ export default function GlobalSearch({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Maps phase names to CSS classes for styling
-  const phaseColorMap = {
-    "LEAD": "phase-not-started",
-    "PROSPECT": "phase-not-started", 
-    "APPROVED": "phase-in-progress",
-    "EXECUTION": "phase-in-progress",
-    "COMPLETION": "phase-completed",
-    "Not Started": "phase-not-started",
-    "In Progress": "phase-in-progress",
-    "Completed": "phase-completed",
-    "On Hold": "phase-on-hold",
+  // Phase button styling - matches dashboard design
+  const getPhaseButtonProps = (phase) => {
+    const normalizedPhase = phase?.toUpperCase() || 'LEAD';
+    
+    switch (normalizedPhase) {
+      case 'LEAD':
+      case 'LEAD PHASE':
+        return {
+          initials: 'LD',
+          bgColor: 'bg-blue-500',
+          textColor: 'text-white',
+          fullName: 'Lead'
+        };
+      case 'PROSPECT':
+      case 'PROSPECT PHASE':
+        return {
+          initials: 'PR',
+          bgColor: 'bg-teal-500',
+          textColor: 'text-white',
+          fullName: 'Prospect'
+        };
+      case 'APPROVED':
+      case 'APPROVED PHASE':
+        return {
+          initials: 'AP',
+          bgColor: 'bg-purple-500',
+          textColor: 'text-white',
+          fullName: 'Approved'
+        };
+      case 'EXECUTION':
+      case 'EXECUTION PHASE':
+        return {
+          initials: 'EX',
+          bgColor: 'bg-orange-500',
+          textColor: 'text-white',
+          fullName: 'Execution'
+        };
+      case '2ND SUPPLEMENT':
+      case '2ND SUPPLEMENT PHASE':
+      case 'SUPPLEMENT':
+        return {
+          initials: '2S',
+          bgColor: 'bg-pink-500',
+          textColor: 'text-white',
+          fullName: '2nd Supplement'
+        };
+      case 'COMPLETION':
+      case 'COMPLETION PHASE':
+        return {
+          initials: 'CM',
+          bgColor: 'bg-green-500',
+          textColor: 'text-white',
+          fullName: 'Completion'
+        };
+      default:
+        return {
+          initials: 'LD',
+          bgColor: 'bg-blue-500',
+          textColor: 'text-white',
+          fullName: 'Lead'
+        };
+    }
+  };
+
+  // Phase Button Component
+  const PhaseButton = ({ phase, size = 'md' }) => {
+    const phaseProps = getPhaseButtonProps(phase);
+    const sizeClasses = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm';
+    
+    return (
+      <div
+        className={`${phaseProps.bgColor} ${phaseProps.textColor} ${sizeClasses} rounded-full flex items-center justify-center font-bold shadow-sm border border-white/20`}
+        title={phaseProps.fullName}
+      >
+        {phaseProps.initials}
+      </div>
+    );
   };
 
   const getMatchesForField = (result, fieldName) => {
@@ -543,7 +609,7 @@ export default function GlobalSearch({
                   onClick={() => handleResultClick(result)}
                 >
                   <div className="project-info">
-                    <span className={`phase-indicator ${phaseColorMap[result.data.phase] || 'phase-not-started'}`}></span>
+                    <PhaseButton phase={result.data.phase} size="sm" />
                     <div className="project-details">
                       <span className="project-name">
                         <Highlight 
