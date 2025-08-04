@@ -348,36 +348,16 @@ export default function GlobalSearch({
     }, 1500);
   };
 
-  // Calculate dropdown position to keep it visible and aligned with search bar
+  // FORCE dropdown to always appear directly below search bar - NO EXCEPTIONS
   const calculateDropdownPosition = () => {
     if (searchContainerRef.current) {
       const rect = searchContainerRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-      const dropdownHeight = 400;
-      const dropdownWidth = 450;
       
-      // Always start with search bar position
-      let top = rect.bottom + 8;
-      let left = rect.left;
+      // ALWAYS position directly below search bar, aligned to left edge
+      const top = rect.bottom + 8;
+      const left = rect.left;
       
-      // Check if dropdown would go off bottom of screen
-      if (top + dropdownHeight > viewportHeight) {
-        top = rect.top - dropdownHeight - 8;
-      }
-      
-      // Check if dropdown would go off right edge
-      if (left + dropdownWidth > viewportWidth) {
-        // Align right edge of dropdown with right edge of viewport (with padding)
-        left = viewportWidth - dropdownWidth - 20;
-      }
-      
-      // Don't let it go off the left edge
-      left = Math.max(20, left);
-      
-      // Don't let it go off the top
-      top = Math.max(10, top);
-      
+      // NO ADJUSTMENTS - just position it exactly where the search bar is
       setDropdownPosition({ top, left });
     }
   };
