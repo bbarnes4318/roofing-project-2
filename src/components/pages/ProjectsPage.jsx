@@ -482,75 +482,64 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }));
     };
 
-    // Draggable Button Component
-    const DraggableButton = ({ projectId, buttonIndex, children, onClick, className, disabled }) => {
-        const [buttonState, setLocalButtonState] = useState(() => getButtonState(projectId, buttonIndex));
+    // Ultra Simple Draggable Button
+    const DraggableButton = ({ projectId, buttonIndex, onClick, className, disabled, icon, text }) => {
+        const initialState = getButtonState(projectId, buttonIndex);
+        const [position, setPosition] = useState({ x: initialState.x, y: initialState.y });
+        const [size, setSize] = useState({ width: initialState.width, height: initialState.height });
         const [isDragging, setIsDragging] = useState(false);
         
         const handleDrag = (e, data) => {
+            setPosition({ x: data.x, y: data.y });
             setIsDragging(true);
-            const newState = {
-                ...buttonState,
-                x: data.x,
-                y: data.y
-            };
-            setLocalButtonState(newState);
-            updateButtonState(projectId, buttonIndex, newState);
         };
-
-        const handleResize = (e, data) => {
-            const newState = {
-                ...buttonState,
-                width: data.size.width,
-                height: data.size.height
-            };
-            setLocalButtonState(newState);
-            updateButtonState(projectId, buttonIndex, newState);
+        
+        const handleStop = () => {
+            setIsDragging(false);
+            updateButtonState(projectId, buttonIndex, { ...position, ...size });
+        };
+        
+        const handleResize = (e, { size: newSize }) => {
+            setSize(newSize);
+            updateButtonState(projectId, buttonIndex, { ...position, ...newSize });
         };
         
         return (
             <Draggable
-                defaultPosition={{ x: buttonState.x, y: buttonState.y }}
+                position={position}
                 onDrag={handleDrag}
-                onStop={() => setTimeout(() => setIsDragging(false), 100)}
+                onStop={handleStop}
                 bounds="parent"
-                grid={[5, 5]}
-                disabled={disabled}
-                handle=".drag-handle"
             >
-                <div style={{ 
-                    position: 'absolute', 
-                    cursor: isDragging ? 'grabbing' : 'grab',
-                    userSelect: 'none'
-                }}>
+                <div>
                     <ResizableBox
-                        width={buttonState.width}
-                        height={buttonState.height}
-                        minConstraints={[30, 30]}
+                        width={size.width}
+                        height={size.height}
+                        minConstraints={[50, 50]}
                         maxConstraints={[120, 120]}
                         onResize={handleResize}
-                        resizeHandles={['se', 'sw', 'ne', 'nw', 'n', 's', 'e', 'w']}
+                        resizeHandles={['se']}
                     >
                         <div
-                            className={`drag-handle ${className}`}
-                            style={{ 
-                                width: '100%', 
+                            className={className}
+                            onClick={() => {
+                                if (!isDragging && !disabled) {
+                                    onClick();
+                                }
+                            }}
+                            style={{
+                                width: '100%',
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: `${Math.max(8, Math.min(buttonState.width, buttonState.height) / 5)}px`,
-                                cursor: isDragging ? 'grabbing' : 'grab',
-                                position: 'relative'
-                            }}
-                            onClick={(e) => {
-                                if (!isDragging) {
-                                    onClick(e);
-                                }
+                                cursor: 'grab',
+                                userSelect: 'none'
                             }}
                         >
-                            {children}
+                            <div style={{ fontSize: '16px' }}>{icon}</div>
+                            <div style={{ fontSize: '10px' }}>{text}</div>
                         </div>
                     </ResizableBox>
                 </div>
@@ -651,72 +640,61 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     projectId={project.id}
                                     buttonIndex={0}
                                     onClick={() => onProjectSelect(project, 'Project Workflow')}
-                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
+                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50'}`}
+                                    icon="🗂️"
+                                    text="Workflow"
                                     disabled={false}
-                                >
-                                    <span className="text-xs">🗂️</span>
-                                    <span className="text-[10px]">Workflow</span>
-                                </DraggableButton>
+                                />
                                 
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={1}
                                     onClick={() => onProjectSelect(project, 'Alerts')}
-                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
+                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50'}`}
+                                    icon="⚠️"
+                                    text="Alerts"
                                     disabled={false}
-                                >
-                                    <span className="text-xs">⚠️</span>
-                                    <span className="text-[10px]">Alerts</span>
-                                </DraggableButton>
+                                />
                                 
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={2}
                                     onClick={() => onProjectSelect(project, 'Messages')}
-                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
+                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50'}`}
+                                    icon="💬"
+                                    text="Messages"
                                     disabled={false}
-                                >
-                                    <span className="text-xs">💬</span>
-                                    <span className="text-[10px]">Messages</span>
-                                </DraggableButton>
+                                />
                                 
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={3}
                                     onClick={() => {}}
-                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    className={`rounded-md shadow-sm border opacity-50 cursor-not-allowed ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    icon="📄"
+                                    text="Documents"
                                     disabled={true}
-                                >
-                                    <span className="text-xs">📄</span>
-                                    <span className="text-[10px]">Documents</span>
-                                </DraggableButton>
+                                />
                                 
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={4}
                                     onClick={() => onProjectSelect(project, 'Project Schedule')}
-                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    className={`rounded-md shadow-sm border opacity-50 cursor-not-allowed ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                    icon="📅"
+                                    text="Schedule"
                                     disabled={true}
-                                >
-                                    <span className="text-xs">📅</span>
-                                    <span className="text-[10px]">Schedule</span>
-                                </DraggableButton>
+                                />
                                 
                                 <DraggableButton
                                     projectId={project.id}
                                     buttonIndex={5}
                                     onClick={() => onProjectSelect(project, 'Projects')}
-                                    className={`group flex flex-col items-center justify-center rounded-md shadow-sm transition-all duration-200 border font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                                    className={`rounded-md shadow-sm border ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'}`}
+                                    icon="👤"
+                                    text="Profile"
                                     disabled={false}
-                                >
-                                    <span className="text-xs">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                            <circle cx="12" cy="8" r="4" fill="#2563eb" />
-                                            <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
-                                        </svg>
-                                    </span>
-                                    <span className="text-[10px]">Profile</span>
-                                </DraggableButton>
+                                />
                             </div>
                             
                             {/* Right Side - Reserved for Future Element */}
