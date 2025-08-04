@@ -8,7 +8,15 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
-const { cacheService } = require('../config/redis');
+// Make cacheService optional to prevent crashes
+let cacheService;
+try {
+  const redisModule = require('../config/redis');
+  cacheService = redisModule.cacheService;
+} catch (error) {
+  console.log('Cache service not available, continuing without caching');
+  cacheService = null;
+}
 
 const router = express.Router();
 
@@ -209,7 +217,8 @@ router.get('/', asyncHandler(async (req, res) => {
       code: error.code,
       stack: error.stack
     });
-    throw new AppError(`Failed to fetch customers: ${error.message}`, 500);
+    // Return empty array on error to prevent frontend breaking
+    sendPaginatedResponse(res, [], pageNum, limitNum, 0, 'Unable to fetch customers at this time');
   }
 }));
 
