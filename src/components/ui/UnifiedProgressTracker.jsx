@@ -28,7 +28,8 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
         
         const currentPhase = WorkflowProgressService.getProjectPhase(project);
         const phaseColors = WorkflowProgressService.getPhaseColor(currentPhase);
-        const overallProgress = WorkflowProgressService.calculateProjectProgress(project);
+        const progressResult = WorkflowProgressService.calculateProjectProgress(project);
+        const overallProgress = progressResult.overall || 0;
         
         // Get current step details
         const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
@@ -63,7 +64,7 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
             completedSteps: completedSteps.length,
             totalSteps,
             phaseProgress,
-            percentComplete: overallProgress || 0
+            percentComplete: overallProgress
         };
     }, [project]);
 
