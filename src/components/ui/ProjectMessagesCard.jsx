@@ -184,7 +184,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 
                 <div className="flex-1 min-w-0">
                     {/* Row 1: Project# | Customer | Subject */}
-                    <div className="flex items-center justify-between overflow-hidden">
+                    <div className="flex items-center justify-between overflow-hidden relative">
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
                             <button
@@ -235,8 +235,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </button>
                             </div>
                             
-                            {/* Subject - Aligned and moved right */}
-                            <div className="flex-1 min-w-0" style={{ marginLeft: '24px' }}>
+                            {/* Subject - Fixed position for perfect alignment */}
+                            <div style={{ position: 'absolute', left: '200px', width: '200px' }}>
                                 <span 
                                     className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                     style={{ 
@@ -292,7 +292,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                     
                     {/* Row 2: From, To, and Timestamp */}
-                    <div className="flex items-baseline gap-0 mt-0 overflow-hidden">
+                    <div className="flex items-baseline gap-0 mt-0 overflow-hidden relative">
                         {/* From - Fixed width container for consistent spacing */}
                         <div 
                             className="flex-shrink-0"
@@ -303,8 +303,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </span>
                         </div>
                         
-                        {/* To - Aligned with Subject field above */}
-                        <div className="flex-1 min-w-0" style={{ marginLeft: '24px' }}>
+                        {/* To - Fixed position to match Subject exactly */}
+                        <div style={{ position: 'absolute', left: '200px', width: '200px' }}>
                             <span 
                                 className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                 style={{ 
