@@ -462,9 +462,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   const _recentTasks = tasks.slice(0, 3);
 
-  // Get current user (for now using Sarah Owner as default)
-  const currentUser = 'sarah-owner'; // In production, this would come from auth context
-  
   // Pagination logic with subject filtering, sorting, and recipient filtering
   const filteredActivities = feed.filter(activity => {
     const projectMatch = !activityProjectFilter || activity.projectId === parseInt(activityProjectFilter);
@@ -474,8 +471,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     let recipientMatch = true;
     if (activity.recipients && activity.recipients.length > 0) {
       // Only show messages where current user is a recipient or "all" was selected
+      // Using the existing currentUser state variable or default to sarah-owner
+      const userIdentifier = currentUser?.email === 'sarah@example.com' ? 'sarah-owner' : 
+                           currentUser?.email === 'mike@company.com' ? 'mike-rodriguez' : 
+                           'sarah-owner'; // Default fallback
       recipientMatch = activity.recipients.includes('all') || 
-                      activity.recipients.includes(currentUser) ||
+                      activity.recipients.includes(userIdentifier) ||
                       activity.user === 'You'; // Show messages sent by current user
     }
     
