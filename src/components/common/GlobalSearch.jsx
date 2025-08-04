@@ -127,8 +127,12 @@ export default function GlobalSearch({
   const [bubbles, setBubbles] = useState([]);
   const [showRipple, setShowRipple] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [savedPosition, setSavedPosition] = useState(null);
+  const [isDraggingDropdown, setIsDraggingDropdown] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(false);
   const searchContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   // Initialize both conventional and NL search services
   const searchService = useMemo(() => {
@@ -159,6 +163,33 @@ export default function GlobalSearch({
       window.removeEventListener('scroll', handleResize);
     };
   }, [isFocused]);
+
+  // Handle global mouse events for dragging
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (isDraggingDropdown) {
+        handleDropdownDrag(e);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDraggingDropdown) {
+        setIsDraggingDropdown(false);
+      }
+    };
+
+    if (isDraggingDropdown) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [isDraggingDropdown]);
 
   useEffect(() => {
     const performSearch = async () => {
@@ -253,27 +284,76 @@ export default function GlobalSearch({
 
   // Calculate dropdown position to keep it visible
   const calculateDropdownPosition = () => {
+    if (savedPosition) {
+      // Use saved position if user has customized it
+      setDropdownPosition(savedPosition);
+      return;
+    }
+
     if (searchContainerRef.current) {
       const rect = searchContainerRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const dropdownHeight = 400; // max-height from CSS
+      const viewportWidth = window.innerWidth;
+      const dropdownHeight = 400;
+      const dropdownWidth = 450;
       
+      // Default: position below and align with search bar
       let top = rect.bottom + 8;
       let left = rect.left;
       
-      // If dropdown would go off bottom of screen, position it above
+      // Ensure dropdown fits on screen
       if (top + dropdownHeight > viewportHeight) {
         top = rect.top - dropdownHeight - 8;
       }
       
-      // Ensure left position doesn't go off screen
-      if (left + 450 > window.innerWidth) {
-        left = window.innerWidth - 450 - 20;
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth - 20;
       }
       
-      setDropdownPosition({ top, left });
+      // Ensure it's not too far left
+      if (left < 20) {
+        left = 20;
+      }
+      
+      setDropdownPosition({ top: Math.max(10, top), left: Math.max(10, left) });
     }
   };
+
+  // Handle dropdown drag
+  const handleDropdownDrag = (e) => {
+    if (!isDraggingDropdown) return;
+    
+    const newPosition = {
+      top: e.clientY - 20,
+      left: e.clientX - 225 // center on cursor
+    };
+    
+    // Keep within viewport bounds
+    newPosition.top = Math.max(10, Math.min(window.innerHeight - 400, newPosition.top));
+    newPosition.left = Math.max(10, Math.min(window.innerWidth - 450, newPosition.left));
+    
+    setDropdownPosition(newPosition);
+    setShowSaveButton(true);
+  };
+
+  // Save position
+  const saveDropdownPosition = () => {
+    setSavedPosition(dropdownPosition);
+    setShowSaveButton(false);
+    localStorage.setItem('searchDropdownPosition', JSON.stringify(dropdownPosition));
+  };
+
+  // Load saved position on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('searchDropdownPosition');
+    if (saved) {
+      try {
+        setSavedPosition(JSON.parse(saved));
+      } catch (e) {
+        // Ignore invalid saved data
+      }
+    }
+  }, []);
 
   const handleInputFocus = () => {
     setIsFocused(true);
@@ -392,12 +472,42 @@ export default function GlobalSearch({
       )}
       {isFocused && query.length > 0 && (
         <div 
+          ref={dropdownRef}
           className={`search-results-dropdown ${colorMode ? 'bg-[#1e293b] border-gray-600' : ''}`}
           style={{
             top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`
+            left: `${dropdownPosition.left}px`,
+            cursor: isDraggingDropdown ? 'grabbing' : 'grab'
+          }}
+          onMouseDown={(e) => {
+            if (e.target.closest('.search-result-item') || e.target.closest('.save-position-btn')) return;
+            setIsDraggingDropdown(true);
+            e.preventDefault();
           }}
         >
+          {/* Drag Handle Header */}
+          <div className={`px-4 py-2 border-b flex items-center justify-between ${
+            colorMode 
+              ? 'bg-[#232b4d] border-gray-600 text-gray-300' 
+              : 'bg-gray-50 border-gray-200 text-gray-700'
+          }`}>
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-1">
+                <div className="w-4 h-0.5 bg-gray-400 rounded"></div>
+                <div className="w-4 h-0.5 bg-gray-400 rounded"></div>
+                <div className="w-4 h-0.5 bg-gray-400 rounded"></div>
+              </div>
+              <span className="text-xs font-medium">Search Results - Drag to reposition</span>
+            </div>
+            {showSaveButton && (
+              <button
+                onClick={saveDropdownPosition}
+                className="save-position-btn px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              >
+                Save Position
+              </button>
+            )}
+          </div>
           {loading && <div className="search-result-item-message">Loading...</div>}
           {!loading && Object.keys(groupedResults).length === 0 && (
             <div className="search-result-item-message">No results found for "{query}"</div>
