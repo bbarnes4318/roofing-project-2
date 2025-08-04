@@ -2453,8 +2453,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             </span>
                           </div>
                           
-                          {/* Line Item - moved 8 spaces left from previous position */}
-                          <div className="flex items-center gap-1 flex-1" style={{ marginLeft: '5px' }}>
+                          {/* Line Item - moved closer to Section */}
+                          <div className="flex items-center gap-1 flex-1" style={{ marginLeft: '3px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
