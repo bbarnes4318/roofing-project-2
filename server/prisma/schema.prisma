@@ -1,6 +1,3 @@
-// Prisma schema for Roofing Project Management Application
-// This schema preserves all existing project phases, workflow sections, and line items
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,92 +7,592 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ===============================
-// USER MANAGEMENT
-// ===============================
-
 model User {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Basic Information
-  firstName String  @db.VarChar(50)
-  lastName  String  @db.VarChar(50)
-  email     String  @unique @db.VarChar(255)
-  password  String  @db.VarChar(255)
-
-  // Profile Information
-  avatar     String? @db.VarChar(500)
-  phone      String? @db.VarChar(20)
-  position   String? @db.VarChar(100)
-  department String? @db.VarChar(100)
-  bio        String? @db.VarChar(500)
-
-  // Role and Permissions
-  role        UserRole     @default(WORKER)
-  permissions Permission[]
-
-  // Account Status
-  isActive             Boolean   @default(true)
-  isVerified           Boolean   @default(false)
-  emailVerificationToken String?
+  id                       String                    @id @default(cuid())
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  firstName                String                    @db.VarChar(50)
+  lastName                 String                    @db.VarChar(50)
+  email                    String                    @unique @db.VarChar(255)
+  password                 String                    @db.VarChar(255)
+  avatar                   String?                   @db.VarChar(500)
+  phone                    String?                   @db.VarChar(20)
+  position                 String?                   @db.VarChar(100)
+  department               String?                   @db.VarChar(100)
+  bio                      String?                   @db.VarChar(500)
+  role                     UserRole                  @default(WORKER)
+  permissions              Permission[]
+  isActive                 Boolean                   @default(true)
+  isVerified               Boolean                   @default(false)
+  emailVerificationToken   String?
   emailVerificationExpires DateTime?
-
-  // Password Reset
-  passwordResetToken   String?
-  passwordResetExpires DateTime?
-  passwordChangedAt    DateTime?
-
-  // Security
-  loginAttempts    Int       @default(0)
-  lockUntil        DateTime?
-  lastLogin        DateTime?
-  lastLoginIP      String?   @db.VarChar(45)
-  twoFactorSecret  String?
-  twoFactorEnabled Boolean   @default(false)
-
-  // Preferences
-  theme        Theme    @default(LIGHT)
-  notificationPreferences Json?   // Store notification preferences as JSON
-  language     String   @default("en") @db.VarChar(5)
-  timezone     String   @default("UTC") @db.VarChar(50)
-
-  // Professional Information
-  skills          String[]
-  certifications  Json?    // Store certifications as JSON array
-  experience      Int?     // Years of experience
-  emergencyContact Json?   // Store emergency contact as JSON
-
-  // Address
-  address Json? // Store address as JSON
-
-  // Relationships
-  projectsAsManager     Project[]         @relation("ProjectManager")
-  projectsAsTeamMember  ProjectTeamMember[]
-  assignedTasks         Task[]            @relation("AssignedUser")
-  createdTasks          Task[]            @relation("CreatedByUser")
-  uploadedDocuments     Document[]        @relation("UploadedBy")
-  downloadedDocuments   DocumentDownload[]
-  sentMessages          Message[]         @relation("Sender")
-  readMessages          MessageRead[]
-  createdProjects       Project[]         @relation("CreatedBy")
-  calendarEvents        CalendarEvent[]   @relation("Organizer")
-  eventAttendees        CalendarEventAttendee[]
-  notifications         Notification[]    @relation("Recipient")
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
+  passwordChangedAt        DateTime?
+  loginAttempts            Int                       @default(0)
+  lockUntil                DateTime?
+  lastLogin                DateTime?
+  lastLoginIP              String?                   @db.VarChar(45)
+  twoFactorSecret          String?
+  twoFactorEnabled         Boolean                   @default(false)
+  theme                    Theme                     @default(LIGHT)
+  notificationPreferences  Json?
+  language                 String                    @default("en") @db.VarChar(5)
+  timezone                 String                    @default("UTC") @db.VarChar(50)
+  skills                   String[]
+  certifications           Json?
+  experience               Int?
+  emergencyContact         Json?
+  address                  Json?
+  eventAttendees           CalendarEventAttendee[]
+  calendarEvents           CalendarEvent[]           @relation("Organizer")
   conversationParticipants ConversationParticipant[]
-  workflowStepsAssigned WorkflowStep[]    @relation("AssignedTo")
-  workflowStepsCompleted WorkflowStep[]   @relation("CompletedBy")
-  createdWorkflows      ProjectWorkflow[] @relation("CreatedBy")
-  modifiedWorkflows     ProjectWorkflow[] @relation("LastModifiedBy")
-  assignedAlerts        WorkflowAlert[]   @relation("AlertAssignedTo")
-  createdAlerts         WorkflowAlert[]   @relation("AlertCreatedBy")
-  performedOverrides    ProjectPhaseOverride[] @relation("OverridePerformedBy")
-  authoredMessages      ProjectMessage[]  @relation("MessageAuthor")
-  roleAssignments       RoleAssignment[]  @relation("RoleAssignments")
-  assignedRoles         RoleAssignment[]  @relation("AssignedRoles")
+  downloadedDocuments      DocumentDownload[]
+  uploadedDocuments        Document[]                @relation("UploadedBy")
+  readMessages             MessageRead[]
+  sentMessages             Message[]                 @relation("Sender")
+  notifications            Notification[]            @relation("Recipient")
+  authoredMessages         ProjectMessage[]          @relation("MessageAuthor")
+  performedOverrides       ProjectPhaseOverride[]    @relation("OverridePerformedBy")
+  projectsAsTeamMember     ProjectTeamMember[]
+  createdWorkflows         ProjectWorkflow[]         @relation("CreatedBy")
+  modifiedWorkflows        ProjectWorkflow[]         @relation("LastModifiedBy")
+  createdProjects          Project[]                 @relation("CreatedBy")
+  projectsAsManager        Project[]                 @relation("ProjectManager")
+  assignedRoles            RoleAssignment[]          @relation("AssignedRoles")
+  roleAssignments          RoleAssignment[]          @relation("RoleAssignments")
+  assignedTasks            Task[]                    @relation("AssignedUser")
+  createdTasks             Task[]                    @relation("CreatedByUser")
+  assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
+  createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
+  workflowStepsAssigned    WorkflowStep[]            @relation("AssignedTo")
+  workflowStepsCompleted   WorkflowStep[]            @relation("CompletedBy")
 
   @@map("users")
+}
+
+model Customer {
+  id             String      @id @default(cuid())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  primaryName    String      @db.VarChar(100)
+  primaryEmail   String      @unique @db.VarChar(255)
+  primaryPhone   String      @db.VarChar(20)
+  secondaryName  String?     @db.VarChar(100)
+  secondaryEmail String?     @db.VarChar(255)
+  secondaryPhone String?     @db.VarChar(20)
+  primaryContact ContactType @default(PRIMARY)
+  address        String      @db.VarChar(500)
+  notes          String?     @db.VarChar(2000)
+  contacts       Contact[]
+  projects       Project[]
+
+  @@map("customers")
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  name       String   @db.VarChar(100)
+  phone      String?  @db.VarChar(20)
+  email      String?  @db.VarChar(255)
+  role       String?  @db.VarChar(50)
+  isPrimary  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  notes      String?  @db.VarChar(500)
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, isPrimary])
+  @@index([customerId])
+  @@map("contacts")
+}
+
+model Project {
+  id               String                 @id @default(cuid())
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  projectNumber    Int                    @unique
+  projectName      String                 @db.VarChar(200)
+  projectType      ProjectType
+  status           ProjectStatus          @default(PENDING)
+  archived         Boolean                @default(false)
+  archivedAt       DateTime?
+  progress         Int                    @default(0)
+  description      String?                @db.VarChar(2000)
+  priority         Priority               @default(MEDIUM)
+  budget           Decimal                @db.Decimal(12, 2)
+  estimatedCost    Decimal?               @db.Decimal(12, 2)
+  actualCost       Decimal?               @db.Decimal(12, 2)
+  startDate        DateTime
+  endDate          DateTime
+  notes            String?                @db.VarChar(1000)
+  pmPhone          String?                @db.VarChar(20)
+  pmEmail          String?                @db.VarChar(255)
+  customerId       String                 @map("customer_id")
+  projectManagerId String?                @map("project_manager_id")
+  createdById      String?                @map("created_by_id")
+  phase            ProjectPhase?
+  calendarEvents   CalendarEvent[]
+  documents        Document[]
+  projectMessages  ProjectMessage[]
+  phaseOverrides   ProjectPhaseOverride[]
+  teamMembers      ProjectTeamMember[]
+  workflow         ProjectWorkflow?
+  createdBy        User?                  @relation("CreatedBy", fields: [createdById], references: [id])
+  customer         Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  projectManager   User?                  @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  tasks            Task[]
+  workflowAlerts   WorkflowAlert[]
+
+  @@map("projects")
+}
+
+model ProjectTeamMember {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
+  role      String?  @db.VarChar(100)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_team_members")
+}
+
+model ProjectWorkflow {
+  id                      String                 @id @default(cuid())
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  projectId               String                 @unique @map("project_id")
+  workflowType            WorkflowType           @default(ROOFING)
+  status                  WorkflowStatus         @default(NOT_STARTED)
+  currentStepIndex        Int                    @default(0)
+  overallProgress         Int                    @default(0)
+  workflowStartDate       DateTime?
+  workflowEndDate         DateTime?
+  estimatedCompletionDate DateTime?
+  actualCompletionDate    DateTime?
+  enableAlerts            Boolean                @default(true)
+  alertMethods            AlertMethod[]
+  escalationEnabled       Boolean                @default(true)
+  escalationDelayDays     Int                    @default(2)
+  teamAssignments         Json?
+  createdById             String?                @map("created_by_id")
+  lastModifiedById        String?                @map("last_modified_by_id")
+  phaseOverrides          ProjectPhaseOverride[]
+  createdBy               User?                  @relation("CreatedBy", fields: [createdById], references: [id])
+  lastModifiedBy          User?                  @relation("LastModifiedBy", fields: [lastModifiedById], references: [id])
+  project                 Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workflowAlerts          WorkflowAlert[]
+  steps                   WorkflowStep[]
+
+  @@map("project_workflows")
+}
+
+model WorkflowStep {
+  id                 String                   @id @default(cuid())
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  stepId             String                   @db.VarChar(50)
+  stepName           String                   @db.VarChar(200)
+  description        String                   @db.VarChar(1000)
+  phase              ProjectPhase
+  defaultResponsible ResponsibleRole
+  assignedToId       String?                  @map("assigned_to_id")
+  estimatedDuration  Int
+  scheduledStartDate DateTime?
+  scheduledEndDate   DateTime?
+  actualStartDate    DateTime?
+  actualEndDate      DateTime?
+  isCompleted        Boolean                  @default(false)
+  completedAt        DateTime?
+  completedById      String?                  @map("completed_by_id")
+  alertPriority      AlertPriority            @default(MEDIUM)
+  alertDays          Int                      @default(1)
+  overdueIntervals   Int[]                    @default([1, 3, 7, 14])
+  notes              String?                  @db.VarChar(2000)
+  completionNotes    String?                  @db.VarChar(2000)
+  dependencies       String[]
+  workflowId         String                   @map("workflow_id")
+  workflowAlerts     WorkflowAlert[]
+  attachments        WorkflowStepAttachment[]
+  assignedTo         User?                    @relation("AssignedTo", fields: [assignedToId], references: [id])
+  completedBy        User?                    @relation("CompletedBy", fields: [completedById], references: [id])
+  workflow           ProjectWorkflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  subTasks           WorkflowSubTask[]
+
+  @@map("workflow_steps")
+}
+
+model WorkflowSubTask {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  subTaskId     String       @db.VarChar(50)
+  subTaskName   String       @db.VarChar(500)
+  description   String?      @db.VarChar(1000)
+  isCompleted   Boolean      @default(false)
+  completedAt   DateTime?
+  completedById String?      @map("completed_by_id")
+  notes         String?      @db.VarChar(1000)
+  stepId        String       @map("step_id")
+  step          WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_subtasks")
+}
+
+model WorkflowStepAttachment {
+  id         String       @id @default(cuid())
+  createdAt  DateTime     @default(now())
+  stepId     String       @map("step_id")
+  documentId String       @map("document_id")
+  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  step       WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([stepId, documentId])
+  @@map("workflow_step_attachments")
+}
+
+model WorkflowAlert {
+  id              String          @id @default(cuid())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  type            String          @default("Work Flow Line Item") @db.VarChar(100)
+  priority        AlertPriority   @default(MEDIUM)
+  status          AlertStatus     @default(ACTIVE)
+  title           String          @db.VarChar(255)
+  message         String
+  stepName        String          @db.VarChar(255)
+  isRead          Boolean         @default(false)
+  readAt          DateTime?
+  acknowledged    Boolean         @default(false)
+  acknowledgedAt  DateTime?
+  dueDate         DateTime?
+  projectId       String          @map("project_id")
+  workflowId      String          @map("workflow_id")
+  stepId          String          @map("step_id")
+  assignedToId    String?         @map("assigned_to_id")
+  createdById     String?         @map("created_by_id")
+  metadata        Json?
+  responsibleRole ResponsibleRole @default(OFFICE)
+  assignedTo      User?           @relation("AlertAssignedTo", fields: [assignedToId], references: [id])
+  createdBy       User?           @relation("AlertCreatedBy", fields: [createdById], references: [id])
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  step            WorkflowStep    @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  workflow        ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@index([assignedToId, status])
+  @@index([workflowId, stepId])
+  @@map("workflow_alerts")
+}
+
+model Task {
+  id             String           @id @default(cuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  title          String           @db.VarChar(200)
+  description    String?          @db.VarChar(2000)
+  dueDate        DateTime
+  status         TaskStatus       @default(TO_DO)
+  priority       Priority         @default(MEDIUM)
+  estimatedHours Int?
+  actualHours    Int?
+  category       TaskCategory     @default(OTHER)
+  tags           String[]
+  notes          String?          @db.VarChar(1000)
+  completedAt    DateTime?
+  projectId      String           @map("project_id")
+  assignedToId   String           @map("assigned_to_id")
+  createdById    String?          @map("created_by_id")
+  dependents     TaskDependency[] @relation("DependentTask")
+  dependencies   TaskDependency[] @relation("ParentTask")
+  assignedTo     User             @relation("AssignedUser", fields: [assignedToId], references: [id])
+  createdBy      User?            @relation("CreatedByUser", fields: [createdById], references: [id])
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model TaskDependency {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  parentTaskId    String   @map("parent_task_id")
+  dependentTaskId String   @map("dependent_task_id")
+  dependentTask   Task     @relation("DependentTask", fields: [dependentTaskId], references: [id], onDelete: Cascade)
+  parentTask      Task     @relation("ParentTask", fields: [parentTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([parentTaskId, dependentTaskId])
+  @@map("task_dependencies")
+}
+
+model Document {
+  id                  String                   @id @default(cuid())
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  fileName            String                   @db.VarChar(255)
+  originalName        String                   @db.VarChar(255)
+  fileUrl             String                   @db.VarChar(1000)
+  mimeType            String                   @db.VarChar(100)
+  fileSize            Int
+  fileType            DocumentType
+  description         String?                  @db.VarChar(1000)
+  tags                String[]
+  version             Int                      @default(1)
+  isActive            Boolean                  @default(true)
+  downloadCount       Int                      @default(0)
+  lastDownloadedAt    DateTime?
+  checksum            String?                  @db.VarChar(255)
+  isPublic            Boolean                  @default(false)
+  projectId           String                   @map("project_id")
+  uploadedById        String                   @map("uploaded_by_id")
+  downloads           DocumentDownload[]
+  project             Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy          User                     @relation("UploadedBy", fields: [uploadedById], references: [id])
+  workflowAttachments WorkflowStepAttachment[]
+
+  @@map("documents")
+}
+
+model DocumentDownload {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  documentId String   @map("document_id")
+  userId     String   @map("user_id")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("document_downloads")
+}
+
+model ProjectMessage {
+  id                String             @id @default(cuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  content           String
+  subject           String             @db.VarChar(255)
+  messageType       ProjectMessageType @default(WORKFLOW_UPDATE)
+  priority          MessagePriority    @default(MEDIUM)
+  authorId          String?            @map("author_id")
+  authorName        String             @db.VarChar(100)
+  authorRole        String?            @db.VarChar(50)
+  projectId         String             @map("project_id")
+  projectNumber     Int
+  workflowId        String?            @map("workflow_id")
+  stepId            String?            @map("step_id")
+  stepName          String?            @db.VarChar(255)
+  phase             ProjectPhase?
+  section           String?            @db.VarChar(255)
+  lineItem          String?            @db.VarChar(255)
+  isSystemGenerated Boolean            @default(false)
+  isWorkflowMessage Boolean            @default(false)
+  parentMessageId   String?            @map("parent_message_id")
+  readBy            String[]           @default([])
+  readCount         Int                @default(0)
+  metadata          Json?
+  author            User?              @relation("MessageAuthor", fields: [authorId], references: [id])
+  parentMessage     ProjectMessage?    @relation("MessageReplies", fields: [parentMessageId], references: [id])
+  replies           ProjectMessage[]   @relation("MessageReplies")
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([workflowId, stepId])
+  @@index([phase])
+  @@index([isSystemGenerated])
+  @@index([authorId])
+  @@map("project_messages")
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  title        String?                   @db.VarChar(200)
+  description  String?                   @db.VarChar(500)
+  isGroup      Boolean                   @default(false)
+  isActive     Boolean                   @default(true)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String           @id @default(cuid())
+  createdAt      DateTime         @default(now())
+  conversationId String           @map("conversation_id")
+  userId         String           @map("user_id")
+  joinedAt       DateTime         @default(now())
+  leftAt         DateTime?
+  role           ConversationRole @default(MEMBER)
+  conversation   Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  text           String
+  messageType    MessageType   @default(TEXT)
+  isEdited       Boolean       @default(false)
+  editedAt       DateTime?
+  isDeleted      Boolean       @default(false)
+  deletedAt      DateTime?
+  conversationId String        @map("conversation_id")
+  senderId       String        @map("sender_id")
+  replyToId      String?       @map("reply_to_id")
+  attachments    Json?
+  reactions      Json?
+  systemData     Json?
+  readBy         MessageRead[]
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  replyTo        Message?      @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]     @relation("MessageReplies")
+  sender         User          @relation("Sender", fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("message_reads")
+}
+
+model CalendarEvent {
+  id             String                  @id @default(cuid())
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  title          String                  @db.VarChar(200)
+  description    String?                 @db.VarChar(2000)
+  startTime      DateTime
+  endTime        DateTime
+  location       String?                 @db.VarChar(500)
+  isAllDay       Boolean                 @default(false)
+  eventType      EventType               @default(MEETING)
+  status         EventStatus             @default(CONFIRMED)
+  isRecurring    Boolean                 @default(false)
+  recurrenceRule String?                 @db.VarChar(500)
+  parentEventId  String?                 @map("parent_event_id")
+  organizerId    String                  @map("organizer_id")
+  projectId      String?                 @map("project_id")
+  attendees      CalendarEventAttendee[]
+  organizer      User                    @relation("Organizer", fields: [organizerId], references: [id])
+  parentEvent    CalendarEvent?          @relation("EventRecurrence", fields: [parentEventId], references: [id])
+  childEvents    CalendarEvent[]         @relation("EventRecurrence")
+  project        Project?                @relation(fields: [projectId], references: [id])
+
+  @@map("calendar_events")
+}
+
+model CalendarEventAttendee {
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  eventId   String           @map("event_id")
+  userId    String           @map("user_id")
+  status    AttendeeStatus   @default(REQUIRED)
+  response  AttendeeResponse @default(NO_RESPONSE)
+  event     CalendarEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("calendar_event_attendees")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  title       String           @db.VarChar(200)
+  message     String           @db.VarChar(1000)
+  type        NotificationType
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
+  actionUrl   String?          @db.VarChar(500)
+  actionData  Json?
+  recipientId String           @map("recipient_id")
+  recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model ProjectPhaseOverride {
+  id                  String                    @id @default(cuid())
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  projectId           String                    @map("project_id")
+  workflowId          String                    @map("workflow_id")
+  fromPhase           ProjectPhase              @map("from_phase")
+  toPhase             ProjectPhase              @map("to_phase")
+  overriddenById      String                    @map("overridden_by_id")
+  reason              String?                   @db.VarChar(500)
+  suppressAlertsFor   ProjectPhase[]
+  autoLogMessage      String
+  isActive            Boolean                   @default(true)
+  conversationMessage String?                   @map("conversation_message_id")
+  overriddenBy        User                      @relation("OverridePerformedBy", fields: [overriddenById], references: [id])
+  project             Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workflow            ProjectWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  suppressedAlerts    SuppressedWorkflowAlert[]
+
+  @@index([projectId])
+  @@index([workflowId])
+  @@index([overriddenById])
+  @@index([createdAt])
+  @@map("project_phase_overrides")
+}
+
+model SuppressedWorkflowAlert {
+  id                 String               @id @default(cuid())
+  createdAt          DateTime             @default(now())
+  originalAlertId    String               @unique @map("original_alert_id")
+  overrideId         String               @map("override_id")
+  suppressedPhase    ProjectPhase         @map("suppressed_phase")
+  suppressedStepId   String               @map("suppressed_step_id")
+  suppressedStepName String               @map("suppressed_step_name") @db.VarChar(255)
+  originalTitle      String               @map("original_title") @db.VarChar(255)
+  originalMessage    String               @map("original_message")
+  originalPriority   AlertPriority        @map("original_priority")
+  suppressionReason  String               @map("suppression_reason") @db.VarChar(500)
+  override           ProjectPhaseOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+
+  @@index([overrideId])
+  @@index([suppressedPhase])
+  @@index([createdAt])
+  @@map("suppressed_workflow_alerts")
+}
+
+model RoleAssignment {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  roleType     RoleType @unique @map("role_type")
+  userId       String   @map("user_id")
+  assignedAt   DateTime @map("assigned_at")
+  assignedById String?  @map("assigned_by_id")
+  isActive     Boolean  @default(true)
+  assignedBy   User?    @relation("AssignedRoles", fields: [assignedById], references: [id])
+  user         User     @relation("RoleAssignments", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([roleType])
+  @@index([assignedAt])
+  @@map("role_assignments")
 }
 
 enum UserRole {
@@ -131,166 +628,11 @@ enum Theme {
   @@map("themes")
 }
 
-// ===============================
-// CUSTOMER MANAGEMENT (Enhanced)
-// ===============================
-
-model Customer {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Primary Customer Information
-  primaryName  String @db.VarChar(100)
-  primaryEmail String @unique @db.VarChar(255)
-  primaryPhone String @db.VarChar(20)
-
-  // Secondary Customer Information (NEW REQUIREMENT)
-  secondaryName  String? @db.VarChar(100)
-  secondaryEmail String? @db.VarChar(255)
-  secondaryPhone String? @db.VarChar(20)
-
-  // Primary Contact Selection (NEW REQUIREMENT)
-  // When there's only one customer, primaryContact defaults to primary
-  // When there are two customers, user must select which is primary contact
-  primaryContact ContactType @default(PRIMARY)
-
-  // Address - This will be used as projectName (NEW REQUIREMENT)
-  address String @db.VarChar(500)
-
-  // Additional Information
-  notes String? @db.VarChar(2000)
-  
-  // Relationships
-  projects Project[]
-  contacts Contact[] // Multiple contacts per customer
-
-  @@map("customers")
-}
-
-// Contact model for proper multiple contact support
-model Contact {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Contact Information
-  name     String  @db.VarChar(100)
-  phone    String? @db.VarChar(20)
-  email    String? @db.VarChar(255)
-  role     String? @db.VarChar(50) // e.g., "Primary", "Secondary", "Billing", "Technical"
-  
-  // Flags
-  isPrimary Boolean @default(false)
-  isActive  Boolean @default(true)
-  
-  // Notes
-  notes     String? @db.VarChar(500)
-  
-  // Relationships
-  customerId String   @map("customer_id")
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  // Ensure only one primary contact per customer
-  @@unique([customerId, isPrimary])
-  @@index([customerId])
-  @@map("contacts")
-}
-
 enum ContactType {
   PRIMARY
   SECONDARY
 
   @@map("contact_types")
-}
-
-// ===============================
-// PROJECT MANAGEMENT (Enhanced)
-// ===============================
-
-model Project {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Project Identification
-  projectNumber Int    @unique // 5-digit number as required
-  // projectName is now interchangeable with customer address (NEW REQUIREMENT)
-  projectName   String @db.VarChar(200) // Will store customer address
-  projectType   ProjectType
-
-  // Status and Progress
-  status   ProjectStatus @default(PENDING)
-  phase    ProjectPhase? // Current phase based on workflow progress
-  archived Boolean       @default(false)
-  archivedAt DateTime?
-  progress Int           @default(0) // 0-100
-
-  // Project Details  
-  description String? @db.VarChar(2000)
-  priority    Priority @default(MEDIUM)
-
-  // Financial Information
-  budget        Decimal  @db.Decimal(12, 2)
-  estimatedCost Decimal? @db.Decimal(12, 2)
-  actualCost    Decimal? @db.Decimal(12, 2)
-
-  // Timeline
-  startDate DateTime
-  endDate   DateTime
-
-  // Notes
-  notes String? @db.VarChar(1000)
-
-  // Project Manager Contact Information (NEW FIELDS)
-  pmPhone String? @db.VarChar(20)
-  pmEmail String? @db.VarChar(255)
-
-  // Relationships
-  customerId     String             @map("customer_id")
-  customer       Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  projectManagerId String?          @map("project_manager_id")
-  projectManager   User?            @relation("ProjectManager", fields: [projectManagerId], references: [id])
-  
-  createdById      String?          @map("created_by_id")
-  createdBy        User?            @relation("CreatedBy", fields: [createdById], references: [id])
-
-  // Team and Resources
-  teamMembers    ProjectTeamMember[]
-  tasks          Task[]
-  documents      Document[]
-  calendarEvents CalendarEvent[]
-  
-  // **CRITICAL: Project Workflow - All phases, sections, and line items**
-  workflow       ProjectWorkflow?
-  
-  // Workflow Alerts
-  workflowAlerts WorkflowAlert[]
-  
-  // Phase Overrides
-  phaseOverrides ProjectPhaseOverride[]
-  
-  // Project Messages
-  projectMessages ProjectMessage[]
-
-  @@map("projects")
-}
-
-model ProjectTeamMember {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  projectId String  @map("project_id")
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  userId    String  @map("user_id")
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  role      String? @db.VarChar(100)
-
-  @@unique([projectId, userId])
-  @@map("project_team_members")
 }
 
 enum ProjectType {
@@ -328,224 +670,13 @@ enum Priority {
   @@map("priorities")
 }
 
-// ===============================
-// **CRITICAL: PROJECT WORKFLOW SYSTEM**
-// This preserves ALL project phases, sections, and line items
-// ===============================
-
-model ProjectWorkflow {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Project Relationship (One-to-One)
-  projectId String  @unique @map("project_id")
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // Workflow Configuration
-  workflowType WorkflowType @default(ROOFING)
-  status       WorkflowStatus @default(NOT_STARTED)
-
-  // Progress Tracking
-  currentStepIndex    Int     @default(0)
-  overallProgress     Int     @default(0) // 0-100
-  
-  // Timeline
-  workflowStartDate       DateTime?
-  workflowEndDate         DateTime?
-  estimatedCompletionDate DateTime?
-  actualCompletionDate    DateTime?
-
-  // Alert Settings
-  enableAlerts        Boolean @default(true)
-  alertMethods        AlertMethod[]
-  escalationEnabled   Boolean @default(true)
-  escalationDelayDays Int     @default(2)
-
-  // Team Assignments
-  teamAssignments Json? // Store team role assignments as JSON
-
-  // Relationships
-  createdById      String? @map("created_by_id")
-  createdBy        User?   @relation("CreatedBy", fields: [createdById], references: [id])
-  
-  lastModifiedById String? @map("last_modified_by_id")
-  lastModifiedBy   User?   @relation("LastModifiedBy", fields: [lastModifiedById], references: [id])
-
-  // **CRITICAL: All 27 workflow steps with phases, sections, and line items**
-  steps WorkflowStep[]
-  
-  // Workflow Alerts
-  workflowAlerts WorkflowAlert[]
-  
-  // Phase Overrides
-  phaseOverrides ProjectPhaseOverride[]
-
-  @@map("project_workflows")
-}
-
-// **CRITICAL: This model preserves all project phases and workflow steps**
-model WorkflowStep {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Step Identification
-  stepId      String @db.VarChar(50) // e.g., "lead_1", "prospect_2", etc.
-  stepName    String @db.VarChar(200)
-  description String @db.VarChar(1000)
-
-  // **CRITICAL: Project Phase - Must be preserved exactly**
-  phase ProjectPhase
-
-  // Responsibility and Assignment
-  defaultResponsible ResponsibleRole
-  assignedToId       String? @map("assigned_to_id")
-  assignedTo         User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
-
-  // Timeline
-  estimatedDuration Int // in days
-  scheduledStartDate DateTime?
-  scheduledEndDate   DateTime?
-  actualStartDate    DateTime?
-  actualEndDate      DateTime?
-
-  // Completion Status
-  isCompleted    Boolean   @default(false)
-  completedAt    DateTime?
-  completedById  String?   @map("completed_by_id") 
-  completedBy    User?     @relation("CompletedBy", fields: [completedById], references: [id])
-
-  // Alert Configuration
-  alertPriority     AlertPriority @default(MEDIUM)
-  alertDays         Int           @default(1)
-  overdueIntervals  Int[]         @default([1, 3, 7, 14])
-
-  // Notes and Documentation
-  notes           String? @db.VarChar(2000)
-  completionNotes String? @db.VarChar(2000)
-
-  // Dependencies
-  dependencies String[] // Array of stepIds that must be completed first
-
-  // Workflow Relationship
-  workflowId String          @map("workflow_id")
-  workflow   ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-
-  // **CRITICAL: Subtasks - These are the line items that must be preserved**
-  subTasks WorkflowSubTask[]
-
-  // Document Attachments
-  attachments WorkflowStepAttachment[]
-  
-  // Workflow Alerts
-  workflowAlerts WorkflowAlert[]
-
-  @@map("workflow_steps")
-}
-
-// **CRITICAL: This model preserves all the individual line items/subtasks**
-model WorkflowSubTask {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Subtask Information
-  subTaskId    String @db.VarChar(50)
-  subTaskName  String @db.VarChar(500)
-  description  String? @db.VarChar(1000)
-
-  // Completion Status
-  isCompleted   Boolean   @default(false)
-  completedAt   DateTime?
-  completedById String?   @map("completed_by_id")
-  
-  // Notes
-  notes String? @db.VarChar(1000)
-
-  // Parent Step Relationship
-  stepId String       @map("step_id")
-  step   WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-  @@map("workflow_subtasks")
-}
-
-model WorkflowStepAttachment {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  stepId     String       @map("step_id")
-  step       WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  
-  documentId String       @map("document_id")
-  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
-
-  @@unique([stepId, documentId])
-  @@map("workflow_step_attachments")
-}
-
-// Workflow Alert Model - Alerts generated for line items when sections start
-model WorkflowAlert {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Alert Information
-  type        String   @default("Work Flow Line Item") @db.VarChar(100)
-  priority    AlertPriority @default(MEDIUM)
-  status      AlertStatus   @default(ACTIVE)
-  
-  // Content
-  title       String   @db.VarChar(255)
-  message     String   @db.Text
-  stepName    String   @db.VarChar(255)
-  
-  // User Group (Responsible Role)
-  responsibleRole ResponsibleRole @default(OFFICE)
-  
-  // Read/Acknowledgement Status
-  isRead      Boolean   @default(false)
-  readAt      DateTime?
-  acknowledged Boolean  @default(false)
-  acknowledgedAt DateTime?
-  
-  // Due Date
-  dueDate     DateTime?
-  
-  // Relationships
-  projectId   String    @map("project_id")
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  workflowId  String    @map("workflow_id")
-  workflow    ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  
-  stepId      String    @map("step_id")
-  step        WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  
-  // Assignment
-  assignedToId String?  @map("assigned_to_id")
-  assignedTo   User?    @relation("AlertAssignedTo", fields: [assignedToId], references: [id])
-  
-  createdById  String?  @map("created_by_id")
-  createdBy    User?    @relation("AlertCreatedBy", fields: [createdById], references: [id])
-  
-  // Metadata
-  metadata    Json?
-  
-  @@index([projectId, status])
-  @@index([assignedToId, status])
-  @@index([workflowId, stepId])
-  @@map("workflow_alerts")
-}
-
-// **CRITICAL: Exact project phases from the application**
 enum ProjectPhase {
-  LEAD         // 🟨 Lead Phase
-  PROSPECT     // 🟧 Prospect Phase  
-  APPROVED     // 🟩 Approved Phase
-  EXECUTION    // 🔧 Execution Phase
-  SUPPLEMENT   // 🌀 2nd Supplement Phase
-  COMPLETION   // 🏁 Completion Phase
+  LEAD
+  PROSPECT
+  APPROVED
+  EXECUTION
+  SUPPLEMENT
+  COMPLETION
 
   @@map("project_phases")
 }
@@ -606,60 +737,6 @@ enum AlertStatus {
   @@map("alert_status")
 }
 
-// ===============================
-// TASK MANAGEMENT
-// ===============================
-
-model Task {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  title       String @db.VarChar(200)
-  description String? @db.VarChar(2000)
-  
-  dueDate     DateTime
-  status      TaskStatus @default(TO_DO)
-  priority    Priority   @default(MEDIUM)
-  
-  estimatedHours Int?
-  actualHours    Int?
-  category       TaskCategory @default(OTHER)
-  tags           String[]
-  notes          String? @db.VarChar(1000)
-  completedAt    DateTime?
-
-  // Relationships
-  projectId   String  @map("project_id")
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  assignedToId String @map("assigned_to_id")
-  assignedTo   User   @relation("AssignedUser", fields: [assignedToId], references: [id])
-  
-  createdById  String? @map("created_by_id") 
-  createdBy    User?   @relation("CreatedByUser", fields: [createdById], references: [id])
-
-  // Dependencies
-  dependencies TaskDependency[] @relation("ParentTask")
-  dependents   TaskDependency[] @relation("DependentTask")
-
-  @@map("tasks")
-}
-
-model TaskDependency {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  parentTaskId    String @map("parent_task_id")
-  parentTask      Task   @relation("ParentTask", fields: [parentTaskId], references: [id], onDelete: Cascade)
-  
-  dependentTaskId String @map("dependent_task_id")
-  dependentTask   Task   @relation("DependentTask", fields: [dependentTaskId], references: [id], onDelete: Cascade)
-
-  @@unique([parentTaskId, dependentTaskId])
-  @@map("task_dependencies")
-}
-
 enum TaskStatus {
   TO_DO
   IN_PROGRESS
@@ -680,57 +757,6 @@ enum TaskCategory {
   @@map("task_categories")
 }
 
-// ===============================
-// DOCUMENT MANAGEMENT
-// ===============================
-
-model Document {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  fileName     String @db.VarChar(255)
-  originalName String @db.VarChar(255)
-  fileUrl      String @db.VarChar(1000)
-  mimeType     String @db.VarChar(100)
-  fileSize     Int
-  fileType     DocumentType
-
-  description    String? @db.VarChar(1000)
-  tags           String[]
-  version        Int     @default(1)
-  isActive       Boolean @default(true)
-  downloadCount  Int     @default(0)
-  lastDownloadedAt DateTime?
-  checksum       String? @db.VarChar(255)
-  isPublic       Boolean @default(false)
-
-  // Relationships
-  projectId    String @map("project_id")
-  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  uploadedById String  @map("uploaded_by_id")
-  uploadedBy   User    @relation("UploadedBy", fields: [uploadedById], references: [id])
-
-  downloads            DocumentDownload[]
-  workflowAttachments  WorkflowStepAttachment[]
-
-  @@map("documents")
-}
-
-model DocumentDownload {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  documentId String   @map("document_id")
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
-  userId     String   @map("user_id")
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("document_downloads")
-}
-
 enum DocumentType {
   BLUEPRINT
   PERMIT
@@ -745,67 +771,6 @@ enum DocumentType {
   @@map("document_types")
 }
 
-// ===============================
-// PROJECT MESSAGE SYSTEM
-// ===============================
-
-// Project-specific messaging system for workflow progress communications
-model ProjectMessage {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Message Content
-  content     String      @db.Text
-  subject     String      @db.VarChar(255)
-  messageType ProjectMessageType @default(WORKFLOW_UPDATE)
-  
-  // Message Priority
-  priority MessagePriority @default(MEDIUM)
-  
-  // User Information
-  authorId    String? @map("author_id")
-  author      User?   @relation("MessageAuthor", fields: [authorId], references: [id])
-  authorName  String  @db.VarChar(100) // Cached for performance
-  authorRole  String? @db.VarChar(50)
-  
-  // Project Context
-  projectId     String  @map("project_id")
-  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectNumber Int
-  
-  // Workflow Context
-  workflowId    String? @map("workflow_id")
-  stepId        String? @map("step_id")
-  stepName      String? @db.VarChar(255)
-  phase         ProjectPhase?
-  section       String? @db.VarChar(255)
-  lineItem      String? @db.VarChar(255)
-  
-  // Auto-generation flags
-  isSystemGenerated Boolean @default(false)
-  isWorkflowMessage Boolean @default(false)
-  
-  // Thread/Reply system
-  parentMessageId String?        @map("parent_message_id")
-  parentMessage   ProjectMessage? @relation("MessageReplies", fields: [parentMessageId], references: [id])
-  replies         ProjectMessage[] @relation("MessageReplies")
-  
-  // Read status tracking
-  readBy     String[] @default([])
-  readCount  Int      @default(0)
-  
-  // Metadata
-  metadata Json? // Store additional context like completion percentages, etc.
-  
-  @@index([projectId, createdAt])
-  @@index([workflowId, stepId])
-  @@index([phase])
-  @@index([isSystemGenerated])
-  @@index([authorId])
-  @@map("project_messages")
-}
-
 enum ProjectMessageType {
   WORKFLOW_UPDATE
   PHASE_COMPLETION
@@ -814,7 +779,7 @@ enum ProjectMessageType {
   SYSTEM_NOTIFICATION
   ALERT_DISCUSSION
   PROJECT_MILESTONE
-  
+
   @@map("project_message_types")
 }
 
@@ -823,95 +788,8 @@ enum MessagePriority {
   MEDIUM
   HIGH
   URGENT
-  
+
   @@map("message_priorities")
-}
-
-// ===============================
-// COMMUNICATION SYSTEM
-// ===============================
-
-model Conversation {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  title       String? @db.VarChar(200)
-  description String? @db.VarChar(500)
-  isGroup     Boolean @default(false)
-  isActive    Boolean @default(true)
-
-  messages     Message[]
-  participants ConversationParticipant[]
-
-  @@map("conversations")
-}
-
-model ConversationParticipant {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  conversationId String       @map("conversation_id")
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  userId         String       @map("user_id")
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  joinedAt       DateTime     @default(now())
-  leftAt         DateTime?
-  role           ConversationRole @default(MEMBER)
-
-  @@unique([conversationId, userId])
-  @@map("conversation_participants")
-}
-
-model Message {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  text        String      @db.Text
-  messageType MessageType @default(TEXT)
-  isEdited    Boolean     @default(false)
-  editedAt    DateTime?
-  isDeleted   Boolean     @default(false)
-  deletedAt   DateTime?
-
-  // Relationships
-  conversationId String       @map("conversation_id")
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  senderId       String       @map("sender_id")
-  sender         User         @relation("Sender", fields: [senderId], references: [id])
-  
-  replyToId      String?      @map("reply_to_id")
-  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
-  replies        Message[]    @relation("MessageReplies")
-
-  // Message metadata
-  attachments  Json?         // Store attachments as JSON
-  reactions    Json?         // Store reactions as JSON
-  systemData   Json?         // Store system message data as JSON
-
-  readBy MessageRead[]
-
-  @@map("messages")
-}
-
-model MessageRead {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  messageId String  @map("message_id")
-  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  
-  userId    String  @map("user_id")
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  readAt    DateTime @default(now())
-
-  @@unique([messageId, userId])
-  @@map("message_reads")
 }
 
 enum ConversationRole {
@@ -930,61 +808,6 @@ enum MessageType {
   NOTIFICATION
 
   @@map("message_types")
-}
-
-// ===============================
-// CALENDAR SYSTEM
-// ===============================
-
-model CalendarEvent {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  title       String @db.VarChar(200)
-  description String? @db.VarChar(2000)
-  startTime   DateTime
-  endTime     DateTime
-  location    String? @db.VarChar(500)
-  isAllDay    Boolean @default(false)
-  eventType   EventType @default(MEETING)
-  status      EventStatus @default(CONFIRMED)
-
-  // Recurrence
-  isRecurring      Boolean @default(false)
-  recurrenceRule   String? @db.VarChar(500) // RRULE format
-  parentEventId    String? @map("parent_event_id")
-  parentEvent      CalendarEvent? @relation("EventRecurrence", fields: [parentEventId], references: [id])
-  childEvents      CalendarEvent[] @relation("EventRecurrence")
-
-  // Relationships
-  organizerId String  @map("organizer_id")
-  organizer   User    @relation("Organizer", fields: [organizerId], references: [id])
-  
-  projectId   String? @map("project_id")
-  project     Project? @relation(fields: [projectId], references: [id])
-
-  attendees CalendarEventAttendee[]
-
-  @@map("calendar_events")
-}
-
-model CalendarEventAttendee {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  eventId  String           @map("event_id")
-  event    CalendarEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  userId   String           @map("user_id")
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  status   AttendeeStatus   @default(REQUIRED)
-  response AttendeeResponse @default(NO_RESPONSE)
-
-  @@unique([eventId, userId])
-  @@map("calendar_event_attendees")
 }
 
 enum EventType {
@@ -1023,32 +846,6 @@ enum AttendeeResponse {
   @@map("attendee_responses")
 }
 
-// ===============================
-// NOTIFICATION SYSTEM
-// ===============================
-
-model Notification {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  title   String @db.VarChar(200)
-  message String @db.VarChar(1000)
-  type    NotificationType
-  isRead  Boolean @default(false)
-  readAt  DateTime?
-
-  // Action data
-  actionUrl  String? @db.VarChar(500)
-  actionData Json?   // Additional action data as JSON
-
-  // Relationships
-  recipientId String @map("recipient_id")
-  recipient   User   @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
 enum NotificationType {
   TASK_ASSIGNED
   TASK_COMPLETED
@@ -1060,117 +857,6 @@ enum NotificationType {
   @@map("notification_types")
 }
 
-// ===============================
-// PROJECT PHASE OVERRIDE SYSTEM
-// ===============================
-
-// Model to track phase overrides performed on projects
-model ProjectPhaseOverride {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Project relationship
-  projectId String  @map("project_id")
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // Workflow relationship
-  workflowId String          @map("workflow_id")
-  workflow   ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-
-  // Override details
-  fromPhase ProjectPhase @map("from_phase") // Previous phase
-  toPhase   ProjectPhase @map("to_phase")   // New phase user overrode to
-  
-  // User who performed the override
-  overriddenById String @map("overridden_by_id")
-  overriddenBy   User   @relation("OverridePerformedBy", fields: [overriddenById], references: [id])
-
-  // Override metadata
-  reason              String? @db.VarChar(500) // Optional reason for override
-  suppressAlertsFor   ProjectPhase[] // Phases to suppress alerts for
-  autoLogMessage      String  @db.Text // Auto-generated log message
-  
-  // Status tracking
-  isActive Boolean @default(true) // Whether this override is still active
-  
-  // Relationships for logging
-  conversationMessage String? @map("conversation_message_id") // Reference to auto-logged message
-  
-  // Suppressed alerts due to this override
-  suppressedAlerts SuppressedWorkflowAlert[]
-  
-  @@index([projectId])
-  @@index([workflowId])
-  @@index([overriddenById])
-  @@index([createdAt])
-  @@map("project_phase_overrides")
-}
-
-// Model to track suppressed alerts due to phase overrides
-model SuppressedWorkflowAlert {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  
-  // Alert that was suppressed
-  originalAlertId String @unique @map("original_alert_id")
-  
-  // Override that caused the suppression
-  overrideId String              @map("override_id")
-  override   ProjectPhaseOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
-  
-  // Suppression details
-  suppressedPhase     ProjectPhase @map("suppressed_phase")
-  suppressedStepId    String       @map("suppressed_step_id")
-  suppressedStepName  String       @db.VarChar(255) @map("suppressed_step_name")
-  
-  // Alert details for audit trail
-  originalTitle    String @db.VarChar(255) @map("original_title")
-  originalMessage  String @db.Text @map("original_message")
-  originalPriority AlertPriority @map("original_priority")
-  
-  // Suppression metadata
-  suppressionReason String @db.VarChar(500) @map("suppression_reason")
-  
-  @@index([overrideId])
-  @@index([suppressedPhase])
-  @@index([createdAt])
-  @@map("suppressed_workflow_alerts")
-}
-
-// ===============================
-// **NEW: ROLE MANAGEMENT SYSTEM**
-// ===============================
-
-model RoleAssignment {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Role Information
-  roleType    RoleType @map("role_type")
-  
-  // User Assignment
-  userId      String @map("user_id")
-  user        User   @relation("RoleAssignments", fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Assignment Tracking
-  assignedAt    DateTime @map("assigned_at")
-  assignedById  String?  @map("assigned_by_id")
-  assignedBy    User?    @relation("AssignedRoles", fields: [assignedById], references: [id])
-  
-  // Status
-  isActive Boolean @default(true)
-  
-  // Ensure only one user per role type
-  @@unique([roleType], name: "unique_role_assignment")
-  @@index([userId])
-  @@index([roleType])
-  @@index([assignedAt])
-  @@map("role_assignments")
-}
-
-// Role types for the application
 enum RoleType {
   PRODUCT_MANAGER
   FIELD_DIRECTOR
@@ -1178,4 +864,4 @@ enum RoleType {
   ADMINISTRATION
 
   @@map("role_types")
-} 
+}
