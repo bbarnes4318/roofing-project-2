@@ -348,7 +348,7 @@ export default function GlobalSearch({
     }, 1500);
   };
 
-  // Calculate dropdown position to keep it visible
+  // Calculate dropdown position to keep it visible and aligned with search bar
   const calculateDropdownPosition = () => {
     if (searchContainerRef.current) {
       const rect = searchContainerRef.current.getBoundingClientRect();
@@ -357,30 +357,28 @@ export default function GlobalSearch({
       const dropdownHeight = 400;
       const dropdownWidth = 450;
       
-      // ALWAYS position below search bar and align with left edge
+      // Always start with search bar position
       let top = rect.bottom + 8;
       let left = rect.left;
       
-      // Ensure dropdown fits on screen height
+      // Check if dropdown would go off bottom of screen
       if (top + dropdownHeight > viewportHeight) {
         top = rect.top - dropdownHeight - 8;
       }
       
-      // CRITICAL: Keep dropdown on screen horizontally
+      // Check if dropdown would go off right edge
       if (left + dropdownWidth > viewportWidth) {
-        left = Math.max(20, viewportWidth - dropdownWidth - 20);
+        // Align right edge of dropdown with right edge of viewport (with padding)
+        left = viewportWidth - dropdownWidth - 20;
       }
       
-      // Ensure it's not too far left
-      if (left < 20) {
-        left = 20;
-      }
+      // Don't let it go off the left edge
+      left = Math.max(20, left);
       
-      // Force position to be reasonable - never use saved position that goes off screen
-      const finalLeft = Math.max(20, Math.min(left, viewportWidth - dropdownWidth - 20));
-      const finalTop = Math.max(10, Math.min(top, viewportHeight - dropdownHeight - 10));
+      // Don't let it go off the top
+      top = Math.max(10, top);
       
-      setDropdownPosition({ top: finalTop, left: finalLeft });
+      setDropdownPosition({ top, left });
     }
   };
 
@@ -408,9 +406,9 @@ export default function GlobalSearch({
     localStorage.setItem('searchDropdownPosition', JSON.stringify(dropdownPosition));
   };
 
-  // Clear any bad saved position on mount
+  // Clear any saved position on mount and ensure clean positioning
   useEffect(() => {
-    // Clear any saved position that might be off-screen
+    // Always clear saved position to ensure proper alignment
     localStorage.removeItem('searchDropdownPosition');
     setSavedPosition(null);
   }, []);
