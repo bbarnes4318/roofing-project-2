@@ -103,7 +103,7 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${progressData.phaseColors.bg || 'from-blue-500 to-blue-600'} text-white font-semibold text-sm shadow-lg`}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${PHASES[currentPhaseIndex]?.color || 'from-blue-500 to-blue-600'} text-white font-semibold text-sm shadow-lg`}
                     >
                         <span className="text-lg">{PHASES[currentPhaseIndex]?.icon}</span>
                         <span>{progressData.currentPhase}</span>
