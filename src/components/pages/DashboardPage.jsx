@@ -1927,9 +1927,49 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     <option key={subject} value={subject}>{subject}</option>
                   ))}
                 </select>
+                
+                {/* Condensed Expand/Collapse Controls - Aligned with Current Alerts */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleExpandAllMessages}
+                    className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
+                      expandedMessages.size === currentActivities.length && currentActivities.length > 0
+                        ? colorMode 
+                          ? 'bg-blue-600 text-white border-blue-600' 
+                          : 'bg-blue-500 text-white border-blue-500'
+                        : colorMode 
+                          ? 'bg-[#1e293b] text-blue-300 border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600' 
+                          : 'bg-white text-blue-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400'
+                    }`}
+                    title="Expand all message conversations"
+                    disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
+                  >
+                    <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleCollapseAllMessages}
+                    className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
+                      expandedMessages.size === 0
+                        ? colorMode 
+                          ? 'bg-orange-600 text-white border-orange-600' 
+                          : 'bg-orange-500 text-white border-orange-500'
+                        : colorMode 
+                          ? 'bg-[#1e293b] text-orange-300 border-gray-600 hover:bg-orange-600 hover:text-white hover:border-orange-600' 
+                          : 'bg-white text-orange-600 border-gray-300 hover:bg-orange-50 hover:border-orange-400'
+                    }`}
+                    title="Collapse all message conversations"
+                    disabled={expandedMessages.size === 0}
+                  >
+                    <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               
-              {/* Add Message Dropdown Trigger with Expand/Collapse Controls */}
+              {/* Add Message Dropdown Trigger */}
               <div className="mb-3">
                 <button
                   onClick={() => setShowMessageDropdown(!showMessageDropdown)}
@@ -1945,59 +1985,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 >
                   <span>+ Add Message</span>
                   
-                  <div className="flex items-center gap-2">
-                    {/* Condensed Expand/Collapse Controls - Left of Dropdown Arrow */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleExpandAllMessages();
-                        }}
-                        className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
-                          expandedMessages.size === currentActivities.length && currentActivities.length > 0
-                            ? colorMode 
-                              ? 'bg-blue-600 text-white border-blue-600' 
-                              : 'bg-blue-500 text-white border-blue-500'
-                            : colorMode 
-                              ? 'bg-[#1e293b] text-blue-300 border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600' 
-                              : 'bg-white text-blue-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400'
-                        }`}
-                        title="Expand all message conversations"
-                        disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
-                      >
-                        <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                        </svg>
-                      </button>
-                      
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCollapseAllMessages();
-                        }}
-                        className={`px-1.5 py-0.5 text-[7px] font-medium rounded border transition-colors ${
-                          expandedMessages.size === 0 || currentActivities.length === 0
-                            ? colorMode 
-                              ? 'bg-gray-600 text-gray-400 border-gray-600' 
-                              : 'bg-gray-200 text-gray-500 border-gray-300'
-                            : colorMode 
-                              ? 'bg-[#1e293b] text-gray-300 border-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-500' 
-                              : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                        }`}
-                        title="Collapse all message conversations"
-                        disabled={currentActivities.length === 0 || expandedMessages.size === 0}
-                      >
-                        <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    {/* Dropdown Arrow */}
-                    <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
+                  {/* Dropdown Arrow */}
+                  <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
               </div>
               
