@@ -124,7 +124,11 @@ export default function GlobalSearch({
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [bubbles, setBubbles] = useState([]);
+  const [showRipple, setShowRipple] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const searchContainerRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Initialize both conventional and NL search services
   const searchService = useMemo(() => {
@@ -138,6 +142,23 @@ export default function GlobalSearch({
     service.updateData({ projects, activities });
     return service;
   }, [projects, activities]);
+
+  // Recalculate position on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (isFocused) {
+        calculateDropdownPosition();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize);
+    };
+  }, [isFocused]);
 
   useEffect(() => {
     const performSearch = async () => {
@@ -208,6 +229,58 @@ export default function GlobalSearch({
     );
   };
 
+  // Create bubbles effect on input focus/click
+  const createBubblesEffect = () => {
+    const newBubbles = [];
+    for (let i = 0; i < 6; i++) {
+      const bubble = {
+        id: Date.now() + i,
+        size: Math.random() * 10 + 5,
+        left: Math.random() * 40 - 20,
+        delay: Math.random() * 0.5
+      };
+      newBubbles.push(bubble);
+    }
+    setBubbles(newBubbles);
+    setShowRipple(true);
+    
+    // Clear effects after animation
+    setTimeout(() => {
+      setBubbles([]);
+      setShowRipple(false);
+    }, 1500);
+  };
+
+  // Calculate dropdown position to keep it visible
+  const calculateDropdownPosition = () => {
+    if (searchContainerRef.current) {
+      const rect = searchContainerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const dropdownHeight = 400; // max-height from CSS
+      
+      let top = rect.bottom + 8;
+      let left = rect.left;
+      
+      // If dropdown would go off bottom of screen, position it above
+      if (top + dropdownHeight > viewportHeight) {
+        top = rect.top - dropdownHeight - 8;
+      }
+      
+      // Ensure left position doesn't go off screen
+      if (left + 450 > window.innerWidth) {
+        left = window.innerWidth - 450 - 20;
+      }
+      
+      setDropdownPosition({ top, left });
+    }
+  };
+
+  const handleInputFocus = () => {
+    setIsFocused(true);
+    createBubblesEffect();
+    calculateDropdownPosition();
+  };
+
   const handleResultClick = (result) => {
     setIsFocused(false);
     setQuery('');
@@ -266,7 +339,7 @@ export default function GlobalSearch({
   };
 
   return (
-    <div className={`global-search-container ${className}`} ref={searchContainerRef}>
+    <div className={`global-search-container ${isFocused ? 'search-active' : ''} ${className}`} ref={searchContainerRef}>
       {/* Search Icon */}
       <div className="search-icon-wrapper">
         <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,13 +348,35 @@ export default function GlobalSearch({
       </div>
       
       <input
+        ref={inputRef}
         type="text"
         className={`global-search-input ${colorMode ? 'dark-mode' : ''}`}
         placeholder="Search projects, customers, or alerts..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => setIsFocused(true)}
+        onFocus={handleInputFocus}
       />
+      
+      {/* Bubbles Effect */}
+      {bubbles.length > 0 && (
+        <div className="bubbles-container">
+          {bubbles.map((bubble) => (
+            <div
+              key={bubble.id}
+              className="bubble"
+              style={{
+                width: `${bubble.size}px`,
+                height: `${bubble.size}px`,
+                left: `${bubble.left}px`,
+                animationDelay: `${bubble.delay}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      {/* Ripple Effect */}
+      {showRipple && <div className="ripple-effect" />}
       
       {/* Clear button when there's text */}
       {query && (
@@ -296,7 +391,13 @@ export default function GlobalSearch({
         </button>
       )}
       {isFocused && query.length > 0 && (
-        <div className={`search-results-dropdown ${colorMode ? 'bg-[#1e293b] border-gray-600' : ''}`}>
+        <div 
+          className={`search-results-dropdown ${colorMode ? 'bg-[#1e293b] border-gray-600' : ''}`}
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`
+          }}
+        >
           {loading && <div className="search-result-item-message">Loading...</div>}
           {!loading && Object.keys(groupedResults).length === 0 && (
             <div className="search-result-item-message">No results found for "{query}"</div>
