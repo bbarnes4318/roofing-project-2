@@ -525,8 +525,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         </div>
                     </div>
                     
-                    {/* Customer Information Section - Reorganized */}
-                    <div className="mt-3 space-y-2">
+                    {/* Customer Information Section with Project Cubes */}
+                    <div className="mt-3 space-y-3">
                         {/* Customer Name and Address Together */}
                         <div className="space-y-1">
                             <div className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
@@ -538,108 +538,100 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
                         </div>
                         
-                        {/* Customer Contact Information - Improved styling */}
-                        <div className="flex items-center gap-4 pt-1">
-                            <div className="flex items-center gap-1.5">
-                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
-                                    <span className="text-[10px]">📞</span>
-                                </div>
-                                <a 
-                                    href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
-                                    className={`text-sm font-medium hover:underline transition-colors ${
-                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                    }`}
-                                >
-                                    {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || 'Add phone'}
-                                </a>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
-                                    <span className="text-[10px]">✉️</span>
-                                </div>
-                                <a 
-                                    href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || ''}`}
-                                    className={`text-sm font-medium hover:underline transition-colors ${
-                                        colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
-                                    }`}
-                                >
-                                    {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'Add email'}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Phase-Based Progress Bars Section */}
-                <div className="p-3">
-                    {/* Phase Progress Indicators */}
-                    <div className={`p-3 rounded-lg ${colorMode ? 'bg-slate-800/50 border border-slate-700' : 'bg-gray-50 border border-gray-200'}`}>
-                        {/* Phase Progress Header */}
-                        <div className="flex items-center justify-between mb-3">
-                            <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Progress</span>
-                            <span className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                {getProgressForProject(project)}%
-                            </span>
-                        </div>
-                        
-                        {/* Overall Progress Bar */}
-                        <div className={`w-full h-4 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'} mb-4`}>
-                            <div 
-                                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 ease-out"
-                                style={{ width: `${getProgressForProject(project)}%` }}
-                            />
-                        </div>
-                        
-                        {/* Phase Indicators */}
-                        <div className="grid grid-cols-6 gap-2">
-                            {['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', '2ND SUPP', 'COMPLETION'].map((phase, index) => {
-                                const currentPhase = getPhaseForProject(project);
-                                const phaseProgress = getPhaseProgress(project, phase);
-                                const isCurrentPhase = currentPhase === phase;
-                                const isPastPhase = getPhaseIndex(currentPhase) > getPhaseIndex(phase);
-                                
-                                return (
-                                    <div key={phase} className="text-center">
-                                        <div className="relative mb-1">
-                                            <div 
-                                                className={`w-full h-2 rounded-full overflow-hidden ${
-                                                    colorMode ? 'bg-slate-700' : 'bg-gray-200'
-                                                }`}
-                                            >
-                                                <div 
-                                                    className={`h-full rounded-full transition-all duration-500 ${
-                                                        isPastPhase ? 'bg-green-500' :
-                                                        isCurrentPhase ? 'bg-blue-500' :
-                                                        'bg-gray-400'
-                                                    }`}
-                                                    style={{ 
-                                                        width: isPastPhase ? '100%' : 
-                                                               isCurrentPhase ? `${phaseProgress}%` : 
-                                                               '0%' 
-                                                    }}
-                                                />
-                                            </div>
-                                            {isCurrentPhase && (
-                                                <div className="absolute -top-1 -right-1">
-                                                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className={`text-[10px] font-medium ${
-                                            isCurrentPhase ? (colorMode ? 'text-blue-300' : 'text-blue-600') :
-                                            isPastPhase ? (colorMode ? 'text-green-300' : 'text-green-600') :
-                                            (colorMode ? 'text-gray-500' : 'text-gray-400')
-                                        }`}>
-                                            {phase === '2ND SUPP' ? '2ND SUPP' : phase}
-                                        </div>
+                        {/* Customer Contact Information and Project Cubes - Side by Side */}
+                        <div className="flex items-start justify-between gap-4">
+                            {/* Customer Contact Information - Left Side */}
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-1.5">
+                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
+                                        <span className="text-[10px]">📞</span>
                                     </div>
-                                );
-                            })}
+                                    <a 
+                                        href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
+                                        className={`text-sm font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                        }`}
+                                    >
+                                        {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || 'Add phone'}
+                                    </a>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
+                                        <span className="text-[10px]">✉️</span>
+                                    </div>
+                                    <a 
+                                        href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || ''}`}
+                                        className={`text-sm font-medium hover:underline transition-colors ${
+                                            colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
+                                        }`}
+                                    >
+                                        {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'Add email'}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            {/* Project Cubes - Right Side (Replicated from Dashboard) */}
+                            <div className="grid grid-cols-3 gap-1.5 max-w-[180px]">
+                                <button
+                                    onClick={() => onProjectSelect(project, 'Project Workflow')}
+                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
+                                >
+                                    <span className="mb-0.5 text-[10px]">🗂️</span>
+                                    Workflow
+                                </button>
+                                
+                                <button
+                                    onClick={() => onProjectSelect(project, 'Alerts')}
+                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
+                                >
+                                    <span className="mb-0.5 text-[10px]">⚠️</span>
+                                    Alerts
+                                </button>
+                                
+                                <button
+                                    onClick={() => onProjectSelect(project, 'Messages')}
+                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
+                                >
+                                    <span className="mb-0.5 text-[10px]">💬</span>
+                                    Messages
+                                </button>
+                                
+                                <button
+                                    onClick={() => {}}
+                                    disabled={true}
+                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                >
+                                    <span className="mb-0.5 text-[10px]">📄</span>
+                                    Documents
+                                </button>
+                                
+                                <button
+                                    onClick={() => onProjectSelect(project, 'Project Schedule')}
+                                    disabled
+                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold cursor-not-allowed opacity-50 ${colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'}`}
+                                >
+                                    <span className="mb-0.5 text-[10px]">📅</span>
+                                    Schedule
+                                </button>
+                                
+                                <button
+                                    onClick={() => onProjectSelect(project, 'Projects')}
+                                    className={`group flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[8px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                                >
+                                    <span className="mb-0.5 text-[10px]">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                            <circle cx="12" cy="8" r="4" fill="#2563eb" />
+                                            <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
+                                        </svg>
+                                    </span>
+                                    Profile
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                {/* Secondary Contacts and Project Manager - Below Progress Bar */}
+                {/* Additional Household Members and Project Manager - Moved Up */}
                 <div className="px-3 pb-3 space-y-2">
                     <div className="grid grid-cols-3 gap-2">
                         {/* Secondary Customer 1 - Conditional Rendering */}
@@ -737,99 +729,130 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
                 
-                {/* Enhanced Action Buttons (Cubes) */}
-                <div className="p-3">
-                    <div className="grid grid-cols-3 gap-2">
-                        {/* Row 1: Enhanced Workflow, Alerts, Messages */}
+                {/* Back Button (if needed from source navigation) */}
+                {showCardBackButton && (
+                    <div className="px-3 pb-3">
                         <button
-                            onClick={() => onProjectSelect(project, 'Project Workflow')}
-                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
+                            onClick={handleBackToSource}
+                            className={`w-full flex items-center justify-center gap-2 p-2 rounded-lg transition-all duration-200 border text-sm font-medium ${
                                 colorMode 
-                                    ? 'bg-gradient-to-br from-slate-700/80 to-slate-800/80 border-slate-600/60 text-white hover:from-slate-600/90 hover:to-slate-700/90 hover:border-slate-500 hover:shadow-slate-900/30' 
-                                    : 'bg-gradient-to-br from-white to-gray-50 border-gray-300 text-gray-800 hover:from-blue-50 hover:to-blue-100 hover:border-blue-400 hover:shadow-blue-200/50'
+                                    ? 'bg-gradient-to-r from-orange-700/80 to-orange-800/80 border-orange-600/70 text-white hover:from-orange-600/90 hover:to-orange-700/90 hover:border-orange-500' 
+                                    : 'bg-gradient-to-r from-orange-100 to-orange-200 border-orange-300 text-orange-800 hover:from-orange-200 hover:to-orange-300 hover:border-orange-400'
                             }`}
                         >
-                            <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">⚙️</span>
-                            <span className="text-center leading-tight">Workflow</span>
-                        </button>
-                        
-                        <button
-                            onClick={() => onProjectSelect(project, 'Alerts')}
-                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
-                                colorMode 
-                                    ? 'bg-gradient-to-br from-red-700/70 to-red-800/70 border-red-600/60 text-white hover:from-red-600/80 hover:to-red-700/80 hover:border-red-500 hover:shadow-red-900/30' 
-                                    : 'bg-gradient-to-br from-red-50 to-red-100 border-red-300 text-red-800 hover:from-red-100 hover:to-red-200 hover:border-red-400 hover:shadow-red-200/50'
-                            }`}
-                        >
-                            <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">🚨</span>
-                            <span className="text-center leading-tight">Alerts</span>
-                        </button>
-                        
-                        <button
-                            onClick={() => onProjectSelect(project, 'Messages')}
-                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
-                                colorMode 
-                                    ? 'bg-gradient-to-br from-green-700/70 to-green-800/70 border-green-600/60 text-white hover:from-green-600/80 hover:to-green-700/80 hover:border-green-500 hover:shadow-green-900/30' 
-                                    : 'bg-gradient-to-br from-green-50 to-green-100 border-green-300 text-green-800 hover:from-green-100 hover:to-green-200 hover:border-green-400 hover:shadow-green-200/50'
-                            }`}
-                        >
-                            <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">💬</span>
-                            <span className="text-center leading-tight">Messages</span>
-                        </button>
-                        
-                        {/* Row 2: Back button (if needed), Documents, Schedule */}
-                        {showCardBackButton ? (
-                            <button
-                                onClick={handleBackToSource}
-                                className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
-                                    colorMode 
-                                        ? 'bg-gradient-to-br from-orange-700/80 to-orange-800/80 border-orange-600/70 text-white hover:from-orange-600/90 hover:to-orange-700/90 hover:border-orange-500 hover:shadow-orange-900/30' 
-                                        : 'bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 text-orange-800 hover:from-orange-200 hover:to-orange-300 hover:border-orange-400 hover:shadow-orange-200/50'
-                                }`}
-                            >
-                                <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">⬅️</span>
-                                <span className="text-center leading-tight">Back</span>
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => onProjectSelect(project, 'Analytics')}
-                                className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105 ${
-                                    colorMode 
-                                        ? 'bg-gradient-to-br from-purple-700/70 to-purple-800/70 border-purple-600/60 text-white hover:from-purple-600/80 hover:to-purple-700/80 hover:border-purple-500 hover:shadow-purple-900/30' 
-                                        : 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300 text-purple-800 hover:from-purple-100 hover:to-purple-200 hover:border-purple-400 hover:shadow-purple-200/50'
-                                }`}
-                            >
-                                <span className="text-lg mb-1 group-hover:scale-110 transition-transform duration-200">📊</span>
-                                <span className="text-center leading-tight">Analytics</span>
-                            </button>
-                        )}
-                        
-                        <button
-                            onClick={() => onProjectSelect(project, 'Documents')}
-                            disabled
-                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md cursor-not-allowed opacity-50 ${
-                                colorMode 
-                                    ? 'bg-gradient-to-br from-slate-600/30 to-slate-700/30 border-slate-500/20 text-gray-400' 
-                                    : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-200 text-gray-400'
-                            }`}
-                        >
-                            <span className="text-lg mb-1">📁</span>
-                            <span className="text-center leading-tight">Documents</span>
-                        </button>
-                        
-                        <button
-                            onClick={() => onProjectSelect(project, 'Project Schedule')}
-                            disabled
-                            className={`group flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 border-2 text-xs font-bold shadow-md cursor-not-allowed opacity-50 ${
-                                colorMode 
-                                    ? 'bg-gradient-to-br from-slate-600/30 to-slate-700/30 border-slate-500/20 text-gray-400' 
-                                    : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-200 text-gray-400'
-                            }`}
-                        >
-                            <span className="text-lg mb-1">📅</span>
-                            <span className="text-center leading-tight">Schedule</span>
+                            <span>⬅️</span>
+                            <span>{getBackButtonText()}</span>
                         </button>
                     </div>
+                )}
+                
+                {/* Project Progress Section - Moved to Bottom with Dashboard-Style Dropdown */}
+                <div className="p-3">
+                    <button
+                        onClick={() => toggleProgressExpansion(project.id || project._id, 'progress')}
+                        className={`w-full p-3 rounded-lg transition-all duration-200 ${colorMode ? 'bg-slate-800/50 border border-slate-700 hover:bg-slate-800/70' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'}`}
+                    >
+                        {/* Project Progress Header - Clickable */}
+                        <div className="flex items-center justify-between mb-3">
+                            <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Progress</span>
+                            <div className="flex items-center gap-2">
+                                <span className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                    {getProgressForProject(project)}%
+                                </span>
+                                <svg 
+                                    className={`w-4 h-4 transition-transform duration-200 ${colorMode ? 'text-gray-400' : 'text-gray-600'} ${expandedProgress[`${project.id || project._id}-progress`] ? 'rotate-180' : ''}`} 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        {/* Overall Progress Bar */}
+                        <div className={`w-full h-4 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
+                            <div 
+                                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 ease-out"
+                                style={{ width: `${getProgressForProject(project)}%` }}
+                            />
+                        </div>
+                    </button>
+                    
+                    {/* Expandable Progress Details - Dashboard Style */}
+                    {expandedProgress[`${project.id || project._id}-progress`] && (
+                        <div className="mt-3 space-y-3">
+                            {/* Phase Indicators */}
+                            <div className="grid grid-cols-6 gap-2">
+                                {['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', '2ND SUPP', 'COMPLETION'].map((phase, index) => {
+                                    const currentPhase = getPhaseForProject(project);
+                                    const phaseProgress = getPhaseProgress(project, phase);
+                                    const isCurrentPhase = currentPhase === phase;
+                                    const isPastPhase = getPhaseIndex(currentPhase) > getPhaseIndex(phase);
+                                    
+                                    return (
+                                        <div key={phase} className="text-center">
+                                            <div className="relative mb-1">
+                                                <div 
+                                                    className={`w-full h-2 rounded-full overflow-hidden ${
+                                                        colorMode ? 'bg-slate-700' : 'bg-gray-200'
+                                                    }`}
+                                                >
+                                                    <div 
+                                                        className={`h-full rounded-full transition-all duration-500 ${
+                                                            isPastPhase ? 'bg-green-500' :
+                                                            isCurrentPhase ? 'bg-blue-500' :
+                                                            'bg-gray-400'
+                                                        }`}
+                                                        style={{ 
+                                                            width: isPastPhase ? '100%' : 
+                                                                   isCurrentPhase ? `${phaseProgress}%` : 
+                                                                   '0%' 
+                                                        }}
+                                                    />
+                                                </div>
+                                                {isCurrentPhase && (
+                                                    <div className="absolute -top-1 -right-1">
+                                                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className={`text-[10px] font-medium ${
+                                                isCurrentPhase ? (colorMode ? 'text-blue-300' : 'text-blue-600') :
+                                                isPastPhase ? (colorMode ? 'text-green-300' : 'text-green-600') :
+                                                (colorMode ? 'text-gray-500' : 'text-gray-400')
+                                            }`}>
+                                                {phase === '2ND SUPP' ? '2ND SUPP' : phase}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            
+                            {/* Materials and Labor Progress Bars - Dashboard Style */}
+                            <div className="space-y-3">
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials Progress</span>
+                                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>75%</span>
+                                    </div>
+                                    <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div className="bg-green-500 h-2 rounded-full transition-all duration-500" style={{ width: '75%' }}></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor Progress</span>
+                                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getProgressForProject(project)}%</span>
+                                    </div>
+                                    <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div className="bg-orange-400 h-2 rounded-full transition-all duration-500" style={{ width: `${getProgressForProject(project)}%` }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );
