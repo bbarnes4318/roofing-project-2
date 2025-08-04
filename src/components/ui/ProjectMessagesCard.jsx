@@ -183,7 +183,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                    {/* Row 1: Project# | Customer Subject */}
+                    {/* Row 1: Project# | Customer | Subject */}
                     <div className="flex items-center justify-between overflow-hidden">
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
@@ -207,8 +207,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 {projectNumber}
                             </button>
                             
-                            {/* Primary Customer and Subject together */}
-                            <div className="flex items-center gap-1 flex-1 min-w-0">
+                            {/* Primary Customer */}
+                            <div className="flex items-center gap-1">
                                 <button 
                                     ref={contactButtonRef}
                                     className={`text-[9px] font-semibold transition-colors hover:underline truncate ${
@@ -233,9 +233,20 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                                
-                                {/* Spacer for consistent alignment - subject moved to row 2 */}
-                                <span className="ml-6"></span>
+                            </div>
+                            
+                            {/* Subject - Moved to Row 1 */}
+                            <div className="flex-1 min-w-0 ml-2">
+                                <span 
+                                    className={`text-[9px] truncate block overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                    style={{ 
+                                        display: 'inline-block',
+                                        verticalAlign: 'baseline',
+                                        lineHeight: '1'
+                                    }}
+                                >
+                                    Subject: {subject}
+                                </span>
                             </div>
                         </div>
                         
@@ -280,19 +291,19 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </div>
                     </div>
                     
-                    {/* Row 2: Last Response and Original Subject - Fixed Alignment */}
+                    {/* Row 2: From, To, and Timestamp */}
                     <div className="flex items-baseline gap-0 mt-0 overflow-hidden">
-                        {/* Last Response - Fixed width container for consistent spacing */}
+                        {/* From - Fixed width container for consistent spacing */}
                         <div 
                             className="flex-shrink-0"
-                            style={{ width: '170px', marginLeft: '8px' }}
+                            style={{ width: '100px', marginLeft: '8px' }}
                         >
                             <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Last Response: {lastMessage.user}
+                                From: {lastMessage.user}
                             </span>
                         </div>
                         
-                        {/* Original Subject - Perfect vertical alignment across all rows */}
+                        {/* To - Dynamic recipient display */}
                         <div className="flex-1 min-w-0">
                             <span 
                                 className={`text-[9px] truncate block overflow-hidden whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
@@ -302,7 +313,21 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     lineHeight: '1'
                                 }}
                             >
-                                Original Subject: {subject}
+                                {(() => {
+                                    // Dynamic To field based on message participants
+                                    const allParticipants = [...new Set(conversation.map(msg => msg.user))];
+                                    const recipients = allParticipants.filter(user => user !== lastMessage.user);
+                                    
+                                    if (recipients.length === 0) {
+                                        return `To: ${primaryCustomer}`;
+                                    } else if (recipients.length === 1) {
+                                        return `To: ${recipients[0]}`;
+                                    } else if (recipients.length === 2) {
+                                        return `To: ${recipients.join(', ')}`;
+                                    } else {
+                                        return `To: ${recipients[0]} +${recipients.length - 1} others`;
+                                    }
+                                })()}
                             </span>
                         </div>
                         
