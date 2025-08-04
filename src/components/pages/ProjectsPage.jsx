@@ -8,9 +8,7 @@ import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoade
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
 import UnifiedProgressTracker from '../ui/UnifiedProgressTracker';
-import Draggable from 'react-draggable';
-import { ResizableBox } from 'react-resizable';
-import 'react-resizable/css/styles.css';
+// Removed broken drag libraries - using native implementation
 
 const defaultNewProject = {
     projectNumber: '',
@@ -460,14 +458,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const getButtonState = (projectId, buttonIndex) => {
         const key = `${projectId}-${buttonIndex}`;
         if (!buttonStates[key]) {
-            // Default positions and sizes
+            // Better default positions and sizes for 300x200 container
             const defaultPositions = [
-                { x: 0, y: 0, width: 45, height: 50 },     // Workflow
-                { x: 50, y: 0, width: 45, height: 50 },    // Alerts
-                { x: 100, y: 0, width: 45, height: 50 },   // Messages
-                { x: 0, y: 55, width: 45, height: 50 },    // Documents
-                { x: 50, y: 55, width: 45, height: 50 },   // Schedule
-                { x: 100, y: 55, width: 45, height: 50 }   // Profile
+                { x: 10, y: 10, width: 80, height: 60 },    // Workflow - top left
+                { x: 110, y: 10, width: 80, height: 60 },   // Alerts - top center
+                { x: 210, y: 10, width: 80, height: 60 },   // Messages - top right
+                { x: 10, y: 80, width: 80, height: 60 },    // Documents - bottom left
+                { x: 110, y: 80, width: 80, height: 60 },   // Schedule - bottom center
+                { x: 210, y: 80, width: 80, height: 60 }    // Profile - bottom right
             ];
             return defaultPositions[buttonIndex];
         }
@@ -482,87 +480,188 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }));
     };
 
-    // Working Draggable Button - Fixed Positioning
+    // Working Native Drag & Drop Button Component
     const DraggableButton = ({ projectId, buttonIndex, onClick, className, disabled, icon, text }) => {
         const initialState = getButtonState(projectId, buttonIndex);
-        const [position, setPosition] = useState({ x: Math.max(0, initialState.x), y: Math.max(0, initialState.y) });
-        const [size, setSize] = useState({ width: Math.max(50, initialState.width), height: Math.max(50, initialState.height) });
+        const [position, setPosition] = useState({ x: initialState.x, y: initialState.y });
+        const [size, setSize] = useState({ width: initialState.width, height: initialState.height });
         const [isDragging, setIsDragging] = useState(false);
+        const [isResizing, setIsResizing] = useState(false);
+        const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+        const [startSize, setStartSize] = useState({ width: 0, height: 0 });
+        const [startMousePos, setStartMousePos] = useState({ x: 0, y: 0 });
+        
+        // Container boundaries (the dashed border container)
+        const CONTAINER_WIDTH = 300;
+        const CONTAINER_HEIGHT = 200;
+        const MIN_SIZE = 30;
+        const MAX_SIZE = 120;
+        
+        const handleDragStart = (e) => {
+            if (e.target.closest('.resize-handle')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            setIsDragging(true);
+            setDragOffset({
+                x: e.clientX - position.x,
+                y: e.clientY - position.y
+            });
+        };
+        
+        const handleResizeStart = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            setIsResizing(true);
+            setStartSize({ width: size.width, height: size.height });
+            setStartMousePos({ x: e.clientX, y: e.clientY });
+        };
+        
+        const handleMouseMove = (e) => {
+            if (isDragging) {
+                const newX = Math.max(0, Math.min(CONTAINER_WIDTH - size.width, e.clientX - dragOffset.x));
+                const newY = Math.max(0, Math.min(CONTAINER_HEIGHT - size.height, e.clientY - dragOffset.y));
+                setPosition({ x: newX, y: newY });
+            } else if (isResizing) {
+                const deltaX = e.clientX - startMousePos.x;
+                const deltaY = e.clientY - startMousePos.y;
+                
+                const newWidth = Math.max(MIN_SIZE, Math.min(MAX_SIZE, startSize.width + deltaX));
+                const newHeight = Math.max(MIN_SIZE, Math.min(MAX_SIZE, startSize.height + deltaY));
+                
+                // Ensure button doesn't exceed container bounds when resizing
+                const maxWidth = CONTAINER_WIDTH - position.x;
+                const maxHeight = CONTAINER_HEIGHT - position.y;
+                
+                setSize({
+                    width: Math.min(newWidth, maxWidth),
+                    height: Math.min(newHeight, maxHeight)
+                });
+            }
+        };
+        
+        const handleMouseUp = () => {
+            if (isDragging) {
+                setIsDragging(false);
+                updateButtonState(projectId, buttonIndex, { ...position, ...size });
+            }
+            if (isResizing) {
+                setIsResizing(false);
+                updateButtonState(projectId, buttonIndex, { ...position, ...size });
+            }
+        };
+        
+        const handleClick = (e) => {
+            // Only trigger click if we're not dragging/resizing and not disabled
+            if (!isDragging && !isResizing && !disabled) {
+                onClick();
+            }
+        };
+        
+        // Attach global mouse event listeners
+        useEffect(() => {
+            if (isDragging || isResizing) {
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                document.body.style.userSelect = 'none';
+                document.body.style.cursor = isDragging ? 'grabbing' : 'se-resize';
+            }
+            
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            };
+        }, [isDragging, isResizing, dragOffset, position, size, startSize, startMousePos]);
         
         return (
-            <Draggable
-                position={position}
-                onDrag={(e, data) => {
-                    // Keep within bounds
-                    const newX = Math.max(0, Math.min(250, data.x));
-                    const newY = Math.max(0, Math.min(150, data.y));
-                    setPosition({ x: newX, y: newY });
-                    setIsDragging(true);
+            <div
+                style={{
+                    position: 'absolute',
+                    left: `${position.x}px`,
+                    top: `${position.y}px`,
+                    width: `${size.width}px`,
+                    height: `${size.height}px`,
+                    cursor: isDragging ? 'grabbing' : 'grab',
+                    userSelect: 'none',
+                    zIndex: isDragging || isResizing ? 1000 : 1
                 }}
-                onStop={(e, data) => {
-                    setIsDragging(false);
-                    const newX = Math.max(0, Math.min(250, data.x));
-                    const newY = Math.max(0, Math.min(150, data.y));
-                    const finalPosition = { x: newX, y: newY };
-                    setPosition(finalPosition);
-                    updateButtonState(projectId, buttonIndex, { ...finalPosition, ...size });
-                }}
+                onMouseDown={handleDragStart}
             >
-                <div>
-                    <ResizableBox
-                        width={size.width}
-                        height={size.height}
-                        minConstraints={[40, 40]}
-                        maxConstraints={[120, 120]}
-                        onResize={(e, { size: newSize }) => {
-                            // Ensure valid size
-                            const validSize = {
-                                width: Math.max(40, Math.min(120, newSize.width)),
-                                height: Math.max(40, Math.min(120, newSize.height))
-                            };
-                            setSize(validSize);
-                            updateButtonState(projectId, buttonIndex, { ...position, ...validSize });
-                        }}
-                        resizeHandles={['se']}
-                    >
+                <div
+                    className={`${className} ${isDragging ? 'shadow-lg' : ''} ${disabled ? 'opacity-50' : ''}`}
+                    onClick={handleClick}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        pointerEvents: disabled ? 'none' : 'auto'
+                    }}
+                >
+                    {/* Icon */}
+                    <div style={{ 
+                        fontSize: `${Math.max(12, Math.min(24, size.width / 3))}px`,
+                        marginBottom: '2px'
+                    }}>
+                        {icon}
+                    </div>
+                    
+                    {/* Text */}
+                    <div style={{ 
+                        fontSize: `${Math.max(8, Math.min(12, size.width / 6))}px`,
+                        textAlign: 'center',
+                        lineHeight: '1.1',
+                        maxWidth: '90%',
+                        overflow: 'hidden'
+                    }}>
+                        {text}
+                    </div>
+                    
+                    {/* Resize Handle - Only show when not disabled */}
+                    {!disabled && (
                         <div
-                            className={className}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!isDragging && !disabled) {
-                                    onClick();
-                                }
-                            }}
+                            className="resize-handle"
+                            onMouseDown={handleResizeStart}
                             style={{
-                                width: size.width + 'px',
-                                height: size.height + 'px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: isDragging ? 'grabbing' : 'grab',
-                                userSelect: 'none',
-                                padding: '2px',
-                                boxSizing: 'border-box',
-                                minWidth: '40px',
-                                minHeight: '40px'
+                                position: 'absolute',
+                                bottom: '0px',
+                                right: '0px',
+                                width: '12px',
+                                height: '12px',
+                                background: isResizing ? '#2563eb' : '#3b82f6',
+                                cursor: 'se-resize',
+                                borderRadius: '0 0 4px 0',
+                                opacity: 0.8,
+                                transition: 'opacity 0.2s'
                             }}
-                        >
-                            <div style={{ fontSize: Math.max(10, size.width / 5) + 'px', lineHeight: 1 }}>
-                                {icon}
-                            </div>
-                            <div style={{ 
-                                fontSize: Math.max(6, size.width / 8) + 'px', 
-                                textAlign: 'center',
-                                lineHeight: 1.1,
-                                marginTop: '2px'
-                            }}>
-                                {text}
-                            </div>
-                        </div>
-                    </ResizableBox>
+                            onMouseEnter={(e) => e.target.style.opacity = '1'}
+                            onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+                        />
+                    )}
+                    
+                    {/* Visual feedback for dragging */}
+                    {isDragging && (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: '-2px',
+                                left: '-2px',
+                                right: '-2px',
+                                bottom: '-2px',
+                                border: '2px dashed #3b82f6',
+                                borderRadius: '6px',
+                                pointerEvents: 'none'
+                            }}
+                        />
+                    )}
                 </div>
-            </Draggable>
+            </div>
         );
     };
 
