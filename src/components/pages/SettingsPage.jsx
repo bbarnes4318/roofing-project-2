@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
+import WorkflowImportPage from './WorkflowImportPage';
 
 const mockUser = {
   name: 'Sarah Owner',
@@ -103,6 +104,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'security', label: 'Security', icon: '🔒' },
     { id: 'company', label: 'Company', icon: '🏢' },
+    { id: 'data-import', label: 'Data Import', icon: '📊' },
     { id: 'subjects', label: 'Subjects', icon: '📝' }
   ];
 
@@ -685,6 +687,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         return renderSecurityTab();
       case 'company':
         return renderCompanyTab();
+      case 'data-import':
+        return <WorkflowImportPage />;
       case 'subjects':
         return renderSubjectsTab();
       default:
