@@ -1480,7 +1480,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           {PROJECT_PHASES.map(phase => (
             <button
               key={phase.id}
-              onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
+              onClick={() => {
+                console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
+                setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
+              }}
               className={`w-28 h-9 px-4 py-2 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 ${
                 selectedPhase === phase.id
                   ? 'border-gray-400 bg-gray-50 shadow-sm'
@@ -1519,6 +1522,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       const projectPhase = getProjectPhase(project);
                       return projectPhase === selectedPhase;
                     });
+                
+                console.log('Selected Phase:', selectedPhase, 'Filtered Projects Count:', filteredProjects.length);
                 
                 // Only show header if there are filtered projects
                 if (filteredProjects.length > 0) {
@@ -1657,6 +1662,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         const projectPhase = getProjectPhase(project);
                         return projectPhase === selectedPhase;
                       });
+                  
+                  console.log('Card View - Selected Phase:', selectedPhase, 'Filtered Projects Count:', filteredProjects.length);
                   
                   // Sort projects if sorting is configured
                   const sortedProjects = sortConfig.key 
