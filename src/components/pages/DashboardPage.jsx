@@ -2391,10 +2391,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
                   const isExpanded = expandedAlerts.has(alertId);
                   
-                  // Get proper section and line item mapping
-                  const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
-                  const sectionName = workflowMapping.section;
-                  const lineItemName = workflowMapping.lineItem;
+                  // Get proper section and line item from alert metadata (already correct from backend)
+                  const sectionName = actionData.section || 'Unknown Section';
+                  const lineItemName = actionData.lineItem || 'Unknown Line Item';
                   
                   // Extract user group from section name (after the "–" character)
                   const getUserGroupFromSection = (sectionName) => {
