@@ -920,8 +920,17 @@ class WorkflowAlertService {
       }
     };
 
-    // The line item IS the step name - subtasks are the individual tasks within it
-    // We don't need to return the first subtask, we return the step name itself
+    // Based on CSV: Sections are numbered (1,2,3) and Line Items are lettered (a,b,c)
+    // So stepName = Section, and we need to return the first incomplete line item (subtask)
+    for (const [phase, steps] of Object.entries(workflowMapping)) {
+      if (steps[stepName]) {
+        const lineItems = steps[stepName];
+        // Return the first line item (subtask) as that's what the CSV defines as line items
+        return lineItems[0] || stepName;
+      }
+    }
+
+    // Fallback to step name if no mapping found
     return stepName;
   }
 

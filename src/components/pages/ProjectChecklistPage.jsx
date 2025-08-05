@@ -1622,9 +1622,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                   if (!nextIncompleteTask) {
                     nextIncompleteTask = {
                       phase: phase.label,
-                      section: item.label.split(' – ')[0],
-                      lineItem: item.label.split(' – ')[0], // Line item is the section name
-                      nextSubtask: item.subtasks[subIdx], // Next subtask is what needs to be done
+                      section: item.label.split(' – ')[0], // Section = numbered items (1,2,3)
+                      lineItem: item.subtasks[subIdx], // Line Item = lettered items (a,b,c)
                       phaseColor: WorkflowProgressService.getPhaseColor(phase.id)
                     };
                   }
@@ -1662,17 +1661,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                 {/* Divider */}
                 <div className="w-px h-6 bg-gray-300"></div>
                 
-                {/* Line Item Indicator */}
+                {/* Section Indicator */}
                 <div className="text-xs font-medium text-gray-600">
-                  Line Item: <span className="font-semibold text-gray-800">{nextIncompleteTask.lineItem}</span>
+                  Section: <span className="font-semibold text-gray-800">{nextIncompleteTask.section}</span>
                 </div>
               </div>
               
-              {/* Next Subtask Indicator */}
+              {/* Current Line Item Indicator */}
               <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
                 <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
                 <div className="text-xs font-medium text-gray-700">
-                  Next Task: <span className="font-semibold text-blue-700">{nextIncompleteTask.nextSubtask}</span>
+                  Line Item: <span className="font-semibold text-blue-700">{nextIncompleteTask.lineItem}</span>
                 </div>
               </div>
             </div>
