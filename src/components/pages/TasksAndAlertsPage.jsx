@@ -463,9 +463,12 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                 
                                 const directMapping = createDirectMapping(alertTitle, phase);
                                 const sectionName = directMapping.section;
-                                const lineItemName = directMapping.section; // Line item is the same as section for navigation
+                                // Use actual line item from alert metadata, not section name
+                                const lineItemName = alert.metadata?.lineItem || alert.lineItem || directMapping.section;
                                 
                                 console.log('🗺️ ALERT NAVIGATION: Direct mapping created:', directMapping);
+                                console.log('🎯 ALERT DATA: Section=', sectionName, 'LineItem=', lineItemName);
+                                console.log('🔍 ALERT METADATA:', alert.metadata);
                                 
                                 // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
                                 const getPhaseCircleColors = (phase) => {
@@ -572,14 +575,14 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                         scrollToCurrentLineItem: true,
                                                                         targetPhase: directMapping.phase,
                                                                         targetSection: directMapping.section,
-                                                                        targetLineItem: directMapping.section,
-                                                                        highlightLineItem: alertTitle,
+                                                                        targetLineItem: lineItemName,
+                                                                        highlightLineItem: lineItemName,
                                                                         sourceSection: sourceSection,
                                                                         navigationTarget: {
                                                                             phase: directMapping.phase,
                                                                             section: directMapping.section,
                                                                             sectionId: directMapping.sectionId, // CRITICAL: Add section ID for direct lookup
-                                                                            lineItem: directMapping.section,
+                                                                            lineItem: lineItemName,
                                                                             stepName: alertTitle,
                                                                             stepId: actionData.stepId,
                                                                             workflowId: actionData.workflowId,
