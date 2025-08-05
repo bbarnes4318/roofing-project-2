@@ -113,7 +113,7 @@ class WorkflowAlertService {
       console.log(`🔍 Checking workflow for project: ${workflow.project.projectName || 'Unknown'} (${workflow.steps.length} steps)`);
       
       // Get steps requiring alerts
-      const stepsRequiringAlerts = this.getStepsRequiringAlerts(workflow);
+      const stepsRequiringAlerts = await this.getStepsRequiringAlerts(workflow);
       
       console.log(`📋 Found ${stepsRequiringAlerts.length} steps requiring alerts`);
       
@@ -242,7 +242,7 @@ class WorkflowAlertService {
   /**
    * Get steps that require alerts based on due dates and completion status
    */
-  getStepsRequiringAlerts(workflow) {
+  async getStepsRequiringAlerts(workflow) {
     const alerts = [];
     const now = new Date();
     
@@ -407,8 +407,8 @@ class WorkflowAlertService {
       'Additional Work': 'Additional Work',
       
       // COMPLETION Phase
-      'Project Closeout': 'Project Closeout',
-      'Customer Satisfaction': 'Customer Satisfaction'
+      'Project Closeout': 'Project Closeout – Administration 📝',
+      'Customer Satisfaction': 'Customer Satisfaction – Administration 📝'
     };
     
     // Try direct mapping first
@@ -728,7 +728,7 @@ class WorkflowAlertService {
             daysOverdue: daysOverdue || 0,
             phase: step.phase,
             section: this.getSectionFromStepName(step.stepName),
-            lineItem: step.stepName,
+            lineItem: this.getSpecificLineItem(step.stepName, step.stepId),
             projectName: projectName,
             customerName: project.customer?.primaryName,
             cleanTaskName: this.getCleanTaskName(step.stepName)
@@ -886,6 +886,56 @@ class WorkflowAlertService {
     };
     
     return taskMap[stepName] || stepName.replace(/^(Input|Complete|Schedule|Create|Process|Prepare|Verify|Conduct)\s+/, '').toLowerCase();
+  }
+
+  /**
+   * Get specific line item for alert display
+   */
+  getSpecificLineItem(stepName, stepId) {
+    // Import workflow mapping to get specific line items
+    const workflowMapping = {
+      'LEAD': {
+        'Input Customer Information': ['Customer name & contact info', 'Property address & details', 'Initial project scope', 'Preferred contact method'],
+        'Complete Questions': ['Insurance information verified', 'Property details confirmed', 'Special requirements noted', 'Timeline expectations set'],
+        'Input Lead Property': ['Property type & size', 'Current roof condition', 'Access requirements', 'Photo documentation'],
+        'Assign A Project Manager': ['Project manager assigned', 'Initial project review', 'Customer introduction', 'Project kickoff scheduled'],
+        'Schedule Initial Inspection': ['Inspection date scheduled', 'Customer availability confirmed', 'Site access arranged', 'Inspection checklist prepared']
+      },
+      'PROSPECT': {
+        'Site Inspection': ['Detailed roof assessment', 'Damage documentation', 'Measurements taken', 'Photos & notes completed'],
+        'Write Estimate': ['Material calculations', 'Labor estimates', 'Permit requirements', 'Insurance considerations'],
+        'Present Estimate': ['Estimate presentation scheduled', 'Customer walkthrough', 'Questions addressed', 'Next steps discussed'],
+        'Follow Up': ['Follow-up scheduled', 'Additional questions answered', 'Proposal adjustments made', 'Decision timeline confirmed']
+      },
+      'APPROVED': {
+        'Contract & Permitting': ['Contract signed', 'Permits pulled', 'Insurance approval', 'Project scheduling'],
+        'Production Order': ['Materials ordered', 'Delivery scheduled', 'Labor allocated', 'Equipment reserved'],
+        'Schedule Job': ['Installation dates set', 'Crew assigned', 'Customer notified', 'Preparation completed']
+      },
+      'EXECUTION': {
+        'Job Preparation': ['Site preparation', 'Material delivery', 'Safety setup', 'Crew briefing'],
+        'Installation': ['Tear-off completed', 'New installation', 'Quality checkpoints', 'Daily progress updates'],
+        'Quality Control': ['Installation review', 'Safety inspection', 'Code compliance check', 'Photo documentation'],
+        'Final Inspection': ['Final walkthrough', 'Punch list items', 'Customer approval', 'Cleanup completed']
+      },
+      'COMPLETION': {
+        'Project Closeout': ['Final inspection completed', 'Customer walkthrough', 'Submit warranty information', 'Process final payment'],
+        'Customer Satisfaction': ['Send satisfaction survey', 'Collect customer feedback', 'Update customer records', 'Schedule follow-up']
+      }
+    };
+
+    // Try to find the specific line items for this step
+    for (const [phase, steps] of Object.entries(workflowMapping)) {
+      if (steps[stepName]) {
+        const lineItems = steps[stepName];
+        // For now, return the first incomplete line item
+        // In a more advanced system, we'd track individual line item completion
+        return lineItems[0] || stepName;
+      }
+    }
+
+    // Fallback to step name if no mapping found
+    return stepName;
   }
 
   /**
