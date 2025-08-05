@@ -28,7 +28,7 @@ RUN npm install --production=false
 
 # Copy backend source
 COPY server ./
-COPY prisma ./prisma
+COPY server/prisma ./prisma
 
 # Copy built frontend
 COPY --from=frontend-build /app/build ./public
