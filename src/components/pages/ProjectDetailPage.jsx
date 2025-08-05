@@ -288,11 +288,6 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     setActiveView('Project Workflow');
                   }
                 }, 500);
-            } else {
-                const errorResult = await response.json();
-                console.error('❌ Failed to complete workflow step:', errorResult);
-                throw new Error(errorResult.message || 'Failed to complete workflow step');
-            }
             
         } catch (error) {
             console.error('❌ Failed to complete alert:', error);
