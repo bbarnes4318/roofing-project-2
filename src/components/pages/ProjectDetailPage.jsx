@@ -238,8 +238,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             console.log(`🚀 Attempting to complete workflow item using NEW DATABASE SYSTEM: stepId=${stepId}`);
 
             // CRITICAL: Use NEW database-driven workflow completion
-            try {
-                const response = await workflowService.completeLineItem(
+            const response = await workflowService.completeLineItem(
                     projectId,
                     stepId,
                     'Completed via project detail alerts by user',
