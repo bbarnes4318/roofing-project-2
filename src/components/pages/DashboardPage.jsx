@@ -2576,7 +2576,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   if (project && onProjectSelect) {
                                     const projectWithStepInfo = {
                                       ...project,
-                                      highlightStep: alertTitle,
+                                      highlightStep: lineItemName, // Highlight the line item, not the section
                                       highlightLineItem: lineItemName,
                                       targetPhase: phase,
                                       targetSection: sectionName,
@@ -2588,7 +2588,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                         phase: phase,
                                         section: sectionName,
                                         lineItem: lineItemName,
-                                        stepName: alertTitle,
+                                        stepName: lineItemName, // Use lineItemName for highlighting, not alertTitle
                                         alertId: alertId,
                                         // Add unique identifiers for precise targeting
                                         stepId: actionData.stepId,
