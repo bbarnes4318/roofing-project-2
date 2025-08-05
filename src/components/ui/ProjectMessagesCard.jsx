@@ -260,6 +260,15 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </span>
                             </div>
                             
+                            {/* Task indicator - shows when message has a task */}
+                            {activity.hasTask && (
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[8px] font-bold text-red-500">
+                                        Task
+                                    </span>
+                                </div>
+                            )}
+                            
                             {/* Quick Reply Button */}
                             <button
                                 onClick={(e) => {

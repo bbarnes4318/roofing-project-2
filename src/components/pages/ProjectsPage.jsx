@@ -732,7 +732,6 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         );
                     })()}
                 </div>
-                </div>
                 
                 {/* Back Button (if needed from source navigation) */}
                 {showCardBackButton && (

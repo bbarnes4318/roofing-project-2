@@ -2159,7 +2159,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             onChange={(e) => setAttachTask(e.target.checked)}
                             className="mr-1"
                           />
-                          Attach Task
+                          Send as a Task
                         </label>
                         {attachTask && (
                           <select
