@@ -32,7 +32,7 @@ const generateRealTimeAlerts = async () => {
               where: { 
                 isCompleted: false // Get all incomplete steps
               },
-              orderBy: { stepOrder: 'asc' }
+              orderBy: { createdAt: 'asc' }
             }
           }
         }
@@ -143,7 +143,7 @@ const generateMockAlerts = async () => {
                 isCompleted: false,
                 isActive: true  // Only get the current active step
               },
-              orderBy: { stepOrder: 'asc' }
+              orderBy: { createdAt: 'asc' }
             }
           }
         }
