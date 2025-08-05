@@ -1529,7 +1529,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       <div className="max-w-4xl mx-auto p-3">
         <div className={`rounded-lg shadow-sm border ${colorMode ? 'bg-[#232b4d]/80 border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}>
           {/* Ultra Compact Tab Navigation */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex flex-wrap border-b border-gray-200">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

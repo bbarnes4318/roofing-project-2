@@ -648,89 +648,25 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
                 
-                {/* Project Progress Section */}
+                {/* Project Progress Section - EXACT COPY FROM DASHBOARD */}
                 <div className="px-3 pb-3">
-                    {(() => {
-                        // Get project trades data
-                        const getProjectTrades = (project) => {
-                            if (project.trades && project.trades.length > 0) {
-                                return project.trades;
-                            }
-                            
-                            const tradeName = project.projectType || project.type || 'General';
-                            return [
-                                { 
-                                    name: tradeName, 
-                                    laborProgress: project.progress || 0, 
-                                    materialsDelivered: project.materialsDelivered || false
-                                }
-                            ];
-                        };
-                        
-                        const projectTrades = getProjectTrades(project);
-                        const projectId = project.id || project._id;
-                        
-                        return (
-                            <div className={`p-3 rounded-lg transition-all duration-300 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
-                                {/* Main Project Progress Bar */}
-                                <div className="mb-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                            Project Progress
-                                        </span>
-                                        <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                            {Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%
-                                        </span>
-                                    </div>
-                                    <div className={`w-full h-3 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                        <div 
-                                            className="bg-blue-500 h-3 rounded-full transition-all duration-500" 
-                                            style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                                
-                                {/* Materials and Labor Progress */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    {/* Materials Progress */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                Materials
-                                            </span>
-                                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                                {Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%
-                                            </span>
-                                        </div>
-                                        <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                            <div 
-                                                className="bg-green-500 h-2 rounded-full transition-all duration-500" 
-                                                style={{ width: `${Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Labor Progress */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                                Labor
-                                            </span>
-                                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                                {Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%
-                                            </span>
-                                        </div>
-                                        <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                            <div 
-                                                className="bg-orange-500 h-2 rounded-full transition-all duration-500" 
-                                                style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })()}
+                    <div className={`p-3 rounded-lg transition-all duration-300 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                Progress
+                            </span>
+                            <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                {getProgressForProject(project)}%
+                            </span>
+                        </div>
+                        {/* EXACT DASHBOARD PROGRESS BAR */}
+                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-blue-500 rounded-full"
+                                style={{ width: `${getProgressForProject(project)}%` }}
+                            ></div>
+                        </div>
+                    </div>
                 </div>
                 
                 {/* Back Button (if needed from source navigation) */}
