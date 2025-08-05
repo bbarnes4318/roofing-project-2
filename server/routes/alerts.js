@@ -9,74 +9,62 @@ const {
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
 const { cacheService } = require('../config/redis');
-const { transformWorkflowStep } = require('../utils/workflowMapping');
+// const { transformWorkflowStep } = require('../utils/workflowMapping'); // DEPRECATED - Now using database
+const WorkflowProgressionService = require('../services/WorkflowProgressionService');
 
 const router = express.Router();
 
 // **CRITICAL: Generate real-time alerts based on actual workflow states**
 const generateRealTimeAlerts = async () => {
   try {
-    console.log('🔍 GENERATING REAL-TIME ALERTS from workflow states...');
+    console.log('🔍 GENERATING REAL-TIME ALERTS from database workflow states...');
     
-    // Get all active projects with their workflows and current steps
+    // Get all active projects
     const projects = await prisma.project.findMany({
       where: {
         status: { in: ['ACTIVE', 'IN_PROGRESS'] }
       },
       include: {
         customer: true,
-        projectManager: true,
-        workflow: {
-          include: {
-            steps: {
-              where: { 
-                isCompleted: false // Get all incomplete steps
-              },
-              orderBy: { createdAt: 'asc' }
-            }
-          }
-        }
+        projectManager: true
       }
     });
 
     const realTimeAlerts = [];
     
     for (const project of projects) {
-      if (!project.workflow || !project.workflow.steps.length) {
-        console.log(`⚠️ Project ${project.projectName} has no active workflow steps`);
+      // Get current workflow position from tracker
+      const tracker = await WorkflowProgressionService.getCurrentPosition(project.id);
+      
+      if (!tracker || !tracker.currentLineItem) {
+        console.log(`⚠️ Project ${project.projectName} has no active workflow position`);
         continue;
       }
 
-      // Get the current active step (first incomplete step)
-      const currentStep = project.workflow.steps[0];
-      if (!currentStep) continue;
+      const currentLineItem = tracker.currentLineItem;
+      const currentSection = currentLineItem.section;
+      const currentPhase = currentSection.phase;
 
-      console.log(`📋 Creating alert for project: ${project.projectName}, step: ${currentStep.stepName}`);
-
-      // Transform the step to get proper section and line item
-      const transformedStep = transformWorkflowStep({
-        stepName: currentStep.stepName,
-        phase: project.currentPhase || project.phase || currentStep.phase
-      });
+      console.log(`📋 Creating alert for project: ${project.projectName}, line item: ${currentLineItem.itemName}`);
 
       const alert = {
-        id: `realtime_${project.id}_${currentStep.id}`,
-        _id: `realtime_${project.id}_${currentStep.id}`,
+        id: `realtime_${project.id}_${currentLineItem.id}`,
+        _id: `realtime_${project.id}_${currentLineItem.id}`,
         type: 'Work Flow Line Item',
-        priority: currentStep.alertPriority || 'MEDIUM',
+        priority: 'MEDIUM',
         status: 'ACTIVE',
-        title: `${currentStep.stepName} - ${project.customer?.primaryName || project.projectName}`,
-        message: `${currentStep.stepName} is ready to begin for project ${project.projectName}`,
-        stepName: currentStep.stepName,
+        title: `${currentLineItem.itemName} - ${project.customer?.primaryName || project.projectName}`,
+        message: `${currentLineItem.itemName} is ready to begin for project ${project.projectName}`,
+        stepName: currentLineItem.itemName,
         isRead: false,
         read: false,
         createdAt: new Date(),
-        dueDate: currentStep.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
-        workflowId: project.workflow.id,
-        stepId: currentStep.id,
+        dueDate: new Date(Date.now() + (currentLineItem.alertDays || 1) * 24 * 60 * 60 * 1000),
+        workflowId: tracker.id,
+        stepId: currentLineItem.id,
         projectId: project.id,
-        section: transformedStep?.section || 'General Workflow',
-        lineItem: transformedStep?.lineItem || currentStep.stepName,
+        section: currentSection.displayName,
+        lineItem: currentLineItem.itemName,
         relatedProject: {
           id: project.id,
           _id: project.id,
@@ -106,20 +94,22 @@ const generateRealTimeAlerts = async () => {
           customerEmail: project.customer?.primaryEmail,
           customerAddress: project.customer?.address,
           address: project.projectName,
-          stepName: currentStep.stepName,
-          stepId: currentStep.id,
-          workflowId: project.workflow.id,
-          phase: project.currentPhase || project.phase || currentStep.phase,
-          section: transformedStep?.section || 'General Workflow',
-          lineItem: transformedStep?.lineItem || currentStep.stepName,
-          cleanTaskName: transformedStep?.lineItem || currentStep.stepName
+          stepName: currentLineItem.itemName,
+          stepId: currentLineItem.id,
+          workflowId: tracker.id,
+          phase: currentPhase.phaseType,
+          section: currentSection.displayName,
+          lineItem: currentLineItem.itemName,
+          cleanTaskName: currentLineItem.itemName,
+          responsibleRole: currentLineItem.responsibleRole,
+          trackerId: tracker.id
         }
       };
 
       realTimeAlerts.push(alert);
     }
 
-    console.log(`✅ Generated ${realTimeAlerts.length} real-time alerts from workflow states`);
+    console.log(`✅ Generated ${realTimeAlerts.length} real-time alerts from database workflow states`);
     return realTimeAlerts;
     
   } catch (error) {
@@ -131,104 +121,10 @@ const generateRealTimeAlerts = async () => {
 // **CRITICAL: Mock alerts for frontend compatibility while we transition**
 const generateMockAlerts = async () => {
   try {
-    // Get some real projects from the database to create realistic alerts
-    const projects = await prisma.project.findMany({
-      include: {
-        customer: true,
-        projectManager: true,
-        workflow: {
-          include: {
-            steps: {
-              where: { 
-                isCompleted: false,
-                isActive: true  // Only get the current active step
-              },
-              orderBy: { createdAt: 'asc' }
-            }
-          }
-        }
-      }
-    });
-
-    const mockAlerts = [];
-    
-    projects.forEach((project, index) => {
-      if (project.workflow && project.workflow.steps.length > 0) {
-        // Only create alert for the FIRST active step (current step)
-        const currentStep = project.workflow.steps[0];
-        if (currentStep) {
-          // Use the project's current phase, not the step's phase
-          const projectPhase = project.currentPhase || project.phase || currentStep.phase;
-          
-          // CRITICAL: Transform the step to get proper section and line item
-          const transformedStep = transformWorkflowStep({
-            stepName: currentStep.stepName,
-            phase: projectPhase
-          });
-          
-          mockAlerts.push({
-            id: `alert_${project.id}_${currentStep.id}`,
-            _id: `alert_${project.id}_${currentStep.id}`,
-            type: 'Work Flow Line Item',
-            priority: currentStep.alertPriority || 'Low',
-            title: `${currentStep.stepName} - ${project.customer.primaryName}`,
-            message: `${currentStep.stepName} is due for project at ${project.projectName}`,
-            isRead: false,
-            read: false,
-            createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last week
-            dueDate: currentStep.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
-            // CRITICAL: Add workflow and step IDs to main alert object for completion
-            workflowId: project.workflow.id,
-            stepId: currentStep.id,
-            stepName: currentStep.stepName,
-            // Add transformed section and line item to main alert object
-            section: transformedStep?.section || 'General Workflow',
-            lineItem: transformedStep?.lineItem || currentStep.stepName,
-            relatedProject: {
-              id: project.id,
-              _id: project.id,
-              projectNumber: project.projectNumber,
-              projectName: project.projectName,
-              address: project.projectName,
-              customer: {
-                id: project.customer.id,
-                name: project.customer.primaryName,
-                primaryName: project.customer.primaryName,
-                phone: project.customer.primaryPhone,
-                email: project.customer.primaryEmail,
-                address: project.customer.address
-              },
-              projectManager: project.projectManager ? {
-                id: project.projectManager.id,
-                firstName: project.projectManager.firstName,
-                lastName: project.projectManager.lastName
-              } : null
-            },
-            metadata: {
-              projectId: project.id,
-              projectNumber: project.projectNumber,
-              projectName: project.projectName,
-              customerName: project.customer.primaryName,
-              customerPhone: project.customer.primaryPhone,
-              customerEmail: project.customer.primaryEmail,
-              customerAddress: project.customer.address,
-              address: project.projectName,
-              stepName: currentStep.stepName,
-              stepId: currentStep.stepId,
-              workflowId: project.workflow.id,
-              phase: projectPhase, // Use project's current phase
-              description: currentStep.description,
-              // Add transformed section and line item to metadata
-              section: transformedStep?.section || 'General Workflow',
-              lineItem: transformedStep?.lineItem || currentStep.stepName,
-              cleanTaskName: transformedStep?.lineItem || currentStep.stepName
-            }
-          });
-        }
-      }
-    });
-
-    return mockAlerts;
+    // This function is now just a wrapper around generateRealTimeAlerts
+    // since we're fully using the database-driven workflow
+    console.log('🔄 Redirecting to database-driven alerts...');
+    return await generateRealTimeAlerts();
   } catch (error) {
     console.error('Error generating mock alerts:', error);
     return [];
@@ -356,8 +252,8 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
     }
     
     const transformed = alerts.map(alert => {
-      // Transform the workflow step to get section and lineItem
-      const transformedStep = alert.step ? transformWorkflowStep(alert.step) : null;
+      // For database alerts, metadata should already contain the correct values
+      const metadata = alert.metadata || {};
       
       return {
         _id: alert.id,
@@ -373,9 +269,9 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
         dueDate: alert.dueDate,
         workflowId: alert.workflowId,
         stepId: alert.stepId,
-        // CRITICAL: Add section and lineItem fields
-        section: transformedStep?.section || 'General Workflow',
-        lineItem: transformedStep?.lineItem || alert.stepName,
+        // CRITICAL: Use metadata values for section and lineItem
+        section: metadata.section || 'General Workflow',
+        lineItem: metadata.lineItem || alert.stepName,
         relatedProject: {
           _id: alert.project.id,
           projectName: alert.project.projectName,
@@ -384,17 +280,19 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
         },
         metadata: {
           stepName: alert.stepName,
-          cleanTaskName: alert.stepName,
+          cleanTaskName: metadata.lineItem || alert.stepName,
           projectId: alert.projectId,
           projectName: alert.project.projectName,
           projectNumber: alert.project.projectNumber,
           customerName: alert.project.customer?.primaryName,
-          phase: alert.step?.phase || 'UNKNOWN',
-          // CRITICAL: Add section and lineItem to metadata
-          section: transformedStep?.section || 'General Workflow',
-          lineItem: transformedStep?.lineItem || alert.stepName,
+          phase: metadata.phase || 'UNKNOWN',
+          // CRITICAL: Use metadata values
+          section: metadata.section || 'General Workflow',
+          lineItem: metadata.lineItem || alert.stepName,
           workflowId: alert.workflowId,
-          stepId: alert.stepId
+          stepId: alert.stepId,
+          responsibleRole: metadata.responsibleRole,
+          trackerId: metadata.trackerId
         }
       };
     });

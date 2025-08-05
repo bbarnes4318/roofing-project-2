@@ -67,6 +67,7 @@ model User {
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
   workflowStepsAssigned    WorkflowStep[]            @relation("AssignedTo")
   workflowStepsCompleted   WorkflowStep[]            @relation("CompletedBy")
+  completedWorkflowItems   CompletedWorkflowItem[]
 
   @@map("users")
 }
@@ -145,6 +146,7 @@ model Project {
   projectManager   User?                  @relation("ProjectManager", fields: [projectManagerId], references: [id])
   tasks            Task[]
   workflowAlerts   WorkflowAlert[]
+  workflowTracker  ProjectWorkflowTracker?
 
   @@map("projects")
 }
@@ -673,9 +675,10 @@ enum Priority {
 enum ProjectPhase {
   LEAD
   PROSPECT
+  PROSPECT_NON_INSURANCE
   APPROVED
   EXECUTION
-  SUPPLEMENT
+  SECOND_SUPP
   COMPLETION
 
   @@map("project_phases")
@@ -864,4 +867,103 @@ enum RoleType {
   ADMINISTRATION
 
   @@map("role_types")
+}
+
+// Workflow Template Models - Define the structure of workflows
+model WorkflowPhase {
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  phaseName        String             @db.VarChar(100)
+  phaseType        ProjectPhase
+  displayOrder     Int
+  description      String?            @db.VarChar(500)
+  isActive         Boolean            @default(true)
+  sections         WorkflowSection[]
+  projectTrackers  ProjectWorkflowTracker[]
+
+  @@unique([phaseType])
+  @@map("workflow_phases")
+}
+
+model WorkflowSection {
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  sectionNumber    String             @db.VarChar(10)  // "1", "2", etc.
+  sectionName      String             @db.VarChar(200)
+  displayName      String             @db.VarChar(255) // With emojis and role
+  displayOrder     Int
+  description      String?            @db.VarChar(500)
+  isActive         Boolean            @default(true)
+  phaseId          String             @map("phase_id")
+  phase            WorkflowPhase      @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  lineItems        WorkflowLineItem[]
+  projectTrackers  ProjectWorkflowTracker[]
+
+  @@unique([phaseId, sectionNumber])
+  @@index([phaseId])
+  @@map("workflow_sections")
+}
+
+model WorkflowLineItem {
+  id               String                 @id @default(cuid())
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  itemLetter       String                 @db.VarChar(10)  // "a", "b", etc.
+  itemName         String                 @db.VarChar(500)
+  responsibleRole  ResponsibleRole
+  displayOrder     Int
+  description      String?                @db.VarChar(1000)
+  isActive         Boolean                @default(true)
+  estimatedMinutes Int                    @default(30)
+  alertDays        Int                    @default(1)
+  sectionId        String                 @map("section_id")
+  section          WorkflowSection        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  progressTrackers ProjectWorkflowTracker[]
+
+  @@unique([sectionId, itemLetter])
+  @@index([sectionId])
+  @@map("workflow_line_items")
+}
+
+// Track current position in workflow for each project
+model ProjectWorkflowTracker {
+  id                    String           @id @default(cuid())
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  projectId             String           @unique @map("project_id")
+  currentPhaseId        String?          @map("current_phase_id")
+  currentSectionId      String?          @map("current_section_id")
+  currentLineItemId     String?          @map("current_line_item_id")
+  lastCompletedItemId   String?          @map("last_completed_item_id")
+  phaseStartedAt        DateTime?
+  sectionStartedAt      DateTime?
+  lineItemStartedAt     DateTime?
+  project               Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  currentPhase          WorkflowPhase?   @relation(fields: [currentPhaseId], references: [id])
+  currentSection        WorkflowSection? @relation(fields: [currentSectionId], references: [id])
+  currentLineItem       WorkflowLineItem?@relation(fields: [currentLineItemId], references: [id])
+  completedItems        CompletedWorkflowItem[]
+
+  @@map("project_workflow_trackers")
+}
+
+// Track all completed items for history
+model CompletedWorkflowItem {
+  id              String                 @id @default(cuid())
+  createdAt       DateTime               @default(now())
+  trackerId       String                 @map("tracker_id")
+  phaseId         String                 @map("phase_id")
+  sectionId       String                 @map("section_id")
+  lineItemId      String                 @map("line_item_id")
+  completedAt     DateTime               @default(now())
+  completedById   String?                @map("completed_by_id")
+  notes           String?                @db.VarChar(1000)
+  tracker         ProjectWorkflowTracker @relation(fields: [trackerId], references: [id], onDelete: Cascade)
+  completedBy     User?                  @relation(fields: [completedById], references: [id])
+
+  @@index([trackerId])
+  @@index([completedAt])
+  @@map("completed_workflow_items")
 }

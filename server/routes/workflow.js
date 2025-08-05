@@ -6,87 +6,86 @@ const {
   AppError, 
   formatValidationErrors 
 } = require('../middleware/errorHandler');
-const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/workflowMapping');
+// const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/workflowMapping'); // DEPRECATED
 const WorkflowInitializationService = require('../services/workflowInitializationService');
+const WorkflowProgressionService = require('../services/WorkflowProgressionService');
+const WorkflowCompletionHandler = require('../services/WorkflowCompletionHandler');
 
 const router = express.Router();
 
 console.log('🔧 WORKFLOW ROUTES: Loading workflow routes module');
 
 // **CRITICAL: Data transformation for frontend compatibility**
-const transformWorkflowForFrontend = (workflow) => {
-  if (!workflow) return null;
+const transformWorkflowForFrontend = async (projectId, tracker, workflowStatus) => {
+  if (!tracker) return null;
   
+  // Get all line items to show as "steps" for frontend compatibility
+  const allLineItems = await prisma.workflowLineItem.findMany({
+    where: { isActive: true },
+    orderBy: { displayOrder: 'asc' },
+    include: {
+      section: {
+        include: {
+          phase: true
+        }
+      }
+    }
+  });
+
+  // Get completed items
+  const completedItems = await prisma.completedWorkflowItem.findMany({
+    where: { trackerId: tracker.id },
+    select: { lineItemId: true }
+  });
+  const completedItemIds = new Set(completedItems.map(item => item.lineItemId));
+
+  // Transform line items to legacy step format
+  const steps = allLineItems.map((item, index) => {
+    const isCompleted = completedItemIds.has(item.id);
+    const isCurrent = item.id === tracker.currentLineItemId;
+    
+    return {
+      id: item.id,
+      _id: item.id,
+      stepId: `${item.section.sectionNumber}${item.itemLetter}`,
+      stepName: item.itemName,
+      name: item.itemName,
+      description: item.description || item.itemName,
+      phase: item.section.phase.phaseType,
+      section: item.section.displayName,
+      lineItem: item.itemName,
+      isActive: isCurrent,
+      isCompleted: isCompleted,
+      completed: isCompleted,
+      completedAt: isCompleted ? completedItems.find(c => c.lineItemId === item.id)?.completedAt : null,
+      defaultResponsible: item.responsibleRole,
+      assignedTo: null,
+      assignedToId: null,
+      estimatedDuration: item.estimatedMinutes || 30,
+      alertPriority: 'MEDIUM',
+      alertDays: item.alertDays || 1,
+      notes: '',
+      subTasks: []
+    };
+  });
+
   return {
-    id: workflow.id,
-    _id: workflow.id,
-    project: workflow.projectId,
-    projectId: workflow.projectId,
-    status: workflow.status,
-    overallProgress: workflow.overallProgress,
-    currentStepIndex: workflow.currentStepIndex,
-    workflowStartDate: workflow.workflowStartDate,
-    workflowEndDate: workflow.workflowEndDate,
-    estimatedCompletionDate: workflow.estimatedCompletionDate,
-    actualCompletionDate: workflow.actualCompletionDate,
-    enableAlerts: workflow.enableAlerts,
-    alertMethods: workflow.alertMethods,
-    escalationEnabled: workflow.escalationEnabled,
-    escalationDelayDays: workflow.escalationDelayDays,
-    teamAssignments: workflow.teamAssignments,
-    createdAt: workflow.createdAt,
-    updatedAt: workflow.updatedAt,
-    steps: workflow.steps ? workflow.steps.map(step => {
-      const transformedStep = transformWorkflowStep(step);
-      return {
-        id: step.stepId || transformedStep.id, // Prefer stepId for frontend matching
-        _id: step.stepId || transformedStep.id,
-        stepId: step.stepId || transformedStep.stepId,
-        stepName: transformedStep.stepName,
-        name: transformedStep.stepName, // Add alias for compatibility
-        description: transformedStep.description,
-        phase: transformedStep.phase,
-        // CRITICAL: Add section and lineItem fields
-        section: transformedStep.section,
-        lineItem: transformedStep.lineItem,
-        isActive: transformedStep.isActive,
-        defaultResponsible: transformedStep.defaultResponsible,
-        estimatedDuration: transformedStep.estimatedDuration,
-        scheduledStartDate: transformedStep.scheduledStartDate,
-        scheduledEndDate: transformedStep.scheduledEndDate,
-        actualStartDate: transformedStep.actualStartDate,
-        actualEndDate: transformedStep.actualEndDate,
-        isCompleted: transformedStep.isCompleted,
-        completed: transformedStep.isCompleted, // Alias for compatibility
-        completedAt: transformedStep.completedAt,
-        assignedTo: transformedStep.assignedToId,
-        assignedToId: transformedStep.assignedToId,
-        alertPriority: transformedStep.alertPriority,
-        alertDays: transformedStep.alertDays,
-        overdueIntervals: transformedStep.overdueIntervals,
-        notes: transformedStep.notes,
-        completionNotes: transformedStep.completionNotes,
-        dependencies: transformedStep.dependencies,
-        subTasks: step.subTasks ? step.subTasks.map(subTask => {
-          const transformedSubTask = transformWorkflowSubTask(subTask, step);
-          return {
-            id: transformedSubTask.id,
-            _id: transformedSubTask.id,
-            subTaskId: transformedSubTask.subTaskId,
-            subTaskName: transformedSubTask.subTaskName,
-            description: transformedSubTask.description,
-            isCompleted: transformedSubTask.isCompleted,
-            completedAt: transformedSubTask.completedAt,
-            completedById: transformedSubTask.completedById,
-            notes: transformedSubTask.notes,
-            // CRITICAL: Add section info to subtasks
-            section: transformedSubTask.section,
-            parentLineItem: transformedSubTask.parentLineItem,
-            phase: transformedSubTask.phase
-          };
-        }) : []
-      };
-    }) : []
+    id: tracker.id,
+    _id: tracker.id,
+    project: projectId,
+    projectId: projectId,
+    status: workflowStatus?.isComplete ? 'COMPLETED' : 'IN_PROGRESS',
+    overallProgress: workflowStatus?.progress || 0,
+    currentStepIndex: workflowStatus?.completedItems || 0,
+    workflowStartDate: tracker.createdAt,
+    enableAlerts: true,
+    alertMethods: ['IN_APP', 'EMAIL'],
+    escalationEnabled: true,
+    escalationDelayDays: 2,
+    teamAssignments: {},
+    createdAt: tracker.createdAt,
+    updatedAt: tracker.updatedAt,
+    steps: steps
   };
 };
 
@@ -99,14 +98,66 @@ router.get('/test', asyncHandler(async (req, res) => {
   });
 }));
 
-// @desc    Get workflow for a project
+// @desc    Get current workflow position (NEW DATABASE-DRIVEN)
+// @route   GET /api/workflows/position/:projectId
+// @access  Private
+router.get('/position/:projectId', asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  
+  const position = await WorkflowProgressionService.getCurrentPosition(projectId);
+  
+  res.status(200).json({
+    success: true,
+    data: position,
+    message: 'Current workflow position retrieved successfully'
+  });
+}));
+
+// @desc    Get workflow status (NEW DATABASE-DRIVEN)
+// @route   GET /api/workflows/status/:projectId
+// @access  Private
+router.get('/status/:projectId', asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  
+  const status = await WorkflowProgressionService.getWorkflowStatus(projectId);
+  
+  res.status(200).json({
+    success: true,
+    data: status,
+    message: 'Workflow status retrieved successfully'
+  });
+}));
+
+// @desc    Get complete workflow data for UI display
+// @route   GET /api/workflows/data/:projectId
+// @access  Private
+router.get('/data/:projectId', asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  
+  try {
+    const tracker = await WorkflowProgressionService.getCurrentPosition(projectId);
+    const updatedData = await WorkflowCompletionHandler.getUpdatedWorkflowData(projectId, tracker);
+    
+    res.status(200).json({
+      success: true,
+      data: updatedData,
+      message: 'Complete workflow data retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting workflow data:', error);
+    throw new AppError('Failed to get workflow data', 500);
+  }
+}));
+
+// @desc    Get workflow for a project (ENHANCED WITH NEW SYSTEM)
 // @route   GET /api/workflows/project/:projectId
 // @access  Private
 router.get('/project/:projectId', asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   
   console.log(`🔍 WORKFLOW: Fetching workflow for projectId: ${projectId}`);
-  // Force server reload
+  
   try {
     let project = null;
     
@@ -128,71 +179,21 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
     }
     
     if (!project) {
-      console.log(`🔍 WORKFLOW: Project not found, returning mock workflow`);
-      // Return mock workflow for compatibility
-      const mockWorkflow = {
-        project: projectId,
-        projectId: projectId,
-        steps: [],
-        completedSteps: [],
-        progress: 0,
-        overallProgress: 0,
-        currentStepIndex: 0,
-        status: 'NOT_STARTED',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      return res.status(200).json({
-        success: true,
-        data: mockWorkflow,
-        message: 'Workflow retrieved successfully'
+      console.log(`🔍 WORKFLOW: Project not found`);
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
       });
     }
     
-    // Ensure workflow exists and get it
-    const workflow = await WorkflowInitializationService.ensureWorkflowExists(project.id);
+    // Get workflow tracker and status
+    const tracker = await WorkflowProgressionService.getCurrentPosition(project.id);
+    const workflowStatus = await WorkflowProgressionService.getWorkflowStatus(project.id);
     
-    // Get workflow with all data
-    const fullWorkflow = await prisma.projectWorkflow.findUnique({
-      where: { projectId: project.id },
-      include: {
-        steps: {
-          include: {
-            subTasks: true
-          },
-          orderBy: {
-            createdAt: 'asc'
-          }
-        }
-      }
-    });
+    // Transform to frontend-compatible format
+    const transformedWorkflow = await transformWorkflowForFrontend(project.id, tracker, workflowStatus);
     
-    if (!workflow) {
-      console.log(`🔍 WORKFLOW: No workflow found for project, returning mock`);
-      // Return mock workflow structure
-      const mockWorkflow = {
-        project: project.id,
-        projectId: project.id,
-        steps: [],
-        completedSteps: [],
-        progress: 0,
-        overallProgress: 0,
-        currentStepIndex: 0,
-        status: 'NOT_STARTED',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      return res.status(200).json({
-        success: true,
-        data: mockWorkflow,
-        message: 'Workflow retrieved successfully'
-      });
-    }
-    
-    // Transform workflow for frontend compatibility
-    const transformedWorkflow = transformWorkflowForFrontend(fullWorkflow);
-    
-    console.log(`✅ WORKFLOW: Found workflow with ${fullWorkflow.steps?.length || 0} steps`);
+    console.log(`✅ WORKFLOW: Found workflow with ${transformedWorkflow.steps?.length || 0} steps, progress: ${workflowStatus.progress}%`);
     
     return res.status(200).json({
       success: true,
@@ -202,29 +203,58 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
     
   } catch (error) {
     console.error('❌ WORKFLOW: Error fetching workflow:', error);
-    
-    // Return mock workflow on error to prevent frontend crashes
-    const mockWorkflow = {
-      project: projectId,
-      projectId: projectId,
-      steps: [],
-      completedSteps: [],
-      progress: 0,
-      overallProgress: 0,
-      currentStepIndex: 0,
-      status: 'NOT_STARTED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    res.status(200).json({
-      success: true,
-      data: mockWorkflow,
-      message: 'Workflow retrieved successfully'
-    });
+    throw new AppError('Failed to fetch workflow', 500);
   }
 }));
 
-// @desc    Complete a workflow step
+// @desc    Complete a workflow line item (COMPREHENSIVE HANDLER)
+// @route   POST /api/workflows/complete-item
+// @access  Private
+router.post('/complete-item', 
+  [
+    body('projectId').isString().withMessage('Project ID is required'),
+    body('lineItemId').isString().withMessage('Line Item ID is required'),
+    body('notes').optional().isString()
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: formatValidationErrors(errors)
+      });
+    }
+
+    const { projectId, lineItemId, notes, alertId } = req.body;
+    const userId = req.user?.id || null;
+
+    console.log(`📝 Processing comprehensive line item completion: ${lineItemId} for project ${projectId}`);
+
+    try {
+      // Use comprehensive completion handler
+      const result = await WorkflowCompletionHandler.handleLineItemCompletion(
+        projectId,
+        lineItemId,
+        userId,
+        notes,
+        alertId
+      );
+
+      res.status(200).json({
+        success: true,
+        data: result.result,
+        updatedData: result.updatedData,
+        message: 'Line item completed and all systems updated successfully'
+      });
+
+    } catch (error) {
+      console.error('❌ Error in comprehensive line item completion:', error);
+      throw new AppError('Failed to complete line item', 500);
+    }
+}));
+
+// @desc    Complete a workflow step (LEGACY - redirects to new system)
 // @route   POST /api/workflows/:workflowId/steps/:stepId/complete
 // @access  Private
 router.post('/:workflowId/steps/:stepId/complete', asyncHandler(async (req, res) => {

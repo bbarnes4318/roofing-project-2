@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket, useRealTimeUpdates } from '../../hooks/useSocket';
 import { projectsService, workflowAlertsService } from '../../services/api';
+import workflowService from '../../services/workflowService';
 import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
@@ -1089,8 +1090,53 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     }
   };
 
+  // Helper function to update UI from database response
+  const updateWorkflowUIFromDatabaseResponse = (updatedData) => {
+    console.log('🔄 Updating UI from database response:', updatedData);
+    
+    // Transform database format to frontend format
+    const transformedSteps = updatedData.lineItems?.map(item => ({
+      id: item.id,
+      stepId: `${item.sectionNumber}${item.itemLetter}`,
+      stepName: item.itemName,
+      name: item.itemName,
+      phase: item.phase,
+      section: item.section,
+      lineItem: item.itemName,
+      completed: item.isCompleted,
+      isCompleted: item.isCompleted,
+      isCurrent: item.isCurrent,
+      completedAt: item.completedAt,
+      completedBy: item.completedBy
+    })) || [];
+    
+    // Update workflow data
+    setWorkflowData({
+      steps: transformedSteps,
+      overallProgress: updatedData.overallProgress || 0,
+      currentPosition: updatedData.currentPosition,
+      phaseCompletion: updatedData.phaseCompletion || {},
+      sectionCompletion: updatedData.sectionCompletion || {},
+      _forceRender: Date.now(),
+      _databaseUpdate: true
+    });
+    
+    // Trigger phase completion callback if available
+    if (onPhaseCompletionChange && updatedData.phaseCompletion) {
+      const completedPhases = {};
+      Object.keys(updatedData.phaseCompletion).forEach(phase => {
+        completedPhases[phase] = updatedData.phaseCompletion[phase].isCompleted;
+      });
+      
+      onPhaseCompletionChange({
+        completedPhases,
+        progress: updatedData.overallProgress || 0
+      });
+    }
+  };
+
   const updateWorkflowStep = async (stepId, completed) => {
-    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed}`);
+    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed} using NEW DATABASE SYSTEM`);
     
     // Store original data for rollback
     const originalWorkflowData = workflowData;
@@ -1176,7 +1222,30 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     console.log(`🌐 CHECKBOX: Request payload:`, { completed });
     
     try {
-      // CRITICAL: Use the new workflow update API that also updates project.phase
+      // CRITICAL: Use NEW database-driven workflow system for completions
+      if (completed) {
+        console.log(`🚀 Using NEW completion handler for step ${stepId}`);
+        const response = await workflowService.completeLineItem(projectId, stepId, '', null);
+        console.log('✅ NEW SYSTEM: Line item completed successfully:', response);
+        
+        // Update UI from database response
+        if (response.updatedData) {
+          updateWorkflowUIFromDatabaseResponse(response.updatedData);
+        }
+        
+        // Update project progress
+        if (onUpdate && response.updatedData?.overallProgress !== undefined) {
+          onUpdate({
+            ...project,
+            progress: response.updatedData.overallProgress,
+            phase: response.updatedData.currentPosition?.phase
+          });
+        }
+        
+        return; // Skip old system processing
+      }
+      
+      // Fallback to old system for unchecking (temporary)
       const response = await updateWorkflowStepAPI(projectId, stepId, completed);
       
       console.log('✅ CHECKBOX: API call successful, server confirmed the update');

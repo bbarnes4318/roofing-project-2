@@ -12,6 +12,7 @@ import { teamMembers } from '../../data/mockData';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import WorkflowProgressService from '../../services/workflowProgress';
+import workflowService from '../../services/workflowService';
 import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
 
 // Helper functions for advanced progress bars (moved to top level)
@@ -234,24 +235,21 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 return;
             }
 
-            console.log(`🚀 Attempting to complete workflow step: workflowId=${workflowId}, stepId=${stepId}`);
+            console.log(`🚀 Attempting to complete workflow item using NEW DATABASE SYSTEM: stepId=${stepId}`);
 
-            // Step 1: Complete the workflow step via API
-            const response = await fetch(`/api/workflows/${workflowId}/steps/${stepId}/complete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    notes: `Completed via project detail alerts by user`,
-                    alertId: alertId
-                })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                console.log('✅ Workflow step completed successfully:', result);
+            // CRITICAL: Use NEW database-driven workflow completion
+            try {
+                const response = await workflowService.completeLineItem(
+                    projectId,
+                    stepId,
+                    'Completed via project detail alerts by user',
+                    alertId
+                );
+                
+                console.log('✅ NEW SYSTEM: Line item completed successfully:', response);
+                
+                // Process the successful completion
+                const result = response;
                 
                 // Show success feedback
                 console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
