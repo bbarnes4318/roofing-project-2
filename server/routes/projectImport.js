@@ -5,9 +5,11 @@ const csv = require('csv-parser');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
+const { 
+  asyncHandler,
+  AppError
+} = require('../middleware/errorHandler');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -21,25 +23,28 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
-    cb(null, `project-import-${timestamp}${ext}`);
+    cb(null, `combined-import-${timestamp}${ext}`);
   }
 });
 
 const upload = multer({ 
   storage,
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['.csv', '.xlsx', '.xls'];
+    const allowedTypes = ['.csv', '.xlsx'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only CSV and Excel files are allowed'), false);
+      cb(new Error('Only CSV and Excel files are allowed'));
     }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   }
 });
 
 /**
- * Parse CSV file and extract project data
+ * Parse CSV file and extract data
  */
 const parseCSVFile = (filePath) => {
   return new Promise((resolve, reject) => {
@@ -53,7 +58,7 @@ const parseCSVFile = (filePath) => {
 };
 
 /**
- * Parse Excel file and extract project data
+ * Parse Excel file and extract data
  */
 const parseExcelFile = (filePath) => {
   try {
@@ -68,114 +73,226 @@ const parseExcelFile = (filePath) => {
 };
 
 /**
- * Validate required project fields
+ * Validate required fields for combined import
  */
-const validateProjectData = (projectData) => {
-  const requiredFields = ['customerName', 'projectAddress'];
+const validateCombinedData = (data) => {
+  const requiredFields = ['projectNumber', 'projectName', 'primaryName', 'primaryEmail', 'address'];
   const errors = [];
 
-  if (!Array.isArray(projectData) || projectData.length === 0) {
-    return ['No project data found in file'];
+  if (!Array.isArray(data) || data.length === 0) {
+    return ['No data found in file'];
   }
 
-  projectData.forEach((project, index) => {
+  data.forEach((row, index) => {
     requiredFields.forEach(field => {
-      if (!project[field] || project[field].toString().trim() === '') {
+      if (!row[field] || row[field].toString().trim() === '') {
         errors.push(`Row ${index + 1}: Missing required field '${field}'`);
       }
     });
+
+    // Validate enums
+    if (row.projectType && !['ROOF_REPLACEMENT', 'KITCHEN_REMODEL', 'BATHROOM_RENOVATION', 'ADDITION', 'GENERAL_CONTRACTOR', 'OTHER'].includes(row.projectType)) {
+      errors.push(`Row ${index + 1}: Invalid projectType '${row.projectType}'`);
+    }
+    if (row.status && !['PENDING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'CANCELLED'].includes(row.status)) {
+      errors.push(`Row ${index + 1}: Invalid status '${row.status}'`);
+    }
+    if (row.priority && !['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(row.priority)) {
+      errors.push(`Row ${index + 1}: Invalid priority '${row.priority}'`);
+    }
+    if (row.primaryContact && !['PRIMARY', 'SECONDARY', 'SINGLE'].includes(row.primaryContact)) {
+      errors.push(`Row ${index + 1}: Invalid primaryContact '${row.primaryContact}'`);
+    }
+
+    // Validate date formats
+    if (row.startDate && isNaN(Date.parse(row.startDate))) {
+      errors.push(`Row ${index + 1}: Invalid startDate format '${row.startDate}' (use YYYY-MM-DD)`);
+    }
+    if (row.endDate && isNaN(Date.parse(row.endDate))) {
+      errors.push(`Row ${index + 1}: Invalid endDate format '${row.endDate}' (use YYYY-MM-DD)`);
+    }
   });
 
   return errors;
 };
 
 /**
- * Create project with workflow assignment
+ * Create customer and project with workflow
  */
-const createProjectWithWorkflow = async (projectData, workflowTemplateId) => {
+const createCombinedRecord = async (rowData, workflowTemplateId) => {
   try {
-    // Get the workflow template
-    const workflowTemplate = await prisma.workflowTemplate.findUnique({
-      where: { id: workflowTemplateId },
-      include: { steps: true }
-    });
+    console.log(`📝 Processing row: ${rowData.projectNumber}`);
 
-    if (!workflowTemplate) {
-      throw new Error(`Workflow template not found: ${workflowTemplateId}`);
+    // Check for duplicate project number
+    const existingProject = await prisma.project.findUnique({
+      where: { projectNumber: rowData.projectNumber }
+    });
+    if (existingProject) {
+      throw new Error(`Project number ${rowData.projectNumber} already exists`);
     }
 
-    // Create the project
-    const project = await prisma.project.create({
-      data: {
-        projectNumber: projectData.projectNumber || `PROJ-${Date.now()}`,
-        customerName: projectData.customerName,
-        customerEmail: projectData.customerEmail || '',
-        customerPhone: projectData.customerPhone || '',
-        projectAddress: projectData.projectAddress,
-        city: projectData.city || '',
-        state: projectData.state || '',
-        zipCode: projectData.zipCode || '',
-        projectType: projectData.projectType || 'Roofing',
-        projectValue: parseFloat(projectData.projectValue) || 0,
-        notes: projectData.notes || '',
-        status: 'ACTIVE',
-        phase: 'LEAD',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+    // Check for duplicate customer email
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { primaryEmail: rowData.primaryEmail.toLowerCase() }
     });
+    if (existingCustomer) {
+      throw new Error(`Customer with email ${rowData.primaryEmail} already exists`);
+    }
 
-    // Create workflow instance for the project
-    const workflow = await prisma.workflow.create({
-      data: {
-        projectId: project.id,
-        templateId: workflowTemplateId,
-        name: workflowTemplate.name,
-        phase: 'LEAD',
-        status: 'ACTIVE',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    });
-
-    // Create workflow steps from template
-    const workflowSteps = await Promise.all(
-      workflowTemplate.steps.map(async (templateStep, index) => {
-        return await prisma.workflowStep.create({
-          data: {
-            workflowId: workflow.id,
-            stepName: templateStep.stepName,
-            description: templateStep.description || '',
-            phase: templateStep.phase,
-            orderIndex: templateStep.orderIndex || index,
-            isCompleted: false,
-            estimatedDuration: templateStep.estimatedDuration || 1,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        });
-      })
-    );
-
-    // Set the first step as active
-    if (workflowSteps.length > 0) {
-      await prisma.workflowStep.update({
-        where: { id: workflowSteps[0].id },
-        data: { 
-          actualStartDate: new Date(),
-          updatedAt: new Date()
+    // Start transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create customer
+      const customer = await tx.customer.create({
+        data: {
+          primaryName: rowData.primaryName.trim(),
+          primaryEmail: rowData.primaryEmail.trim().toLowerCase(),
+          primaryPhone: rowData.primaryPhone?.trim() || '',
+          secondaryName: rowData.secondaryName?.trim() || null,
+          secondaryEmail: rowData.secondaryEmail?.trim().toLowerCase() || null,
+          secondaryPhone: rowData.secondaryPhone?.trim() || null,
+          primaryContact: rowData.primaryContact || 'PRIMARY',
+          address: rowData.address.trim(),
+          notes: rowData.customerNotes?.trim() || null
         }
       });
-    }
 
-    return {
-      project,
-      workflow,
-      stepsCreated: workflowSteps.length
-    };
+      // 2. Create project linked to customer
+      const project = await tx.project.create({
+        data: {
+          projectNumber: rowData.projectNumber.trim(),
+          projectName: rowData.projectName.trim(),
+          projectType: rowData.projectType || 'OTHER',
+          status: rowData.status || 'PENDING',
+          priority: rowData.priority || 'MEDIUM',
+          budget: parseFloat(rowData.budget) || null,
+          estimatedCost: parseFloat(rowData.estimatedCost) || null,
+          startDate: rowData.startDate ? new Date(rowData.startDate) : null,
+          endDate: rowData.endDate ? new Date(rowData.endDate) : null,
+          description: rowData.description?.trim() || null,
+          notes: rowData.notes?.trim() || null,
+          pmPhone: rowData.pmPhone?.trim() || null,
+          pmEmail: rowData.pmEmail?.trim() || null,
+          customerId: customer.id,
+          currentPhase: 'LEAD',
+          currentSection: null,
+          currentLineItem: null
+        }
+      });
+
+      // 3. Create workflow if template provided
+      let workflow = null;
+      let stepsCreated = 0;
+      
+      if (workflowTemplateId) {
+        const workflowTemplate = await tx.workflowTemplate.findUnique({
+          where: { id: workflowTemplateId },
+          include: {
+            phases: {
+              include: {
+                sections: {
+                  include: {
+                    lineItems: true
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        if (workflowTemplate) {
+          workflow = await tx.workflow.create({
+            data: {
+              projectId: project.id,
+              templateId: workflowTemplateId,
+              name: workflowTemplate.name,
+              currentPhase: 'LEAD',
+              status: 'ACTIVE'
+            }
+          });
+
+          // Create workflow phases, sections, and line items
+          for (const templatePhase of workflowTemplate.phases) {
+            const phase = await tx.workflowPhase.create({
+              data: {
+                workflowId: workflow.id,
+                name: templatePhase.name,
+                orderIndex: templatePhase.orderIndex,
+                isCompleted: false
+              }
+            });
+
+            for (const templateSection of templatePhase.sections) {
+              const section = await tx.workflowSection.create({
+                data: {
+                  phaseId: phase.id,
+                  name: templateSection.name,
+                  orderIndex: templateSection.orderIndex,
+                  isCompleted: false
+                }
+              });
+
+              for (const templateLineItem of templateSection.lineItems) {
+                await tx.workflowLineItem.create({
+                  data: {
+                    sectionId: section.id,
+                    name: templateLineItem.name,
+                    description: templateLineItem.description,
+                    orderIndex: templateLineItem.orderIndex,
+                    isCompleted: false,
+                    assignedTo: templateLineItem.assignedTo
+                  }
+                });
+                stepsCreated++;
+              }
+            }
+          }
+
+          // Set first line item as active
+          const firstPhase = await tx.workflowPhase.findFirst({
+            where: { workflowId: workflow.id },
+            orderBy: { orderIndex: 'asc' }
+          });
+
+          if (firstPhase) {
+            const firstSection = await tx.workflowSection.findFirst({
+              where: { phaseId: firstPhase.id },
+              orderBy: { orderIndex: 'asc' }
+            });
+
+            if (firstSection) {
+              const firstLineItem = await tx.workflowLineItem.findFirst({
+                where: { sectionId: firstSection.id },
+                orderBy: { orderIndex: 'asc' }
+              });
+
+              if (firstLineItem) {
+                await tx.project.update({
+                  where: { id: project.id },
+                  data: {
+                    currentPhase: firstPhase.name,
+                    currentSection: firstSection.name,
+                    currentLineItem: firstLineItem.name
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        customer,
+        project,
+        workflow,
+        stepsCreated
+      };
+    });
+
+    console.log(`✅ Created: ${result.project.projectNumber} for ${result.customer.primaryName}`);
+    return result;
 
   } catch (error) {
-    console.error('Error creating project with workflow:', error);
+    console.error(`❌ Error processing ${rowData.projectNumber}:`, error);
     throw error;
   }
 };
@@ -183,177 +300,110 @@ const createProjectWithWorkflow = async (projectData, workflowTemplateId) => {
 /**
  * GET /api/project-import/templates - Get available workflow templates
  */
-router.get('/templates', async (req, res) => {
-  try {
-    const templates = await prisma.workflowTemplate.findMany({
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        phases: true
-      },
-      orderBy: { name: 'asc' }
-    });
+router.get('/templates', asyncHandler(async (req, res) => {
+  const templates = await prisma.workflowTemplate.findMany({
+    select: {
+      id: true,
+      name: true,
+      description: true
+    },
+    orderBy: { name: 'asc' }
+  });
 
-    res.json({
-      success: true,
-      data: templates,
-      message: 'Workflow templates retrieved successfully'
-    });
-
-  } catch (error) {
-    console.error('Error fetching workflow templates:', error);
-    res.status(500).json({
-      success: false,
-      data: null,
-      message: 'Failed to fetch workflow templates'
-    });
-  }
-});
+  res.json({
+    success: true,
+    data: templates,
+    message: 'Workflow templates retrieved successfully'
+  });
+}));
 
 /**
- * POST /api/project-import/upload - Import projects from file
+ * POST /api/project-import/upload - Import combined project/customer data
  */
-router.post('/upload', upload.single('file'), async (req, res) => {
-  let filePath = null;
-  
+router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new AppError('No file uploaded', 400);
+  }
+
+  console.log('📁 Processing combined import file:', req.file.filename);
+
+  const filePath = req.file.path;
+  const fileExt = path.extname(req.file.originalname).toLowerCase();
+  const { workflowTemplateId } = req.body;
+
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        data: null,
-        message: 'No file uploaded'
-      });
-    }
-
-    const { workflowTemplateId } = req.body;
-    
-    if (!workflowTemplateId) {
-      return res.status(400).json({
-        success: false,
-        data: null,
-        message: 'Workflow template ID is required'
-      });
-    }
-
-    filePath = req.file.path;
-    const fileExt = path.extname(req.file.originalname).toLowerCase();
-
-    // Parse the file based on extension
-    let projectData;
+    // Parse file
+    let data;
     if (fileExt === '.csv') {
-      projectData = await parseCSVFile(filePath);
-    } else if (fileExt === '.xlsx' || fileExt === '.xls') {
-      projectData = parseExcelFile(filePath);
+      data = await parseCSVFile(filePath);
+    } else if (fileExt === '.xlsx') {
+      data = parseExcelFile(filePath);
     } else {
       throw new Error('Unsupported file format');
     }
 
-    // Validate the data
-    const validationErrors = validateProjectData(projectData);
+    console.log(`📊 Parsed ${data.length} records from file`);
+
+    // Validate data
+    const validationErrors = validateCombinedData(data);
     if (validationErrors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        data: { errors: validationErrors },
-        message: 'Validation failed'
-      });
+      throw new AppError('Validation failed: ' + validationErrors.join('; '), 400);
     }
 
-    // Create projects with workflows
+    // Process records
     const results = {
-      successful: [],
-      failed: [],
-      total: projectData.length
+      total: data.length,
+      successful: 0,
+      failed: 0,
+      errors: []
     };
 
-    for (let i = 0; i < projectData.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       try {
-        const result = await createProjectWithWorkflow(projectData[i], workflowTemplateId);
-        results.successful.push({
-          row: i + 1,
-          projectNumber: result.project.projectNumber,
-          customerName: result.project.customerName,
-          projectId: result.project.id,
-          workflowId: result.workflow.id,
-          stepsCreated: result.stepsCreated
-        });
+        const result = await createCombinedRecord(data[i], workflowTemplateId);
+        results.successful++;
+        console.log(`✅ Row ${i + 1}/${data.length}: ${result.project.projectNumber} created`);
       } catch (error) {
-        results.failed.push({
+        results.failed++;
+        results.errors.push({
           row: i + 1,
-          data: projectData[i],
+          data: data[i],
           error: error.message
         });
+        console.log(`❌ Row ${i + 1}/${data.length}: ${error.message}`);
       }
     }
 
-    // Clean up uploaded file
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    // Clean up file
+    fs.unlinkSync(filePath);
+
+    console.log('📋 Combined import completed:', results);
 
     res.json({
       success: true,
-      data: results,
-      message: `Import completed: ${results.successful.length} successful, ${results.failed.length} failed`
+      message: `Import completed: ${results.successful} successful, ${results.failed} failed`,
+      data: results
     });
 
   } catch (error) {
-    console.error('Error importing projects:', error);
-    
-    // Clean up uploaded file on error
-    if (filePath && fs.existsSync(filePath)) {
+    if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-
-    res.status(500).json({
-      success: false,
-      data: null,
-      message: `Import failed: ${error.message}`
-    });
+    throw error;
   }
-});
+}));
 
 /**
- * GET /api/project-import/sample - Download sample CSV template
+ * GET /api/project-import/template - Download combined CSV template
  */
-router.get('/sample', (req, res) => {
-  const sampleData = [
-    {
-      projectNumber: 'PROJ-2024-001',
-      customerName: 'John Smith',
-      customerEmail: 'john.smith@email.com',
-      customerPhone: '(555) 123-4567',
-      projectAddress: '123 Main Street',
-      city: 'Anytown',
-      state: 'CA',
-      zipCode: '12345',
-      projectType: 'Roofing',
-      projectValue: '15000',
-      notes: 'Standard roof replacement'
-    },
-    {
-      projectNumber: 'PROJ-2024-002',
-      customerName: 'Jane Doe',
-      customerEmail: 'jane.doe@email.com',
-      customerPhone: '(555) 987-6543',
-      projectAddress: '456 Oak Avenue',
-      city: 'Somewhere',
-      state: 'TX',
-      zipCode: '67890',
-      projectType: 'Repair',
-      projectValue: '5000',
-      notes: 'Storm damage repair'
-    }
-  ];
+router.get('/template', asyncHandler(async (req, res) => {
+  const templatePath = path.join(__dirname, '../../public/templates/project_customer_combined_template.csv');
+  
+  if (!fs.existsSync(templatePath)) {
+    throw new AppError('Template file not found', 404);
+  }
 
-  const csv = [
-    Object.keys(sampleData[0]).join(','),
-    ...sampleData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
-  ].join('\n');
-
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="project-import-sample.csv"');
-  res.send(csv);
-});
+  res.download(templatePath, 'project_customer_combined_template.csv');
+}));
 
 module.exports = router;

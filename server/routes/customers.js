@@ -8,6 +8,11 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
+const multer = require('multer');
+const csv = require('csv-parser');
+const xlsx = require('xlsx');
+const fs = require('fs');
+const path = require('path');
 // Make cacheService optional to prevent crashes
 let cacheService;
 try {
@@ -548,6 +553,179 @@ router.get('/search', asyncHandler(async (req, res) => {
   } catch (error) {
     console.error('Error searching customers:', error);
     throw new AppError('Failed to search customers', 500);
+  }
+}));
+
+// Configure multer for customer CSV uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `customer-import-${timestamp}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.csv', '.xlsx'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV and Excel files are allowed'));
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
+// @desc    Import customers from CSV/Excel
+// @route   POST /api/customers/import
+// @access  Private
+router.post('/import', upload.single('file'), asyncHandler(async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return next(new AppError('No file uploaded', 400));
+    }
+
+    console.log('📁 Processing customer import file:', req.file.filename);
+    
+    const filePath = req.file.path;
+    const fileExt = path.extname(req.file.originalname).toLowerCase();
+    let customers = [];
+
+    // Parse file based on extension
+    if (fileExt === '.csv') {
+      // Parse CSV
+      const results = [];
+      await new Promise((resolve, reject) => {
+        fs.createReadStream(filePath)
+          .pipe(csv())
+          .on('data', (data) => results.push(data))
+          .on('end', resolve)
+          .on('error', reject);
+      });
+      customers = results;
+    } else if (fileExt === '.xlsx') {
+      // Parse Excel
+      const workbook = xlsx.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      customers = xlsx.utils.sheet_to_json(worksheet);
+    }
+
+    console.log(`📊 Parsed ${customers.length} customer records from file`);
+
+    const results = {
+      total: customers.length,
+      successful: 0,
+      failed: 0,
+      errors: []
+    };
+
+    // Process each customer
+    for (let i = 0; i < customers.length; i++) {
+      const customerData = customers[i];
+      
+      try {
+        // Validate required fields
+        if (!customerData.primaryName || !customerData.primaryEmail || !customerData.address) {
+          throw new Error('Missing required fields: primaryName, primaryEmail, or address');
+        }
+
+        // Prepare customer data for database
+        const customer = {
+          primaryName: customerData.primaryName.trim(),
+          primaryEmail: customerData.primaryEmail.trim().toLowerCase(),
+          primaryPhone: customerData.primaryPhone?.trim() || '',
+          secondaryName: customerData.secondaryName?.trim() || null,
+          secondaryEmail: customerData.secondaryEmail?.trim().toLowerCase() || null,
+          secondaryPhone: customerData.secondaryPhone?.trim() || null,
+          primaryContact: customerData.primaryContact?.toUpperCase() === 'SECONDARY' ? 'SECONDARY' : 'PRIMARY',
+          address: customerData.address.trim(),
+          notes: customerData.notes?.trim() || null
+        };
+
+        // Check for duplicate email
+        const existingCustomer = await prisma.customer.findUnique({
+          where: { primaryEmail: customer.primaryEmail }
+        });
+
+        if (existingCustomer) {
+          throw new Error(`Customer with email ${customer.primaryEmail} already exists`);
+        }
+
+        // Create customer
+        await prisma.customer.create({
+          data: customer
+        });
+
+        results.successful++;
+        console.log(`✅ Customer ${i + 1}/${customers.length}: ${customer.primaryName} created`);
+
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          row: i + 1,
+          data: customerData,
+          error: error.message
+        });
+        console.log(`❌ Customer ${i + 1}/${customers.length}: ${error.message}`);
+      }
+    }
+
+    // Clean up uploaded file
+    fs.unlinkSync(filePath);
+
+    console.log('📋 Customer import completed:', results);
+
+    // Invalidate cache
+    if (cacheService) {
+      await cacheService.invalidatePattern('customers:*');
+    }
+
+    // Return results
+    res.json({
+      success: true,
+      message: `Customer import completed: ${results.successful} successful, ${results.failed} failed`,
+      data: results
+    });
+
+  } catch (error) {
+    // Clean up file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    console.error('❌ Customer import error:', error);
+    return next(new AppError('Failed to import customers: ' + error.message, 500));
+  }
+}));
+
+// @desc    Download customer CSV template
+// @route   GET /api/customers/template
+// @access  Private
+router.get('/template', asyncHandler(async (req, res) => {
+  try {
+    const templatePath = path.join(__dirname, '../../public/templates/customer_upload_template.csv');
+    
+    if (!fs.existsSync(templatePath)) {
+      throw new AppError('Template file not found', 404);
+    }
+
+    res.download(templatePath, 'customer_upload_template.csv');
+  } catch (error) {
+    console.error('Error downloading customer template:', error);
+    throw new AppError('Failed to download template', 500);
   }
 }));
 

@@ -304,6 +304,39 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     }
   };
 
+  const downloadCSVTemplate = (templateType) => {
+    try {
+      let filename, url;
+      
+      switch (templateType) {
+        case 'combined':
+          filename = 'project_customer_combined_template.csv';
+          url = '/templates/project_customer_combined_template.csv';
+          break;
+        case 'combined-instructions':
+          filename = 'Combined_Upload_Instructions.md';
+          url = '/templates/COMBINED_UPLOAD_INSTRUCTIONS.md';
+          break;
+        default:
+          throw new Error('Invalid template type');
+      }
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.target = '_blank'; // Open in new tab if direct download fails
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showSuccessMessage(`Downloaded ${templateType} template successfully!`);
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      showSuccessMessage(`Failed to download ${templateType} template`);
+    }
+  };
+
   // Load workflow templates on component mount
   useEffect(() => {
     fetchWorkflowTemplates();
@@ -1212,7 +1245,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         </select>
       </div>
 
-      {/* Download Template */}
+      {/* Download Templates */}
       <div className={`border rounded-lg p-4 ${
         colorMode 
           ? 'bg-green-900/20 border-green-500/40' 
@@ -1220,18 +1253,26 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       }`}>
         <h3 className={`font-medium mb-2 ${
           colorMode ? 'text-green-300' : 'text-green-900'
-        }`}>📄 Download Template</h3>
+        }`}>📄 Download CSV Template</h3>
         <p className={`text-sm mb-3 ${
           colorMode ? 'text-green-200' : 'text-green-700'
         }`}>
-          Use our template to ensure your project data is formatted correctly
+          Download the combined Project + Customer template with project number field
         </p>
-        <button
-          onClick={downloadSampleFile}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-        >
-          📋 Download CSV Template
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => downloadCSVTemplate('combined')}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            🏗️👥 Combined Template
+          </button>
+          <button
+            onClick={() => downloadCSVTemplate('combined-instructions')}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm font-medium"
+          >
+            📋 Upload Instructions
+          </button>
+        </div>
       </div>
 
       {/* Upload Area */}

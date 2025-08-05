@@ -8,7 +8,6 @@ import { projectsService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
-import UnifiedProgressTracker from '../ui/UnifiedProgressTracker';
 // Removed broken drag libraries - using native implementation
 
 const defaultNewProject = {
@@ -545,23 +544,23 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </h3>
                             
                             {(() => {
-                                // Use centralized phase detection
-                                const projectPhase = WorkflowProgressService.getProjectPhase(project);
-                                const phaseColors = WorkflowProgressService.getPhaseColor(projectPhase);
+                                // Get the current phase from the project
+                                const currentPhase = project.phase || project.currentPhase || 'LEAD';
+                                const phaseColors = WorkflowProgressService.getPhaseColor(currentPhase);
                                 
-                                // Get current workflow state (section and line item)
-                                const workflowState = getWorkflowState(project.id);
-                                const currentSection = workflowState?.currentSection?.name || 'Initial Setup';
-                                const currentLineItem = workflowState?.currentLineItem?.description || 'Getting Started';
+                                // Get current section and line item from workflow steps
+                                const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                                const currentSection = currentStep?.section || 'Not Set';
+                                const currentLineItem = currentStep?.lineItem || currentStep?.stepName || 'Not Set';
                                 
                                 return (
                                     <div className="flex items-center gap-2">
                                         {/* Phase Badge */}
                                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border ${colorMode ? 'border-slate-500/30' : 'border-white/50'}`}>
-                                            {projectPhase}
+                                            {currentPhase}
                                         </span>
                                         
-                                        {/* Workflow Progress Indicator */}
+                                        {/* Section and Line Item Display */}
                                         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-l-4 border-l-blue-500 ${
                                             colorMode 
                                                 ? 'bg-slate-700/80 border border-slate-600/50 text-slate-200' 
@@ -649,19 +648,90 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
                 
-                {/* Progress Bar Section */}
-                <div className="p-3">
-                    <UnifiedProgressTracker 
-                        project={project}
-                        projectTrades={projectTrades}
-                        colorMode={colorMode}
-                        showPhase={false}
-                        showProjectNumber={false}
-                        showCustomerName={false}
-                        showProjectType={false}
-                        showProjectManager={false}
-                        showOnlyProgressBar={true}
-                    />
+                {/* Project Progress Section */}
+                <div className="px-3 pb-3">
+                    {(() => {
+                        // Get project trades data
+                        const getProjectTrades = (project) => {
+                            if (project.trades && project.trades.length > 0) {
+                                return project.trades;
+                            }
+                            
+                            const tradeName = project.projectType || project.type || 'General';
+                            return [
+                                { 
+                                    name: tradeName, 
+                                    laborProgress: project.progress || 0, 
+                                    materialsDelivered: project.materialsDelivered || false
+                                }
+                            ];
+                        };
+                        
+                        const projectTrades = getProjectTrades(project);
+                        const projectId = project.id || project._id;
+                        
+                        return (
+                            <div className={`p-3 rounded-lg transition-all duration-300 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
+                                {/* Main Project Progress Bar */}
+                                <div className="mb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                            Project Progress
+                                        </span>
+                                        <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                            {Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%
+                                        </span>
+                                    </div>
+                                    <div className={`w-full h-3 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div 
+                                            className="bg-blue-500 h-3 rounded-full transition-all duration-500" 
+                                            style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                                
+                                {/* Materials and Labor Progress */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* Materials Progress */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                Materials
+                                            </span>
+                                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                                {Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%
+                                            </span>
+                                        </div>
+                                        <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                            <div 
+                                                className="bg-green-500 h-2 rounded-full transition-all duration-500" 
+                                                style={{ width: `${Math.round(projectTrades.filter(trade => trade.materialsDelivered).length / projectTrades.length * 100)}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Labor Progress */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                Labor
+                                            </span>
+                                            <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                                {Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%
+                                            </span>
+                                        </div>
+                                        <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                            <div 
+                                                className="bg-orange-500 h-2 rounded-full transition-all duration-500" 
+                                                style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </div>
                 </div>
                 
                 {/* Back Button (if needed from source navigation) */}

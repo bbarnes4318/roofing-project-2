@@ -292,47 +292,49 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                     
                     {/* Row 2: From, To, and Timestamp */}
-                    <div className="flex items-baseline gap-0 mt-0 overflow-hidden relative">
-                        {/* From - Fixed width container for consistent spacing */}
-                        <div 
-                            className="flex-shrink-0"
-                            style={{ width: '100px', marginLeft: '8px' }}
-                        >
-                            <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                From: {lastMessage.user}
-                            </span>
-                        </div>
-                        
-                        {/* To - Fixed position to match Subject exactly */}
-                        <div style={{ position: 'absolute', left: '200px', width: '200px' }}>
-                            <span 
-                                className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                                style={{ 
-                                    display: 'inline-block',
-                                    verticalAlign: 'baseline',
-                                    lineHeight: '1'
-                                }}
+                    <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
+                        <div className="flex items-baseline gap-0">
+                            {/* From - Fixed width container for consistent spacing */}
+                            <div 
+                                className="flex-shrink-0"
+                                style={{ width: '100px', marginLeft: '8px' }}
                             >
-                                {(() => {
-                                    // Dynamic To field based on message participants
-                                    const allParticipants = [...new Set(conversation.map(msg => msg.user))];
-                                    const recipients = allParticipants.filter(user => user !== lastMessage.user);
-                                    
-                                    if (recipients.length === 0) {
-                                        return `To: ${primaryCustomer}`;
-                                    } else if (recipients.length === 1) {
-                                        return `To: ${recipients[0]}`;
-                                    } else if (recipients.length === 2) {
-                                        return `To: ${recipients.join(', ')}`;
-                                    } else {
-                                        return `To: ${recipients[0]} +${recipients.length - 1} others`;
-                                    }
-                                })()}
-                            </span>
+                                <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    From: {lastMessage.user}
+                                </span>
+                            </div>
+                            
+                            {/* To - Fixed position to match Subject exactly */}
+                            <div style={{ position: 'absolute', left: '200px', width: '200px' }}>
+                                <span 
+                                    className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                    style={{ 
+                                        display: 'inline-block',
+                                        verticalAlign: 'baseline',
+                                        lineHeight: '1'
+                                    }}
+                                >
+                                    {(() => {
+                                        // Dynamic To field based on message participants
+                                        const allParticipants = [...new Set(conversation.map(msg => msg.user))];
+                                        const recipients = allParticipants.filter(user => user !== lastMessage.user);
+                                        
+                                        if (recipients.length === 0) {
+                                            return `To: ${primaryCustomer}`;
+                                        } else if (recipients.length === 1) {
+                                            return `To: ${recipients[0]}`;
+                                        } else if (recipients.length === 2) {
+                                            return `To: ${recipients.join(', ')}`;
+                                        } else {
+                                            return `To: ${recipients[0]} +${recipients.length - 1} others`;
+                                        }
+                                    })()}
+                                </span>
+                            </div>
                         </div>
                         
-                        {/* Timestamp */}
-                        <div className="flex-shrink-0 ml-2">
+                        {/* Timestamp - Far right */}
+                        <div className="flex-shrink-0">
                             <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
                                 {formatTimestamp(lastMessage.timestamp)}
                             </span>
