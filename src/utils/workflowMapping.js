@@ -126,7 +126,7 @@ export const mapStepToWorkflowStructure = (stepName, phase) => {
   if (phaseStructure[stepName]) {
     return {
       section: phaseStructure[stepName].section,
-      lineItem: stepName,
+      lineItem: phaseStructure[stepName].lineItems[0] || stepName, // Return first line item, not section name
       phase: normalizedPhase
     };
   }
@@ -137,7 +137,7 @@ export const mapStepToWorkflowStructure = (stepName, phase) => {
     if (stepName === sectionKey) {
       return {
         section: sectionData.section,
-        lineItem: stepName,
+        lineItem: sectionData.lineItems[0] || stepName, // Return first line item, not section name
         phase: normalizedPhase
       };
     }
