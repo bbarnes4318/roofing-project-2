@@ -920,17 +920,8 @@ class WorkflowAlertService {
       }
     };
 
-    // Try to find the specific line items for this step
-    for (const [phase, steps] of Object.entries(workflowMapping)) {
-      if (steps[stepName]) {
-        const lineItems = steps[stepName];
-        // For now, return the first incomplete line item
-        // In a more advanced system, we'd track individual line item completion
-        return lineItems[0] || stepName;
-      }
-    }
-
-    // Fallback to step name if no mapping found
+    // The line item IS the step name - subtasks are the individual tasks within it
+    // We don't need to return the first subtask, we return the step name itself
     return stepName;
   }
 
