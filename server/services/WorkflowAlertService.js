@@ -885,38 +885,175 @@ class WorkflowAlertService {
   }
 
   /**
-   * Get specific line item for alert display
+   * Get specific line item for alert display - based on workflow.csv
    */
   getSpecificLineItem(stepName, stepId) {
-    // Import workflow mapping to get specific line items
+    // Based on workflow.csv - SECTIONS are numbered (1,2,3) and LINE ITEMS are lettered (a,b,c)
     const workflowMapping = {
       'LEAD': {
-        'Input Customer Information': ['Customer name & contact info', 'Property address & details', 'Initial project scope', 'Preferred contact method'],
-        'Complete Questions': ['Insurance information verified', 'Property details confirmed', 'Special requirements noted', 'Timeline expectations set'],
-        'Input Lead Property': ['Property type & size', 'Current roof condition', 'Access requirements', 'Photo documentation'],
-        'Assign A Project Manager': ['Project manager assigned', 'Initial project review', 'Customer introduction', 'Project kickoff scheduled'],
-        'Schedule Initial Inspection': ['Inspection date scheduled', 'Customer availability confirmed', 'Site access arranged', 'Inspection checklist prepared']
+        'Input Customer Information': [
+          'Make sure the name is spelled correctly',
+          'Make sure the email is correct. Send a confirmation email to confirm email.'
+        ],
+        'Complete Questions to Ask Checklist': [
+          'Input answers from Question Checklist into notes',
+          'Record property details'
+        ],
+        'Input Lead Property Information': [
+          'Add Home View photos – Maps',
+          'Add Street View photos – Google Maps', 
+          'Add elevation screenshot – PPRBD',
+          'Add property age – County Assessor Website',
+          'Evaluate ladder requirements – By looking at the room'
+        ],
+        'Assign A Project Manager': [
+          'Use workflow from Lead Assigning Flowchart',
+          'Select and brief the Project Manager'
+        ],
+        'Schedule Initial Inspection': [
+          'Call Customer and coordinate with PM schedule',
+          'Create Calendar Appointment in AL'
+        ]
       },
       'PROSPECT': {
-        'Site Inspection': ['Detailed roof assessment', 'Damage documentation', 'Measurements taken', 'Photos & notes completed'],
-        'Write Estimate': ['Material calculations', 'Labor estimates', 'Permit requirements', 'Insurance considerations'],
-        'Present Estimate': ['Estimate presentation scheduled', 'Customer walkthrough', 'Questions addressed', 'Next steps discussed'],
-        'Follow Up': ['Follow-up scheduled', 'Additional questions answered', 'Proposal adjustments made', 'Decision timeline confirmed']
+        'Site Inspection': [
+          'Take site photos',
+          'Complete inspection form',
+          'Document material colors',
+          'Capture Hover photos',
+          'Present upgrade options'
+        ],
+        'Write Estimate': [
+          'Fill out Estimate Form',
+          'Write initial estimate – AccuLynx',
+          'Write Customer Pay Estimates',
+          'Send for Approval'
+        ],
+        'Insurance Process': [
+          'Compare field vs insurance estimates',
+          'Identify supplemental items',
+          'Draft estimate in Xactimate'
+        ],
+        'Agreement Preparation': [
+          'Trade cost analysis',
+          'Prepare Estimate Forms',
+          'Match AL estimates',
+          'Calculate customer pay items',
+          'Send shingle/class4 email – PDF'
+        ],
+        'Agreement Signing': [
+          'Review and send signature request',
+          'Record in QuickBooks',
+          'Process deposit',
+          'Collect signed disclaimers'
+        ]
       },
       'APPROVED': {
-        'Contract & Permitting': ['Contract signed', 'Permits pulled', 'Insurance approval', 'Project scheduling'],
-        'Production Order': ['Materials ordered', 'Delivery scheduled', 'Labor allocated', 'Equipment reserved'],
-        'Schedule Job': ['Installation dates set', 'Crew assigned', 'Customer notified', 'Preparation completed']
+        'Administrative Setup': [
+          'Confirm shingle choice',
+          'Order materials',
+          'Create labor orders',
+          'Send labor order to roofing crew'
+        ],
+        'Pre Job Actions': [
+          'Pull permits'
+        ],
+        'Prepare for Production': [
+          'All pictures in Job (Gutter, Ventilation, Elevation)'
+        ],
+        'Verify Labor Order in Scheduler': [
+          'Correct Dates',
+          'Correct crew',
+          'Send install schedule email to customer'
+        ],
+        'Verify Material Orders': [
+          'Confirmations from supplier',
+          'Call if no confirmation',
+          'Provide special crew instructions'
+        ],
+        'Subcontractor Work': [
+          'Work order in scheduler',
+          'Schedule subcontractor',
+          'Communicate with customer'
+        ]
       },
       'EXECUTION': {
-        'Job Preparation': ['Site preparation', 'Material delivery', 'Safety setup', 'Crew briefing'],
-        'Installation': ['Tear-off completed', 'New installation', 'Quality checkpoints', 'Daily progress updates'],
-        'Quality Control': ['Installation review', 'Safety inspection', 'Code compliance check', 'Photo documentation'],
-        'Final Inspection': ['Final walkthrough', 'Punch list items', 'Customer approval', 'Cleanup completed']
+        'Installation': [
+          'Document work start',
+          'Capture progress photos',
+          'Upload Pictures'
+        ],
+        'Daily Job Progress Note': [
+          'Work started/finished',
+          'Days and people needed',
+          'Format: 2 Guys for 4 hours'
+        ],
+        'Quality Check': [
+          'Completion photos',
+          'Complete inspection',
+          'Upload Roof Packet',
+          'Verify Packet is complete – Admin'
+        ],
+        'Multiple Trades': [
+          'Confirm start date',
+          'Confirm material/labor for all trades'
+        ],
+        'Subcontractor Work': [
+          'Confirm dates',
+          'Communicate with customer'
+        ],
+        'Update Customer': [
+          'Notify of completion',
+          'Share photos',
+          'Send 2nd half payment link'
+        ]
+      },
+      '2ND SUPP': {
+        'Create Supp in Xactimate': [
+          'Check Roof Packet & Checklist',
+          'Label photos',
+          'Add to Xactimate',
+          'Submit to insurance'
+        ],
+        'Follow Up Calls': [
+          'Call 2x/week until updated estimate'
+        ],
+        'Review Approved Supp': [
+          'Update trade cost',
+          'Prepare counter-supp or email',
+          'Add to AL Estimate'
+        ],
+        'Customer Update': [
+          'Share 2 items minimum',
+          'Let them know next steps'
+        ]
+      },
+      'PROSPECT: NON-INSURANCE': {
+        'Write Estimate': [
+          'Fill out Estimate Forms',
+          'Write initial estimate in AL and send customer for approval',
+          'Follow up with customer for approval',
+          'Let Office know the agreement is ready to sign'
+        ],
+        'Agreement Signing': [
+          'Review agreement with customer and send a signature request',
+          'Record in QuickBooks',
+          'Process deposit',
+          'Send and collect signatures for any applicable disclaimers'
+        ]
       },
       'COMPLETION': {
-        'Project Closeout': ['Final inspection completed', 'Customer walkthrough', 'Submit warranty information', 'Process final payment'],
-        'Customer Satisfaction': ['Send satisfaction survey', 'Collect customer feedback', 'Update customer records', 'Schedule follow-up']
+        'Financial Processing': [
+          'Verify worksheet',
+          'Final invoice & payment link',
+          'AR follow-up calls'
+        ],
+        'Project Closeout': [
+          'Register warranty',
+          'Send documentation',
+          'Submit insurance paperwork',
+          'Send final receipt and close job'
+        ]
       }
     };
 
