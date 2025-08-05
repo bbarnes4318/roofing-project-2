@@ -1204,6 +1204,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         });
       }
       
+      // CRITICAL: Emit global event for other components to refresh
+      window.dispatchEvent(new CustomEvent('workflowStepCompleted', {
+        detail: {
+          projectId: projectId,
+          stepId: stepId,
+          stepName: response?.data?.step?.stepName || stepId,
+          completed: completed
+        }
+      }));
+      
       // Handle automatic section and phase completion
       handleAutomaticCompletion(stepId, completed);
       
@@ -1221,6 +1231,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           console.log(`🎉 WORKFLOW: No more items - project workflow completed!`);
         }
       }
+      
+      // CRITICAL: Refresh workflow data after a delay to get server updates
+      setTimeout(async () => {
+        try {
+          const projectId = project._id || project.id;
+          console.log(`🔄 REFRESH: Fetching updated workflow data after completion`);
+          const response = await projectsService.getWorkflow(projectId);
+          
+          const newWorkflowData = {
+            ...(response.data || response.workflow),
+            _forceRender: Date.now(),
+            _updateFromCheckbox: true
+          };
+          
+          setWorkflowData(newWorkflowData);
+          console.log('✅ REFRESH: Updated workflow data with server response');
+        } catch (error) {
+          console.error('❌ REFRESH: Failed to refresh workflow data:', error);
+        }
+      }, 1500); // Wait 1.5 seconds for server processing
       
     } catch (error) {
       console.error('❌ CHECKBOX: Failed to update workflow step:', error);

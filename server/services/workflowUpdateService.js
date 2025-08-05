@@ -4,6 +4,7 @@
  */
 
 const { prisma } = require('../config/prisma');
+const WorkflowInitializationService = require('./workflowInitializationService');
 
 class WorkflowUpdateService {
     /**
@@ -13,25 +14,79 @@ class WorkflowUpdateService {
         try {
             console.log(`🔄 Updating workflow step ${stepId} for project ${projectId} - completed: ${isCompleted}`);
             
-            // Get the project with all workflow data
+            // Get the project
             const project = await prisma.project.findUnique({
-                where: { id: projectId },
-                include: {
-                    workflow: {
-                        include: {
-                            steps: true
-                        }
-                    }
-                }
+                where: { id: projectId }
             });
 
-            if (!project || !project.workflow) {
-                throw new Error('Project or workflow not found');
+            if (!project) {
+                throw new Error('Project not found');
+            }
+            
+            // Ensure workflow exists
+            const workflow = await WorkflowInitializationService.ensureWorkflowExists(projectId);
+            
+            if (!workflow) {
+                throw new Error('Failed to initialize workflow');
+            }
+
+            // Check if stepId is in frontend format (e.g., "LEAD-input-customer-info-0")
+            let workflowStep = null;
+            if (stepId.includes('-')) {
+                // Parse the frontend stepId format
+                const parts = stepId.split('-');
+                const phase = parts[0];
+                const itemId = parts.slice(1, -1).join('-');
+                const subIndex = parseInt(parts[parts.length - 1]);
+                
+                console.log(`🔍 Parsing frontend stepId: phase=${phase}, itemId=${itemId}, subIndex=${subIndex}`);
+                
+                // Try to find or create the workflow step
+                workflowStep = await prisma.workflowStep.findFirst({
+                    where: {
+                        workflowId: project.workflow.id,
+                        stepId: stepId
+                    }
+                });
+                
+                if (!workflowStep) {
+                    // Create the workflow step if it doesn't exist
+                    console.log(`📝 Creating new workflow step for ${stepId}`);
+                    
+                    // Map the step to proper workflow structure
+                    const stepMapping = this.getStepMappingFromFrontendId(stepId);
+                    
+                    workflowStep = await prisma.workflowStep.create({
+                        data: {
+                            stepId: stepId,
+                            stepName: stepMapping.stepName,
+                            description: stepMapping.description,
+                            phase: this.mapPhaseToEnum(phase),
+                            defaultResponsible: stepMapping.responsible || 'OFFICE',
+                            estimatedDuration: 60,
+                            isCompleted: isCompleted,
+                            completedAt: isCompleted ? new Date() : null,
+                            workflowId: project.workflow.id,
+                            alertPriority: 'MEDIUM',
+                            alertDays: 1,
+                            overdueIntervals: [1, 3, 7, 14]
+                        }
+                    });
+                }
+            } else {
+                // Standard database ID format
+                workflowStep = await prisma.workflowStep.findUnique({
+                    where: { id: stepId }
+                });
+            }
+            
+            if (!workflowStep) {
+                throw new Error(`Workflow step ${stepId} not found`);
             }
 
             // Update the specific step
             await prisma.workflowStep.update({
-                where: { id: stepId },
+                where: { id: workflowStep.id },
                 data: {
                     isCompleted: isCompleted,
                     completedAt: isCompleted ? new Date() : null
@@ -158,6 +213,163 @@ class WorkflowUpdateService {
     }
 
     /**
+     * Map frontend phase ID to database enum
+     */
+    static mapPhaseToEnum(phaseId) {
+        const phaseEnumMap = {
+            'LEAD': 'LEAD',
+            'PROSPECT': 'PROSPECT',
+            'PROSPECT_NON_INSURANCE': 'PROSPECT',
+            'APPROVED': 'APPROVED',
+            'EXECUTION': 'EXECUTION',
+            'SUPPLEMENT': 'SECOND_SUPP',
+            'COMPLETION': 'COMPLETION'
+        };
+        return phaseEnumMap[phaseId.toUpperCase()] || 'LEAD';
+    }
+
+    /**
+     * Get step mapping from frontend ID format
+     */
+    static getStepMappingFromFrontendId(stepId) {
+        // Default mapping for common patterns
+        const stepMappings = {
+            'input-customer-info': {
+                stepName: 'Input Customer Information',
+                description: 'Input customer contact and property information',
+                responsible: 'OFFICE'
+            },
+            'complete-questions': {
+                stepName: 'Complete Questions to Ask Checklist',
+                description: 'Complete initial customer questionnaire',
+                responsible: 'OFFICE'
+            },
+            'input-lead-property': {
+                stepName: 'Input Lead Property Information',
+                description: 'Add property photos and details',
+                responsible: 'OFFICE'
+            },
+            'assign-pm': {
+                stepName: 'Assign A Project Manager',
+                description: 'Assign and brief the project manager',
+                responsible: 'OFFICE'
+            },
+            'schedule-inspection': {
+                stepName: 'Schedule Initial Inspection',
+                description: 'Schedule site inspection with customer',
+                responsible: 'OFFICE'
+            },
+            'site-inspection': {
+                stepName: 'Site Inspection',
+                description: 'Conduct on-site inspection and documentation',
+                responsible: 'PROJECT_MANAGER'
+            },
+            'write-estimate': {
+                stepName: 'Write Estimate',
+                description: 'Create project estimate',
+                responsible: 'PROJECT_MANAGER'
+            },
+            'insurance-process': {
+                stepName: 'Insurance Process',
+                description: 'Process insurance claim and documentation',
+                responsible: 'ADMINISTRATION'
+            },
+            'agreement-prep': {
+                stepName: 'Agreement Preparation',
+                description: 'Prepare contract and agreement documents',
+                responsible: 'ADMINISTRATION'
+            },
+            'agreement-signing': {
+                stepName: 'Agreement Signing',
+                description: 'Get customer signatures on agreements',
+                responsible: 'ADMINISTRATION'
+            },
+            'admin-setup': {
+                stepName: 'Administrative Setup',
+                description: 'Set up project administration',
+                responsible: 'ADMINISTRATION'
+            },
+            'pre-job': {
+                stepName: 'Pre-Job Actions',
+                description: 'Complete pre-job requirements',
+                responsible: 'OFFICE'
+            },
+            'prepare-production': {
+                stepName: 'Prepare for Production',
+                description: 'Prepare materials and crew for production',
+                responsible: 'ADMINISTRATION'
+            },
+            'installation': {
+                stepName: 'Installation',
+                description: 'Execute roofing installation',
+                responsible: 'FIELD_DIRECTOR'
+            },
+            'quality-check': {
+                stepName: 'Quality Check',
+                description: 'Perform quality inspection',
+                responsible: 'ROOF_SUPERVISOR'
+            },
+            'multiple-trades': {
+                stepName: 'Multiple Trades',
+                description: 'Coordinate multiple trade work',
+                responsible: 'ADMINISTRATION'
+            },
+            'subcontractor-work': {
+                stepName: 'Subcontractor Work',
+                description: 'Manage subcontractor activities',
+                responsible: 'ADMINISTRATION'
+            },
+            'update-customer': {
+                stepName: 'Update Customer',
+                description: 'Provide customer updates',
+                responsible: 'ADMINISTRATION'
+            },
+            'create-supp': {
+                stepName: 'Create Supp in Xactimate',
+                description: 'Create supplement in Xactimate',
+                responsible: 'ADMINISTRATION'
+            },
+            'followup-calls': {
+                stepName: 'Follow-Up Calls',
+                description: 'Make insurance follow-up calls',
+                responsible: 'ADMINISTRATION'
+            },
+            'review-approved': {
+                stepName: 'Review Approved Supp',
+                description: 'Review approved supplement',
+                responsible: 'ADMINISTRATION'
+            },
+            'customer-update': {
+                stepName: 'Customer Update',
+                description: 'Update customer on supplement status',
+                responsible: 'ADMINISTRATION'
+            },
+            'financial-processing': {
+                stepName: 'Financial Processing',
+                description: 'Process project financials',
+                responsible: 'ADMINISTRATION'
+            },
+            'project-closeout': {
+                stepName: 'Project Closeout',
+                description: 'Complete project closeout procedures',
+                responsible: 'OFFICE'
+            }
+        };
+        
+        // Extract item ID from stepId
+        const parts = stepId.split('-');
+        const itemId = parts.slice(1, -1).join('-');
+        
+        return stepMappings[itemId] || {
+            stepName: itemId.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' '),
+            description: `Complete ${itemId.replace(/-/g, ' ')}`,
+            responsible: 'OFFICE'
+        };
+    }
+
+    /**
      * CRITICAL: Generate alerts for the next active line items after completing a step
      */
     static async generateNextStepAlerts(projectId) {
@@ -199,6 +411,23 @@ class WorkflowUpdateService {
                 });
 
                 if (!existingAlert) {
+                    // Parse step ID to get phase and section info
+                    let phase = step.phase;
+                    let section = step.stepName;
+                    let lineItem = step.stepName;
+                    
+                    // If stepId is in frontend format (e.g., "LEAD-input-customer-info-0")
+                    if (step.stepId && step.stepId.includes('-')) {
+                        const parts = step.stepId.split('-');
+                        const phaseId = parts[0];
+                        const itemId = parts.slice(1, -1).join('-');
+                        const subIndex = parts[parts.length - 1];
+                        
+                        // Map to proper section names
+                        section = this.getStepSection(step.stepName);
+                        lineItem = `Subtask ${parseInt(subIndex) + 1} of ${step.stepName}`;
+                    }
+                    
                     // Create alert for this step
                     await prisma.workflowAlert.create({
                         data: {
@@ -217,12 +446,15 @@ class WorkflowUpdateService {
                             assignedToId: step.assignedToId,
                             createdById: null, // System generated
                             metadata: {
-                                phase: step.phase,
-                                section: this.getStepSection(step.stepName),
-                                lineItem: step.stepName,
+                                phase: phase,
+                                section: section,
+                                lineItem: lineItem,
                                 projectName: project.projectName,
+                                projectNumber: project.projectNumber,
                                 customerName: project.customer?.primaryName,
                                 cleanTaskName: this.getCleanTaskName(step.stepName),
+                                stepId: step.id,
+                                workflowId: project.workflow.id,
                                 autoGenerated: true,
                                 generatedAt: new Date().toISOString()
                             }

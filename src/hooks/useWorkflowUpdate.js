@@ -21,7 +21,7 @@ export const useWorkflowUpdate = () => {
         try {
             const response = await axios.put(
                 `${API_URL}/workflow-updates/${projectId}/steps/${stepId}`,
-                { isCompleted },
+                { isCompleted, completed: isCompleted }, // Send both field names for compatibility
                 {
                     headers: {
                         'Content-Type': 'application/json',

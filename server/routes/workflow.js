@@ -7,6 +7,7 @@ const {
   formatValidationErrors 
 } = require('../middleware/errorHandler');
 const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/workflowMapping');
+const WorkflowInitializationService = require('../services/workflowInitializationService');
 
 const router = express.Router();
 
@@ -38,10 +39,11 @@ const transformWorkflowForFrontend = (workflow) => {
     steps: workflow.steps ? workflow.steps.map(step => {
       const transformedStep = transformWorkflowStep(step);
       return {
-        id: transformedStep.id,
-        _id: transformedStep.id,
-        stepId: transformedStep.stepId,
+        id: step.stepId || transformedStep.id, // Prefer stepId for frontend matching
+        _id: step.stepId || transformedStep.id,
+        stepId: step.stepId || transformedStep.stepId,
         stepName: transformedStep.stepName,
+        name: transformedStep.stepName, // Add alias for compatibility
         description: transformedStep.description,
         phase: transformedStep.phase,
         // CRITICAL: Add section and lineItem fields
@@ -147,8 +149,11 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
       });
     }
     
-    // Get workflow for the project
-    const workflow = await prisma.projectWorkflow.findUnique({
+    // Ensure workflow exists and get it
+    const workflow = await WorkflowInitializationService.ensureWorkflowExists(project.id);
+    
+    // Get workflow with all data
+    const fullWorkflow = await prisma.projectWorkflow.findUnique({
       where: { projectId: project.id },
       include: {
         steps: {
@@ -185,9 +190,9 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
     }
     
     // Transform workflow for frontend compatibility
-    const transformedWorkflow = transformWorkflowForFrontend(workflow);
+    const transformedWorkflow = transformWorkflowForFrontend(fullWorkflow);
     
-    console.log(`✅ WORKFLOW: Found workflow with ${workflow.steps?.length || 0} steps`);
+    console.log(`✅ WORKFLOW: Found workflow with ${fullWorkflow.steps?.length || 0} steps`);
     
     return res.status(200).json({
       success: true,

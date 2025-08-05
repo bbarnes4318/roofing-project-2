@@ -16,14 +16,19 @@ const asyncHandler = require('../middleware/asyncHandler');
  */
 router.put('/:projectId/steps/:stepId', asyncHandler(async (req, res) => {
     const { projectId, stepId } = req.params;
-    const { isCompleted } = req.body;
+    const { isCompleted, completed } = req.body;
+    
+    // Support both 'isCompleted' and 'completed' field names
+    const completionStatus = typeof isCompleted === 'boolean' ? isCompleted : completed;
 
     console.log(`📝 Updating workflow step ${stepId} for project ${projectId}`);
+    console.log(`📝 Completion status: ${completionStatus}`);
+    console.log(`📝 Request body:`, req.body);
 
-    if (typeof isCompleted !== 'boolean') {
+    if (typeof completionStatus !== 'boolean') {
         return res.status(400).json({
             success: false,
-            message: 'isCompleted must be a boolean value'
+            message: 'isCompleted or completed must be a boolean value'
         });
     }
 
@@ -32,29 +37,37 @@ router.put('/:projectId/steps/:stepId', asyncHandler(async (req, res) => {
         const updatedProject = await WorkflowUpdateService.updateWorkflowStep(
             projectId,
             stepId,
-            isCompleted
+            completionStatus
         );
 
-        // Get the updated workflow data
+        // Get the updated workflow data with all steps
         const workflow = await prisma.workflow.findFirst({
             where: { projectId },
             include: {
                 steps: {
-                    orderBy: { order: 'asc' }
+                    orderBy: { stepOrder: 'asc' }
                 }
             }
         });
+        
+        // Find the specific step that was updated
+        const updatedStep = workflow?.steps?.find(s => 
+            s.id === stepId || s.stepId === stepId
+        );
 
         // Return the updated project with workflow
         res.json({
             success: true,
-            message: `Workflow step ${isCompleted ? 'completed' : 'unchecked'}`,
+            message: `Workflow step ${completionStatus ? 'completed' : 'unchecked'}`,
             data: {
                 project: updatedProject,
                 workflow: workflow,
                 phase: updatedProject.phase,
-                progress: updatedProject.progress
-            }
+                progress: updatedProject.progress,
+                step: updatedStep
+            },
+            phase: updatedProject.phase,
+            progress: updatedProject.progress
         });
 
     } catch (error) {
