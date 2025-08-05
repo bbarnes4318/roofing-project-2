@@ -1581,8 +1581,93 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         </div>
       </div>
       
-      {/* Navigation Error Message */}
+      {/* Current Workflow Status Indicator */}
+      {(() => {
+        // Find current phase, section, and line item
+        let currentPhase = null;
+        let currentSection = null;
+        let currentLineItem = null;
+        let nextIncompleteTask = null;
 
+        for (const phase of phases) {
+          let phaseHasIncomplete = false;
+          
+          for (const item of phase.items) {
+            let sectionHasIncomplete = false;
+            
+            // Check subtasks for incomplete items
+            if (item.subtasks) {
+              for (let subIdx = 0; subIdx < item.subtasks.length; subIdx++) {
+                const stepId = `${phase.id}-${item.id}-${subIdx}`;
+                const isCompleted = isStepCompleted(stepId);
+                
+                if (!isCompleted) {
+                  if (!nextIncompleteTask) {
+                    nextIncompleteTask = {
+                      phase: phase.label,
+                      section: item.label.split(' – ')[0],
+                      lineItem: item.subtasks[subIdx],
+                      phaseColor: WorkflowProgressService.getPhaseColor(phase.id)
+                    };
+                  }
+                  sectionHasIncomplete = true;
+                  phaseHasIncomplete = true;
+                }
+              }
+            }
+            
+            // If section has incomplete, mark it as current
+            if (sectionHasIncomplete && !currentSection) {
+              currentPhase = phase.label;
+              currentSection = item.label.split(' – ')[0];
+            }
+          }
+          
+          // If phase has incomplete, mark it as current
+          if (phaseHasIncomplete && !currentPhase) {
+            currentPhase = phase.label;
+          }
+        }
+
+        return nextIncompleteTask ? (
+          <div className="mx-3 mb-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {/* Phase Indicator */}
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 ${nextIncompleteTask.phaseColor.bg} rounded-full shadow-sm`}></div>
+                  <div className="text-xs font-semibold text-gray-700">
+                    Current Phase: <span className={`${nextIncompleteTask.phaseColor.text} font-bold`}>{nextIncompleteTask.phase}</span>
+                  </div>
+                </div>
+                
+                {/* Divider */}
+                <div className="w-px h-6 bg-gray-300"></div>
+                
+                {/* Section Indicator */}
+                <div className="text-xs font-medium text-gray-600">
+                  Section: <span className="font-semibold text-gray-800">{nextIncompleteTask.section}</span>
+                </div>
+              </div>
+              
+              {/* Next Task Indicator */}
+              <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
+                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                <div className="text-xs font-medium text-gray-700">
+                  Next: <span className="font-semibold text-blue-700">{nextIncompleteTask.lineItem}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mx-3 mb-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="text-xs font-semibold text-green-700">All workflow tasks completed!</div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="flex-1 overflow-y-auto px-3 py-2 text-left" key={`workflow-${workflowData?._forceRender || 0}`}>
         <div className="space-y-2 text-left">
