@@ -236,6 +236,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [currentUser, setCurrentUser] = useState(null);
   
   // Alert action state
+  const [alertNotes, setAlertNotes] = useState({});
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedAlertForAssign, setSelectedAlertForAssign] = useState(null);
   const [assignToUser, setAssignToUser] = useState('');
@@ -2307,7 +2308,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
                     }`}
                   >
-                    <option value="all">All User Groups</option>
+                    <option value="all">All Roles</option>
                     <option value="PM">Project Manager</option>
                     <option value="FIELD">Field Director</option>
                     <option value="OFFICE">Office Staff</option>
@@ -2661,6 +2662,31 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 Assign to User
                               </span>
                             </button>
+                          </div>
+                          
+                          {/* Note Box */}
+                          <div className="mt-3">
+                            <label className={`block text-[9px] font-medium mb-1 ${
+                              colorMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Add Note:
+                            </label>
+                            <textarea
+                              placeholder="Enter a note for this alert..."
+                              rows={2}
+                              value={alertNotes[alertId] || ''}
+                              className={`w-full p-2 text-[9px] border rounded resize-none transition-colors ${
+                                colorMode 
+                                  ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                              }`}
+                              onChange={(e) => {
+                                setAlertNotes(prev => ({
+                                  ...prev,
+                                  [alertId]: e.target.value
+                                }));
+                              }}
+                            />
                           </div>
                         </div>
                       )}
