@@ -749,29 +749,46 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                       console.log('🔄 Blue highlighting removed');
                     }, 5000);
                     
-                    // ENHANCED: Highlight specific line item if provided
+                    // ENHANCED: Instead of highlighting section, find and highlight specific subtask
                     if (targetLineItem) {
                       setTimeout(() => {
-                        const lineItemElements = itemElement.querySelectorAll('li span');
-                        for (const lineEl of lineItemElements) {
-                          const lineText = lineEl.textContent.toLowerCase();
+                        // Remove section highlighting and focus on subtask
+                        itemElement.style.backgroundColor = '';
+                        itemElement.style.color = '';
+                        itemElement.style.borderRadius = '';
+                        itemElement.style.padding = '';
+                        itemElement.style.transform = '';
+                        itemElement.style.boxShadow = '';
+                        
+                        // Find all subtask elements (checkboxes and text)
+                        const subtaskElements = itemElement.querySelectorAll('li, span');
+                        for (const subtaskEl of subtaskElements) {
+                          const subtaskText = subtaskEl.textContent.toLowerCase();
                           const targetText = targetLineItem.toLowerCase();
                           
-                          if (lineText.includes(targetText) || targetText.includes(lineText)) {
-                            console.log('🎯 HIGHLIGHTING specific line item:', lineEl.textContent);
+                          if (subtaskText.includes(targetText) || targetText.includes(subtaskText)) {
+                            console.log('🎯 HIGHLIGHTING specific subtask:', subtaskEl.textContent);
                             
-                            lineEl.style.backgroundColor = '#1D4ED8'; // Darker blue for line item
-                            lineEl.style.color = 'white';
-                            lineEl.style.padding = '2px 6px';
-                            lineEl.style.borderRadius = '4px';
-                            lineEl.style.fontWeight = 'bold';
+                            // Apply bright highlighting to the specific subtask
+                            subtaskEl.style.backgroundColor = '#F59E0B'; // Orange/amber for visibility
+                            subtaskEl.style.color = 'white';
+                            subtaskEl.style.padding = '4px 8px';
+                            subtaskEl.style.borderRadius = '6px';
+                            subtaskEl.style.fontWeight = 'bold';
+                            subtaskEl.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.6)';
+                            subtaskEl.style.border = '2px solid #D97706';
+                            
+                            // Scroll specifically to this subtask
+                            subtaskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             
                             setTimeout(() => {
-                              lineEl.style.backgroundColor = '';
-                              lineEl.style.color = '';
-                              lineEl.style.padding = '';
-                              lineEl.style.borderRadius = '';
-                              lineEl.style.fontWeight = '';
+                              subtaskEl.style.backgroundColor = '';
+                              subtaskEl.style.color = '';
+                              subtaskEl.style.padding = '';
+                              subtaskEl.style.borderRadius = '';
+                              subtaskEl.style.fontWeight = '';
+                              subtaskEl.style.boxShadow = '';
+                              subtaskEl.style.border = '';
                             }, 7000);
                             break;
                           }
@@ -1606,7 +1623,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                     nextIncompleteTask = {
                       phase: phase.label,
                       section: item.label.split(' – ')[0],
-                      lineItem: item.subtasks[subIdx],
+                      lineItem: item.label.split(' – ')[0], // Line item is the section name
+                      nextSubtask: item.subtasks[subIdx], // Next subtask is what needs to be done
                       phaseColor: WorkflowProgressService.getPhaseColor(phase.id)
                     };
                   }
@@ -1644,17 +1662,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                 {/* Divider */}
                 <div className="w-px h-6 bg-gray-300"></div>
                 
-                {/* Section Indicator */}
+                {/* Line Item Indicator */}
                 <div className="text-xs font-medium text-gray-600">
-                  Section: <span className="font-semibold text-gray-800">{nextIncompleteTask.section}</span>
+                  Line Item: <span className="font-semibold text-gray-800">{nextIncompleteTask.lineItem}</span>
                 </div>
               </div>
               
-              {/* Next Task Indicator */}
+              {/* Next Subtask Indicator */}
               <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
                 <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
                 <div className="text-xs font-medium text-gray-700">
-                  Next: <span className="font-semibold text-blue-700">{nextIncompleteTask.lineItem}</span>
+                  Next Task: <span className="font-semibold text-blue-700">{nextIncompleteTask.nextSubtask}</span>
                 </div>
               </div>
             </div>
