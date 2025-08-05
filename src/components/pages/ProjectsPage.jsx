@@ -757,34 +757,91 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         <button
                             onClick={() => {
                               // ENHANCED: Get current workflow state and add highlighting like Current Alerts
+                              // ENHANCED: Get current workflow state and create direct navigation mapping
                               const workflowState = WorkflowProgressService.calculateProjectProgress(project);
                               const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
                               const currentPhase = WorkflowProgressService.getProjectPhase(project);
+                              const currentStepName = currentStep?.stepName || currentStep?.name || 'Input Customer Information';
+                              
+                              console.log('🚀 MY PROJECTS: Workflow button clicked for:', project.name);
+                              console.log('🎯 Current step:', currentStepName);
+                              console.log('🎯 Current phase:', currentPhase);
+                              
+                              // Create direct mapping for current step
+                              const createStepMapping = (stepName, phase) => {
+                                const stepMappings = {
+                                  // LEAD Phase mappings
+                                  'Input Customer Information': { phase: 'LEAD', section: 'Input Customer Information', sectionId: 'input-customer-info' },
+                                  'Complete Questions to Ask Checklist': { phase: 'LEAD', section: 'Complete Questions to Ask Checklist', sectionId: 'complete-questions' },
+                                  'Input Lead Property Information': { phase: 'LEAD', section: 'Input Lead Property Information', sectionId: 'input-lead-property' },
+                                  'Assign A Project Manager': { phase: 'LEAD', section: 'Assign A Project Manager', sectionId: 'assign-pm' },
+                                  'Schedule Initial Inspection': { phase: 'LEAD', section: 'Schedule Initial Inspection', sectionId: 'schedule-inspection' },
+                                  
+                                  // PROSPECT Phase mappings
+                                  'Site Inspection': { phase: 'PROSPECT', section: 'Site Inspection', sectionId: 'site-inspection' },
+                                  'Write Estimate': { phase: 'PROSPECT', section: 'Write Estimate', sectionId: 'write-estimate' },
+                                  'Insurance Process': { phase: 'PROSPECT', section: 'Insurance Process', sectionId: 'insurance-process' },
+                                  'Agreement Preparation': { phase: 'PROSPECT', section: 'Agreement Preparation', sectionId: 'agreement-prep' },
+                                  'Agreement Signing': { phase: 'PROSPECT', section: 'Agreement Signing', sectionId: 'agreement-signing' },
+                                  
+                                  // APPROVED Phase mappings
+                                  'Administrative Setup': { phase: 'APPROVED', section: 'Administrative Setup', sectionId: 'admin-setup' },
+                                  'Pre-Job Actions': { phase: 'APPROVED', section: 'Pre-Job Actions', sectionId: 'pre-job' },
+                                  'Prepare for Production': { phase: 'APPROVED', section: 'Prepare for Production', sectionId: 'prepare-production' },
+                                  
+                                  // EXECUTION Phase mappings
+                                  'Installation': { phase: 'EXECUTION', section: 'Installation', sectionId: 'installation' },
+                                  'Quality Check': { phase: 'EXECUTION', section: 'Quality Check', sectionId: 'quality-check' },
+                                  'Multiple Trades': { phase: 'EXECUTION', section: 'Multiple Trades', sectionId: 'multiple-trades' },
+                                  'Subcontractor Work': { phase: 'EXECUTION', section: 'Subcontractor Work', sectionId: 'subcontractor-work' },
+                                  'Update Customer': { phase: 'EXECUTION', section: 'Update Customer', sectionId: 'update-customer' },
+                                  
+                                  // SUPPLEMENT Phase mappings
+                                  'Create Supp in Xactimate': { phase: 'SUPPLEMENT', section: 'Create Supp in Xactimate', sectionId: 'create-supp' },
+                                  'Follow-Up Calls': { phase: 'SUPPLEMENT', section: 'Follow-Up Calls', sectionId: 'followup-calls' },
+                                  'Review Approved Supp': { phase: 'SUPPLEMENT', section: 'Review Approved Supp', sectionId: 'review-approved' },
+                                  'Customer Update': { phase: 'SUPPLEMENT', section: 'Customer Update', sectionId: 'customer-update' },
+                                  
+                                  // COMPLETION Phase mappings
+                                  'Financial Processing': { phase: 'COMPLETION', section: 'Financial Processing', sectionId: 'financial-processing' },
+                                  'Project Closeout': { phase: 'COMPLETION', section: 'Project Closeout', sectionId: 'project-closeout' }
+                                };
+                                
+                                return stepMappings[stepName] || {
+                                  phase: phase || 'LEAD',
+                                  section: stepName || 'Input Customer Information',
+                                  sectionId: (stepName || 'input-customer-info').toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
+                                };
+                              };
+                              
+                              const stepMapping = createStepMapping(currentStepName, currentPhase);
                               
                               const projectWithWorkflowState = {
                                 ...project,
                                 currentWorkflowStep: currentStep,
                                 workflowState: workflowState,
+                                highlightStep: currentStepName,
                                 scrollToCurrentLineItem: true,
-                                targetPhase: currentPhase,
-                                targetSection: currentStep?.stepName || currentStep?.name,
-                                targetLineItem: currentStep?.stepId,
-                                highlightLineItem: currentStep?.stepId,
+                                targetPhase: stepMapping.phase,
+                                targetSection: stepMapping.section,
+                                targetLineItem: stepMapping.section,
+                                highlightLineItem: currentStepName,
                                 sourceSection: 'My Projects',
-                                // Add navigation context for proper workflow highlighting like Current Alerts
                                 navigationTarget: {
-                                  phase: currentPhase,
-                                  section: currentStep?.stepName || currentStep?.name,
-                                  lineItem: currentStep?.stepName || currentStep?.name,
-                                  stepName: currentStep?.stepName || currentStep?.name,
+                                  phase: stepMapping.phase,
+                                  section: stepMapping.section,
+                                  sectionId: stepMapping.sectionId, // CRITICAL: Direct section ID
+                                  lineItem: stepMapping.section,
+                                  stepName: currentStepName,
                                   stepId: currentStep?.stepId,
                                   highlightMode: 'line-item',
                                   scrollBehavior: 'smooth',
-                                  targetElementId: `line-item-${(currentStep?.stepName || currentStep?.name || '').replace(/\s+/g, '-').toLowerCase()}`,
                                   highlightColor: '#3B82F6',
-                                  highlightDuration: 3000
+                                  highlightDuration: 5000
                                 }
                               };
+                              
+                              console.log('🎯 MY PROJECTS: Enhanced navigation data:', projectWithWorkflowState.navigationTarget);
                               onProjectSelect(projectWithWorkflowState, 'Project Workflow');
                             }}
                             className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${

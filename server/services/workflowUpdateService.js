@@ -41,10 +41,10 @@ class WorkflowUpdateService {
                 
                 console.log(`🔍 Parsing frontend stepId: phase=${phase}, itemId=${itemId}, subIndex=${subIndex}`);
                 
-                // Try to find or create the workflow step
+                // Try to find existing workflow step by stepId
                 workflowStep = await prisma.workflowStep.findFirst({
                     where: {
-                        workflowId: project.workflow.id,
+                        workflowId: workflow.id,
                         stepId: stepId
                     }
                 });
@@ -56,22 +56,34 @@ class WorkflowUpdateService {
                     // Map the step to proper workflow structure
                     const stepMapping = this.getStepMappingFromFrontendId(stepId);
                     
+                    // Get the highest stepOrder to maintain sequence
+                    const maxOrder = await prisma.workflowStep.findFirst({
+                        where: { workflowId: workflow.id },
+                        orderBy: { stepOrder: 'desc' },
+                        select: { stepOrder: true }
+                    });
+                    
+                    const nextOrder = (maxOrder?.stepOrder || 0) + 1;
+                    
                     workflowStep = await prisma.workflowStep.create({
                         data: {
                             stepId: stepId,
                             stepName: stepMapping.stepName,
                             description: stepMapping.description,
                             phase: this.mapPhaseToEnum(phase),
+                            stepOrder: nextOrder,
                             defaultResponsible: stepMapping.responsible || 'OFFICE',
                             estimatedDuration: 60,
                             isCompleted: isCompleted,
                             completedAt: isCompleted ? new Date() : null,
-                            workflowId: project.workflow.id,
+                            workflowId: workflow.id,
                             alertPriority: 'MEDIUM',
                             alertDays: 1,
                             overdueIntervals: [1, 3, 7, 14]
                         }
                     });
+                    
+                    console.log(`✅ Created workflow step: ${workflowStep.stepName} (ID: ${workflowStep.id})`);
                 }
             } else {
                 // Standard database ID format
@@ -381,38 +393,50 @@ class WorkflowUpdateService {
                 where: { id: projectId },
                 include: {
                     customer: true,
-                    projectManager: true,
-                    workflow: {
-                        include: {
-                            steps: {
-                                where: { isCompleted: false },
-                                orderBy: { stepOrder: 'asc' },
-                                take: 5 // Get up to 5 next steps to create alerts for
-                            }
-                        }
+                    projectManager: true
+                }
+            });
+
+            if (!project) {
+                console.log(`⚠️ Project ${projectId} not found`);
+                return;
+            }
+
+            // Get the workflow separately to avoid nested include issues
+            const workflow = await prisma.projectWorkflow.findFirst({
+                where: { projectId: projectId },
+                include: {
+                    steps: {
+                        where: { isCompleted: false },
+                        orderBy: { stepOrder: 'asc' },
+                        take: 3 // Get next 3 steps to create alerts for
                     }
                 }
             });
 
-            if (!project || !project.workflow || !project.workflow.steps.length) {
+            if (!workflow || !workflow.steps.length) {
                 console.log(`⚠️ No active workflow steps found for project ${projectId}`);
                 return;
             }
 
-            // Create alerts for all active (incomplete) steps
-            for (const step of project.workflow.steps) {
+            console.log(`📋 Found ${workflow.steps.length} incomplete steps for alert generation`);
+
+            // Create alerts for active (incomplete) steps
+            for (const step of workflow.steps) {
                 // Check if alert already exists for this step
                 const existingAlert = await prisma.workflowAlert.findFirst({
                     where: {
                         projectId: projectId,
                         stepId: step.id,
-                        status: 'ACTIVE'
+                        status: { in: ['ACTIVE', 'PENDING'] }
                     }
                 });
 
                 if (!existingAlert) {
+                    console.log(`📨 Creating new alert for step: ${step.stepName} (${step.stepId})`);
+                    
                     // Parse step ID to get phase and section info
-                    let phase = step.phase;
+                    let phase = step.phase || 'LEAD';
                     let section = step.stepName;
                     let lineItem = step.stepName;
                     
@@ -425,11 +449,12 @@ class WorkflowUpdateService {
                         
                         // Map to proper section names
                         section = this.getStepSection(step.stepName);
-                        lineItem = `Subtask ${parseInt(subIndex) + 1} of ${step.stepName}`;
+                        lineItem = step.stepName;
+                        phase = phaseId;
                     }
                     
                     // Create alert for this step
-                    await prisma.workflowAlert.create({
+                    const newAlert = await prisma.workflowAlert.create({
                         data: {
                             type: 'Work Flow Line Item',
                             priority: step.alertPriority || 'MEDIUM',
@@ -441,7 +466,7 @@ class WorkflowUpdateService {
                             isRead: false,
                             dueDate: step.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
                             projectId: project.id,
-                            workflowId: project.workflow.id,
+                            workflowId: workflow.id,
                             stepId: step.id,
                             assignedToId: step.assignedToId,
                             createdById: null, // System generated
@@ -454,19 +479,29 @@ class WorkflowUpdateService {
                                 customerName: project.customer?.primaryName,
                                 cleanTaskName: this.getCleanTaskName(step.stepName),
                                 stepId: step.id,
-                                workflowId: project.workflow.id,
+                                stepName: step.stepName,
+                                workflowId: workflow.id,
                                 autoGenerated: true,
                                 generatedAt: new Date().toISOString()
                             }
                         }
                     });
 
-                    console.log(`📨 Created alert for step: ${step.stepName} in project ${project.projectName}`);
+                    console.log(`✅ Created alert ${newAlert.id} for step: ${step.stepName} in project ${project.projectName}`);
+                } else {
+                    console.log(`⏭️ Alert already exists for step: ${step.stepName} (alert ID: ${existingAlert.id})`);
                 }
             }
             
+            console.log(`✅ Completed alert generation for project ${projectId}`);
+            
         } catch (error) {
             console.error('❌ Error generating next step alerts:', error);
+            console.error('❌ Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
         }
     }
 

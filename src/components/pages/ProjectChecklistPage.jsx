@@ -613,7 +613,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     };
   }, [project?.id, project?._id]);
 
-  // Enhanced step highlighting from alert navigation with precise targeting
+  // ENHANCED: Direct line item navigation with phase/section/lineitem mapping
   useEffect(() => {
     if (project?.highlightStep || project?.highlightLineItem || project?.targetLineItem || project?.navigationTarget) {
       const navigationTarget = project?.navigationTarget;
@@ -622,206 +622,206 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       const targetSection = navigationTarget?.section || project?.targetSection || project?.alertSection;
       const targetLineItem = navigationTarget?.lineItem || project?.targetLineItem;
       
-      console.log('🎯 WORKFLOW: Enhanced navigation targeting:');
-      console.log('🎯 WORKFLOW: Step to find:', stepToFind);
-      console.log('🎯 WORKFLOW: Target phase:', targetPhase);
-      console.log('🎯 WORKFLOW: Target section:', targetSection);
-      console.log('🎯 WORKFLOW: Target line item:', targetLineItem);
-      console.log('🎯 WORKFLOW: Navigation target:', navigationTarget);
+      console.log('🎯 WORKFLOW NAVIGATION: Starting enhanced navigation');
+      console.log('🎯 Step to find:', stepToFind);
+      console.log('🎯 Target phase:', targetPhase);
+      console.log('🎯 Target section:', targetSection);
+      console.log('🎯 Target line item:', targetLineItem);
+      console.log('🎯 Navigation target:', navigationTarget);
       
       setHighlightedStep(stepToFind);
       
-      // Enhanced matching system with precise targeting
-      const normalizeStepName = (name) => {
-        return name
-          ? name.toLowerCase().trim().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim()
-          : '';
+      // ENHANCED: Direct phase ID mapping instead of fuzzy matching
+      const phaseIdMapping = {
+        'LEAD': 'LEAD',
+        'Lead': 'LEAD',
+        'PROSPECT': 'PROSPECT', 
+        'Prospect': 'PROSPECT',
+        'PROSPECT_NON_INSURANCE': 'PROSPECT_NON_INSURANCE',
+        'APPROVED': 'APPROVED',
+        'Approved': 'APPROVED',
+        'EXECUTION': 'EXECUTION',
+        'Execution': 'EXECUTION',
+        'SUPPLEMENT': 'SUPPLEMENT',
+        '2ND_SUPP': 'SUPPLEMENT',
+        '2nd Supplement': 'SUPPLEMENT',
+        'COMPLETION': 'COMPLETION',
+        'Completion': 'COMPLETION'
       };
       
-      const normalizedStepToFind = normalizeStepName(stepToFind);
-      const normalizedTargetPhase = normalizeStepName(targetPhase);
-      const normalizedTargetSection = normalizeStepName(targetSection);
-      const normalizedTargetLineItem = normalizeStepName(targetLineItem);
-      
-      console.log('🔍 WORKFLOW: Normalized search terms:');
-      console.log('🔍 WORKFLOW: Step:', normalizedStepToFind);
-      console.log('🔍 WORKFLOW: Phase:', normalizedTargetPhase);
-      console.log('🔍 WORKFLOW: Section:', normalizedTargetSection);
-      console.log('🔍 WORKFLOW: Line item:', normalizedTargetLineItem);
-      
-      let foundMatch = false;
-      let matchedPhase = null;
-      let matchedItem = null;
-      let matchedSubtask = null;
-      let matchedSubheading = null;
-      
-      // First, try to find the exact phase
-      const targetPhaseObj = phases.find(phase => {
-        const phaseName = normalizeStepName(phase.label.split(' ').slice(1).join(' ')); // Remove emoji
-        return phaseName.includes(normalizedTargetPhase) || normalizedTargetPhase.includes(phaseName);
-      });
+      // Find target phase using direct mapping
+      const mappedPhaseId = phaseIdMapping[targetPhase] || targetPhase;
+      const targetPhaseObj = phases.find(phase => phase.id === mappedPhaseId);
       
       if (targetPhaseObj) {
-        console.log('✅ WORKFLOW: Found target phase:', targetPhaseObj.label);
+        console.log('✅ DIRECT MAPPING: Found target phase:', targetPhaseObj.label);
         
-        // Look for the specific section within the phase
-        for (const item of targetPhaseObj.items) {
-          const itemNameBase = item.label.split(' –')[0].trim();
-          const normalizedItemName = normalizeStepName(itemNameBase);
-          
-          // Check if this item matches the target section
-          const sectionMatch = normalizedItemName.includes(normalizedTargetSection) || 
-                             normalizedTargetSection.includes(normalizedItemName) ||
-                             normalizedStepToFind.includes(normalizedItemName) ||
-                             normalizedItemName.includes(normalizedStepToFind);
-          
-          if (sectionMatch) {
-            console.log('✅ WORKFLOW: Found matching section:', item.label);
-            matchedPhase = targetPhaseObj;
-            matchedItem = item;
-            
-            // If we have a specific line item, try to find it in the subtasks
-            if (normalizedTargetLineItem && item.subtasks) {
-              for (let subIdx = 0; subIdx < item.subtasks.length; subIdx++) {
-                const subtask = item.subtasks[subIdx];
-                const normalizedSubtask = normalizeStepName(subtask);
-                
-                if (normalizedSubtask.includes(normalizedTargetLineItem) || 
-                    normalizedTargetLineItem.includes(normalizedSubtask)) {
-                  console.log('✅ WORKFLOW: Found matching subtask:', subtask);
-                  matchedSubtask = { subtask, index: subIdx };
-                  foundMatch = true;
-                  break;
-                }
-              }
-            }
-            
-            // Also check subheadings if no subtask match found
-            if (!matchedSubtask && item.subheadings) {
-              for (const subheading of item.subheadings) {
-                for (let subIdx = 0; subIdx < subheading.subtasks.length; subIdx++) {
-                  const subtask = subheading.subtasks[subIdx];
-                  const normalizedSubtask = normalizeStepName(subtask);
-                  
-                  if (normalizedSubtask.includes(normalizedTargetLineItem) || 
-                      normalizedTargetLineItem.includes(normalizedSubtask)) {
-                    console.log('✅ WORKFLOW: Found matching subheading subtask:', subtask);
-                    matchedSubtask = { subtask, index: subIdx };
-                    matchedSubheading = subheading;
-                    foundMatch = true;
-                    break;
-                  }
-                }
-                if (foundMatch) break;
-              }
-            }
-            
-            // If no specific subtask match, still mark as found
-            if (!foundMatch) {
-              foundMatch = true;
-            }
-            break;
-          }
+        // ENHANCED: Direct section matching by multiple strategies
+        let matchedItem = null;
+        
+        // Strategy 1: Direct ID matching (if available)
+        if (navigationTarget?.sectionId) {
+          matchedItem = targetPhaseObj.items.find(item => item.id === navigationTarget.sectionId);
         }
-      }
-      
-      if (foundMatch && matchedPhase && matchedItem) {
-        // Set the phase and item to open
-        setOpenPhase(matchedPhase.id);
-        setOpenItem({ [matchedItem.id]: true });
         
-        // Enhanced scrolling with precise targeting
-        const scrollToHighlightedStep = () => {
-          let attempts = 0;
-          const maxAttempts = 15;
+        // Strategy 2: Exact section name matching
+        if (!matchedItem && targetSection) {
+          matchedItem = targetPhaseObj.items.find(item => {
+            const itemBaseName = item.label.split(' –')[0].trim();
+            return itemBaseName === targetSection || item.label === targetSection;
+          });
+        }
+        
+        // Strategy 3: Contains matching (fallback)
+        if (!matchedItem && targetSection) {
+          matchedItem = targetPhaseObj.items.find(item => {
+            const itemBaseName = item.label.split(' –')[0].trim().toLowerCase();
+            const targetLower = targetSection.toLowerCase();
+            return itemBaseName.includes(targetLower) || targetLower.includes(itemBaseName);
+          });
+        }
+        
+        // Strategy 4: Match by step name if no section match
+        if (!matchedItem && stepToFind) {
+          matchedItem = targetPhaseObj.items.find(item => {
+            const itemBaseName = item.label.split(' –')[0].trim().toLowerCase();
+            const stepLower = stepToFind.toLowerCase();
+            return itemBaseName.includes(stepLower) || stepLower.includes(itemBaseName);
+          });
+        }
+        
+        if (matchedItem) {
+          console.log('✅ DIRECT MAPPING: Found target section:', matchedItem.label);
           
-          const attemptScroll = () => {
-            attempts++;
+          // CRITICAL: Always open the phase and item
+          setOpenPhase(targetPhaseObj.id);
+          setOpenItem({ [matchedItem.id]: true });
+          
+          // Execute navigation and highlighting
+          const executeNavigation = () => {
+            let attempts = 0;
+            const maxAttempts = 20;
             
-            // First try to scroll to the phase
-            const phaseElement = document.querySelector(`[data-phase-id="${matchedPhase.id}"]`);
-            if (phaseElement) {
-              console.log('📜 WORKFLOW: Found phase element, scrolling...');
-              phaseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const attemptNavigation = () => {
+              attempts++;
+              console.log(`📍 NAVIGATION ATTEMPT ${attempts}: Looking for elements`);
               
-              // Wait for phase scroll to complete, then scroll to item
-              setTimeout(() => {
-                const itemElement = document.querySelector(`[data-item-id="${matchedItem.id}"]`);
-                if (itemElement) {
-                  console.log('📜 WORKFLOW: Found item element, scrolling to specific item...');
-                  itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Find phase element
+              const phaseElement = document.querySelector(`[data-phase-id="${targetPhaseObj.id}"]`);
+              
+              if (phaseElement) {
+                console.log('✅ Found phase element, scrolling to phase');
+                phaseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Wait for phase scroll, then find item
+                setTimeout(() => {
+                  const itemElement = document.querySelector(`[data-item-id="${matchedItem.id}"]`);
                   
-                  // Add enhanced visual feedback
-                  itemElement.style.transition = 'all 0.3s ease';
-                  itemElement.style.transform = 'scale(1.02)';
-                  itemElement.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.5)';
-                  
-                  setTimeout(() => {
-                    itemElement.style.transform = 'scale(1)';
-                    itemElement.style.boxShadow = '';
-                  }, 1000);
-                  
-                  // If we found a specific subtask, try to highlight it
-                  if (matchedSubtask) {
+                  if (itemElement) {
+                    console.log('✅ Found item element, applying blue highlighting');
+                    
+                    // Scroll to center the item
+                    itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // ENHANCED: Apply blue highlighting exactly as requested
+                    itemElement.style.transition = 'all 0.4s ease';
+                    itemElement.style.backgroundColor = '#3B82F6'; // Blue background
+                    itemElement.style.color = 'white';
+                    itemElement.style.borderRadius = '8px';
+                    itemElement.style.padding = '8px';
+                    itemElement.style.transform = 'scale(1.02)';
+                    itemElement.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.8)';
+                    itemElement.style.zIndex = '10';
+                    itemElement.style.position = 'relative';
+                    
+                    console.log('🔥 BLUE HIGHLIGHT APPLIED to section:', matchedItem.label);
+                    
+                    // Remove highlighting after 5 seconds
                     setTimeout(() => {
-                      const subtaskElements = itemElement.querySelectorAll('li');
-                      for (const subtaskEl of subtaskElements) {
-                        if (subtaskEl.textContent.toLowerCase().includes(matchedSubtask.subtask.toLowerCase())) {
-                          subtaskEl.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-                          subtaskEl.style.borderRadius = '4px';
-                          subtaskEl.style.padding = '2px 4px';
-                          subtaskEl.style.transition = 'all 0.3s ease';
+                      itemElement.style.backgroundColor = '';
+                      itemElement.style.color = '';
+                      itemElement.style.borderRadius = '';
+                      itemElement.style.padding = '';
+                      itemElement.style.transform = '';
+                      itemElement.style.boxShadow = '';
+                      itemElement.style.zIndex = '';
+                      itemElement.style.position = '';
+                      console.log('🔄 Blue highlighting removed');
+                    }, 5000);
+                    
+                    // ENHANCED: Highlight specific line item if provided
+                    if (targetLineItem) {
+                      setTimeout(() => {
+                        const lineItemElements = itemElement.querySelectorAll('li span');
+                        for (const lineEl of lineItemElements) {
+                          const lineText = lineEl.textContent.toLowerCase();
+                          const targetText = targetLineItem.toLowerCase();
                           
-                          setTimeout(() => {
-                            subtaskEl.style.backgroundColor = '';
-                            subtaskEl.style.borderRadius = '';
-                            subtaskEl.style.padding = '';
-                          }, 3000);
-                          break;
+                          if (lineText.includes(targetText) || targetText.includes(lineText)) {
+                            console.log('🎯 HIGHLIGHTING specific line item:', lineEl.textContent);
+                            
+                            lineEl.style.backgroundColor = '#1D4ED8'; // Darker blue for line item
+                            lineEl.style.color = 'white';
+                            lineEl.style.padding = '2px 6px';
+                            lineEl.style.borderRadius = '4px';
+                            lineEl.style.fontWeight = 'bold';
+                            
+                            setTimeout(() => {
+                              lineEl.style.backgroundColor = '';
+                              lineEl.style.color = '';
+                              lineEl.style.padding = '';
+                              lineEl.style.borderRadius = '';
+                              lineEl.style.fontWeight = '';
+                            }, 7000);
+                            break;
+                          }
                         }
-                      }
-                    }, 500);
+                      }, 600);
+                    }
+                    
+                  } else {
+                    console.log(`⏳ Item element not found (attempt ${attempts}), retrying...`);
+                    if (attempts < maxAttempts) {
+                      setTimeout(attemptNavigation, 300);
+                    } else {
+                      console.log('❌ Failed to find item element after maximum attempts');
+                    }
                   }
-                  
-                  console.log('✅ WORKFLOW: Successfully scrolled to and highlighted item');
-                  
-
+                }, 500);
+                
+              } else {
+                console.log(`⏳ Phase element not found (attempt ${attempts}), retrying...`);
+                if (attempts < maxAttempts) {
+                  setTimeout(attemptNavigation, 300);
                 } else {
-                  console.log('⚠️ WORKFLOW: Item element not found, retrying...');
-                  if (attempts < maxAttempts) {
-                    setTimeout(attemptScroll, 200);
-                  }
+                  console.log('❌ Failed to find phase element after maximum attempts');
                 }
-              }, 300);
-            } else {
-              console.log('⚠️ WORKFLOW: Phase element not found, retrying...');
-              if (attempts < maxAttempts) {
-                setTimeout(attemptScroll, 200);
               }
-            }
+            };
+            
+            // Start navigation after DOM settles
+            setTimeout(attemptNavigation, 200);
           };
           
-          // Start the scroll attempts after a brief delay to ensure DOM is ready
-          setTimeout(attemptScroll, 100);
-        };
-        
-        // Execute the enhanced scrolling
-        scrollToHighlightedStep();
-        
-        // Clear highlighting after 15 seconds (longer to give user time to see)
-        setTimeout(() => {
-          setHighlightedStep(null);
-          console.log('🔄 WORKFLOW: Cleared highlighting');
-        }, 15000);
-              } else {
-          console.log('❌ WORKFLOW: No matching step found for:', stepToFind);
-          console.log('❌ WORKFLOW: Target phase:', targetPhase);
-          console.log('❌ WORKFLOW: Target section:', targetSection);
-          console.log('❌ WORKFLOW: Available phases:', phases.map(p => p.label));
-          console.log('❌ WORKFLOW: Available items:', phases.map(p => p.items.map(i => i.label.split(' –')[0].trim())).flat());
+          // Execute the navigation
+          executeNavigation();
+          
+          // Clear highlighting flag after navigation
+          setTimeout(() => {
+            setHighlightedStep(null);
+          }, 10000);
+          
+        } else {
+          console.log('❌ No matching section found in phase:', targetPhaseObj.label);
+          console.log('❌ Available sections:', targetPhaseObj.items.map(i => i.label.split(' –')[0].trim()));
         }
+        
+      } else {
+        console.log('❌ No matching phase found for:', targetPhase);
+        console.log('❌ Available phases:', phases.map(p => ({ id: p.id, label: p.label })));
+      }
     }
-  }, [project?.highlightStep, project?.navigationTarget, phases]);
+  }, [project?.highlightStep, project?.navigationTarget, project?.targetLineItem, phases]);
 
   // Enhanced real-time listening for workflow step completions
   useEffect(() => {
@@ -1081,10 +1081,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     // Track this optimistic update
     setOptimisticUpdates(prev => new Set([...prev, stepId]));
     
-    // CRITICAL: Immediate optimistic update that persists
+    // CRITICAL: Immediate optimistic update for visual feedback
     setWorkflowData(prevData => {
       if (!prevData) {
-        // Initialize workflow data if it doesn't exist
+        // Initialize workflow data with optimistic updates
         return {
           project: project._id || project.id,
           steps: [{
@@ -1098,9 +1098,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           completedSteps: completed ? [stepId] : [],
           progress: completed ? 100 : 0,
           updatedAt: new Date().toISOString(),
-          _forceRender: Date.now() // Force component re-render
+          _forceRender: Date.now(),
+          _optimisticUpdates: { [stepId]: completed }
         };
       }
+      
+      // Create optimistic updates object to store immediate UI state
+      const optimisticUpdates = {
+        ...(prevData._optimisticUpdates || {}),
+        [stepId]: completed
+      };
       
       // Create completely new object to force re-render
       const updatedSteps = [...(prevData.steps || [])];
@@ -1122,9 +1129,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           createdAt: new Date().toISOString()
         };
         updatedSteps.push(newStep);
-        console.log(`✅ UPDATE: Created new step ${stepId} with completed: ${completed}`);
+        console.log(`✅ OPTIMISTIC: Created new step ${stepId} with completed: ${completed}`);
       } else {
-        // Replace the step entirely to force re-render
+        // Update existing step
         updatedSteps[stepIndex] = {
           ...updatedSteps[stepIndex],
           completed: completed,
@@ -1132,17 +1139,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           completedAt: completed ? new Date().toISOString() : null,
           updatedAt: new Date().toISOString()
         };
-        console.log(`✅ UPDATE: Updated existing step ${stepId} with completed: ${completed}`);
+        console.log(`✅ OPTIMISTIC: Updated existing step ${stepId} with completed: ${completed}`);
       }
       
-      // Return completely new object with force render flag
+      // Return completely new object with optimistic state
       return {
         ...prevData,
         steps: updatedSteps,
         updatedAt: new Date().toISOString(),
-        // Add a timestamp to ensure re-render
         _optimisticUpdate: Date.now(),
-        _forceRender: Date.now()
+        _forceRender: Date.now(),
+        _optimisticUpdates: optimisticUpdates
       };
     });
 
@@ -1213,6 +1220,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           completed: completed
         }
       }));
+      
+      // Enhanced logging for successful completion
+      console.log('🎉 WORKFLOW COMPLETION SUCCESS:');
+      console.log(`   ✅ Step: ${stepId}`);
+      console.log(`   ✅ Project: ${projectId}`);
+      console.log(`   ✅ Completed: ${completed}`);
+      console.log(`   ✅ New Phase: ${response.phase}`);
+      console.log(`   ✅ New Progress: ${response.progress}%`);
+      console.log(`   ✅ Server Response:`, response);
       
       // Handle automatic section and phase completion
       handleAutomaticCompletion(stepId, completed);
@@ -1313,7 +1329,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       return false;
     }
     
-    // First try direct ID matching (for backwards compatibility)
+    // First try direct ID matching (for optimistic updates)
     const directMatch = workflowData.steps.find(s => 
       s.id === stepId || 
       s.stepId === stepId || 
@@ -1326,7 +1342,6 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       const result = directMatch.completed || directMatch.isCompleted;
       console.log(`🔍 CHECKING: Direct match result: ${result}`);
       
-      // ENHANCED: Force re-render detection
       if (result) {
         console.log(`✅ STRIKETHROUGH: Step ${stepId} should show strikethrough`);
       }
@@ -1334,100 +1349,30 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       return result;
     }
     
-    // Parse the stepId format: "phase-id-item-id-sub-index"
-    const stepIdParts = stepId.split('-');
-    if (stepIdParts.length >= 4) {
-      const phaseId = stepIdParts[0]; // e.g., "lead"
-      const itemId = stepIdParts.slice(1, -1).join('-'); // e.g., "customer-info"
-      const subIndex = parseInt(stepIdParts[stepIdParts.length - 1]); // e.g., 0
-      
-      // Find the checklist phase and item
-      const checklistPhase = phases.find(p => p.id === phaseId);
-      if (checklistPhase) {
-        const checklistItem = checklistPhase.items.find(i => i.id === itemId);
-        if (checklistItem && checklistItem.subtasks[subIndex]) {
-          const subtaskName = checklistItem.subtasks[subIndex];
-          
-          // Map phase IDs to workflow phases
-          const phaseMapping = {
-            'lead': 'LEAD',
-            'prospect': 'PROSPECT', 
-            'prospect-non-insurance': 'PROSPECT_NON_INSURANCE',
-            'approved': 'APPROVED',
-            'execution': 'EXECUTION',
-            'supplement': 'SUPPLEMENT',
-            'completion': 'COMPLETION'
-          };
-          
-          const workflowPhase = phaseMapping[phaseId];
-          
-          if (!workflowPhase) {
-            console.log(`🔍 CHECKING: No phase mapping for ${phaseId}`);
-            return false;
-          }
-          
-          // Find matching workflow step by phase and subtask name
-          const matchingStep = workflowData.steps.find(step => {
-            // Check if step is in the right phase
-            if (step.phase !== workflowPhase) return false;
-            
-            // Check if any of the step's subtasks match our subtask
-            if (step.subTasks && Array.isArray(step.subTasks)) {
-              return step.subTasks.some(subTask => {
-                const subTaskName = subTask.subTaskName || subTask.name || '';
-                const normalizedSubTask = subTaskName.toLowerCase().replace(/[^\w\s]/g, '').trim();
-                const normalizedTarget = subtaskName.toLowerCase().replace(/[^\w\s]/g, '').trim();
-                
-                // Check for exact match or partial match
-                return normalizedSubTask === normalizedTarget || 
-                       normalizedSubTask.includes(normalizedTarget) ||
-                       normalizedTarget.includes(normalizedSubTask);
-              });
-            }
-            
-            // Also check the main step name as fallback
-            const stepName = step.stepName || step.name || '';
-            const normalizedStepName = stepName.toLowerCase().replace(/[^\w\s]/g, '').trim();
-            const normalizedSubtask = subtaskName.toLowerCase().replace(/[^\w\s]/g, '').trim();
-            
-            return normalizedStepName.includes(normalizedSubtask) || 
-                   normalizedSubtask.includes(normalizedStepName);
-          });
-          
-          if (matchingStep) {
-            console.log(`🔗 CHECKLIST: Mapped checklist item "${subtaskName}" to workflow step "${matchingStep.stepName}"`);
-            return matchingStep.completed || matchingStep.isCompleted;
-          } else {
-            console.log(`🔍 CHECKING: No matching workflow step found for "${subtaskName}" in phase "${workflowPhase}"`);
-          }
-        }
-      }
-    }
+    // For frontend-generated stepIds (format: "PHASE-item-id-subIndex"), 
+    // we need to create a mapping since the database uses different IDs
+    console.log(`🔍 CHECKING: Trying frontend stepId mapping for "${stepId}"`);
     
-    // If no mapping found, check for partial name matches across all workflow steps
-    const stepNameToMatch = stepId.replace(/-/g, ' ').toLowerCase();
-    const fuzzyMatch = workflowData.steps.find(step => {
-      const stepName = (step.stepName || step.name || '').toLowerCase();
-      const words = stepNameToMatch.split(' ').filter(w => w.length > 2);
-      return words.some(word => stepName.includes(word));
-    });
-    
-    if (fuzzyMatch) {
-      console.log(`🔗 CHECKLIST: Fuzzy matched "${stepId}" to workflow step "${fuzzyMatch.stepName}"`);
-      return fuzzyMatch.completed || fuzzyMatch.isCompleted;
+    // Keep a simple in-memory completion state for frontend stepIds
+    // This provides immediate visual feedback while backend processes
+    if (workflowData._optimisticUpdates && workflowData._optimisticUpdates[stepId] !== undefined) {
+      const optimisticResult = workflowData._optimisticUpdates[stepId];
+      console.log(`✅ OPTIMISTIC: Found optimistic update for ${stepId}: ${optimisticResult}`);
+      return optimisticResult;
     }
     
     console.log(`🔍 CHECKING: No match found for "${stepId}"`);
     
-    // ENHANCED: Log all available step IDs for debugging
-    const availableSteps = workflowData.steps.map(s => ({
-      id: s.id || 'no-id',
-      stepId: s.stepId || 'no-stepId',
-      _id: s._id || 'no-_id',
-      stepName: s.stepName || 'no-stepName',
-      completed: s.completed || s.isCompleted || false
-    }));
-    console.log(`🔍 CHECKING: Available steps for comparison:`, availableSteps);
+    // ENHANCED: Log all available step IDs for debugging (limited to prevent spam)
+    if (process.env.NODE_ENV === 'development') {
+      const availableSteps = workflowData.steps.slice(0, 5).map(s => ({
+        id: s.id || 'no-id',
+        stepId: s.stepId || 'no-stepId',
+        stepName: s.stepName || 'no-stepName',
+        completed: s.completed || s.isCompleted || false
+      }));
+      console.log(`🔍 CHECKING: Sample available steps:`, availableSteps);
+    }
     
     return false;
   };
@@ -1807,7 +1752,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                               const stepId = `${phase.id}-${item.id}-${subIdx}`;
                                               const completed = isStepCompleted(stepId);
                                               return (
-                                                <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}`} className="flex items-center gap-1 text-left font-normal">
+                                                <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}-${workflowData?._optimisticUpdate || 0}`} className="flex items-center gap-1 text-left font-normal">
                                                   <input
                                                     type="checkbox"
                                                     className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
@@ -1836,7 +1781,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                 const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
                                                 const completed = isStepCompleted(stepId);
                                                 return (
-                                                  <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}`} className="flex items-center gap-1 text-left font-normal">
+                                                  <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}-${workflowData?._optimisticUpdate || 0}`} className="flex items-center gap-1 text-left font-normal">
                                                     <input
                                                       type="checkbox"
                                                       className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"

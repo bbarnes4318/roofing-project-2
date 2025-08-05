@@ -399,10 +399,73 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                 const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
                                 const isExpanded = expandedAlerts.has(alertId);
                                 
-                                // Get proper section and line item mapping - matching Current Alerts implementation
-                                const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
-                                const sectionName = workflowMapping.section;
-                                const lineItemName = workflowMapping.lineItem;
+                                // ENHANCED: Create direct mapping for reliable navigation
+                                const createDirectMapping = (alertTitle, phase) => {
+                                    // Direct mapping based on known alert patterns
+                                    const directMappings = {
+                                        // LEAD Phase
+                                        'Input Customer Information': { phase: 'LEAD', section: 'Input Customer Information', sectionId: 'input-customer-info' },
+                                        'Complete Questions to Ask Checklist': { phase: 'LEAD', section: 'Complete Questions to Ask Checklist', sectionId: 'complete-questions' },
+                                        'Input Lead Property Information': { phase: 'LEAD', section: 'Input Lead Property Information', sectionId: 'input-lead-property' },
+                                        'Assign A Project Manager': { phase: 'LEAD', section: 'Assign A Project Manager', sectionId: 'assign-pm' },
+                                        'Schedule Initial Inspection': { phase: 'LEAD', section: 'Schedule Initial Inspection', sectionId: 'schedule-inspection' },
+                                        
+                                        // PROSPECT Phase
+                                        'Site Inspection': { phase: 'PROSPECT', section: 'Site Inspection', sectionId: 'site-inspection' },
+                                        'Write Estimate': { phase: 'PROSPECT', section: 'Write Estimate', sectionId: 'write-estimate' },
+                                        'Insurance Process': { phase: 'PROSPECT', section: 'Insurance Process', sectionId: 'insurance-process' },
+                                        'Agreement Preparation': { phase: 'PROSPECT', section: 'Agreement Preparation', sectionId: 'agreement-prep' },
+                                        'Agreement Signing': { phase: 'PROSPECT', section: 'Agreement Signing', sectionId: 'agreement-signing' },
+                                        
+                                        // APPROVED Phase
+                                        'Administrative Setup': { phase: 'APPROVED', section: 'Administrative Setup', sectionId: 'admin-setup' },
+                                        'Pre-Job Actions': { phase: 'APPROVED', section: 'Pre-Job Actions', sectionId: 'pre-job' },
+                                        'Prepare for Production': { phase: 'APPROVED', section: 'Prepare for Production', sectionId: 'prepare-production' },
+                                        
+                                        // EXECUTION Phase
+                                        'Installation': { phase: 'EXECUTION', section: 'Installation', sectionId: 'installation' },
+                                        'Quality Check': { phase: 'EXECUTION', section: 'Quality Check', sectionId: 'quality-check' },
+                                        'Multiple Trades': { phase: 'EXECUTION', section: 'Multiple Trades', sectionId: 'multiple-trades' },
+                                        'Subcontractor Work': { phase: 'EXECUTION', section: 'Subcontractor Work', sectionId: 'subcontractor-work' },
+                                        'Update Customer': { phase: 'EXECUTION', section: 'Update Customer', sectionId: 'update-customer' },
+                                        
+                                        // SUPPLEMENT Phase
+                                        'Create Supp in Xactimate': { phase: 'SUPPLEMENT', section: 'Create Supp in Xactimate', sectionId: 'create-supp' },
+                                        'Follow-Up Calls': { phase: 'SUPPLEMENT', section: 'Follow-Up Calls', sectionId: 'followup-calls' },
+                                        'Review Approved Supp': { phase: 'SUPPLEMENT', section: 'Review Approved Supp', sectionId: 'review-approved' },
+                                        'Customer Update': { phase: 'SUPPLEMENT', section: 'Customer Update', sectionId: 'customer-update' },
+                                        
+                                        // COMPLETION Phase
+                                        'Financial Processing': { phase: 'COMPLETION', section: 'Financial Processing', sectionId: 'financial-processing' },
+                                        'Project Closeout': { phase: 'COMPLETION', section: 'Project Closeout', sectionId: 'project-closeout' }
+                                    };
+                                    
+                                    // Try direct mapping first
+                                    if (directMappings[alertTitle]) {
+                                        return directMappings[alertTitle];
+                                    }
+                                    
+                                    // Fallback to partial matching
+                                    for (const [key, mapping] of Object.entries(directMappings)) {
+                                        if (key.toLowerCase().includes(alertTitle.toLowerCase()) || 
+                                            alertTitle.toLowerCase().includes(key.toLowerCase())) {
+                                            return mapping;
+                                        }
+                                    }
+                                    
+                                    // Last resort: use phase and guess section
+                                    return {
+                                        phase: phase || 'LEAD',
+                                        section: alertTitle,
+                                        sectionId: alertTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
+                                    };
+                                };
+                                
+                                const directMapping = createDirectMapping(alertTitle, phase);
+                                const sectionName = directMapping.section;
+                                const lineItemName = directMapping.section; // Line item is the same as section for navigation
+                                
+                                console.log('🗺️ ALERT NAVIGATION: Direct mapping created:', directMapping);
                                 
                                 // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
                                 const getPhaseCircleColors = (phase) => {
@@ -499,33 +562,36 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 if (project && onProjectSelect) {
-                                                                    // ENHANCED: Use the same comprehensive navigation as Current Alerts
+                                                                    console.log('🚀 ALERT CLICK: Navigating to workflow with enhanced mapping');
+                                                                    
+                                                                    // ENHANCED: Use direct mapping for reliable navigation
                                                                     const projectWithStepInfo = {
                                                                         ...project,
                                                                         highlightStep: alertTitle,
-                                                                        alertPhase: phase,
+                                                                        alertPhase: directMapping.phase,
                                                                         scrollToCurrentLineItem: true,
-                                                                        targetPhase: phase,
-                                                                        targetSection: sectionName,
-                                                                        targetLineItem: lineItemName,
+                                                                        targetPhase: directMapping.phase,
+                                                                        targetSection: directMapping.section,
+                                                                        targetLineItem: directMapping.section,
                                                                         highlightLineItem: alertTitle,
                                                                         sourceSection: sourceSection,
                                                                         navigationTarget: {
-                                                                            phase: phase,
-                                                                            section: sectionName,
-                                                                            lineItem: lineItemName,
+                                                                            phase: directMapping.phase,
+                                                                            section: directMapping.section,
+                                                                            sectionId: directMapping.sectionId, // CRITICAL: Add section ID for direct lookup
+                                                                            lineItem: directMapping.section,
                                                                             stepName: alertTitle,
                                                                             stepId: actionData.stepId,
                                                                             workflowId: actionData.workflowId,
                                                                             alertId: alertId,
                                                                             highlightMode: 'line-item',
                                                                             scrollBehavior: 'smooth',
-                                                                            // Add element targeting for precise highlighting
-                                                                            targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                                                             highlightColor: '#3B82F6',
-                                                                            highlightDuration: 3000
+                                                                            highlightDuration: 5000
                                                                         }
                                                                     };
+                                                                    
+                                                                    console.log('🎯 ALERT NAVIGATION: Project with enhanced mapping:', projectWithStepInfo);
                                                                     handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);
                                                                 }
                                                             }}
