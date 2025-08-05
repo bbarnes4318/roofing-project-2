@@ -113,7 +113,7 @@ class WorkflowAlertService {
       console.log(`🔍 Checking workflow for project: ${workflow.project.projectName || 'Unknown'} (${workflow.steps.length} steps)`);
       
       // Get steps requiring alerts
-      const stepsRequiringAlerts = await this.getStepsRequiringAlerts(workflow);
+      const stepsRequiringAlerts = this.getStepsRequiringAlerts(workflow);
       
       console.log(`📋 Found ${stepsRequiringAlerts.length} steps requiring alerts`);
       
@@ -242,7 +242,7 @@ class WorkflowAlertService {
   /**
    * Get steps that require alerts based on due dates and completion status
    */
-  async getStepsRequiringAlerts(workflow) {
+  getStepsRequiringAlerts(workflow) {
     const alerts = [];
     const now = new Date();
     
@@ -266,17 +266,13 @@ class WorkflowAlertService {
       }
       
       if (alertType) {
-        // Check if this alert should be suppressed due to phase override
-        const shouldSuppress = await this.shouldSuppressAlert(workflow, step);
-        
-        if (!shouldSuppress) {
-          alerts.push({
-            step,
-            alertType,
-            daysUntilDue: daysUntilDue > 0 ? daysUntilDue : 0,
-            daysOverdue: daysOverdue > 0 ? daysOverdue : 0
-          });
-        }
+        // Skip phase override check for now to prevent async issues
+        alerts.push({
+          step,
+          alertType,
+          daysUntilDue: daysUntilDue > 0 ? daysUntilDue : 0,
+          daysOverdue: daysOverdue > 0 ? daysOverdue : 0
+        });
       }
     }
     
