@@ -40,7 +40,25 @@ router.get('/', authenticateToken, async (req, res) => {
     };
 
     roleAssignments.forEach(assignment => {
-      const roleKey = assignment.roleType.toLowerCase().replace('_', '');
+      // Convert backend role type to frontend camelCase format
+      let roleKey;
+      switch (assignment.roleType) {
+        case 'PRODUCT_MANAGER':
+          roleKey = 'productManager';
+          break;
+        case 'FIELD_DIRECTOR':
+          roleKey = 'fieldDirector';
+          break;
+        case 'OFFICE_STAFF':
+          roleKey = 'officeStaff';
+          break;
+        case 'ADMINISTRATION':
+          roleKey = 'administration';
+          break;
+        default:
+          roleKey = assignment.roleType.toLowerCase().replace('_', '');
+      }
+      
       if (formattedRoles.hasOwnProperty(roleKey)) {
         formattedRoles[roleKey] = {
           userId: assignment.userId,

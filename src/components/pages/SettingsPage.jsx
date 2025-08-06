@@ -160,9 +160,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       if (data.success) {
         const selectedUser = availableUsers.find(user => user.id === userId);
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
-        
-        // Refresh role assignments after successful save
-        await loadRoleAssignments();
+        // No need to refresh - optimistic update is now correct
       } else {
         throw new Error(data.message || 'Failed to assign role');
       }
