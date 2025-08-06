@@ -185,10 +185,10 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       try {
         setUsersLoading(true);
         
-        // Get or create token ONCE
+        // Get or create token ONCE (static token)
         let token = localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
-          token = 'demo-sarah-owner-token-' + Date.now();
+          token = 'demo-sarah-owner-token-fixed-12345';
           localStorage.setItem('authToken', token);
         }
         

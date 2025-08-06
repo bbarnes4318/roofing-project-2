@@ -111,7 +111,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 // Load available users
                 const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-fixed-12345'}`
                     }
                 });
                 
@@ -126,7 +126,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 // Load default role assignments
                 const defaultsResponse = await fetch(`${API_BASE_URL}/roles/defaults`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-fixed-12345'}`
                     }
                 });
                 
@@ -386,7 +386,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
+                            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-fixed-12345'}`
                         },
                         body: JSON.stringify(customerData)
                     });

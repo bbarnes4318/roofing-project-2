@@ -27,9 +27,9 @@ api.interceptors.request.use(
   (config) => {
     let token = localStorage.getItem('authToken') || localStorage.getItem('token');
     
-    // If no token exists, create a demo token for Sarah Owner
+    // If no token exists, create a STATIC demo token (not timestamp based)
     if (!token) {
-      const demoToken = 'demo-sarah-owner-token-' + Date.now();
+      const demoToken = 'demo-sarah-owner-token-fixed-12345';
       localStorage.setItem('authToken', demoToken);
       localStorage.setItem('user', JSON.stringify({
         _id: 'demo-sarah-owner-id',
