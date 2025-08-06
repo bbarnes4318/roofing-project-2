@@ -123,17 +123,18 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     try {
       console.log(`🔄 DEBUGGING: Assigning ${roleType} to user ${userId}`);
       
-      // Don't update if it's the same value
-      if (roleAssignments[roleType] === userId) {
-        console.log(`✅ DEBUGGING: Role already assigned, no change needed`);
+      // Don't update if it's the same value or empty
+      if (!userId || roleAssignments[roleType] === userId) {
+        console.log(`✅ DEBUGGING: No change needed (same value or empty)`);
         return;
       }
       
-      // Optimistically update UI
-      setRoleAssignments(prev => ({
-        ...prev,
+      // Optimistically update UI - store the value immediately
+      const newAssignments = {
+        ...roleAssignments,
         [roleType]: userId
-      }));
+      };
+      setRoleAssignments(newAssignments);
       
       // Get existing token (don't create new one)
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
@@ -176,8 +177,9 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         const selectedUser = availableUsers.find(user => user.id === userId);
         console.log(`✅ DEBUGGING: Assignment successful!`);
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
-        // Refresh assignments to ensure consistency
-        await loadRoleAssignments();
+
+        // DO NOT refresh assignments - it causes infinite loops!
+        // The state is already updated optimistically
       } else {
         console.log(`❌ DEBUGGING: API returned failure: ${data.message}`);
         throw new Error(data.message || 'Failed to assign role');
@@ -213,8 +215,12 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   const loadRoleAssignments = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.log('⚠️ No token available for loading role assignments');
+        return;
+      }
       
+      console.log('📡 Loading role assignments...');
       const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -223,6 +229,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       
       if (rolesResponse.ok) {
         const rolesData = await rolesResponse.json();
+        console.log('📊 Role assignments received:', rolesData);
         if (rolesData.success) {
           // Transform API data to expected format
           const formattedRoles = {
@@ -231,8 +238,11 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             officeStaff: rolesData.data.officeStaff?.userId || '',
             administration: rolesData.data.administration?.userId || ''
           };
+          console.log('✅ Setting role assignments:', formattedRoles);
           setRoleAssignments(formattedRoles);
         }
+      } else {
+        console.error(`❌ Failed to load role assignments: ${rolesResponse.status}`);
       }
     } catch (error) {
       console.error('Error loading role assignments:', error);
@@ -241,6 +251,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
   // Load users and role assignments from API on mount
   useEffect(() => {
+    let isMounted = true; // Prevent updates after unmount
+    
     const loadUsersAndRoles = async () => {
       try {
         setUsersLoading(true);
@@ -263,7 +275,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
           console.log(`✅ Received ${usersData.data?.length || 0} users from API`);
-          if (usersData.success && usersData.data) {
+          if (isMounted && usersData.success && usersData.data) {
             setAvailableUsers(usersData.data);
           } else {
             console.warn('⚠️ API returned success but no data');
@@ -285,7 +297,12 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     };
     
     loadUsersAndRoles();
-  }, []);
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only run once on mount!
 
   // Project import functions
   const fetchWorkflowTemplates = async () => {
