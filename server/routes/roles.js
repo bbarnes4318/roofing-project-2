@@ -217,12 +217,21 @@ router.get('/users', authenticateToken, async (req, res) => {
 
     console.log(`✅ ROLES API: Found ${users.length} active users`);
 
-    // Transform to expected format
+    // Transform to expected format with proper role display names
+    const roleDisplayNames = {
+      'ADMIN': 'Administrator',
+      'MANAGER': 'Manager', 
+      'PROJECT_MANAGER': 'Project Manager',
+      'FOREMAN': 'Field Supervisor',
+      'WORKER': 'Office Staff',
+      'CLIENT': 'Client'
+    };
+    
     const formattedUsers = users.map(user => ({
       id: user.id,
       name: `${user.firstName} ${user.lastName}`.trim(),
       email: user.email,
-      role: user.role || 'User'
+      role: roleDisplayNames[user.role] || user.role || 'User'
     }));
 
     res.json({
@@ -262,7 +271,16 @@ router.get('/defaults', authenticateToken, async (req, res) => {
       }
     });
 
-    // Create defaults object for project creation
+    // Create defaults object for project creation  
+    const roleDisplayNames = {
+      'ADMIN': 'Administrator',
+      'MANAGER': 'Manager', 
+      'PROJECT_MANAGER': 'Project Manager',
+      'FOREMAN': 'Field Supervisor',
+      'WORKER': 'Office Staff',
+      'CLIENT': 'Client'
+    };
+    
     const defaults = {
       projectManager: null,
       fieldDirector: null,
@@ -279,7 +297,7 @@ router.get('/defaults', authenticateToken, async (req, res) => {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
-            role: user.role
+            role: roleDisplayNames[user.role] || user.role
           };
           break;
         case 'FIELD_DIRECTOR':
@@ -287,7 +305,7 @@ router.get('/defaults', authenticateToken, async (req, res) => {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
-            role: user.role
+            role: roleDisplayNames[user.role] || user.role
           };
           break;
         case 'OFFICE_STAFF':
@@ -295,7 +313,7 @@ router.get('/defaults', authenticateToken, async (req, res) => {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
-            role: user.role
+            role: roleDisplayNames[user.role] || user.role
           };
           break;
         case 'ADMINISTRATION':
@@ -303,7 +321,7 @@ router.get('/defaults', authenticateToken, async (req, res) => {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
-            role: user.role
+            role: roleDisplayNames[user.role] || user.role
           };
           break;
       }
