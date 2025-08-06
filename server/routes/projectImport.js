@@ -92,6 +92,12 @@ const validateCombinedData = (data) => {
       }
     });
 
+    // Validate projectNumber is a valid integer
+    const projectNumber = parseInt(row.projectNumber);
+    if (isNaN(projectNumber)) {
+      errors.push(`Row ${index + 1}: Invalid projectNumber '${row.projectNumber}'. Must be a valid number.`);
+    }
+
     // Validate enums
     if (row.projectType && !['ROOF_REPLACEMENT', 'KITCHEN_REMODEL', 'BATHROOM_RENOVATION', 'ADDITION', 'GENERAL_CONTRACTOR', 'OTHER'].includes(row.projectType)) {
       errors.push(`Row ${index + 1}: Invalid projectType '${row.projectType}'`);
@@ -134,6 +140,7 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
     }
 
     // Check for duplicate project number
+    console.log(`🔍 PROJECT IMPORT: Checking for duplicate project number: ${projectNumber} (type: ${typeof projectNumber})`);
     const existingProject = await prisma.project.findUnique({
       where: { projectNumber: projectNumber }
     });
@@ -212,6 +219,64 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
         });
         
         if (currentLineItem) {
+          console.log(`🚨 Creating workflow alert for: ${currentLineItem.itemName}`);
+          
+          // First ensure we have a compatible workflow and step to reference
+          // Check if there's an existing workflow for this project (legacy system)
+          let workflowId = '1'; // Default fallback
+          let stepId = '1'; // Default fallback
+          
+          try {
+            // Try to find or create a compatible ProjectWorkflow for legacy compatibility
+            let projectWorkflow = await prisma.projectWorkflow.findUnique({
+              where: { projectId: result.project.id }
+            });
+            
+            if (!projectWorkflow) {
+              // Create a minimal ProjectWorkflow for legacy compatibility
+              projectWorkflow = await prisma.projectWorkflow.create({
+                data: {
+                  projectId: result.project.id,
+                  workflowType: 'ROOFING',
+                  status: 'IN_PROGRESS',
+                  currentStepIndex: 0,
+                  overallProgress: 0
+                }
+              });
+              console.log(`✅ Created legacy ProjectWorkflow for compatibility`);
+            }
+            
+            workflowId = projectWorkflow.id;
+            
+            // Try to find or create a compatible WorkflowStep for legacy compatibility
+            let workflowStep = await prisma.workflowStep.findFirst({
+              where: { workflowId: projectWorkflow.id }
+            });
+            
+            if (!workflowStep) {
+              // Create a minimal WorkflowStep for legacy compatibility
+              workflowStep = await prisma.workflowStep.create({
+                data: {
+                  workflowId: projectWorkflow.id,
+                  stepId: 'LEAD-001',
+                  stepName: currentLineItem.itemName,
+                  description: `Current active line item: ${currentLineItem.itemName}`,
+                  phase: currentLineItem.section.phase.phaseType,
+                  defaultResponsible: currentLineItem.responsibleRole || 'OFFICE',
+                  estimatedDuration: currentLineItem.estimatedMinutes || 30,
+                  alertDays: currentLineItem.alertDays || 1
+                }
+              });
+              console.log(`✅ Created legacy WorkflowStep for compatibility`);
+            }
+            
+            stepId = workflowStep.id;
+            
+          } catch (legacyError) {
+            console.warn(`⚠️ Could not create legacy workflow compatibility:`, legacyError.message);
+            // Continue with defaults
+          }
+          
           // Create initial alert for the first workflow item
           await prisma.workflowAlert.create({
             data: {
@@ -220,9 +285,10 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
               status: 'ACTIVE',
               title: `${currentLineItem.itemName} - ${result.customer.primaryName}`,
               message: `${currentLineItem.itemName} is ready to begin for project ${result.project.projectName}`,
+              stepName: currentLineItem.itemName, // Required field
               projectId: result.project.id,
-              workflowId: 1, // Legacy field
-              stepId: 1, // Legacy field
+              workflowId: workflowId,
+              stepId: stepId,
               responsibleRole: currentLineItem.responsibleRole || 'OFFICE',
               dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
               metadata: {
@@ -233,10 +299,16 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
                 phase: currentLineItem.section.phase.phaseType,
                 section: currentLineItem.section.displayName,
                 lineItem: currentLineItem.itemName,
-                responsibleRole: currentLineItem.responsibleRole || 'OFFICE'
+                responsibleRole: currentLineItem.responsibleRole || 'OFFICE',
+                // New workflow system IDs
+                currentPhaseId: workflowTracker.currentPhaseId,
+                currentSectionId: workflowTracker.currentSectionId,
+                currentLineItemId: workflowTracker.currentLineItemId
               }
             }
           });
+          
+          console.log(`✅ Created workflow alert: "${currentLineItem.itemName}" for ${result.customer.primaryName}`);
         }
       }
     } catch (workflowError) {
@@ -332,7 +404,14 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       try {
         console.log(`🔄 PROJECT IMPORT: Processing row ${i + 1}/${data.length}`);
         console.log(`🔄 PROJECT IMPORT: Row data:`, data[i]);
-        const result = await createCombinedRecord(data[i], workflowTemplateId);
+        
+        // Ensure projectNumber is properly formatted before processing
+        const rowData = {
+          ...data[i],
+          projectNumber: data[i].projectNumber ? data[i].projectNumber.toString().trim() : data[i].projectNumber
+        };
+        
+        const result = await createCombinedRecord(rowData, workflowTemplateId);
         results.successful++;
         console.log(`✅ Row ${i + 1}/${data.length}: ${result.project.projectNumber} created`);
       } catch (error) {
