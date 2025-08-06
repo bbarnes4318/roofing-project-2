@@ -50,7 +50,6 @@ try {
 }
 
 const alertRoutes = require('./routes/alerts').router;
-const testRoutes = require('./routes/test');
 const workflowUpdateRoutes = require('./routes/workflowUpdates');
 const phaseOverrideRoutes = require('./routes/phaseOverride');
 const roleRoutes = require('./routes/roles');
@@ -627,7 +626,6 @@ if (workflowRoutes) {
 }
 app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/test', testRoutes);
 app.use('/api/workflow-updates', workflowUpdateRoutes);
 app.use('/api/phase-override', phaseOverrideRoutes);
 if (workflowImportRoutes) {
