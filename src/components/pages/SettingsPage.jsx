@@ -132,6 +132,16 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         throw new Error('No authentication token available');
       }
       
+      // Convert frontend role names to backend format
+      const roleTypeMapping = {
+        'productManager': 'PRODUCT_MANAGER',
+        'fieldDirector': 'FIELD_DIRECTOR', 
+        'officeStaff': 'OFFICE_STAFF',
+        'administration': 'ADMINISTRATION'
+      };
+      
+      const backendRoleType = roleTypeMapping[roleType] || roleType;
+      
       // Save to API
       const response = await fetch(`${API_BASE_URL}/roles/assign`, {
         method: 'POST',
@@ -140,7 +150,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          roleType: roleType,
+          roleType: backendRoleType,
           userId: userId
         })
       });
