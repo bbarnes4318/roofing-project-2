@@ -160,6 +160,9 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       if (data.success) {
         const selectedUser = availableUsers.find(user => user.id === userId);
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
+        
+        // Refresh role assignments after successful save
+        await loadRoleAssignments();
       } else {
         throw new Error(data.message || 'Failed to assign role');
       }
@@ -187,6 +190,36 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   const getUserDisplayName = (userId) => {
     const user = availableUsers.find(u => u.id === userId);
     return user ? `${user.name} (${user.email})` : 'Select a user...';
+  };
+
+  // Function to load just role assignments
+  const loadRoleAssignments = async () => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) return;
+      
+      const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (rolesResponse.ok) {
+        const rolesData = await rolesResponse.json();
+        if (rolesData.success) {
+          // Transform API data to expected format
+          const formattedRoles = {
+            productManager: rolesData.data.productManager?.userId || '',
+            fieldDirector: rolesData.data.fieldDirector?.userId || '',
+            officeStaff: rolesData.data.officeStaff?.userId || '',
+            administration: rolesData.data.administration?.userId || ''
+          };
+          setRoleAssignments(formattedRoles);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading role assignments:', error);
+    }
   };
 
   // Load users and role assignments from API on mount
@@ -217,25 +250,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         }
         
         // Load current role assignments
-        const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (rolesResponse.ok) {
-          const rolesData = await rolesResponse.json();
-          if (rolesData.success) {
-            // Transform API data to expected format
-            const formattedRoles = {
-              productManager: rolesData.data.productManager?.userId || '',
-              fieldDirector: rolesData.data.fieldDirector?.userId || '',
-              officeStaff: rolesData.data.officeStaff?.userId || '',
-              administration: rolesData.data.administration?.userId || ''
-            };
-            setRoleAssignments(formattedRoles);
-          }
-        }
+        await loadRoleAssignments();
         
       } catch (error) {
         console.error('Error loading users and roles:', error);
