@@ -1,1 +1,0 @@
-// This is a backup before fixing the Current Alerts section
