@@ -123,7 +123,9 @@ const validateCombinedData = (data) => {
  */
 const createCombinedRecord = async (rowData, workflowTemplateId) => {
   try {
-    console.log(`📝 Processing row: ${rowData.projectNumber}`);
+    console.log(`📝 PROJECT IMPORT: Processing row: ${rowData.projectNumber}`);
+    console.log(`📝 PROJECT IMPORT: WorkflowProgressionService available:`, !!WorkflowProgressionService);
+    console.log(`📝 PROJECT IMPORT: WorkflowProgressionService.initializeProjectWorkflow available:`, !!WorkflowProgressionService.initializeProjectWorkflow);
 
     // Parse and validate project number
     const projectNumber = parseInt(rowData.projectNumber);
@@ -277,7 +279,12 @@ router.get('/templates', asyncHandler(async (req, res) => {
  * POST /api/project-import/upload - Import combined project/customer data
  */
 router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
+  console.log('🚀 PROJECT IMPORT: Starting upload process');
+  console.log('🚀 REQUEST BODY:', req.body);
+  console.log('🚀 REQUEST FILE:', req.file ? { filename: req.file.filename, size: req.file.size, mimetype: req.file.mimetype } : 'NO FILE');
+  
   if (!req.file) {
+    console.log('❌ PROJECT IMPORT: No file uploaded');
     throw new AppError('No file uploaded', 400);
   }
 
@@ -288,25 +295,35 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
   const { workflowTemplateId } = req.body;
 
   try {
+    console.log('🔍 PROJECT IMPORT: File details - Path:', filePath, 'Extension:', fileExt);
+    
     // Parse file
     let data;
     if (fileExt === '.csv') {
+      console.log('📄 PROJECT IMPORT: Parsing CSV file');
       data = await parseCSVFile(filePath);
     } else if (fileExt === '.xlsx') {
+      console.log('📊 PROJECT IMPORT: Parsing Excel file');
       data = parseExcelFile(filePath);
     } else {
+      console.log('❌ PROJECT IMPORT: Unsupported file format:', fileExt);
       throw new Error('Unsupported file format');
     }
 
     console.log(`📊 Parsed ${data.length} records from file`);
+    console.log(`📊 First record sample:`, data[0]);
 
     // Validate data
+    console.log('✅ PROJECT IMPORT: Starting data validation');
     const validationErrors = validateCombinedData(data);
     if (validationErrors.length > 0) {
+      console.log('❌ PROJECT IMPORT: Validation failed:', validationErrors);
       throw new AppError('Validation failed: ' + validationErrors.join('; '), 400);
     }
+    console.log('✅ PROJECT IMPORT: Data validation passed');
 
     // Process records
+    console.log('🔄 PROJECT IMPORT: Starting record processing');
     const results = {
       total: data.length,
       successful: 0,
@@ -316,6 +333,8 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
 
     for (let i = 0; i < data.length; i++) {
       try {
+        console.log(`🔄 PROJECT IMPORT: Processing row ${i + 1}/${data.length}`);
+        console.log(`🔄 PROJECT IMPORT: Row data:`, data[i]);
         const result = await createCombinedRecord(data[i], workflowTemplateId);
         results.successful++;
         console.log(`✅ Row ${i + 1}/${data.length}: ${result.project.projectNumber} created`);
@@ -327,6 +346,7 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
           error: error.message
         });
         console.log(`❌ Row ${i + 1}/${data.length}: ${error.message}`);
+        console.log(`❌ Row ${i + 1} full error:`, error);
       }
     }
 
@@ -342,10 +362,18 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
+    console.log('💥 PROJECT IMPORT: Major error occurred');
+    console.log('💥 Error message:', error.message);
+    console.log('💥 Error stack:', error.stack);
+    console.log('💥 Error details:', error);
+    
     if (fs.existsSync(filePath)) {
+      console.log('🧹 PROJECT IMPORT: Cleaning up file');
       fs.unlinkSync(filePath);
     }
-    throw error;
+    
+    // Re-throw with more details
+    throw new AppError(`Import failed: ${error.message}`, 500);
   }
 }));
 
