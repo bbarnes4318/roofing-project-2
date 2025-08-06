@@ -246,13 +246,10 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
 
     console.log(`✅ Created: ${result.project.projectNumber} for ${result.customer.primaryName}`);
     return result;
-    });
-
-    console.log(`✅ Created: ${result.project.projectNumber} for ${result.customer.primaryName}`);
-    return result;
 
   } catch (error) {
-    console.error(`❌ Error processing ${rowData.projectNumber}:`, error);
+    console.error(`❌ Error processing ${rowData.projectNumber}:`, error.message);
+    console.error(`❌ Full error details:`, error);
     throw error;
   }
 };
