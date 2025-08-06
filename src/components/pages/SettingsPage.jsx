@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
@@ -16,6 +17,7 @@ const mockUser = {
 };
 
 const SettingsPage = ({ colorMode, setColorMode }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [name, setName] = useState(mockUser.name);
   const [email, setEmail] = useState(mockUser.email);
@@ -275,13 +277,32 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       const data = await response.json();
       
       if (data.success) {
+        const successCount = data.data.successful || 0;
+        const failedCount = data.data.failed || 0;
+        
         setImportResults({
           total: data.data.total || 0,
-          successful: data.data.successful || [],
+          successful: successCount,
           failed: data.data.errors || []
         });
-        showSuccessMessage(`Import completed: ${(data.data.successful || []).length} projects created successfully`);
+        
+        let message = `Import completed: ${successCount} projects created successfully`;
+        if (failedCount > 0) {
+          message += `, ${failedCount} failed`;
+        }
+        
+        showSuccessMessage(message);
         setImportFile(null);
+        
+        // Show success with option to view projects
+        if (successCount > 0) {
+          const viewProjects = window.confirm(
+            `${successCount} projects imported successfully! Would you like to view the Projects page to see them?`
+          );
+          if (viewProjects) {
+            navigate('/projects');
+          }
+        }
       } else {
         showSuccessMessage(`Import failed: ${data.message}`);
       }
