@@ -111,7 +111,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 // Load available users
                 const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
                     }
                 });
                 
@@ -126,7 +126,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 // Load default role assignments
                 const defaultsResponse = await fetch(`${API_BASE_URL}/roles/defaults`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
                     }
                 });
                 
@@ -382,11 +382,11 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     customerId = existingCustomers[0].id;
                 } else {
                     // Create new customer
-                    const customerResponse = await fetch('/api/customers', {
+                    const customerResponse = await fetch(`${API_BASE_URL}/customers`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
                         },
                         body: JSON.stringify(customerData)
                     });

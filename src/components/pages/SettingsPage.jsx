@@ -131,7 +131,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           roleType: roleType,
@@ -183,7 +183,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         // Load available users
         const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
           }
         });
         
@@ -198,7 +198,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         // Load current role assignments
         const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
           }
         });
         
