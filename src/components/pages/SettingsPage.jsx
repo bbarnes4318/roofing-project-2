@@ -123,6 +123,13 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     try {
       console.log(`🔄 DEBUGGING: Assigning ${roleType} to user ${userId}`);
       
+      // Don't update if it's the same value
+      if (roleAssignments[roleType] === userId) {
+        console.log(`✅ DEBUGGING: Role already assigned, no change needed`);
+        return;
+      }
+      
+      // Optimistically update UI
       setRoleAssignments(prev => ({
         ...prev,
         [roleType]: userId
@@ -169,7 +176,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         const selectedUser = availableUsers.find(user => user.id === userId);
         console.log(`✅ DEBUGGING: Assignment successful!`);
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
-        // No need to refresh - optimistic update is now correct
+        // Refresh assignments to ensure consistency
+        await loadRoleAssignments();
       } else {
         console.log(`❌ DEBUGGING: API returned failure: ${data.message}`);
         throw new Error(data.message || 'Failed to assign role');
@@ -245,6 +253,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         }
         
         // Load available users
+        console.log('📡 Fetching users from API...');
         const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -253,9 +262,14 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
-          if (usersData.success) {
+          console.log(`✅ Received ${usersData.data?.length || 0} users from API`);
+          if (usersData.success && usersData.data) {
             setAvailableUsers(usersData.data);
+          } else {
+            console.warn('⚠️ API returned success but no data');
           }
+        } else {
+          console.error(`❌ API returned status ${usersResponse.status}`);
         }
         
         // Load current role assignments
@@ -263,16 +277,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         
       } catch (error) {
         console.error('Error loading users and roles:', error);
-        // Fallback to mock data if API fails
-        setAvailableUsers([
-          { id: '1', name: 'Sarah Owner', email: 'sarah.owner@kenstruction.com', role: 'Owner' },
-          { id: '2', name: 'Mike Rodriguez', email: 'mike.rodriguez@kenstruction.com', role: 'Project Manager' },
-          { id: '3', name: 'Jennifer Williams', email: 'jennifer.williams@kenstruction.com', role: 'Field Supervisor' },
-          { id: '4', name: 'David Chen', email: 'david.chen@kenstruction.com', role: 'Office Manager' },
-          { id: '5', name: 'Lisa Johnson', email: 'lisa.johnson@kenstruction.com', role: 'Administrator' },
-          { id: '6', name: 'Tom Anderson', email: 'tom.anderson@kenstruction.com', role: 'Field Director' },
-          { id: '7', name: 'Maria Garcia', email: 'maria.garcia@kenstruction.com', role: 'Office Staff' }
-        ]);
+        // Don't use fallback data - let the user know there's an issue
+        showSuccessMessage('Failed to load users. Please check your connection.');
       } finally {
         setUsersLoading(false);
       }
@@ -742,13 +748,19 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             Oversees product development, strategy, and client requirements
           </p>
           <select
-            value={roleAssignments.productManager}
-            onChange={(e) => handleRoleAssignment('productManager', e.target.value)}
+            value={roleAssignments.productManager || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== roleAssignments.productManager) {
+                handleRoleAssignment('productManager', newValue);
+              }
+            }}
+            disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
               colorMode 
                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-800'
-            }`}
+            } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <option value="">Select Product Manager...</option>
             {availableUsers.map(user => (
@@ -784,13 +796,19 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             Manages field operations, crews, and on-site project execution
           </p>
           <select
-            value={roleAssignments.fieldDirector}
-            onChange={(e) => handleRoleAssignment('fieldDirector', e.target.value)}
+            value={roleAssignments.fieldDirector || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== roleAssignments.fieldDirector) {
+                handleRoleAssignment('fieldDirector', newValue);
+              }
+            }}
+            disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
               colorMode 
                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-800'
-            }`}
+            } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <option value="">Select Field Director...</option>
             {availableUsers.map(user => (
@@ -826,13 +844,19 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             Handles scheduling, documentation, permits, and client communications
           </p>
           <select
-            value={roleAssignments.officeStaff}
-            onChange={(e) => handleRoleAssignment('officeStaff', e.target.value)}
+            value={roleAssignments.officeStaff || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== roleAssignments.officeStaff) {
+                handleRoleAssignment('officeStaff', newValue);
+              }
+            }}
+            disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
               colorMode 
                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-800'
-            }`}
+            } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <option value="">Select Office Staff...</option>
             {availableUsers.map(user => (
@@ -868,13 +892,19 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             Manages system settings, user accounts, and administrative tasks
           </p>
           <select
-            value={roleAssignments.administration}
-            onChange={(e) => handleRoleAssignment('administration', e.target.value)}
+            value={roleAssignments.administration || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== roleAssignments.administration) {
+                handleRoleAssignment('administration', newValue);
+              }
+            }}
+            disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
               colorMode 
                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-800'
-            }`}
+            } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <option value="">Select Administrator...</option>
             {availableUsers.map(user => (

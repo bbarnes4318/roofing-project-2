@@ -224,9 +224,10 @@ router.get('/users', authenticateToken, async (req, res) => {
         role: true,
         isActive: true
       },
-      where: {
-        isActive: true
-      },
+      // Remove isActive filter to see all users
+      // where: {
+      //   isActive: true
+      // },
       orderBy: [
         { firstName: 'asc' },
         { lastName: 'asc' }
