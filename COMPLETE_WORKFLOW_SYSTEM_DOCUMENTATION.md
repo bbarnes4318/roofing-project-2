@@ -18,7 +18,7 @@
 ## 1. System Overview
 
 The workflow system is a three-tier hierarchy:
-- **Phases** (7 total): LEAD → APPROVED → SCHEDULED → EXECUTION → COMPLETION → INVOICING → COMPLETED
+- **Phases** (6 total): LEAD → PROSPECT → APPROVED → EXECUTION → SUPPLEMENT → COMPLETION
 - **Sections** (Multiple per phase): Groups of related tasks
 - **Line Items** (91 total): Individual checkable tasks that trigger automation
 
