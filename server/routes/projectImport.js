@@ -125,12 +125,18 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
   try {
     console.log(`📝 Processing row: ${rowData.projectNumber}`);
 
+    // Parse and validate project number
+    const projectNumber = parseInt(rowData.projectNumber);
+    if (isNaN(projectNumber)) {
+      throw new Error(`Invalid project number: ${rowData.projectNumber}. Must be a number.`);
+    }
+
     // Check for duplicate project number
     const existingProject = await prisma.project.findUnique({
-      where: { projectNumber: rowData.projectNumber }
+      where: { projectNumber: projectNumber }
     });
     if (existingProject) {
-      throw new Error(`Project number ${rowData.projectNumber} already exists`);
+      throw new Error(`Project number ${projectNumber} already exists`);
     }
 
     // Check for duplicate customer email
@@ -161,15 +167,15 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
       // 2. Create project linked to customer
       const project = await tx.project.create({
         data: {
-          projectNumber: rowData.projectNumber.trim(),
+          projectNumber: projectNumber,
           projectName: rowData.projectName.trim(),
           projectType: rowData.projectType || 'OTHER',
           status: rowData.status || 'PENDING',
           priority: rowData.priority || 'MEDIUM',
-          budget: parseFloat(rowData.budget) || null,
-          estimatedCost: parseFloat(rowData.estimatedCost) || null,
-          startDate: rowData.startDate ? new Date(rowData.startDate) : null,
-          endDate: rowData.endDate ? new Date(rowData.endDate) : null,
+          budget: rowData.budget ? parseFloat(rowData.budget) : 0,
+          estimatedCost: rowData.estimatedCost ? parseFloat(rowData.estimatedCost) : null,
+          startDate: rowData.startDate ? new Date(rowData.startDate) : new Date(),
+          endDate: rowData.endDate ? new Date(rowData.endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now if not provided
           description: rowData.description?.trim() || null,
           notes: rowData.notes?.trim() || null,
           pmPhone: rowData.pmPhone?.trim() || null,
@@ -178,13 +184,21 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
         }
       });
 
-      // 3. Initialize workflow tracker for the project
-      // This will automatically set the project to the first line item in the workflow
-      const workflowTracker = await WorkflowProgressionService.initializeProjectWorkflow(project.id);
+      // 3. For now, just return the basic project and customer
+      // Workflow initialization will be handled separately after the transaction
+      return {
+        customer,
+        project
+      };
+    });
+
+    // 4. Initialize workflow tracker AFTER the transaction completes
+    try {
+      const workflowTracker = await WorkflowProgressionService.initializeProjectWorkflow(result.project.id);
       
-      // 4. Create initial workflow alert for the first line item if tracker was created successfully
+      // 5. Create initial workflow alert for the first line item if tracker was created successfully
       if (workflowTracker && workflowTracker.currentLineItemId) {
-        const currentLineItem = await tx.workflowLineItem.findUnique({
+        const currentLineItem = await prisma.workflowLineItem.findUnique({
           where: { id: workflowTracker.currentLineItemId },
           include: {
             section: {
@@ -197,23 +211,23 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
         
         if (currentLineItem) {
           // Create initial alert for the first workflow item
-          await tx.workflowAlert.create({
+          await prisma.workflowAlert.create({
             data: {
               type: 'Work Flow Line Item',
               priority: 'MEDIUM',
               status: 'ACTIVE',
-              title: `${currentLineItem.itemName} - ${customer.primaryName}`,
-              message: `${currentLineItem.itemName} is ready to begin for project ${project.projectName}`,
-              projectId: project.id,
+              title: `${currentLineItem.itemName} - ${result.customer.primaryName}`,
+              message: `${currentLineItem.itemName} is ready to begin for project ${result.project.projectName}`,
+              projectId: result.project.id,
               workflowId: 1, // Legacy field
               stepId: 1, // Legacy field
               responsibleRole: currentLineItem.responsibleRole || 'OFFICE',
               dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
               metadata: {
-                projectId: project.id,
-                projectNumber: project.projectNumber,
-                projectName: project.projectName,
-                customerName: customer.primaryName,
+                projectId: result.project.id,
+                projectNumber: result.project.projectNumber,
+                projectName: result.project.projectName,
+                customerName: result.customer.primaryName,
                 phase: currentLineItem.section.phase.phaseType,
                 section: currentLineItem.section.displayName,
                 lineItem: currentLineItem.itemName,
@@ -223,12 +237,13 @@ const createCombinedRecord = async (rowData, workflowTemplateId) => {
           });
         }
       }
+    } catch (workflowError) {
+      // Log the error but don't fail the entire import - the project was created successfully
+      console.error(`⚠️ Warning: Failed to initialize workflow for project ${result.project.projectNumber}:`, workflowError.message);
+    }
 
-      return {
-        customer,
-        project,
-        workflowTracker
-      };
+    console.log(`✅ Created: ${result.project.projectNumber} for ${result.customer.primaryName}`);
+    return result;
     });
 
     console.log(`✅ Created: ${result.project.projectNumber} for ${result.customer.primaryName}`);
