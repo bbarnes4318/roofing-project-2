@@ -121,6 +121,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   // Role assignment functions
   const handleRoleAssignment = async (roleType, userId) => {
     try {
+      console.log(`🔄 DEBUGGING: Assigning ${roleType} to user ${userId}`);
+      
       setRoleAssignments(prev => ({
         ...prev,
         [roleType]: userId
@@ -128,6 +130,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       
       // Get existing token (don't create new one)
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      console.log(`🔑 DEBUGGING: Token exists: ${!!token}`);
+      
       if (!token) {
         throw new Error('No authentication token available');
       }
@@ -141,8 +145,10 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       };
       
       const backendRoleType = roleTypeMapping[roleType] || roleType;
+      console.log(`🔄 DEBUGGING: Converting ${roleType} → ${backendRoleType}`);
       
       // Save to API
+      console.log(`📡 DEBUGGING: Making API call to ${API_BASE_URL}/roles/assign`);
       const response = await fetch(`${API_BASE_URL}/roles/assign`, {
         method: 'POST',
         headers: {
@@ -155,17 +161,22 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         })
       });
 
+      console.log(`📡 DEBUGGING: Response status: ${response.status}`);
       const data = await response.json();
+      console.log(`📡 DEBUGGING: Response data:`, data);
       
       if (data.success) {
         const selectedUser = availableUsers.find(user => user.id === userId);
+        console.log(`✅ DEBUGGING: Assignment successful!`);
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
         // No need to refresh - optimistic update is now correct
       } else {
+        console.log(`❌ DEBUGGING: API returned failure: ${data.message}`);
         throw new Error(data.message || 'Failed to assign role');
       }
       
     } catch (error) {
+      console.log(`❌ DEBUGGING: Error in handleRoleAssignment:`, error);
       // Revert state on error
       setRoleAssignments(prev => ({
         ...prev,
