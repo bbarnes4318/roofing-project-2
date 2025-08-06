@@ -2,11 +2,9 @@ import axios from 'axios';
 
 // Dynamic API Configuration
 const getApiBaseUrl = () => {
-  // Check if we're in production (Vercel)
-  if (window.location.hostname.includes('vercel.app') || 
-      window.location.hostname.includes('your-domain.com') ||
-      window.location.hostname !== 'localhost') {
-    // Use the current domain for production
+  // Check if we're in production (Digital Ocean)
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // Use the current domain for production on Digital Ocean
     return `${window.location.protocol}//${window.location.host}/api`;
   }
   // Local development

@@ -53,7 +53,7 @@ npm test
 - **Database**: Digital Ocean PostgreSQL.
 - **ORM**: Prisma. The single source of truth for all database interactions is `server/prisma/schema.prisma`.
 - **Real-time**: Socket.io for live updates.
-- **Deployment**: Vercel (frontend + serverless API).
+- **Deployment**: Digital Ocean (frontend + backend).
 
 ## 3. The Database Mandate (CRITICAL)
 PostgreSQL is the ONLY database. All data operations, queries, and logic must target the Digital Ocean PostgreSQL instance.
