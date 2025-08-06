@@ -120,16 +120,17 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
   // Role assignment functions
   const handleRoleAssignment = async (roleType, userId) => {
-    console.log('🔄 Attempting to assign role:', roleType, 'to user:', userId);
     try {
       setRoleAssignments(prev => ({
         ...prev,
         [roleType]: userId
       }));
       
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now();
-      console.log('🔑 Using token:', token ? 'Token exists' : 'No token');
-      console.log('🌐 API URL:', `${API_BASE_URL}/roles/assign`);
+      // Get existing token (don't create new one)
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
       
       // Save to API
       const response = await fetch(`${API_BASE_URL}/roles/assign`, {
@@ -144,23 +145,16 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         })
       });
 
-      console.log('📡 Response status:', response.status);
       const data = await response.json();
-      console.log('📦 Response data:', data);
       
       if (data.success) {
         const selectedUser = availableUsers.find(user => user.id === userId);
-        console.log('✅ Role assigned successfully');
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
       } else {
-        console.log('❌ Assignment failed:', data.message);
         throw new Error(data.message || 'Failed to assign role');
       }
       
     } catch (error) {
-      console.error('❌ Error assigning role:', error);
-      console.error('Response status:', error.response?.status);
-      console.error('Response data:', error.response?.data);
       // Revert state on error
       setRoleAssignments(prev => ({
         ...prev,
@@ -191,10 +185,17 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       try {
         setUsersLoading(true);
         
+        // Get or create token ONCE
+        let token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        if (!token) {
+          token = 'demo-sarah-owner-token-' + Date.now();
+          localStorage.setItem('authToken', token);
+        }
+        
         // Load available users
         const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
+            'Authorization': `Bearer ${token}`
           }
         });
         
@@ -202,14 +203,13 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           const usersData = await usersResponse.json();
           if (usersData.success) {
             setAvailableUsers(usersData.data);
-            console.log('✅ Loaded users for role assignments:', usersData.data.length);
           }
         }
         
         // Load current role assignments
         const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now()}`
+            'Authorization': `Bearer ${token}`
           }
         });
         
@@ -224,7 +224,6 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
               administration: rolesData.data.administration?.userId || ''
             };
             setRoleAssignments(formattedRoles);
-            console.log('✅ Loaded role assignments:', formattedRoles);
           }
         }
         
