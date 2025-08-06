@@ -120,18 +120,23 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
   // Role assignment functions
   const handleRoleAssignment = async (roleType, userId) => {
+    console.log('🔄 Attempting to assign role:', roleType, 'to user:', userId);
     try {
       setRoleAssignments(prev => ({
         ...prev,
         [roleType]: userId
       }));
       
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token') || 'demo-sarah-owner-token-' + Date.now();
+      console.log('🔑 Using token:', token ? 'Token exists' : 'No token');
+      console.log('🌐 API URL:', `${API_BASE_URL}/roles/assign`);
+      
       // Save to API
       const response = await fetch(`${API_BASE_URL}/roles/assign`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           roleType: roleType,
@@ -139,23 +144,29 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         })
       });
 
+      console.log('📡 Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Response data:', data);
       
       if (data.success) {
         const selectedUser = availableUsers.find(user => user.id === userId);
+        console.log('✅ Role assigned successfully');
         showSuccessMessage(`${selectedUser?.name || 'User'} assigned as ${getRoleDisplayName(roleType)}`);
       } else {
+        console.log('❌ Assignment failed:', data.message);
         throw new Error(data.message || 'Failed to assign role');
       }
       
     } catch (error) {
-      console.error('Error assigning role:', error);
+      console.error('❌ Error assigning role:', error);
+      console.error('Response status:', error.response?.status);
+      console.error('Response data:', error.response?.data);
       // Revert state on error
       setRoleAssignments(prev => ({
         ...prev,
         [roleType]: ''
       }));
-      showSuccessMessage(`Failed to assign role: ${error.message}`);
+      showSuccessMessage(`Failed to assign role: ${error.message || 'Unknown error'}`);
     }
   };
 

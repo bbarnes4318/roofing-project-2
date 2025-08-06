@@ -109,6 +109,61 @@ async function main() {
         isActive: true,
         createdAt: new Date()
       }
+    }),
+    prisma.user.create({
+      data: {
+        firstName: 'Robert',
+        lastName: 'Smith',
+        email: 'robert.smith@kenstruction.com',
+        password: 'hashedpassword',
+        role: 'PROJECT_MANAGER',
+        isActive: true,
+        createdAt: new Date()
+      }
+    }),
+    prisma.user.create({
+      data: {
+        firstName: 'Emily',
+        lastName: 'Davis',
+        email: 'emily.davis@kenstruction.com',
+        password: 'hashedpassword',
+        role: 'MANAGER',
+        isActive: true,
+        createdAt: new Date()
+      }
+    }),
+    prisma.user.create({
+      data: {
+        firstName: 'James',
+        lastName: 'Wilson',
+        email: 'james.wilson@kenstruction.com',
+        password: 'hashedpassword',
+        role: 'FOREMAN',
+        isActive: true,
+        createdAt: new Date()
+      }
+    }),
+    prisma.user.create({
+      data: {
+        firstName: 'Patricia',
+        lastName: 'Brown',
+        email: 'patricia.brown@kenstruction.com',
+        password: 'hashedpassword',
+        role: 'WORKER',
+        isActive: true,
+        createdAt: new Date()
+      }
+    }),
+    prisma.user.create({
+      data: {
+        firstName: 'Charles',
+        lastName: 'Jones',
+        email: 'charles.jones@kenstruction.com',
+        password: 'hashedpassword',
+        role: 'PROJECT_MANAGER',
+        isActive: true,
+        createdAt: new Date()
+      }
     })
   ]);
 
