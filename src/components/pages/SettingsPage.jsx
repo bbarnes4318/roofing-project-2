@@ -240,13 +240,16 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   // Project import functions
   const fetchWorkflowTemplates = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/project-import/templates`);
-      const data = await response.json();
-      if (data.success) {
-        setWorkflowTemplates(data.data);
-        if (data.data.length > 0) {
-          setSelectedWorkflowTemplate(data.data[0].id);
-        }
+      // Since WorkflowTemplate model doesn't exist, provide default options
+      const defaultTemplates = [
+        { id: 'standard', name: 'Standard Roofing Workflow', description: 'Default 7-phase roofing workflow' },
+        { id: 'express', name: 'Express Workflow', description: 'Simplified workflow for small projects' },
+        { id: 'insurance', name: 'Insurance Claims Workflow', description: 'Workflow optimized for insurance claims' }
+      ];
+      
+      setWorkflowTemplates(defaultTemplates);
+      if (defaultTemplates.length > 0) {
+        setSelectedWorkflowTemplate(defaultTemplates[0].id);
       }
     } catch (error) {
       console.error('Error fetching workflow templates:', error);
@@ -272,8 +275,12 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       const data = await response.json();
       
       if (data.success) {
-        setImportResults(data.data);
-        showSuccessMessage(`Import completed: ${data.data.successful.length} projects created successfully`);
+        setImportResults({
+          total: data.data.total || 0,
+          successful: data.data.successful || [],
+          failed: data.data.errors || []
+        });
+        showSuccessMessage(`Import completed: ${(data.data.successful || []).length} projects created successfully`);
         setImportFile(null);
       } else {
         showSuccessMessage(`Import failed: ${data.message}`);
@@ -1203,27 +1210,27 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         <p className={`text-sm mb-3 ${
           colorMode ? 'text-blue-200' : 'text-blue-700'
         }`}>
-          Import your project data with customer information, addresses, budgets, and more.
+          Import projects with customer data. Each project will be initialized with the complete 91-line item workflow starting at the LEAD phase.
         </p>
         <div className={`text-xs space-y-1 ${
           colorMode ? 'text-blue-200' : 'text-blue-600'
         }`}>
-          <p><strong>Required Columns:</strong> customerName, projectAddress</p>
-          <p><strong>Optional Columns:</strong> projectNumber, customerEmail, customerPhone, city, state, zipCode, projectType, projectValue, notes</p>
+          <p><strong>Required Columns:</strong> projectNumber, projectName, primaryName, primaryEmail, address</p>
+          <p><strong>Optional Columns:</strong> primaryPhone, secondaryName, secondaryEmail, secondaryPhone, primaryContact, customerNotes, projectType, status, priority, budget, estimatedCost, startDate, endDate, description, notes, pmPhone, pmEmail</p>
         </div>
       </div>
 
       {/* Workflow Template Selection */}
       <div className={`border rounded-lg p-4 ${
         colorMode 
-          ? 'bg-purple-900/20 border-purple-500/40' 
-          : 'bg-purple-50 border-purple-200'
+          ? 'bg-gray-800/50 border-gray-600' 
+          : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
-          colorMode ? 'text-purple-300' : 'text-purple-900'
+          colorMode ? 'text-blue-300' : 'text-blue-900'
         }`}>🔧 Workflow Template</h3>
         <p className={`text-sm mb-3 ${
-          colorMode ? 'text-purple-200' : 'text-purple-700'
+          colorMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
           Select the workflow template to assign to imported projects
         </p>
@@ -1232,14 +1239,14 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           onChange={(e) => setSelectedWorkflowTemplate(e.target.value)}
           className={`w-full p-2 rounded border text-sm ${
             colorMode 
-              ? 'bg-[#232b4d] border-gray-600 text-white' 
+              ? 'bg-[#181f3a] border-[#3b82f6] text-white' 
               : 'bg-white border-gray-300 text-gray-800'
           }`}
         >
           <option value="">Select a workflow template...</option>
           {workflowTemplates.map((template) => (
             <option key={template.id} value={template.id}>
-              {template.name} ({template.phases?.join(', ') || 'All Phases'})
+              {template.name} - {template.description}
             </option>
           ))}
         </select>
@@ -1248,14 +1255,14 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       {/* Download Templates */}
       <div className={`border rounded-lg p-4 ${
         colorMode 
-          ? 'bg-green-900/20 border-green-500/40' 
-          : 'bg-green-50 border-green-200'
+          ? 'bg-gray-800/50 border-gray-600' 
+          : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
-          colorMode ? 'text-green-300' : 'text-green-900'
+          colorMode ? 'text-blue-300' : 'text-blue-900'
         }`}>📄 Download CSV Template</h3>
         <p className={`text-sm mb-3 ${
-          colorMode ? 'text-green-200' : 'text-green-700'
+          colorMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
           Download the combined Project + Customer template with project number field
         </p>
@@ -1418,7 +1425,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
                   <div key={index} className={`text-xs p-2 rounded ${
                     colorMode ? 'bg-red-900/30' : 'bg-red-100'
                   }`}>
-                    <strong>Row {failed.row}:</strong> {failed.error}
+                    <strong>Row {failed.row || index + 1}:</strong> {failed.error || failed.message || 'Unknown error'}
                   </div>
                 ))}
                 {importResults.failed.length > 3 && (
@@ -1437,60 +1444,69 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       {/* Example Data */}
       <div className={`border rounded-lg p-4 ${
         colorMode 
-          ? 'bg-yellow-900/20 border-yellow-500/40' 
-          : 'bg-yellow-50 border-yellow-200'
+          ? 'bg-gray-800/50 border-gray-600' 
+          : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
-          colorMode ? 'text-yellow-300' : 'text-yellow-900'
+          colorMode ? 'text-blue-300' : 'text-blue-900'
         }`}>💡 Example Project Data</h3>
         <div className="overflow-x-auto">
           <table className={`min-w-full text-xs border-collapse ${
             colorMode ? 'border-gray-600' : 'border-gray-300'
           }`}>
             <thead>
-              <tr className={colorMode ? 'bg-yellow-900/40' : 'bg-yellow-100'}>
+              <tr className={colorMode ? 'bg-gray-700/50' : 'bg-gray-100'}>
                 <th className={`px-2 py-1 text-left border ${
-                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
-                }`}>customerName</th>
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-900'
+                }`}>projectNumber</th>
                 <th className={`px-2 py-1 text-left border ${
-                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
-                }`}>projectAddress</th>
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-900'
+                }`}>projectName</th>
                 <th className={`px-2 py-1 text-left border ${
-                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
-                }`}>customerPhone</th>
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-900'
+                }`}>primaryName</th>
                 <th className={`px-2 py-1 text-left border ${
-                  colorMode ? 'border-gray-600 text-yellow-200' : 'border-gray-300 text-yellow-900'
-                }`}>projectValue</th>
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-900'
+                }`}>primaryEmail</th>
+                <th className={`px-2 py-1 text-left border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-900'
+                }`}>address</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td className={`px-2 py-1 border ${
                   colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>12345</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>Smith Roof Replacement</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
                 }`}>John Smith</td>
                 <td className={`px-2 py-1 border ${
                   colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>john.smith@email.com</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
                 }`}>123 Main St, Dallas TX</td>
-                <td className={`px-2 py-1 border ${
-                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
-                }`}>(555) 123-4567</td>
-                <td className={`px-2 py-1 border ${
-                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
-                }`}>15000</td>
               </tr>
               <tr>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>12346</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>Doe Kitchen Remodel</td>
                 <td className={`px-2 py-1 border ${
                   colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
                 }`}>Jane Doe</td>
                 <td className={`px-2 py-1 border ${
                   colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
+                }`}>jane.doe@email.com</td>
+                <td className={`px-2 py-1 border ${
+                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
                 }`}>456 Oak Ave, Dallas TX</td>
-                <td className={`px-2 py-1 border ${
-                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
-                }`}>(555) 987-6543</td>
-                <td className={`px-2 py-1 border ${
-                  colorMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-800'
-                }`}>3500</td>
               </tr>
             </tbody>
           </table>

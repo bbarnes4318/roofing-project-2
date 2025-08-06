@@ -22,7 +22,7 @@ const generateRealTimeAlerts = async () => {
     // Get all active projects
     const projects = await prisma.project.findMany({
       where: {
-        status: { in: ['ACTIVE', 'IN_PROGRESS'] }
+        status: 'IN_PROGRESS'
       },
       include: {
         customer: true,
