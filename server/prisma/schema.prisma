@@ -205,6 +205,7 @@ model WorkflowStep {
   defaultResponsible ResponsibleRole
   assignedToId       String?                  @map("assigned_to_id")
   estimatedDuration  Int
+  stepOrder          Int
   scheduledStartDate DateTime?
   scheduledEndDate   DateTime?
   actualStartDate    DateTime?
@@ -289,6 +290,9 @@ model WorkflowAlert {
   @@index([projectId, status])
   @@index([assignedToId, status])
   @@index([workflowId, stepId])
+  @@index([createdAt(sort: Desc), projectId])
+  @@index([stepId, status])
+  @@unique([projectId, stepId, status], map: "unique_active_alert")
   @@map("workflow_alerts")
 }
 
@@ -594,6 +598,7 @@ model RoleAssignment {
   @@index([userId])
   @@index([roleType])
   @@index([assignedAt])
+  @@index([roleType, isActive])
   @@map("role_assignments")
 }
 
@@ -925,6 +930,8 @@ model WorkflowLineItem {
 
   @@unique([sectionId, itemLetter])
   @@index([sectionId])
+  @@index([sectionId, displayOrder])
+  @@index([isActive, displayOrder])
   @@map("workflow_line_items")
 }
 
@@ -947,6 +954,8 @@ model ProjectWorkflowTracker {
   currentLineItem       WorkflowLineItem?@relation(fields: [currentLineItemId], references: [id])
   completedItems        CompletedWorkflowItem[]
 
+  @@index([currentLineItemId])
+  @@index([projectId, currentPhaseId])
   @@map("project_workflow_trackers")
 }
 
@@ -966,5 +975,7 @@ model CompletedWorkflowItem {
 
   @@index([trackerId])
   @@index([completedAt])
+  @@index([trackerId, lineItemId])
+  @@index([trackerId, completedAt])
   @@map("completed_workflow_items")
 }

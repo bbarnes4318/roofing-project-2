@@ -621,6 +621,7 @@ router.put('/project/:projectId/workflow/:stepId', asyncHandler(async (req, res)
           phase: 'LEAD',
           defaultResponsible: 'OFFICE',
           estimatedDuration: 1,
+          stepOrder: 1,
           isCompleted: completed,
           completedAt: completed ? new Date() : null,
           scheduledStartDate: new Date(),
