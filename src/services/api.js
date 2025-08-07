@@ -11,7 +11,7 @@ const getApiBaseUrl = () => {
   return 'http://localhost:5000/api';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = getApiBaseUrl();
 
 // Request throttling to prevent excessive calls
 const requestCache = new Map();

@@ -19,17 +19,17 @@ const authenticateToken = async (req, res, next) => {
     if (token.startsWith('demo-sarah-owner-token-')) {
       // Find Sarah Owner in the database or create a mock user
       let sarahOwner = await prisma.user.findFirst({ 
-      where: { firstName: 'Sarah', lastName: 'Owner' } 
-    });
+        where: { firstName: 'Sarah', lastName: 'Owner' } 
+      });
       
       if (!sarahOwner) {
         // Create mock user object for demo purposes
         sarahOwner = {
-          _id: 'demo-sarah-owner-id',
+          id: 'demo-sarah-owner-id',
           firstName: 'Sarah',
           lastName: 'Owner',
           email: 'sarah@example.com',
-          role: 'admin',
+          role: 'ADMIN',
           isActive: true,
           company: 'Kenstruction',
           position: 'Owner',

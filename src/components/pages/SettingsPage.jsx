@@ -146,10 +146,10 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       
       // Convert frontend role names to backend format
       const roleTypeMapping = {
-        'productManager': 'PRODUCT_MANAGER',
-        'fieldDirector': 'FIELD_DIRECTOR', 
-        'officeStaff': 'OFFICE_STAFF',
-        'administration': 'ADMINISTRATION'
+        productManager: 'PROJECT_MANAGER',
+        fieldDirector: 'FIELD_DIRECTOR', 
+        officeStaff: 'OFFICE_STAFF',
+        administration: 'ADMINISTRATION'
       };
       
       const backendRoleType = roleTypeMapping[roleType] || roleType;
