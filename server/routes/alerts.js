@@ -292,7 +292,21 @@ router.get('/', asyncHandler(async (req, res, next) => {
     // Send paginated response
     sendPaginatedResponse(res, transformed, pageNum, limitNum, total, 'Alerts retrieved successfully');
   } catch (error) {
-    next(error);
+    console.error('Error fetching alerts:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    return sendPaginatedResponse(
+      res,
+      [],
+      pageNum,
+      limitNum,
+      0,
+      'Unable to fetch alerts at this time'
+    );
   }
 }));
 

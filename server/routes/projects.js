@@ -373,7 +373,21 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
     sendPaginatedResponse(res, enhancedProjects, pageNum, limitNum, total, 'Projects retrieved successfully');
   } catch (error) {
     console.error('Error fetching projects:', error);
-    throw new AppError('Failed to fetch projects', 500);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    // Fail soft in production to keep UI functional
+    return sendPaginatedResponse(
+      res,
+      [],
+      pageNum,
+      limitNum,
+      0,
+      'Unable to fetch projects at this time'
+    );
   }
 }));
 
