@@ -1441,7 +1441,97 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   return (
     <div className={`animate-fade-in w-full max-w-full ${isDarkMode ? 'dark' : ''}`}>
-      {/* Full Width - Project Overview by Phase - AT THE TOP */}
+      {/* Enhanced Dashboard Header */}
+      <div className={`mb-6 rounded-lg shadow-lg overflow-hidden ${
+        colorMode ? 'bg-gradient-to-r from-slate-800 to-slate-900' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+      }`}>
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left Side - Title and Breadcrumb */}
+            <div className="flex items-center space-x-4">
+              <div>
+                <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <span className="text-3xl">📊</span>
+                  Project Dashboard
+                </h1>
+                <div className="flex items-center text-blue-100 text-sm mt-1">
+                  <span>🏠</span>
+                  <span className="mx-1">›</span>
+                  <span>Dashboard</span>
+                  <span className="mx-1">›</span>
+                  <span className="text-white font-medium">Projects Overview</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Stats and Controls */}
+            <div className="flex items-center space-x-6">
+              {/* Quick Stats */}
+              <div className="hidden md:flex items-center space-x-4 text-white">
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <div className="text-xs opacity-90">Total Projects</div>
+                  <div className="text-lg font-bold">{projects?.length || 0}</div>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <div className="text-xs opacity-90">Active Phases</div>
+                  <div className="text-lg font-bold">
+                    {projects ? new Set(projects.map(p => WorkflowProgressService.getProjectPhase(p))).size : 0}
+                  </div>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2">
+                  <div className="text-xs opacity-90">Avg Progress</div>
+                  <div className="text-lg font-bold">
+                    {projects && projects.length > 0 
+                      ? Math.round(projects.reduce((sum, p) => sum + (getProgressForProject(p) || 0), 0) / projects.length)
+                      : 0}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex items-center space-x-2">
+                {/* Refresh Button */}
+                <button
+                  onClick={() => {
+                    if (refetchProjects) {
+                      refetchProjects();
+                    }
+                  }}
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-lg transition-all duration-200 hover:scale-105"
+                  title="Refresh Projects"
+                >
+                  <span className="text-lg">🔄</span>
+                </button>
+
+                {/* Dark Mode Toggle - Enhanced */}
+                <button
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-lg transition-all duration-200 hover:scale-105"
+                  title="Toggle Dark Mode"
+                >
+                  <span className="text-lg">{isDarkMode ? '☀️' : '🌙'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Row - Last Updated and System Status */}
+          <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-blue-100 text-xs">
+            <div className="flex items-center space-x-4">
+              <span>📅 Last Updated: {new Date().toLocaleTimeString()}</span>
+              <span className="flex items-center">
+                <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                System Online
+              </span>
+            </div>
+            <div className="hidden md:block">
+              <span>Welcome back! You have {projects?.length || 0} active projects to manage.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Full Width - Project Overview by Phase */}
       {(
       <div className={`mb-6 border-t-4 border-blue-400 bg-white overflow-hidden relative shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'}`} data-section="project-phases">
         <div className="flex items-center justify-between mb-4">
