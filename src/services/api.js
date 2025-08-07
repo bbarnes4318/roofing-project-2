@@ -13,6 +13,10 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Request throttling to prevent excessive calls
+const requestCache = new Map();
+const CACHE_DURATION = 1000; // Cache GET requests for 1 second
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -22,9 +26,23 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and implement caching
 api.interceptors.request.use(
   (config) => {
+    // Simple caching for GET requests to prevent rapid repeated calls
+    if (config.method === 'get') {
+      const cacheKey = `${config.url}${JSON.stringify(config.params || {})}`;
+      const cached = requestCache.get(cacheKey);
+      
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        // Return cached response
+        return Promise.reject({
+          cached: true,
+          data: cached.data,
+          config: config
+        });
+      }
+    }
     let token = localStorage.getItem('authToken') || localStorage.getItem('token');
     
     // If no token exists, create a STATIC demo token (not timestamp based)
@@ -56,10 +74,39 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling and caching
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Cache successful GET responses
+    if (response.config.method === 'get') {
+      const cacheKey = `${response.config.url}${JSON.stringify(response.config.params || {})}`;
+      requestCache.set(cacheKey, {
+        timestamp: Date.now(),
+        data: response.data
+      });
+      
+      // Clear old cache entries periodically
+      if (requestCache.size > 100) {
+        const now = Date.now();
+        for (const [key, value] of requestCache.entries()) {
+          if (now - value.timestamp > CACHE_DURATION * 10) {
+            requestCache.delete(key);
+          }
+        }
+      }
+    }
+    return response;
+  },
   (error) => {
+    // Handle cached responses
+    if (error.cached) {
+      return Promise.resolve({ 
+        data: error.data, 
+        config: error.config,
+        cached: true 
+      });
+    }
+    
     console.error('🚨 API ERROR:', {
       url: error.config?.url,
       method: error.config?.method,

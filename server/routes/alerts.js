@@ -9,108 +9,73 @@ const {
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
 const { cacheService } = require('../config/redis');
+const AlertCacheService = require('../services/AlertCacheService');
 // const { transformWorkflowStep } = require('../utils/workflowMapping'); // DEPRECATED - Now using database
 const WorkflowProgressionService = require('../services/WorkflowProgressionService');
 
 const router = express.Router();
 
-// **CRITICAL: Generate real-time alerts based on actual workflow states**
-const generateRealTimeAlerts = async () => {
+// **CRITICAL: Generate real-time alerts with batch optimization**
+const generateRealTimeAlerts = async (limit = 10) => {
   try {
-    console.log('🔍 GENERATING REAL-TIME ALERTS from database workflow states...');
+    console.log('🔍 GENERATING REAL-TIME ALERTS with batch optimization...');
     
-    // Get all active projects
-    const projects = await prisma.project.findMany({
+    // Get limited active projects to prevent memory issues
+    const projectIds = await prisma.project.findMany({
       where: {
         status: 'IN_PROGRESS'
       },
-      include: {
-        customer: true,
-        projectManager: true
-      }
+      select: {
+        id: true
+      },
+      take: limit
     });
 
-    const realTimeAlerts = [];
-    
-    for (const project of projects) {
-      // Get current workflow position from tracker
-      const tracker = await WorkflowProgressionService.getCurrentPosition(project.id);
-      
-      if (!tracker || !tracker.currentLineItem) {
-        console.log(`⚠️ Project ${project.projectName} has no active workflow position`);
-        continue;
-      }
-
-      const currentLineItem = tracker.currentLineItem;
-      const currentSection = currentLineItem.section;
-      const currentPhase = currentSection.phase;
-
-      console.log(`📋 Creating alert for project: ${project.projectName}, line item: ${currentLineItem.itemName}`);
-
-      const alert = {
-        id: `realtime_${project.id}_${currentLineItem.id}`,
-        _id: `realtime_${project.id}_${currentLineItem.id}`,
-        type: 'Work Flow Line Item',
-        priority: 'MEDIUM',
-        status: 'ACTIVE',
-        title: `${currentLineItem.itemName} - ${project.customer?.primaryName || project.projectName}`,
-        message: `${currentLineItem.itemName} is ready to begin for project ${project.projectName}`,
-        stepName: currentLineItem.itemName,
-        isRead: false,
-        read: false,
-        createdAt: new Date(),
-        dueDate: new Date(Date.now() + (currentLineItem.alertDays || 1) * 24 * 60 * 60 * 1000),
-        workflowId: tracker.id,
-        stepId: currentLineItem.id,
-        projectId: project.id,
-        section: currentSection.displayName,
-        lineItem: currentLineItem.itemName,
-        relatedProject: {
-          id: project.id,
-          _id: project.id,
-          projectNumber: project.projectNumber,
-          projectName: project.projectName,
-          address: project.projectName,
-          customer: {
-            id: project.customer?.id,
-            name: project.customer?.primaryName,
-            primaryName: project.customer?.primaryName,
-            phone: project.customer?.primaryPhone,
-            email: project.customer?.primaryEmail,
-            address: project.customer?.address
-          },
-          projectManager: project.projectManager ? {
-            id: project.projectManager.id,
-            firstName: project.projectManager.firstName,
-            lastName: project.projectManager.lastName
-          } : null
-        },
-        metadata: {
-          projectId: project.id,
-          projectNumber: project.projectNumber,
-          projectName: project.projectName,
-          customerName: project.customer?.primaryName,
-          customerPhone: project.customer?.primaryPhone,
-          customerEmail: project.customer?.primaryEmail,
-          customerAddress: project.customer?.address,
-          address: project.projectName,
-          stepName: currentLineItem.itemName,
-          stepId: currentLineItem.id,
-          workflowId: tracker.id,
-          phase: currentPhase.phaseType,
-          section: currentSection.displayName,
-          lineItem: currentLineItem.itemName,
-          cleanTaskName: currentLineItem.itemName,
-          responsibleRole: currentLineItem.responsibleRole,
-          trackerId: tracker.id
-        }
-      };
-
-      realTimeAlerts.push(alert);
+    if (projectIds.length === 0) {
+      console.log('No active projects found');
+      return [];
     }
 
-    console.log(`✅ Generated ${realTimeAlerts.length} real-time alerts from database workflow states`);
-    return realTimeAlerts;
+    // Use batch alert generation
+    const AlertGenerationService = require('../services/AlertGenerationService');
+    const alerts = await AlertGenerationService.generateBatchAlerts(
+      projectIds.map(p => p.id)
+    );
+
+    // Transform for frontend compatibility
+    const transformedAlerts = alerts.map(alert => ({
+      id: alert.id,
+      _id: alert.id,
+      type: alert.type,
+      priority: alert.priority,
+      status: alert.status,
+      title: alert.title,
+      message: alert.message,
+      stepName: alert.stepName,
+      isRead: alert.isRead,
+      read: alert.isRead,
+      createdAt: alert.createdAt,
+      dueDate: alert.dueDate,
+      workflowId: alert.workflowId,
+      stepId: alert.stepId,
+      projectId: alert.projectId,
+      section: alert.metadata?.section,
+      lineItem: alert.stepName,
+      relatedProject: {
+        id: alert.projectId,
+        _id: alert.projectId,
+        projectNumber: alert.metadata?.projectNumber,
+        projectName: alert.metadata?.projectName,
+        customer: {
+          primaryName: alert.metadata?.customerName,
+          address: alert.metadata?.address
+        }
+      },
+      metadata: alert.metadata
+    }));
+
+    console.log(`✅ Generated ${transformedAlerts.length} real-time alerts (batch optimized)`);
+    return transformedAlerts;
     
   } catch (error) {
     console.error('❌ Error generating real-time alerts:', error);
@@ -134,7 +99,7 @@ const generateMockAlerts = async () => {
 // @desc    Get all alerts for current user (or all alerts if user has permission)
 // @route   GET /api/alerts
 // @access  Private
-router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, res, next) => {
+router.get('/', asyncHandler(async (req, res, next) => {
   const {
     status = 'ACTIVE',
     priority,
@@ -180,9 +145,25 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
   console.log('🚨 ALERTS ROUTE: Fetching workflow alerts...');
   
   try {
-    // Execute query with pagination
-    const [alerts, total] = await Promise.all([
-      prisma.workflowAlert.findMany({
+    // Check cache first for user alerts
+    const cacheKey = `user-alerts:${req.user?.id || 'all'}`;
+    let alerts = null;
+    let total = 0;
+    
+    // Try to get from cache if it's the first page
+    if (pageNum === 1 && req.user?.id) {
+      const cached = AlertCacheService.getCachedUserAlerts(req.user.id);
+      if (cached) {
+        console.log(`📦 Returning cached alerts for user ${req.user.id}`);
+        alerts = cached;
+        total = cached.length;
+      }
+    }
+    
+    // If not in cache, fetch from database
+    if (!alerts) {
+      [alerts, total] = await Promise.all([
+        prisma.workflowAlert.findMany({
       where,
       skip,
       take: limitNum,
@@ -222,28 +203,34 @@ router.get('/', cacheService.middleware('alerts', 30), asyncHandler(async (req, 
           }
         }
       }
-    }),
-    prisma.workflowAlert.count({ where })
-  ]);
+        }),
+        prisma.workflowAlert.count({ where })
+      ]);
+      
+      // Cache the results for user-specific queries
+      if (pageNum === 1 && req.user?.id && assignedToId === req.user.id) {
+        AlertCacheService.cacheUserAlerts(req.user.id, alerts, 60);
+      }
+    }
     
     console.log(`🚨 ALERTS ROUTE: Found ${alerts.length} alerts from database`);
     
-    // CRITICAL FIX: Generate real alerts from workflow states instead of mock data
+    // Only generate missing alerts if database is empty (migration fallback)
     let finalAlerts = alerts;
-    if (alerts.length === 0) {
-      console.log('🚨 ALERTS ROUTE: No alerts in database, checking for active workflow steps...');
+    if (alerts.length === 0 && pageNum === 1) {
+      console.log('🚨 ALERTS ROUTE: No alerts in database, generating batch alerts...');
       
-      // Generate real alerts based on active workflow steps
-      const realAlerts = await generateRealTimeAlerts();
+      // Generate alerts using batch optimization
+      const realAlerts = await generateRealTimeAlerts(limitNum);
       
       // Filter real alerts based on status if provided
       if (where.status) {
         finalAlerts = realAlerts.filter(alert => {
           const alertStatus = alert.status || 'ACTIVE';
           return alertStatus === where.status;
-        }).slice(0, limitNum);
+        });
       } else {
-        finalAlerts = realAlerts.slice(0, limitNum);
+        finalAlerts = realAlerts;
       }
       console.log(`🚨 ALERTS ROUTE: Generated ${finalAlerts.length} real-time alerts`);
       
@@ -368,8 +355,20 @@ router.post('/', asyncHandler(async (req, res, next) => {
 router.patch('/:id/read', asyncHandler(async (req, res) => {
   const { id } = req.params;
   
-  // For now, just return success since we're using mock data
-  sendSuccess(res, { id, read: true }, 'Alert marked as read successfully');
+  const alert = await prisma.workflowAlert.update({
+    where: { id },
+    data: { 
+      isRead: true,
+      readAt: new Date()
+    }
+  });
+  
+  // Invalidate cache for the user
+  if (req.user?.id) {
+    AlertCacheService.invalidateUserAlerts(req.user.id);
+  }
+  
+  sendSuccess(res, alert, 'Alert marked as read successfully');
 }));
 
 // @desc    Mark all alerts as read
@@ -398,7 +397,22 @@ router.patch('/read-all', asyncHandler(async (req, res) => {
 router.delete('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
   
-  // For now, just return success since we're using mock data
+  const alert = await prisma.workflowAlert.update({
+    where: { id },
+    data: {
+      status: 'DISMISSED',
+      acknowledgedAt: new Date()
+    }
+  });
+  
+  // Invalidate cache
+  if (alert.assignedToId) {
+    AlertCacheService.invalidateUserAlerts(alert.assignedToId);
+  }
+  if (alert.projectId) {
+    AlertCacheService.invalidateProjectAlerts(alert.projectId);
+  }
+  
   sendSuccess(res, null, 'Alert dismissed successfully');
 }));
 

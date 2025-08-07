@@ -198,7 +198,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
   const getRoleDisplayName = (roleType) => {
     const roleNames = {
-      productManager: 'Product Manager',
+      productManager: 'Project Manager',
       fieldDirector: 'Field Director', 
       officeStaff: 'Office Staff',
       administration: 'Administration'
@@ -747,7 +747,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
       {/* Role Assignment Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Product Manager */}
+        {/* Project Manager */
         <div className={`border rounded-lg p-4 ${
           colorMode 
             ? 'bg-purple-900/20 border-purple-500/40' 
@@ -757,7 +757,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             <span className="text-lg">🎯</span>
             <h4 className={`font-semibold ${
               colorMode ? 'text-purple-300' : 'text-purple-900'
-            }`}>Product Manager</h4>
+            }`}>Project Manager</h4>
           </div>
           <p className={`text-xs mb-3 ${
             colorMode ? 'text-purple-200' : 'text-purple-700'
@@ -779,7 +779,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
                 : 'bg-white border-gray-300 text-gray-800'
             } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <option value="">Select Product Manager...</option>
+            <option value="">Select Project Manager...</option>
             {availableUsers.map(user => (
               <option key={user.id} value={user.id}>
                 {user.name} ({user.role})
@@ -954,7 +954,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             colorMode ? 'bg-gray-700/50' : 'bg-white'
           }`}>
             <div className={`font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-              🎯 Product Manager
+              🎯 Project Manager
             </div>
             <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {roleAssignments.productManager 

@@ -173,10 +173,10 @@ async function main() {
   console.log('🎯 Creating default role assignments...');
   
   const roleAssignments = await Promise.all([
-    // Mike Rodriguez as default Product Manager
+    // Mike Rodriguez as default Project Manager
     prisma.roleAssignment.create({
       data: {
-        roleType: 'PRODUCT_MANAGER',
+        roleType: 'PROJECT_MANAGER',
         userId: users.find(u => u.firstName === 'Mike').id,
         assignedAt: new Date(),
         assignedById: users.find(u => u.firstName === 'Sarah').id

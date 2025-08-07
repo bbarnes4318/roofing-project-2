@@ -16,7 +16,7 @@ require('dotenv').config();
 console.log('✅ Required modules loaded successfully');
 
 // Import database connection
-const { connectDatabase } = require('./config/prisma');
+const { connectDatabase, prisma } = require('./config/prisma');
 
 // Import middleware
 const { authenticateToken } = require('./middleware/auth');
@@ -76,9 +76,8 @@ try {
   console.log('⚠️ SERVER: Project import functionality will be disabled');
 }
 
-// Import services - TEMPORARILY DISABLED FOR POSTGRESQL MIGRATION
-// const WorkflowAlertService = require('./services/WorkflowAlertService');
-// const AlertSchedulerService = require('./services/AlertSchedulerService');
+// Import services
+const AlertCacheService = require('./services/AlertCacheService');
 
 // Initialize Express app
 const app = express();
@@ -93,14 +92,27 @@ const io = socketIo(server, {
   }
 });
 
+// Make io globally available for services
+global.io = io;
+app.set('io', io);
+
 // Connect to PostgreSQL with better error handling
 connectDatabase()
   .then(() => {
     console.log('✅ Database connection established, initializing services...');
     
-    // Initialize WorkflowAlertService after database connection
+    // Initialize services after database connection
     setTimeout(() => {
       try {
+        // Initialize Alert Cache Service
+        console.log('📦 Initializing Alert Cache Service...');
+        global.alertCache = AlertCacheService;
+        
+        // Warm up cache with frequently accessed data
+        AlertCacheService.warmUpCache(prisma).then(() => {
+          console.log('✅ Alert cache warmed up');
+        });
+        
         console.log('🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete');
         
         // Start the Alert Scheduler for workflow alerts

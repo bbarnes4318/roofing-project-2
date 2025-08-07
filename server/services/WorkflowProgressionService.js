@@ -89,49 +89,72 @@ class WorkflowProgressionService {
   }
 
   /**
-   * Complete a line item and progress to the next
+   * Complete a line item and progress to the next (TRANSACTION-SAFE with alert generation)
    */
-  async completeLineItem(projectId, lineItemId, completedById = null, notes = null) {
+  async completeLineItem(projectId, lineItemId, completedById = null, notes = null, io = null) {
     try {
-      const tracker = await this.getCurrentPosition(projectId);
-      
-      // Verify this is the current line item
-      if (tracker.currentLineItemId !== lineItemId) {
-        throw new Error('Can only complete the current active line item');
-      }
+      const result = await prisma.$transaction(async (tx) => {
+        // Get tracker with minimal data
+        const tracker = await tx.projectWorkflowTracker.findUnique({
+          where: { projectId },
+          select: { 
+            id: true, 
+            currentLineItemId: true,
+            currentPhaseId: true,
+            currentSectionId: true
+          }
+        });
 
-      // Record completion
-      await prisma.completedWorkflowItem.create({
-        data: {
-          trackerId: tracker.id,
-          phaseId: tracker.currentPhaseId,
-          sectionId: tracker.currentSectionId,
-          lineItemId: lineItemId,
-          completedById,
-          notes
+        if (!tracker || tracker.currentLineItemId !== lineItemId) {
+          throw new Error('Can only complete the current active line item');
         }
-      });
 
-      // Find the next line item
-      const nextPosition = await this.findNextLineItem(
-        tracker.currentPhaseId,
-        tracker.currentSectionId,
-        tracker.currentLineItemId
-      );
+        // Record completion
+        const completion = await tx.completedWorkflowItem.create({
+          data: {
+            trackerId: tracker.id,
+            phaseId: tracker.currentPhaseId,
+            sectionId: tracker.currentSectionId,
+            lineItemId: lineItemId,
+            completedById,
+            notes
+          }
+        });
 
-      // Update tracker with new position
-      const updateData = {
-        lastCompletedItemId: lineItemId,
-        ...nextPosition.updates
-      };
+        // Find next position
+        const nextPosition = await this.findNextLineItem(
+          tracker.currentPhaseId,
+          tracker.currentSectionId,
+          tracker.currentLineItemId
+        );
 
-      const updatedTracker = await prisma.projectWorkflowTracker.update({
-        where: { id: tracker.id },
-        data: updateData,
-        include: {
-          currentPhase: true,
-          currentSection: true,
-          currentLineItem: {
+        // Update tracker
+        const updatedTracker = await tx.projectWorkflowTracker.update({
+          where: { id: tracker.id },
+          data: {
+            lastCompletedItemId: lineItemId,
+            ...nextPosition.updates
+          }
+        });
+
+        // Complete old alerts WITHIN TRANSACTION
+        const completedAlerts = await tx.workflowAlert.updateMany({
+          where: { 
+            stepId: lineItemId, 
+            status: 'ACTIVE' 
+          },
+          data: { 
+            status: 'COMPLETED',
+            acknowledgedAt: new Date()
+          }
+        });
+
+        // Generate new alert WITHIN TRANSACTION if there's a next item
+        let newAlert = null;
+        if (nextPosition.updates.currentLineItemId) {
+          // Get line item data for alert
+          const lineItemData = await tx.workflowLineItem.findUnique({
+            where: { id: nextPosition.updates.currentLineItemId },
             include: {
               section: {
                 include: {
@@ -139,18 +162,87 @@ class WorkflowProgressionService {
                 }
               }
             }
+          });
+
+          if (lineItemData) {
+            // Get project data
+            const projectData = await tx.project.findUnique({
+              where: { id: projectId },
+              include: {
+                customer: true
+              }
+            });
+
+            // Create alert within transaction
+            newAlert = await tx.workflowAlert.create({
+              data: {
+                type: 'Work Flow Line Item',
+                priority: 'MEDIUM',
+                status: 'ACTIVE',
+                title: `${lineItemData.itemName} - ${projectData.customer?.primaryName || 'Customer'}`,
+                message: `${lineItemData.itemName} is now ready to be completed for project at ${projectData.projectName}`,
+                stepName: lineItemData.itemName,
+                responsibleRole: lineItemData.responsibleRole,
+                dueDate: new Date(Date.now() + (lineItemData.alertDays || 1) * 24 * 60 * 60 * 1000),
+                projectId: projectId,
+                workflowId: tracker.id,
+                stepId: nextPosition.updates.currentLineItemId,
+                assignedToId: projectData.projectManagerId,
+                metadata: {
+                  phase: lineItemData.section.phase.phaseType,
+                  section: lineItemData.section.displayName,
+                  projectNumber: projectData.projectNumber,
+                  customerName: projectData.customer?.primaryName,
+                  address: projectData.customer?.address
+                }
+              }
+            });
           }
         }
+
+        console.log(`✅ Completed line item and progressed workflow for project ${projectId}`);
+        
+        return {
+          tracker: updatedTracker,
+          completion,
+          completedPhase: nextPosition.completedPhase,
+          completedSection: nextPosition.completedSection,
+          isWorkflowComplete: nextPosition.isComplete,
+          newAlert,
+          completedAlertsCount: completedAlerts.count
+        };
+      }, {
+        maxWait: 5000, // 5 second max wait
+        timeout: 10000 // 10 second timeout
       });
 
-      console.log(`✅ Completed line item and progressed workflow for project ${projectId}`);
-      
-      return {
-        tracker: updatedTracker,
-        completedPhase: nextPosition.completedPhase,
-        completedSection: nextPosition.completedSection,
-        isWorkflowComplete: nextPosition.isComplete
-      };
+      // Emit socket events AFTER transaction commits successfully
+      if (io && result.newAlert) {
+        // Emit to assigned user
+        io.to(`user_${result.newAlert.assignedToId}`).emit('new_alert', {
+          id: result.newAlert.id,
+          title: result.newAlert.title,
+          message: result.newAlert.message,
+          priority: result.newAlert.priority,
+          projectId: result.newAlert.projectId
+        });
+        
+        // Emit workflow update to project room
+        io.to(`project_${projectId}`).emit('workflow_updated', {
+          projectId,
+          lineItemCompleted: lineItemId,
+          newActiveItem: result.tracker.currentLineItemId,
+          isComplete: result.isWorkflowComplete
+        });
+        
+        // Request alerts refresh
+        io.to(`project_${projectId}`).emit('alerts_refresh', {
+          projectId,
+          type: 'workflow_progression'
+        });
+      }
+
+      return result;
     } catch (error) {
       console.error('Error completing line item:', error);
       throw error;
@@ -158,134 +250,120 @@ class WorkflowProgressionService {
   }
 
   /**
-   * Find the next line item in the workflow
+   * Find the next line item in the workflow (OPTIMIZED with raw SQL)
    */
   async findNextLineItem(currentPhaseId, currentSectionId, currentLineItemId) {
     try {
-      // Get current line item with its order
-      const currentItem = await prisma.workflowLineItem.findUnique({
-        where: { id: currentLineItemId },
-        include: {
-          section: {
-            include: {
-              phase: true,
-              lineItems: {
-                where: { isActive: true },
-                orderBy: { displayOrder: 'asc' }
-              }
-            }
-          }
-        }
-      });
+      // Get current item position with single query
+      const currentItem = await prisma.$queryRaw`
+        SELECT 
+          wli.id,
+          wli.display_order as "displayOrder",
+          wli.section_id as "sectionId",
+          ws.display_order as "sectionOrder",
+          ws.phase_id as "phaseId",
+          wp.display_order as "phaseOrder"
+        FROM workflow_line_items wli
+        JOIN workflow_sections ws ON wli.section_id = ws.id
+        JOIN workflow_phases wp ON ws.phase_id = wp.id
+        WHERE wli.id = ${currentLineItemId}
+      `;
 
-      if (!currentItem) {
+      if (!currentItem?.[0]) {
         throw new Error('Current line item not found');
       }
 
-      // Try to find next line item in the same section
-      const nextItemInSection = currentItem.section.lineItems.find(
-        item => item.displayOrder > currentItem.displayOrder
-      );
+      const current = currentItem[0];
 
-      if (nextItemInSection) {
+      // Try to find next item in same section
+      const nextInSection = await prisma.$queryRaw`
+        SELECT id, display_order as "displayOrder"
+        FROM workflow_line_items
+        WHERE section_id = ${current.sectionId}
+          AND display_order > ${current.displayOrder}
+          AND is_active = true
+        ORDER BY display_order ASC
+        LIMIT 1
+      `;
+
+      if (nextInSection?.[0]) {
         return {
           updates: {
-            currentLineItemId: nextItemInSection.id,
+            currentLineItemId: nextInSection[0].id,
             lineItemStartedAt: new Date()
           },
-          completedPhase: false,
           completedSection: false,
+          completedPhase: false,
           isComplete: false
         };
       }
 
-      // No more items in section, find next section in phase
-      const currentPhase = await prisma.workflowPhase.findUnique({
-        where: { id: currentPhaseId },
-        include: {
-          sections: {
-            where: { isActive: true },
-            orderBy: { displayOrder: 'asc' },
-            include: {
-              lineItems: {
-                where: { isActive: true },
-                orderBy: { displayOrder: 'asc' },
-                take: 1
-              }
-            }
-          }
-        }
-      });
+      // Find next section in same phase
+      const nextSection = await prisma.$queryRaw`
+        SELECT ws.id, wli.id as "firstLineItemId"
+        FROM workflow_sections ws
+        JOIN workflow_line_items wli ON ws.id = wli.section_id
+        WHERE ws.phase_id = ${current.phaseId}
+          AND ws.display_order > ${current.sectionOrder}
+          AND ws.is_active = true
+          AND wli.is_active = true
+        ORDER BY ws.display_order ASC, wli.display_order ASC
+        LIMIT 1
+      `;
 
-      const nextSection = currentPhase.sections.find(
-        section => section.displayOrder > currentItem.section.displayOrder && section.lineItems.length > 0
-      );
-
-      if (nextSection && nextSection.lineItems[0]) {
+      if (nextSection?.[0]) {
         return {
           updates: {
-            currentSectionId: nextSection.id,
-            currentLineItemId: nextSection.lineItems[0].id,
+            currentSectionId: nextSection[0].id,
+            currentLineItemId: nextSection[0].firstLineItemId,
             sectionStartedAt: new Date(),
             lineItemStartedAt: new Date()
           },
-          completedPhase: false,
           completedSection: true,
+          completedPhase: false,
           isComplete: false
         };
       }
 
-      // No more sections in phase, find next phase
-      const allPhases = await prisma.workflowPhase.findMany({
-        where: { isActive: true },
-        orderBy: { displayOrder: 'asc' },
-        include: {
-          sections: {
-            where: { isActive: true },
-            orderBy: { displayOrder: 'asc' },
-            take: 1,
-            include: {
-              lineItems: {
-                where: { isActive: true },
-                orderBy: { displayOrder: 'asc' },
-                take: 1
-              }
-            }
-          }
-        }
-      });
+      // Find next phase
+      const nextPhase = await prisma.$queryRaw`
+        SELECT wp.id as "phaseId", ws.id as "sectionId", wli.id as "lineItemId"
+        FROM workflow_phases wp
+        JOIN workflow_sections ws ON wp.id = ws.phase_id
+        JOIN workflow_line_items wli ON ws.id = wli.section_id
+        WHERE wp.display_order > ${current.phaseOrder}
+          AND wp.is_active = true
+          AND ws.is_active = true
+          AND wli.is_active = true
+        ORDER BY wp.display_order ASC, ws.display_order ASC, wli.display_order ASC
+        LIMIT 1
+      `;
 
-      const nextPhase = allPhases.find(
-        phase => phase.displayOrder > currentPhase.displayOrder && 
-                 phase.sections.length > 0 && 
-                 phase.sections[0].lineItems.length > 0
-      );
-
-      if (nextPhase) {
+      if (nextPhase?.[0]) {
         return {
           updates: {
-            currentPhaseId: nextPhase.id,
-            currentSectionId: nextPhase.sections[0].id,
-            currentLineItemId: nextPhase.sections[0].lineItems[0].id,
+            currentPhaseId: nextPhase[0].phaseId,
+            currentSectionId: nextPhase[0].sectionId,
+            currentLineItemId: nextPhase[0].lineItemId,
             phaseStartedAt: new Date(),
             sectionStartedAt: new Date(),
             lineItemStartedAt: new Date()
           },
-          completedPhase: true,
           completedSection: true,
+          completedPhase: true,
           isComplete: false
         };
       }
 
-      // No more phases, workflow is complete
+      // Workflow complete
       return {
         updates: {
-          currentLineItemId: null,
+          currentPhaseId: null,
           currentSectionId: null,
-          currentPhaseId: null
+          currentLineItemId: null
         },
-        completedPhase: true,
         completedSection: true,
+        completedPhase: true,
         isComplete: true
       };
     } catch (error) {

@@ -42,8 +42,8 @@ const queryClient = new QueryClient({
         // Retry up to 3 times for other errors
         return failureCount < 3;
       },
-      // Refetch on window focus for fresh data
-      refetchOnWindowFocus: true,
+      // Disable refetch on window focus to prevent excessive requests
+      refetchOnWindowFocus: false,
       // Refetch when coming back online
       refetchOnReconnect: true,
     },

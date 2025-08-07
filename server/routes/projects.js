@@ -146,7 +146,7 @@ const getProjectPhase = (project) => {
         'PROSPECT': 'Prospect', 
         'APPROVED': 'Approved',
         'EXECUTION': 'Execution',
-        'SUPPLEMENT': '2nd Supplement',
+        'SECOND_SUPPLEMENT': '2nd Supplement',
         '2ND_SUPP': '2nd Supplement',
         'COMPLETION': 'Completion'
       };

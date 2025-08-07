@@ -18,7 +18,7 @@ const createAutoLogMessage = (fromPhase, toPhase, userName, projectName, timesta
 
 // Helper function to get phases that should be suppressed (all phases between fromPhase and toPhase)
 const getPhasesBetween = (fromPhase, toPhase) => {
-  const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SUPPLEMENT', 'COMPLETION'];
+  const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
   
   const fromIndex = phaseOrder.indexOf(fromPhase);
   const toIndex = phaseOrder.indexOf(toPhase);
@@ -98,7 +98,7 @@ router.get('/phases', asyncHandler(async (req, res) => {
     { value: 'PROSPECT', label: '🟧 Prospect Phase', description: 'Site inspection, estimate preparation, insurance processing' },
     { value: 'APPROVED', label: '🟩 Approved Phase', description: 'Material ordering, permit processing, production preparation' },
     { value: 'EXECUTION', label: '🔧 Execution Phase', description: 'Field installation, progress monitoring, quality assurance' },
-    { value: 'SUPPLEMENT', label: '🌀 2nd Supplement Phase', description: 'Insurance supplement creation, follow-up, customer updates' },
+    { value: 'SECOND_SUPPLEMENT', label: '🌀 2nd Supplement Phase', description: 'Insurance supplement creation, follow-up, customer updates' },
     { value: 'COMPLETION', label: '🏁 Completion Phase', description: 'Final inspection, financial processing, warranty registration' }
   ];
 
@@ -223,7 +223,7 @@ router.get('/project/:projectId/status', asyncHandler(async (req, res) => {
 // @route   POST /api/phase-override/project/:projectId/override
 // @access  Private
 router.post('/project/:projectId/override', [
-  body('toPhase').isIn(['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SUPPLEMENT', 'COMPLETION'])
+  body('toPhase').isIn(['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'])
     .withMessage('Invalid target phase'),
   body('reason').optional().isLength({ max: 500 })
     .withMessage('Reason must be 500 characters or less'),

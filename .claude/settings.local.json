@@ -21,7 +21,8 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(npm install:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npx prisma:*)"
     ],
     "deny": []
   }

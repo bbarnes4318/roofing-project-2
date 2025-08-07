@@ -9,23 +9,21 @@ class WorkflowCompletionHandler {
     try {
       console.log(`📋 Processing line item completion for project ${projectId}, item ${lineItemId}`);
       
-      // 1. Complete the line item and get new position
+      // Get socket.io instance for real-time updates
+      const io = global.io || this.app?.get?.('io');
+      
+      // 1. Complete the line item and get new position (includes alert generation in transaction)
       const result = await WorkflowProgressionService.completeLineItem(
         projectId,
         lineItemId,
         userId,
-        notes
+        notes,
+        io // Pass socket instance for real-time updates
       );
 
-      // 2. Dismiss the old alert if provided
-      if (alertId) {
-        await this.dismissAlert(alertId, projectId);
-      }
-
-      // 3. Generate new alert for the next line item
-      if (result.tracker.currentLineItemId && !result.isWorkflowComplete) {
-        await this.generateNewAlert(result.tracker, projectId);
-      }
+      // 2. Alert dismissal is handled in the transaction, no need for separate call
+      
+      // 3. Alert generation is handled in the transaction, no need for separate call
 
       // 4. Create system messages for phase/section completions
       if (result.completedPhase || result.completedSection) {
@@ -35,8 +33,17 @@ class WorkflowCompletionHandler {
       // 5. Get updated workflow data for UI refresh
       const updatedData = await this.getUpdatedWorkflowData(projectId, result.tracker);
 
-      // 6. Emit WebSocket events to update all UI components
-      await this.emitWorkflowUpdates(projectId, updatedData, result);
+      // 6. Additional WebSocket events for UI components (main events handled in transaction)
+      if (io && updatedData) {
+        io.to(`project_${projectId}`).emit('workflow_data_updated', {
+          projectId,
+          updatedData,
+          completedPhase: result.completedPhase,
+          completedSection: result.completedSection,
+          isComplete: result.isWorkflowComplete,
+          timestamp: new Date()
+        });
+      }
 
       return {
         success: true,
@@ -80,74 +87,20 @@ class WorkflowCompletionHandler {
   }
 
   /**
-   * Generate alert for the new current line item
+   * Generate alert for the new current line item (OPTIMIZED)
    */
   async generateNewAlert(tracker, projectId) {
     try {
-      const project = await prisma.project.findUnique({
-        where: { id: projectId },
-        include: {
-          customer: true,
-          projectManager: true
-        }
-      });
+      if (!tracker.currentLineItemId) return;
 
-      if (!project) return;
+      const AlertGenerationService = require('./AlertGenerationService');
+      const newAlert = await AlertGenerationService.generateActiveLineItemAlert(
+        projectId,
+        tracker.id,
+        tracker.currentLineItemId
+      );
 
-      const currentLineItem = tracker.currentLineItem;
-      const currentSection = currentLineItem.section;
-      const currentPhase = currentSection.phase;
-
-      // Create new alert
-      const newAlert = await prisma.workflowAlert.create({
-        data: {
-          type: 'Work Flow Line Item',
-          priority: 'MEDIUM',
-          status: 'ACTIVE',
-          title: `${currentLineItem.itemName} - ${project.customer?.primaryName || project.projectName}`,
-          message: `${currentLineItem.itemName} is ready to begin for project ${project.projectName}`,
-          stepName: currentLineItem.itemName,
-          projectId: project.id,
-          workflowId: tracker.id,
-          stepId: currentLineItem.id,
-          responsibleRole: currentLineItem.responsibleRole,
-          dueDate: new Date(Date.now() + (currentLineItem.alertDays || 1) * 24 * 60 * 60 * 1000),
-          metadata: {
-            projectId: project.id,
-            projectNumber: project.projectNumber,
-            projectName: project.projectName,
-            customerName: project.customer?.primaryName,
-            phase: currentPhase.phaseType,
-            section: currentSection.displayName,
-            lineItem: currentLineItem.itemName,
-            responsibleRole: currentLineItem.responsibleRole,
-            trackerId: tracker.id
-          }
-        }
-      });
-
-      // Find users with the responsible role
-      const responsibleUsers = await this.getUsersByRole(currentLineItem.responsibleRole);
-      
-      // Create notifications for responsible users
-      for (const user of responsibleUsers) {
-        await prisma.notification.create({
-          data: {
-            recipientId: user.id,
-            title: 'New Workflow Task',
-            message: `${currentLineItem.itemName} is ready for ${project.projectName}`,
-            type: 'WORKFLOW_ALERT',
-            actionUrl: `/projects/${project.id}/workflow`,
-            actionData: {
-              alertId: newAlert.id,
-              projectId: project.id,
-              lineItemId: currentLineItem.id
-            }
-          }
-        });
-      }
-
-      console.log(`📨 Generated new alert for: ${currentLineItem.itemName}`);
+      console.log(`✅ Generated new alert for line item: ${tracker.currentLineItemId}`);
       return newAlert;
 
     } catch (error) {

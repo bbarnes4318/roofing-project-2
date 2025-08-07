@@ -33,7 +33,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
     // Transform to expected format
     const formattedRoles = {
-      productManager: null,
+      projectManager: null,
       fieldDirector: null,
       officeStaff: null,
       administration: null
@@ -43,8 +43,9 @@ router.get('/', authenticateToken, async (req, res) => {
       // Convert backend role type to frontend camelCase format
       let roleKey;
       switch (assignment.roleType) {
-        case 'PRODUCT_MANAGER':
-          roleKey = 'productManager';
+        case 'PROJECT_MANAGER':
+        case 'PRODUCT_MANAGER': // Legacy support
+          roleKey = 'projectManager';
           break;
         case 'FIELD_DIRECTOR':
           roleKey = 'fieldDirector';
@@ -101,7 +102,39 @@ router.post('/assign', authenticateToken, async (req, res) => {
 
     // Validate role type
     const validRoles = ['PRODUCT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION'];
-    const normalizedRoleType = roleType.toUpperCase().replace(/([a-z])([A-Z])/g, '$1_$2');
+    // Normalize role type to handle various input formats
+    let normalizedRoleType;
+    const upperRoleType = roleType.toUpperCase();
+    
+    // Map different input formats to standard role types
+    switch (upperRoleType) {
+      case 'PROJECT_MANAGER':
+      case 'PROJECTMANAGER':
+      case 'PRODUCT_MANAGER':
+      case 'PRODUCTMANAGER':
+        normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+        break;
+      case 'FIELD_DIRECTOR':
+      case 'FIELDDIRECTOR':
+        normalizedRoleType = 'FIELD_DIRECTOR';
+        break;
+      case 'OFFICE_STAFF':
+      case 'OFFICESTAFF':
+        normalizedRoleType = 'OFFICE_STAFF';
+        break;
+      case 'ADMINISTRATION':
+        normalizedRoleType = 'ADMINISTRATION';
+        break;
+      default:
+        // Try camelCase conversion for cases like "projectManager"
+        const converted = upperRoleType.replace(/([a-z])([A-Z])/g, '$1_$2');
+        if (converted === 'PRODUCT_MANAGER' || converted === 'PROJECT_MANAGER') {
+          normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+        } else {
+          normalizedRoleType = converted;
+        }
+    }
+    console.log(`🔄 ROLES API: Original roleType: ${roleType}, Normalized: ${normalizedRoleType}, Valid roles: ${JSON.stringify(validRoles)}`);
     
     if (!validRoles.includes(normalizedRoleType)) {
       return res.status(400).json({
@@ -153,7 +186,7 @@ router.post('/assign', authenticateToken, async (req, res) => {
     res.json({
       success: true,
       data: assignment,
-      message: `Successfully assigned ${user.firstName} ${user.lastName} to ${roleType}`
+      message: `Successfully assigned ${user.firstName} ${user.lastName} to ${normalizedRoleType === 'PRODUCT_MANAGER' ? 'PROJECT_MANAGER' : normalizedRoleType}`
     });
     
   } catch (error) {
@@ -182,8 +215,34 @@ router.delete('/unassign', authenticateToken, async (req, res) => {
       });
     }
 
-    // Normalize role type
-    const normalizedRoleType = roleType.toUpperCase().replace(/([a-z])([A-Z])/g, '$1_$2');
+    // Normalize role type using same logic as assign endpoint
+    let normalizedRoleType;
+    const upperRoleType = roleType.toUpperCase();
+    
+    switch (upperRoleType) {
+      case 'PROJECT_MANAGER':
+      case 'PROJECTMANAGER':
+      case 'PRODUCT_MANAGER':
+      case 'PRODUCTMANAGER':
+        normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+        break;
+      case 'FIELD_DIRECTOR':
+      case 'FIELDDIRECTOR':
+        normalizedRoleType = 'FIELD_DIRECTOR';
+        break;
+      case 'OFFICE_STAFF':
+      case 'OFFICESTAFF':
+        normalizedRoleType = 'OFFICE_STAFF';
+        break;
+      case 'ADMINISTRATION':
+        normalizedRoleType = 'ADMINISTRATION';
+        break;
+      default:
+        normalizedRoleType = upperRoleType.replace(/([a-z])([A-Z])/g, '$1_$2');
+        if (normalizedRoleType === 'PRODUCT_MANAGER') {
+          normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+        }
+    }
     
     // Remove assignment
     const deleted = await prisma.roleAssignment.deleteMany({
@@ -311,7 +370,8 @@ router.get('/defaults', authenticateToken, async (req, res) => {
       const user = assignment.user;
       
       switch (assignment.roleType) {
-        case 'PRODUCT_MANAGER':
+        case 'PROJECT_MANAGER':
+        case 'PRODUCT_MANAGER': // Legacy support
           defaults.projectManager = {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),

@@ -959,7 +959,7 @@ class WorkflowCompletionHandler {
 
 2. **Initial Inspection Section**
    - Items 4-7: All alerts to Field Director
-   - Item 8: "Prepare estimate" → Alert to Product Manager
+   - Item 8: "Prepare estimate" → Alert to Project Manager
 
 ### Phase: APPROVED (Items 13-28)
 1. **Contract & Permitting Section**
@@ -967,7 +967,7 @@ class WorkflowCompletionHandler {
    - Item 16: "Permit approval" → Alert to Administration
 
 2. **Material Ordering Section**
-   - Items 17-20: All alerts to Product Manager
+   - Items 17-20: All alerts to Project Manager
 
 ### Phase: SCHEDULED (Items 29-40)
 - Items 29-34: Alerts to Field Director (crew scheduling)
@@ -975,19 +975,19 @@ class WorkflowCompletionHandler {
 
 ### Phase: EXECUTION (Items 41-65)
 - Daily progress items: Alerts to Field Director
-- Quality checks: Alerts to Product Manager
+- Quality checks: Alerts to Project Manager
 - Safety items: Alerts to Field Director
 
 ### Phase: COMPLETION (Items 66-78)
 - Inspection items: Alerts to Field Director
 - Documentation: Alerts to Office Staff
-- Customer sign-off: Alerts to Product Manager
+- Customer sign-off: Alerts to Project Manager
 
 ### Phase: INVOICING (Items 79-87)
 - All items: Alerts to Administration
 
 ### Phase: COMPLETED (Items 88-91)
-- Final items: Alerts to Product Manager
+- Final items: Alerts to Project Manager
 
 ---
 

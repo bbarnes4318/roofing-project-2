@@ -81,13 +81,54 @@ class SocketService {
     this.socket.on('userTyping', (data) => this.emit('typing', data));
     this.socket.on('userJoinedProject', (data) => this.emit('userJoined', data));
     this.socket.on('userLeftProject', (data) => this.emit('userLeft', data));
+    
+    // Critical alert event handlers for real-time updates
+    this.socket.on('workflow_updated', (data) => {
+      console.log('🔄 Workflow updated:', data);
+      this.emit('workflowUpdate', data);
+      this.emit('alertsChanged', { projectId: data.projectId, type: 'workflow' });
+    });
+    
+    this.socket.on('alerts_refresh', (data) => {
+      console.log('🔄 Alerts refresh requested:', data);
+      this.emit('alertsChanged', data);
+    });
+    
+    this.socket.on('new_alert', (data) => {
+      console.log('🚨 New alert received:', data);
+      this.emit('newAlert', data);
+      
+      // Show browser notification if permitted
+      if (Notification.permission === 'granted') {
+        new Notification(data.title || 'New Alert', {
+          body: data.message,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `alert-${data.id}`,
+          requireInteraction: data.priority === 'HIGH'
+        });
+      }
+    });
+    
+    this.socket.on('alert_completed', (data) => {
+      console.log('✅ Alert completed:', data);
+      this.emit('alertCompleted', data);
+      this.emit('alertsChanged', { type: 'completion' });
+    });
   }
 
-  // Setup reconnection handlers
+  // Setup reconnection handlers with exponential backoff
   setupReconnectionHandlers() {
+    let reconnectBackoff = 1000;
+    let reconnectTimer = null;
+    
     this.socket.on('reconnect', (attemptNumber) => {
       console.log(`🔄 Reconnected after ${attemptNumber} attempts`);
+      reconnectBackoff = 1000; // Reset backoff on successful reconnect
       this.emit('reconnected', attemptNumber);
+      
+      // Rejoin rooms after reconnection
+      this.rejoinRooms();
     });
 
     this.socket.on('reconnect_attempt', (attemptNumber) => {
@@ -99,7 +140,52 @@ class SocketService {
     this.socket.on('reconnect_failed', () => {
       console.error('❌ Failed to reconnect to server');
       this.emit('reconnectFailed');
+      
+      // Implement manual reconnection with exponential backoff
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        reconnectTimer = setTimeout(() => {
+          console.log(`🔄 Manual reconnection attempt after ${reconnectBackoff}ms`);
+          this.socket.connect();
+          reconnectBackoff = Math.min(reconnectBackoff * 2, 30000); // Cap at 30 seconds
+        }, reconnectBackoff);
+      }
     });
+    
+    // Handle disconnect for better reconnection strategy
+    this.socket.on('disconnect', (reason) => {
+      console.log('🔌 Disconnected:', reason);
+      this.isConnected = false;
+      
+      if (reason === 'io server disconnect') {
+        // Server forced disconnect, reconnect immediately
+        console.log('🔄 Server initiated disconnect, reconnecting...');
+        this.socket.connect();
+      } else if (reason === 'transport close' || reason === 'transport error') {
+        // Network issue, use exponential backoff
+        if (!reconnectTimer && this.reconnectAttempts < this.maxReconnectAttempts) {
+          reconnectTimer = setTimeout(() => {
+            console.log(`🔄 Reconnecting after network issue (backoff: ${reconnectBackoff}ms)`);
+            this.socket.connect();
+            reconnectBackoff = Math.min(reconnectBackoff * 2, 30000);
+            reconnectTimer = null;
+          }, reconnectBackoff);
+        }
+      }
+    });
+  }
+  
+  // Rejoin rooms after reconnection
+  rejoinRooms() {
+    // Rejoin any rooms we were in before disconnect
+    if (this.currentProjectId) {
+      this.joinProject(this.currentProjectId);
+      console.log(`👥 Rejoined project ${this.currentProjectId}`);
+    }
+    
+    if (this.currentConversationId) {
+      this.joinConversation(this.currentConversationId);
+      console.log(`💬 Rejoined conversation ${this.currentConversationId}`);
+    }
   }
 
   // Join a project room
@@ -109,6 +195,7 @@ class SocketService {
       return;
     }
     
+    this.currentProjectId = projectId; // Track for reconnection
     this.socket.emit('join_project', projectId);
     console.log(`👥 Joined project ${projectId}`);
   }
@@ -120,6 +207,9 @@ class SocketService {
       return;
     }
     
+    if (this.currentProjectId === projectId) {
+      this.currentProjectId = null;
+    }
     this.socket.emit('leave_project', projectId);
     console.log(`👋 Left project ${projectId}`);
   }
@@ -131,6 +221,7 @@ class SocketService {
       return;
     }
     
+    this.currentConversationId = conversationId; // Track for reconnection
     this.socket.emit('join_conversation', conversationId);
     console.log(`💬 Joined conversation ${conversationId}`);
   }
@@ -142,6 +233,9 @@ class SocketService {
       return;
     }
     
+    if (this.currentConversationId === conversationId) {
+      this.currentConversationId = null;
+    }
     this.socket.emit('leave_conversation', conversationId);
     console.log(`💬 Left conversation ${conversationId}`);
   }
