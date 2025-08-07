@@ -1,0 +1,4 @@
+"Severity","Element","Page","Path","Category","Expected","Actual","Reproduction"
+"CRITICAL","Home Navigation","Projects","/projects","critical","Navigate to dashboard","Navigation to Navigate to dashboard failed - 404 Not Found","Navigate to /projects, locate ""Dashboard"", click element"
+"MEDIUM","View Customer Projects","Customers","/customers","navigation","Show customer projects","Navigation to Show customer projects failed - 404 Not Found","Navigate to /customers, locate ""View Projects"", click element"
+"MEDIUM","Settings Navigation","Archived Projects","/archived-projects","navigation","Navigate to settings","Navigation to Navigate to settings failed - 404 Not Found","Navigate to /archived-projects, locate ""Settings"", click element"

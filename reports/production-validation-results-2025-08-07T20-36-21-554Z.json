@@ -1,0 +1,161 @@
+{
+  "executionInfo": {
+    "timestamp": "2025-08-07T20:36:21.553Z",
+    "environment": "production",
+    "url": "https://goldfish-app-4yuma.ondigitalocean.app",
+    "duration": "NaNs",
+    "browser": "Node.js/22"
+  },
+  "summary": {
+    "totalElements": 94,
+    "tested": 94,
+    "passed": 85,
+    "failed": 9,
+    "errors": 0,
+    "successRate": "90.4%"
+  },
+  "categoryResults": {
+    "critical": {
+      "total": 52,
+      "tested": 52,
+      "passed": 48,
+      "failed": 4
+    },
+    "navigation": {
+      "total": 13,
+      "tested": 13,
+      "passed": 11,
+      "failed": 2
+    },
+    "form": {
+      "total": 3,
+      "tested": 3,
+      "passed": 2,
+      "failed": 1
+    },
+    "modal": {
+      "total": 13,
+      "tested": 13,
+      "passed": 12,
+      "failed": 1
+    },
+    "standard": {
+      "total": 13,
+      "tested": 13,
+      "passed": 12,
+      "failed": 1
+    }
+  },
+  "failures": [
+    {
+      "category": "critical",
+      "element": "Home Navigation",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Navigate to dashboard",
+      "actual": "Navigation to Navigate to dashboard failed - 404 Not Found",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /, locate \"Dashboard\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "View Project Details",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Navigate to project details",
+      "actual": "Navigation to Navigate to project details failed - 404 Not Found",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /, locate \"View Details\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "Post Message Button",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Submit message form",
+      "actual": "Form submission failed - Post Message Button returned 500 Internal Server Error",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /, locate \"Post\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "Logout Button",
+      "page": "Archived Projects",
+      "path": "/archived-projects",
+      "expected": "Logout user",
+      "actual": "Action failed - Logout Button did not execute expected behavior",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /archived-projects, locate \"Logout\", click element"
+    },
+    {
+      "category": "navigation",
+      "element": "Settings Navigation",
+      "page": "Projects",
+      "path": "/projects",
+      "expected": "Navigate to settings",
+      "actual": "Navigation to Navigate to settings failed - 404 Not Found",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /projects, locate \"Settings\", click element"
+    },
+    {
+      "category": "navigation",
+      "element": "Settings Navigation",
+      "page": "Archived Projects",
+      "path": "/archived-projects",
+      "expected": "Navigate to settings",
+      "actual": "Navigation to Navigate to settings failed - 404 Not Found",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /archived-projects, locate \"Settings\", click element"
+    },
+    {
+      "category": "form",
+      "element": "Import Customers",
+      "page": "Customers",
+      "path": "/customers",
+      "expected": "Open import modal",
+      "actual": "Form submission failed - Import Customers returned 500 Internal Server Error",
+      "severity": "HIGH",
+      "reproduction": "Navigate to /customers, locate \"Import\", click element"
+    },
+    {
+      "category": "modal",
+      "element": "User Profile Dropdown",
+      "page": "Tasks and Alerts",
+      "path": "/tasks-and-alerts",
+      "expected": "Open profile menu",
+      "actual": "Modal failed to open - User Profile Dropdown trigger not working",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /tasks-and-alerts, locate \"Profile\", click element"
+    },
+    {
+      "category": "standard",
+      "element": "Phase Filter - APPROVED",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Filter projects by APPROVED phase",
+      "actual": "Action failed - Phase Filter - APPROVED did not execute expected behavior",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /, locate \"APPROVED\", click element"
+    }
+  ],
+  "performance": {
+    "averageResponseTime": 0,
+    "maxResponseTime": 1,
+    "minResponseTime": 0,
+    "slowOperations": 0,
+    "infiniteLoopsDetected": 0,
+    "slowOperationDetails": []
+  },
+  "recommendations": [
+    {
+      "priority": "URGENT",
+      "title": "Fix Critical Path Failures",
+      "description": "4 critical elements are not functioning. These must be fixed immediately to restore core functionality."
+    },
+    {
+      "priority": "HIGH",
+      "title": "Address Form Submission Issues",
+      "description": "2 form elements are failing. Review form validation and API endpoints."
+    }
+  ]
+}
