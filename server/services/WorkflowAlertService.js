@@ -544,11 +544,11 @@ class WorkflowAlertService {
         
         // PRIORITY: Use role assignments from Settings
         const roleTypeMapping = {
-          'OFFICE': 'OFFICE_STAFF',
-          'ADMINISTRATION': 'ADMINISTRATION', 
-          'PROJECT_MANAGER': 'PRODUCT_MANAGER',
-          'FIELD_DIRECTOR': 'FIELD_DIRECTOR',
-          'ROOF_SUPERVISOR': 'FIELD_DIRECTOR'
+          OFFICE: 'OFFICE_STAFF',
+          ADMINISTRATION: 'ADMINISTRATION', 
+          PROJECT_MANAGER: 'PROJECT_MANAGER',
+          FIELD_DIRECTOR: 'FIELD_DIRECTOR',
+          ROOF_SUPERVISOR: 'FIELD_DIRECTOR'
         };
 
         const targetRoleType = roleTypeMapping[step.defaultResponsible];
@@ -571,11 +571,11 @@ class WorkflowAlertService {
           console.log(`🔄 ROLE MANAGEMENT: Using fallback role mapping for: ${step.defaultResponsible}`);
           
           const roleMapping = {
-            'OFFICE': ['ADMIN', 'MANAGER'],
-            'ADMINISTRATION': ['ADMIN', 'MANAGER'],
-            'PROJECT_MANAGER': ['PROJECT_MANAGER', 'MANAGER'],
-            'FIELD_DIRECTOR': ['PROJECT_MANAGER', 'MANAGER'],
-            'ROOF_SUPERVISOR': ['PROJECT_MANAGER', 'WORKER', 'MANAGER']
+            OFFICE: ['ADMIN', 'MANAGER'],
+            ADMINISTRATION: ['ADMIN', 'MANAGER'],
+            PROJECT_MANAGER: ['PROJECT_MANAGER', 'MANAGER'],
+            FIELD_DIRECTOR: ['PROJECT_MANAGER', 'MANAGER'],
+            ROOF_SUPERVISOR: ['PROJECT_MANAGER', 'WORKER', 'MANAGER']
           };
           
           const mappedRoles = roleMapping[step.defaultResponsible] || [step.defaultResponsible];

@@ -44,7 +44,14 @@ class AlertGenerationService {
       const roles = [...new Set(activeItems.map(item => item.responsible_role))];
       const roleAssignments = await prisma.roleAssignment.findMany({
         where: {
-          roleType: { in: roles },
+          // Map ResponsibleRole -> RoleType enum values
+          roleType: { in: roles.map(r => ({
+            OFFICE: 'OFFICE_STAFF',
+            ADMINISTRATION: 'ADMINISTRATION',
+            PROJECT_MANAGER: 'PROJECT_MANAGER',
+            FIELD_DIRECTOR: 'FIELD_DIRECTOR',
+            ROOF_SUPERVISOR: 'FIELD_DIRECTOR'
+          }[r] || 'OFFICE_STAFF')) },
           isActive: true
         },
         select: {
@@ -85,7 +92,14 @@ class AlertGenerationService {
           continue;
         }
 
-        const assignedUserId = roleMap.get(item.responsible_role) || item.project_manager_id;
+        const mappedRoleType = ({
+          OFFICE: 'OFFICE_STAFF',
+          ADMINISTRATION: 'ADMINISTRATION',
+          PROJECT_MANAGER: 'PROJECT_MANAGER',
+          FIELD_DIRECTOR: 'FIELD_DIRECTOR',
+          ROOF_SUPERVISOR: 'FIELD_DIRECTOR'
+        })[item.responsible_role] || 'OFFICE_STAFF';
+        const assignedUserId = roleMap.get(mappedRoleType) || item.project_manager_id;
         
         alertData.push({
           type: 'Work Flow Line Item',

@@ -100,8 +100,8 @@ router.post('/assign', authenticateToken, async (req, res) => {
       });
     }
 
-    // Validate role type
-    const validRoles = ['PRODUCT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION'];
+    // Validate role type (must match Prisma enum RoleType)
+    const validRoles = ['PROJECT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION'];
     // Normalize role type to handle various input formats
     let normalizedRoleType;
     const upperRoleType = roleType.toUpperCase();
@@ -112,7 +112,7 @@ router.post('/assign', authenticateToken, async (req, res) => {
       case 'PROJECTMANAGER':
       case 'PRODUCT_MANAGER':
       case 'PRODUCTMANAGER':
-        normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+        normalizedRoleType = 'PROJECT_MANAGER';
         break;
       case 'FIELD_DIRECTOR':
       case 'FIELDDIRECTOR':
@@ -129,7 +129,7 @@ router.post('/assign', authenticateToken, async (req, res) => {
         // Try camelCase conversion for cases like "projectManager"
         const converted = upperRoleType.replace(/([a-z])([A-Z])/g, '$1_$2');
         if (converted === 'PRODUCT_MANAGER' || converted === 'PROJECT_MANAGER') {
-          normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+          normalizedRoleType = 'PROJECT_MANAGER';
         } else {
           normalizedRoleType = converted;
         }
@@ -186,7 +186,7 @@ router.post('/assign', authenticateToken, async (req, res) => {
     res.json({
       success: true,
       data: assignment,
-      message: `Successfully assigned ${user.firstName} ${user.lastName} to ${normalizedRoleType === 'PRODUCT_MANAGER' ? 'PROJECT_MANAGER' : normalizedRoleType}`
+      message: `Successfully assigned ${user.firstName} ${user.lastName} to ${normalizedRoleType}`
     });
     
   } catch (error) {
