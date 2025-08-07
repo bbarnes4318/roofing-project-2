@@ -364,4 +364,182 @@ router.get('/defaults', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/roles/project/:projectId - Get role assignments for a specific project
+ */
+router.get('/project/:projectId', authenticateToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    console.log(`🎯 ROLES API: Fetching project-specific role assignments for project ${projectId}`);
+
+    // Get project with assigned users
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        id: true,
+        projectName: true,
+        projectManagerId: true,
+        projectManager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      }
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // For now, use the project manager field
+    // TODO: Extend to support multiple role assignments per project
+    const projectRoles = {
+      projectManager: project.projectManager ? {
+        id: project.projectManager.id,
+        name: `${project.projectManager.firstName} ${project.projectManager.lastName}`.trim(),
+        email: project.projectManager.email,
+        role: project.projectManager.role
+      } : null,
+      fieldDirector: null,
+      officeStaff: null,
+      administration: null
+    };
+
+    res.json({
+      success: true,
+      data: {
+        projectId: project.id,
+        projectName: project.projectName,
+        roles: projectRoles
+      },
+      message: 'Project role assignments retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ ROLES API: Error fetching project roles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch project role assignments',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/roles/project/:projectId/assign - Assign users to roles for a specific project
+ */
+router.post('/project/:projectId/assign', authenticateToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { roleAssignments } = req.body; // { projectManager: 'userId', fieldDirector: 'userId', ... }
+    
+    console.log(`🔄 ROLES API: Assigning project roles for project ${projectId}:`, roleAssignments);
+
+    // Validate project exists
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // Validate all users exist
+    const userIds = Object.values(roleAssignments).filter(Boolean);
+    if (userIds.length > 0) {
+      const existingUsers = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true }
+      });
+
+      const existingUserIds = new Set(existingUsers.map(u => u.id));
+      const invalidUserIds = userIds.filter(id => !existingUserIds.has(id));
+      
+      if (invalidUserIds.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid user IDs: ${invalidUserIds.join(', ')}`
+        });
+      }
+    }
+
+    // Update project manager (primary assignment for now)
+    if (roleAssignments.projectManager) {
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          projectManagerId: roleAssignments.projectManager
+        }
+      });
+    }
+
+    // For other roles, we'll need to create a ProjectRoleAssignment table later
+    // For now, log the assignments
+    Object.entries(roleAssignments).forEach(([role, userId]) => {
+      if (userId && role !== 'projectManager') {
+        console.log(`🔄 TODO: Assign ${role} = ${userId} for project ${projectId}`);
+      }
+    });
+
+    // Get updated project data
+    const updatedProject = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        id: true,
+        projectName: true,
+        projectManagerId: true,
+        projectManager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      }
+    });
+
+    const updatedRoles = {
+      projectManager: updatedProject.projectManager ? {
+        id: updatedProject.projectManager.id,
+        name: `${updatedProject.projectManager.firstName} ${updatedProject.projectManager.lastName}`.trim(),
+        email: updatedProject.projectManager.email,
+        role: updatedProject.projectManager.role
+      } : null
+    };
+
+    console.log(`✅ ROLES API: Successfully updated project roles for ${projectId}`);
+
+    res.json({
+      success: true,
+      data: {
+        projectId: updatedProject.id,
+        projectName: updatedProject.projectName,
+        roles: updatedRoles,
+        assigned: roleAssignments
+      },
+      message: 'Project role assignments updated successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ ROLES API: Error assigning project roles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign project roles',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

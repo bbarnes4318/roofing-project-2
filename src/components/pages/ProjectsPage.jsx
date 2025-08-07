@@ -8,6 +8,7 @@ import { projectsService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
+import ProjectRoleDropdowns from '../common/ProjectRoleDropdowns';
 // Removed broken drag libraries - using native implementation
 
 const defaultNewProject = {
@@ -45,6 +46,9 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [availableUsers, setAvailableUsers] = useState([]);
     const [defaultRoles, setDefaultRoles] = useState({});
     const [usersLoading, setUsersLoading] = useState(true);
+    
+    // Role assignment expansion state
+    const [expandedRoleProjects, setExpandedRoleProjects] = useState(new Set());
     
     // Removed drag and drop state - reverted to original layout
     
@@ -513,6 +517,23 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }
     };
 
+    // Handle role assignment expansion toggle
+    const toggleRoleExpansion = (projectId) => {
+        const newExpanded = new Set(expandedRoleProjects);
+        if (newExpanded.has(projectId)) {
+            newExpanded.delete(projectId);
+        } else {
+            newExpanded.add(projectId);
+        }
+        setExpandedRoleProjects(newExpanded);
+    };
+
+    // Handle role assignment updates
+    const handleRoleAssignmentUpdate = (projectId, updatedRoles) => {
+        console.log(`✅ Role assignments updated for project ${projectId}:`, updatedRoles);
+        // Optionally update local project data or trigger a refresh
+    };
+
     // Removed all drag and drop functionality - reverted to original static buttons
 
     // At the top, after extracting scrollToProjectId/targetProjectId and projectSourceSection:
@@ -686,6 +707,35 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 )}
                 
+                {/* Role Assignment Section */}
+                <div className="px-3 pb-3">
+                    <button
+                        onClick={() => toggleRoleExpansion(project.id)}
+                        className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-200 text-sm font-medium ${
+                            colorMode 
+                                ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-slate-600/80' 
+                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <span>👥</span>
+                            <span>Assign Project Roles</span>
+                        </div>
+                        <span className={`transition-transform duration-200 ${
+                            expandedRoleProjects.has(project.id) ? 'rotate-180' : ''
+                        }`}>
+                            ▼
+                        </span>
+                    </button>
+                    
+                    <ProjectRoleDropdowns
+                        project={project}
+                        colorMode={colorMode}
+                        isExpanded={expandedRoleProjects.has(project.id)}
+                        onRoleAssignmentUpdate={handleRoleAssignmentUpdate}
+                    />
+                </div>
+
                 {/* 6 Project Action Buttons - Bottom Section */}
                 <div className="px-3 pb-3">
                     <div className="grid grid-cols-3 gap-2">
