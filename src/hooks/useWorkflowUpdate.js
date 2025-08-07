@@ -5,7 +5,9 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+  ? `${window.location.protocol}//${window.location.host}/api`
+  : (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
 
 export const useWorkflowUpdate = () => {
     const [updating, setUpdating] = useState(false);

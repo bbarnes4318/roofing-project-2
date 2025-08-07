@@ -8,7 +8,10 @@ class SocketService {
     this.eventHandlers = new Map();
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
-    this.serverUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+    // In production, default to same-origin as the app (DigitalOcean App Platform)
+    this.serverUrl = (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+      ? `${window.location.protocol}//${window.location.host}`
+      : (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
   }
 
   // Connect to Socket.IO server

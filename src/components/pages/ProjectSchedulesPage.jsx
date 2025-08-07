@@ -148,8 +148,10 @@ export default function ProjectSchedulesPage() {
   const loadSchedulesFromBackend = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const res = await fetch(`${apiUrl}/api/schedules`);
+      const base = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+        ? `${window.location.protocol}//${window.location.host}`
+        : (process.env.REACT_APP_API_URL || 'http://localhost:8000');
+      const res = await fetch(`${base}/api/schedules`);
       if (res.ok) {
         const schedules = await res.json();
         console.log('Loaded schedules from backend:', schedules);
@@ -385,8 +387,10 @@ export default function ProjectSchedulesPage() {
       console.log('Sending payload:', payload);
       
       try {
-        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-        const res = await fetch(`${apiUrl}/api/schedules`, {
+        const base = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+          ? `${window.location.protocol}//${window.location.host}`
+          : (process.env.REACT_APP_API_URL || 'http://localhost:8000');
+        const res = await fetch(`${base}/api/schedules`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
