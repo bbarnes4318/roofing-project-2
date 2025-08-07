@@ -1,0 +1,116 @@
+{
+  "executionInfo": {
+    "timestamp": "2025-08-07T21:33:28.758Z",
+    "environment": "production",
+    "url": "https://goldfish-app-4yuma.ondigitalocean.app",
+    "duration": "NaNs",
+    "browser": "Node.js/22"
+  },
+  "summary": {
+    "totalElements": 94,
+    "tested": 94,
+    "passed": 89,
+    "failed": 5,
+    "errors": 0,
+    "successRate": "94.7%"
+  },
+  "categoryResults": {
+    "critical": {
+      "total": 52,
+      "tested": 52,
+      "passed": 48,
+      "failed": 4
+    },
+    "navigation": {
+      "total": 13,
+      "tested": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "form": {
+      "total": 3,
+      "tested": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "modal": {
+      "total": 13,
+      "tested": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "standard": {
+      "total": 13,
+      "tested": 13,
+      "passed": 12,
+      "failed": 1
+    }
+  },
+  "failures": [
+    {
+      "category": "critical",
+      "element": "View Project Details",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Navigate to project details",
+      "actual": "Navigation to Navigate to project details failed - 404 Not Found",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /, locate \"View Details\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "Customers Navigation",
+      "page": "Customers",
+      "path": "/customers",
+      "expected": "Navigate to customers",
+      "actual": "Navigation to Navigate to customers failed - 404 Not Found",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /customers, locate \"Customers\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "Logout Button",
+      "page": "Settings",
+      "path": "/settings",
+      "expected": "Logout user",
+      "actual": "Action failed - Logout Button did not execute expected behavior",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /settings, locate \"Logout\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "Logout Button",
+      "page": "Workflow Settings",
+      "path": "/workflow-settings",
+      "expected": "Logout user",
+      "actual": "Action failed - Logout Button did not execute expected behavior",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /workflow-settings, locate \"Logout\", click element"
+    },
+    {
+      "category": "standard",
+      "element": "Phase Filter - PROSPECT",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Filter projects by PROSPECT phase",
+      "actual": "Action failed - Phase Filter - PROSPECT did not execute expected behavior",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /, locate \"PROSPECT\", click element"
+    }
+  ],
+  "performance": {
+    "averageResponseTime": 0,
+    "maxResponseTime": 3,
+    "minResponseTime": 0,
+    "slowOperations": 0,
+    "infiniteLoopsDetected": 0,
+    "slowOperationDetails": []
+  },
+  "recommendations": [
+    {
+      "priority": "URGENT",
+      "title": "Fix Critical Path Failures",
+      "description": "4 critical elements are not functioning. These must be fixed immediately to restore core functionality."
+    }
+  ]
+}

@@ -32,7 +32,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "generate-prp": "node scripts/generate-prp.js",
+    "execute-prp": "node scripts/execute-prp.js"
   },
   "eslintConfig": {
     "extends": [

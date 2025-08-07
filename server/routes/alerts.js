@@ -105,10 +105,10 @@ router.get('/', asyncHandler(async (req, res, next) => {
     priority,
     assignedToId,
     projectId,
-    page = 1,
-    limit = 50,
-    sortBy = 'createdAt',
-    sortOrder = 'desc'
+    page: pageRaw = 1,
+    limit: limitRaw = 50,
+    sortBy: sortByRaw = 'createdAt',
+    sortOrder: sortOrderRaw = 'desc'
   } = req.query;
 
   // Build filter object
@@ -133,12 +133,17 @@ router.get('/', asyncHandler(async (req, res, next) => {
   if (assignedToId) where.assignedToId = assignedToId;
   if (projectId) where.projectId = projectId;
 
-  // Calculate pagination
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
+  // Calculate pagination (sanitized)
+  const pageNum = Number.isFinite(+pageRaw) && +pageRaw > 0 ? parseInt(pageRaw) : 1;
+  const limitNum = Number.isFinite(+limitRaw) && +limitRaw > 0 && +limitRaw <= 200 ? parseInt(limitRaw) : 50;
   const skip = (pageNum - 1) * limitNum;
 
-  // Build sort object
+  // Build sort object (sanitized)
+  const allowedSortFields = new Set([
+    'createdAt', 'updatedAt', 'priority', 'status', 'title'
+  ]);
+  const sortBy = allowedSortFields.has(String(sortByRaw)) ? String(sortByRaw) : 'createdAt';
+  const sortOrder = String(sortOrderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
   const orderBy = {};
   orderBy[sortBy] = sortOrder;
 

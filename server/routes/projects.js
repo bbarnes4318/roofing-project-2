@@ -218,12 +218,25 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
     priority, 
     customer,
     search, 
-    page = 1, 
-    limit = 50, // Increased default limit for better performance
-    sortBy = 'createdAt',
-    sortOrder = 'desc',
+    page: pageRaw = 1, 
+    limit: limitRaw = 50, // Increased default limit for better performance
+    sortBy: sortByRaw = 'createdAt',
+    sortOrder: sortOrderRaw = 'desc',
     includeArchived = false
   } = req.query;
+
+  // Sanitize pagination
+  const pageNum = Number.isFinite(+pageRaw) && +pageRaw > 0 ? parseInt(pageRaw) : 1;
+  const limitNum = Number.isFinite(+limitRaw) && +limitRaw > 0 && +limitRaw <= 200 ? parseInt(limitRaw) : 50;
+  const skip = (pageNum - 1) * limitNum;
+
+  // Sanitize sorting - whitelist sortable fields
+  const allowedSortFields = new Set([
+    'createdAt', 'updatedAt', 'projectNumber', 'projectName',
+    'status', 'priority', 'startDate', 'endDate'
+  ]);
+  const sortBy = allowedSortFields.has(String(sortByRaw)) ? String(sortByRaw) : 'createdAt';
+  const sortOrder = String(sortOrderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
   // Build filter object for Prisma
   let where = {};
@@ -257,14 +270,9 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
     ];
   }
 
-  // Calculate pagination
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
-
   // Build sort object
   const orderBy = {};
-  orderBy[sortBy] = sortOrder === 'desc' ? 'desc' : 'asc';
+  orderBy[sortBy] = sortOrder;
 
   try {
     // Execute query with pagination and population using Prisma
