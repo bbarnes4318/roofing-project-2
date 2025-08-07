@@ -166,7 +166,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         }, 500); // Small delay to allow component to settle
       }
     }
-  }, [dashboardState, projectsError, refetchProjects]);
+    // Remove refetchProjects from dependencies to prevent infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dashboardState, projectsError]);
   
   // Posting state
   const [message, setMessage] = useState('');
@@ -266,6 +268,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   // Removed automatic popup closing - popups now require manual close only
 
+  // Track if messages have been fetched to prevent re-fetching
+  const messagesFetchedRef = useRef(false);
+
   // Fetch messages and convert to activity format, with fallback to activities prop
   useEffect(() => {
     const fetchMessages = async () => {
@@ -358,13 +363,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         setFeed(fallbackMessages);
       } finally {
         setMessagesLoading(false);
+        messagesFetchedRef.current = true;
       }
     };
     
-    if (projects.length > 0 && !projectsLoading) {
+    // Only fetch messages once when projects are loaded and not fetched before
+    if (projects.length > 0 && !projectsLoading && !messagesFetchedRef.current) {
       fetchMessages();
     }
-  }, [projects, projectsLoading, activities]);
+    // Remove projects from dependencies to prevent re-fetching on every projects update
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectsLoading]);
 
   // Restore dashboard state when navigating back from project detail
   useEffect(() => {
