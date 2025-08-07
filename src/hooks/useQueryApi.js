@@ -78,6 +78,8 @@ export const useProjects = (params = {}) => {
       return data?.data || data || [];
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for projects (frequently updated)
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -273,7 +275,9 @@ export const useWorkflowAlerts = (params = {}) => {
     queryKey: [...queryKeys.workflowAlerts, params],
     queryFn: () => workflowAlertsService.getAll(params),
     select: (data) => data?.data || data || [],
-    staleTime: 1 * 60 * 1000, // 1 minute for alerts
+    staleTime: 1 * 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 };
 

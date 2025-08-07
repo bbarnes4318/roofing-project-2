@@ -15,7 +15,8 @@ const API_BASE_URL = getApiBaseUrl();
 
 // Request throttling to prevent excessive calls
 const requestCache = new Map();
-const CACHE_DURATION = 1000; // Cache GET requests for 1 second
+// Extend to reduce rapid UI flicker during transient errors
+const CACHE_DURATION = 5000; // Cache GET requests for 5 seconds
 
 // Create axios instance with default config
 const api = axios.create({
@@ -89,7 +90,7 @@ api.interceptors.response.use(
       if (requestCache.size > 100) {
         const now = Date.now();
         for (const [key, value] of requestCache.entries()) {
-          if (now - value.timestamp > CACHE_DURATION * 10) {
+          if (now - value.timestamp > CACHE_DURATION * 3) {
             requestCache.delete(key);
           }
         }
@@ -98,6 +99,14 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Treat 5xx as cacheable no-op for a short period to avoid refetch storms
+    if (error.response?.status >= 500 && error.config?.method === 'get') {
+      const cacheKey = `${error.config.url}${JSON.stringify(error.config.params || {})}`;
+      const cached = requestCache.get(cacheKey);
+      if (cached) {
+        return Promise.resolve({ data: cached.data, config: error.config, cached: true });
+      }
+    }
     // Handle cached responses
     if (error.cached) {
       return Promise.resolve({ 

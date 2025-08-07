@@ -29,27 +29,16 @@ import './App.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // How long the data stays fresh (stale time)
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      // How long the data stays in cache when not being used
-      gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
-      // Retry failed requests
-      retry: (failureCount, error) => {
-        // Don't retry on 4xx errors (client errors)
-        if (error?.response?.status >= 400 && error?.response?.status < 500) {
-          return false;
-        }
-        // Retry up to 3 times for other errors
-        return failureCount < 3;
-      },
-      // Disable refetch on window focus to prevent excessive requests
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      // Disable retries to prevent rapid refetch/flicker during 5xx incidents
+      retry: false,
       refetchOnWindowFocus: false,
-      // Refetch when coming back online
-      refetchOnReconnect: true,
+      // Avoid automatic reconnect refetch storms on unstable networks
+      refetchOnReconnect: false,
     },
     mutations: {
-      // Retry mutations once on failure
-      retry: 1,
+      retry: 0,
     },
   },
 });
@@ -78,37 +67,38 @@ export default function App() {
 
     // Fetch projects from API
     useEffect(() => {
+        let cancelled = false;
         const fetchProjects = async () => {
             try {
                 setProjectsLoading(true);
                 setProjectsError(null);
                 const response = await projectsService.getAll();
+                if (cancelled) return;
                 if (response.success && response.data) {
-                    // Normalize project data to ensure consistent structure
                     const apiProjects = response.data.projects || response.data;
-                    const normalizedProjects = apiProjects.map(project => ({
+                    const normalizedProjects = (apiProjects || []).map(project => ({
                         ...project,
-                        id: project.id || project._id, // Ensure id field exists
-                        name: project.name || project.projectName, // Ensure name field exists
+                        id: project.id || project._id,
+                        name: project.name || project.projectName,
                         client: project.client || { name: 'Unknown Client', email: '', phone: '' },
                         projectManager: project.projectManager || { firstName: 'Sarah', lastName: 'Johnson', email: 'sarah.johnson@company.com', phone: '5559876543' }
                     }));
                     setProjects(normalizedProjects);
                     console.log('✅ Fetched projects from API:', normalizedProjects.length);
                 } else {
-                    console.warn('Failed to fetch projects:', response.message);
                     setProjects([]);
                 }
             } catch (error) {
+                if (cancelled) return;
                 console.error('Error fetching projects:', error);
                 setProjectsError(error.message);
                 setProjects([]);
             } finally {
-                setProjectsLoading(false);
+                if (!cancelled) setProjectsLoading(false);
             }
         };
-
         fetchProjects();
+        return () => { cancelled = true; };
     }, []);
 
     // Fetch activities from API
