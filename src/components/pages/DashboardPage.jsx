@@ -1462,20 +1462,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </button>
         </div>
         
-        {/* Phase Filter Buttons - Oval Shapes with More Spacing */}
-        <div className="flex items-center gap-8 mb-6 flex-wrap">
+        {/* Phase Filter Buttons - Uniform Pill-Shaped Containers */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
           <button 
             onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
-            className={`w-16 h-6 px-2 py-1 text-xs font-medium rounded-full transition-colors border flex items-center justify-center gap-1 ${
+            className={`h-10 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-md ${
               selectedPhase === 'all'
                 ? 'border-blue-400 bg-blue-50 shadow-sm text-blue-700'
                 : colorMode 
-                  ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700' 
-                  : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50'
+                  ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
+                  : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-400'
             }`}
           >
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span>All</span>
+            <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
+            <span className="whitespace-nowrap">All</span>
           </button>
           {PROJECT_PHASES.map(phase => (
             <button
@@ -1484,19 +1484,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
                 setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
               }}
-              className={`w-28 h-9 px-4 py-2 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 ${
+              className={`h-10 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-md ${
                 selectedPhase === phase.id
-                  ? 'border-gray-400 bg-gray-50 shadow-sm'
+                  ? 'border-gray-400 bg-gray-50 shadow-sm text-gray-700'
                   : colorMode 
-                    ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700' 
-                    : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50'
+                    ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
+                    : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-400'
               }`}
             >
               <div 
-                className="w-4 h-4 rounded-full"
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: phase.color }}
               ></div>
-              <span>{phase.name}</span>
+              <span className="whitespace-nowrap">{phase.name}</span>
             </button>
           ))}
         </div>

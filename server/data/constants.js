@@ -2,10 +2,9 @@
 const PHASES = {
   LEAD: { name: "Lead", weight: 10, steps: [] },
   PROSPECT: { name: "Prospect", weight: 15, steps: [] },
-  PROSPECT_NON_INSURANCE: { name: "Prospect: Non-Insurance", weight: 15, steps: [] },
   APPROVED: { name: "Approved", weight: 15, steps: [] },
   EXECUTION: { name: "Execution", weight: 40, steps: [] },
-  SECOND_SUPP: { name: "2nd Supp", weight: 10, steps: [] },
+  SECOND_SUPPLEMENT: { name: "2nd Supplement", weight: 10, steps: [] },
   COMPLETION: { name: "Completion", weight: 10, steps: [] }
 };
 
@@ -18,10 +17,6 @@ const WORKFLOW_STEPS = {
     { id: "site_inspection", name: "Site Inspection", weight: 4 },
     { id: "write_estimate", name: "Write Estimate", weight: 3 }
   ],
-  PROSPECT_NON_INSURANCE: [
-    { id: "write_estimate", name: "Write Estimate", weight: 4 },
-    { id: "agreement_signing", name: "Agreement Signing", weight: 3 }
-  ],
   APPROVED: [
     { id: "agreement_signing", name: "Agreement Signing", weight: 3 }
   ],
@@ -29,7 +24,7 @@ const WORKFLOW_STEPS = {
     { id: "installation", name: "Installation", weight: 10 },
     { id: "quality_check", name: "Quality Check", weight: 5 }
   ],
-  SECOND_SUPP: [
+  SECOND_SUPPLEMENT: [
     { id: "supplement_1", name: "Create Supp in Xactimate", weight: 3 },
     { id: "supplement_2", name: "Follow-Up Calls", weight: 2 },
     { id: "supplement_3", name: "Review Approved Supp", weight: 3 },

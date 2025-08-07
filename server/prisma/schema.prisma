@@ -680,11 +680,9 @@ enum Priority {
 enum ProjectPhase {
   LEAD
   PROSPECT
-  PROSPECT_NON_INSURANCE
   APPROVED
   EXECUTION
-  SUPPLEMENT
-  SECOND_SUPP
+  SECOND_SUPPLEMENT
   COMPLETION
 
   @@map("project_phases")
@@ -867,7 +865,7 @@ enum NotificationType {
 }
 
 enum RoleType {
-  PRODUCT_MANAGER
+  PROJECT_MANAGER
   FIELD_DIRECTOR
   OFFICE_STAFF
   ADMINISTRATION

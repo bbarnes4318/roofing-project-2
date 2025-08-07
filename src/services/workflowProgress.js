@@ -7,10 +7,9 @@
 const PHASES = {
   LEAD: { name: "Lead", weight: 10, steps: [] },
   PROSPECT: { name: "Prospect", weight: 15, steps: [] },
-  PROSPECT_NON_INSURANCE: { name: "Prospect: Non-Insurance", weight: 15, steps: [] },
   APPROVED: { name: "Approved", weight: 15, steps: [] },
   EXECUTION: { name: "Execution", weight: 40, steps: [] },
-  SECOND_SUPP: { name: "2nd Supp", weight: 10, steps: [] },
+  SECOND_SUPPLEMENT: { name: "2nd Supplement", weight: 10, steps: [] },
   COMPLETION: { name: "Completion", weight: 10, steps: [] }
 };
 
@@ -23,10 +22,6 @@ const WORKFLOW_STEPS = {
     { id: "site_inspection", name: "Site Inspection", weight: 4 },
     { id: "write_estimate", name: "Write Estimate", weight: 3 }
   ],
-  PROSPECT_NON_INSURANCE: [
-    { id: "write_estimate", name: "Write Estimate", weight: 4 },
-    { id: "agreement_signing", name: "Agreement Signing", weight: 3 }
-  ],
   APPROVED: [
     { id: "agreement_signing", name: "Agreement Signing", weight: 3 }
   ],
@@ -34,7 +29,7 @@ const WORKFLOW_STEPS = {
     { id: "installation", name: "Installation", weight: 10 },
     { id: "quality_check", name: "Quality Check", weight: 5 }
   ],
-  SECOND_SUPP: [
+  SECOND_SUPPLEMENT: [
     { id: "supplement_1", name: "Create Supp in Xactimate", weight: 3 },
     { id: "supplement_2", name: "Follow-Up Calls", weight: 2 },
     { id: "supplement_3", name: "Review Approved Supp", weight: 3 },
@@ -269,7 +264,7 @@ class WorkflowProgressService {
             PROSPECT: { bg: 'bg-[#3B82F6]', text: 'text-white', hex: '#3B82F6' },
             APPROVED: { bg: 'bg-[#10B981]', text: 'text-white', hex: '#10B981' },
             EXECUTION: { bg: 'bg-[#F59E0B]', text: 'text-white', hex: '#F59E0B' },
-            SUPPLEMENT: { bg: 'bg-[#8B5CF6]', text: 'text-white', hex: '#8B5CF6' },
+            SECOND_SUPPLEMENT: { bg: 'bg-[#8B5CF6]', text: 'text-white', hex: '#8B5CF6' },
             COMPLETION: { bg: 'bg-[#14532D]', text: 'text-white', hex: '#14532D' }
         };
         return colors[phaseKey] || { bg: 'bg-[#E0E7FF]', text: 'text-gray-800', hex: '#E0E7FF' };
@@ -383,14 +378,15 @@ class WorkflowProgressService {
             'ACTIVE': 'EXECUTION',
             
             // Supplement variations
-            'SUPPLEMENT': 'SUPPLEMENT',
-            '2ND SUPP': 'SUPPLEMENT',
-            '2ND-SUPP': 'SUPPLEMENT', 
-            'SECOND SUPP': 'SUPPLEMENT',
-            'SECOND_SUPP': 'SUPPLEMENT',
-            '2ND_SUPP': 'SUPPLEMENT',
-            '2ND SUPPLEMENT': 'SUPPLEMENT',
-            'SECOND SUPPLEMENT': 'SUPPLEMENT',
+            'SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            '2ND SUPP': 'SECOND_SUPPLEMENT',
+            '2ND-SUPP': 'SECOND_SUPPLEMENT', 
+            'SECOND SUPP': 'SECOND_SUPPLEMENT',
+            'SECOND_SUPP': 'SECOND_SUPPLEMENT',
+            '2ND_SUPP': 'SECOND_SUPPLEMENT',
+            '2ND SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            'SECOND SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
             
             // Completion variations
             'COMPLETION': 'COMPLETION',
@@ -405,7 +401,7 @@ class WorkflowProgressService {
         }
         
         // Return uppercase version for standard phases
-        const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SUPPLEMENT', 'COMPLETION'];
+        const validPhases = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
         if (validPhases.includes(upperPhase)) {
             return upperPhase;
         }
@@ -424,7 +420,7 @@ class WorkflowProgressService {
             { id: 'PROSPECT', name: 'Prospect', initial: 'P', color: '#3B82F6', gradientColor: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
             { id: 'APPROVED', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
             { id: 'EXECUTION', name: 'Execution', initial: 'E', color: '#F59E0B', gradientColor: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
-            { id: 'SUPPLEMENT', name: 'Supplement', initial: 'S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
+            { id: 'SECOND_SUPPLEMENT', name: '2nd Supplement', initial: 'S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
             { id: 'COMPLETION', name: 'Completion', initial: 'C', color: '#14532D', gradientColor: 'from-green-800 to-green-900', bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' }
         ];
     }

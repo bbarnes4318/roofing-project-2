@@ -78,7 +78,7 @@ const workflowStructure = {
       lineItems: ['Coordinate with subcontractors', 'Verify subcontractor permits']
     }
   },
-  'SUPPLEMENT': {
+  'SECOND_SUPPLEMENT': {
     'Supplement Assessment': {
       section: 'Supplement Assessment – Administration 📝',
       lineItems: ['Assess additional damage', 'Document supplement needs', 'Prepare supplement estimate']
@@ -108,8 +108,8 @@ const mapStepToWorkflowStructure = (stepName, phase) => {
   let normalizedPhase = phase ? phase.toString().toUpperCase() : 'LEAD';
   
   // Handle phase variations
-  if (normalizedPhase === '2ND_SUPP') normalizedPhase = 'SUPPLEMENT';
-  if (normalizedPhase === 'SECOND_SUPP') normalizedPhase = 'SUPPLEMENT';
+  if (normalizedPhase === '2ND_SUPP') normalizedPhase = 'SECOND_SUPPLEMENT';
+  if (normalizedPhase === 'SECOND_SUPP') normalizedPhase = 'SECOND_SUPPLEMENT';
   
   // Get phase structure
   const phaseStructure = workflowStructure[normalizedPhase];
@@ -185,7 +185,7 @@ const mapStepToWorkflowStructure = (stepName, phase) => {
     'PROSPECT': 'Prospect Development – Project Manager 👷🏼',
     'APPROVED': 'Project Setup – Administration 📝',
     'EXECUTION': 'Project Execution – Field Director 🛠️',
-    'SUPPLEMENT': 'Supplement Work – Administration 📝',
+    'SECOND_SUPPLEMENT': 'Supplement Work – Administration 📝',
     'COMPLETION': 'Project Completion – Administration 📝'
   };
   

@@ -157,7 +157,7 @@ class WorkflowUpdateService {
             'PROSPECT': ['Initial Inspection', 'Site Inspection', 'Write Estimate'],
             'APPROVED': ['Contract & Permitting', 'Agreement Signing'],
             'EXECUTION': ['Material Ordering', 'Installation', 'Quality Check'],
-            'SECOND_SUPP': ['Create Supp in Xactimate', 'Follow-Up Calls', 'Review Approved Supp'],
+            'SECOND_SUPPLEMENT': ['Create Supp in Xactimate', 'Follow-Up Calls', 'Review Approved Supp'],
             'COMPLETION': ['Financial Processing', 'Project Closeout', 'Customer Follow-Up']
         };
 
@@ -216,8 +216,8 @@ class WorkflowUpdateService {
             'APPROVED': 'Approved',
             'EXECUTION': 'Execution',
             'EXECUTE': 'Execution',
-            'SECOND_SUPP': '2nd Supp',
-            '2ND_SUPP': '2nd Supp',
+            'SECOND_SUPPLEMENT': '2nd Supplement',
+            '2ND_SUPP': '2nd Supplement',
             'COMPLETION': 'Completion'
         };
 
@@ -231,10 +231,9 @@ class WorkflowUpdateService {
         const phaseEnumMap = {
             'LEAD': 'LEAD',
             'PROSPECT': 'PROSPECT',
-            'PROSPECT_NON_INSURANCE': 'PROSPECT',
             'APPROVED': 'APPROVED',
             'EXECUTION': 'EXECUTION',
-            'SUPPLEMENT': 'SECOND_SUPP',
+            'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
             'COMPLETION': 'COMPLETION'
         };
         return phaseEnumMap[phaseId.toUpperCase()] || 'LEAD';
@@ -382,118 +381,30 @@ class WorkflowUpdateService {
     }
 
     /**
-     * CRITICAL: Generate alerts for the next active line items after completing a step
+     * CRITICAL: Generate alerts for the next active line items after completing a step (OPTIMIZED)
      */
     static async generateNextStepAlerts(projectId) {
         try {
             console.log(`🔄 Generating alerts for next active steps in project ${projectId}`);
             
-            // Get the project with workflow steps
-            const project = await prisma.project.findUnique({
-                where: { id: projectId },
-                include: {
-                    customer: true,
-                    projectManager: true
-                }
-            });
-
-            if (!project) {
-                console.log(`⚠️ Project ${projectId} not found`);
-                return;
-            }
-
-            // Get the workflow separately to avoid nested include issues
-            const workflow = await prisma.projectWorkflow.findFirst({
-                where: { projectId: projectId },
-                include: {
-                    steps: {
-                        where: { isCompleted: false },
-                        orderBy: { stepOrder: 'asc' },
-                        take: 3 // Get next 3 steps to create alerts for
-                    }
-                }
-            });
-
-            if (!workflow || !workflow.steps.length) {
-                console.log(`⚠️ No active workflow steps found for project ${projectId}`);
-                return;
-            }
-
-            console.log(`📋 Found ${workflow.steps.length} incomplete steps for alert generation`);
-
-            // Create alerts for active (incomplete) steps
-            for (const step of workflow.steps) {
-                // Check if alert already exists for this step
-                const existingAlert = await prisma.workflowAlert.findFirst({
-                    where: {
-                        projectId: projectId,
-                        stepId: step.id,
-                        status: { in: ['ACTIVE', 'PENDING'] }
-                    }
-                });
-
-                if (!existingAlert) {
-                    console.log(`📨 Creating new alert for step: ${step.stepName} (${step.stepId})`);
-                    
-                    // Parse step ID to get phase and section info
-                    let phase = step.phase || 'LEAD';
-                    let section = step.stepName;
-                    let lineItem = step.stepName;
-                    
-                    // If stepId is in frontend format (e.g., "LEAD-input-customer-info-0")
-                    if (step.stepId && step.stepId.includes('-')) {
-                        const parts = step.stepId.split('-');
-                        const phaseId = parts[0];
-                        const itemId = parts.slice(1, -1).join('-');
-                        const subIndex = parts[parts.length - 1];
-                        
-                        // Map to proper section names
-                        section = this.getStepSection(step.stepName);
-                        lineItem = step.stepName;
-                        phase = phaseId;
-                    }
-                    
-                    // Create alert for this step
-                    const newAlert = await prisma.workflowAlert.create({
-                        data: {
-                            type: 'Work Flow Line Item',
-                            priority: step.alertPriority || 'MEDIUM',
-                            status: 'ACTIVE',
-                            title: `${step.stepName} - ${project.customer?.primaryName || project.projectName}`,
-                            message: `${step.stepName} is ready to begin for project ${project.projectName}`,
-                            stepName: step.stepName,
-                            responsibleRole: step.defaultResponsible || 'OFFICE',
-                            isRead: false,
-                            dueDate: step.scheduledEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
-                            projectId: project.id,
-                            workflowId: workflow.id,
-                            stepId: step.id,
-                            assignedToId: step.assignedToId,
-                            createdById: null, // System generated
-                            metadata: {
-                                phase: phase,
-                                section: section,
-                                lineItem: lineItem,
-                                projectName: project.projectName,
-                                projectNumber: project.projectNumber,
-                                customerName: project.customer?.primaryName,
-                                cleanTaskName: this.getCleanTaskName(step.stepName),
-                                stepId: step.id,
-                                stepName: step.stepName,
-                                workflowId: workflow.id,
-                                autoGenerated: true,
-                                generatedAt: new Date().toISOString()
-                            }
-                        }
-                    });
-
-                    console.log(`✅ Created alert ${newAlert.id} for step: ${step.stepName} in project ${project.projectName}`);
-                } else {
-                    console.log(`⏭️ Alert already exists for step: ${step.stepName} (alert ID: ${existingAlert.id})`);
-                }
-            }
+            // Use optimized workflow progression service
+            const WorkflowProgressionService = require('./WorkflowProgressionService');
+            const tracker = await WorkflowProgressionService.getCurrentPosition(projectId);
             
-            console.log(`✅ Completed alert generation for project ${projectId}`);
+            if (!tracker || !tracker.currentLineItemId) {
+                console.log(`⚠️ No active line item found for project ${projectId}`);
+                return;
+            }
+
+            // Generate alert for current active line item
+            const AlertGenerationService = require('./AlertGenerationService');
+            await AlertGenerationService.generateActiveLineItemAlert(
+                projectId,
+                tracker.id,
+                tracker.currentLineItemId
+            );
+
+            console.log(`✅ Generated alert for current active line item`);
             
         } catch (error) {
             console.error('❌ Error generating next step alerts:', error);

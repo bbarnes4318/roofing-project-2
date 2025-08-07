@@ -200,12 +200,12 @@ class WorkflowInitializationService {
                 defaultResponsible: 'ADMINISTRATION',
                 stepOrder: 18
             },
-            // SECOND_SUPP Phase
+            // SECOND_SUPPLEMENT Phase
             {
                 stepId: 'SUPPLEMENT-create-supp',
                 stepName: 'Create Supp in Xactimate',
                 description: 'Create supplement in Xactimate',
-                phase: 'SECOND_SUPP',
+                phase: 'SECOND_SUPPLEMENT',
                 defaultResponsible: 'ADMINISTRATION',
                 stepOrder: 19
             },
@@ -213,7 +213,7 @@ class WorkflowInitializationService {
                 stepId: 'SUPPLEMENT-followup-calls',
                 stepName: 'Follow-Up Calls',
                 description: 'Make insurance follow-up calls',
-                phase: 'SECOND_SUPP',
+                phase: 'SECOND_SUPPLEMENT',
                 defaultResponsible: 'ADMINISTRATION',
                 stepOrder: 20
             },
@@ -221,7 +221,7 @@ class WorkflowInitializationService {
                 stepId: 'SUPPLEMENT-review-approved',
                 stepName: 'Review Approved Supp',
                 description: 'Review approved supplement',
-                phase: 'SECOND_SUPP',
+                phase: 'SECOND_SUPPLEMENT',
                 defaultResponsible: 'ADMINISTRATION',
                 stepOrder: 21
             },
@@ -229,7 +229,7 @@ class WorkflowInitializationService {
                 stepId: 'SUPPLEMENT-customer-update',
                 stepName: 'Customer Update',
                 description: 'Update customer on supplement status',
-                phase: 'SECOND_SUPP',
+                phase: 'SECOND_SUPPLEMENT',
                 defaultResponsible: 'ADMINISTRATION',
                 stepOrder: 22
             },

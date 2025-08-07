@@ -117,32 +117,6 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'PROSPECT_NON_INSURANCE',
-    label: 'Prospect: Non-Insurance Phase',
-    items: [
-      {
-        id: 'write-estimate-non-insurance',
-        label: 'Write Estimate – Project Manager 👷🏼',
-        subtasks: [
-          'Fill out Estimate Forms',
-          'Write initial estimate in AL and send customer for approval',
-          'Follow up with customer for approval',
-          'Let Office know the agreement is ready to sign'
-        ]
-      },
-      {
-        id: 'agreement-signing-non-insurance',
-        label: 'Agreement Signing – Administration 📝',
-        subtasks: [
-          'Review agreement with customer and send a signature request',
-          'Record in QuickBooks',
-          'Process deposit',
-          'Send and collect signatures for any applicable disclaimers'
-        ]
-      }
-    ]
-  },
-  {
     id: 'APPROVED',
     label: 'Approved Phase',
     items: [
@@ -263,7 +237,7 @@ const checklistPhases = [
     ]
   },
   {
-    id: 'SUPPLEMENT',
+    id: 'SECOND_SUPPLEMENT',
     label: '2nd Supplement Phase',
     items: [
       {
@@ -380,10 +354,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     const phaseMap = {
       'LEAD': 'LEAD',
       'PROSPECT': 'PROSPECT', 
-      'PROSPECT_NON_INSURANCE': 'PROSPECT',
       'APPROVED': 'APPROVED',
       'EXECUTION': 'EXECUTION',
-      'SUPPLEMENT': 'SUPPLEMENT',
+      'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
       'COMPLETION': 'COMPLETION'
     };
     
@@ -643,9 +616,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         'Approved': 'APPROVED',
         'EXECUTION': 'EXECUTION',
         'Execution': 'EXECUTION',
-        'SUPPLEMENT': 'SUPPLEMENT',
-        '2ND_SUPP': 'SUPPLEMENT',
-        '2nd Supplement': 'SUPPLEMENT',
+        'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
+        '2ND_SUPP': 'SECOND_SUPPLEMENT',
+        '2nd Supplement': 'SECOND_SUPPLEMENT',
         'COMPLETION': 'COMPLETION',
         'Completion': 'COMPLETION'
       };
@@ -1924,17 +1897,32 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                               const completed = isStepCompleted(stepId);
                                               return (
                                                 <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}-${workflowData?._optimisticUpdate || 0}`} className="flex items-center gap-1 text-left font-normal">
-                                                  <input
-                                                    type="checkbox"
-                                                    className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
-                                                    checked={completed}
-                                                    onChange={(e) => {
-                                                      e.stopPropagation();
-                                                      handleCheck(phase.id, item.id, subIdx);
-                                                    }}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                  />
-                                                  <span className={completed ? 'line-through text-gray-400' : ''}>{sub}</span>
+                                                  <div className="relative inline-flex items-center">
+                                                    <input
+                                                      type="checkbox"
+                                                      className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
+                                                      checked={completed}
+                                                      onChange={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCheck(phase.id, item.id, subIdx);
+                                                      }}
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    {completed && (
+                                                      <svg 
+                                                        className="absolute inset-0 w-3 h-3 text-white pointer-events-none" 
+                                                        fill="currentColor" 
+                                                        viewBox="0 0 20 20"
+                                                      >
+                                                        <path 
+                                                          fillRule="evenodd" 
+                                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                                                          clipRule="evenodd" 
+                                                        />
+                                                      </svg>
+                                                    )}
+                                                  </div>
+                                                  <span className={`ml-1 transition-all duration-200 ${completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>{sub}</span>
                                                 </li>
                                               );
                                             })}
@@ -1953,21 +1941,36 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                 const completed = isStepCompleted(stepId);
                                                 return (
                                                   <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}-${workflowData?._optimisticUpdate || 0}`} className="flex items-center gap-1 text-left font-normal">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="h-2.5 w-2.5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
-                                                      checked={completed}
-                                                      onChange={(e) => {
-                                                        e.stopPropagation();
-                                                        const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                                                        const currentlyCompleted = isStepCompleted(stepId);
-                                                        const newCompletedState = !currentlyCompleted;
-                                                        console.log(`🔄 CHECKBOX SUBHEADING: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
-                                                        updateWorkflowStep(stepId, newCompletedState);
-                                                      }}
-                                                      onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                    <span className={completed ? 'line-through text-gray-400' : ''}>{sub}</span>
+                                                    <div className="relative inline-flex items-center">
+                                                      <input
+                                                        type="checkbox"
+                                                        className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
+                                                        checked={completed}
+                                                        onChange={(e) => {
+                                                          e.stopPropagation();
+                                                          const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
+                                                          const currentlyCompleted = isStepCompleted(stepId);
+                                                          const newCompletedState = !currentlyCompleted;
+                                                          console.log(`🔄 CHECKBOX SUBHEADING: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
+                                                          updateWorkflowStep(stepId, newCompletedState);
+                                                        }}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                      />
+                                                      {completed && (
+                                                        <svg 
+                                                          className="absolute inset-0 w-3 h-3 text-white pointer-events-none" 
+                                                          fill="currentColor" 
+                                                          viewBox="0 0 20 20"
+                                                        >
+                                                          <path 
+                                                            fillRule="evenodd" 
+                                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                                                            clipRule="evenodd" 
+                                                          />
+                                                        </svg>
+                                                      )}
+                                                    </div>
+                                                    <span className={`ml-1 transition-all duration-200 ${completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>{sub}</span>
                                                   </li>
                                                 );
                                               })}
