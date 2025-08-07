@@ -154,10 +154,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     });
   }
 
+  // Track if we've already processed a dashboard state for refetch to prevent loops
+  const processedRefetchStateRef = useRef(null);
+  
   // Additional debug for navigation back from project workflow
   useEffect(() => {
-    if (dashboardState) {
+    if (dashboardState && dashboardState !== processedRefetchStateRef.current) {
       console.log('🔍 DASHBOARD: Dashboard state received, triggering data refresh if needed');
+      processedRefetchStateRef.current = dashboardState;
+      
       // If we have dashboard state but projects failed to load, try refetching
       if (projectsError && typeof refetchProjects === 'function') {
         console.log('🔄 DASHBOARD: Attempting to refetch projects due to navigation state restoration');
@@ -375,10 +380,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectsLoading]);
 
+  // Track processed dashboard states to prevent infinite loops
+  const processedDashboardStateRef = useRef(null);
+  
   // Restore dashboard state when navigating back from project detail
   useEffect(() => {
-    if (dashboardState) {
+    if (dashboardState && dashboardState !== processedDashboardStateRef.current) {
       console.log('🔍 DASHBOARD: Restoring dashboard state:', dashboardState);
+      processedDashboardStateRef.current = dashboardState;
       
       // Restore expanded phases
       if (dashboardState.expandedPhases) {
