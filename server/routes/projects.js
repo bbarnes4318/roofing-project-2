@@ -466,7 +466,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
     // Transform project for frontend compatibility
     const transformedProject = transformProjectForFrontend(project);
     
-    sendSuccess(res, transformedProject, 'Project retrieved successfully');
+    sendSuccess(res, 200, transformedProject, 'Project retrieved successfully');
   } catch (error) {
     console.error('Error fetching project:', error);
     return next(new AppError('Failed to fetch project', 500));
@@ -566,7 +566,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     // Transform project for frontend compatibility
     const transformedProject = transformProjectForFrontend(project);
 
-    sendSuccess(res, transformedProject, 'Project created successfully', 201);
+    sendSuccess(res, 201, transformedProject, 'Project created successfully');
   } catch (error) {
     console.error('Error creating project:', error);
     return next(new AppError('Failed to create project', 500));
@@ -666,7 +666,7 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     // Invalidate cache for projects
     await cacheService.invalidateRelated('project', req.params.id);
 
-    sendSuccess(res, transformedProject, 'Project updated successfully');
+    sendSuccess(res, 200, transformedProject, 'Project updated successfully');
   } catch (error) {
     console.error('Error updating project:', error);
     return next(new AppError('Failed to update project', 500));
@@ -742,7 +742,7 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
     // Invalidate cache for projects
     await cacheService.invalidateRelated('project', req.params.id);
 
-    sendSuccess(res, transformedProject, `Project ${archived ? 'archived' : 'unarchived'} successfully`);
+    sendSuccess(res, 200, transformedProject, `Project ${archived ? 'archived' : 'unarchived'} successfully`);
   } catch (error) {
     console.error('Error archiving project:', error);
     return next(new AppError('Failed to archive project', 500));

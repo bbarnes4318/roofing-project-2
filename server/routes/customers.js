@@ -85,7 +85,8 @@ const customerValidation = [
     .withMessage('Please provide a valid primary email address'),
   body('primaryPhone')
     .trim()
-    .matches(/^[\+]?[1-9][\d]{0,15}$/)
+    .optional({ checkFalsy: true })
+    .matches(/^[\+]?[\d]{6,20}$/)
     .withMessage('Please provide a valid primary phone number'),
   body('secondaryName')
     .optional()
@@ -100,7 +101,7 @@ const customerValidation = [
   body('secondaryPhone')
     .optional()
     .trim()
-    .matches(/^[\+]?[1-9][\d]{0,15}$/)
+    .matches(/^[\+]?[\d]{6,20}$/)
     .withMessage('Please provide a valid secondary phone number'),
   body('primaryContact')
     .optional()
@@ -275,25 +276,30 @@ router.post('/', asyncHandler(async (req, res, next) => {
     let customerData = {};
     
     if (req.body.primaryName || req.body.primaryEmail) {
-      // New format validation
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
+      // Manual validation for primaryName, primaryEmail
+      if (!req.body.primaryName || req.body.primaryName.trim().length < 2) {
         return res.status(400).json({
           success: false,
-          message: 'Validation failed',
-          errors: formatValidationErrors(errors)
+          message: 'Primary name is required and must be at least 2 characters'
+        });
+      }
+      
+      if (!req.body.primaryEmail || !req.body.primaryEmail.includes('@')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Valid primary email is required'
         });
       }
       
       customerData = {
         primaryName: req.body.primaryName,
         primaryEmail: req.body.primaryEmail,
-        primaryPhone: req.body.primaryPhone,
+        primaryPhone: req.body.primaryPhone || '555-555-5555', // Default phone if not provided
         secondaryName: req.body.secondaryName || null,
         secondaryEmail: req.body.secondaryEmail || null,
         secondaryPhone: req.body.secondaryPhone || null,
         primaryContact: req.body.primaryContact || 'PRIMARY',
-        address: req.body.address,
+        address: req.body.address || 'No address provided',
         notes: req.body.notes || null
       };
     } else {
@@ -301,12 +307,12 @@ router.post('/', asyncHandler(async (req, res, next) => {
       customerData = {
         primaryName: req.body.name,
         primaryEmail: req.body.email,
-        primaryPhone: req.body.phone,
+        primaryPhone: req.body.phone || '555-555-5555',
         secondaryName: null,
         secondaryEmail: null,
         secondaryPhone: null,
         primaryContact: 'PRIMARY',
-        address: req.body.address,
+        address: req.body.address || 'No address provided',
         notes: req.body.notes || null
       };
     }
@@ -354,13 +360,19 @@ router.post('/', asyncHandler(async (req, res, next) => {
       await cacheService.invalidateRelated('customer', customer.id);
     }
     
-    sendSuccess(res, transformedCustomer, 'Customer created successfully', 201);
+    sendSuccess(res, 201, transformedCustomer, 'Customer created successfully');
   } catch (error) {
     console.error('Error creating customer:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      meta: error.meta,
+      stack: error.stack
+    });
     if (error.code === 'P2002') {
       return next(new AppError('Customer with this email already exists', 400));
     }
-    return next(new AppError('Failed to create customer', 500));
+    return next(new AppError(`Failed to create customer: ${error.message}`, 500));
   }
 }));
 
