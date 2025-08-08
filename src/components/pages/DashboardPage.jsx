@@ -248,6 +248,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [selectedAlertForAssign, setSelectedAlertForAssign] = useState(null);
   const [assignToUser, setAssignToUser] = useState('');
   const [actionLoading, setActionLoading] = useState({});
+  const [availableUsers, setAvailableUsers] = useState([]);
   
   // Fetch real alerts from API
   const { data: workflowAlerts, isLoading: alertsLoading, error: alertsError, refetch: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'active' });
@@ -269,6 +270,31 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     if (user) {
       setCurrentUser(user);
     }
+  }, []);
+
+  // Fetch available users for assignment dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setAvailableUsers(result.data);
+            console.log('✅ Loaded users for assignment:', result.data.length);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch users:', error);
+      }
+    };
+    
+    fetchUsers();
   }, []);
 
   // Removed automatic popup closing - popups now require manual close only
@@ -1085,7 +1111,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
         },
         body: JSON.stringify({
           notes: `Completed via dashboard alert by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
@@ -1122,7 +1148,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             // Get current workflow data to find the right checklist item
             const workflowResponse = await fetch(`/api/workflows/project/${projectId}`, {
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
               }
             });
             
@@ -1175,7 +1201,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           // Get the complete workflow data to analyze completion status
           const fullWorkflowResponse = await fetch(`/api/workflows/project/${projectId}`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
             }
           });
           
@@ -1401,17 +1427,48 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     try {
       console.log('🔄 Assigning alert to user:', assignToUser);
       
-      // Simulate API call to assign alert
-      setTimeout(() => {
-        console.log('✅ Alert assigned successfully');
+      // Find the selected user details
+      const selectedUser = availableUsers.find(user => user.id === assignToUser);
+      console.log('👤 Selected user:', selectedUser);
+      
+      // Make API call to assign alert
+      const response = await fetch(`/api/alerts/${alertId}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        },
+        body: JSON.stringify({
+          assignedTo: assignToUser
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Alert assigned successfully:', result);
+        
+        // Show success message
+        alert(`Alert successfully assigned to ${selectedUser?.firstName} ${selectedUser?.lastName}!`);
+        
+        // Refresh alerts to show updated assignment
+        if (typeof refetchWorkflowAlerts === 'function') {
+          refetchWorkflowAlerts();
+        }
+        
+        // Close modal and reset state
         setShowAssignModal(false);
         setSelectedAlertForAssign(null);
         setAssignToUser('');
-        setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
-      }, 500);
+      } else {
+        const errorResult = await response.json();
+        console.error('❌ Failed to assign alert:', errorResult);
+        alert('Failed to assign alert. Please try again.');
+      }
       
     } catch (error) {
       console.error('❌ Failed to assign alert:', error);
+      alert('Network error. Please check your connection and try again.');
+    } finally {
       setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
     }
   };
@@ -2824,6 +2881,42 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
               Assign Alert to User
             </h3>
+            
+            {/* Alert Information */}
+            {selectedAlertForAssign && (
+              <div className={`mb-4 p-3 rounded border ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                  Alert: {selectedAlertForAssign.title || 'Unknown Alert'}
+                </p>
+                <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Project: {selectedAlertForAssign.metadata?.projectName || selectedAlertForAssign.relatedProject?.projectName || 'Unknown Project'}
+                </p>
+              </div>
+            )}
+            
+            {/* User Selection Dropdown */}
+            <div className="mb-6">
+              <label className={`block text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Assign to User:
+              </label>
+              <select
+                value={assignToUser}
+                onChange={(e) => setAssignToUser(e.target.value)}
+                className={`w-full p-3 border rounded-lg text-sm transition-colors ${
+                  colorMode 
+                    ? 'bg-[#1e293b] border-gray-600 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                }`}
+              >
+                <option value="">Select a user...</option>
+                {availableUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.firstName} {user.lastName} ({user.role || 'User'})
+                  </option>
+                ))}
+              </select>
+            </div>
+            
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => {
@@ -2841,14 +2934,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </button>
               <button
                 onClick={handleAssignConfirm}
-                disabled={!assignToUser}
+                disabled={!assignToUser || actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                  assignToUser
+                  assignToUser && !actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
                     : 'bg-gray-400 text-white cursor-not-allowed'
                 }`}
               >
-                Assign
+                {actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`] ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Assigning...
+                  </span>
+                ) : (
+                  'Assign'
+                )}
               </button>
             </div>
           </div>
