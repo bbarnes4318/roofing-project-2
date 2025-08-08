@@ -570,13 +570,17 @@ router.post('/project/:projectId/assign', authenticateToken, async (req, res) =>
       }
     });
 
+    // Echo back all submitted role assignments, enriching any that we persist
     const updatedRoles = {
       projectManager: updatedProject.projectManager ? {
         id: updatedProject.projectManager.id,
         name: `${updatedProject.projectManager.firstName} ${updatedProject.projectManager.lastName}`.trim(),
         email: updatedProject.projectManager.email,
         role: updatedProject.projectManager.role
-      } : null
+      } : (roleAssignments.projectManager ? { id: roleAssignments.projectManager } : null),
+      fieldDirector: roleAssignments.fieldDirector ? { id: roleAssignments.fieldDirector } : null,
+      officeStaff: roleAssignments.officeStaff ? { id: roleAssignments.officeStaff } : null,
+      administration: roleAssignments.administration ? { id: roleAssignments.administration } : null
     };
 
     console.log(`✅ ROLES API: Successfully updated project roles for ${projectId}`);

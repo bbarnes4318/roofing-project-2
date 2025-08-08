@@ -97,12 +97,18 @@ const ProjectRoleDropdowns = ({ project, colorMode, onRoleAssignmentUpdate, isEx
 
             const result = await response.json();
             if (result.success) {
-                // Update with actual server response
-                setProjectRoles(result.data.roles);
-                
-                // Notify parent component of the update
+                // Merge server response so non-persisted roles (fieldDirector, officeStaff, administration)
+                // remain selected instead of being cleared
+                setProjectRoles(prev => ({
+                    ...prev,
+                    ...(result?.data?.roles || {})
+                }));
+
                 if (onRoleAssignmentUpdate) {
-                    onRoleAssignmentUpdate(project.id, result.data.roles);
+                    onRoleAssignmentUpdate(project.id, {
+                        ...projectRoles,
+                        ...(result?.data?.roles || {})
+                    });
                 }
 
                 console.log(`✅ Role ${roleType} updated successfully for project ${project.id}`);
