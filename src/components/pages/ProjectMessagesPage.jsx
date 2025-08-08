@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 // import { teamMembers } from '../../data/mockData';
 import { useSubjects } from '../../contexts/SubjectsContext';
@@ -28,7 +28,7 @@ const initialChats = {
   4: [],
 };
 
-const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'dm' }) => {
+const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'project' }) => {
     const [tab, setTab] = useState(initialTab);
     
     // Get subjects from context
@@ -40,6 +40,12 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     const [sendAsAlert, setSendAsAlert] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [alertPriority, setAlertPriority] = useState('low');
+    
+    // User management state
+    const [availableUsers, setAvailableUsers] = useState([]);
+    const [selectedToUser, setSelectedToUser] = useState('');
+    const [sendAsTask, setSendAsTask] = useState(false);
+    const [taskAssignee, setTaskAssignee] = useState('');
     
     // Direct message state
     const [selectedCoworkerId, setSelectedCoworkerId] = useState(mockCoworkers[0].id);
@@ -57,10 +63,96 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     const [newMessageSubject, setNewMessageSubject] = useState('');
     const [newMessageText, setNewMessageText] = useState('');
 
-    // Filter activities to show only those for the current project and sort by most recent timestamp first
-    const projectActivities = activities
-        .filter(activity => activity.projectId === project.id)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Fetch available users for assignment dropdown
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await fetch('/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        setAvailableUsers(result.data);
+                        console.log('✅ Loaded users for message assignment:', result.data.length);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to fetch users:', error);
+            }
+        };
+        
+        fetchUsers();
+    }, []);
+
+    // Sample project-specific messages (this should eventually come from an API)
+    const sampleProjectMessages = [
+        {
+            id: `msg_${project.id}_1`,
+            projectId: project.id,
+            projectName: project.name || project.projectName,
+            projectNumber: project.projectNumber || project.id,
+            subject: 'Material Delivery Update',
+            description: 'The roofing materials for your project have been delivered and are on-site. Our team will begin installation tomorrow morning at 8 AM.',
+            user: 'Mike Rodriguez',
+            userRole: 'Project Manager',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+            type: 'message',
+            priority: 'medium',
+            isRead: false
+        },
+        {
+            id: `msg_${project.id}_2`,
+            projectId: project.id,
+            projectName: project.name || project.projectName,
+            projectNumber: project.projectNumber || project.id,
+            subject: 'Weather Update - Schedule Adjustment',
+            description: 'Due to the forecasted rain this afternoon, we\'ve adjusted today\'s work schedule. The team will focus on interior prep work and resume exterior work once weather clears.',
+            user: 'Sarah Owner',
+            userRole: 'Owner',
+            timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+            type: 'message',
+            priority: 'high',
+            isRead: true
+        },
+        {
+            id: `msg_${project.id}_3`,
+            projectId: project.id,
+            projectName: project.name || project.projectName,
+            projectNumber: project.projectNumber || project.id,
+            subject: 'Quality Inspection Complete',
+            description: 'The quality inspection for Phase 1 has been completed successfully. All work meets our high standards and city building codes. Photos have been uploaded to your project portal.',
+            user: 'Emily Project Manager',
+            userRole: 'Quality Inspector',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+            type: 'message',
+            priority: 'medium',
+            isRead: true
+        },
+        {
+            id: `msg_${project.id}_4`,
+            projectId: project.id,
+            projectName: project.name || project.projectName,
+            projectNumber: project.projectNumber || project.id,
+            subject: 'Project Milestone Achieved',
+            description: 'Congratulations! We\'ve successfully completed 75% of your roofing project. The structural work is finished and we\'re now moving into the final finishing phase.',
+            user: 'Carlos Crew Lead',
+            userRole: 'Field Director',
+            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+            type: 'message',
+            priority: 'low',
+            isRead: true
+        }
+    ];
+
+    // Filter activities to show only those for the current project and combine with sample messages
+    const projectActivities = [
+        ...sampleProjectMessages,
+        ...activities.filter(activity => activity.projectId === project.id)
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     // Scroll to top function
     const scrollToTop = () => {
@@ -179,8 +271,14 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
 
     return (
         <div className="w-full max-w-full m-0 p-0">
-            {/* Tabs - Only Direct Messages and AI Directive */}
+            {/* Tabs - Project Messages, Direct Messages, and AI Directive */}
             <div className="flex gap-2 m-0 p-0">
+              <button
+                className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'project' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
+                onClick={() => setTab('project')}
+              >
+                Project Messages
+              </button>
               <button
                 className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'dm' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
                 onClick={() => setTab('dm')}
@@ -195,7 +293,61 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
               </button>
             </div>
 
+            {/* Project Messages Tab */}
+            {tab === 'project' && (
+                <div className={`w-full rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
+                    <div className="flex flex-col h-full">
+                        {/* Header with Add Message Button */}
+                        <div className={`p-4 border-b flex justify-between items-center ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-200 bg-gray-50'}`}>
+                            <h3 className={`font-semibold text-lg ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                Project Messages
+                            </h3>
+                            <button
+                                onClick={() => setShowMessageModal(true)}
+                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    colorMode
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                            >
+                                + Add Message
+                            </button>
+                        </div>
+
+                        {/* Messages List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                            {projectActivities.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <div className="text-4xl mb-4">💬</div>
+                                    <h3 className={`text-lg font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        No messages yet
+                                    </h3>
+                                    <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        Start a conversation about this project
+                                    </p>
+                                </div>
+                            ) : (
+                                projectActivities.map(activity => (
+                                    <ProjectMessagesCard 
+                                        key={activity.id} 
+                                        activity={activity} 
+                                        onProjectSelect={onProjectSelect}
+                                        projects={projects}
+                                        colorMode={colorMode}
+                                        useRealData={true}
+                                        onQuickReply={handleQuickReply}
+                                        isExpanded={false}
+                                        onToggleExpansion={() => {}}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Direct Messages Tab */}
+            {tab === 'dm' && (
             <div className={`w-full flex rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
                 {/* Coworker sidebar */}
                 <div className={`w-44 flex-shrink-0 border-r ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-100 bg-gray-50'} py-3 px-2 flex flex-col`}> 
@@ -289,6 +441,8 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                   </form>
                 </div>
               </div>
+            </div>
+            )}
             
             {/* Message Composition Modal */}
             {showMessageModal && (
@@ -319,7 +473,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                             
                             <form onSubmit={(e) => {
                                 e.preventDefault();
-                                if (newMessageSubject && newMessageText.trim()) {
+                                if (newMessageSubject && newMessageText.trim() && selectedToUser) {
                                     // Create new message activity for this specific project
                                     const newActivity = {
                                         id: `msg_${Date.now()}`,
@@ -343,6 +497,9 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                     setShowMessageModal(false);
                                     setNewMessageSubject('');
                                     setNewMessageText('');
+                                    setSelectedToUser('');
+                                    setSendAsTask(false);
+                                    setTaskAssignee('');
                                 }
                             }} className="space-y-4">
                                 <div>
@@ -366,6 +523,65 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                             <option key={subject} value={subject}>{subject}</option>
                                         ))}
                                     </select>
+                                </div>
+                                
+                                {/* To User Dropdown */}
+                                <div>
+                                    <label className={`block text-sm font-medium mb-2 ${
+                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                    }`}>
+                                        To <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={selectedToUser}
+                                        onChange={(e) => setSelectedToUser(e.target.value)}
+                                        required
+                                        className={`w-full p-2 border rounded-lg text-sm ${
+                                            colorMode 
+                                                ? 'bg-[#1e293b] border-gray-600 text-white' 
+                                                : 'bg-white border-gray-300 text-gray-800'
+                                        }`}
+                                    >
+                                        <option value="">Select recipient...</option>
+                                        {availableUsers.map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.firstName} {user.lastName} ({user.role || 'User'})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                {/* Send as Task Option */}
+                                <div>
+                                    <label className={`flex items-center text-sm ${
+                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                    }`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={sendAsTask}
+                                            onChange={(e) => setSendAsTask(e.target.checked)}
+                                            className="mr-2"
+                                        />
+                                        Send as Task
+                                    </label>
+                                    {sendAsTask && (
+                                        <select
+                                            value={taskAssignee}
+                                            onChange={(e) => setTaskAssignee(e.target.value)}
+                                            className={`w-full p-2 border rounded-lg text-sm mt-2 ${
+                                                colorMode 
+                                                    ? 'bg-[#1e293b] border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-800'
+                                            }`}
+                                        >
+                                            <option value="">Assign task to...</option>
+                                            {availableUsers.map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.firstName} {user.lastName} ({user.role || 'User'})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
                                 
                                 <div>
@@ -406,9 +622,9 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={!newMessageSubject || !newMessageText.trim()}
+                                        disabled={!newMessageSubject || !newMessageText.trim() || !selectedToUser}
                                         className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                            newMessageSubject && newMessageText.trim()
+                                            newMessageSubject && newMessageText.trim() && selectedToUser
                                                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}

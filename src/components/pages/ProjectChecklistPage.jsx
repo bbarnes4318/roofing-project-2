@@ -373,10 +373,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             const effectiveTargetLineItem = targetLineItemId || urlHighlight;
             if (effectiveTargetLineItem) {
               // Parse line item ID to get phase and section
+              // Format: PHASE-SECTION-INDEX (e.g., "APPROVED-admin-setup-0")
               const parts = effectiveTargetLineItem.split('-');
-              if (parts.length >= 2) {
-                const phaseId = parts[0];
-                const sectionId = parts.slice(0, parts.length - 1).join('-');
+              if (parts.length >= 3) {
+                const phaseId = parts[0]; // e.g., "APPROVED"
+                const sectionId = parts.slice(1, -1).join('-'); // e.g., "admin-setup" 
+                console.log(`🎯 NAVIGATION: Expanding phase: ${phaseId}, section: ${sectionId}`);
                 setOpenPhase(phaseId);
                 setOpenItem(prev => ({ ...prev, [sectionId]: true }));
               }
