@@ -460,11 +460,18 @@ export default function App() {
             if (currentAlertsSection) currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
         } else if (navigationState.projectSourceSection === 'Project Cubes') {
+          console.log('🔍 BACK_TO_PROJECTS: Returning to Current Project Access section');
           setActivePage('Overview');
           setTimeout(() => {
             const projectCubesSection = document.querySelector('[data-section="project-cubes"]');
-            if (projectCubesSection) projectCubesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+            console.log('🔍 BACK_TO_PROJECTS: Found project cubes section:', projectCubesSection);
+            if (projectCubesSection) {
+              projectCubesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              console.log('🔍 BACK_TO_PROJECTS: Scrolled to Current Project Access section');
+            } else {
+              console.warn('🔍 BACK_TO_PROJECTS: Could not find project cubes section element');
+            }
+          }, 200); // Increased timeout to ensure page is fully loaded
         } else if (navigationState.projectSourceSection === 'Project Phases') {
           setActivePage('Overview');
           console.log('🔍 BACK_TO_PROJECTS: Project Phases - dashboard state being restored:', dashboardState);

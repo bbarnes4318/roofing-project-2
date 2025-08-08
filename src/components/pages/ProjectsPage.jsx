@@ -700,22 +700,6 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
                 
-                {/* Back Button (if needed from source navigation) */}
-                {showCardBackButton && (
-                    <div className="px-3 pb-3">
-                        <button
-                            onClick={handleBackToSource}
-                            className={`w-full flex items-center justify-center gap-2 p-2 rounded-lg transition-all duration-200 border text-sm font-medium ${
-                                colorMode 
-                                    ? 'bg-gradient-to-r from-orange-700/80 to-orange-800/80 border-orange-600/70 text-white hover:from-orange-600/90 hover:to-orange-700/90 hover:border-orange-500' 
-                                    : 'bg-gradient-to-r from-orange-100 to-orange-200 border-orange-300 text-orange-800 hover:from-orange-200 hover:to-orange-300 hover:border-orange-400'
-                            }`}
-                        >
-                            <span>⬅️</span>
-                            <span>{getBackButtonText()}</span>
-                        </button>
-                    </div>
-                )}
                 
                 {/* Role Assignment Section */}
                 <div className="px-3 pb-3">
@@ -747,7 +731,23 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 </div>
 
                 {/* 6 Project Action Buttons - Bottom Section */}
-                <div className="px-3 pb-3">
+                <div className="px-3 pb-3 relative">
+                    {/* Back Button - Lower Left Corner */}
+                    {showCardBackButton && (
+                        <div className="absolute bottom-2 left-2 z-10">
+                            <button
+                                onClick={handleBackToSource}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 border text-xs font-medium shadow-md ${
+                                    colorMode 
+                                        ? 'bg-gradient-to-r from-orange-700/90 to-orange-800/90 border-orange-600/70 text-white hover:from-orange-600/95 hover:to-orange-700/95 hover:border-orange-500' 
+                                        : 'bg-gradient-to-r from-orange-100/95 to-orange-200/95 border-orange-300 text-orange-800 hover:from-orange-200/95 hover:to-orange-300/95 hover:border-orange-400'
+                                }`}
+                            >
+                                <span className="text-[10px]">⬅️</span>
+                                <span>Back</span>
+                            </button>
+                        </div>
+                    )}
                     <div className="grid grid-cols-3 gap-2">
                         {/* Row 1 */}
                         <button
