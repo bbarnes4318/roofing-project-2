@@ -384,16 +384,6 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   // Initialize with stored values and use state for immediate UI updates
   const [localCheckedItems, setLocalCheckedItems] = useState(() => getStoredCheckedItems());
   
-  // Helper to update both state and localStorage
-  const updateLocalCheckedItems = (callback) => {
-    setLocalCheckedItems(prevSet => {
-      const newSet = new Set(prevSet);
-      callback(newSet);
-      saveCheckedItems(newSet); // Save to localStorage
-      return newSet;
-    });
-  };
-  
   // Get phase colors from WorkflowProgressService to match dashboard
   const getPhaseColor = (phaseId) => {
     // Map phase IDs to the color service's expected format
@@ -427,16 +417,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   useEffect(() => {
     if (!workflowData || !workflowData.steps) return;
     
-    updateLocalCheckedItems(checkedItems => {
+    setLocalCheckedItems(prevSet => {
+      const newSet = new Set(prevSet);
+      let hasChanges = false;
+      
       workflowData.steps.forEach(step => {
         if (step.completed || step.isCompleted) {
           const stepId = step.id || step.stepId || step._id;
-          if (!checkedItems.has(stepId)) {
-            checkedItems.add(stepId);
-            console.log(`🔄 SYNC: Added server-completed step ${stepId} to localStorage`);
+          if (!newSet.has(stepId)) {
+            newSet.add(stepId);
+            hasChanges = true;
+            console.log(`🔄 SYNC: Added server-completed step ${stepId}`);
           }
         }
       });
+      
+      if (hasChanges) {
+        saveCheckedItems(newSet);
+      }
+      
+      return newSet;
     });
   }, [workflowData]);
   
@@ -1217,70 +1217,57 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
 
   const handleCheck = (phaseId, itemId, subIdx) => {
     const stepId = `${phaseId}-${itemId}-${subIdx}`;
+    
+    console.log(`🔄 CHECKBOX CLICKED: ${stepId}`);
+    console.log(`🔄 CURRENT localStorage state:`, Array.from(localCheckedItems));
+    
     const currentlyCompleted = localCheckedItems.has(stepId);
     const newCompletedState = !currentlyCompleted;
     
-    console.log(`🔄 CHECKBOX: User clicked ${stepId}`);
-    console.log(`🔄 CHECKBOX: Current state: ${currentlyCompleted} -> New state: ${newCompletedState}`);
-    console.log(`🔄 CHECKBOX: Local state before:`, Array.from(localCheckedItems));
+    console.log(`🔄 TOGGLE: ${stepId} from ${currentlyCompleted} to ${newCompletedState}`);
     
-    // IMMEDIATE: Update localStorage-backed state for instant UI feedback
-    updateLocalCheckedItems((checkedItems) => {
+    // CRITICAL: Force immediate state update with re-render
+    setLocalCheckedItems(prevSet => {
+      const newSet = new Set(prevSet);
       if (newCompletedState) {
-        checkedItems.add(stepId);
-        console.log(`✅ LOCAL: Added ${stepId} to localStorage`);
+        newSet.add(stepId);
+        console.log(`✅ ADDED ${stepId} to state`);
       } else {
-        checkedItems.delete(stepId);
-        console.log(`❌ LOCAL: Removed ${stepId} from localStorage`);
+        newSet.delete(stepId);
+        console.log(`❌ REMOVED ${stepId} from state`);
       }
+      
+      // Save to localStorage immediately
+      saveCheckedItems(newSet);
+      console.log(`💾 SAVED to localStorage:`, Array.from(newSet));
+      
+      return newSet;
     });
     
-    // ASYNC: Update server in background - don't wait for it
-    updateWorkflowStep(stepId, newCompletedState).catch(error => {
-      console.error('❌ CHECKBOX: Server update failed, reverting localStorage:', error);
-      // On error, revert localStorage-backed state
-      updateLocalCheckedItems((checkedItems) => {
-        if (newCompletedState) {
-          checkedItems.delete(stepId); // Revert addition
-          console.log(`🔄 REVERT: Removed ${stepId} from localStorage due to server error`);
-        } else {
-          checkedItems.add(stepId); // Revert deletion  
-          console.log(`🔄 REVERT: Added ${stepId} to localStorage due to server error`);
-        }
+    // Background server update (don't block UI)
+    setTimeout(() => {
+      updateWorkflowStep(stepId, newCompletedState).catch(error => {
+        console.error('❌ SERVER ERROR:', error);
+        // Revert on server error
+        setLocalCheckedItems(prevSet => {
+          const revertSet = new Set(prevSet);
+          if (newCompletedState) {
+            revertSet.delete(stepId);
+          } else {
+            revertSet.add(stepId);
+          }
+          saveCheckedItems(revertSet);
+          return revertSet;
+        });
       });
-    });
+    }, 10);
   };
 
-  // Helper function to check if a step is completed
+  // Helper function to check if a step is completed - SIMPLIFIED
   const isStepCompleted = (stepId) => {
-    // Check localStorage-backed state first
-    const isLocallyChecked = localCheckedItems.has(stepId);
-    
-    if (isLocallyChecked) {
-      console.log(`✅ LOCAL: ${stepId} is checked (from localStorage-backed state)`);
-      return true;
-    }
-    
-    // Check server data as backup
-    if (workflowData && workflowData.steps) {
-      const directMatch = workflowData.steps.find(s => 
-        s.id === stepId || 
-        s.stepId === stepId || 
-        s._id === stepId
-      );
-      
-      if (directMatch && (directMatch.completed || directMatch.isCompleted)) {
-        console.log(`✅ SERVER: ${stepId} is checked on server`);
-        // Sync server state to localStorage
-        updateLocalCheckedItems(checkedItems => {
-          checkedItems.add(stepId);
-        });
-        return true;
-      }
-    }
-    
-    console.log(`❌ UNCHECKED: ${stepId} not found in local or server state`);
-    return false;
+    const isChecked = localCheckedItems.has(stepId);
+    console.log(`🔍 CHECKING ${stepId}: ${isChecked ? 'CHECKED' : 'UNCHECKED'}`);
+    return isChecked;
   };
 
   // Helper function to check if all subtasks in a section are completed
@@ -1750,13 +1737,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                       className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
                                                       checked={completed}
                                                       onChange={(e) => {
-                                                        e.preventDefault();
+                                                        console.log(`📝 CHECKBOX onChange triggered for ${phase.id}-${item.id}-${subIdx}`);
                                                         e.stopPropagation();
-                                                        try {
-                                                          handleCheck(phase.id, item.id, subIdx);
-                                                        } catch (error) {
-                                                          console.error('❌ CHECKBOX: Error in onChange handler:', error);
-                                                        }
+                                                        handleCheck(phase.id, item.id, subIdx);
                                                       }}
                                                       onClick={(e) => {
                                                         e.preventDefault();
@@ -1802,14 +1785,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                         className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
                                                         checked={completed}
                                                         onChange={(e) => {
-                                                          e.preventDefault();
+                                                          console.log(`📝 SUBHEADING CHECKBOX onChange triggered for ${phase.id}-${item.id}-${subheading.id}-${subIdx}`);
                                                           e.stopPropagation();
-                                                          try {
-                                                            console.log(`🔄 CHECKBOX SUBHEADING: Using handleCheck for ${phase.id}-${item.id}-${subheading.id}-${subIdx}`);
-                                                            handleCheck(phase.id, `${item.id}-${subheading.id}`, subIdx);
-                                                          } catch (error) {
-                                                            console.error('❌ CHECKBOX SUBHEADING: Error in onChange handler:', error);
-                                                          }
+                                                          handleCheck(phase.id, `${item.id}-${subheading.id}`, subIdx);
                                                         }}
                                                         onClick={(e) => {
                                                           e.preventDefault();
