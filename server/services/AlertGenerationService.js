@@ -120,7 +120,8 @@ class AlertGenerationService {
           dueDate: new Date(now.getTime() + (item.alert_days || 1) * 24 * 60 * 60 * 1000),
           projectId: item.project_id,
           workflowId: item.project_workflow_id,
-          stepId: 'cme1mb4sf0001umio94ymwsd5', // Dummy step ID - alert is actually for line item
+          // Use the current active line item id to satisfy FK with step mapping in migrated schema
+          stepId: item.line_item_id,
           assignedToId: assignedUserId,
           metadata: {
             phase: item.phase_type,

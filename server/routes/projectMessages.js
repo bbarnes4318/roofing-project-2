@@ -138,6 +138,9 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
             role: true,
             avatar: true
           }
+        },
+        project: {
+          select: { projectName: true }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -152,6 +155,7 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
     id: message.id,
     projectId: message.projectId,
     projectNumber: message.projectNumber,
+    projectName: message.project?.projectName || null,
     subject: message.subject,
     content: message.content,
     messageType: message.messageType,
