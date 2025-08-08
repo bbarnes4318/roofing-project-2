@@ -18,6 +18,7 @@ import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import CustomersPage from './components/pages/CustomersPage';
+import HolographicLoginPage from './components/pages/HolographicLoginPage';
 // Removed mock data import
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
@@ -51,6 +52,8 @@ export default function App() {
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [activities, setActivities] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -58,13 +61,69 @@ export default function App() {
     const [projectsError, setProjectsError] = useState(null);
     const profileDropdownRef = useRef(null);
 
-    // Get current user data on component mount
+    // Check authentication status on component mount
     useEffect(() => {
-        const user = authService.getStoredUser();
-        if (user) {
-            setCurrentUser(user);
-        }
+        const checkAuth = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const user = authService.getStoredUser();
+                    if (user) {
+                        setCurrentUser(user);
+                        setIsAuthenticated(true);
+                    }
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                // Clear invalid tokens
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        checkAuth();
     }, []);
+
+    // Handle successful login
+    const handleLoginSuccess = (user, token) => {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+    };
+
+    // Handle logout
+    const handleLogout = () => {
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        authService.logout();
+    };
+
+    // Show loading screen while checking authentication
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+                <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show login page if not authenticated
+    if (!isAuthenticated) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <HolographicLoginPage onLoginSuccess={handleLoginSuccess} />
+                <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+        );
+    }
 
     // Fetch projects from API
     useEffect(() => {
@@ -950,7 +1009,7 @@ export default function App() {
                                         <button 
                                             onClick={() => { 
                                                 setProfileDropdownOpen(false);
-                                                authService.logout();
+                                                handleLogout();
                                             }}
                                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                                         >

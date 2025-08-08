@@ -1,53 +1,40 @@
 {
-  "name": "kenstruction",
+  "name": "react-dashboard",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@react-three/fiber": "^9.3.0",
-    "@simplewebauthn/browser": "^13.1.2",
-    "@tanstack/react-query": "^5.84.1",
-    "@tanstack/react-query-devtools": "^5.84.1",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.10.0",
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-validator": "^7.2.1",
-    "framer-motion": "^12.23.12",
-    "fuse.js": "^7.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "react": "^18.2.0",
-    "react-beautiful-dnd": "^13.1.1",
-    "react-dom": "^18.2.0",
-    "react-draggable": "^4.5.0",
-    "react-resizable": "^3.0.5",
-    "react-router-dom": "^6.29.1",
+    "@react-three/drei": "^9.108.3",
+    "@react-three/fiber": "^8.16.8",
+    "@tanstack/react-query": "^5.51.15",
+    "@tanstack/react-query-devtools": "^5.51.15",
+    "axios": "^1.7.2",
+    "chart.js": "^4.4.3",
+    "date-fns": "^3.6.0",
+    "framer-motion": "^11.3.19",
+    "papaparse": "^5.4.1",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.2",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.25.1",
     "react-scripts": "5.0.1",
-    "socket.io-client": "^4.8.1",
-    "three": "^0.179.1",
-    "web-vitals": "^2.1.4",
-    "zustand": "^5.0.7"
+    "socket.io-client": "^4.7.5",
+    "three": "^0.167.0",
+    "web-vitals": "^4.2.2"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "generate-prp": "node scripts/generate-prp.js",
-    "execute-prp": "node scripts/execute-prp.js"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ],
-    "rules": {
-      "no-unused-vars": "warn"
-    }
+    ]
   },
   "browserslist": {
     "production": [
@@ -62,8 +49,8 @@
     ]
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1"
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7"
   }
 }
