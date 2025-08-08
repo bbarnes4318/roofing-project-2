@@ -535,7 +535,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
             {/* Phase Content */}
             {openPhase === phase.id && (
               <div className="p-6 space-y-4">
-                {phase.items.map((item) => {
+                {phase.items.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">📋</div>
+                    <div className="text-lg font-medium">No items in this phase yet</div>
+                    <div className="text-sm">This phase will be populated with workflow items as needed.</div>
+                  </div>
+                ) : (
+                  phase.items.map((item) => {
                   // Check if this is the current active section
                   const isCurrentSection = projectPosition && projectPosition.currentSection === item.id;
                   
@@ -640,7 +647,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                       )}
                     </div>
                   );
-                })}
+                  })
+                )}
               </div>
             )}
           </div>
