@@ -46,8 +46,8 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+    // All hooks must be declared before any conditional returns
     const [activePage, setActivePage] = useState('Overview');
-    // Remove old individual state variables - they're now in navigationState
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -60,6 +60,14 @@ export default function App() {
     const [projectsLoading, setProjectsLoading] = useState(false);
     const [projectsError, setProjectsError] = useState(null);
     const profileDropdownRef = useRef(null);
+    
+    // Navigation state must be declared before conditional returns
+    const [navigationState, setNavigationState] = useState({
+        selectedProject: null,
+        projectInitialView: 'Project Workflow',
+        projectSourceSection: null,
+        previousPage: 'Overview'
+    });
 
     // Check authentication status on component mount
     useEffect(() => {
@@ -103,30 +111,9 @@ export default function App() {
         authService.logout();
     };
 
-    // Show loading screen while checking authentication
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-                <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600">Loading...</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Show login page if not authenticated
-    if (!isAuthenticated) {
-        return (
-            <QueryClientProvider client={queryClient}>
-                <HolographicLoginPage onLoginSuccess={handleLoginSuccess} />
-                <ReactQueryDevtools initialIsOpen={false} />
-            </QueryClientProvider>
-        );
-    }
-
-    // Fetch projects from API
+    // Fetch projects from API - must be declared before conditional returns
     useEffect(() => {
+        if (!isAuthenticated) return; // Skip if not authenticated
         let cancelled = false;
         const fetchProjects = async () => {
             try {
@@ -159,10 +146,11 @@ export default function App() {
         };
         fetchProjects();
         return () => { cancelled = true; };
-    }, []);
+    }, [isAuthenticated]);
 
-    // Fetch activities from API
+    // Fetch activities from API - must be declared before conditional returns
     useEffect(() => {
+        if (!isAuthenticated) return; // Skip if not authenticated
         const fetchActivities = async () => {
             try {
                 console.log('🔍 Fetching activities from API...');
@@ -193,7 +181,7 @@ export default function App() {
         };
 
         fetchActivities();
-    }, []);
+    }, [isAuthenticated]);
 
     // Helper functions for dynamic user data
     const getGreeting = () => {
@@ -295,14 +283,6 @@ export default function App() {
         }, 600);
     }, [activePage]);
 
-    // Replace individual navigation state variables with a single object
-    const [navigationState, setNavigationState] = useState({
-        selectedProject: null,
-        projectInitialView: 'Project Workflow',
-        projectSourceSection: null,
-        previousPage: 'Overview'
-    });
-
     // Additional useEffect specifically for when selectedProject changes
     useEffect(() => {
         if (navigationState.selectedProject) {
@@ -347,6 +327,28 @@ export default function App() {
             setTimeout(scrollToTop, 1000);
         }
     }, [navigationState.selectedProject]);
+
+    // Early returns AFTER all hooks have been declared
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+                <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show login page if not authenticated
+    if (!isAuthenticated) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <HolographicLoginPage onLoginSuccess={handleLoginSuccess} />
+                <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+        );
+    }
 
     const navigate = (page) => { 
         setNavigationState(prev => ({
