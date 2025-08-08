@@ -696,9 +696,18 @@ export default function App() {
                     dashboardState={navigationState.dashboardState}
                 />
             );
-            // --- PHASE 1: STABILIZE THE RENDER (STEP 1) ---
-            // Temporarily replacing ProjectsPage to validate the navigation logic.
-            case 'Projects': return <h1>It Renders!</h1>;
+            case 'Projects': return (
+                <ProjectsPage 
+                    onProjectSelect={handleProjectSelect} 
+                    onProjectActionSelect={handleProjectSelect} 
+                    onCreateProject={handleCreateProject} 
+                    projects={projects} 
+                    colorMode={colorMode} 
+                    projectSourceSection={navigationState.projectSourceSection}
+                    onNavigateBack={handleBackToProjects}
+                    scrollToProject={navigationState.scrollToProject}
+                />
+            );
             case 'Customers': return <CustomersPage colorMode={colorMode} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
