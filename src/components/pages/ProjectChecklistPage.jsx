@@ -124,7 +124,7 @@ const NUCLEAR_LOAD = (projectId) => {
 
 // Workflow data will be loaded from database API
 
-const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) => {
+const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId }) => {
   const projectId = project?._id || project?.id;
   
   // =================================================================
@@ -143,8 +143,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   // Layer 4: Force render counter
   const [renderCounter, setRenderCounter] = useState(0);
   
-  // Phase management
-  const [openPhase, setOpenPhase] = useState('LEAD'); // Start with first phase open
+  // Phase management - START WITH ALL PHASES OPEN TO SHOW ALL 6 PHASES
+  const [openPhase, setOpenPhase] = useState('ALL'); // Show all phases expanded
   const [openItem, setOpenItem] = useState({});
   
   // Workflow data states
@@ -153,6 +153,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
+  
+  // Navigation and highlighting states
+  const [highlightedLineItemId, setHighlightedLineItemId] = useState(targetLineItemId);
+  const [highlightedSectionId, setHighlightedSectionId] = useState(targetSectionId);
   
   // =================================================================
   // 🔥🔥🔥 NUCLEAR CHECKBOX HANDLERS 🔥🔥🔥
@@ -362,25 +366,47 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
           setProjectPosition(positionResult.data);
           console.log(`🎯 LOADED PROJECT POSITION:`, positionResult.data);
           
-          // Set the current phase as open
-          setOpenPhase(positionResult.data.currentPhase);
+          // Keep ALL phases open but note the current phase for navigation
+          // setOpenPhase(positionResult.data.currentPhase); // Keep showing all phases
           
-          // Auto-scroll to current position after a brief delay
+          // Auto-scroll to target or current position after a brief delay
           setTimeout(() => {
-            const currentElement = document.getElementById(`item-${positionResult.data.currentSection}`);
-            if (currentElement) {
-              currentElement.scrollIntoView({ 
+            let targetElement = null;
+            let scrollReason = '';
+            
+            // Priority 1: Navigate to specific target line item
+            if (targetLineItemId) {
+              targetElement = document.getElementById(`lineitem-${targetLineItemId}`);
+              scrollReason = `target line item: ${targetLineItemId}`;
+            }
+            // Priority 2: Navigate to specific target section
+            else if (targetSectionId) {
+              targetElement = document.getElementById(`item-${targetSectionId}`);
+              scrollReason = `target section: ${targetSectionId}`;
+            }
+            // Priority 3: Navigate to current project position
+            else {
+              targetElement = document.getElementById(`item-${positionResult.data.currentSection}`);
+              scrollReason = `current section: ${positionResult.data.sectionDisplayName}`;
+            }
+            
+            if (targetElement) {
+              targetElement.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'center' 
               });
               
-              // Add blue highlight
-              currentElement.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-75');
-              setTimeout(() => {
-                currentElement.classList.remove('ring-4', 'ring-blue-500', 'ring-opacity-75');
-              }, 5000);
+              // Add bright highlighting for targeted navigation
+              const highlightClass = (targetLineItemId || targetSectionId) 
+                ? ['ring-4', 'ring-yellow-400', 'ring-opacity-90', 'bg-yellow-100'] 
+                : ['ring-4', 'ring-blue-500', 'ring-opacity-75'];
               
-              console.log(`🎯 AUTO-NAVIGATED to current section: ${positionResult.data.sectionDisplayName}`);
+              targetElement.classList.add(...highlightClass);
+              setTimeout(() => {
+                targetElement.classList.remove(...highlightClass);
+              }, targetLineItemId ? 8000 : 5000); // Longer highlight for targeted items
+              
+              console.log(`🎯 AUTO-NAVIGATED to ${scrollReason}`);
             }
           }, 1000);
           
@@ -422,9 +448,13 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     
   }, [projectId]);
   
-  // Phase click handler
+  // Phase click handler - modified to handle ALL phases state
   const handlePhaseClick = (phaseId) => {
-    setOpenPhase(openPhase === phaseId ? null : phaseId);
+    if (openPhase === 'ALL') {
+      setOpenPhase(phaseId); // Switch from ALL to specific phase
+    } else {
+      setOpenPhase(openPhase === phaseId ? null : phaseId);
+    }
     setOpenItem({});
   };
 
@@ -496,13 +526,13 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          🔥 DATABASE Workflow Checklist 🔥
+          🔥 Complete Workflow Checklist - ALL 6 PHASES 🔥
         </h2>
         <div className="text-sm text-gray-600">
           Project: {project.projectName || project.name} (ID: {projectId})
         </div>
         <div className="text-sm text-gray-600 mt-1">
-          Checked Items: {immediateState.size} | Render: #{renderCounter}
+          Phases Loaded: {workflowData?.length || 0} | Checked Items: {immediateState.size} | Render: #{renderCounter}
         </div>
         {projectPosition && (
           <div className="text-sm text-blue-600 mt-2 font-medium">
@@ -526,14 +556,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                 <span>{phase.label}</span>
                 <ChevronDownIcon 
                   className={`w-5 h-5 transform transition-transform duration-200 ${
-                    openPhase === phase.id ? 'rotate-180' : ''
+                    openPhase === phase.id || openPhase === 'ALL' ? 'rotate-180' : ''
                   }`} 
                 />
               </div>
             </button>
 
-            {/* Phase Content */}
-            {openPhase === phase.id && (
+            {/* Phase Content - Show when specific phase is open OR when ALL phases are open */}
+            {(openPhase === phase.id || openPhase === 'ALL') && (
               <div className="p-6 space-y-4">
                 {phase.items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
@@ -587,10 +617,21 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                 projectPosition.currentSection === item.id && 
                                 projectPosition.currentLineItemName === subtask;
                               
+                              // Create unique line item ID for navigation targeting
+                              const lineItemId = `${phase.id}-${item.id}-${subIdx}`;
+                              
+                              // Check if this line item is being targeted for navigation
+                              const isTargetedLineItem = highlightedLineItemId && highlightedLineItemId === lineItemId;
+                              
                               return (
-                                <div key={subIdx} className={`flex items-start space-x-3 ${
-                                  isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : ''
-                                }`}>
+                                <div 
+                                  key={subIdx} 
+                                  id={`lineitem-${lineItemId}`}
+                                  className={`flex items-start space-x-3 ${
+                                    isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : 
+                                    isTargetedLineItem ? 'p-2 bg-yellow-100 border border-yellow-300 rounded-lg ring-2 ring-yellow-400 ring-opacity-75' : ''
+                                  }`}
+                                >
                                   {/* NUCLEAR CHECKBOX */}
                                   <div className="relative flex-shrink-0 mt-1">
                                     <input
@@ -631,12 +672,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                     className={`flex-1 text-sm cursor-pointer select-none transition-all duration-200 ${
                                       isCurrentLineItem
                                         ? 'font-semibold text-blue-800'
-                                        : isChecked 
-                                          ? 'text-gray-500 line-through' 
-                                          : 'text-gray-800 hover:text-blue-600'
+                                        : isTargetedLineItem
+                                          ? 'font-semibold text-yellow-800'
+                                          : isChecked 
+                                            ? 'text-gray-500 line-through' 
+                                            : 'text-gray-800 hover:text-blue-600'
                                     }`}
                                   >
                                     {isCurrentLineItem && <span className="text-blue-500">🔥 </span>}
+                                    {isTargetedLineItem && <span className="text-yellow-500">⭐ </span>}
                                     {subtask}
                                   </label>
                                 </div>

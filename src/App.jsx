@@ -319,12 +319,15 @@ export default function App() {
     }, [navigationState, activePage]);
 
     // Update handleProjectSelect to set all navigation state at once
-    const handleProjectSelect = (project, view = 'Project Workflow', phase = null, sourceSection = null) => {
+    // Enhanced to support direct line item navigation
+    const handleProjectSelect = (project, view = 'Project Workflow', phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null) => {
         console.log('🔍 APP: handleProjectSelect called with:');
         console.log('🔍 APP: project:', project?.name);
         console.log('🔍 APP: view:', view);
         console.log('🔍 APP: phase:', phase);
         console.log('🔍 APP: sourceSection:', sourceSection);
+        console.log('🔍 APP: targetLineItemId:', targetLineItemId);
+        console.log('🔍 APP: targetSectionId:', targetSectionId);
         
         // If view is 'Projects', navigate to Projects page instead of ProjectDetailPage
         if (view === 'Projects') {
@@ -364,7 +367,9 @@ export default function App() {
             projectInitialView: view,
             projectSourceSection: sourceSection,
             previousPage: navigationState.selectedProject ? navigationState.previousPage : activePage,
-            dashboardState: project.dashboardState // Preserve the dashboard state for back navigation
+            dashboardState: project.dashboardState, // Preserve the dashboard state for back navigation
+            targetLineItemId: targetLineItemId, // For direct line item navigation
+            targetSectionId: targetSectionId // For direct section navigation
         };
         
         console.log('🔍 APP: Setting navigationState:', newNavigationState);
@@ -999,6 +1004,8 @@ export default function App() {
                                         activities={activities}
                                         onAddActivity={addActivity}
                                         onProjectSelect={handleProjectSelect}
+                                        targetLineItemId={navigationState.targetLineItemId}
+                                        targetSectionId={navigationState.targetSectionId}
                                     />
                                 );
                             } else {

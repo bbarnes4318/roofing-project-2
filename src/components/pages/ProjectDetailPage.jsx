@@ -101,7 +101,7 @@ const getPhaseStyles = (phase) => {
 
 
 
-const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect }) => {
+const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect, targetLineItemId, targetSectionId }) => {
     console.log('🔍 PROJECT DETAIL PAGE PROPS:');
     
     // Helper functions for Project Messages
@@ -593,7 +593,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 console.log('🏗️ DETAIL: Rendering Project Workflow with project:', projectData);
                 console.log('🏗️ DETAIL: Project has highlightStep:', !!projectData?.highlightStep);
                 console.log('🏗️ DETAIL: highlightStep value:', projectData?.highlightStep);
-                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} />;
+                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={targetLineItemId} targetSectionId={targetSectionId} />;
             case 'Project Schedule':
                 return (
                     <div className="space-y-6">
@@ -1439,7 +1439,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             case 'Work Order':
                 return <div className="p-8 text-center text-gray-400 text-sm">(Blank for now)</div>;
             default:
-                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} />;
+                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={targetLineItemId} targetSectionId={targetSectionId} />;
         }
     };
 
