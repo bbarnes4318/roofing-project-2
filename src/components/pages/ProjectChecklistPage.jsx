@@ -1109,121 +1109,41 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   };
 
   const updateWorkflowStep = async (stepId, completed) => {
-    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed} using NEW DATABASE SYSTEM`);
+    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed} using SIMPLIFIED SYSTEM`);
     
     // Store original data for rollback
     const originalWorkflowData = workflowData;
     
-    // Track this optimistic update
-    setOptimisticUpdates(prev => new Set([...prev, stepId]));
-    
-    // CRITICAL: Immediate optimistic update for visual feedback
+    // CRITICAL: Immediate optimistic update for visual feedback ONLY
     setWorkflowData(prevData => {
       if (!prevData) {
-        // Initialize workflow data with optimistic updates
         return {
           project: project._id || project.id,
           steps: [{
             id: stepId,
             stepId: stepId,
-            _id: stepId,
             completed: completed,
-            isCompleted: completed,
-            createdAt: new Date().toISOString()
+            isCompleted: completed
           }],
-          completedSteps: completed ? [stepId] : [],
-          progress: completed ? 100 : 0,
-          updatedAt: new Date().toISOString(),
-          _forceRender: Date.now(),
           _optimisticUpdates: { [stepId]: completed }
         };
       }
       
-      // Create optimistic updates object to store immediate UI state
-      const optimisticUpdates = {
-        ...(prevData._optimisticUpdates || {}),
-        [stepId]: completed
-      };
-      
-      // Create completely new object to force re-render
-      const updatedSteps = [...(prevData.steps || [])];
-      let stepIndex = updatedSteps.findIndex(s => 
-        s.id === stepId || 
-        s.stepId === stepId || 
-        s._id === stepId
-      );
-      
-      if (stepIndex === -1) {
-        // Create new step if it doesn't exist
-        const newStep = {
-          id: stepId,
-          stepId: stepId,
-          _id: stepId,
-          completed: completed,
-          isCompleted: completed,
-          completedAt: completed ? new Date().toISOString() : null,
-          createdAt: new Date().toISOString()
-        };
-        updatedSteps.push(newStep);
-        console.log(`✅ OPTIMISTIC: Created new step ${stepId} with completed: ${completed}`);
-      } else {
-        // Update existing step
-        updatedSteps[stepIndex] = {
-          ...updatedSteps[stepIndex],
-          completed: completed,
-          isCompleted: completed,
-          completedAt: completed ? new Date().toISOString() : null,
-          updatedAt: new Date().toISOString()
-        };
-        console.log(`✅ OPTIMISTIC: Updated existing step ${stepId} with completed: ${completed}`);
-      }
-      
-      // Return completely new object with optimistic state
       return {
         ...prevData,
-        steps: updatedSteps,
-        updatedAt: new Date().toISOString(),
-        _optimisticUpdate: Date.now(),
-        _forceRender: Date.now(),
-        _optimisticUpdates: optimisticUpdates
+        _optimisticUpdates: {
+          ...(prevData._optimisticUpdates || {}),
+          [stepId]: completed
+        },
+        _forceRender: Date.now()
       };
     });
 
     const projectId = project._id || project.id;
-    
-    console.log(`🌐 CHECKBOX: Making API call to update workflow step`);
-    console.log(`🌐 CHECKBOX: Request payload:`, { completed });
+    console.log(`🌐 CHECKBOX: Making SIMPLE API call to update workflow step`);
     
     try {
-      // CRITICAL: Use NEW database-driven workflow system for completions
-      if (completed) {
-        try {
-          console.log(`🚀 Using NEW completion handler for step ${stepId}`);
-          const response = await workflowService.completeLineItem(projectId, stepId, '', null);
-          console.log('✅ NEW SYSTEM: Line item completed successfully:', response);
-          
-          // Update UI from database response
-          if (response.updatedData) {
-            updateWorkflowUIFromDatabaseResponse(response.updatedData);
-          }
-          
-          // Update project progress
-          if (onUpdate && response.updatedData?.overallProgress !== undefined) {
-            onUpdate({
-              ...project,
-              progress: response.updatedData.overallProgress,
-              phase: response.updatedData.currentPosition?.phase
-            });
-          }
-          
-          return; // Skip old system processing
-        } catch (newSystemError) {
-          console.warn('⚠️ NEW SYSTEM: Failed, falling back to old system:', newSystemError);
-          // Continue to old system fallback below
-        }
-      }
-      
-      // Fallback to old system for unchecking (temporary)
+      // Use only old system to eliminate potential navigation issues
       const response = await updateWorkflowStepAPI(projectId, stepId, completed);
       
       console.log('✅ CHECKBOX: API call successful, server confirmed the update');
@@ -1342,38 +1262,40 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     setOpenItem((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  const handleCheck = (phaseId, itemId, subIdx) => {
-    // Prevent rapid double-clicks
-    if (workflowUpdating) {
-      console.log('⏳ CHECKBOX: Update in progress, ignoring click');
-      return;
+  const handleCheck = async (phaseId, itemId, subIdx) => {
+    try {
+      // Prevent rapid double-clicks
+      if (workflowUpdating) {
+        console.log('⏳ CHECKBOX: Update in progress, ignoring click');
+        return;
+      }
+      
+      const stepId = `${phaseId}-${itemId}-${subIdx}`;
+      const currentlyCompleted = isStepCompleted(stepId);
+      const newCompletedState = !currentlyCompleted;
+      
+      console.log(`🔄 CHECKBOX: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
+      
+      // Validate inputs
+      if (!phaseId || !itemId || subIdx === undefined) {
+        console.error('❌ CHECKBOX: Invalid parameters for checkbox update:', { phaseId, itemId, subIdx });
+        return;
+      }
+      
+      // Check if we have a valid project
+      if (!project || (!project.id && !project._id)) {
+        console.error('❌ CHECKBOX: No valid project available for checkbox update');
+        return;
+      }
+      
+      // Update the workflow step with comprehensive error handling
+      await updateWorkflowStep(stepId, newCompletedState);
+      
+    } catch (error) {
+      console.error('❌ CHECKBOX: Critical error in handleCheck:', error);
+      // Ensure no navigation happens on error
+      return false;
     }
-    
-    const stepId = `${phaseId}-${itemId}-${subIdx}`;
-    const currentlyCompleted = isStepCompleted(stepId);
-    const newCompletedState = !currentlyCompleted;
-    
-    console.log(`🔄 CHECKBOX: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
-    console.log(`🔄 CHECKBOX: Current workflow data:`, workflowData);
-    console.log(`🔄 CHECKBOX: Project:`, project);
-    
-    // Validate inputs
-    if (!phaseId || !itemId || subIdx === undefined) {
-      console.error('❌ CHECKBOX: Invalid parameters for checkbox update:', { phaseId, itemId, subIdx });
-      return;
-    }
-    
-    // Check if we have a valid project
-    if (!project || (!project.id && !project._id)) {
-      console.error('❌ CHECKBOX: No valid project available for checkbox update');
-      return;
-    }
-    
-    // Update the workflow step
-    updateWorkflowStep(stepId, newCompletedState).catch(error => {
-      console.error('❌ CHECKBOX: Unhandled error in updateWorkflowStep:', error);
-      // Don't let the error propagate and cause navigation issues
-    });
   };
 
   // Helper function to check if a step is completed
@@ -1900,10 +1822,18 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                       className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
                                                       checked={completed}
                                                       onChange={(e) => {
+                                                        e.preventDefault();
                                                         e.stopPropagation();
-                                                        handleCheck(phase.id, item.id, subIdx);
+                                                        try {
+                                                          handleCheck(phase.id, item.id, subIdx);
+                                                        } catch (error) {
+                                                          console.error('❌ CHECKBOX: Error in onChange handler:', error);
+                                                        }
                                                       }}
-                                                      onClick={(e) => e.stopPropagation()}
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                      }}
                                                     />
                                                     {completed && (
                                                       <svg 
