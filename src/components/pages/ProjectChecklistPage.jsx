@@ -1197,25 +1197,30 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     try {
       // CRITICAL: Use NEW database-driven workflow system for completions
       if (completed) {
-        console.log(`🚀 Using NEW completion handler for step ${stepId}`);
-        const response = await workflowService.completeLineItem(projectId, stepId, '', null);
-        console.log('✅ NEW SYSTEM: Line item completed successfully:', response);
-        
-        // Update UI from database response
-        if (response.updatedData) {
-          updateWorkflowUIFromDatabaseResponse(response.updatedData);
+        try {
+          console.log(`🚀 Using NEW completion handler for step ${stepId}`);
+          const response = await workflowService.completeLineItem(projectId, stepId, '', null);
+          console.log('✅ NEW SYSTEM: Line item completed successfully:', response);
+          
+          // Update UI from database response
+          if (response.updatedData) {
+            updateWorkflowUIFromDatabaseResponse(response.updatedData);
+          }
+          
+          // Update project progress
+          if (onUpdate && response.updatedData?.overallProgress !== undefined) {
+            onUpdate({
+              ...project,
+              progress: response.updatedData.overallProgress,
+              phase: response.updatedData.currentPosition?.phase
+            });
+          }
+          
+          return; // Skip old system processing
+        } catch (newSystemError) {
+          console.warn('⚠️ NEW SYSTEM: Failed, falling back to old system:', newSystemError);
+          // Continue to old system fallback below
         }
-        
-        // Update project progress
-        if (onUpdate && response.updatedData?.overallProgress !== undefined) {
-          onUpdate({
-            ...project,
-            progress: response.updatedData.overallProgress,
-            phase: response.updatedData.currentPosition?.phase
-          });
-        }
-        
-        return; // Skip old system processing
       }
       
       // Fallback to old system for unchecking (temporary)
@@ -1307,25 +1312,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         }
       }
       
-      // CRITICAL: Refresh workflow data after a delay to get server updates
-      setTimeout(async () => {
-        try {
-          const projectId = project._id || project.id;
-          console.log(`🔄 REFRESH: Fetching updated workflow data after completion`);
-          const response = await projectsService.getWorkflow(projectId);
-          
-          const newWorkflowData = {
-            ...(response.data || response.workflow),
-            _forceRender: Date.now(),
-            _updateFromCheckbox: true
-          };
-          
-          setWorkflowData(newWorkflowData);
-          console.log('✅ REFRESH: Updated workflow data with server response');
-        } catch (error) {
-          console.error('❌ REFRESH: Failed to refresh workflow data:', error);
-        }
-      }, 1500); // Wait 1.5 seconds for server processing
+      // Don't automatically refresh - preserve optimistic updates
+      // Only refresh if there's an error or explicit user action
       
     } catch (error) {
       console.error('❌ CHECKBOX: Failed to update workflow step:', error);
@@ -1355,6 +1343,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   };
 
   const handleCheck = (phaseId, itemId, subIdx) => {
+    // Prevent rapid double-clicks
+    if (workflowUpdating) {
+      console.log('⏳ CHECKBOX: Update in progress, ignoring click');
+      return;
+    }
+    
     const stepId = `${phaseId}-${itemId}-${subIdx}`;
     const currentlyCompleted = isStepCompleted(stepId);
     const newCompletedState = !currentlyCompleted;
@@ -1376,7 +1370,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     }
     
     // Update the workflow step
-    updateWorkflowStep(stepId, newCompletedState);
+    updateWorkflowStep(stepId, newCompletedState).catch(error => {
+      console.error('❌ CHECKBOX: Unhandled error in updateWorkflowStep:', error);
+      // Don't let the error propagate and cause navigation issues
+    });
   };
 
   // Helper function to check if a step is completed
