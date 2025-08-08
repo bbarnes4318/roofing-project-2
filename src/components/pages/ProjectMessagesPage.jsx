@@ -441,7 +441,6 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                   </form>
                 </div>
               </div>
-            </div>
             )}
             
             {/* Message Composition Modal */}
