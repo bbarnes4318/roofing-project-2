@@ -216,7 +216,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // UI state
   const [expandedPhases, setExpandedPhases] = useState(new Set());
-  const [selectedPhase, setSelectedPhase] = useState('all'); // Show all projects by default
+  const [selectedPhase, setSelectedPhase] = useState(null); // No phase selected by default
   
   // Project Messages expansion control
   const [expandedMessages, setExpandedMessages] = useState(new Set());
@@ -1786,7 +1786,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     : filteredProjects;
                   
                   // Handle empty state for filtered projects
-                  if (filteredProjects.length === 0 && selectedPhase && !projectsLoading) {
+                  if (!selectedPhase) {
+                    // No phase selected - show instruction message
+                    return (
+                      <tr>
+                        <td colSpan="8" className="text-center py-12">
+                          <div className={`${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <div className="text-4xl mb-3">👆</div>
+                            <div className="font-medium text-sm mb-1">Select a phase to view projects</div>
+                            <div className="text-xs">Click on any phase button above to see projects in that phase</div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  } else if (filteredProjects.length === 0 && selectedPhase && !projectsLoading) {
                     const phaseName = selectedPhase === 'all' ? 'All Projects' : 
                       PROJECT_PHASES.find(p => p.id === selectedPhase)?.name || selectedPhase;
                     
