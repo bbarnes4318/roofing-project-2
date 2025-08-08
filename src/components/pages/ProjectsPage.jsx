@@ -716,6 +716,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     };
 
     return (
+        <>
         <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
             <div className="w-full max-w-7xl mx-auto py-4 px-4">
                 {/* Condensed Header */}
@@ -1274,7 +1275,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
             </Modal>
-        </div>
+        </>
     );
 };
 
