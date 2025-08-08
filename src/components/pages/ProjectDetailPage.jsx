@@ -9,6 +9,7 @@ import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { teamMembers } from '../../data/mockData';
+import { usersService } from '../../services/api';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -142,6 +143,34 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             return projectId === project.id || String(projectId) === String(project.id) || projectId === project._id || String(projectId) === String(project._id);
         });
         
+        // USER-SPECIFIC FILTERING: Only show alerts for the current user
+        filteredAlerts = filteredAlerts.filter(alert => {
+            // Check if alert is assigned to current user
+            const assignedToId = alert.assignedTo || alert.assignedToId || alert.metadata?.assignedTo;
+            const targetUserId = alert.targetedTo || alert.targetUserId || alert.metadata?.targetedTo;
+            const userRole = alert.user?.role || alert.actionData?.defaultResponsible || alert.metadata?.defaultResponsible;
+            
+            // If alert has specific user assignment, only show to that user
+            if (assignedToId) {
+                return assignedToId === currentUser.id || String(assignedToId) === String(currentUser.id);
+            }
+            
+            // If alert is targeted to specific user, only show to that user
+            if (targetUserId) {
+                return targetUserId === currentUser.id || String(targetUserId) === String(currentUser.id);
+            }
+            
+            // If alert is for a specific role, check if current user has that role
+            if (userRole) {
+                const normalizedUserRole = formatUserRole(currentUser.role);
+                const normalizedAlertRole = formatUserRole(userRole);
+                return normalizedUserRole === normalizedAlertRole;
+            }
+            
+            // Default: show alert if no specific assignment
+            return true;
+        });
+        
         // Apply additional project filter (if user has applied a specific filter)
         if (alertProjectFilter !== 'all') {
             filteredAlerts = filteredAlerts.filter(alert => {
@@ -157,6 +186,21 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 return formatUserRole(userRole) === alertUserGroupFilter;
             });
         }
+        
+        // Sort alerts by priority and timestamp (matching dashboard)
+        filteredAlerts.sort((a, b) => {
+            // Priority sort first (high priority first)
+            const priorityA = a.priority || a.metadata?.priority || 'medium';
+            const priorityB = b.priority || b.metadata?.priority || 'medium';
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            const priorityDiff = priorityOrder[priorityA] - priorityOrder[priorityB];
+            if (priorityDiff !== 0) return priorityDiff;
+            
+            // Then sort by timestamp (newest first)
+            const dateA = new Date(a.createdAt || a.timestamp || 0);
+            const dateB = new Date(b.createdAt || b.timestamp || 0);
+            return dateB - dateA;
+        });
         
         return filteredAlerts;
     };
@@ -334,9 +378,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     const [newMessageProject, setNewMessageProject] = useState('');
     const [newMessageSubject, setNewMessageSubject] = useState('');
     const [newMessageText, setNewMessageText] = useState('');
+    const [newMessageTo, setNewMessageTo] = useState('');
+    const [newMessageSendAsTask, setNewMessageSendAsTask] = useState('');
     const [messagesData, setMessagesData] = useState([]);
     const [feed, setFeed] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [users, setUsers] = useState([]);
     
     // Current Alerts state variables - matching dashboard
     const [alertProjectFilter, setAlertProjectFilter] = useState('all');
@@ -345,7 +392,62 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     
     // Call useWorkflowAlerts at the top level to comply with React hooks rules
     const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts({ status: 'active' });
+    
+    // Load users for dropdown
+    useEffect(() => {
+        const loadUsers = async () => {
+            try {
+                const response = await usersService.getTeamMembers();
+                if (response.success) {
+                    setUsers(response.data);
+                } else {
+                    // Fallback to mock users if API fails
+                    setUsers([
+                        { id: 1, name: 'Mike Field', role: 'Project Manager', email: 'mike.field@company.com' },
+                        { id: 2, name: 'Sarah Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' },
+                        { id: 3, name: 'John Smith', role: 'Field Director', email: 'john.smith@company.com' },
+                        { id: 4, name: 'Emily Davis', role: 'Administration', email: 'emily.davis@company.com' },
+                        { id: 5, name: 'Robert Wilson', role: 'Roof Supervisor', email: 'robert.wilson@company.com' },
+                        { id: 6, name: 'Lisa Anderson', role: 'Customer Service', email: 'lisa.anderson@company.com' },
+                        { id: 7, name: 'David Martinez', role: 'Estimator', email: 'david.martinez@company.com' },
+                        { id: 8, name: 'Jennifer Brown', role: 'Accounting', email: 'jennifer.brown@company.com' }
+                    ]);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                // Use fallback mock users
+                setUsers([
+                    { id: 1, name: 'Mike Field', role: 'Project Manager', email: 'mike.field@company.com' },
+                    { id: 2, name: 'Sarah Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' },
+                    { id: 3, name: 'John Smith', role: 'Field Director', email: 'john.smith@company.com' },
+                    { id: 4, name: 'Emily Davis', role: 'Administration', email: 'emily.davis@company.com' },
+                    { id: 5, name: 'Robert Wilson', role: 'Roof Supervisor', email: 'robert.wilson@company.com' },
+                    { id: 6, name: 'Lisa Anderson', role: 'Customer Service', email: 'lisa.anderson@company.com' },
+                    { id: 7, name: 'David Martinez', role: 'Estimator', email: 'david.martinez@company.com' },
+                    { id: 8, name: 'Jennifer Brown', role: 'Accounting', email: 'jennifer.brown@company.com' }
+                ]);
+            }
+        };
+        loadUsers();
+    }, []);
 
+    // Get current user (from auth or mock)
+    const getCurrentUser = () => {
+        // Try to get from localStorage or use mock user
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+            try {
+                return JSON.parse(storedUser);
+            } catch (e) {
+                // Default mock user
+                return { id: 2, name: 'Sarah Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' };
+            }
+        }
+        return { id: 2, name: 'Sarah Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' };
+    };
+    
+    const currentUser = getCurrentUser();
+    
     // Calculate current activities for Project Messages (moved after state declarations)
     const calculateCurrentActivities = () => {
         // Filter activities (use activities prop or messagesData)
@@ -354,6 +456,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         let filteredActivities = allActivities.filter(activity => {
             // CRITICAL: Always filter by current project when in project detail view
             if (activity.projectId !== project.id && activity.projectId !== parseInt(project.id)) {
+                return false;
+            }
+            
+            // Filter by targeted user - only show messages targeted to current user or sent by current user
+            if (activity.targetedTo && activity.targetedTo !== currentUser.id && activity.userId !== currentUser.id) {
                 return false;
             }
             
@@ -709,9 +816,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                     <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                                         <form onSubmit={(e) => {
                                             e.preventDefault();
-                                            if (newMessageProject && newMessageSubject && newMessageText.trim()) {
+                                            if (newMessageProject && newMessageSubject && newMessageText.trim() && newMessageTo) {
                                                 // Create new message activity
                                                 const selectedProject = projects?.find(p => p.id === parseInt(newMessageProject));
+                                                const targetedUser = users.find(u => u.id === parseInt(newMessageTo));
+                                                const taskAssignee = newMessageSendAsTask ? users.find(u => u.id === parseInt(newMessageSendAsTask)) : null;
+                                                
                                                 const newActivity = {
                                                     id: `msg_${Date.now()}`,
                                                     projectId: parseInt(newMessageProject),
@@ -719,10 +829,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
                                                     subject: newMessageSubject,
                                                     description: newMessageText,
-                                                    user: 'You',
+                                                    user: currentUser.name,
+                                                    userId: currentUser.id,
+                                                    targetedTo: parseInt(newMessageTo),
+                                                    targetedToName: targetedUser?.name || 'Unknown User',
+                                                    isTask: !!newMessageSendAsTask,
+                                                    taskAssigneeId: taskAssignee?.id || null,
+                                                    taskAssigneeName: taskAssignee?.name || null,
                                                     timestamp: new Date().toISOString(),
-                                                    type: 'message',
-                                                    priority: 'medium'
+                                                    type: newMessageSendAsTask ? 'task' : 'message',
+                                                    priority: newMessageSendAsTask ? 'high' : 'medium'
                                                 };
                                                 
                                                 // Add to messages data
@@ -734,6 +850,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 setNewMessageProject('');
                                                 setNewMessageSubject('');
                                                 setNewMessageText('');
+                                                setNewMessageTo('');
+                                                setNewMessageSendAsTask('');
                                             }
                                         }} className="space-y-3">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -786,6 +904,57 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 </div>
                                             </div>
                                             
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                        To <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        value={newMessageTo}
+                                                        onChange={(e) => setNewMessageTo(e.target.value)}
+                                                        required
+                                                        className={`w-full p-2 border rounded text-xs ${
+                                                            colorMode 
+                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-800'
+                                                        }`}
+                                                    >
+                                                        <option value="">Select User</option>
+                                                        {users.map(user => (
+                                                            <option key={user.id} value={user.id}>
+                                                                {user.name} - {user.role}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                    }`}>
+                                                        Send as Task (Optional)
+                                                    </label>
+                                                    <select
+                                                        value={newMessageSendAsTask}
+                                                        onChange={(e) => setNewMessageSendAsTask(e.target.value)}
+                                                        className={`w-full p-2 border rounded text-xs ${
+                                                            colorMode 
+                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-800'
+                                                        }`}
+                                                    >
+                                                        <option value="">No - Send as Message</option>
+                                                        {users.map(user => (
+                                                            <option key={user.id} value={user.id}>
+                                                                Assign to: {user.name} - {user.role}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
                                             <div>
                                                 <label className={`block text-xs font-medium mb-1 ${
                                                     colorMode ? 'text-gray-300' : 'text-gray-700'
@@ -814,6 +983,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                         setNewMessageProject('');
                                                         setNewMessageSubject('');
                                                         setNewMessageText('');
+                                                        setNewMessageTo('');
+                                                        setNewMessageSendAsTask('');
                                                     }}
                                                     className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
                                                         colorMode 
@@ -825,7 +996,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 </button>
                                                 <button
                                                     type="submit"
-                                                    disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim()}
+                                                    disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim() || !newMessageTo}
                                                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                                                         newMessageProject && newMessageSubject && newMessageText.trim()
                                                             ? 'bg-blue-600 text-white hover:bg-blue-700'
@@ -846,23 +1017,31 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                         No messages found.
                                     </div>
                                 ) : (
-                                    currentActivities.map(activity => (
-                                        <ProjectMessagesCard 
-                                            key={activity.id} 
-                                            activity={activity} 
-                                            onProjectSelect={handleProjectSelectWithScroll}
-                                            projects={projects}
-                                            colorMode={colorMode}
-                                            onQuickReply={handleQuickReply}
-                                        />
-                                    ))
+                                    currentActivities.map(activity => {
+                                        // Enhanced activity with To and Task info for display
+                                        const enhancedActivity = {
+                                            ...activity,
+                                            displayTo: activity.targetedToName || 'All Users',
+                                            displayTask: activity.isTask ? `Task assigned to: ${activity.taskAssigneeName || 'Unassigned'}` : null
+                                        };
+                                        return (
+                                            <ProjectMessagesCard 
+                                                key={activity.id} 
+                                                activity={enhancedActivity} 
+                                                onProjectSelect={handleProjectSelectWithScroll}
+                                                projects={projects}
+                                                colorMode={colorMode}
+                                                onQuickReply={handleQuickReply}
+                                            />
+                                        );
+                                    })
                                 )}
                             </div>
                         </div>
                     </div>
                 );
             case 'Alerts':
-                // Complete Current Alerts section (copied exactly from dashboard)
+                // Complete Current Alerts section (matching dashboard format)
                 return (
                     <div className="w-full" data-section="current-alerts">
                         <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
@@ -870,6 +1049,14 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 <div className="flex items-center justify-between mb-2">
                                     <div>
                                         <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
+                                        <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Showing alerts for: {currentUser.name} ({currentUser.role})
+                                        </p>
+                                        {expandedAlerts.size > 0 && (
+                                            <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                {expandedAlerts.size} of {getPaginatedAlerts().length} alert{getPaginatedAlerts().length !== 1 ? 's' : ''} expanded
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 
@@ -924,7 +1111,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                             <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
                                 {getPaginatedAlerts().length === 0 ? (
                                     <div className="text-gray-400 text-center py-3 text-sm">
-                                        {alertsLoading ? 'Loading alerts...' : 'No alerts found.'}
+                                        {alertsLoading ? 'Loading alerts...' : `No alerts found for ${currentUser.name}.`}
                                     </div>
                                 ) : (
                                     getPaginatedAlerts().map(alert => {
@@ -935,12 +1122,17 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                         const priority = actionData.priority || 'medium';
                                         
                                         // Find associated project
-                                        const projectId = actionData.projectId;
-                                        const alertProject = projects?.find(p => p.id === projectId || p._id === projectId);
+                                        const projectId = actionData.projectId || alert.projectId || alert.relatedProject?.id;
+                                        const alertProject = projects?.find(p => p.id === projectId || p._id === projectId) || project;
                                         
                                         // Alert details
                                         const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
                                         const isExpanded = expandedAlerts.has(alertId);
+                                        
+                                        // Check if this alert is assigned to current user
+                                        const isAssignedToMe = alert.assignedTo === currentUser.id || 
+                                                              alert.assignedToId === currentUser.id ||
+                                                              alert.targetedTo === currentUser.id;
                                         
                                         // Get proper section and line item mapping
                                         const workflowMapping = mapStepToWorkflowStructure(alertTitle, phase);
@@ -958,7 +1150,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                         };
                                         
                                         return (
-                                            <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
+                                            <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer ${isAssignedToMe ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}>
                                                 {/* Alert header - ENTIRE AREA CLICKABLE FOR DROPDOWN */}
                                                 <div 
                                                     className="flex flex-col gap-0 px-2 py-0.5 hover:bg-opacity-80 transition-colors cursor-pointer"
@@ -1078,6 +1270,9 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                         
                                                         {/* Right Section: User Group & Arrow */}
                                                         <div className="flex items-center gap-2 flex-shrink-0">
+                                                            {isAssignedToMe && (
+                                                                <span className="text-[8px] font-semibold text-blue-500">Assigned to you</span>
+                                                            )}
                                                             <div className="w-8 h-3 px-0.5 py-0 border border-gray-300 rounded-full flex items-center justify-center text-black font-medium text-[7px] bg-white">
                                                                 {formatUserRole(alert.user?.role || actionData.defaultResponsible || 'OFFICE')}
                                                             </div>
@@ -1252,6 +1447,89 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 )}
                             </div>
                         </div>
+                        
+                        {/* Assignment Modal */}
+                        {showAssignModal && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className={`${colorMode ? 'bg-[#1e293b]' : 'bg-white'} rounded-lg p-6 max-w-md w-full mx-4`}>
+                                    <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                        Assign Alert to User
+                                    </h3>
+                                    
+                                    {selectedAlertForAssign && (
+                                        <div className={`mb-4 p-3 rounded border ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                            <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                                Alert: {selectedAlertForAssign.metadata?.stepName || selectedAlertForAssign.title || 'Unknown Alert'}
+                                            </p>
+                                            <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                Project: {selectedAlertForAssign.metadata?.projectName || 'Unknown Project'}
+                                            </p>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="mb-4">
+                                        <label className={`block text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Select User <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={assignToUser}
+                                            onChange={(e) => setAssignToUser(e.target.value)}
+                                            className={`w-full p-2 border rounded text-sm ${
+                                                colorMode 
+                                                    ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-800'
+                                            }`}
+                                            required
+                                        >
+                                            <option value="">Select a user...</option>
+                                            {users.map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} - {user.role}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="flex justify-end gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setShowAssignModal(false);
+                                                setSelectedAlertForAssign(null);
+                                                setAssignToUser('');
+                                            }}
+                                            className={`px-4 py-2 text-sm font-medium rounded border transition-colors ${
+                                                colorMode 
+                                                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleAssignConfirm}
+                                            disabled={!assignToUser || actionLoading[`${selectedAlertForAssign?._id || selectedAlertForAssign?.id}-assign`]}
+                                            className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
+                                                assignToUser && !actionLoading[`${selectedAlertForAssign?._id || selectedAlertForAssign?.id}-assign`]
+                                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            {actionLoading[`${selectedAlertForAssign?._id || selectedAlertForAssign?.id}-assign`] ? (
+                                                <span className="flex items-center">
+                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Assigning...
+                                                </span>
+                                            ) : (
+                                                'Assign Alert'
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
 

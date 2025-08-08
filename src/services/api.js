@@ -674,6 +674,18 @@ export const workflowAlertsService = {
       assignedTo: assignedToUserId 
     });
     return response.data;
+  },
+  
+  // Dismiss/complete an alert
+  dismissAlert: async (alertId) => {
+    const response = await api.patch(`/alerts/${alertId}/dismiss`);
+    return response.data;
+  },
+  
+  // Mark alert as complete
+  completeAlert: async (alertId) => {
+    const response = await api.patch(`/alerts/${alertId}/complete`);
+    return response.data;
   }
 };
 

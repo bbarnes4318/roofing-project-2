@@ -368,9 +368,28 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           setProjectPosition(positionResult.data);
           console.log(`Loaded project position:`, positionResult.data);
           
-          // Default collapsed; expand current phase if no explicit target
-          if (!targetLineItemId && !targetSectionId && !urlHighlight) {
-            setOpenPhase(positionResult.data.currentPhase || null);
+          // Handle navigation targets - expand phase/section if navigating to specific item
+          if (targetLineItemId || targetSectionId || urlHighlight) {
+            const effectiveTargetLineItem = targetLineItemId || urlHighlight;
+            if (effectiveTargetLineItem) {
+              // Parse line item ID to get phase and section
+              const parts = effectiveTargetLineItem.split('-');
+              if (parts.length >= 2) {
+                const phaseId = parts[0];
+                const sectionId = parts.slice(0, parts.length - 1).join('-');
+                setOpenPhase(phaseId);
+                setOpenItem(prev => ({ ...prev, [sectionId]: true }));
+              }
+            } else if (targetSectionId) {
+              // For section navigation, determine the phase from workflow data
+              const targetPhase = workflowResult.data.find(phase => 
+                phase.items.some(item => item.id === targetSectionId)
+              );
+              if (targetPhase) {
+                setOpenPhase(targetPhase.id);
+                setOpenItem(prev => ({ ...prev, [targetSectionId]: true }));
+              }
+            }
           }
           
           // Auto-scroll to target or current position after a brief delay
@@ -381,9 +400,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             // Priority 1: Navigate to specific target line item (prop or URL param)
             const effectiveTargetLineItem = targetLineItemId || urlHighlight;
             if (effectiveTargetLineItem) {
-              targetElement = document.getElementById(`lineitem-${targetLineItemId}`);
-              // Expand phase based on current position if collapsed
-              if (positionResult.data?.currentPhase) setOpenPhase(positionResult.data.currentPhase);
+              targetElement = document.getElementById(`lineitem-${effectiveTargetLineItem}`);
               scrollReason = `target line item: ${effectiveTargetLineItem}`;
             }
             // Priority 2: Navigate to specific target section
@@ -537,14 +554,19 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           Project Workflow Checklist
         </h2>
         <div className="text-sm text-gray-600">
-          Project: {project.projectName || project.name} (ID: {projectId})
-        </div>
-        <div className="text-sm text-gray-600 mt-1">
-          Phases Loaded: {workflowData?.length || 0} | Checked Items: {immediateState.size} | Render: #{renderCounter}
+          Project: {project.projectName || project.name}
         </div>
         {projectPosition && (
-          <div className="text-sm text-blue-600 mt-2 font-medium">
-            📍 Current: {projectPosition.phaseName} → {projectPosition.sectionDisplayName} → {projectPosition.currentLineItemName}
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="text-sm font-medium text-blue-900">
+              📍 Current Phase: {projectPosition.phaseName}
+            </div>
+            <div className="text-sm text-blue-800 mt-1">
+              Section: {projectPosition.sectionDisplayName}
+            </div>
+            <div className="text-sm text-blue-800 mt-1">
+              Line Item: {projectPosition.currentLineItemName}
+            </div>
           </div>
         )}
       </div>
@@ -558,7 +580,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             {/* Phase Header */}
             <button
               onClick={() => handlePhaseClick(phase.id)}
-              className={`w-full px-6 py-4 text-left font-semibold text-white transition-colors duration-200 hover:opacity-90 ${getPhaseColor(phase.id)}`}
+              className={`w-full px-6 py-4 text-left font-semibold text-white transition-colors duration-200 hover:opacity-90 ${getPhaseColor(phase.id)} ${
+                phase.items.length > 0 && phase.items.every(item => 
+                  item.subtasks.every((_, subIdx) => {
+                    const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
+                    return isItemChecked(stepId);
+                  })
+                ) ? 'line-through decoration-2' : ''
+              }`}
             >
               <div className="flex items-center justify-between">
                 <span>{phase.label}</span>
@@ -595,6 +624,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                           isCurrentSection 
                             ? 'bg-blue-100 hover:bg-blue-150 text-blue-900' 
                             : 'bg-gray-50 hover:bg-gray-100 text-gray-800'
+                        } ${
+                          item.subtasks.every((_, subIdx) => {
+                            const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
+                            return isItemChecked(stepId);
+                          }) ? 'line-through decoration-2' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -683,7 +717,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                         : isTargetedLineItem
                                           ? 'font-semibold text-yellow-800'
                                           : isChecked 
-                                            ? 'text-gray-500 line-through' 
+                                            ? 'text-gray-500 line-through decoration-2' 
                                             : 'text-gray-800 hover:text-blue-600'
                                     }`}
                                   >
