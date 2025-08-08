@@ -499,7 +499,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     
     // Get project progress percentage
     const getProjectProgress = (project) => {
-        const progress = getProgressForProject(project) || project.progress || 0;
+        const progress = getProgressForProject(project?.id) || project.progress || 0;
         return Math.min(100, Math.max(0, Math.round(progress)));
     };
 
@@ -512,10 +512,11 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const ProjectCard = ({ project }) => {
         // Get current workflow state
         const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
-        const currentPhase = getPhaseForProject(project);
+        const phaseKey = getPhaseForProject(project?.id);
+        const currentPhase = WorkflowProgressService.getPhaseName(phaseKey);
         const currentSection = currentStep?.section || 'Not Set';
         const currentLineItem = currentStep?.lineItem || currentStep?.stepName || 'Not Set';
-        const phaseColors = getPhaseColorForProject(project);
+        const phaseColors = WorkflowProgressService.getPhaseColor(phaseKey);
         const projectType = project.projectType || 'General';
         
         // Determine if this card should show the back button
