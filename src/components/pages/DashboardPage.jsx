@@ -1480,46 +1480,48 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </button>
         </div>
         
-        {/* Phase Filter Buttons - Professional Layout: Smaller "All" + 6 Uniform Phase Containers */}
-        <div className="flex items-center gap-3 mb-6 justify-center overflow-x-auto">
-          {/* Smaller "All" Button */}
-          <button 
-            onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
-            className={`h-11 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-md min-w-[80px] flex-shrink-0 ${
-              selectedPhase === 'all'
-                ? 'border-blue-400 bg-blue-50 shadow-sm text-blue-700'
-                : colorMode 
-                  ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
-                  : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-            }`}
-          >
-            <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
-            <span className="whitespace-nowrap">All</span>
-          </button>
-          
-          {/* Uniform Phase Containers - All Same Size */}
-          {PROJECT_PHASES.map(phase => (
-            <button
-              key={phase.id}
-              onClick={() => {
-                console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
-                setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
-              }}
-              className={`h-16 px-5 py-3 text-sm font-bold rounded-full transition-all duration-200 border flex items-center justify-center gap-3 hover:shadow-lg w-[140px] flex-shrink-0 ${
-                selectedPhase === phase.id
-                  ? 'border-gray-400 bg-gray-50 shadow-md text-gray-800'
+        {/* Phase Filter Buttons - SINGLE ROW GUARANTEED */}
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto w-full">
+          <div className="flex items-center gap-2 flex-nowrap min-w-fit">
+            {/* Smaller "All" Button */}
+            <button 
+              onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
+              className={`h-10 px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-1.5 hover:shadow-md w-[70px] flex-shrink-0 ${
+                selectedPhase === 'all'
+                  ? 'border-blue-400 bg-blue-50 shadow-sm text-blue-700'
                   : colorMode 
-                    ? 'border-gray-600 bg-transparent text-gray-200 hover:bg-gray-700 hover:border-gray-500' 
-                    : 'border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                    ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
+                    : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-400'
               }`}
             >
-              <div 
-                className="w-5 h-5 rounded-full flex-shrink-0 shadow-sm"
-                style={{ backgroundColor: phase.color }}
-              ></div>
-              <span className="whitespace-nowrap text-center leading-tight">{phase.name}</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></div>
+              <span className="whitespace-nowrap text-[10px]">All</span>
             </button>
-          ))}
+            
+            {/* 6 Phase Containers - Exact Same Dimensions */}
+            {PROJECT_PHASES.map(phase => (
+              <button
+                key={phase.id}
+                onClick={() => {
+                  console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
+                  setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
+                }}
+                className={`h-12 px-3 py-2 text-xs font-bold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg w-[110px] flex-shrink-0 ${
+                  selectedPhase === phase.id
+                    ? 'border-gray-400 bg-gray-50 shadow-md text-gray-800'
+                    : colorMode 
+                      ? 'border-gray-600 bg-transparent text-gray-200 hover:bg-gray-700 hover:border-gray-500' 
+                      : 'border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                }`}
+              >
+                <div 
+                  className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
+                  style={{ backgroundColor: phase.color }}
+                ></div>
+                <span className="whitespace-nowrap text-center leading-tight text-[11px]">{phase.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
 
