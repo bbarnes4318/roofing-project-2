@@ -68,6 +68,13 @@ model User {
   workflowStepsAssigned    WorkflowStep[]            @relation("AssignedTo")
   workflowStepsCompleted   WorkflowStep[]            @relation("CompletedBy")
   completedWorkflowItems   CompletedWorkflowItem[]
+  // Enhanced Security Relations
+  devices                  UserDevice[]              @relation("UserDevices")
+  mfaSettings              UserMFA[]                 @relation("UserMFA")
+  securityEvents           SecurityEvent[]           @relation("SecurityEvents")
+  resolvedSecurityEvents   SecurityEvent[]           @relation("SecurityEventResolver")
+  behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
+  webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
 
   @@map("users")
 }
@@ -976,4 +983,153 @@ model CompletedWorkflowItem {
   @@index([trackerId, lineItemId])
   @@index([trackerId, completedAt])
   @@map("completed_workflow_items")
+}
+
+// Enhanced Security Models for Futuristic Authentication
+
+// User devices for device fingerprinting and trust management
+model UserDevice {
+  id                String    @id @default(cuid())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  userId            String    @map("user_id")
+  deviceFingerprint String    @unique @map("device_fingerprint") @db.VarChar(255)
+  deviceName        String?   @map("device_name") @db.VarChar(100)
+  deviceType        String?   @map("device_type") @db.VarChar(50) // mobile, desktop, tablet
+  userAgent         String?   @map("user_agent") @db.VarChar(500)
+  ipAddress         String?   @map("ip_address") @db.VarChar(45)
+  location          Json?     // Geolocation data
+  trusted           Boolean   @default(false)
+  biometricEnabled  Boolean   @default(false) @map("biometric_enabled")
+  lastUsed          DateTime? @map("last_used")
+  isActive          Boolean   @default(true) @map("is_active")
+  user              User      @relation("UserDevices", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceFingerprint])
+  @@index([lastUsed])
+  @@index([trusted, isActive])
+  @@map("user_devices")
+}
+
+// Multi-factor authentication methods
+model UserMFA {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String    @map("user_id")
+  method       MFAMethod
+  secret       String?   @db.VarChar(255) // TOTP secret or encrypted data
+  backupCodes  String[]  @map("backup_codes") // Encrypted backup codes
+  phoneNumber  String?   @map("phone_number") @db.VarChar(20) // For SMS
+  enabled      Boolean   @default(false)
+  lastUsed     DateTime? @map("last_used")
+  user         User      @relation("UserMFA", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([method, enabled])
+  @@map("user_mfa")
+}
+
+// Security events and incidents
+model SecurityEvent {
+  id          String          @id @default(cuid())
+  createdAt   DateTime        @default(now())
+  userId      String?         @map("user_id")
+  eventType   SecurityEventType @map("event_type")
+  riskScore   Int?            @map("risk_score") // 0-100 risk assessment
+  details     Json?           // Event-specific data
+  ipAddress   String?         @map("ip_address") @db.VarChar(45)
+  userAgent   String?         @map("user_agent") @db.VarChar(500)
+  deviceId    String?         @map("device_id")
+  resolved    Boolean         @default(false)
+  resolvedAt  DateTime?       @map("resolved_at")
+  resolvedBy  String?         @map("resolved_by")
+  response    Json?           // Automated response details
+  user        User?           @relation("SecurityEvents", fields: [userId], references: [id], onDelete: SetNull)
+  resolver    User?           @relation("SecurityEventResolver", fields: [resolvedBy], references: [id])
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([riskScore])
+  @@index([resolved])
+  @@map("security_events")
+}
+
+// Behavioral patterns for behavioral biometrics
+model UserBehaviorPattern {
+  id                String    @id @default(cuid())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  userId            String    @unique @map("user_id")
+  keystrokePatterns Json?     @map("keystroke_patterns") // Typing dynamics
+  mousePatterns     Json?     @map("mouse_patterns")     // Mouse movement patterns
+  touchPatterns     Json?     @map("touch_patterns")     // Touch/gesture patterns
+  usagePatterns     Json?     @map("usage_patterns")     // Navigation and usage habits
+  voicePattern      Json?     @map("voice_pattern")      // Voice biometrics
+  riskBaseline      Decimal?  @map("risk_baseline") @db.Decimal(5,2) // Normal behavior baseline
+  anomalyThreshold  Decimal?  @map("anomaly_threshold") @db.Decimal(5,2)
+  lastAnalysis      DateTime? @map("last_analysis")
+  user              User      @relation("UserBehavior", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastAnalysis])
+  @@map("user_behavior_patterns")
+}
+
+// WebAuthn credentials for passwordless authentication
+model WebAuthnCredential {
+  id                String    @id @default(cuid())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  userId            String    @map("user_id")
+  credentialID      String    @unique @map("credential_id") @db.VarChar(255)
+  credentialPublicKey Bytes   @map("credential_public_key")
+  counter           Int       @default(0)
+  deviceType        String    @map("device_type") @db.VarChar(50)
+  backedUp          Boolean   @default(false) @map("backed_up")
+  transports        String[]  // Available transport methods
+  nickname          String?   @db.VarChar(100) // User-friendly name
+  lastUsed          DateTime? @map("last_used")
+  isActive          Boolean   @default(true) @map("is_active")
+  user              User      @relation("UserWebAuthn", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialID])
+  @@index([lastUsed])
+  @@map("webauthn_credentials")
+}
+
+// Enums for enhanced security
+enum MFAMethod {
+  TOTP    // Time-based One-Time Password
+  SMS     // SMS verification
+  WEBAUTHN // WebAuthn/FIDO2
+  BACKUP  // Backup codes
+  EMAIL   // Email verification
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  LOGIN_BLOCKED
+  MFA_SUCCESS
+  MFA_FAILURE
+  DEVICE_NEW
+  DEVICE_SUSPICIOUS
+  LOCATION_NEW
+  LOCATION_SUSPICIOUS
+  BEHAVIOR_ANOMALY
+  ACCOUNT_LOCKED
+  ACCOUNT_UNLOCKED
+  PASSWORD_CHANGED
+  MFA_ENABLED
+  MFA_DISABLED
+  DEVICE_TRUSTED
+  DEVICE_REMOVED
+  SECURITY_QUESTION_FAILED
+  BRUTE_FORCE_DETECTED
+  CREDENTIAL_CREATED
+  CREDENTIAL_DELETED
 }

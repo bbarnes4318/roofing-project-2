@@ -445,4 +445,406 @@ router.post('/logout', authenticateToken, (req, res) => {
   });
 });
 
+// Enhanced Security Routes
+
+const BiometricAuthService = require('../services/BiometricAuthService');
+const MFAService = require('../services/MFAService');
+const DeviceAuthService = require('../services/DeviceAuthService');
+const BehaviorAnalysisService = require('../services/BehaviorAnalysisService');
+
+// =================================================================
+// WEBAUTHN / BIOMETRIC AUTHENTICATION
+// =================================================================
+
+// @desc    Generate WebAuthn registration options
+// @route   POST /api/auth/webauthn/register/begin
+// @access  Private
+router.post('/webauthn/register/begin', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId, firstName, lastName, email } = req.user;
+  const userName = `${firstName} ${lastName}`;
+
+  const result = await BiometricAuthService.generateRegistrationOptions(
+    userId,
+    userName,
+    email
+  );
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Verify WebAuthn registration response
+// @route   POST /api/auth/webauthn/register/finish
+// @access  Private
+router.post('/webauthn/register/finish', authenticateToken, asyncHandler(async (req, res) => {
+  const { response, nickname } = req.body;
+  const { userId } = req.user;
+
+  const result = await BiometricAuthService.verifyRegistrationResponse(
+    userId,
+    response,
+    nickname
+  );
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Generate WebAuthn authentication options
+// @route   POST /api/auth/webauthn/authenticate/begin
+// @access  Public
+router.post('/webauthn/authenticate/begin', asyncHandler(async (req, res) => {
+  const { userId } = req.body; // Optional for usernameless flow
+
+  const result = await BiometricAuthService.generateAuthenticationOptions(userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Verify WebAuthn authentication response
+// @route   POST /api/auth/webauthn/authenticate/finish
+// @access  Public
+router.post('/webauthn/authenticate/finish', asyncHandler(async (req, res) => {
+  const { response, challengeKey } = req.body;
+
+  const result = await BiometricAuthService.verifyAuthenticationResponse(
+    response,
+    challengeKey
+  );
+
+  if (result.success) {
+    // Generate JWT token for successful biometric authentication
+    const token = generateToken(result.user.id, result.user.role);
+    
+    res.json({
+      success: true,
+      message: 'Biometric authentication successful',
+      data: {
+        user: result.user,
+        token
+      }
+    });
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Get user's biometric credentials
+// @route   GET /api/auth/webauthn/credentials
+// @access  Private
+router.get('/webauthn/credentials', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  const result = await BiometricAuthService.getUserCredentials(userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Delete biometric credential
+// @route   DELETE /api/auth/webauthn/credentials/:credentialId
+// @access  Private
+router.delete('/webauthn/credentials/:credentialId', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const { credentialId } = req.params;
+
+  const result = await BiometricAuthService.deleteCredential(userId, credentialId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// =================================================================
+// MULTI-FACTOR AUTHENTICATION (MFA)
+// =================================================================
+
+// @desc    Generate TOTP secret for MFA setup
+// @route   POST /api/auth/mfa/totp/setup
+// @access  Private
+router.post('/mfa/totp/setup', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId, email } = req.user;
+
+  const result = await MFAService.generateTOTPSecret(userId, email);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Verify TOTP setup
+// @route   POST /api/auth/mfa/totp/verify-setup
+// @access  Private
+router.post('/mfa/totp/verify-setup', authenticateToken, asyncHandler(async (req, res) => {
+  const { token } = req.body;
+  const { userId } = req.user;
+
+  const result = await MFAService.verifyTOTPSetup(userId, token);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Verify TOTP during login
+// @route   POST /api/auth/mfa/totp/verify
+// @access  Public (used during login flow)
+router.post('/mfa/totp/verify', asyncHandler(async (req, res) => {
+  const { userId, token } = req.body;
+
+  const result = await MFAService.verifyTOTP(userId, token);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Verify backup code
+// @route   POST /api/auth/mfa/backup/verify
+// @access  Public (used during login flow)
+router.post('/mfa/backup/verify', asyncHandler(async (req, res) => {
+  const { userId, code } = req.body;
+
+  const result = await MFAService.verifyBackupCode(userId, code);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Get user's MFA methods
+// @route   GET /api/auth/mfa/methods
+// @access  Private
+router.get('/mfa/methods', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  const result = await MFAService.getUserMFAMethods(userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Disable MFA method
+// @route   POST /api/auth/mfa/disable
+// @access  Private
+router.post('/mfa/disable', authenticateToken, asyncHandler(async (req, res) => {
+  const { method } = req.body;
+  const { userId } = req.user;
+
+  const result = await MFAService.disableMFAMethod(userId, method);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Generate new backup codes
+// @route   POST /api/auth/mfa/backup/generate
+// @access  Private
+router.post('/mfa/backup/generate', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  const backupCodes = await MFAService.generateBackupCodes(userId);
+
+  res.json({
+    success: true,
+    message: 'Backup codes generated successfully',
+    data: { backupCodes }
+  });
+}));
+
+// =================================================================
+// DEVICE MANAGEMENT
+// =================================================================
+
+// @desc    Register device
+// @route   POST /api/auth/device/register
+// @access  Private
+router.post('/device/register', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const { clientFingerprint } = req.body;
+
+  const result = await DeviceAuthService.registerDevice(userId, req, clientFingerprint);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Get user's devices
+// @route   GET /api/auth/devices
+// @access  Private
+router.get('/devices', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  const result = await DeviceAuthService.getUserDevices(userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Trust device
+// @route   POST /api/auth/device/:deviceId/trust
+// @access  Private
+router.post('/device/:deviceId/trust', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const { deviceId } = req.params;
+
+  const result = await DeviceAuthService.trustDevice(userId, deviceId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Remove device
+// @route   DELETE /api/auth/device/:deviceId
+// @access  Private
+router.delete('/device/:deviceId', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const { deviceId } = req.params;
+
+  const result = await DeviceAuthService.removeDevice(userId, deviceId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// =================================================================
+// BEHAVIORAL BIOMETRICS
+// =================================================================
+
+// @desc    Analyze keystroke dynamics
+// @route   POST /api/auth/behavior/keystroke
+// @access  Private
+router.post('/behavior/keystroke', authenticateToken, asyncHandler(async (req, res) => {
+  const { keystrokeData } = req.body;
+  const { userId } = req.user;
+
+  const result = await BehaviorAnalysisService.analyzeKeystrokeDynamics(keystrokeData, userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Analyze mouse patterns
+// @route   POST /api/auth/behavior/mouse
+// @access  Private
+router.post('/behavior/mouse', authenticateToken, asyncHandler(async (req, res) => {
+  const { mouseData } = req.body;
+  const { userId } = req.user;
+
+  const result = await BehaviorAnalysisService.analyzeMousePatterns(mouseData, userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Analyze touch patterns
+// @route   POST /api/auth/behavior/touch
+// @access  Private
+router.post('/behavior/touch', authenticateToken, asyncHandler(async (req, res) => {
+  const { touchData } = req.body;
+  const { userId } = req.user;
+
+  const result = await BehaviorAnalysisService.analyzeTouchPatterns(touchData, userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// @desc    Get user behavior analysis
+// @route   GET /api/auth/behavior/analysis
+// @access  Private
+router.get('/behavior/analysis', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  const result = await BehaviorAnalysisService.getUserBehaviorAnalysis(userId);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+}));
+
+// =================================================================
+// SECURITY EVENTS
+// =================================================================
+
+// @desc    Get user's security events
+// @route   GET /api/auth/security/events
+// @access  Private
+router.get('/security/events', authenticateToken, asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+  const { limit = 50, offset = 0 } = req.query;
+
+  const events = await prisma.securityEvent.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: parseInt(limit),
+    skip: parseInt(offset),
+    select: {
+      id: true,
+      eventType: true,
+      riskScore: true,
+      createdAt: true,
+      resolved: true,
+      details: true,
+    },
+  });
+
+  res.json({
+    success: true,
+    data: { events }
+  });
+}));
+
 module.exports = router; 

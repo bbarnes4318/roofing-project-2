@@ -238,10 +238,10 @@ export default function App() {
 
     // Replace individual navigation state variables with a single object
     const [navigationState, setNavigationState] = useState({
-      selectedProject: null,
-      projectInitialView: 'Project Workflow',
-      projectSourceSection: null,
-      previousPage: 'Overview'
+        selectedProject: null,
+        projectInitialView: 'Project Workflow',
+        projectSourceSection: null,
+        previousPage: 'Overview'
     });
 
     // Additional useEffect specifically for when selectedProject changes
@@ -381,132 +381,132 @@ export default function App() {
 
     // Update handleBackToProjects to use navigationState
     const handleBackToProjects = (specificProject = null) => {
-      console.log('🔍 BACK_TO_PROJECTS: handleBackToProjects called');
-      console.log('🔍 BACK_TO_PROJECTS: projectSourceSection:', navigationState.projectSourceSection);
-      console.log('🔍 BACK_TO_PROJECTS: previousPage:', navigationState.previousPage);
-      console.log('🔍 BACK_TO_PROJECTS: selectedProject:', navigationState.selectedProject);
-      console.log('🔍 BACK_TO_PROJECTS: specificProject passed:', specificProject);
-      
-      // Handle specific case: coming from Activity Feed tab in Project Messages
-      if (navigationState.projectSourceSection === 'Project Messages') {
-        console.log('🔍 BACK_TO_PROJECTS: Navigating back to ProjectDetailPage with Messages tab');
-        // Find the project that was being viewed
-        const currentProject = navigationState.selectedProject || navigationState.scrollToProject;
-        if (currentProject) {
-          setNavigationState(prev => ({
-            ...prev,
-            selectedProject: currentProject,
-            projectInitialView: 'Messages',
-            projectSourceSection: 'Project Messages'
-          }));
-          return;
+        console.log('🔍 BACK_TO_PROJECTS: handleBackToProjects called');
+        console.log('🔍 BACK_TO_PROJECTS: projectSourceSection:', navigationState.projectSourceSection);
+        console.log('🔍 BACK_TO_PROJECTS: previousPage:', navigationState.previousPage);
+        console.log('🔍 BACK_TO_PROJECTS: selectedProject:', navigationState.selectedProject);
+        console.log('🔍 BACK_TO_PROJECTS: specificProject passed:', specificProject);
+        
+        // Handle specific case: coming from Activity Feed tab in Project Messages
+        if (navigationState.projectSourceSection === 'Project Messages') {
+            console.log('🔍 BACK_TO_PROJECTS: Navigating back to ProjectDetailPage with Messages tab');
+            // Find the project that was being viewed
+            const currentProject = navigationState.selectedProject || navigationState.scrollToProject;
+            if (currentProject) {
+                setNavigationState(prev => ({
+                    ...prev,
+                    selectedProject: currentProject,
+                    projectInitialView: 'Messages',
+                    projectSourceSection: 'Project Messages'
+                }));
+                return;
+            }
         }
-      }
-      
-      // Handle specific case: coming from Project Alerts tab in Project Workflow Alerts
-      if (navigationState.projectSourceSection === 'Project Workflow Alerts') {
-        console.log('🔍 BACK_TO_PROJECTS: Navigating back to ProjectDetailPage with Alerts tab');
-        // Find the project that was being viewed
-        const currentProject = navigationState.selectedProject || navigationState.scrollToProject;
-        if (currentProject) {
-          setNavigationState(prev => ({
-            ...prev,
-            selectedProject: currentProject,
-            projectInitialView: 'Alerts',
-            projectSourceSection: 'Project Workflow Alerts'
-          }));
-          return;
+        
+        // Handle specific case: coming from Project Alerts tab in Project Workflow Alerts
+        if (navigationState.projectSourceSection === 'Project Workflow Alerts') {
+            console.log('🔍 BACK_TO_PROJECTS: Navigating back to ProjectDetailPage with Alerts tab');
+            // Find the project that was being viewed
+            const currentProject = navigationState.selectedProject || navigationState.scrollToProject;
+            if (currentProject) {
+                setNavigationState(prev => ({
+                    ...prev,
+                    selectedProject: currentProject,
+                    projectInitialView: 'Alerts',
+                    projectSourceSection: 'Project Workflow Alerts'
+                }));
+                return;
+            }
         }
-      }
-      
-      // Handle specific case: coming from Project Phases section (Alerts, Messages, Workflow buttons)
-      if (navigationState.projectSourceSection === 'Project Phases' && navigationState.selectedProject) {
-        console.log('🔍 BACK_TO_PROJECTS: Coming from Project Phases section, returning to Overview with phase restored');
-        // Get the dashboard state from the selected project
-        const dashboardState = navigationState.selectedProject.dashboardState;
-        console.log('🔍 BACK_TO_PROJECTS: Dashboard state from project:', dashboardState);
         
-        // Clear the selected project and restore the dashboard state
-        setNavigationState(prev => ({
-          ...prev,
-          selectedProject: null,
-          dashboardState: dashboardState
-        }));
+        // Handle specific case: coming from Project Phases section (Alerts, Messages, Workflow buttons)
+        if (navigationState.projectSourceSection === 'Project Phases' && navigationState.selectedProject) {
+            console.log('🔍 BACK_TO_PROJECTS: Coming from Project Phases section, returning to Overview with phase restored');
+            // Get the dashboard state from the selected project
+            const dashboardState = navigationState.selectedProject.dashboardState;
+            console.log('🔍 BACK_TO_PROJECTS: Dashboard state from project:', dashboardState);
+            
+            // Clear the selected project and restore the dashboard state
+            setNavigationState(prev => ({
+                ...prev,
+                selectedProject: null,
+                dashboardState: dashboardState
+            }));
+            
+            // Navigate back to Overview page
+            setActivePage('Overview');
+            
+            // Scroll to the project phases section
+            setTimeout(() => {
+                const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
+                if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            
+            return;
+        }
         
-        // Navigate back to Overview page
-        setActivePage('Overview');
-        
-        // Scroll to the project phases section
-        setTimeout(() => {
-          const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
-          if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        
-        return;
-      }
-      
-      setNavigationState(prev => ({ ...prev, selectedProject: null }));
-      if (navigationState.previousPage === 'Projects') {
-        setActivePage('Projects');
-              } else if (navigationState.previousPage === 'Overview') {
-          // Use the preserved dashboard state from navigationState
-          const dashboardState = navigationState.dashboardState;
-          console.log('🔍 BACK_TO_PROJECTS: Dashboard state for restoration:', dashboardState);
+        setNavigationState(prev => ({ ...prev, selectedProject: null }));
+        if (navigationState.previousPage === 'Projects') {
+            setActivePage('Projects');
+                    } else if (navigationState.previousPage === 'Overview') {
+            // Use the preserved dashboard state from navigationState
+            const dashboardState = navigationState.dashboardState;
+            console.log('🔍 BACK_TO_PROJECTS: Dashboard state for restoration:', dashboardState);
         
         if (navigationState.projectSourceSection === 'Project Messages') {
-          setActivePage('Overview');
-          setTimeout(() => {
-            const projectMessagesSection = document.querySelector('[data-section="project-messages"]');
-            if (projectMessagesSection) projectMessagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+            setActivePage('Overview');
+            setTimeout(() => {
+                const projectMessagesSection = document.querySelector('[data-section="project-messages"]');
+                if (projectMessagesSection) projectMessagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         } else if (navigationState.projectSourceSection === 'Current Alerts') {
-          setActivePage('Overview');
-          setTimeout(() => {
-            const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
-            if (currentAlertsSection) currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+            setActivePage('Overview');
+            setTimeout(() => {
+                const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
+                if (currentAlertsSection) currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         } else if (navigationState.projectSourceSection === 'Project Cubes') {
-          console.log('🔍 BACK_TO_PROJECTS: Returning to Current Project Access section');
-          setActivePage('Overview');
-          setTimeout(() => {
-            const projectCubesSection = document.querySelector('[data-section="project-cubes"]');
-            console.log('🔍 BACK_TO_PROJECTS: Found project cubes section:', projectCubesSection);
-            if (projectCubesSection) {
-              projectCubesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              console.log('🔍 BACK_TO_PROJECTS: Scrolled to Current Project Access section');
-            } else {
-              console.warn('🔍 BACK_TO_PROJECTS: Could not find project cubes section element');
-            }
-          }, 200); // Increased timeout to ensure page is fully loaded
+            console.log('🔍 BACK_TO_PROJECTS: Returning to Current Project Access section');
+            setActivePage('Overview');
+            setTimeout(() => {
+                const projectCubesSection = document.querySelector('[data-section="project-cubes"]');
+                console.log('🔍 BACK_TO_PROJECTS: Found project cubes section:', projectCubesSection);
+                if (projectCubesSection) {
+                    projectCubesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    console.log('🔍 BACK_TO_PROJECTS: Scrolled to Current Project Access section');
+                } else {
+                    console.warn('🔍 BACK_TO_PROJECTS: Could not find project cubes section element');
+                }
+            }, 200); // Increased timeout to ensure page is fully loaded
         } else if (navigationState.projectSourceSection === 'Project Phases') {
-          setActivePage('Overview');
-          console.log('🔍 BACK_TO_PROJECTS: Project Phases - dashboard state being restored:', dashboardState);
-          console.log('🔍 BACK_TO_PROJECTS: selectedPhase in dashboard state:', dashboardState?.selectedPhase);
-          // Store the dashboard state and specific project info for the DashboardPage to restore
-          setNavigationState(prev => {
-            const newState = {
-              ...prev,
-              dashboardState: dashboardState,
-              // If a specific project was passed, store it for highlighting
-              scrollToProject: specificProject || prev.scrollToProject
-            };
-            console.log('🔍 BACK_TO_PROJECTS: New navigation state:', newState);
-            return newState;
-          });
-          setTimeout(() => {
-            const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
-            if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+            setActivePage('Overview');
+            console.log('🔍 BACK_TO_PROJECTS: Project Phases - dashboard state being restored:', dashboardState);
+            console.log('🔍 BACK_TO_PROJECTS: selectedPhase in dashboard state:', dashboardState?.selectedPhase);
+            // Store the dashboard state and specific project info for the DashboardPage to restore
+            setNavigationState(prev => {
+                const newState = {
+                    ...prev,
+                    dashboardState: dashboardState,
+                    // If a specific project was passed, store it for highlighting
+                    scrollToProject: specificProject || prev.scrollToProject
+                };
+                console.log('🔍 BACK_TO_PROJECTS: New navigation state:', newState);
+                return newState;
+            });
+            setTimeout(() => {
+                const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
+                if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         } else {
-          setActivePage('Overview');
-          setTimeout(() => {
-            const projectCubesSection = document.querySelector('[data-section="project-cubes"]');
-            if (projectCubesSection) projectCubesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+            setActivePage('Overview');
+            setTimeout(() => {
+                const projectCubesSection = document.querySelector('[data-section="project-cubes"]');
+                if (projectCubesSection) projectCubesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
-      } else {
-        setActivePage(navigationState.previousPage);
-      }
+        } else {
+            setActivePage(navigationState.previousPage);
+        }
     };
     
     const addActivity = async (project, content, subject = 'General Update') => {
@@ -628,74 +628,75 @@ export default function App() {
         
         switch (activePage) {
             case 'Overview': return (
-              <DashboardPage
-                tasks={tasks}
-                activities={activities}
-                onProjectSelect={handleProjectSelect}
-                onAddActivity={addActivity}
-                colorMode={colorMode}
-                dashboardState={navigationState.dashboardState}
-              />
+                <DashboardPage
+                    tasks={tasks}
+                    activities={activities}
+                    onProjectSelect={handleProjectSelect}
+                    onAddActivity={addActivity}
+                    colorMode={colorMode}
+                    dashboardState={navigationState.dashboardState}
+                />
             );
-            // Removed 'Project Messages' route from sidebar
-            case 'Projects': return <ProjectsPage onProjectSelect={handleProjectSelect} onProjectActionSelect={handleProjectSelect} onCreateProject={handleCreateProject} projects={projects} colorMode={colorMode} projectSourceSection={navigationState.projectSourceSection} onNavigateBack={handleBackToProjects} scrollToProject={navigationState.scrollToProject} />;
+            // --- PHASE 1: STABILIZE THE RENDER (STEP 1) ---
+            // Temporarily replacing ProjectsPage to validate the navigation logic.
+            case 'Projects': return <h1>It Renders!</h1>;
             case 'Customers': return <CustomersPage colorMode={colorMode} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
             case 'Training & Knowledge Base':
-              return (
-                <div className="max-w-3xl mx-auto px-4 py-10">
-                  <p className="text-lg text-gray-600 mb-8">AI Powered Guidance for Company Information Below</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* AI Company Documents */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-500 flex flex-col gap-2 hover:shadow-xl transition">
-                      <div className="flex items-center gap-2 mb-1">
-                        <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6.5V18a2 2 0 002 2h12a2 2 0 002-2V6.5M4 6.5L12 3l8 3.5" /></svg>
-                        <span className="font-bold text-blue-700 text-lg">AI Company Documents</span>
-                      </div>
-                      <p className="text-gray-600 text-sm">Instantly search, summarize, and answer questions about your company handbooks, policies, and internal documents using AI.</p>
+                return (
+                    <div className="max-w-3xl mx-auto px-4 py-10">
+                        <p className="text-lg text-gray-600 mb-8">AI Powered Guidance for Company Information Below</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* AI Company Documents */}
+                            <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-500 flex flex-col gap-2 hover:shadow-xl transition">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6.5V18a2 2 0 002 2h12a2 2 0 002-2V6.5M4 6.5L12 3l8 3.5" /></svg>
+                                    <span className="font-bold text-blue-700 text-lg">AI Company Documents</span>
+                                </div>
+                                <p className="text-gray-600 text-sm">Instantly search, summarize, and answer questions about your company handbooks, policies, and internal documents using AI.</p>
+                            </div>
+                            {/* AI Project Documents */}
+                            <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500 flex flex-col gap-2 hover:shadow-xl transition">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 0h6a2 2 0 002-2v-5a2 2 0 00-2-2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2" /></svg>
+                                    <span className="font-bold text-green-700 text-lg">AI Project Documents</span>
+                                </div>
+                                <p className="text-gray-600 text-sm">Get AI-powered insights, summaries, and answers from your project files, contracts, and technical documents.</p>
+                            </div>
+                            {/* AI Manufacturer Guidance */}
+                            <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-yellow-500 flex flex-col gap-2 hover:shadow-xl transition">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span className="font-bold text-yellow-700 text-lg">AI Manufacturer Guidance</span>
+                                </div>
+                                <p className="text-gray-600 text-sm">Access up-to-date, AI-curated manufacturer recommendations, product specs, and compliance information.</p>
+                            </div>
+                            {/* AI Installation Guidance */}
+                            <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-500 flex flex-col gap-2 hover:shadow-xl transition">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 01-8 0m8 0V5a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0V7" /></svg>
+                                    <span className="font-bold text-purple-700 text-lg">AI Installation Guidance</span>
+                                </div>
+                                <p className="text-gray-600 text-sm">Get step-by-step, AI-driven installation instructions and troubleshooting for your field teams.</p>
+                            </div>
+                        </div>
                     </div>
-                    {/* AI Project Documents */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500 flex flex-col gap-2 hover:shadow-xl transition">
-                      <div className="flex items-center gap-2 mb-1">
-                        <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 0h6a2 2 0 002-2v-5a2 2 0 00-2-2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2" /></svg>
-                        <span className="font-bold text-green-700 text-lg">AI Project Documents</span>
-                      </div>
-                      <p className="text-gray-600 text-sm">Get AI-powered insights, summaries, and answers from your project files, contracts, and technical documents.</p>
-                    </div>
-                    {/* AI Manufacturer Guidance */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-yellow-500 flex flex-col gap-2 hover:shadow-xl transition">
-                      <div className="flex items-center gap-2 mb-1">
-                        <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span className="font-bold text-yellow-700 text-lg">AI Manufacturer Guidance</span>
-                      </div>
-                      <p className="text-gray-600 text-sm">Access up-to-date, AI-curated manufacturer recommendations, product specs, and compliance information.</p>
-                    </div>
-                    {/* AI Installation Guidance */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-500 flex flex-col gap-2 hover:shadow-xl transition">
-                      <div className="flex items-center gap-2 mb-1">
-                        <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 01-8 0m8 0V5a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0m8 0v2a4 4 0 01-8 0V7" /></svg>
-                        <span className="font-bold text-purple-700 text-lg">AI Installation Guidance</span>
-                      </div>
-                      <p className="text-gray-600 text-sm">Get step-by-step, AI-driven installation instructions and troubleshooting for your field teams.</p>
-                    </div>
-                  </div>
-                </div>
-              );
+                );
             case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} />;
             case 'Settings': return <SettingsPage colorMode={colorMode} />;
             case 'Estimator': return <EstimateComparisonTool />;
             default: return (
-              <DashboardPage
-                tasks={tasks}
-                activities={activities}
-                onProjectSelect={handleProjectSelect}
-                onAddActivity={addActivity}
-                colorMode={colorMode}
-                dashboardState={navigationState.dashboardState}
-              />
+                <DashboardPage
+                    tasks={tasks}
+                    activities={activities}
+                    onProjectSelect={handleProjectSelect}
+                    onAddActivity={addActivity}
+                    colorMode={colorMode}
+                    dashboardState={navigationState.dashboardState}
+                />
             );
         }
     };
@@ -704,8 +705,8 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
             <SubjectsProvider>
             <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
-              ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
-              : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
+                ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
+                : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
             {/* Mobile menu overlay */}
             {sidebarOpen && (
                 <div 
@@ -716,11 +717,11 @@ export default function App() {
             
             {/* Sidebar */}
             <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 lg:w-72 flex flex-col transition-all duration-300 ease-in-out
-              ${colorMode 
-                ? 'bg-gradient-to-b from-[#181f3a] via-[#232b4d] to-[#1e293b] border-r-2 border-[#3b82f6] text-white' 
-                : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
-              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-              mobile-safe-area`}> 
+                ${colorMode 
+                    ? 'bg-gradient-to-b from-[#181f3a] via-[#232b4d] to-[#1e293b] border-r-2 border-[#3b82f6] text-white' 
+                    : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                mobile-safe-area`}> 
                 {/* Sidebar header (logo) */}
                 <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-[#3b82f6] bg-gradient-to-r from-[#232b4d] to-[#1e293b]' : 'border-gray-100/50 bg-gradient-to-r from-white to-gray-50/50'}`}>
                     <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-glow overflow-hidden border-2 ${colorMode ? 'bg-[#232b4d] border-[#3b82f6]' : 'bg-white border-white/50'}`}>
@@ -739,12 +740,12 @@ export default function App() {
                                 onClick={() => navigate(item.page)}
                                 className={`w-full text-left flex items-center gap-3 py-2 px-4 text-[10px] font-semibold rounded-lg transition-all duration-200 ${
                                 activePage === item.page && !navigationState.selectedProject 
-                                        ? colorMode 
-                                            ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                            : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
-                                        : colorMode 
-                                            ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                    : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
+                                    ? colorMode 
+                                        ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
+                                        : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
+                                    : colorMode 
+                                        ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
+                                : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
                             }`}>
                                 <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
                                 <span className="flex-1">{item.name}</span>
@@ -784,12 +785,12 @@ export default function App() {
                             <button key={item.name} onClick={() => navigate(item.page)}
                                 className={`w-full text-left flex items-center gap-3 py-2 px-4 ml-4 text-[9px] font-semibold rounded-lg transition-all duration-200 ${
                                 activePage === item.page && !navigationState.selectedProject 
-                                        ? colorMode 
-                                            ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                            : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
-                                        : colorMode 
-                                            ? 'text-[#f2fcfe] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                            : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
+                                    ? colorMode 
+                                        ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
+                                        : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
+                                    : colorMode 
+                                        ? 'text-[#f2fcfe] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
+                                        : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
                                 }`}> 
                                 <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
                                 <span className="flex-1">{item.name}</span>
@@ -839,18 +840,18 @@ export default function App() {
                 </nav>
                 {/* Sidebar footer (Color Mode button) always visible */}
                 <div className="px-4 pb-2 pt-4 flex flex-col gap-1 flex-shrink-0">
-                  {/* Compact Color Mode button */}
-                  <button
-                    onClick={() => setColorMode((prev) => !prev)}
-                    className={`flex items-center justify-center gap-1 px-1.5 py-1 rounded border transition-colors duration-200 text-[7px] font-medium
-                      ${colorMode 
-                        ? 'bg-[#232b4d] border-[#3b82f6] text-white hover:bg-[#1e293b] hover:text-[#3b82f6]' 
-                        : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 hover:text-blue-700'}`}
-                    aria-label="Toggle color mode"
-                  >
-                    <SparklesIcon className="w-2.5 h-2.5" />
-                    <span>{colorMode ? 'Default' : 'Color'}</span>
-                  </button>
+                    {/* Compact Color Mode button */}
+                    <button
+                        onClick={() => setColorMode((prev) => !prev)}
+                        className={`flex items-center justify-center gap-1 px-1.5 py-1 rounded border transition-colors duration-200 text-[7px] font-medium
+                            ${colorMode 
+                                ? 'bg-[#232b4d] border-[#3b82f6] text-white hover:bg-[#1e293b] hover:text-[#3b82f6]' 
+                                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 hover:text-blue-700'}`}
+                        aria-label="Toggle color mode"
+                    >
+                        <SparklesIcon className="w-2.5 h-2.5" />
+                        <span>{colorMode ? 'Default' : 'Color'}</span>
+                    </button>
                 </div>
             </aside>
             
@@ -868,26 +869,26 @@ export default function App() {
                             <div className="flex-shrink-0">
                                 <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                                     {activePage === 'Alerts' ? 'Project Alerts' :
-                                     activePage === 'Company Calendar' ? 'Company Calendar' :
-                                     activePage === 'AI Assistant' ? 'AI Assistant' :
-                                     activePage === 'AI Tools' ? 'AI Training Tools' :
-                                     activePage === 'Archived Projects' ? 'Archived Projects' :
-                                     activePage === 'Project Messages' ? 'Messages' :
-                                     activePage === 'Estimator' ? 'Estimate Comparison & Analysis' :
-                                     activePage === 'Customers' ? 'Customer Management' :
-                                     activePage}
+                                        activePage === 'Company Calendar' ? 'Company Calendar' :
+                                        activePage === 'AI Assistant' ? 'AI Assistant' :
+                                        activePage === 'AI Tools' ? 'AI Training Tools' :
+                                        activePage === 'Archived Projects' ? 'Archived Projects' :
+                                        activePage === 'Project Messages' ? 'Messages' :
+                                        activePage === 'Estimator' ? 'Estimate Comparison & Analysis' :
+                                        activePage === 'Customers' ? 'Customer Management' :
+                                        activePage}
                                 </h1>
                                 <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-600'}`}>
                                     {activePage === 'Alerts' ? 'Monitor project alerts, tasks, and urgent notifications.' :
-                                     activePage === 'Project Schedules' ? 'Plan and organize project timelines and milestones' :
-                                     activePage === 'Company Calendar' ? 'Company-wide events, meetings, and project schedules' :
-                                     activePage === 'AI Assistant' ? 'Get intelligent assistance with project management tasks' :
-                                     activePage === 'AI Tools' ? 'Advanced AI-powered construction management tools' :
-                                     activePage === 'Archived Projects' ? 'Completed projects and historical records' :
-                                     activePage === 'Project Messages' ? 'Stay up-to-date with activity feeds and manage important project messages in one place.' :
-                                     activePage === 'Estimator' ? 'Upload documents to generate a discrepancy report or a pre-estimate advisory.' :
-                                     activePage === 'Customers' ? 'Manage customer information, contacts, and project associations' :
-                                     'Project management and construction oversight'}
+                                        activePage === 'Project Schedules' ? 'Plan and organize project timelines and milestones' :
+                                        activePage === 'Company Calendar' ? 'Company-wide events, meetings, and project schedules' :
+                                        activePage === 'AI Assistant' ? 'Get intelligent assistance with project management tasks' :
+                                        activePage === 'AI Tools' ? 'Advanced AI-powered construction management tools' :
+                                        activePage === 'Archived Projects' ? 'Completed projects and historical records' :
+                                        activePage === 'Project Messages' ? 'Stay up-to-date with activity feeds and manage important project messages in one place.' :
+                                        activePage === 'Estimator' ? 'Upload documents to generate a discrepancy report or a pre-estimate advisory.' :
+                                        activePage === 'Customers' ? 'Manage customer information, contacts, and project associations' :
+                                        'Project management and construction oversight'}
                                 </p>
                             </div>
                         )}
