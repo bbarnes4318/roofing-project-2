@@ -1,0 +1,5 @@
+"Severity","Element","Page","Path","Category","Expected","Actual","Reproduction"
+"CRITICAL","Logout Button","Dashboard","/","critical","Logout user","Action failed - Logout Button did not execute expected behavior","Navigate to /, locate ""Logout"", click element"
+"CRITICAL","Logout Button","Projects","/projects","critical","Logout user","Action failed - Logout Button did not execute expected behavior","Navigate to /projects, locate ""Logout"", click element"
+"MEDIUM","User Profile Dropdown","Projects","/projects","modal","Open profile menu","Modal failed to open - User Profile Dropdown trigger not working","Navigate to /projects, locate ""Profile"", click element"
+"MEDIUM","Activity Feed Refresh","Dashboard","/","standard","Refresh activity feed","Action failed - Activity Feed Refresh did not execute expected behavior","Navigate to /, locate ""Refresh"", click element"

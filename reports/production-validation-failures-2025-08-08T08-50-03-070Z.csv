@@ -1,0 +1,6 @@
+"Severity","Element","Page","Path","Category","Expected","Actual","Reproduction"
+"CRITICAL","Logout Button","Company Calendar","/company-calendar","critical","Logout user","Action failed - Logout Button did not execute expected behavior","Navigate to /company-calendar, locate ""Logout"", click element"
+"MEDIUM","User Profile Dropdown","Projects","/projects","modal","Open profile menu","Modal failed to open - User Profile Dropdown trigger not working","Navigate to /projects, locate ""Profile"", click element"
+"MEDIUM","User Profile Dropdown","Workflow Settings","/workflow-settings","modal","Open profile menu","Modal failed to open - User Profile Dropdown trigger not working","Navigate to /workflow-settings, locate ""Profile"", click element"
+"MEDIUM","Phase Filter - PROSPECT","Dashboard","/","standard","Filter projects by PROSPECT phase","Action failed - Phase Filter - PROSPECT did not execute expected behavior","Navigate to /, locate ""PROSPECT"", click element"
+"MEDIUM","Archive Project Button","Projects","/projects","standard","Archive project","Action failed - Archive Project Button did not execute expected behavior","Navigate to /projects, locate ""Archive"", click element"

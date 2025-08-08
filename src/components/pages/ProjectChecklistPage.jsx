@@ -348,14 +348,50 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
   
-  // Use useRef to persist checked items across re-renders
-  const localCheckedItemsRef = useRef(new Set());
-  const [forceUpdate, setForceUpdate] = useState(0);
+  // Use localStorage to persist checked items permanently
+  const getStoredCheckedItems = () => {
+    const projectId = project?._id || project?.id;
+    if (!projectId) return new Set();
+    
+    const storageKey = `workflow-checked-${projectId}`;
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        console.log(`🗄️ STORAGE: Loaded ${parsed.length} checked items from localStorage`);
+        return new Set(parsed);
+      }
+    } catch (error) {
+      console.error('❌ STORAGE: Error loading from localStorage:', error);
+    }
+    return new Set();
+  };
   
-  // Helper to add/remove from persistent set and force re-render
+  const saveCheckedItems = (checkedSet) => {
+    const projectId = project?._id || project?.id;
+    if (!projectId) return;
+    
+    const storageKey = `workflow-checked-${projectId}`;
+    try {
+      const array = Array.from(checkedSet);
+      localStorage.setItem(storageKey, JSON.stringify(array));
+      console.log(`💾 STORAGE: Saved ${array.length} checked items to localStorage`);
+    } catch (error) {
+      console.error('❌ STORAGE: Error saving to localStorage:', error);
+    }
+  };
+  
+  // Initialize with stored values and use state for immediate UI updates
+  const [localCheckedItems, setLocalCheckedItems] = useState(() => getStoredCheckedItems());
+  
+  // Helper to update both state and localStorage
   const updateLocalCheckedItems = (callback) => {
-    callback(localCheckedItemsRef.current);
-    setForceUpdate(prev => prev + 1); // Force re-render
+    setLocalCheckedItems(prevSet => {
+      const newSet = new Set(prevSet);
+      callback(newSet);
+      saveCheckedItems(newSet); // Save to localStorage
+      return newSet;
+    });
   };
   
   // Get phase colors from WorkflowProgressService to match dashboard
@@ -380,6 +416,30 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   // Use the workflow update hook
   const { updateWorkflowStep: updateWorkflowStepAPI, updating: workflowUpdating } = useWorkflowUpdate();
 
+  // Load checked items from localStorage when project changes
+  useEffect(() => {
+    const storedItems = getStoredCheckedItems();
+    setLocalCheckedItems(storedItems);
+    console.log(`🗄️ STORAGE: Loaded ${storedItems.size} checked items for project ${project?._id || project?.id}`);
+  }, [project?._id, project?.id]);
+  
+  // Sync server data to localStorage when workflow data changes
+  useEffect(() => {
+    if (!workflowData || !workflowData.steps) return;
+    
+    updateLocalCheckedItems(checkedItems => {
+      workflowData.steps.forEach(step => {
+        if (step.completed || step.isCompleted) {
+          const stepId = step.id || step.stepId || step._id;
+          if (!checkedItems.has(stepId)) {
+            checkedItems.add(stepId);
+            console.log(`🔄 SYNC: Added server-completed step ${stepId} to localStorage`);
+          }
+        }
+      });
+    });
+  }, [workflowData]);
+  
   // Fetch workflow data from database
   useEffect(() => {
     const fetchWorkflowData = async () => {
@@ -1157,51 +1217,47 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
 
   const handleCheck = (phaseId, itemId, subIdx) => {
     const stepId = `${phaseId}-${itemId}-${subIdx}`;
-    const currentlyCompleted = isStepCompleted(stepId);
+    const currentlyCompleted = localCheckedItems.has(stepId);
     const newCompletedState = !currentlyCompleted;
     
     console.log(`🔄 CHECKBOX: User clicked ${stepId}`);
     console.log(`🔄 CHECKBOX: Current state: ${currentlyCompleted} -> New state: ${newCompletedState}`);
-    console.log(`🔄 CHECKBOX: Local state before update:`, Array.from(localCheckedItemsRef.current));
+    console.log(`🔄 CHECKBOX: Local state before:`, Array.from(localCheckedItems));
     
-    // IMMEDIATE: Update persistent local state for instant UI feedback
+    // IMMEDIATE: Update localStorage-backed state for instant UI feedback
     updateLocalCheckedItems((checkedItems) => {
       if (newCompletedState) {
         checkedItems.add(stepId);
-        console.log(`✅ LOCAL: Added ${stepId}, new size: ${checkedItems.size}`);
+        console.log(`✅ LOCAL: Added ${stepId} to localStorage`);
       } else {
         checkedItems.delete(stepId);
-        console.log(`❌ LOCAL: Removed ${stepId}, new size: ${checkedItems.size}`);
+        console.log(`❌ LOCAL: Removed ${stepId} from localStorage`);
       }
-      console.log(`🔄 LOCAL: Updated set:`, Array.from(checkedItems));
     });
     
     // ASYNC: Update server in background - don't wait for it
-    setTimeout(() => {
-      updateWorkflowStep(stepId, newCompletedState).catch(error => {
-        console.error('❌ CHECKBOX: Server update failed, reverting local state:', error);
-        // On error, revert persistent local state
-        updateLocalCheckedItems((checkedItems) => {
-          if (newCompletedState) {
-            checkedItems.delete(stepId); // Revert addition
-            console.log(`🔄 REVERT: Removed ${stepId} due to server error`);
-          } else {
-            checkedItems.add(stepId); // Revert deletion
-            console.log(`🔄 REVERT: Added ${stepId} due to server error`);
-          }
-        });
+    updateWorkflowStep(stepId, newCompletedState).catch(error => {
+      console.error('❌ CHECKBOX: Server update failed, reverting localStorage:', error);
+      // On error, revert localStorage-backed state
+      updateLocalCheckedItems((checkedItems) => {
+        if (newCompletedState) {
+          checkedItems.delete(stepId); // Revert addition
+          console.log(`🔄 REVERT: Removed ${stepId} from localStorage due to server error`);
+        } else {
+          checkedItems.add(stepId); // Revert deletion  
+          console.log(`🔄 REVERT: Added ${stepId} to localStorage due to server error`);
+        }
       });
-    }, 10); // Small delay to let UI update first
+    });
   };
 
   // Helper function to check if a step is completed
   const isStepCompleted = (stepId) => {
-    const isLocallyChecked = localCheckedItemsRef.current.has(stepId);
-    console.log(`🔍 CHECKING: ${stepId} - locally checked: ${isLocallyChecked}, local state size: ${localCheckedItemsRef.current.size}`);
+    // Check localStorage-backed state first
+    const isLocallyChecked = localCheckedItems.has(stepId);
     
-    // ALWAYS return local state if it exists
     if (isLocallyChecked) {
-      console.log(`✅ LOCAL: ${stepId} is checked locally`);
+      console.log(`✅ LOCAL: ${stepId} is checked (from localStorage-backed state)`);
       return true;
     }
     
@@ -1215,6 +1271,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       
       if (directMatch && (directMatch.completed || directMatch.isCompleted)) {
         console.log(`✅ SERVER: ${stepId} is checked on server`);
+        // Sync server state to localStorage
+        updateLocalCheckedItems(checkedItems => {
+          checkedItems.add(stepId);
+        });
         return true;
       }
     }

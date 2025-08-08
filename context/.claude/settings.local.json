@@ -4,7 +4,9 @@
       "Bash(npm run generate-prp:*)",
       "Bash(npm run execute-prp:*)",
       "Bash(curl:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

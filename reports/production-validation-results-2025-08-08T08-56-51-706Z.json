@@ -1,0 +1,106 @@
+{
+  "executionInfo": {
+    "timestamp": "2025-08-08T08:56:51.705Z",
+    "environment": "production",
+    "url": "https://goldfish-app-4yuma.ondigitalocean.app",
+    "duration": "NaNs",
+    "browser": "Node.js/22"
+  },
+  "summary": {
+    "totalElements": 94,
+    "tested": 94,
+    "passed": 90,
+    "failed": 4,
+    "errors": 0,
+    "successRate": "95.7%"
+  },
+  "categoryResults": {
+    "critical": {
+      "total": 52,
+      "tested": 52,
+      "passed": 50,
+      "failed": 2
+    },
+    "navigation": {
+      "total": 13,
+      "tested": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "form": {
+      "total": 3,
+      "tested": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "modal": {
+      "total": 13,
+      "tested": 13,
+      "passed": 12,
+      "failed": 1
+    },
+    "standard": {
+      "total": 13,
+      "tested": 13,
+      "passed": 12,
+      "failed": 1
+    }
+  },
+  "failures": [
+    {
+      "category": "critical",
+      "element": "Logout Button",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Logout user",
+      "actual": "Action failed - Logout Button did not execute expected behavior",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /, locate \"Logout\", click element"
+    },
+    {
+      "category": "critical",
+      "element": "Logout Button",
+      "page": "Projects",
+      "path": "/projects",
+      "expected": "Logout user",
+      "actual": "Action failed - Logout Button did not execute expected behavior",
+      "severity": "CRITICAL",
+      "reproduction": "Navigate to /projects, locate \"Logout\", click element"
+    },
+    {
+      "category": "modal",
+      "element": "User Profile Dropdown",
+      "page": "Projects",
+      "path": "/projects",
+      "expected": "Open profile menu",
+      "actual": "Modal failed to open - User Profile Dropdown trigger not working",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /projects, locate \"Profile\", click element"
+    },
+    {
+      "category": "standard",
+      "element": "Activity Feed Refresh",
+      "page": "Dashboard",
+      "path": "/",
+      "expected": "Refresh activity feed",
+      "actual": "Action failed - Activity Feed Refresh did not execute expected behavior",
+      "severity": "MEDIUM",
+      "reproduction": "Navigate to /, locate \"Refresh\", click element"
+    }
+  ],
+  "performance": {
+    "averageResponseTime": 0,
+    "maxResponseTime": 1,
+    "minResponseTime": 0,
+    "slowOperations": 0,
+    "infiniteLoopsDetected": 0,
+    "slowOperationDetails": []
+  },
+  "recommendations": [
+    {
+      "priority": "URGENT",
+      "title": "Fix Critical Path Failures",
+      "description": "2 critical elements are not functioning. These must be fixed immediately to restore core functionality."
+    }
+  ]
+}
