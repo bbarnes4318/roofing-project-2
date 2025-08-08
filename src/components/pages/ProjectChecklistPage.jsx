@@ -348,8 +348,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
   
-  // Simple local state to track checked items - no complex logic
-  const [localCheckedItems, setLocalCheckedItems] = useState(new Set());
+  // Use useRef to persist checked items across re-renders
+  const localCheckedItemsRef = useRef(new Set());
+  const [forceUpdate, setForceUpdate] = useState(0);
+  
+  // Helper to add/remove from persistent set and force re-render
+  const updateLocalCheckedItems = (callback) => {
+    callback(localCheckedItemsRef.current);
+    setForceUpdate(prev => prev + 1); // Force re-render
+  };
   
   // Get phase colors from WorkflowProgressService to match dashboard
   const getPhaseColor = (phaseId) => {
@@ -1153,34 +1160,35 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     const currentlyCompleted = isStepCompleted(stepId);
     const newCompletedState = !currentlyCompleted;
     
-    console.log(`🔄 CHECKBOX: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
+    console.log(`🔄 CHECKBOX: User clicked ${stepId}`);
+    console.log(`🔄 CHECKBOX: Current state: ${currentlyCompleted} -> New state: ${newCompletedState}`);
+    console.log(`🔄 CHECKBOX: Local state before update:`, Array.from(localCheckedItemsRef.current));
     
-    // IMMEDIATE: Update local state for instant UI feedback
-    setLocalCheckedItems(prev => {
-      const newSet = new Set(prev);
+    // IMMEDIATE: Update persistent local state for instant UI feedback
+    updateLocalCheckedItems((checkedItems) => {
       if (newCompletedState) {
-        newSet.add(stepId);
-        console.log(`✅ LOCAL: Added ${stepId} to checked items`);
+        checkedItems.add(stepId);
+        console.log(`✅ LOCAL: Added ${stepId}, new size: ${checkedItems.size}`);
       } else {
-        newSet.delete(stepId);
-        console.log(`❌ LOCAL: Removed ${stepId} from checked items`);
+        checkedItems.delete(stepId);
+        console.log(`❌ LOCAL: Removed ${stepId}, new size: ${checkedItems.size}`);
       }
-      return newSet;
+      console.log(`🔄 LOCAL: Updated set:`, Array.from(checkedItems));
     });
     
     // ASYNC: Update server in background - don't wait for it
     setTimeout(() => {
       updateWorkflowStep(stepId, newCompletedState).catch(error => {
-        console.error('❌ CHECKBOX: Server update failed:', error);
-        // On error, revert local state
-        setLocalCheckedItems(prev => {
-          const newSet = new Set(prev);
+        console.error('❌ CHECKBOX: Server update failed, reverting local state:', error);
+        // On error, revert persistent local state
+        updateLocalCheckedItems((checkedItems) => {
           if (newCompletedState) {
-            newSet.delete(stepId); // Revert addition
+            checkedItems.delete(stepId); // Revert addition
+            console.log(`🔄 REVERT: Removed ${stepId} due to server error`);
           } else {
-            newSet.add(stepId); // Revert deletion
+            checkedItems.add(stepId); // Revert deletion
+            console.log(`🔄 REVERT: Added ${stepId} due to server error`);
           }
-          return newSet;
         });
       });
     }, 10); // Small delay to let UI update first
@@ -1188,12 +1196,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
 
   // Helper function to check if a step is completed
   const isStepCompleted = (stepId) => {
-    // SIMPLE: Check local state first for immediate UI response
-    if (localCheckedItems.has(stepId)) {
+    const isLocallyChecked = localCheckedItemsRef.current.has(stepId);
+    console.log(`🔍 CHECKING: ${stepId} - locally checked: ${isLocallyChecked}, local state size: ${localCheckedItemsRef.current.size}`);
+    
+    // ALWAYS return local state if it exists
+    if (isLocallyChecked) {
+      console.log(`✅ LOCAL: ${stepId} is checked locally`);
       return true;
     }
     
-    // Then check server data as backup
+    // Check server data as backup
     if (workflowData && workflowData.steps) {
       const directMatch = workflowData.steps.find(s => 
         s.id === stepId || 
@@ -1201,11 +1213,13 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         s._id === stepId
       );
       
-      if (directMatch) {
-        return directMatch.completed || directMatch.isCompleted;
+      if (directMatch && (directMatch.completed || directMatch.isCompleted)) {
+        console.log(`✅ SERVER: ${stepId} is checked on server`);
+        return true;
       }
     }
     
+    console.log(`❌ UNCHECKED: ${stepId} not found in local or server state`);
     return false;
   };
 
