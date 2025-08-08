@@ -349,8 +349,10 @@ router.post('/', asyncHandler(async (req, res, next) => {
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(customer);
 
-    // Invalidate cache for customers
-    await cacheService.invalidateRelated('customer', customer.id);
+    // Invalidate cache for customers (optional)
+    if (cacheService) {
+      await cacheService.invalidateRelated('customer', customer.id);
+    }
     
     sendSuccess(res, transformedCustomer, 'Customer created successfully', 201);
   } catch (error) {
@@ -418,8 +420,10 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(updatedCustomer);
 
-    // Invalidate cache for customers
-    await cacheService.invalidateRelated('customer', req.params.id);
+    // Invalidate cache for customers (optional)
+    if (cacheService) {
+      await cacheService.invalidateRelated('customer', req.params.id);
+    }
     
     sendSuccess(res, transformedCustomer, 'Customer updated successfully');
   } catch (error) {
@@ -457,8 +461,10 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
       where: { id: req.params.id }
     });
 
-    // Invalidate cache for customers
-    await cacheService.invalidateRelated('customer', req.params.id);
+    // Invalidate cache for customers (optional)
+    if (cacheService) {
+      await cacheService.invalidateRelated('customer', req.params.id);
+    }
     
     sendSuccess(res, null, 'Customer deleted successfully');
   } catch (error) {
