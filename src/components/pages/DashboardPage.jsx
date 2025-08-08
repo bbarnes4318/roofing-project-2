@@ -447,19 +447,21 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   };
 
   // Enhanced project selection handler with scroll to top
-      const handleProjectSelectWithScroll = (project, view = 'Project Profile', phase = null, sourceSection = null) => {
+      const handleProjectSelectWithScroll = (project, view = 'Project Profile', phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null) => {
       console.log('🔍 DASHBOARD: handleProjectSelectWithScroll called with:');
       console.log('🔍 DASHBOARD: project:', project?.name);
       console.log('🔍 DASHBOARD: view:', view);
       console.log('🔍 DASHBOARD: phase:', phase);
       console.log('🔍 DASHBOARD: sourceSection:', sourceSection);
+      console.log('🔍 DASHBOARD: targetLineItemId:', targetLineItemId);
+      console.log('🔍 DASHBOARD: targetSectionId:', targetSectionId);
       console.log('🔍 DASHBOARD: sourceSection type:', typeof sourceSection);
       console.log('🔍 DASHBOARD: sourceSection === "Current Alerts":', sourceSection === 'Current Alerts');
       
       scrollToTop(); // Scroll to top immediately
       if (onProjectSelect) {
-        console.log('🔍 DASHBOARD: Calling onProjectSelect with sourceSection:', sourceSection);
-        onProjectSelect(project, view, phase, sourceSection); // FIX: pass sourceSection
+        console.log('🔍 DASHBOARD: Calling onProjectSelect with all parameters');
+        onProjectSelect(project, view, phase, sourceSection, targetLineItemId, targetSectionId);
       }
     };
 
@@ -1906,34 +1908,94 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         {/* Workflow - Navigate to specific line item using new navigation system */}
                         <td className="py-2 px-2 whitespace-nowrap">
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (onProjectSelect) {
-                                // Use the new direct navigation system for workflow
-                                const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
-                                const currentPhase = WorkflowProgressService.getProjectPhase(project);
-                                
-                                // Create navigation-compatible line item ID 
-                                const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
-                                const targetSectionId = currentStep?.sectionId || null;
-                                
-                                const projectWithNavigation = {
-                                  ...project,
-                                  dashboardState: {
-                                    selectedPhase: phaseConfig.id,
-                                    expandedPhases: Array.from(expandedPhases),
-                                    scrollToProject: project
+                                try {
+                                  // Get current project position from the API
+                                  const response = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                                    headers: {
+                                      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                    }
+                                  });
+                                  
+                                  if (response.ok) {
+                                    const result = await response.json();
+                                    if (result.success && result.data) {
+                                      const position = result.data;
+                                      
+                                      // Generate the correct line item ID format that ProjectChecklistPage expects
+                                      // Format: ${phase.id}-${item.id}-${subIdx}
+                                      // Get the workflow structure to find the subtask index
+                                      const getSubtaskIndex = async () => {
+                                        try {
+                                          const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                                            headers: {
+                                              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                            }
+                                          });
+                                          
+                                          if (workflowResponse.ok) {
+                                            const workflowResult = await workflowResponse.json();
+                                            if (workflowResult.success && workflowResult.data) {
+                                              // Find the current phase
+                                              const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                                              if (currentPhaseData) {
+                                                // Find the current section
+                                                const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                                                if (currentSectionData) {
+                                                  // Find the subtask index by matching the current line item name
+                                                  const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => subtask === position.currentLineItemName);
+                                                  return subtaskIndex >= 0 ? subtaskIndex : 0;
+                                                }
+                                              }
+                                            }
+                                          }
+                                        } catch (error) {
+                                          console.warn('Could not determine subtask index:', error);
+                                        }
+                                        return 0; // Default fallback
+                                      };
+                                      
+                                      const subtaskIndex = await getSubtaskIndex();
+                                      const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                      const targetSectionId = position.currentSection;
+                                      
+                                      console.log('🎯 WORKFLOW NAVIGATION: Generated targetLineItemId:', targetLineItemId);
+                                      console.log('🎯 WORKFLOW NAVIGATION: Generated targetSectionId:', targetSectionId);
+                                      
+                                      const projectWithNavigation = {
+                                        ...project,
+                                        dashboardState: {
+                                          selectedPhase: phaseConfig.id,
+                                          expandedPhases: Array.from(expandedPhases),
+                                          scrollToProject: project
+                                        }
+                                      };
+                                      
+                                      // Use the new navigation system with correct targetLineItemId
+                                      handleProjectSelectWithScroll(
+                                        projectWithNavigation, 
+                                        'Project Workflow', 
+                                        null, 
+                                        'Project Phases',
+                                        targetLineItemId,
+                                        targetSectionId
+                                      );
+                                    } else {
+                                      console.warn('No project position data found, using fallback navigation');
+                                      // Fallback to basic navigation
+                                      handleProjectSelectWithScroll(project, 'Project Workflow', null, 'Project Phases');
+                                    }
+                                  } else {
+                                    console.error('Failed to get project position, using fallback navigation');
+                                    // Fallback to basic navigation
+                                    handleProjectSelectWithScroll(project, 'Project Workflow', null, 'Project Phases');
                                   }
-                                };
-                                
-                                // Use the new navigation system with targetLineItemId
-                                handleProjectSelectWithScroll(
-                                  projectWithNavigation, 
-                                  'Project Workflow', 
-                                  null, 
-                                  'Current Projects by Phase',
-                                  targetLineItemId,
-                                  targetSectionId
-                                );
+                                } catch (error) {
+                                  console.error('Error getting project position:', error);
+                                  // Fallback to basic navigation
+                                  handleProjectSelectWithScroll(project, 'Project Workflow', null, 'Project Phases');
+                                }
                               }
                             }}
                             className="w-16 h-6 border border-blue-500 text-black text-xs rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
