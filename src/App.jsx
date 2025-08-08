@@ -609,7 +609,6 @@ export default function App() {
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Projects', icon: <DocumentTextIcon />, page: 'Projects' },
-        { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages', badge: activities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
         { name: 'AI Assistant', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
@@ -637,7 +636,7 @@ export default function App() {
                 dashboardState={navigationState.dashboardState}
               />
             );
-            case 'Project Messages': return <ActivityFeedPage projects={projects} onProjectSelect={handleProjectSelect} activities={activities} onAddActivity={addActivity} colorMode={colorMode} />;
+            // Removed 'Project Messages' route from sidebar
             case 'Projects': return <ProjectsPage onProjectSelect={handleProjectSelect} onProjectActionSelect={handleProjectSelect} onCreateProject={handleCreateProject} projects={projects} colorMode={colorMode} projectSourceSection={navigationState.projectSourceSection} onNavigateBack={handleBackToProjects} scrollToProject={navigationState.scrollToProject} />;
             case 'Customers': return <CustomersPage colorMode={colorMode} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;

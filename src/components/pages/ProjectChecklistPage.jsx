@@ -143,8 +143,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   // Layer 4: Force render counter
   const [renderCounter, setRenderCounter] = useState(0);
   
-  // Phase management - START WITH ALL PHASES OPEN TO SHOW ALL 6 PHASES
-  const [openPhase, setOpenPhase] = useState('ALL'); // Show all phases expanded
+  // Phase management - collapsed by default
+  const [openPhase, setOpenPhase] = useState(null);
   const [openItem, setOpenItem] = useState({});
   
   // Workflow data states
@@ -154,8 +154,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [loadingError, setLoadingError] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   
-  // Navigation and highlighting states
-  const [highlightedLineItemId, setHighlightedLineItemId] = useState(targetLineItemId);
+  // Navigation and highlighting states (support URL param ?highlight_item=PHASE-SECTION-INDEX)
+  const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const urlHighlight = urlParams.get('highlight_item');
+  const [highlightedLineItemId, setHighlightedLineItemId] = useState(targetLineItemId || urlHighlight);
   const [highlightedSectionId, setHighlightedSectionId] = useState(targetSectionId);
   
   // =================================================================
@@ -366,18 +368,23 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           setProjectPosition(positionResult.data);
           console.log(`Loaded project position:`, positionResult.data);
           
-          // Keep ALL phases open but note the current phase for navigation
-          // setOpenPhase(positionResult.data.currentPhase); // Keep showing all phases
+          // Default collapsed; expand current phase if no explicit target
+          if (!targetLineItemId && !targetSectionId && !urlHighlight) {
+            setOpenPhase(positionResult.data.currentPhase || null);
+          }
           
           // Auto-scroll to target or current position after a brief delay
           setTimeout(() => {
             let targetElement = null;
             let scrollReason = '';
             
-            // Priority 1: Navigate to specific target line item
-            if (targetLineItemId) {
+            // Priority 1: Navigate to specific target line item (prop or URL param)
+            const effectiveTargetLineItem = targetLineItemId || urlHighlight;
+            if (effectiveTargetLineItem) {
               targetElement = document.getElementById(`lineitem-${targetLineItemId}`);
-              scrollReason = `target line item: ${targetLineItemId}`;
+              // Expand phase based on current position if collapsed
+              if (positionResult.data?.currentPhase) setOpenPhase(positionResult.data.currentPhase);
+              scrollReason = `target line item: ${effectiveTargetLineItem}`;
             }
             // Priority 2: Navigate to specific target section
             else if (targetSectionId) {
@@ -462,18 +469,19 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     setOpenItem((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  // Get phase colors
+  // Get phase colors (standardized via WorkflowProgressService)
   const getPhaseColor = (phaseId) => {
-    const colors = {
-      'LEAD': 'bg-blue-500',
-      'PROSPECT': 'bg-green-500',
-      'APPROVED': 'bg-yellow-500',
-      'EXECUTION': 'bg-orange-500',
-      'SECOND_SUPPLEMENT': 'bg-pink-500',
-      'COMPLETION': 'bg-purple-500',
-      'default': 'bg-gray-500'
+    const color = WorkflowProgressService.getPhaseColor(phaseId);
+    // Map to tailwind bg utility fallbacks if needed
+    const map = {
+      '#E0E7FF': 'bg-indigo-400',
+      '#3B82F6': 'bg-blue-500',
+      '#10B981': 'bg-emerald-500',
+      '#F59E0B': 'bg-amber-500',
+      '#8B5CF6': 'bg-violet-500',
+      '#14532D': 'bg-green-900'
     };
-    return colors[phaseId] || colors.default;
+    return map[color.hex] || 'bg-gray-500';
   };
 
   if (!project) {
@@ -563,7 +571,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             </button>
 
             {/* Phase Content - Show when specific phase is open OR when ALL phases are open */}
-            {(openPhase === phase.id || openPhase === 'ALL') && (
+            {openPhase === phase.id && (
               <div className="p-6 space-y-4">
                 {phase.items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
