@@ -346,6 +346,14 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         // TODO: Implement assign alert functionality
         console.log('Assign alert:', alert);
     };
+
+    const handleAssignConfirm = (user, alert, projectName) => {
+        // TODO: Implement assign alert confirmation functionality
+        console.log('Assign alert confirmed:', { user, alert, projectName });
+        setShowAssignModal(false);
+        setSelectedAlertForAssign(null);
+        setAssignToUser('');
+    };
     
     console.log('🔍 project:', project?.name);
     console.log('🔍 previousPage:', previousPage);
@@ -365,6 +373,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     const scrollRef = useRef(null);
     const [expandedProgress, setExpandedProgress] = useState({});
     const [selectedUserGroup, setSelectedUserGroup] = useState('all');
+    
+    // Assignment modal state
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedAlertForAssign, setSelectedAlertForAssign] = useState(null);
+    const [assignToUser, setAssignToUser] = useState('');
     
     // Alerts state for expanded functionality - matching dashboard
     const [expandedAlerts, setExpandedAlerts] = useState(new Set());
