@@ -1480,47 +1480,66 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </button>
         </div>
         
-        {/* Phase Filter Buttons - SINGLE ROW GUARANTEED */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto w-full">
-          <div className="flex items-center gap-2 flex-nowrap min-w-fit">
-            {/* Smaller "All" Button */}
-            <button 
-              onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
-              className={`h-10 px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-1.5 hover:shadow-md w-[70px] flex-shrink-0 ${
-                selectedPhase === 'all'
-                  ? 'border-blue-400 bg-blue-50 shadow-sm text-blue-700'
-                  : colorMode 
-                    ? 'border-gray-600 bg-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
-                    : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-              }`}
-            >
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></div>
-              <span className="whitespace-nowrap text-[10px]">All</span>
-            </button>
-            
-            {/* 6 Phase Containers - Exact Same Dimensions */}
-            {PROJECT_PHASES.map(phase => (
-              <button
-                key={phase.id}
-                onClick={() => {
-                  console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
-                  setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
-                }}
-                className={`h-12 px-3 py-2 text-xs font-bold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg w-[110px] flex-shrink-0 ${
-                  selectedPhase === phase.id
-                    ? 'border-gray-400 bg-gray-50 shadow-md text-gray-800'
+        {/* Professional Phase Filter Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <h3 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Filter by Phase</h3>
+            <div className={`h-px flex-1 ${colorMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <div className="flex gap-3 pb-2 min-w-max">
+              {/* All Projects Button */}
+              <button 
+                onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
+                className={`h-12 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg w-20 flex-shrink-0 ${
+                  selectedPhase === 'all'
+                    ? 'border-blue-500 bg-blue-50 shadow-md text-blue-800'
                     : colorMode 
-                      ? 'border-gray-600 bg-transparent text-gray-200 hover:bg-gray-700 hover:border-gray-500' 
-                      : 'border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                      ? 'border-gray-600 bg-slate-800/50 text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
+                      : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                 }`}
               >
-                <div 
-                  className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: phase.color }}
-                ></div>
-                <span className="whitespace-nowrap text-center leading-tight text-[11px]">{phase.name}</span>
+                <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
+                <span className="text-[10px] font-medium">All</span>
               </button>
-            ))}
+            
+            {/* 6 Phase Containers - Professional Layout with Proper Sizing */}
+            {PROJECT_PHASES.map(phase => {
+              // Determine appropriate width based on phase name length
+              const getPhaseWidth = (phaseName) => {
+                if (phaseName.length <= 4) return 'w-20'; // Lead
+                if (phaseName.length <= 8) return 'w-24'; // Prospect, Approved
+                if (phaseName.length <= 10) return 'w-28'; // Execution, Completion
+                return 'w-32'; // 2nd Supplement and longer names
+              };
+              
+              return (
+                <button
+                  key={phase.id}
+                  onClick={() => {
+                    console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
+                    setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
+                  }}
+                  className={`h-12 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg ${getPhaseWidth(phase.name)} flex-shrink-0 ${
+                    selectedPhase === phase.id
+                      ? 'border-gray-400 bg-gray-50 shadow-md text-gray-800'
+                      : colorMode 
+                        ? 'border-gray-600 bg-transparent text-gray-200 hover:bg-gray-700 hover:border-gray-500' 
+                        : 'border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                  }`}
+                >
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: phase.color }}
+                  ></div>
+                  <span className="text-center leading-tight text-[10px] font-medium break-words max-w-full">
+                    {phase.name}
+                  </span>
+                </button>
+              );
+            })}
+            </div>
           </div>
         </div>
 
