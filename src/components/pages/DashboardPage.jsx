@@ -898,7 +898,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const getProjectName = (projectId) => {
     if (!projectId) return 'General';
     const project = projects.find(p => p.id === projectId || p._id === projectId);
-    return project ? project.name : 'Unknown Project';
+    return project ? (project.projectName || project.name || project.address) : 'Unknown Project';
   };
 
   // Function to handle project selection from alerts
@@ -1480,11 +1480,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </button>
         </div>
         
-        {/* Phase Filter Buttons - Uniform Pill-Shaped Containers */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
+        {/* Phase Filter Buttons - Uniform Pill-Shaped Containers - LARGER */}
+        <div className="flex items-center gap-4 mb-6 flex-wrap">
           <button 
             onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
-            className={`h-10 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-md ${
+            className={`h-14 px-6 py-3 text-sm font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-3 hover:shadow-md min-w-[120px] ${
               selectedPhase === 'all'
                 ? 'border-blue-400 bg-blue-50 shadow-sm text-blue-700'
                 : colorMode 
@@ -1492,7 +1492,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   : 'border-gray-300 bg-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-400'
             }`}
           >
-            <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
+            <div className="w-4 h-4 rounded-full bg-blue-500 flex-shrink-0"></div>
             <span className="whitespace-nowrap">All</span>
           </button>
           {PROJECT_PHASES.map(phase => (
@@ -1502,7 +1502,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
                 setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
               }}
-              className={`h-10 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-md ${
+              className={`h-14 px-6 py-3 text-sm font-semibold rounded-full transition-all duration-200 border flex items-center justify-center gap-3 hover:shadow-md min-w-[120px] ${
                 selectedPhase === phase.id
                   ? 'border-gray-400 bg-gray-50 shadow-sm text-gray-700'
                   : colorMode 
@@ -1511,7 +1511,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               }`}
             >
               <div 
-                className="w-3 h-3 rounded-full flex-shrink-0"
+                className="w-4 h-4 rounded-full flex-shrink-0"
                 style={{ backgroundColor: phase.color }}
               ></div>
               <span className="whitespace-nowrap">{phase.name}</span>
@@ -1543,60 +1543,57 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 
                 console.log('Selected Phase:', selectedPhase, 'Filtered Projects Count:', filteredProjects.length);
                 
-                // Only show header if there are filtered projects
-                if (filteredProjects.length > 0) {
-                  return (
-                    <thead>
-                      <tr className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phase</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                          <button 
-                            onClick={() => handleProjectSort('projectNumber')}
-                            className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
-                          >
-                            Project #
-                            {sortConfig.key === 'projectNumber' && (
-                              <span className="text-xs">
-                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                              </span>
-                            )}
-                          </button>
-                        </th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                          <button 
-                            onClick={() => handleProjectSort('primaryContact')}
-                            className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
-                          >
-                            Primary Contact
-                            {sortConfig.key === 'primaryContact' && (
-                              <span className="text-xs">
-                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                              </span>
-                            )}
-                          </button>
-                        </th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                          <button 
-                            onClick={() => handleProjectSort('projectManager')}
-                            className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
-                          >
-                            PM
-                            {sortConfig.key === 'projectManager' && (
-                              <span className="text-xs">
-                                {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                              </span>
-                            )}
-                          </button>
-                        </th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Alerts</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Messages</th>
-                        <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflow</th>
-                      </tr>
-                    </thead>
-                  );
-                }
-                return null;
+                // Always show header for better UX - never return null
+                return (
+                  <thead>
+                    <tr className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phase</th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <button 
+                          onClick={() => handleProjectSort('projectNumber')}
+                          className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                          Project #
+                          {sortConfig.key === 'projectNumber' && (
+                            <span className="text-xs">
+                              {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </button>
+                      </th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <button 
+                          onClick={() => handleProjectSort('primaryContact')}
+                          className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                          Primary Contact
+                          {sortConfig.key === 'primaryContact' && (
+                            <span className="text-xs">
+                              {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </button>
+                      </th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <button 
+                          onClick={() => handleProjectSort('projectManager')}
+                          className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                          PM
+                          {sortConfig.key === 'projectManager' && (
+                            <span className="text-xs">
+                              {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </button>
+                      </th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Alerts</th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Messages</th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflow</th>
+                    </tr>
+                  </thead>
+                );
               })()}
               <tbody>
                 {(() => {
@@ -1714,6 +1711,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         return 0;
                       })
                     : filteredProjects;
+                  
+                  // Handle empty state for filtered projects
+                  if (filteredProjects.length === 0 && selectedPhase && !projectsLoading) {
+                    const phaseName = selectedPhase === 'all' ? 'All Projects' : 
+                      PROJECT_PHASES.find(p => p.id === selectedPhase)?.name || selectedPhase;
+                    
+                    return (
+                      <tr>
+                        <td colSpan="8" className="text-center py-12">
+                          <div className={`${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <div className="text-4xl mb-3">📋</div>
+                            <div className="font-medium text-sm mb-1">No projects in {phaseName}</div>
+                            <div className="text-xs">Projects will appear here when they are in this phase</div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
                   
                   return sortedProjects.map((project) => {
                     const projectPhase = getProjectPhase(project);
@@ -2059,7 +2074,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       const newActivity = {
                         id: `msg_${Date.now()}`,
                         projectId: parseInt(newMessageProject),
-                        projectName: selectedProject?.name || 'Unknown Project',
+                        projectName: selectedProject?.projectName || selectedProject?.name || selectedProject?.address || 'Unknown Project',
                         projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
                         subject: newMessageSubject,
                         description: newMessageText,
@@ -2107,7 +2122,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <option value="">Select Project</option>
                           {(projects || []).map(project => (
                             <option key={project.id} value={project.id}>
-                              #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.address}
+                              #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.projectName || project.name || project.address}
                             </option>
                           ))}
                         </select>
