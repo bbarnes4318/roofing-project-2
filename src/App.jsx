@@ -31,14 +31,15 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
-      // Disable retries to prevent rapid refetch/flicker during 5xx incidents
-      retry: false,
+      // Enable retries for better reliability
+      retry: 3,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
-      // Avoid automatic reconnect refetch storms on unstable networks
-      refetchOnReconnect: false,
+      // Enable reconnect refetch for better user experience
+      refetchOnReconnect: true,
     },
     mutations: {
-      retry: 0,
+      retry: 1,
     },
   },
 });

@@ -53,8 +53,13 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     
     // Removed drag and drop state - reverted to original layout
     
-    // Fetch projects directly from database
-    const { data: projectsFromDb, isLoading: projectsLoading, error: projectsError } = useProjects({ limit: 100 });
+    // Fetch projects directly from database with retry enabled
+    const { data: projectsFromDb, isLoading: projectsLoading, error: projectsError, refetch } = useProjects({ 
+        limit: 100, 
+        retry: 3, // Enable retries
+        retryDelay: 1000, // 1 second retry delay
+        refetchOnWindowFocus: true // Refetch when window regains focus
+    });
     
     // CRITICAL: Use centralized workflow states for 100% consistency
     const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
@@ -795,9 +800,17 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     <div className={`p-8 rounded-xl ${colorMode ? 'bg-slate-800' : 'bg-white'} shadow-lg`}>
                         <ErrorState 
                             message={projectsError?.message || 'Unable to load projects. Please try again.'}
-                            onRetry={() => window.location.reload()}
+                            onRetry={() => refetch()}
                             colorMode={colorMode}
                         />
+                        <div className="mt-4 text-center">
+                            <button 
+                                onClick={() => refetch()}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Try Again
+                            </button>
+                        </div>
                     </div>
                 ) : projectsArray.length === 0 ? (
                     <div className={`p-12 rounded-xl text-center ${colorMode ? 'bg-slate-800' : 'bg-white'} shadow-lg`}>
