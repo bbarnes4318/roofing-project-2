@@ -8,6 +8,8 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { prisma } = require('../config/prisma');
+const WorkflowProgressionService = require('../services/WorkflowProgressionService');
+const AlertGenerationService = require('../services/AlertGenerationService');
 const { cacheService } = require('../config/redis');
 const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/workflowMapping');
 
@@ -546,6 +548,20 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
         }
       }
     });
+
+    // Initialize workflow tracker and create initial alert for the first Lead line item
+    try {
+      const tracker = await WorkflowProgressionService.initializeProjectWorkflow(project.id);
+      if (tracker?.currentLineItemId) {
+        await AlertGenerationService.generateActiveLineItemAlert(
+          project.id,
+          tracker.id,
+          tracker.currentLineItemId
+        );
+      }
+    } catch (werr) {
+      console.warn('⚠️ Workflow init/initial alert failed (project still created):', werr?.message);
+    }
 
     // Transform project for frontend compatibility
     const transformedProject = transformProjectForFrontend(project);

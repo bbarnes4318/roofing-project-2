@@ -32,7 +32,7 @@ class AlertGenerationService {
         LEFT JOIN customers c ON c.id = p.customer_id
         WHERE pwt.project_id = ANY(${projectIds}::text[])
           AND wli.is_active = true
-          AND p.status = 'IN_PROGRESS'
+          AND p.status IN ('PENDING','IN_PROGRESS')
       `;
 
       if (!activeItems || activeItems.length === 0) {
