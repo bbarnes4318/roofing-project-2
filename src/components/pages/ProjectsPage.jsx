@@ -344,7 +344,15 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
             // First, find the primary contact
             const primaryContact = newProject.contacts.find(contact => contact.isPrimary && contact.name.trim()) ||
                                  newProject.contacts.find(contact => contact.name.trim());
-            
+
+            // Utility: normalize phone to match server regex ^[+]?[1-9][\d]{0,15}$
+            const normalizePhone = (value) => {
+                if (!value) return '';
+                const digits = (value || '').toString().replace(/\D/g, '');
+                if (!digits) return '';
+                return digits[0] === '0' ? '1' + digits.slice(1) : digits;
+            };
+
             // Find a secondary contact (first non-primary contact with a name)
             const secondaryContact = newProject.contacts.find(contact => 
                 !contact.isPrimary && contact.name.trim() && contact !== primaryContact
@@ -353,12 +361,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
             // Step 1: Create customer with proper contact structure
             const customerData = {
                 primaryName: newProject.customerName,
-                primaryEmail: primaryContact?.email || 'noemail@example.com',
-                primaryPhone: primaryContact?.phone || '0000000000',
+                // Use a unique placeholder email if missing to avoid unique constraint collisions
+                primaryEmail: (primaryContact?.email && primaryContact.email.trim()) || `no-reply+${Date.now()}@kenstruction.com`,
+                // Normalize phone to satisfy regex; fallback to a valid default starting with 1
+                primaryPhone: normalizePhone(primaryContact?.phone) || '1111111111',
                 // Add secondary contact if available
                 secondaryName: secondaryContact?.name || null,
                 secondaryEmail: secondaryContact?.email || null,
-                secondaryPhone: secondaryContact?.phone || null,
+                secondaryPhone: normalizePhone(secondaryContact?.phone) || null,
                 primaryContact: 'PRIMARY', // Always set primary as the main contact
                 address: `${newProject.customerName} Project`, // Better default address
                 notes: `Project created from Add Project form`,
@@ -367,7 +377,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     .filter(contact => contact.name && contact.name.trim()) // Only send contacts with names
                     .map(contact => ({
                         name: contact.name.trim(),
-                        phone: contact.phone || null,
+                        phone: normalizePhone(contact.phone) || null,
                         email: contact.email || null,
                         isPrimary: contact.isPrimary || false
                     }))
@@ -394,17 +404,17 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         },
                         body: JSON.stringify(customerData)
                     });
-                    
+                    const maybeJson = await customerResponse.json().catch(() => null);
                     if (!customerResponse.ok) {
-                        throw new Error('Failed to create customer');
+                        const serverMsg = maybeJson?.message || maybeJson?.error || 'Failed to create customer';
+                        throw new Error(serverMsg);
                     }
-                    
-                    const customerResult = await customerResponse.json();
+                    const customerResult = maybeJson;
                     customerId = customerResult.data.id;
                 }
             } catch (error) {
                 console.error('Error creating customer:', error);
-                setError('Failed to create customer. Please try again.');
+                setError(error?.message || 'Failed to create customer. Please try again.');
                 return;
             }
 
