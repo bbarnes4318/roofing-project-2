@@ -1,0 +1,6 @@
+"Severity","Element","Page","Path","Category","Expected","Actual","Reproduction"
+"CRITICAL","Create New Project","Projects","/projects","critical","Open project creation form","Form submission failed - Create New Project returned 500 Internal Server Error","Navigate to /projects, locate ""Create Project"", click element"
+"CRITICAL","Create New Customer","Customers","/customers","critical","Open customer creation form","Form submission failed - Create New Customer returned 500 Internal Server Error","Navigate to /customers, locate ""Create Customer"", click element"
+"CRITICAL","Home Navigation","Workflow Settings","/workflow-settings","critical","Navigate to dashboard","Navigation to Navigate to dashboard failed - 404 Not Found","Navigate to /workflow-settings, locate ""Dashboard"", click element"
+"CRITICAL","Projects Navigation","Company Calendar","/company-calendar","critical","Navigate to projects","Navigation to Navigate to projects failed - 404 Not Found","Navigate to /company-calendar, locate ""Projects"", click element"
+"CRITICAL","Logout Button","AI Assistant","/ai-assistant","critical","Logout user","Action failed - Logout Button did not execute expected behavior","Navigate to /ai-assistant, locate ""Logout"", click element"

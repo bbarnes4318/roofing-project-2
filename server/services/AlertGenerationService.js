@@ -14,20 +14,20 @@ class AlertGenerationService {
           pwt.project_id,
           pwt.id as tracker_id,
           wli.id as line_item_id,
-          wli.item_name,
-          wli.responsible_role,
-          wli.alert_days,
-          ws.display_name as section_name,
-          wp.phase_type,
-          p.project_number,
-          p.project_name,
-          p.project_manager_id,
-          c.primary_name as customer_name,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          ws."displayName" as section_name,
+          wp."phaseType" as phase_type,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."projectManagerId" as project_manager_id,
+          c."primaryName" as customer_name,
           c.address as customer_address
         FROM project_workflow_trackers pwt
         INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
         INNER JOIN workflow_sections ws ON ws.id = wli.section_id
-        INNER JOIN workflow_phases wp ON wp.id = ws.phase_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
         INNER JOIN projects p ON p.id = pwt.project_id
         LEFT JOIN customers c ON c.id = p.customer_id
         WHERE pwt.project_id = ANY(${projectIds}::text[])
@@ -247,7 +247,7 @@ class AlertGenerationService {
       const roleMapping = {
         'OFFICE': 'OFFICE_STAFF',
         'ADMINISTRATION': 'ADMINISTRATION', 
-        'PROJECT_MANAGER': 'PRODUCT_MANAGER',
+        'PROJECT_MANAGER': 'PROJECT_MANAGER',
         'FIELD_DIRECTOR': 'FIELD_DIRECTOR',
         'ROOF_SUPERVISOR': 'FIELD_DIRECTOR'
       };

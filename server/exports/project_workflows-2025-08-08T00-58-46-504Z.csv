@@ -1,0 +1,6 @@
+id,createdAt,updatedAt,projectId,workflowType,status,currentStepIndex,overallProgress,workflowStartDate,workflowEndDate,estimatedCompletionDate,actualCompletionDate,enableAlerts,alertMethods,escalationEnabled,escalationDelayDays,teamAssignments,createdById,lastModifiedById
+cme1itokd000aumt0qkampl22,2025-08-07T14:57:26.942Z,2025-08-07T16:35:23.518Z,cme1injl70004umt0x19eota6,ROOFING,COMPLETED,2,100,,,,2025-08-07T16:35:23.517Z,true,"IN_APP,EMAIL",true,3,,,
+cme1zf5hw0005umec9g5yknpt,2025-08-07T22:42:02.517Z,2025-08-07T22:42:02.517Z,cme1zf55x0003umecgyn0xd5o,ROOFING,NOT_STARTED,0,0,,,,,true,"IN_APP,EMAIL",true,3,,,
+cme203mii0005umbo7z8jt6xn,2025-08-07T23:01:04.314Z,2025-08-07T23:01:04.314Z,cme203m6d0003umbo5ybhkdjw,ROOFING,NOT_STARTED,0,0,,,,,true,"IN_APP,EMAIL",true,3,,,
+cme20blg50005um70vikxen90,2025-08-07T23:07:16.181Z,2025-08-07T23:07:16.181Z,cme20bl4b0003um70ouajhq6s,ROOFING,NOT_STARTED,0,0,,,,,true,"IN_APP,EMAIL",true,3,,,
+cme2267u80005umjo86qgp278,2025-08-07T23:59:04.497Z,2025-08-07T23:59:04.497Z,cme2267ib0003umjom6h1beh5,ROOFING,NOT_STARTED,0,0,,,,,true,"IN_APP,EMAIL",true,3,,,

@@ -34,6 +34,7 @@ const documentRoutes = require('./routes/documents');
 const calendarRoutes = require('./routes/calendar');
 const aiRoutes = require('./routes/ai');
 const healthRoutes = require('./routes/health');
+const debugRoutes = require('./routes/debug');
 const customerRoutes = require('./routes/customers');
 const notificationRoutes = require('./routes/notifications');
 const searchRoutes = require('./routes/search');
@@ -134,20 +135,20 @@ connectDatabase()
 
 // Security Middleware
 app.use(helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: [
-        "'self'", 
-        "'unsafe-inline'", // Allow inline scripts for tracking and development
-        "https://sc.lfeeder.com", // LeadFeeder tracking scripts
-        "https://cdn.jsdelivr.net" // Allow JSDeliver CDN for development tools
+        "'self'",
+        "'unsafe-inline'",
+        "https://sc.lfeeder.com",
+        "https://cdn.jsdelivr.net"
       ],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:", "ws:"], // Allow websocket connections and HTTPS requests
-    },
-  },
+      connectSrc: ["'self'", "https:", "wss:", "ws:"]
+    }
+  } : undefined,
   crossOriginEmbedderPolicy: false
 }));
 
@@ -177,32 +178,13 @@ const authLimiter = rateLimit({
 // app.use('/api/auth', authLimiter);
 // app.use(limiter); // Temporarily disabled for debugging
 
-// CORS configuration
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? function (origin, callback) {
-    const allowedOrigins = [
-      process.env.CLIENT_URL || 'http://localhost:3000',
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:8000', // Add port 8000 for React dev server
-      'https://kenstruction.vercel.app'
-    ];
-    
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  } : true, // Allow all origins in development
+// CORS configuration (temporarily permissive to stop CORS 500s)
+app.use(cors({
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-};
-
-app.use(cors(corsOptions));
+}));
 
 // Compression middleware
 app.use(compression());
@@ -619,6 +601,7 @@ app.set('io', io);
 
 // API Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/debug', debugRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
@@ -672,8 +655,18 @@ if (process.env.NODE_ENV === 'production') {
     console.log('📁 Files in /app:', fs.readdirSync('/app').filter(f => !f.startsWith('.')));
   }
   
-  // Serve static files from React build
-  app.use(express.static(buildPath));
+  // Serve static files from React build with cache control to reduce revalidation
+  app.use(express.static(buildPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+        // Long cache for fingerprinted assets
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (filePath.endsWith('index.html')) {
+        // No-cache for HTML entry
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    }
+  }));
   
   // Serve React app for all non-API routes
   app.get('*', (req, res) => {

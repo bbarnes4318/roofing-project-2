@@ -258,14 +258,14 @@ class WorkflowProgressionService {
       const currentItem = await prisma.$queryRaw`
         SELECT 
           wli.id,
-          wli.display_order as "displayOrder",
-          wli.section_id as "sectionId",
-          ws.display_order as "sectionOrder",
-          ws.phase_id as "phaseId",
-          wp.display_order as "phaseOrder"
+          wli."displayOrder" AS "displayOrder",
+          wli."sectionId" AS "sectionId",
+          ws."displayOrder" AS "sectionOrder",
+          ws."phaseId" AS "phaseId",
+          wp."displayOrder" AS "phaseOrder"
         FROM workflow_line_items wli
-        JOIN workflow_sections ws ON wli.section_id = ws.id
-        JOIN workflow_phases wp ON ws.phase_id = wp.id
+        JOIN workflow_sections ws ON wli."sectionId" = ws.id
+        JOIN workflow_phases wp ON ws."phaseId" = wp.id
         WHERE wli.id = ${currentLineItemId}
       `;
 
@@ -277,12 +277,12 @@ class WorkflowProgressionService {
 
       // Try to find next item in same section
       const nextInSection = await prisma.$queryRaw`
-        SELECT id, display_order as "displayOrder"
+        SELECT id, "displayOrder" AS "displayOrder"
         FROM workflow_line_items
-        WHERE section_id = ${current.sectionId}
-          AND display_order > ${current.displayOrder}
-          AND is_active = true
-        ORDER BY display_order ASC
+        WHERE "sectionId" = ${current.sectionId}
+          AND "displayOrder" > ${current.displayOrder}
+          AND "isActive" = true
+        ORDER BY "displayOrder" ASC
         LIMIT 1
       `;
 
@@ -300,14 +300,14 @@ class WorkflowProgressionService {
 
       // Find next section in same phase
       const nextSection = await prisma.$queryRaw`
-        SELECT ws.id, wli.id as "firstLineItemId"
+        SELECT ws.id, wli.id AS "firstLineItemId"
         FROM workflow_sections ws
-        JOIN workflow_line_items wli ON ws.id = wli.section_id
-        WHERE ws.phase_id = ${current.phaseId}
-          AND ws.display_order > ${current.sectionOrder}
-          AND ws.is_active = true
-          AND wli.is_active = true
-        ORDER BY ws.display_order ASC, wli.display_order ASC
+        JOIN workflow_line_items wli ON ws.id = wli."sectionId"
+        WHERE ws."phaseId" = ${current.phaseId}
+          AND ws."displayOrder" > ${current.sectionOrder}
+          AND ws."isActive" = true
+          AND wli."isActive" = true
+        ORDER BY ws."displayOrder" ASC, wli."displayOrder" ASC
         LIMIT 1
       `;
 
@@ -327,15 +327,15 @@ class WorkflowProgressionService {
 
       // Find next phase
       const nextPhase = await prisma.$queryRaw`
-        SELECT wp.id as "phaseId", ws.id as "sectionId", wli.id as "lineItemId"
+        SELECT wp.id AS "phaseId", ws.id AS "sectionId", wli.id AS "lineItemId"
         FROM workflow_phases wp
-        JOIN workflow_sections ws ON wp.id = ws.phase_id
-        JOIN workflow_line_items wli ON ws.id = wli.section_id
-        WHERE wp.display_order > ${current.phaseOrder}
-          AND wp.is_active = true
-          AND ws.is_active = true
-          AND wli.is_active = true
-        ORDER BY wp.display_order ASC, ws.display_order ASC, wli.display_order ASC
+        JOIN workflow_sections ws ON wp.id = ws."phaseId"
+        JOIN workflow_line_items wli ON ws.id = wli."sectionId"
+        WHERE wp."displayOrder" > ${current.phaseOrder}
+          AND wp."isActive" = true
+          AND ws."isActive" = true
+          AND wli."isActive" = true
+        ORDER BY wp."displayOrder" ASC, ws."displayOrder" ASC, wli."displayOrder" ASC
         LIMIT 1
       `;
 

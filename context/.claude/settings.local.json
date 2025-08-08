@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run generate-prp:*)",
+      "Bash(npm run execute-prp:*)",
+      "Bash(curl:*)",
+      "Bash(npx prisma:*)"
+    ],
+    "deny": []
+  }
+}
