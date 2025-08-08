@@ -590,7 +590,15 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                     Project Workflow
                   </button>
                   <button
-                    onClick={() => onProjectSelect(project, 'Alerts')}
+                    onClick={() => {
+                      const projectWithSourceSection = {
+                        ...project,
+                        dashboardState: {
+                          scrollToProject: project
+                        }
+                      };
+                      onProjectSelect(projectWithSourceSection, 'Alerts', null, 'Project Cubes');
+                    }}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold relative ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-400'}`}
                   >
                     <span className="mb-0.5">⚠️</span>
@@ -600,7 +608,15 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                     )}
                   </button>
                   <button
-                    onClick={() => onProjectSelect(project, 'Messages')}
+                    onClick={() => {
+                      const projectWithSourceSection = {
+                        ...project,
+                        dashboardState: {
+                          scrollToProject: project
+                        }
+                      };
+                      onProjectSelect(projectWithSourceSection, 'Messages', null, 'Project Cubes');
+                    }}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold relative ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-400'}`}
                   >
                     <span className="mb-0.5">💬</span>
