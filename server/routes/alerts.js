@@ -20,26 +20,34 @@ const generateRealTimeAlerts = async (limit = 10) => {
   try {
     console.log('🔍 GENERATING REAL-TIME ALERTS with batch optimization...');
     
-    // Get limited active projects to prevent memory issues
-    const projectIds = await prisma.project.findMany({
+    // Get limited projects in Lead/Pending or In Progress
+    const projects = await prisma.project.findMany({
       where: {
-        status: 'IN_PROGRESS'
+        status: { in: ['PENDING','IN_PROGRESS'] }
       },
-      select: {
-        id: true
-      },
+      select: { id: true },
       take: limit
     });
 
-    if (projectIds.length === 0) {
+    if (projects.length === 0) {
       console.log('No active projects found');
       return [];
+    }
+
+    // Ensure trackers exist for these projects so active line items are defined
+    try {
+      const WorkflowProgressionService = require('../services/WorkflowProgressionService');
+      for (const p of projects) {
+        await WorkflowProgressionService.getCurrentPosition(p.id);
+      }
+    } catch (e) {
+      console.warn('⚠️ Could not ensure trackers for projects:', e?.message);
     }
 
     // Use batch alert generation
     const AlertGenerationService = require('../services/AlertGenerationService');
     const alerts = await AlertGenerationService.generateBatchAlerts(
-      projectIds.map(p => p.id)
+      projects.map(p => p.id)
     );
 
     // Transform for frontend compatibility
