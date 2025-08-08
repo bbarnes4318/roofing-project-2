@@ -216,7 +216,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // UI state
   const [expandedPhases, setExpandedPhases] = useState(new Set());
-  const [selectedPhase, setSelectedPhase] = useState(null); // Start with no projects showing until phase selected
+  const [selectedPhase, setSelectedPhase] = useState('all'); // Show all projects by default
   
   // Project Messages expansion control
   const [expandedMessages, setExpandedMessages] = useState(new Set());
