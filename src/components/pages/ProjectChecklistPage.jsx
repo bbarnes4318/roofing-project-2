@@ -348,6 +348,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
   
+  // Simple local state to track checked items - no complex logic
+  const [localCheckedItems, setLocalCheckedItems] = useState(new Set());
+  
   // Get phase colors from WorkflowProgressService to match dashboard
   const getPhaseColor = (phaseId) => {
     // Map phase IDs to the color service's expected format
@@ -1109,49 +1112,19 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   };
 
   const updateWorkflowStep = async (stepId, completed) => {
-    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed} using SIMPLIFIED SYSTEM`);
+    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed} using BACKGROUND ONLY`);
     
-    // Store original data for rollback
-    const originalWorkflowData = workflowData;
-    
-    // CRITICAL: Immediate optimistic update for visual feedback ONLY
-    setWorkflowData(prevData => {
-      if (!prevData) {
-        return {
-          project: project._id || project.id,
-          steps: [{
-            id: stepId,
-            stepId: stepId,
-            completed: completed,
-            isCompleted: completed
-          }],
-          _optimisticUpdates: { [stepId]: completed }
-        };
-      }
-      
-      return {
-        ...prevData,
-        _optimisticUpdates: {
-          ...(prevData._optimisticUpdates || {}),
-          [stepId]: completed
-        },
-        _forceRender: Date.now()
-      };
-    });
-
     const projectId = project._id || project.id;
-    console.log(`🌐 CHECKBOX: Making SIMPLE API call to update workflow step`);
+    console.log(`🌐 CHECKBOX: Making background API call only`);
     
     try {
-      // Use only old system to eliminate potential navigation issues
+      // Use only old system for background updates - NO UI STATE CHANGES HERE
       const response = await updateWorkflowStepAPI(projectId, stepId, completed);
       
-      console.log('✅ CHECKBOX: API call successful, server confirmed the update');
-      console.log('✅ CHECKBOX: Server response:', response);
-      console.log(`✅ CHECKBOX: New project phase: ${response.phase}, Progress: ${response.progress}%`);
+      console.log('✅ CHECKBOX: Background API call successful');
       
-      // Update the project with new phase and progress if onUpdate is available
-      if (onUpdate && response.project) {
+      // Update project progress if available
+      if (onUpdate && response.phase) {
         onUpdate({
           ...project,
           phase: response.phase,
@@ -1159,97 +1132,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         });
       }
       
-      // Clear optimistic update tracking
-      setOptimisticUpdates(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(stepId);
-        return newSet;
-      });
-      
-      // DON'T overwrite the optimistic update - it's already correct
-      // Just ensure the server state matches our optimistic update
-      if (response?.data?.step) {
-        setWorkflowData(prevData => {
-          const updatedSteps = [...(prevData.steps || [])];
-          let stepIndex = updatedSteps.findIndex(s => 
-            s.id === stepId || 
-            s.stepId === stepId || 
-            s._id === stepId
-          );
-          
-          if (stepIndex >= 0) {
-            // Merge server response with optimistic update
-            updatedSteps[stepIndex] = {
-              ...updatedSteps[stepIndex],
-              ...response.data.step,
-              completed: completed, // Keep our optimistic state
-              isCompleted: completed // Keep our optimistic state
-            };
-          }
-          
-          return {
-            ...prevData,
-            steps: updatedSteps,
-            _serverConfirmed: Date.now()
-          };
-        });
-      }
-      
-      // CRITICAL: Emit global event for other components to refresh
-      window.dispatchEvent(new CustomEvent('workflowStepCompleted', {
-        detail: {
-          projectId: projectId,
-          stepId: stepId,
-          stepName: response?.data?.step?.stepName || stepId,
-          completed: completed
-        }
-      }));
-      
-      // Enhanced logging for successful completion
-      console.log('🎉 WORKFLOW COMPLETION SUCCESS:');
-      console.log(`   ✅ Step: ${stepId}`);
-      console.log(`   ✅ Project: ${projectId}`);
-      console.log(`   ✅ Completed: ${completed}`);
-      console.log(`   ✅ New Phase: ${response.phase}`);
-      console.log(`   ✅ New Progress: ${response.progress}%`);
-      console.log(`   ✅ Server Response:`, response);
-      
-      // Handle automatic section and phase completion
-      handleAutomaticCompletion(stepId, completed);
-      
-      // Generate alert for next workflow item when step is completed
-      if (completed) {
-        console.log(`🔔 ALERT: Step ${stepId} completed, checking for next workflow item`);
-        const nextItem = findNextWorkflowItem(stepId);
-        if (nextItem) {
-          console.log(`🔔 ALERT: Found next item, creating alert:`, nextItem);
-          // Create alert asynchronously - don't wait for it to complete
-          createNextWorkflowAlert(nextItem).catch(error => {
-            console.error(`❌ ALERT: Failed to create next workflow alert:`, error);
-          });
-        } else {
-          console.log(`🎉 WORKFLOW: No more items - project workflow completed!`);
-        }
-      }
-      
-      // Don't automatically refresh - preserve optimistic updates
-      // Only refresh if there's an error or explicit user action
-      
     } catch (error) {
-      console.error('❌ CHECKBOX: Failed to update workflow step:', error);
-      
-      // Clear optimistic update tracking
-      setOptimisticUpdates(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(stepId);
-        return newSet;
-      });
-      
-      // Revert optimistic update only on error
-      setWorkflowData(originalWorkflowData);
-      
-      // Show user-friendly error
-      console.warn('Failed to save checkbox state. Please try again.');
+      console.error('❌ CHECKBOX: Background API call failed:', error);
+      // Re-throw error so handleCheck can revert local state
+      throw error;
     }
   };
 
@@ -1262,94 +1148,62 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     setOpenItem((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  const handleCheck = async (phaseId, itemId, subIdx) => {
-    try {
-      // Prevent rapid double-clicks
-      if (workflowUpdating) {
-        console.log('⏳ CHECKBOX: Update in progress, ignoring click');
-        return;
+  const handleCheck = (phaseId, itemId, subIdx) => {
+    const stepId = `${phaseId}-${itemId}-${subIdx}`;
+    const currentlyCompleted = isStepCompleted(stepId);
+    const newCompletedState = !currentlyCompleted;
+    
+    console.log(`🔄 CHECKBOX: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
+    
+    // IMMEDIATE: Update local state for instant UI feedback
+    setLocalCheckedItems(prev => {
+      const newSet = new Set(prev);
+      if (newCompletedState) {
+        newSet.add(stepId);
+        console.log(`✅ LOCAL: Added ${stepId} to checked items`);
+      } else {
+        newSet.delete(stepId);
+        console.log(`❌ LOCAL: Removed ${stepId} from checked items`);
       }
-      
-      const stepId = `${phaseId}-${itemId}-${subIdx}`;
-      const currentlyCompleted = isStepCompleted(stepId);
-      const newCompletedState = !currentlyCompleted;
-      
-      console.log(`🔄 CHECKBOX: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
-      
-      // Validate inputs
-      if (!phaseId || !itemId || subIdx === undefined) {
-        console.error('❌ CHECKBOX: Invalid parameters for checkbox update:', { phaseId, itemId, subIdx });
-        return;
-      }
-      
-      // Check if we have a valid project
-      if (!project || (!project.id && !project._id)) {
-        console.error('❌ CHECKBOX: No valid project available for checkbox update');
-        return;
-      }
-      
-      // Update the workflow step with comprehensive error handling
-      await updateWorkflowStep(stepId, newCompletedState);
-      
-    } catch (error) {
-      console.error('❌ CHECKBOX: Critical error in handleCheck:', error);
-      // Ensure no navigation happens on error
-      return false;
-    }
+      return newSet;
+    });
+    
+    // ASYNC: Update server in background - don't wait for it
+    setTimeout(() => {
+      updateWorkflowStep(stepId, newCompletedState).catch(error => {
+        console.error('❌ CHECKBOX: Server update failed:', error);
+        // On error, revert local state
+        setLocalCheckedItems(prev => {
+          const newSet = new Set(prev);
+          if (newCompletedState) {
+            newSet.delete(stepId); // Revert addition
+          } else {
+            newSet.add(stepId); // Revert deletion
+          }
+          return newSet;
+        });
+      });
+    }, 10); // Small delay to let UI update first
   };
 
   // Helper function to check if a step is completed
   const isStepCompleted = (stepId) => {
-    console.log(`🔍 CHECKING: isStepCompleted for "${stepId}"`);
-    
-    if (!workflowData || !workflowData.steps) {
-      console.log(`🔍 CHECKING: No workflow data or steps, returning false`);
-      return false;
+    // SIMPLE: Check local state first for immediate UI response
+    if (localCheckedItems.has(stepId)) {
+      return true;
     }
     
-    // First try direct ID matching (for optimistic updates)
-    const directMatch = workflowData.steps.find(s => 
-      s.id === stepId || 
-      s.stepId === stepId || 
-      s._id === stepId ||
-      s.stepName === stepId
-    );
-    
-    if (directMatch) {
-      console.log(`🔍 CHECKING: Found direct match:`, directMatch);
-      const result = directMatch.completed || directMatch.isCompleted;
-      console.log(`🔍 CHECKING: Direct match result: ${result}`);
+    // Then check server data as backup
+    if (workflowData && workflowData.steps) {
+      const directMatch = workflowData.steps.find(s => 
+        s.id === stepId || 
+        s.stepId === stepId || 
+        s._id === stepId
+      );
       
-      if (result) {
-        console.log(`✅ STRIKETHROUGH: Step ${stepId} should show strikethrough`);
+      if (directMatch) {
+        return directMatch.completed || directMatch.isCompleted;
       }
-      
-      return result;
-    }
-    
-    // For frontend-generated stepIds (format: "PHASE-item-id-subIndex"), 
-    // we need to create a mapping since the database uses different IDs
-    console.log(`🔍 CHECKING: Trying frontend stepId mapping for "${stepId}"`);
-    
-    // Keep a simple in-memory completion state for frontend stepIds
-    // This provides immediate visual feedback while backend processes
-    if (workflowData._optimisticUpdates && workflowData._optimisticUpdates[stepId] !== undefined) {
-      const optimisticResult = workflowData._optimisticUpdates[stepId];
-      console.log(`✅ OPTIMISTIC: Found optimistic update for ${stepId}: ${optimisticResult}`);
-      return optimisticResult;
-    }
-    
-    console.log(`🔍 CHECKING: No match found for "${stepId}"`);
-    
-    // ENHANCED: Log all available step IDs for debugging (limited to prevent spam)
-    if (process.env.NODE_ENV === 'development') {
-      const availableSteps = workflowData.steps.slice(0, 5).map(s => ({
-        id: s.id || 'no-id',
-        stepId: s.stepId || 'no-stepId',
-        stepName: s.stepName || 'no-stepName',
-        completed: s.completed || s.isCompleted || false
-      }));
-      console.log(`🔍 CHECKING: Sample available steps:`, availableSteps);
     }
     
     return false;
