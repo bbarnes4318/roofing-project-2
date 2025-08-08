@@ -328,6 +328,12 @@ export default function App() {
         }
     }, [navigationState.selectedProject]);
 
+    // Monitor navigation state changes - must be before early returns
+    useEffect(() => {
+        console.log('🔍 NAV_STATE_CHANGE: navigationState updated:', navigationState);
+        console.log('🔍 NAV_STATE_CHANGE: activePage:', activePage);
+    }, [navigationState, activePage]);
+
     // Early returns AFTER all hooks have been declared
     if (isLoading) {
         return (
@@ -373,12 +379,6 @@ export default function App() {
             console.log('🔍 APP: No project selected, staying on current page');
         }
     };
-
-    // Monitor navigation state changes
-    useEffect(() => {
-        console.log('🔍 NAV_STATE_CHANGE: navigationState updated:', navigationState);
-        console.log('🔍 NAV_STATE_CHANGE: activePage:', activePage);
-    }, [navigationState, activePage]);
 
     // Update handleProjectSelect to set all navigation state at once
     // Enhanced to support direct line item navigation
