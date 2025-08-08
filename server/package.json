@@ -1,56 +1,40 @@
 {
-  "name": "react-dashboard",
+  "name": "kenstruction-server",
   "version": "0.1.0",
   "private": true,
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "@react-three/drei": "^9.108.3",
-    "@react-three/fiber": "^8.16.8",
-    "@tanstack/react-query": "^5.51.15",
-    "@tanstack/react-query-devtools": "^5.51.15",
-    "axios": "^1.7.2",
-    "chart.js": "^4.4.3",
-    "date-fns": "^3.6.0",
-    "framer-motion": "^11.3.19",
+    "@prisma/client": "^5.19.1",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "csv-parse": "^5.5.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "papaparse": "^5.4.1",
-    "react": "^18.3.1",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.3.1",
-    "react-hot-toast": "^2.4.2",
-    "react-query": "^3.39.3",
-    "react-router-dom": "^6.25.1",
-    "react-scripts": "5.0.1",
-    "socket.io-client": "^4.7.5",
-    "three": "^0.167.0",
-    "web-vitals": "^4.2.2"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "redis": "^4.7.0",
+    "socket.io": "^4.7.5",
+    "xlsx": "^0.18.5",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.40",
-    "tailwindcss": "^3.4.7"
+    "prisma": "^5.19.1"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:seed": "node prisma/seed.js"
   }
 }

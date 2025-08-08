@@ -1,5 +1,5 @@
 # Multi-stage build for React + Node.js
-FROM node:18-alpine AS frontend-build
+FROM node:20-alpine AS frontend-build
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY postcss.config.js ./
 RUN npm run build
 
 # Backend stage
-FROM node:18-alpine AS backend
+FROM node:20-alpine AS backend
 
 WORKDIR /app
 
