@@ -6,7 +6,8 @@
       "Bash(curl:*)",
       "Bash(npx prisma:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

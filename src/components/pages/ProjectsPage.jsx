@@ -8,7 +8,7 @@ import { projectsService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
-import ProjectRoleDropdowns from '../common/ProjectRoleDropdowns';
+// ProjectRoleDropdowns moved to Add Project form - no longer needed
 // Removed broken drag libraries - using native implementation
 
 const defaultNewProject = {
@@ -17,6 +17,10 @@ const defaultNewProject = {
     customerName: '',
     jobType: '',
     projectManager: '', // New field for Project Manager
+    fieldDirector: '', // Field Director role
+    salesRep: '', // Sales Representative role
+    qualityInspector: '', // Quality Inspector role
+    adminAssistant: '', // Administrative Assistant role
     status: 'Pending',
     budget: '',
     startDate: '',
@@ -47,8 +51,12 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [defaultRoles, setDefaultRoles] = useState({});
     const [usersLoading, setUsersLoading] = useState(true);
     
-    // Role assignment expansion state
-    const [expandedRoleProjects, setExpandedRoleProjects] = useState(new Set());
+    // Role assignment moved to Add Project form - no longer need expansion state
+    
+    // Progress expansion state (matching Dashboard implementation)
+    const [expandedProgress, setExpandedProgress] = useState(new Set());
+    const [expandedTrades, setExpandedTrades] = useState(new Set());
+    const [expandedAdditionalTrades, setExpandedAdditionalTrades] = useState(new Set());
     
     // Removed drag and drop state - reverted to original layout
     
@@ -139,13 +147,34 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     if (defaultsData.success) {
                         setDefaultRoles(defaultsData.data);
                         
-                        // Pre-fill project manager if default exists
+                        // Pre-fill all roles if defaults exist
+                        const roleUpdates = {};
                         if (defaultsData.data.projectManager) {
+                            roleUpdates.projectManager = defaultsData.data.projectManager.id;
+                            console.log('✅ Pre-filled project manager with default:', defaultsData.data.projectManager.name);
+                        }
+                        if (defaultsData.data.fieldDirector) {
+                            roleUpdates.fieldDirector = defaultsData.data.fieldDirector.id;
+                            console.log('✅ Pre-filled field director with default:', defaultsData.data.fieldDirector.name);
+                        }
+                        if (defaultsData.data.salesRep) {
+                            roleUpdates.salesRep = defaultsData.data.salesRep.id;
+                            console.log('✅ Pre-filled sales rep with default:', defaultsData.data.salesRep.name);
+                        }
+                        if (defaultsData.data.qualityInspector) {
+                            roleUpdates.qualityInspector = defaultsData.data.qualityInspector.id;
+                            console.log('✅ Pre-filled quality inspector with default:', defaultsData.data.qualityInspector.name);
+                        }
+                        if (defaultsData.data.adminAssistant) {
+                            roleUpdates.adminAssistant = defaultsData.data.adminAssistant.id;
+                            console.log('✅ Pre-filled admin assistant with default:', defaultsData.data.adminAssistant.name);
+                        }
+                        
+                        if (Object.keys(roleUpdates).length > 0) {
                             setNewProject(prev => ({
                                 ...prev,
-                                projectManager: defaultsData.data.projectManager.id
+                                ...roleUpdates
                             }));
-                            console.log('✅ Pre-filled project manager with default:', defaultsData.data.projectManager.name);
                         }
                     }
                 }
@@ -527,21 +556,54 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }
     };
 
-    // Handle role assignment expansion toggle
-    const toggleRoleExpansion = (projectId) => {
-        const newExpanded = new Set(expandedRoleProjects);
+    // Role assignment moved to Add Project form - functions no longer needed
+    
+    // Progress expansion functions (matching Dashboard implementation)
+    const toggleProgress = (projectId) => {
+        const newExpanded = new Set(expandedProgress);
+        if (newExpanded.has(projectId)) {
+            newExpanded.delete(projectId);
+            // Also close trades when closing main progress
+            const newTrades = new Set(expandedTrades);
+            const newAdditionalTrades = new Set(expandedAdditionalTrades);
+            newTrades.delete(projectId);
+            newAdditionalTrades.delete(projectId);
+            setExpandedTrades(newTrades);
+            setExpandedAdditionalTrades(newAdditionalTrades);
+        } else {
+            newExpanded.add(projectId);
+        }
+        setExpandedProgress(newExpanded);
+    };
+    
+    const toggleTrades = (projectId) => {
+        const newExpanded = new Set(expandedTrades);
+        if (newExpanded.has(projectId)) {
+            newExpanded.delete(projectId);
+            // Also close additional trades when closing main trades
+            const newAdditionalTrades = new Set(expandedAdditionalTrades);
+            newAdditionalTrades.delete(projectId);
+            setExpandedAdditionalTrades(newAdditionalTrades);
+        } else {
+            newExpanded.add(projectId);
+        }
+        setExpandedTrades(newExpanded);
+    };
+    
+    const toggleAdditionalTrades = (projectId) => {
+        const newExpanded = new Set(expandedAdditionalTrades);
         if (newExpanded.has(projectId)) {
             newExpanded.delete(projectId);
         } else {
             newExpanded.add(projectId);
         }
-        setExpandedRoleProjects(newExpanded);
+        setExpandedAdditionalTrades(newExpanded);
     };
-
-    // Handle role assignment updates
-    const handleRoleAssignmentUpdate = (projectId, updatedRoles) => {
-        console.log(`✅ Role assignments updated for project ${projectId}:`, updatedRoles);
-        // Optionally update local project data or trigger a refresh
+    
+    // Get project progress percentage
+    const getProjectProgress = (project) => {
+        const progress = getProgressForProject(project) || project.progress || 0;
+        return Math.min(100, Math.max(0, Math.round(progress)));
     };
 
     // Removed all drag and drop functionality - reverted to original static buttons
@@ -551,11 +613,13 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const showHeaderBackButton = !((projectSourceSection === 'Activity Feed' || projectSourceSection === 'My Alerts' || projectSourceSection === 'Current Alerts' || projectSourceSection === 'Project Cubes' || projectSourceSection === 'Project Phases') && targetProjectId);
 
     const ProjectCard = ({ project }) => {
-        const projectTrades = getProjectTrades(project);
-        // Convert trades array to display string
-        const tradesDisplay = Array.isArray(projectTrades) 
-            ? projectTrades.map(trade => trade.name).join(', ')
-            : projectTrades || project.projectType || 'General';
+        // Get current workflow state
+        const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+        const currentPhase = getPhaseForProject(project);
+        const currentSection = currentStep?.section || 'Not Set';
+        const currentLineItem = currentStep?.lineItem || currentStep?.stepName || 'Not Set';
+        const phaseColors = getPhaseColorForProject(project);
+        const projectType = project.projectType || 'General';
         
         // Determine if this card should show the back button
         const showCardBackButton = (projectSourceSection === 'Activity Feed' || projectSourceSection === 'My Alerts' || projectSourceSection === 'Current Alerts' || projectSourceSection === 'Project Cubes' || projectSourceSection === 'Project Phases' || projectSourceSection === 'Project Messages' || projectSourceSection === 'Project Workflow Alerts') && String(project.id) === String(targetProjectId);
@@ -563,171 +627,300 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         return (
             <div 
                 data-project-id={String(project.id)}
-                className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md`}
+                className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl`}
             >
-                {/* Header - Project Number with Phase and Type */}
-                <div className={`p-3 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                    <div className="flex items-start justify-between">
-                        {/* Left side - Project Number with Phase, Section, Line Item and Type */}
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <h3 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                {project.projectNumber || '12345'}
-                            </h3>
-                            
-                            {(() => {
-                                // Get the current phase from the project
-                                const currentPhase = project.phase || project.currentPhase || 'LEAD';
-                                const phaseColors = WorkflowProgressService.getPhaseColor(currentPhase);
-                                
-                                // Get current section and line item from workflow steps
-                                const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
-                                const currentSection = currentStep?.section || 'Not Set';
-                                const currentLineItem = currentStep?.lineItem || currentStep?.stepName || 'Not Set';
-                                
-                                return (
-                                    <div className="flex items-center gap-2">
-                                        {/* Phase Badge */}
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border ${colorMode ? 'border-slate-500/30' : 'border-white/50'}`}>
-                                            {currentPhase}
-                                        </span>
-                                        
-                                        {/* Section and Line Item Display */}
-                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-l-4 border-l-blue-500 ${
-                                            colorMode 
-                                                ? 'bg-slate-700/80 border border-slate-600/50 text-slate-200' 
-                                                : 'bg-blue-50/80 border border-blue-200/50 text-gray-700'
-                                        }`}>
-                                            <div className="flex items-center gap-1.5">
-                                                {/* Section Icon */}
-                                                <div className={`w-2 h-2 rounded-full ${
-                                                    colorMode ? 'bg-blue-400' : 'bg-blue-500'
-                                                }`}></div>
-                                                
-                                                {/* Section and Line Item */}
-                                                <div className="flex flex-col">
-                                                    <div className={`text-[10px] font-bold uppercase tracking-wider ${
-                                                        colorMode ? 'text-blue-400' : 'text-blue-600'
-                                                    }`}>
-                                                        {currentSection}
-                                                    </div>
-                                                    <div className={`text-[9px] font-medium ${
-                                                        colorMode ? 'text-slate-300' : 'text-gray-600'
-                                                    }`}>
-                                                        {currentLineItem.length > 25 ? `${currentLineItem.substring(0, 25)}...` : currentLineItem}
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* Progress Arrow */}
-                                                <div className={`ml-1 ${colorMode ? 'text-blue-400' : 'text-blue-500'}`}>
-                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                            
-                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colorMode ? 'bg-slate-600/60 text-slate-200 border border-slate-500/30' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
-                                {tradesDisplay}
-                            </span>
-                        </div>
+                {/* Header - Clean Project Info */}
+                <div className={`p-6 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/20' : 'border-gray-200 bg-gray-50/30'}`}>
+                    {/* Project Number and Type */}
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            #{project.projectNumber || '12345'}
+                        </h2>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                            colorMode ? 'bg-slate-600/60 text-slate-200 border border-slate-500/30' : 'bg-blue-100 text-blue-700 border border-blue-200'
+                        }`}>
+                            {projectType}
+                        </span>
                     </div>
-                    
-                    {/* Customer Information */}
-                    <div className="mt-3 space-y-3">
-                        {/* Customer Name and Address */}
-                        <div className="space-y-1">
-                            <div className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
-                                {project.client?.name || project.customer?.primaryName || `${project.customer?.firstName || ''} ${project.customer?.lastName || ''}`.trim() || 'Unknown Customer'}
-                            </div>
-                            <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} font-normal leading-relaxed`}>
-                                {project.customer?.address || project.client?.address || project.address || project.name || project.projectName || '123 Main Street, City, State'}
-                            </div>
+
+                    {/* Phase, Section, Line Item Row */}
+                    <div className="flex items-center gap-3 mb-4">
+                        {/* Phase Badge */}
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border`}>
+                            {currentPhase}
+                        </span>
+                        
+                        {/* Section */}
+                        <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                            colorMode ? 'bg-slate-700/50 text-slate-200' : 'bg-gray-100 text-gray-700'
+                        }`}>
+                            {currentSection}
                         </div>
                         
-                        {/* Customer Contact Info */}
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
-                                    <span className="text-[10px]">📞</span>
-                                </div>
+                        {/* Line Item - Clickable Link to Workflow */}
+                        <button
+                            onClick={() => {
+                                const projectWithWorkflowState = {
+                                    ...project,
+                                    scrollToCurrentLineItem: true,
+                                    targetPhase: currentPhase,
+                                    targetSection: currentSection,
+                                    targetLineItem: currentLineItem,
+                                    highlightLineItem: currentLineItem
+                                };
+                                onProjectSelect(projectWithWorkflowState, 'Project Workflow', null, 'My Projects');
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hover:shadow-md ${
+                                colorMode ? 'bg-blue-700/50 text-blue-300 hover:bg-blue-600/60' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            }`}
+                        >
+                            📋 {currentLineItem.length > 30 ? `${currentLineItem.substring(0, 30)}...` : currentLineItem}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Contact Information Grid */}
+                <div className="p-6 space-y-6">
+                    {/* Primary Customer */}
+                    <div>
+                        <h3 className={`text-lg font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Primary Customer</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</p>
+                                <p className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                    {project.customer?.primaryName || project.client?.name || 'Not Set'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Address</p>
+                                <p className={`text-base ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    {project.customer?.address || project.client?.address || project.projectName || 'Not Set'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone</p>
                                 <a 
-                                    href={`tel:${(project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
-                                    className={`text-sm font-medium hover:underline transition-colors ${
-                                        colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
-                                    }`}
+                                    href={`tel:${(project.customer?.primaryPhone || project.client?.phone || '').replace(/[^\d+]/g, '')}`}
+                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
                                 >
-                                    {project.client?.phone || project.customer?.phone || project.customer?.primaryPhone || 'Add phone'}
+                                    {project.customer?.primaryPhone || project.client?.phone || 'Not Set'}
                                 </a>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${colorMode ? 'bg-green-500/20' : 'bg-green-50'}`}>
-                                    <span className="text-[10px]">✉️</span>
-                                </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</p>
                                 <a 
-                                    href={`mailto:${project.client?.email || project.customer?.email || project.customer?.primaryEmail || ''}`}
-                                    className={`text-sm font-medium hover:underline transition-colors ${
-                                        colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-800'
-                                    }`}
+                                    href={`mailto:${project.customer?.primaryEmail || project.client?.email || ''}`}
+                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
                                 >
-                                    {project.client?.email || project.customer?.email || project.customer?.primaryEmail || 'Add email'}
+                                    {project.customer?.primaryEmail || project.client?.email || 'Not Set'}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Secondary Contact */}
+                    <div>
+                        <h3 className={`text-lg font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Secondary Contact</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</p>
+                                <p className={`text-base ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    {project.customer?.secondaryName || 'Not Set'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone</p>
+                                <a 
+                                    href={`tel:${(project.customer?.secondaryPhone || '').replace(/[^\d+]/g, '')}`}
+                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
+                                >
+                                    {project.customer?.secondaryPhone || 'Not Set'}
+                                </a>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</p>
+                                <a 
+                                    href={`mailto:${project.customer?.secondaryEmail || ''}`}
+                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
+                                >
+                                    {project.customer?.secondaryEmail || 'Not Set'}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Project Manager */}
+                    <div>
+                        <h3 className={`text-lg font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Project Manager</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</p>
+                                <p className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                    {project.projectManager ? `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() : 'Not Assigned'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone</p>
+                                <a 
+                                    href={`tel:${(project.pmPhone || project.projectManager?.phone || '').replace(/[^\d+]/g, '')}`}
+                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}
+                                >
+                                    {project.pmPhone || project.projectManager?.phone || 'Not Set'}
+                                </a>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</p>
+                                <a 
+                                    href={`mailto:${project.pmEmail || project.projectManager?.email || ''}`}
+                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}
+                                >
+                                    {project.pmEmail || project.projectManager?.email || 'Not Set'}
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                {/* Project Progress Section - EXACT COPY FROM DASHBOARD */}
-                <div className="px-3 pb-3">
-                    <div className={`p-3 rounded-lg transition-all duration-300 ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
-                        <div className="flex items-center justify-between mb-2">
-                            <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                Progress
-                            </span>
-                            <span className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                {getProgressForProject(project)}%
-                            </span>
-                        </div>
-                        {/* EXACT DASHBOARD PROGRESS BAR */}
-                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-blue-500 rounded-full"
-                                style={{ width: `${getProgressForProject(project)}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-                
-                
-                {/* Role Assignment Section */}
-                <div className="px-3 pb-3">
+                {/* Expandable Progress Bar Section - Matching Current Project Access */}
+                <div className="px-6 pb-4 border-b border-gray-200">
                     <button
-                        onClick={() => toggleRoleExpansion(project.id)}
-                        className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-200 text-sm font-medium ${
-                            colorMode 
-                                ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-slate-600/80' 
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                        }`}
+                        onClick={() => toggleProgress(project.id)}
+                        className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 ${colorMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'}`}
                     >
-                        <div className="flex items-center gap-2">
-                            <span>👥</span>
-                            <span>Assign Project Roles</span>
+                        <div className="flex items-center gap-3">
+                            <span className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>Project Progress</span>
+                            <div className={`flex items-center gap-2 px-2 py-1 rounded-lg ${colorMode ? 'bg-slate-700/40' : 'bg-gray-100'}`}>
+                                <div className={`w-16 h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-300'}`}>
+                                    <div 
+                                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                                        style={{ width: `${getProjectProgress(project)}%` }}
+                                    ></div>
+                                </div>
+                                <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                    {getProjectProgress(project)}%
+                                </span>
+                            </div>
                         </div>
-                        <span className={`transition-transform duration-200 ${
-                            expandedRoleProjects.has(project.id) ? 'rotate-180' : ''
-                        }`}>
-                            ▼
-                        </span>
+                        <svg 
+                            className={`w-5 h-5 transition-transform duration-200 ${expandedProgress.has(project.id) ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
                     
-                    <ProjectRoleDropdowns
-                        project={project}
-                        colorMode={colorMode}
-                        isExpanded={expandedRoleProjects.has(project.id)}
-                        onRoleAssignmentUpdate={handleRoleAssignmentUpdate}
-                    />
+                    {/* Expandable Progress Details */}
+                    {expandedProgress.has(project.id) && (
+                        <div className="mt-4 ml-6 space-y-4">
+                            {/* Overall Progress Detail */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Overall Project Progress</span>
+                                    <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getProjectProgress(project)}%</span>
+                                </div>
+                                <div className={`w-full h-3 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
+                                    <div 
+                                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
+                                        style={{ width: `${getProjectProgress(project)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                            
+                            {/* Materials & Labor Section */}
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => toggleTrades(project.id)}
+                                    className={`flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-80 ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}
+                                >
+                                    <span>📦 Materials & Labor</span>
+                                    <svg 
+                                        className={`w-4 h-4 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                
+                                {/* Materials & Labor Details */}
+                                {expandedTrades.has(project.id) && (
+                                    <div className="space-y-3 ml-4">
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Materials</span>
+                                                <span className={`text-sm font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.materialsProgress || 85}%</span>
+                                            </div>
+                                            <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
+                                                <div 
+                                                    className="h-full bg-green-500 rounded-full transition-all duration-300"
+                                                    style={{ width: `${project.materialsProgress || 85}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Labor</span>
+                                                <span className={`text-sm font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.laborProgress || 75}%</span>
+                                            </div>
+                                            <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
+                                                <div 
+                                                    className="h-full bg-orange-500 rounded-full transition-all duration-300"
+                                                    style={{ width: `${project.laborProgress || 75}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Additional Trades Section */}
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => toggleAdditionalTrades(project.id)}
+                                                className={`flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-80 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}
+                                            >
+                                                <span>🔧 Additional Trades</span>
+                                                <svg 
+                                                    className={`w-4 h-4 transition-transform ${expandedAdditionalTrades.has(project.id) ? 'rotate-180' : ''}`} 
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                            
+                                            {/* Additional Trades Details */}
+                                            {expandedAdditionalTrades.has(project.id) && (
+                                                <div className="space-y-2 ml-4">
+                                                    {[
+                                                        { name: 'Roofing', progress: project.roofingProgress || 90, color: 'bg-purple-500' },
+                                                        { name: 'Siding', progress: project.sidingProgress || 60, color: 'bg-blue-500' },
+                                                        { name: 'Windows', progress: project.windowsProgress || 40, color: 'bg-yellow-500' },
+                                                        { name: 'Gutters', progress: project.guttersProgress || 30, color: 'bg-red-500' }
+                                                    ].map((trade) => (
+                                                        <div key={trade.name} className="space-y-1">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>{trade.name}</span>
+                                                                <span className={`text-sm font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{trade.progress}%</span>
+                                                            </div>
+                                                            <div className={`w-full h-1.5 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
+                                                                <div 
+                                                                    className={`h-full ${trade.color} rounded-full transition-all duration-300`}
+                                                                    style={{ width: `${trade.progress}%` }}
+                                                                ></div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* 6 Project Action Buttons - Bottom Section */}
@@ -924,10 +1117,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 <div className="flex-1" />
                 <button
                     onClick={() => {
-                        // Reset form to defaults with project manager pre-filled
+                        // Reset form to defaults with all roles pre-filled
                         const resetProject = { 
                             ...defaultNewProject,
-                            projectManager: defaultRoles.projectManager?.id || ''
+                            projectManager: defaultRoles.projectManager?.id || '',
+                            fieldDirector: defaultRoles.fieldDirector?.id || '',
+                            salesRep: defaultRoles.salesRep?.id || '',
+                            qualityInspector: defaultRoles.qualityInspector?.id || '',
+                            adminAssistant: defaultRoles.adminAssistant?.id || ''
                         };
                         setNewProject(resetProject);
                         setIsModalOpen(true);
@@ -962,10 +1159,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     action={
                         <button
                             onClick={() => {
-                                // Reset form to defaults with project manager pre-filled
+                                // Reset form to defaults with all roles pre-filled
                                 const resetProject = { 
                                     ...defaultNewProject,
-                                    projectManager: defaultRoles.projectManager?.id || ''
+                                    projectManager: defaultRoles.projectManager?.id || '',
+                                    fieldDirector: defaultRoles.fieldDirector?.id || '',
+                                    salesRep: defaultRoles.salesRep?.id || '',
+                                    qualityInspector: defaultRoles.qualityInspector?.id || '',
+                                    adminAssistant: defaultRoles.adminAssistant?.id || ''
                                 };
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
@@ -1103,6 +1304,133 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             {defaultRoles.projectManager && (
                                 <div className={`mt-1 text-xs ${colorMode ? 'text-green-400' : 'text-green-600'}`}>
                                     ✓ Default: {defaultRoles.projectManager.name}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Project Role Assignments Section */}
+                        <div className={`border-t pt-6 ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
+                            <h4 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>Additional Project Roles</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Field Director */}
+                                <div>
+                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                        Field Director
+                                    </label>
+                                    <select
+                                        name="fieldDirector"
+                                        value={newProject.fieldDirector || ''}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                        }`}
+                                        disabled={usersLoading}
+                                    >
+                                        <option value="">Select Field Director (Optional)</option>
+                                        {availableUsers.filter(user => user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.role})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                {/* Sales Representative */}
+                                <div>
+                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                        Sales Representative
+                                    </label>
+                                    <select
+                                        name="salesRep"
+                                        value={newProject.salesRep || ''}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                        }`}
+                                        disabled={usersLoading}
+                                    >
+                                        <option value="">Select Sales Rep (Optional)</option>
+                                        {availableUsers.filter(user => user.role === 'SALES' || user.role === 'PROJECT_MANAGER').map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.role})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                {/* Quality Inspector */}
+                                <div>
+                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                        Quality Inspector
+                                    </label>
+                                    <select
+                                        name="qualityInspector"
+                                        value={newProject.qualityInspector || ''}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                        }`}
+                                        disabled={usersLoading}
+                                    >
+                                        <option value="">Select Quality Inspector (Optional)</option>
+                                        {availableUsers.filter(user => user.role === 'QUALITY' || user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.role})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                {/* Administrative Assistant */}
+                                <div>
+                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                        Administrative Assistant
+                                    </label>
+                                    <select
+                                        name="adminAssistant"
+                                        value={newProject.adminAssistant || ''}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                        }`}
+                                        disabled={usersLoading}
+                                    >
+                                        <option value="">Select Admin Assistant (Optional)</option>
+                                        {availableUsers.filter(user => user.role === 'ADMINISTRATION' || user.role === 'OFFICE').map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.role})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {/* Default roles display */}
+                            {(defaultRoles.fieldDirector || defaultRoles.salesRep || defaultRoles.qualityInspector || defaultRoles.adminAssistant) && (
+                                <div className={`mt-4 p-3 rounded-lg ${colorMode ? 'bg-slate-800/50 border-slate-600' : 'bg-gray-50 border-gray-200'} border`}>
+                                    <div className={`text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Default Role Assignments:</div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                        {defaultRoles.fieldDirector && (
+                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
+                                                Field Director: {defaultRoles.fieldDirector.name}
+                                            </div>
+                                        )}
+                                        {defaultRoles.salesRep && (
+                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
+                                                Sales Rep: {defaultRoles.salesRep.name}
+                                            </div>
+                                        )}
+                                        {defaultRoles.qualityInspector && (
+                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
+                                                Quality Inspector: {defaultRoles.qualityInspector.name}
+                                            </div>
+                                        )}
+                                        {defaultRoles.adminAssistant && (
+                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
+                                                Admin Assistant: {defaultRoles.adminAssistant.name}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>

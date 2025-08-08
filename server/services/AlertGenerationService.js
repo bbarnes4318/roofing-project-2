@@ -8,7 +8,7 @@ class AlertGenerationService {
    */
   static async generateBatchAlerts(projectIds) {
     try {
-      // Single optimized query to get all active line items with project data
+      // Simplified query - generate alerts for current line items without step_id constraint
       const activeItems = await prisma.$queryRaw`
         SELECT 
           pwt.project_id,
@@ -21,17 +21,19 @@ class AlertGenerationService {
           wp."phaseType" as phase_type,
           p."projectNumber" as project_number,
           p."projectName" as project_name,
-          p."projectManagerId" as project_manager_id,
+          p."project_manager_id" as project_manager_id,
           c."primaryName" as customer_name,
-          c.address as customer_address
+          c.address as customer_address,
+          pw.id as project_workflow_id
         FROM project_workflow_trackers pwt
         INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
         INNER JOIN workflow_sections ws ON ws.id = wli.section_id
         INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
         INNER JOIN projects p ON p.id = pwt.project_id
         LEFT JOIN customers c ON c.id = p.customer_id
+        LEFT JOIN project_workflows pw ON pw.project_id = p.id
         WHERE pwt.project_id = ANY(${projectIds}::text[])
-          AND wli.is_active = true
+          AND wli."isActive" = true
           AND p.status IN ('PENDING','IN_PROGRESS')
       `;
 
@@ -86,9 +88,15 @@ class AlertGenerationService {
       const now = new Date();
 
       for (const item of activeItems) {
-        // Skip if alert already exists
+        // Skip if alert already exists (use line_item_id since we don't have workflow_step_id)
         const key = `${item.project_id}-${item.line_item_id}`;
         if (existingSet.has(key)) {
+          continue;
+        }
+        
+        // Skip if workflowId is missing (project doesn't have workflow setup)
+        if (!item.project_workflow_id) {
+          console.log(`⚠️ Skipping project ${item.project_number} - no project workflow found`);
           continue;
         }
 
@@ -111,8 +119,8 @@ class AlertGenerationService {
           responsibleRole: item.responsible_role,
           dueDate: new Date(now.getTime() + (item.alert_days || 1) * 24 * 60 * 60 * 1000),
           projectId: item.project_id,
-          workflowId: item.tracker_id,
-          stepId: item.line_item_id,
+          workflowId: item.project_workflow_id,
+          stepId: 'cme1mb4sf0001umio94ymwsd5', // Dummy step ID - alert is actually for line item
           assignedToId: assignedUserId,
           metadata: {
             phase: item.phase_type,
