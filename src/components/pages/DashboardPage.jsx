@@ -1913,46 +1913,37 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </button>
                         </td>
                         
-                        {/* Workflow - Navigate to specific line item based on current project state */}
+                        {/* Workflow - Navigate to specific line item using new navigation system */}
                         <td className="py-2 px-2 whitespace-nowrap">
                           <button
                             onClick={() => {
                               if (onProjectSelect) {
-                                // Get the current workflow state using the centralized service
-                                const workflowState = WorkflowProgressService.calculateProjectProgress(project);
+                                // Use the new direct navigation system for workflow
                                 const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
                                 const currentPhase = WorkflowProgressService.getProjectPhase(project);
                                 
-                                const projectWithWorkflowState = {
+                                // Create navigation-compatible line item ID 
+                                const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
+                                const targetSectionId = currentStep?.sectionId || null;
+                                
+                                const projectWithNavigation = {
                                   ...project,
-                                  currentWorkflowStep: currentStep,
-                                  workflowState: workflowState,
-                                  scrollToCurrentLineItem: true,
-                                  targetPhase: currentPhase,
-                                  targetSection: currentStep?.stepName || currentStep?.name,
-                                  targetLineItem: currentStep?.stepId,
-                                  highlightLineItem: currentStep?.stepId,
-                                  sourceSection: 'Project Phases',
-                                  // ENHANCED: Add navigation context for proper workflow highlighting like Current Alerts
-                                  navigationTarget: {
-                                    phase: currentPhase,
-                                    section: currentStep?.stepName || currentStep?.name,
-                                    lineItem: currentStep?.stepName || currentStep?.name,
-                                    stepName: currentStep?.stepName || currentStep?.name,
-                                    stepId: currentStep?.stepId,
-                                    highlightMode: 'line-item',
-                                    scrollBehavior: 'smooth',
-                                    targetElementId: `line-item-${(currentStep?.stepName || currentStep?.name || '').replace(/\s+/g, '-').toLowerCase()}`,
-                                    highlightColor: '#3B82F6',
-                                    highlightDuration: 3000
-                                  },
                                   dashboardState: {
                                     selectedPhase: phaseConfig.id,
                                     expandedPhases: Array.from(expandedPhases),
                                     scrollToProject: project
                                   }
                                 };
-                                handleProjectSelectWithScroll(projectWithWorkflowState, 'Project Workflow', null, 'Project Phases');
+                                
+                                // Use the new navigation system with targetLineItemId
+                                handleProjectSelectWithScroll(
+                                  projectWithNavigation, 
+                                  'Project Workflow', 
+                                  null, 
+                                  'Current Projects by Phase',
+                                  targetLineItemId,
+                                  targetSectionId
+                                );
                               }
                             }}
                             className="w-16 h-6 border border-blue-500 text-black text-xs rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"

@@ -625,15 +625,23 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         <h4 className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Current Task</h4>
                         <button
                             onClick={() => {
-                                const projectWithWorkflowState = {
-                                    ...project,
-                                    scrollToCurrentLineItem: true,
-                                    targetPhase: currentPhase,
-                                    targetSection: currentSection,
-                                    targetLineItem: currentLineItem,
-                                    highlightLineItem: currentLineItem
-                                };
-                                onProjectSelect(projectWithWorkflowState, 'Project Workflow', null, 'My Projects');
+                                // Use the new direct navigation system for workflow
+                                const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                                const currentPhase = WorkflowProgressService.getProjectPhase(project);
+                                
+                                // Create navigation-compatible line item ID 
+                                const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
+                                const targetSectionId = currentStep?.sectionId || null;
+                                
+                                // Use the new navigation system with targetLineItemId
+                                onProjectSelect(
+                                    project, 
+                                    'Project Workflow', 
+                                    null, 
+                                    'My Projects',
+                                    targetLineItemId,
+                                    targetSectionId
+                                );
                             }}
                             className={`w-full text-left px-4 py-3 rounded-lg transition-all hover:shadow-md ${
                                 colorMode ? 'bg-blue-900/30 hover:bg-blue-800/40 text-blue-200 border border-blue-700/50' : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'
@@ -675,21 +683,23 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     <div className="grid grid-cols-3 gap-3">
                         <button
                             onClick={() => {
-                              const workflowState = WorkflowProgressService.calculateProjectProgress(project);
+                              // Use the new direct navigation system for workflow
                               const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
                               const currentPhase = WorkflowProgressService.getProjectPhase(project);
-                              const currentStepName = currentStep?.stepName || currentStep?.name || 'Input Customer Information';
                               
-                              const projectWithWorkflowState = {
-                                ...project,
-                                scrollToCurrentLineItem: true,
-                                targetPhase: currentPhase,
-                                targetLineItem: currentStepName,
-                                highlightLineItem: currentStepName,
-                                sourceSection: 'My Projects'
-                              };
+                              // Create navigation-compatible line item ID 
+                              const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
+                              const targetSectionId = currentStep?.sectionId || null;
                               
-                              onProjectSelect(projectWithWorkflowState, 'Project Workflow');
+                              // Use the new navigation system with targetLineItemId
+                              onProjectSelect(
+                                project, 
+                                'Project Workflow', 
+                                null, 
+                                'My Projects',
+                                targetLineItemId,
+                                targetSectionId
+                              );
                             }}
                             className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:shadow-md ${
                                 colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-blue-700/20 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-300'

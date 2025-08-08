@@ -9,15 +9,15 @@ import PhaseOverrideButton from '../ui/PhaseOverrideButton';
 import WorkflowProgressService from '../../services/workflowProgress';
 
 // =================================================================
-// 🔥🔥🔥 NUCLEAR CHECKBOX PERSISTENCE SYSTEM 🔥🔥🔥
+// CHECKBOX PERSISTENCE SYSTEM
 // =================================================================
 
-const STORAGE_KEY_PREFIX = 'NUCLEAR_CHECKBOX_';
+const STORAGE_KEY_PREFIX = 'WORKFLOW_CHECKBOX_';
 const BACKUP_KEY_PREFIX = 'BACKUP_CHECKBOX_';
 const EMERGENCY_KEY_PREFIX = 'EMERGENCY_CHECKBOX_';
 
-// Save to ALL possible storage locations
-const NUCLEAR_SAVE = (projectId, checkedSet) => {
+// Save to multiple storage locations for reliability
+const saveCheckboxState = (projectId, checkedSet) => {
   const checkedArray = Array.from(checkedSet);
   const timestamp = Date.now();
   const data = JSON.stringify({ items: checkedArray, timestamp, version: 'v3' });
@@ -48,23 +48,23 @@ const NUCLEAR_SAVE = (projectId, checkedSet) => {
       }, 0);
     }
     
-    console.log(`🔥🔥🔥 NUCLEAR SAVE COMPLETE: ${checkedArray.length} items across ALL layers`);
+    console.log(`Checkbox state saved: ${checkedArray.length} items across multiple layers`);
     return true;
   } catch (error) {
-    console.error('💥 NUCLEAR SAVE FAILED:', error);
+    console.error('Checkbox state save failed:', error);
     return false;
   }
 };
 
-// Load from ALL possible storage locations
-const NUCLEAR_LOAD = (projectId) => {
+// Load from multiple storage locations with fallback
+const loadCheckboxState = (projectId) => {
   try {
     // Try Layer 1 first (most recent)
     const primary = localStorage.getItem(`${STORAGE_KEY_PREFIX}${projectId}`);
     if (primary) {
       const parsed = JSON.parse(primary);
       if (parsed.items && Array.isArray(parsed.items)) {
-        console.log(`🔥 NUCLEAR LOAD: Primary storage - ${parsed.items.length} items`);
+        console.log(`Loaded from primary storage: ${parsed.items.length} items`);
         return new Set(parsed.items);
       }
     }
@@ -74,7 +74,7 @@ const NUCLEAR_LOAD = (projectId) => {
     if (primaryV2) {
       const parsed = JSON.parse(primaryV2);
       if (Array.isArray(parsed)) {
-        console.log(`🔥 NUCLEAR LOAD: Primary V2 - ${parsed.length} items`);
+        console.log(`Loaded from primary V2: ${parsed.length} items`);
         return new Set(parsed);
       }
     }
@@ -84,7 +84,7 @@ const NUCLEAR_LOAD = (projectId) => {
     if (session) {
       const parsed = JSON.parse(session);
       if (parsed.items && Array.isArray(parsed.items)) {
-        console.log(`🔥 NUCLEAR LOAD: Session storage - ${parsed.items.length} items`);
+        console.log(`Loaded from session storage: ${parsed.items.length} items`);
         return new Set(parsed.items);
       }
     }
@@ -94,7 +94,7 @@ const NUCLEAR_LOAD = (projectId) => {
     if (backup) {
       const parsed = JSON.parse(backup);
       if (Array.isArray(parsed)) {
-        console.log(`🔥 NUCLEAR LOAD: Backup - ${parsed.length} items`);
+        console.log(`Loaded from backup: ${parsed.length} items`);
         return new Set(parsed);
       }
     }
@@ -109,16 +109,16 @@ const NUCLEAR_LOAD = (projectId) => {
       const emergency = localStorage.getItem(emergencyKeys[0]);
       const parsed = JSON.parse(emergency);
       if (parsed.items && Array.isArray(parsed.items)) {
-        console.log(`🔥 NUCLEAR LOAD: Emergency backup - ${parsed.items.length} items`);
+        console.log(`Loaded from emergency backup: ${parsed.items.length} items`);
         return new Set(parsed.items);
       }
     }
     
   } catch (error) {
-    console.error('💥 NUCLEAR LOAD FAILED:', error);
+    console.error('Checkbox state load failed:', error);
   }
   
-  console.log('🔥 NUCLEAR LOAD: No data found, returning empty set');
+  console.log('No checkbox data found, returning empty set');
   return new Set();
 };
 
@@ -128,17 +128,17 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const projectId = project?._id || project?.id;
   
   // =================================================================
-  // 🔥🔥🔥 NUCLEAR STATE MANAGEMENT 🔥🔥🔥
+  // CHECKBOX STATE MANAGEMENT
   // =================================================================
   
   // Layer 1: Immediate UI state (for instant visual feedback)
-  const [immediateState, setImmediateState] = useState(() => NUCLEAR_LOAD(projectId));
+  const [immediateState, setImmediateState] = useState(() => loadCheckboxState(projectId));
   
   // Layer 2: Persistent state (for storage sync)
-  const [persistentState, setPersistentState] = useState(() => NUCLEAR_LOAD(projectId));
+  const [persistentState, setPersistentState] = useState(() => loadCheckboxState(projectId));
   
   // Layer 3: Backup state (for recovery)
-  const [backupState, setBackupState] = useState(() => NUCLEAR_LOAD(projectId));
+  const [backupState, setBackupState] = useState(() => loadCheckboxState(projectId));
   
   // Layer 4: Force render counter
   const [renderCounter, setRenderCounter] = useState(0);
@@ -159,20 +159,20 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [highlightedSectionId, setHighlightedSectionId] = useState(targetSectionId);
   
   // =================================================================
-  // 🔥🔥🔥 NUCLEAR CHECKBOX HANDLERS 🔥🔥🔥
+  // CHECKBOX HANDLERS
   // =================================================================
   
-  const NUCLEAR_CHECKBOX_HANDLER_DB = (stepId, phaseId, itemId, subIdx) => {
-    console.log(`🔥🔥🔥 NUCLEAR CHECKBOX DB CLICKED: ${stepId}`);
+  const handleCheckboxToggle = (stepId, phaseId, itemId, subIdx) => {
+    console.log(`Checkbox clicked: ${stepId}`);
     
     // Get current state
     const isCurrentlyChecked = immediateState.has(stepId) || persistentState.has(stepId);
     const newState = !isCurrentlyChecked;
     
-    console.log(`🔥 DB TOGGLE: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
+    console.log(`Toggle: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
     
     // =================================================================
-    // IMMEDIATE STATE UPDATE (NO DELAYS, NO ASYNC, NO BULLSHIT)
+    // IMMEDIATE STATE UPDATE
     // =================================================================
     
     const updateAllStates = (checked) => {
@@ -200,9 +200,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       setRenderCounter(prev => prev + 1);
       
       // Save to storage
-      NUCLEAR_SAVE(projectId, newPersistent);
+      saveCheckboxState(projectId, newPersistent);
       
-      console.log(`🔥 DB ALL STATES UPDATED: ${checked ? 'CHECKED' : 'UNCHECKED'} - ${Array.from(newPersistent).length} items`);
+      console.log(`All states updated: ${checked ? 'CHECKED' : 'UNCHECKED'} - ${Array.from(newPersistent).length} items`);
       
       return newPersistent;
     };
@@ -216,14 +216,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         // Call server API with database IDs
         workflowService.updateStep(projectId, stepId, newState)
           .then(() => {
-            console.log(`🌐 DB SERVER SYNC SUCCESS: ${stepId}`);
+            console.log(`Server sync success: ${stepId}`);
           })
           .catch(error => {
-            console.error(`💥 DB SERVER SYNC FAILED: ${stepId}`, error);
+            console.error(`Server sync failed: ${stepId}`, error);
             // Keep local state as truth
           });
       } catch (error) {
-        console.error(`💥 DB SERVER CALL FAILED: ${stepId}`, error);
+        console.error(`Server call failed: ${stepId}`, error);
       }
     }, 10); // Minimal delay
     
@@ -231,19 +231,19 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     return false;
   };
   
-  const NUCLEAR_CHECKBOX_HANDLER = (phaseId, itemId, subIdx) => {
+  const handleLegacyCheckbox = (phaseId, itemId, subIdx) => {
     const stepId = `${phaseId}-${itemId}-${subIdx}`;
     
-    console.log(`🔥🔥🔥 NUCLEAR CHECKBOX CLICKED: ${stepId}`);
+    console.log(`Legacy checkbox clicked: ${stepId}`);
     
     // Get current state
     const isCurrentlyChecked = immediateState.has(stepId) || persistentState.has(stepId);
     const newState = !isCurrentlyChecked;
     
-    console.log(`🔥 TOGGLE: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
+    console.log(`Toggle: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
     
     // =================================================================
-    // IMMEDIATE STATE UPDATE (NO DELAYS, NO ASYNC, NO BULLSHIT)
+    // IMMEDIATE STATE UPDATE
     // =================================================================
     
     const updateAllStates = (checked) => {
@@ -271,9 +271,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       setRenderCounter(prev => prev + 1);
       
       // Save to storage
-      NUCLEAR_SAVE(projectId, newPersistent);
+      saveCheckboxState(projectId, newPersistent);
       
-      console.log(`🔥 ALL STATES UPDATED: ${checked ? 'CHECKED' : 'UNCHECKED'} - ${Array.from(newPersistent).length} items`);
+      console.log(`All states updated: ${checked ? 'CHECKED' : 'UNCHECKED'} - ${Array.from(newPersistent).length} items`);
       
       return newPersistent;
     };
@@ -287,14 +287,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         // Call server API
         workflowService.updateStep(projectId, stepId, newState)
           .then(() => {
-            console.log(`🌐 SERVER SYNC SUCCESS: ${stepId}`);
+            console.log(`Server sync success: ${stepId}`);
           })
           .catch(error => {
-            console.error(`💥 SERVER SYNC FAILED: ${stepId}`, error);
+            console.error(`Server sync failed: ${stepId}`, error);
             // Keep local state as truth
           });
       } catch (error) {
-        console.error(`💥 SERVER CALL FAILED: ${stepId}`, error);
+        console.error(`Server call failed: ${stepId}`, error);
       }
     }, 10); // Minimal delay
     
@@ -303,10 +303,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   };
   
   // =================================================================
-  // 🔥🔥🔥 NUCLEAR CHECKBOX CHECKER 🔥🔥🔥
+  // CHECKBOX STATE CHECKER
   // =================================================================
   
-  const IS_NUCLEAR_CHECKED = (stepId) => {
+  const isItemChecked = (stepId) => {
     // Check immediate state first (highest priority)
     const immediateCheck = immediateState.has(stepId);
     const persistentCheck = persistentState.has(stepId);
@@ -331,7 +331,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     const loadWorkflowData = async () => {
       if (!projectId) return;
       
-      console.log(`🔥🔥🔥 LOADING DATABASE WORKFLOW: Project ${projectId}`);
+      console.log(`Loading workflow data for project: ${projectId}`);
       setLoading(true);
       setLoadingError(null);
       
@@ -355,16 +355,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         
         if (workflowResult.success) {
           setWorkflowData(workflowResult.data);
-          console.log(`🔥 LOADED: ${workflowResult.data.length} phases from database`);
-          console.log(`🔥 PHASE NAMES:`, workflowResult.data.map(p => p.id + ' (' + p.items.length + ' items)'));
-          console.log(`🔥 FULL WORKFLOW DATA:`, workflowResult.data);
+          console.log(`Loaded ${workflowResult.data.length} phases from database`);
+          console.log(`Phase names:`, workflowResult.data.map(p => p.id + ' (' + p.items.length + ' items)'));
+          console.log(`Full workflow data:`, workflowResult.data);
         } else {
           throw new Error('Failed to load workflow structure');
         }
         
         if (positionResult.success && positionResult.data) {
           setProjectPosition(positionResult.data);
-          console.log(`🎯 LOADED PROJECT POSITION:`, positionResult.data);
+          console.log(`Loaded project position:`, positionResult.data);
           
           // Keep ALL phases open but note the current phase for navigation
           // setOpenPhase(positionResult.data.currentPhase); // Keep showing all phases
@@ -406,7 +406,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 targetElement.classList.remove(...highlightClass);
               }, targetLineItemId ? 8000 : 5000); // Longer highlight for targeted items
               
-              console.log(`🎯 AUTO-NAVIGATED to ${scrollReason}`);
+              console.log(`Auto-navigated to ${scrollReason}`);
             }
           }, 1000);
           
@@ -432,15 +432,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   useEffect(() => {
     if (!projectId) return;
     
-    console.log(`🔥🔥🔥 NUCLEAR INIT: Project ${projectId}`);
-    console.log(`🔥 Initial states:`, {
+    console.log(`Initializing workflow for project: ${projectId}`);
+    console.log(`Initial states:`, {
       immediate: immediateState.size,
       persistent: persistentState.size,
       backup: backupState.size
     });
     
     // Sync all states on init
-    const loadedState = NUCLEAR_LOAD(projectId);
+    const loadedState = loadCheckboxState(projectId);
     setImmediateState(loadedState);
     setPersistentState(loadedState);
     setBackupState(loadedState);
@@ -526,7 +526,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          🔥 Complete Workflow Checklist - ALL 6 PHASES 🔥
+          Project Workflow Checklist
         </h2>
         <div className="text-sm text-gray-600">
           Project: {project.projectName || project.name} (ID: {projectId})
@@ -544,7 +544,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       {/* Checklist */}
       <div className="space-y-4">
         {workflowData.map((phase) => {
-          console.log(`🎨 RENDERING PHASE: ${phase.id} with ${phase.items.length} items`);
+          console.log(`Rendering phase: ${phase.id} with ${phase.items.length} items`);
           return (
           <div key={phase.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Phase Header */}
@@ -609,7 +609,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                             {item.subtasks.map((subtask, subIdx) => {
                               // Use database IDs for better persistence
                               const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
-                              const isChecked = IS_NUCLEAR_CHECKED(stepId);
+                              const isChecked = isItemChecked(stepId);
                               // console.log(`🔍 CHECKING SUBTASK: ${subtask} | stepId: ${stepId} | checked: ${isChecked}`);
                               
                               // Check if this is the current active line item
@@ -639,11 +639,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                       id={stepId}
                                       checked={isChecked}
                                       onChange={() => {
-                                        console.log(`📝 NUCLEAR CHECKBOX onChange: ${stepId}`);
-                                        NUCLEAR_CHECKBOX_HANDLER_DB(stepId, phase.id, item.id, subIdx);
+                                        console.log(`Checkbox onChange: ${stepId}`);
+                                        handleCheckboxToggle(stepId, phase.id, item.id, subIdx);
                                       }}
                                       onClick={(e) => {
-                                        console.log(`🖱️ NUCLEAR CHECKBOX onClick: ${stepId}`);
+                                        console.log(`Checkbox onClick: ${stepId}`);
                                         e.stopPropagation();
                                       }}
                                       className={`h-4 w-4 rounded border-2 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600 ${
@@ -679,7 +679,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                             : 'text-gray-800 hover:text-blue-600'
                                     }`}
                                   >
-                                    {isCurrentLineItem && <span className="text-blue-500">🔥 </span>}
+                                    {isCurrentLineItem && <span className="text-blue-500">👈 </span>}
                                     {isTargetedLineItem && <span className="text-yellow-500">⭐ </span>}
                                     {subtask}
                                   </label>
@@ -702,8 +702,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       
       {/* Debug Panel */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="bg-red-100 border border-red-400 rounded p-4 text-sm">
-          <div className="font-bold text-red-800">🔥 NUCLEAR DEBUG PANEL 🔥</div>
+        <div className="bg-gray-100 border border-gray-400 rounded p-4 text-sm">
+          <div className="font-bold text-gray-800">Debug Information</div>
           <div>Immediate State: {immediateState.size} items</div>
           <div>Persistent State: {persistentState.size} items</div>
           <div>Backup State: {backupState.size} items</div>

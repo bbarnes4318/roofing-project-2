@@ -550,38 +550,30 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                   <button
                     onClick={() => {
                       if (onProjectSelect) {
-                        // Get the current workflow state using the centralized service - matching Projects by Phase
-                        const workflowState = WorkflowProgressService.calculateProjectProgress(project);
+                        // Use the new direct navigation system for workflow
                         const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
+                        const currentPhase = WorkflowProgressService.getProjectPhase(project);
                         
-                        const projectWithWorkflowState = {
+                        // Create navigation-compatible line item ID 
+                        const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
+                        const targetSectionId = currentStep?.sectionId || null;
+                        
+                        const projectWithNavigation = {
                           ...project,
-                          currentWorkflowStep: currentStep,
-                          workflowState: workflowState,
-                          scrollToCurrentLineItem: true,
-                          targetPhase: WorkflowProgressService.getProjectPhase(project),
-                          targetSection: currentStep?.stepName || currentStep?.name,
-                          targetLineItem: currentStep?.stepId,
-                          highlightLineItem: currentStep?.stepId,
-                          sourceSection: 'Project Cubes',
-                          // ENHANCED: Add navigation context for proper workflow highlighting like Current Alerts
-                          navigationTarget: {
-                            phase: WorkflowProgressService.getProjectPhase(project),
-                            section: currentStep?.stepName || currentStep?.name,
-                            lineItem: currentStep?.stepName || currentStep?.name,
-                            stepName: currentStep?.stepName || currentStep?.name,
-                            stepId: currentStep?.stepId,
-                            highlightMode: 'line-item',
-                            scrollBehavior: 'smooth',
-                            targetElementId: `line-item-${(currentStep?.stepName || currentStep?.name || '').replace(/\s+/g, '-').toLowerCase()}`,
-                            highlightColor: '#3B82F6',
-                            highlightDuration: 3000
-                          },
                           dashboardState: {
                             scrollToProject: project
                           }
                         };
-                        onProjectSelect(projectWithWorkflowState, 'Project Workflow', null, 'Project Cubes');
+                        
+                        // Use the new navigation system with targetLineItemId
+                        onProjectSelect(
+                          projectWithNavigation, 
+                          'Project Workflow', 
+                          null, 
+                          'Project Cubes',
+                          targetLineItemId,
+                          targetSectionId
+                        );
                       }
                     }}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
