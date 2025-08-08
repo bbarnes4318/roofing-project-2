@@ -16,6 +16,7 @@
     "db:seed": "node prisma/seed.js",
     "db:seed:safe": "node prisma/seed-safe.js",
     "db:seed:demo": "node scripts/seed-demo-project.js",
+    "db:ensure-workflow": "node scripts/ensure-workflow-readiness.js",
     "db:studio": "prisma studio"
   },
   "dependencies": {

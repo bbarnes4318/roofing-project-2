@@ -1504,41 +1504,31 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <span className="text-[10px] font-medium">All</span>
               </button>
             
-            {/* 6 Phase Containers - Professional Layout with Proper Sizing */}
-            {PROJECT_PHASES.map(phase => {
-              // Determine appropriate width based on phase name length
-              const getPhaseWidth = (phaseName) => {
-                if (phaseName.length <= 4) return 'w-20'; // Lead
-                if (phaseName.length <= 8) return 'w-24'; // Prospect, Approved
-                if (phaseName.length <= 10) return 'w-28'; // Execution, Completion
-                return 'w-32'; // 2nd Supplement and longer names
-              };
-              
-              return (
-                <button
-                  key={phase.id}
-                  onClick={() => {
-                    console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
-                    setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
-                  }}
-                  className={`h-12 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg ${getPhaseWidth(phase.name)} flex-shrink-0 ${
-                    selectedPhase === phase.id
-                      ? 'border-gray-400 bg-gray-50 shadow-md text-gray-800'
-                      : colorMode 
-                        ? 'border-gray-600 bg-transparent text-gray-200 hover:bg-gray-700 hover:border-gray-500' 
-                        : 'border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-                  }`}
-                >
-                  <div 
-                    className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
-                    style={{ backgroundColor: phase.color }}
-                  ></div>
-                  <span className="text-center leading-tight text-[10px] font-medium break-words max-w-full">
-                    {phase.name}
-                  </span>
-                </button>
-              );
-            })}
+            {/* 6 Phase Containers - Uniform width except 'All' */}
+            {PROJECT_PHASES.map(phase => (
+              <button
+                key={phase.id}
+                onClick={() => {
+                  console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
+                  setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
+                }}
+                className={`h-12 w-32 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg flex-shrink-0 ${
+                  selectedPhase === phase.id
+                    ? 'border-gray-400 bg-gray-50 shadow-md text-gray-800'
+                    : colorMode 
+                      ? 'border-gray-600 bg-transparent text-gray-200 hover:bg-gray-700 hover:border-gray-500' 
+                      : 'border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                }`}
+              >
+                <div 
+                  className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
+                  style={{ backgroundColor: phase.color }}
+                ></div>
+                <span className="text-center leading-tight text-[10px] font-medium break-words max-w-full">
+                  {phase.name}
+                </span>
+              </button>
+            ))}
             </div>
           </div>
         </div>
