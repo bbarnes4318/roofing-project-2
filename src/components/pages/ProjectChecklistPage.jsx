@@ -155,8 +155,77 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   
   // =================================================================
-  // 🔥🔥🔥 NUCLEAR CHECKBOX HANDLER 🔥🔥🔥
+  // 🔥🔥🔥 NUCLEAR CHECKBOX HANDLERS 🔥🔥🔥
   // =================================================================
+  
+  const NUCLEAR_CHECKBOX_HANDLER_DB = (stepId, phaseId, itemId, subIdx) => {
+    console.log(`🔥🔥🔥 NUCLEAR CHECKBOX DB CLICKED: ${stepId}`);
+    
+    // Get current state
+    const isCurrentlyChecked = immediateState.has(stepId) || persistentState.has(stepId);
+    const newState = !isCurrentlyChecked;
+    
+    console.log(`🔥 DB TOGGLE: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
+    
+    // =================================================================
+    // IMMEDIATE STATE UPDATE (NO DELAYS, NO ASYNC, NO BULLSHIT)
+    // =================================================================
+    
+    const updateAllStates = (checked) => {
+      // Create new sets
+      const newImmediate = new Set(immediateState);
+      const newPersistent = new Set(persistentState);
+      const newBackup = new Set(backupState);
+      
+      if (checked) {
+        newImmediate.add(stepId);
+        newPersistent.add(stepId);
+        newBackup.add(stepId);
+      } else {
+        newImmediate.delete(stepId);
+        newPersistent.delete(stepId);
+        newBackup.delete(stepId);
+      }
+      
+      // Update all states IMMEDIATELY
+      setImmediateState(newImmediate);
+      setPersistentState(newPersistent);
+      setBackupState(newBackup);
+      
+      // Force render
+      setRenderCounter(prev => prev + 1);
+      
+      // Save to storage
+      NUCLEAR_SAVE(projectId, newPersistent);
+      
+      console.log(`🔥 DB ALL STATES UPDATED: ${checked ? 'CHECKED' : 'UNCHECKED'} - ${Array.from(newPersistent).length} items`);
+      
+      return newPersistent;
+    };
+    
+    // Execute the update
+    const finalState = updateAllStates(newState);
+    
+    // Background server sync (non-blocking)
+    setTimeout(() => {
+      try {
+        // Call server API with database IDs
+        workflowService.updateStep(projectId, stepId, newState)
+          .then(() => {
+            console.log(`🌐 DB SERVER SYNC SUCCESS: ${stepId}`);
+          })
+          .catch(error => {
+            console.error(`💥 DB SERVER SYNC FAILED: ${stepId}`, error);
+            // Keep local state as truth
+          });
+      } catch (error) {
+        console.error(`💥 DB SERVER CALL FAILED: ${stepId}`, error);
+      }
+    }, 10); // Minimal delay
+    
+    // Prevent any event bubbling or default behavior
+    return false;
+  };
   
   const NUCLEAR_CHECKBOX_HANDLER = (phaseId, itemId, subIdx) => {
     const stepId = `${phaseId}-${itemId}-${subIdx}`;
@@ -283,6 +352,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         if (workflowResult.success) {
           setWorkflowData(workflowResult.data);
           console.log(`🔥 LOADED: ${workflowResult.data.length} phases from database`);
+          console.log(`🔥 PHASE NAMES:`, workflowResult.data.map(p => p.id + ' (' + p.items.length + ' items)'));
+          console.log(`🔥 FULL WORKFLOW DATA:`, workflowResult.data);
         } else {
           throw new Error('Failed to load workflow structure');
         }
@@ -368,6 +439,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
       'PROSPECT': 'bg-green-500',
       'APPROVED': 'bg-yellow-500',
       'EXECUTION': 'bg-orange-500',
+      'SECOND_SUPPLEMENT': 'bg-pink-500',
       'COMPLETION': 'bg-purple-500',
       'default': 'bg-gray-500'
     };
@@ -441,7 +513,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
 
       {/* Checklist */}
       <div className="space-y-4">
-        {workflowData.map((phase) => (
+        {workflowData.map((phase) => {
+          console.log(`🎨 RENDERING PHASE: ${phase.id} with ${phase.items.length} items`);
+          return (
           <div key={phase.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Phase Header */}
             <button
@@ -496,8 +570,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                         <div className={`p-4 ${isCurrentSection ? 'bg-blue-50/30' : 'bg-white'}`}>
                           <div className="space-y-3">
                             {item.subtasks.map((subtask, subIdx) => {
-                              const stepId = `${phase.id}-${item.id}-${subIdx}`;
+                              // Use database IDs for better persistence
+                              const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
                               const isChecked = IS_NUCLEAR_CHECKED(stepId);
+                              // console.log(`🔍 CHECKING SUBTASK: ${subtask} | stepId: ${stepId} | checked: ${isChecked}`);
                               
                               // Check if this is the current active line item
                               const isCurrentLineItem = projectPosition && 
@@ -516,7 +592,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                       checked={isChecked}
                                       onChange={() => {
                                         console.log(`📝 NUCLEAR CHECKBOX onChange: ${stepId}`);
-                                        NUCLEAR_CHECKBOX_HANDLER(phase.id, item.id, subIdx);
+                                        NUCLEAR_CHECKBOX_HANDLER_DB(stepId, phase.id, item.id, subIdx);
                                       }}
                                       onClick={(e) => {
                                         console.log(`🖱️ NUCLEAR CHECKBOX onClick: ${stepId}`);
@@ -568,7 +644,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
       
       {/* Debug Panel */}
