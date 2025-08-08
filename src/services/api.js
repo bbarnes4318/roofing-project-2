@@ -445,6 +445,38 @@ export const messagesService = {
   }
 };
 
+// Project Messages Service (per-project chat)
+export const projectMessagesService = {
+  // List messages for a project (paginated via params)
+  getByProject: async (projectId, params = {}) => {
+    const response = await api.get(`/project-messages/${projectId}`, { params });
+    return response.data;
+  },
+
+  // Create a new message in a project
+  create: async (projectId, { content, subject, priority = 'MEDIUM', parentMessageId } = {}) => {
+    const response = await api.post(`/project-messages/${projectId}`, {
+      content,
+      subject,
+      priority,
+      parentMessageId,
+    });
+    return response.data;
+  },
+
+  // Mark message as read
+  markRead: async (messageId) => {
+    const response = await api.patch(`/project-messages/${messageId}/read`);
+    return response.data;
+  },
+
+  // Get a message thread (message + replies)
+  getThread: async (messageId) => {
+    const response = await api.get(`/project-messages/thread/${messageId}`);
+    return response.data;
+  },
+};
+
 // Documents Service
 export const documentsService = {
   // Get all documents

@@ -9,6 +9,7 @@ import {
   calendarService,
   authService,
   messagesService,
+  projectMessagesService,
   aiService,
   healthService,
   workflowAlertsService,
@@ -56,6 +57,10 @@ export const queryKeys = {
   
   // Workflow
   workflow: (projectId) => ['workflow', 'project', projectId],
+
+  // Project Messages
+  projectMessages: (projectId, params) => ['project-messages', projectId, params],
+  projectMessageThread: (messageId) => ['project-messages', 'thread', messageId],
   
   // Search
   search: (query, type = 'general') => ['search', type, query],
@@ -64,6 +69,39 @@ export const queryKeys = {
 /**
  * PROJECTS HOOKS
  */
+/**
+ * PROJECT MESSAGES HOOKS (Per-project chat)
+ */
+
+export const useProjectMessages = (projectId, params = { page: 1, limit: 20, includeReplies: 'true' }) => {
+  return useQuery({
+    queryKey: queryKeys.projectMessages(projectId, params),
+    queryFn: () => projectMessagesService.getByProject(projectId, params),
+    select: (data) => data?.data || data || [],
+    enabled: !!projectId,
+    staleTime: 30 * 1000,
+  });
+};
+
+export const useCreateProjectMessage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId, content, subject, priority, parentMessageId }) =>
+      projectMessagesService.create(projectId, { content, subject, priority, parentMessageId }),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectMessages(variables.projectId, undefined) });
+    },
+  });
+};
+
+export const useProjectMessageThread = (messageId) => {
+  return useQuery({
+    queryKey: queryKeys.projectMessageThread(messageId),
+    queryFn: () => projectMessagesService.getThread(messageId),
+    select: (data) => data?.data || data,
+    enabled: !!messageId,
+  });
+};
 
 // Get all projects with optional parameters
 export const useProjects = (params = {}) => {
