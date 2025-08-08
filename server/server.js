@@ -38,6 +38,7 @@ const debugRoutes = require('./routes/debug');
 const customerRoutes = require('./routes/customers');
 const notificationRoutes = require('./routes/notifications');
 const searchRoutes = require('./routes/search');
+const workflowDataRoutes = require('./routes/workflow-data');
 
 let workflowRoutes;
 try {
@@ -636,6 +637,7 @@ if (projectImportRoutes) {
   console.log('⚠️ SERVER: Project import routes not registered due to missing dependencies');
 }
 app.use('/api/search', searchRoutes);
+app.use('/api/workflow-data', workflowDataRoutes);
 app.use('/api/roles', roleRoutes);
 
 // Serve React build files in production

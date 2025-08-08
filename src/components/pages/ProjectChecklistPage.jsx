@@ -122,84 +122,7 @@ const NUCLEAR_LOAD = (projectId) => {
   return new Set();
 };
 
-const checklistPhases = [
-  {
-    id: 'LEAD',
-    label: 'Lead Phase',
-    items: [
-      {
-        id: 'input-customer-info',
-        label: 'Input Customer Information – Office 👩🏼‍💻',
-        subtasks: [
-          'Make sure the name is spelled correctly',
-          'Make sure the email is correct. Send a confirmation email to confirm email.'
-        ]
-      },
-      {
-        id: 'complete-questions',
-        label: 'Complete Questions to Ask Checklist – Office 👩🏼‍💻',
-        subtasks: [
-          'Input answers from Question Checklist into notes',
-          'Record property details'
-        ]
-      },
-      {
-        id: 'input-lead-property',
-        label: 'Input Lead Property Information – Office 👩🏼‍💻',
-        subtasks: [
-          'Add Home View photos – Maps',
-          'Add Street View photos – Google Maps',
-          'Add elevation screenshot – PPRBD',
-          'Add property age – County Assessor Website',
-          'Evaluate ladder requirements – By looking at the room'
-        ]
-      },
-      {
-        id: 'assign-pm',
-        label: 'Assign A Project Manager – Office 👩🏼‍💻',
-        subtasks: [
-          'Use workflow from Lead Assigning Flowchart',
-          'Select and brief the Project Manager'
-        ]
-      },
-      {
-        id: 'schedule-inspection',
-        label: 'Schedule Initial Inspection – Office 👩🏼‍💻',
-        subtasks: [
-          'Call Customer and coordinate with PM schedule',
-          'Create Calendar Appointment in AL'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'PROSPECT',
-    label: 'Prospect Phase',
-    items: [
-      {
-        id: 'site-inspection',
-        label: 'Site Inspection – Project Manager 👷🏼',
-        subtasks: [
-          'Take site photos',
-          'Complete inspection form',
-          'Document material colors',
-          'Capture Hover photos',
-          'Present upgrade options'
-        ]
-      },
-      {
-        id: 'write-estimate',
-        label: 'Write Estimate – Project Manager 👷🏼',
-        subtasks: [
-          'Fill out Estimate Form',
-          'Write initial estimate – AccuLynx',
-          'Write Customer Pay Estimates',
-          'Send for Approval'
-        ]
-      }
-    ]
-  }
-];
+// Workflow data will be loaded from database API
 
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) => {
   const projectId = project?._id || project?.id;
@@ -224,9 +147,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   const [openPhase, setOpenPhase] = useState('LEAD'); // Start with first phase open
   const [openItem, setOpenItem] = useState({});
   
-  // Other states
+  // Workflow data states
   const [workflowData, setWorkflowData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [projectPosition, setProjectPosition] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   
   // =================================================================
@@ -326,7 +251,85 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
   };
   
   // =================================================================
-  // INITIALIZATION
+  // LOAD WORKFLOW DATA FROM DATABASE
+  // =================================================================
+  
+  useEffect(() => {
+    const loadWorkflowData = async () => {
+      if (!projectId) return;
+      
+      console.log(`🔥🔥🔥 LOADING DATABASE WORKFLOW: Project ${projectId}`);
+      setLoading(true);
+      setLoadingError(null);
+      
+      try {
+        // Load both workflow structure and project position in parallel
+        const [workflowResponse, positionResponse] = await Promise.all([
+          fetch('/api/workflow-data/full-structure', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+            }
+          }),
+          fetch(`/api/workflow-data/project-position/${projectId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+            }
+          })
+        ]);
+        
+        const workflowResult = await workflowResponse.json();
+        const positionResult = await positionResponse.json();
+        
+        if (workflowResult.success) {
+          setWorkflowData(workflowResult.data);
+          console.log(`🔥 LOADED: ${workflowResult.data.length} phases from database`);
+        } else {
+          throw new Error('Failed to load workflow structure');
+        }
+        
+        if (positionResult.success && positionResult.data) {
+          setProjectPosition(positionResult.data);
+          console.log(`🎯 LOADED PROJECT POSITION:`, positionResult.data);
+          
+          // Set the current phase as open
+          setOpenPhase(positionResult.data.currentPhase);
+          
+          // Auto-scroll to current position after a brief delay
+          setTimeout(() => {
+            const currentElement = document.getElementById(`item-${positionResult.data.currentSection}`);
+            if (currentElement) {
+              currentElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+              });
+              
+              // Add blue highlight
+              currentElement.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-75');
+              setTimeout(() => {
+                currentElement.classList.remove('ring-4', 'ring-blue-500', 'ring-opacity-75');
+              }, 5000);
+              
+              console.log(`🎯 AUTO-NAVIGATED to current section: ${positionResult.data.sectionDisplayName}`);
+            }
+          }, 1000);
+          
+        } else {
+          console.log(`⚠️ No project position found for: ${projectId}`);
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading workflow data:', error);
+        setLoadingError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadWorkflowData();
+  }, [projectId]);
+  
+  // =================================================================
+  // NUCLEAR INITIALIZATION
   // =================================================================
   
   useEffect(() => {
@@ -379,12 +382,49 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     );
   }
 
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <div className="text-gray-600">Loading workflow from database...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingError) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="text-red-600 font-semibold mb-2">Failed to Load Workflow</div>
+          <div className="text-red-500 text-sm">{loadingError}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!workflowData || workflowData.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <div className="text-yellow-600 font-semibold">No Workflow Data Found</div>
+          <div className="text-yellow-500 text-sm mt-1">Unable to load workflow structure from database.</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          🔥 NUCLEAR Workflow Checklist 🔥
+          🔥 DATABASE Workflow Checklist 🔥
         </h2>
         <div className="text-sm text-gray-600">
           Project: {project.projectName || project.name} (ID: {projectId})
@@ -392,11 +432,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
         <div className="text-sm text-gray-600 mt-1">
           Checked Items: {immediateState.size} | Render: #{renderCounter}
         </div>
+        {projectPosition && (
+          <div className="text-sm text-blue-600 mt-2 font-medium">
+            📍 Current: {projectPosition.phaseName} → {projectPosition.sectionDisplayName} → {projectPosition.currentLineItemName}
+          </div>
+        )}
       </div>
 
       {/* Checklist */}
       <div className="space-y-4">
-        {checklistPhases.map((phase) => (
+        {workflowData.map((phase) => (
           <div key={phase.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Phase Header */}
             <button
@@ -416,84 +461,110 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
             {/* Phase Content */}
             {openPhase === phase.id && (
               <div className="p-6 space-y-4">
-                {phase.items.map((item) => (
-                  <div key={item.id} className="border rounded-lg overflow-hidden">
-                    {/* Item Header */}
-                    <button
-                      onClick={() => handleItemClick(item.id)}
-                      className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left font-medium text-gray-800 transition-colors duration-200"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{item.label}</span>
-                        <ChevronDownIcon 
-                          className={`w-4 h-4 transform transition-transform duration-200 ${
-                            openItem[item.id] ? 'rotate-180' : ''
-                          }`} 
-                        />
-                      </div>
-                    </button>
-
-                    {/* Item Content - Subtasks */}
-                    {openItem[item.id] && (
-                      <div className="p-4 bg-white">
-                        <div className="space-y-3">
-                          {item.subtasks.map((subtask, subIdx) => {
-                            const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                            const isChecked = IS_NUCLEAR_CHECKED(stepId);
-                            
-                            return (
-                              <div key={subIdx} className="flex items-start space-x-3">
-                                {/* NUCLEAR CHECKBOX */}
-                                <div className="relative flex-shrink-0 mt-1">
-                                  <input
-                                    type="checkbox"
-                                    id={stepId}
-                                    checked={isChecked}
-                                    onChange={() => {
-                                      console.log(`📝 NUCLEAR CHECKBOX onChange: ${stepId}`);
-                                      NUCLEAR_CHECKBOX_HANDLER(phase.id, item.id, subIdx);
-                                    }}
-                                    onClick={(e) => {
-                                      console.log(`🖱️ NUCLEAR CHECKBOX onClick: ${stepId}`);
-                                      e.stopPropagation();
-                                    }}
-                                    className="h-4 w-4 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
-                                  />
-                                  {/* Custom checkmark */}
-                                  {isChecked && (
-                                    <svg 
-                                      className="absolute inset-0 w-4 h-4 text-white pointer-events-none" 
-                                      fill="currentColor" 
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path 
-                                        fillRule="evenodd" 
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                                        clipRule="evenodd" 
-                                      />
-                                    </svg>
-                                  )}
-                                </div>
-                                
-                                {/* Task Label */}
-                                <label 
-                                  htmlFor={stepId}
-                                  className={`flex-1 text-sm cursor-pointer select-none transition-all duration-200 ${
-                                    isChecked 
-                                      ? 'text-gray-500 line-through' 
-                                      : 'text-gray-800 hover:text-blue-600'
-                                  }`}
-                                >
-                                  {subtask}
-                                </label>
-                              </div>
-                            );
-                          })}
+                {phase.items.map((item) => {
+                  // Check if this is the current active section
+                  const isCurrentSection = projectPosition && projectPosition.currentSection === item.id;
+                  
+                  return (
+                    <div key={item.id} id={`item-${item.id}`} className={`border rounded-lg overflow-hidden ${
+                      isCurrentSection ? 'border-blue-500 bg-blue-50/50' : ''
+                    }`}>
+                      {/* Item Header */}
+                      <button
+                        onClick={() => handleItemClick(item.id)}
+                        className={`w-full px-4 py-3 text-left font-medium transition-colors duration-200 ${
+                          isCurrentSection 
+                            ? 'bg-blue-100 hover:bg-blue-150 text-blue-900' 
+                            : 'bg-gray-50 hover:bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2">
+                            {isCurrentSection && <span className="text-blue-500">👈</span>}
+                            {item.label}
+                          </span>
+                          <ChevronDownIcon 
+                            className={`w-4 h-4 transform transition-transform duration-200 ${
+                              openItem[item.id] ? 'rotate-180' : ''
+                            }`} 
+                          />
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      </button>
+
+                      {/* Item Content - Subtasks */}
+                      {openItem[item.id] && (
+                        <div className={`p-4 ${isCurrentSection ? 'bg-blue-50/30' : 'bg-white'}`}>
+                          <div className="space-y-3">
+                            {item.subtasks.map((subtask, subIdx) => {
+                              const stepId = `${phase.id}-${item.id}-${subIdx}`;
+                              const isChecked = IS_NUCLEAR_CHECKED(stepId);
+                              
+                              // Check if this is the current active line item
+                              const isCurrentLineItem = projectPosition && 
+                                projectPosition.currentSection === item.id && 
+                                projectPosition.currentLineItemName === subtask;
+                              
+                              return (
+                                <div key={subIdx} className={`flex items-start space-x-3 ${
+                                  isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : ''
+                                }`}>
+                                  {/* NUCLEAR CHECKBOX */}
+                                  <div className="relative flex-shrink-0 mt-1">
+                                    <input
+                                      type="checkbox"
+                                      id={stepId}
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        console.log(`📝 NUCLEAR CHECKBOX onChange: ${stepId}`);
+                                        NUCLEAR_CHECKBOX_HANDLER(phase.id, item.id, subIdx);
+                                      }}
+                                      onClick={(e) => {
+                                        console.log(`🖱️ NUCLEAR CHECKBOX onClick: ${stepId}`);
+                                        e.stopPropagation();
+                                      }}
+                                      className={`h-4 w-4 rounded border-2 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600 ${
+                                        isCurrentLineItem ? 'border-blue-500' : 'border-gray-300'
+                                      }`}
+                                    />
+                                    {/* Custom checkmark */}
+                                    {isChecked && (
+                                      <svg 
+                                        className="absolute inset-0 w-4 h-4 text-white pointer-events-none" 
+                                        fill="currentColor" 
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path 
+                                          fillRule="evenodd" 
+                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                                          clipRule="evenodd" 
+                                        />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Task Label */}
+                                  <label 
+                                    htmlFor={stepId}
+                                    className={`flex-1 text-sm cursor-pointer select-none transition-all duration-200 ${
+                                      isCurrentLineItem
+                                        ? 'font-semibold text-blue-800'
+                                        : isChecked 
+                                          ? 'text-gray-500 line-through' 
+                                          : 'text-gray-800 hover:text-blue-600'
+                                    }`}
+                                  >
+                                    {isCurrentLineItem && <span className="text-blue-500">🔥 </span>}
+                                    {subtask}
+                                  </label>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

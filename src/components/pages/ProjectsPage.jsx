@@ -8,8 +8,6 @@ import { projectsService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
-// ProjectRoleDropdowns moved to Add Project form - no longer needed
-// Removed broken drag libraries - using native implementation
 
 const defaultNewProject = {
     projectNumber: '',
@@ -51,12 +49,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [defaultRoles, setDefaultRoles] = useState({});
     const [usersLoading, setUsersLoading] = useState(true);
     
-    // Role assignment moved to Add Project form - no longer need expansion state
-    
-    // Progress expansion state (matching Dashboard implementation)
-    const [expandedProgress, setExpandedProgress] = useState(new Set());
-    const [expandedTrades, setExpandedTrades] = useState(new Set());
-    const [expandedAdditionalTrades, setExpandedAdditionalTrades] = useState(new Set());
+    // Removed expandable progress states - simplified compact design
     
     // Removed drag and drop state - reverted to original layout
     
@@ -190,61 +183,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     }, []);
 
 
-    // Function to determine if project should have multiple trades (3 random projects)
-    const shouldHaveMultipleTrades = (projectId) => {
-        // Use project ID to consistently determine which projects get multiple trades
-        return [1, 3, 5].includes(projectId); // Projects with IDs 1, 3, and 5 get multiple trades
-    };
-
-    // Function to get trades for a project
-    const getProjectTrades = (project) => {
-        // Use calculated progress data from backend if available
-        if (project.calculatedProgress && project.calculatedProgress.trades && project.calculatedProgress.trades.length > 0) {
-            return project.calculatedProgress.trades;
-        }
-        
-        // Fallback to previous logic if no calculated data available
-        if (shouldHaveMultipleTrades(project.id)) {
-            // Multiple trades for selected projects - different numbers for each
-            if (project.id === 1) {
-                // Project 1: Add 2 trades
-                return [
-                    { name: 'Roofing', laborProgress: 75, materialsDelivered: true },
-                    { name: 'Siding', laborProgress: 45, materialsDelivered: true },
-                    { name: 'Windows', laborProgress: 20, materialsDelivered: false }
-                ];
-            } else if (project.id === 3) {
-                // Project 3: Add 3 trades
-                return [
-                    { name: 'Roofing', laborProgress: 60, materialsDelivered: true },
-                    { name: 'Siding', laborProgress: 30, materialsDelivered: false },
-                    { name: 'Windows', laborProgress: 15, materialsDelivered: true },
-                    { name: 'Decking', laborProgress: 0, materialsDelivered: false }
-                ];
-            } else if (project.id === 5) {
-                // Project 5: Add 2 trades
-                return [
-                    { name: 'Roofing', laborProgress: 85, materialsDelivered: true },
-                    { name: 'Siding', laborProgress: 55, materialsDelivered: true },
-                    { name: 'Windows', laborProgress: 25, materialsDelivered: false }
-                ];
-            }
-        }
-        
-        // Single trade based on project type - consistent delivery status
-        const tradeName = project.projectType || project.type || 'General';
-        // Use calculated progress if available, otherwise fallback
-        const laborProgress = project.calculatedProgress ? project.calculatedProgress.overall : (project.progress || 0);
-        const isDelivered = project.materialsDeliveryStart ? true : (project.id % 3 === 0);
-        
-        return [
-            { 
-                name: tradeName, 
-                laborProgress: laborProgress, 
-                materialsDelivered: isDelivered
-            }
-        ];
-    };
+    // Removed complex trade calculation functions - using simplified design
 
     const getPhaseColor = (phase) => {
         switch (phase?.toLowerCase()) {
@@ -556,49 +495,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         }
     };
 
-    // Role assignment moved to Add Project form - functions no longer needed
-    
-    // Progress expansion functions (matching Dashboard implementation)
-    const toggleProgress = (projectId) => {
-        const newExpanded = new Set(expandedProgress);
-        if (newExpanded.has(projectId)) {
-            newExpanded.delete(projectId);
-            // Also close trades when closing main progress
-            const newTrades = new Set(expandedTrades);
-            const newAdditionalTrades = new Set(expandedAdditionalTrades);
-            newTrades.delete(projectId);
-            newAdditionalTrades.delete(projectId);
-            setExpandedTrades(newTrades);
-            setExpandedAdditionalTrades(newAdditionalTrades);
-        } else {
-            newExpanded.add(projectId);
-        }
-        setExpandedProgress(newExpanded);
-    };
-    
-    const toggleTrades = (projectId) => {
-        const newExpanded = new Set(expandedTrades);
-        if (newExpanded.has(projectId)) {
-            newExpanded.delete(projectId);
-            // Also close additional trades when closing main trades
-            const newAdditionalTrades = new Set(expandedAdditionalTrades);
-            newAdditionalTrades.delete(projectId);
-            setExpandedAdditionalTrades(newAdditionalTrades);
-        } else {
-            newExpanded.add(projectId);
-        }
-        setExpandedTrades(newExpanded);
-    };
-    
-    const toggleAdditionalTrades = (projectId) => {
-        const newExpanded = new Set(expandedAdditionalTrades);
-        if (newExpanded.has(projectId)) {
-            newExpanded.delete(projectId);
-        } else {
-            newExpanded.add(projectId);
-        }
-        setExpandedAdditionalTrades(newExpanded);
-    };
+    // Removed complex expansion functions - using compact design
     
     // Get project progress percentage
     const getProjectProgress = (project) => {
@@ -627,481 +524,184 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         return (
             <div 
                 data-project-id={String(project.id)}
-                className={`${colorMode ? 'bg-slate-800/90 border-slate-600/50' : 'bg-white border-gray-200'} border rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl`}
+                className={`${colorMode ? 'bg-slate-800/95 border-slate-700/50' : 'bg-white border-gray-200'} border rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden`}
             >
-                {/* Header - Clean Project Info */}
-                <div className={`p-6 border-b ${colorMode ? 'border-slate-600/30 bg-slate-700/20' : 'border-gray-200 bg-gray-50/30'}`}>
-                    {/* Project Number and Type */}
-                    <div className="flex items-center gap-4 mb-4">
-                        <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                            #{project.projectNumber || '12345'}
-                        </h2>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            colorMode ? 'bg-slate-600/60 text-slate-200 border border-slate-500/30' : 'bg-blue-100 text-blue-700 border border-blue-200'
-                        }`}>
-                            {projectType}
-                        </span>
-                    </div>
-
-                    {/* Phase, Section, Line Item Row */}
-                    <div className="flex items-center gap-3 mb-4">
+                {/* Compact Header */}
+                <div className={`px-4 py-3 border-b ${colorMode ? 'border-slate-700/40 bg-slate-900/30' : 'border-gray-100 bg-gray-50/50'}`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h3 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                #{project.projectNumber || '12345'}
+                            </h3>
+                            <span className={`px-2 py-1 text-xs font-medium rounded ${
+                                colorMode ? 'bg-slate-700 text-slate-200' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                                {projectType}
+                            </span>
+                        </div>
+                        
                         {/* Phase Badge */}
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${phaseColors.bg} ${phaseColors.text} border`}>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded ${phaseColors.bg} ${phaseColors.text}`}>
                             {currentPhase}
                         </span>
-                        
-                        {/* Section */}
-                        <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                            colorMode ? 'bg-slate-700/50 text-slate-200' : 'bg-gray-100 text-gray-700'
-                        }`}>
-                            {currentSection}
-                        </div>
-                        
-                        {/* Line Item - Clickable Link to Workflow */}
-                        <button
-                            onClick={() => {
-                                const projectWithWorkflowState = {
-                                    ...project,
-                                    scrollToCurrentLineItem: true,
-                                    targetPhase: currentPhase,
-                                    targetSection: currentSection,
-                                    targetLineItem: currentLineItem,
-                                    highlightLineItem: currentLineItem
-                                };
-                                onProjectSelect(projectWithWorkflowState, 'Project Workflow', null, 'My Projects');
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hover:shadow-md ${
-                                colorMode ? 'bg-blue-700/50 text-blue-300 hover:bg-blue-600/60' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                            }`}
-                        >
-                            📋 {currentLineItem.length > 30 ? `${currentLineItem.substring(0, 30)}...` : currentLineItem}
-                        </button>
                     </div>
+                    
+                    {/* Current Line Item */}
+                    <button
+                        onClick={() => {
+                            const projectWithWorkflowState = {
+                                ...project,
+                                scrollToCurrentLineItem: true,
+                                targetPhase: currentPhase,
+                                targetSection: currentSection,
+                                targetLineItem: currentLineItem,
+                                highlightLineItem: currentLineItem
+                            };
+                            onProjectSelect(projectWithWorkflowState, 'Project Workflow', null, 'My Projects');
+                        }}
+                        className={`mt-2 px-2 py-1 text-xs rounded transition-colors hover:shadow-sm ${
+                            colorMode ? 'bg-blue-700/40 text-blue-200 hover:bg-blue-600/50' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        }`}
+                    >
+                        📋 {currentLineItem.length > 35 ? `${currentLineItem.substring(0, 35)}...` : currentLineItem}
+                    </button>
                 </div>
 
-                {/* Contact Information Grid */}
-                <div className="p-6 space-y-6">
-                    {/* Primary Customer */}
-                    <div>
-                        <h3 className={`text-lg font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Primary Customer</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</p>
-                                <p className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                    {project.customer?.primaryName || project.client?.name || 'Not Set'}
-                                </p>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Address</p>
-                                <p className={`text-base ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
-                                    {project.customer?.address || project.client?.address || project.projectName || 'Not Set'}
-                                </p>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone</p>
-                                <a 
-                                    href={`tel:${(project.customer?.primaryPhone || project.client?.phone || '').replace(/[^\d+]/g, '')}`}
-                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
-                                >
-                                    {project.customer?.primaryPhone || project.client?.phone || 'Not Set'}
+                {/* Compact Contact Info */}
+                <div className="px-4 py-3 space-y-2">
+                    {/* Customer Row */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                {project.customer?.primaryName || project.client?.name || 'Not Set'}
+                            </p>
+                            <p className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {project.customer?.address || project.client?.address || project.projectName || 'No Address'}
+                            </p>
+                        </div>
+                        <div className="text-right">
+                            {project.customer?.primaryPhone && (
+                                <a href={`tel:${project.customer.primaryPhone.replace(/[^\d+]/g, '')}`}
+                                   className={`text-xs hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                    {project.customer.primaryPhone}
                                 </a>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</p>
-                                <a 
-                                    href={`mailto:${project.customer?.primaryEmail || project.client?.email || ''}`}
-                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
-                                >
-                                    {project.customer?.primaryEmail || project.client?.email || 'Not Set'}
+                            )}
+                            {project.customer?.primaryEmail && (
+                                <a href={`mailto:${project.customer.primaryEmail}`}
+                                   className={`block text-xs hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                    {project.customer.primaryEmail}
                                 </a>
-                            </div>
+                            )}
                         </div>
                     </div>
-
-                    {/* Secondary Contact */}
-                    <div>
-                        <h3 className={`text-lg font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Secondary Contact</h3>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</p>
-                                <p className={`text-base ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
-                                    {project.customer?.secondaryName || 'Not Set'}
-                                </p>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone</p>
-                                <a 
-                                    href={`tel:${(project.customer?.secondaryPhone || '').replace(/[^\d+]/g, '')}`}
-                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
-                                >
-                                    {project.customer?.secondaryPhone || 'Not Set'}
-                                </a>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</p>
-                                <a 
-                                    href={`mailto:${project.customer?.secondaryEmail || ''}`}
-                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
-                                >
-                                    {project.customer?.secondaryEmail || 'Not Set'}
-                                </a>
-                            </div>
+                    
+                    {/* Project Manager Row */}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                        <div>
+                            <p className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Project Manager</p>
+                            <p className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                {project.projectManager ? `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() : 'Not Assigned'}
+                            </p>
                         </div>
-                    </div>
-
-                    {/* Project Manager */}
-                    <div>
-                        <h3 className={`text-lg font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Project Manager</h3>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</p>
-                                <p className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                    {project.projectManager ? `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() : 'Not Assigned'}
-                                </p>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Phone</p>
-                                <a 
-                                    href={`tel:${(project.pmPhone || project.projectManager?.phone || '').replace(/[^\d+]/g, '')}`}
-                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}
-                                >
-                                    {project.pmPhone || project.projectManager?.phone || 'Not Set'}
+                        <div className="text-right">
+                            {project.projectManager?.phone && (
+                                <a href={`tel:${project.projectManager.phone.replace(/[^\d+]/g, '')}`}
+                                   className={`text-xs hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}>
+                                    {project.projectManager.phone}
                                 </a>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</p>
-                                <a 
-                                    href={`mailto:${project.pmEmail || project.projectManager?.email || ''}`}
-                                    className={`text-base font-medium hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}
-                                >
-                                    {project.pmEmail || project.projectManager?.email || 'Not Set'}
+                            )}
+                            {project.projectManager?.email && (
+                                <a href={`mailto:${project.projectManager.email}`}
+                                   className={`block text-xs hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}>
+                                    {project.projectManager.email}
                                 </a>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
                 
-                {/* Expandable Progress Bar Section - Matching Current Project Access */}
-                <div className="px-6 pb-4 border-b border-gray-200">
-                    <button
-                        onClick={() => toggleProgress(project.id)}
-                        className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 ${colorMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <span className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>Project Progress</span>
-                            <div className={`flex items-center gap-2 px-2 py-1 rounded-lg ${colorMode ? 'bg-slate-700/40' : 'bg-gray-100'}`}>
-                                <div className={`w-16 h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-300'}`}>
-                                    <div 
-                                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                                        style={{ width: `${getProjectProgress(project)}%` }}
-                                    ></div>
-                                </div>
-                                <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                    {getProjectProgress(project)}%
-                                </span>
+                {/* Compact Progress Bar */}
+                <div className="px-4 pb-2">
+                    <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</span>
+                        <div className="flex-1 flex items-center gap-2">
+                            <div className={`flex-1 h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
+                                <div 
+                                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                                    style={{ width: `${getProjectProgress(project)}%` }}
+                                ></div>
                             </div>
+                            <span className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                {getProjectProgress(project)}%
+                            </span>
                         </div>
-                        <svg 
-                            className={`w-5 h-5 transition-transform duration-200 ${expandedProgress.has(project.id) ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-                    
-                    {/* Expandable Progress Details */}
-                    {expandedProgress.has(project.id) && (
-                        <div className="mt-4 ml-6 space-y-4">
-                            {/* Overall Progress Detail */}
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <span className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Overall Project Progress</span>
-                                    <span className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getProjectProgress(project)}%</span>
-                                </div>
-                                <div className={`w-full h-3 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
-                                    <div 
-                                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
-                                        style={{ width: `${getProjectProgress(project)}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                            
-                            {/* Materials & Labor Section */}
-                            <div className="space-y-3">
-                                <button
-                                    onClick={() => toggleTrades(project.id)}
-                                    className={`flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-80 ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}
-                                >
-                                    <span>📦 Materials & Labor</span>
-                                    <svg 
-                                        className={`w-4 h-4 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                
-                                {/* Materials & Labor Details */}
-                                {expandedTrades.has(project.id) && (
-                                    <div className="space-y-3 ml-4">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Materials</span>
-                                                <span className={`text-sm font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.materialsProgress || 85}%</span>
-                                            </div>
-                                            <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
-                                                <div 
-                                                    className="h-full bg-green-500 rounded-full transition-all duration-300"
-                                                    style={{ width: `${project.materialsProgress || 85}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Labor</span>
-                                                <span className={`text-sm font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.laborProgress || 75}%</span>
-                                            </div>
-                                            <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
-                                                <div 
-                                                    className="h-full bg-orange-500 rounded-full transition-all duration-300"
-                                                    style={{ width: `${project.laborProgress || 75}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Additional Trades Section */}
-                                        <div className="space-y-2">
-                                            <button
-                                                onClick={() => toggleAdditionalTrades(project.id)}
-                                                className={`flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-80 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}
-                                            >
-                                                <span>🔧 Additional Trades</span>
-                                                <svg 
-                                                    className={`w-4 h-4 transition-transform ${expandedAdditionalTrades.has(project.id) ? 'rotate-180' : ''}`} 
-                                                    fill="none" 
-                                                    stroke="currentColor" 
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </button>
-                                            
-                                            {/* Additional Trades Details */}
-                                            {expandedAdditionalTrades.has(project.id) && (
-                                                <div className="space-y-2 ml-4">
-                                                    {[
-                                                        { name: 'Roofing', progress: project.roofingProgress || 90, color: 'bg-purple-500' },
-                                                        { name: 'Siding', progress: project.sidingProgress || 60, color: 'bg-blue-500' },
-                                                        { name: 'Windows', progress: project.windowsProgress || 40, color: 'bg-yellow-500' },
-                                                        { name: 'Gutters', progress: project.guttersProgress || 30, color: 'bg-red-500' }
-                                                    ].map((trade) => (
-                                                        <div key={trade.name} className="space-y-1">
-                                                            <div className="flex justify-between items-center">
-                                                                <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>{trade.name}</span>
-                                                                <span className={`text-sm font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{trade.progress}%</span>
-                                                            </div>
-                                                            <div className={`w-full h-1.5 rounded-full overflow-hidden border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}>
-                                                                <div 
-                                                                    className={`h-full ${trade.color} rounded-full transition-all duration-300`}
-                                                                    style={{ width: `${trade.progress}%` }}
-                                                                ></div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
 
-                {/* 6 Project Action Buttons - Bottom Section */}
-                <div className="px-3 pb-3 relative">
-                    {/* Back Button - Lower Left Corner */}
+                {/* Compact Action Buttons */}
+                <div className="px-2 pb-2 relative">
+                    {/* Back Button */}
                     {showCardBackButton && (
-                        <div className="absolute bottom-2 left-2 z-10">
+                        <div className="absolute bottom-1 left-1 z-10">
                             <button
                                 onClick={handleBackToSource}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 border text-xs font-medium shadow-md ${
+                                className={`px-2 py-1 text-xs rounded transition-all ${
                                     colorMode 
-                                        ? 'bg-gradient-to-r from-orange-700/90 to-orange-800/90 border-orange-600/70 text-white hover:from-orange-600/95 hover:to-orange-700/95 hover:border-orange-500' 
-                                        : 'bg-gradient-to-r from-orange-100/95 to-orange-200/95 border-orange-300 text-orange-800 hover:from-orange-200/95 hover:to-orange-300/95 hover:border-orange-400'
+                                        ? 'bg-orange-700/80 text-white hover:bg-orange-600' 
+                                        : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
                                 }`}
                             >
-                                <span className="text-[10px]">⬅️</span>
-                                <span>Back</span>
+                                ← Back
                             </button>
                         </div>
                     )}
-                    <div className="grid grid-cols-3 gap-2">
-                        {/* Row 1 */}
+                    
+                    {/* Action Grid */}
+                    <div className="grid grid-cols-3 gap-1">
                         <button
                             onClick={() => {
-                              // ENHANCED: Get current workflow state and add highlighting like Current Alerts
-                              // ENHANCED: Get current workflow state and create direct navigation mapping
                               const workflowState = WorkflowProgressService.calculateProjectProgress(project);
                               const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
                               const currentPhase = WorkflowProgressService.getProjectPhase(project);
                               const currentStepName = currentStep?.stepName || currentStep?.name || 'Input Customer Information';
                               
-                              console.log('🚀 MY PROJECTS: Workflow button clicked for:', project.name);
-                              console.log('🎯 Current step:', currentStepName);
-                              console.log('🎯 Current phase:', currentPhase);
-                              
-                              // Create direct mapping for current step
-                              const createStepMapping = (stepName, phase) => {
-                                const stepMappings = {
-                                  // LEAD Phase mappings
-                                  'Input Customer Information': { phase: 'LEAD', section: 'Input Customer Information', sectionId: 'input-customer-info' },
-                                  'Complete Questions to Ask Checklist': { phase: 'LEAD', section: 'Complete Questions to Ask Checklist', sectionId: 'complete-questions' },
-                                  'Input Lead Property Information': { phase: 'LEAD', section: 'Input Lead Property Information', sectionId: 'input-lead-property' },
-                                  'Assign A Project Manager': { phase: 'LEAD', section: 'Assign A Project Manager', sectionId: 'assign-pm' },
-                                  'Schedule Initial Inspection': { phase: 'LEAD', section: 'Schedule Initial Inspection', sectionId: 'schedule-inspection' },
-                                  
-                                  // PROSPECT Phase mappings
-                                  'Site Inspection': { phase: 'PROSPECT', section: 'Site Inspection', sectionId: 'site-inspection' },
-                                  'Write Estimate': { phase: 'PROSPECT', section: 'Write Estimate', sectionId: 'write-estimate' },
-                                  'Insurance Process': { phase: 'PROSPECT', section: 'Insurance Process', sectionId: 'insurance-process' },
-                                  'Agreement Preparation': { phase: 'PROSPECT', section: 'Agreement Preparation', sectionId: 'agreement-prep' },
-                                  'Agreement Signing': { phase: 'PROSPECT', section: 'Agreement Signing', sectionId: 'agreement-signing' },
-                                  
-                                  // APPROVED Phase mappings
-                                  'Administrative Setup': { phase: 'APPROVED', section: 'Administrative Setup', sectionId: 'admin-setup' },
-                                  'Pre-Job Actions': { phase: 'APPROVED', section: 'Pre-Job Actions', sectionId: 'pre-job' },
-                                  'Prepare for Production': { phase: 'APPROVED', section: 'Prepare for Production', sectionId: 'prepare-production' },
-                                  
-                                  // EXECUTION Phase mappings
-                                  'Installation': { phase: 'EXECUTION', section: 'Installation', sectionId: 'installation' },
-                                  'Quality Check': { phase: 'EXECUTION', section: 'Quality Check', sectionId: 'quality-check' },
-                                  'Multiple Trades': { phase: 'EXECUTION', section: 'Multiple Trades', sectionId: 'multiple-trades' },
-                                  'Subcontractor Work': { phase: 'EXECUTION', section: 'Subcontractor Work', sectionId: 'subcontractor-work' },
-                                  'Update Customer': { phase: 'EXECUTION', section: 'Update Customer', sectionId: 'update-customer' },
-                                  
-                                  // SUPPLEMENT Phase mappings
-                                  'Create Supp in Xactimate': { phase: 'SUPPLEMENT', section: 'Create Supp in Xactimate', sectionId: 'create-supp' },
-                                  'Follow-Up Calls': { phase: 'SUPPLEMENT', section: 'Follow-Up Calls', sectionId: 'followup-calls' },
-                                  'Review Approved Supp': { phase: 'SUPPLEMENT', section: 'Review Approved Supp', sectionId: 'review-approved' },
-                                  'Customer Update': { phase: 'SUPPLEMENT', section: 'Customer Update', sectionId: 'customer-update' },
-                                  
-                                  // COMPLETION Phase mappings
-                                  'Financial Processing': { phase: 'COMPLETION', section: 'Financial Processing', sectionId: 'financial-processing' },
-                                  'Project Closeout': { phase: 'COMPLETION', section: 'Project Closeout', sectionId: 'project-closeout' }
-                                };
-                                
-                                return stepMappings[stepName] || {
-                                  phase: phase || 'LEAD',
-                                  section: stepName || 'Input Customer Information',
-                                  sectionId: (stepName || 'input-customer-info').toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
-                                };
-                              };
-                              
-                              const stepMapping = createStepMapping(currentStepName, currentPhase);
-                              
                               const projectWithWorkflowState = {
                                 ...project,
-                                currentWorkflowStep: currentStep,
-                                workflowState: workflowState,
-                                highlightStep: currentStepName,
                                 scrollToCurrentLineItem: true,
-                                targetPhase: stepMapping.phase,
-                                targetSection: stepMapping.section,
-                                targetLineItem: stepMapping.section,
+                                targetPhase: currentPhase,
+                                targetLineItem: currentStepName,
                                 highlightLineItem: currentStepName,
-                                sourceSection: 'My Projects',
-                                navigationTarget: {
-                                  phase: stepMapping.phase,
-                                  section: stepMapping.section,
-                                  sectionId: stepMapping.sectionId, // CRITICAL: Direct section ID
-                                  lineItem: stepMapping.section,
-                                  stepName: currentStepName,
-                                  stepId: currentStep?.stepId,
-                                  highlightMode: 'line-item',
-                                  scrollBehavior: 'smooth',
-                                  highlightColor: '#3B82F6',
-                                  highlightDuration: 5000
-                                }
+                                sourceSection: 'My Projects'
                               };
                               
-                              console.log('🎯 MY PROJECTS: Enhanced navigation data:', projectWithWorkflowState.navigationTarget);
                               onProjectSelect(projectWithWorkflowState, 'Project Workflow');
                             }}
-                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
-                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50'
+                            className={`p-2 text-center rounded border transition-all ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600 text-white hover:bg-blue-700/60' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50'
                             }`}
                         >
-                            <div className="text-center">
-                                <div className="text-lg mb-1">🗂️</div>
-                                <div className="text-xs font-medium">Workflow</div>
-                            </div>
+                            <div className="text-sm">🗂️</div>
+                            <div className="text-[10px] font-medium">Workflow</div>
                         </button>
                         
                         <button
                             onClick={() => onProjectSelect(project, 'Alerts')}
-                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
-                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-amber-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50'
+                            className={`p-2 text-center rounded border transition-all ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600 text-white hover:bg-amber-700/60' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50'
                             }`}
                         >
-                            <div className="text-center">
-                                <div className="text-lg mb-1">⚠️</div>
-                                <div className="text-xs font-medium">Alerts</div>
-                            </div>
+                            <div className="text-sm">⚠️</div>
+                            <div className="text-[10px] font-medium">Alerts</div>
                         </button>
                         
                         <button
                             onClick={() => onProjectSelect(project, 'Messages')}
-                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
-                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-sky-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50'
+                            className={`p-2 text-center rounded border transition-all ${
+                                colorMode ? 'bg-slate-700/60 border-slate-600 text-white hover:bg-sky-700/60' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50'
                             }`}
                         >
-                            <div className="text-center">
-                                <div className="text-lg mb-1">💬</div>
-                                <div className="text-xs font-medium">Messages</div>
-                            </div>
-                        </button>
-                        
-                        {/* Row 2 */}
-                        <button
-                            disabled={true}
-                            className={`p-3 rounded-lg border shadow-sm opacity-50 cursor-not-allowed ${
-                                colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'
-                            }`}
-                        >
-                            <div className="text-center">
-                                <div className="text-lg mb-1">📄</div>
-                                <div className="text-xs font-medium">Documents</div>
-                            </div>
-                        </button>
-                        
-                        <button
-                            disabled={true}
-                            className={`p-3 rounded-lg border shadow-sm opacity-50 cursor-not-allowed ${
-                                colorMode ? 'bg-slate-600/40 border-slate-500/30 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-400'
-                            }`}
-                        >
-                            <div className="text-center">
-                                <div className="text-lg mb-1">📅</div>
-                                <div className="text-xs font-medium">Schedule</div>
-                            </div>
-                        </button>
-                        
-                        <button
-                            onClick={() => onProjectSelect(project, 'Projects')}
-                            className={`p-3 rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md ${
-                                colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'
-                            }`}
-                        >
-                            <div className="text-center">
-                                <div className="text-lg mb-1">👤</div>
-                                <div className="text-xs font-medium">Profile</div>
-                            </div>
+                            <div className="text-sm">💬</div>
+                            <div className="text-[10px] font-medium">Messages</div>
                         </button>
                     </div>
                 </div>
@@ -1110,14 +710,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     };
 
     return (
-        <div className="w-full max-w-5xl mx-auto py-1 px-2">
-            {/* Standard Header Row with Title */}
-            <div className="mb-3 flex items-center gap-4">
-                <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>My Projects ({projectsArray.length})</h2>
-                <div className="flex-1" />
+        <div className="w-full max-w-6xl mx-auto py-2 px-3">
+            {/* Clean Header */}
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                    My Projects ({projectsArray.length})
+                </h2>
                 <button
                     onClick={() => {
-                        // Reset form to defaults with all roles pre-filled
                         const resetProject = { 
                             ...defaultNewProject,
                             projectManager: defaultRoles.projectManager?.id || '',
@@ -1129,20 +729,20 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         setNewProject(resetProject);
                         setIsModalOpen(true);
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                         colorMode
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
+                            : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg'
                     }`}
                 >
                     + Add Project
                 </button>
             </div>
 
-            {/* Loading state */}
+            {/* Projects Grid */}
             {projectsLoading ? (
-                <div className="space-y-3">
-                    {[1, 2, 3].map(i => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4, 5, 6].map(i => (
                         <ProjectCardSkeleton key={i} colorMode={colorMode} />
                     ))}
                 </div>
@@ -1159,7 +759,6 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     action={
                         <button
                             onClick={() => {
-                                // Reset form to defaults with all roles pre-filled
                                 const resetProject = { 
                                     ...defaultNewProject,
                                     projectManager: defaultRoles.projectManager?.id || '',
@@ -1171,7 +770,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
                             }}
-                            className={`mt-3 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            className={`mt-3 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                                 colorMode
                                     ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                     : 'bg-blue-500 hover:bg-blue-600 text-white'
@@ -1183,7 +782,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     colorMode={colorMode}
                 />
             ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {projectsArray.map((p) => (<ProjectCard key={p.id} project={p} />))}
                 </div>
             )}
