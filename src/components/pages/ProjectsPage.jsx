@@ -524,20 +524,20 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         return (
             <div 
                 data-project-id={String(project.id)}
-                className={`${colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group`}
+                className={`${colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden`}
             >
-                {/* Professional Header */}
-                <div className={`px-6 py-4 ${colorMode ? 'bg-gradient-to-r from-slate-900 to-slate-800' : 'bg-gradient-to-r from-gray-50 to-white'}`}>
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${phaseColors.bg} ${phaseColors.text} shadow-sm`}>
-                                <span className="text-sm font-bold">{project.projectNumber?.slice(-2) || '#'}</span>
+                {/* Condensed Header */}
+                <div className={`px-3 py-2 ${colorMode ? 'bg-gradient-to-r from-slate-900 to-slate-800' : 'bg-gradient-to-r from-gray-50 to-white'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${phaseColors.bg} ${phaseColors.text} text-xs font-bold`}>
+                                {project.projectNumber?.slice(-2) || '#'}
                             </div>
                             <div>
-                                <h3 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                     #{project.projectNumber || '12345'}
                                 </h3>
-                                <span className={`text-xs font-medium ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
+                                <span className={`text-xs ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
                                     {projectType}
                                 </span>
                             </div>
@@ -545,49 +545,51 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         
                         {/* Phase Badge */}
                         <div className="text-right">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${phaseColors.bg} ${phaseColors.text} shadow-sm`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${phaseColors.bg} ${phaseColors.text}`}>
                                 {currentPhase}
                             </span>
-                            <div className={`text-xs mt-1 ${colorMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                                {getProjectProgress(project)}% Complete
+                            <div className={`text-xs mt-0.5 ${colorMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                                {getProjectProgress(project)}%
                             </div>
                         </div>
                     </div>
                     
                     {/* Progress Bar */}
-                    <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
+                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
                         <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
                             style={{ width: `${getProjectProgress(project)}%` }}
                         ></div>
                     </div>
                 </div>
 
                 {/* Customer & Contact Info */}
-                <div className="px-6 py-4 space-y-4">
+                <div className="px-3 py-2 space-y-2">
                     {/* Customer Section */}
                     <div>
-                        <h4 className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Customer</h4>
+                        <h4 className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Customer</h4>
                         <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'} truncate`}>
                                     {project.customer?.primaryName || project.client?.name || 'Not Set'}
                                 </p>
-                                <p className={`text-sm ${colorMode ? 'text-slate-400' : 'text-gray-600'} mt-1`}>
+                                <p className={`text-xs ${colorMode ? 'text-slate-400' : 'text-gray-600'} truncate`}>
                                     {project.customer?.address || project.client?.address || project.projectName || 'No Address'}
                                 </p>
                             </div>
-                            <div className="flex flex-col gap-1 text-right ml-4">
+                            <div className="flex gap-1 ml-2">
                                 {project.customer?.primaryPhone && (
                                     <a href={`tel:${project.customer.primaryPhone.replace(/[^\d+]/g, '')}`}
-                                       className={`text-sm font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
-                                        📞 {project.customer.primaryPhone}
+                                       className={`text-xs hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
+                                       title={project.customer.primaryPhone}>
+                                        📞
                                     </a>
                                 )}
                                 {project.customer?.primaryEmail && (
                                     <a href={`mailto:${project.customer.primaryEmail}`}
-                                       className={`text-sm font-medium hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
-                                        ✉️ {project.customer.primaryEmail}
+                                       className={`text-xs hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
+                                       title={project.customer.primaryEmail}>
+                                        ✉️
                                     </a>
                                 )}
                             </div>
@@ -595,34 +597,16 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                     
                     {/* Project Manager Section */}
-                    <div className={`pt-4 border-t ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
-                        <h4 className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Project Manager</h4>
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                    {project.projectManager ? `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() : 'Not Assigned'}
-                                </p>
-                            </div>
-                            <div className="flex flex-col gap-1 text-right ml-4">
-                                {project.projectManager?.phone && (
-                                    <a href={`tel:${project.projectManager.phone.replace(/[^\d+]/g, '')}`}
-                                       className={`text-sm font-medium hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}>
-                                        📞 {project.projectManager.phone}
-                                    </a>
-                                )}
-                                {project.projectManager?.email && (
-                                    <a href={`mailto:${project.projectManager.email}`}
-                                       className={`text-sm font-medium hover:underline ${colorMode ? 'text-green-300' : 'text-green-600'}`}>
-                                        ✉️ {project.projectManager.email}
-                                    </a>
-                                )}
-                            </div>
-                        </div>
+                    <div className={`pt-2 border-t ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
+                        <h4 className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Project Manager</h4>
+                        <p className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                            {project.projectManager ? `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() : 'Not Assigned'}
+                        </p>
                     </div>
                     
                     {/* Current Task Section */}
-                    <div className={`pt-4 border-t ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
-                        <h4 className={`text-sm font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Current Task</h4>
+                    <div className={`pt-2 border-t ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
+                        <h4 className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Current Task</h4>
                         <button
                             onClick={() => {
                                 // Use the new direct navigation system for workflow
@@ -643,18 +627,15 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     targetSectionId
                                 );
                             }}
-                            className={`w-full text-left px-4 py-3 rounded-lg transition-all hover:shadow-md ${
+                            className={`w-full text-left px-2 py-2 rounded transition-all hover:shadow-sm ${
                                 colorMode ? 'bg-blue-900/30 hover:bg-blue-800/40 text-blue-200 border border-blue-700/50' : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'
                             }`}
                         >
-                            <div className="flex items-center gap-2">
-                                <span className="text-lg">📋</span>
-                                <div className="flex-1">
-                                    <p className="font-medium text-sm">
-                                        {currentLineItem.length > 50 ? `${currentLineItem.substring(0, 50)}...` : currentLineItem}
-                                    </p>
-                                    <p className={`text-xs mt-1 ${colorMode ? 'text-blue-300/70' : 'text-blue-600/70'}`}>
-                                        Click to view in workflow
+                            <div className="flex items-center gap-1">
+                                <span className="text-sm">📋</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">
+                                        {currentLineItem.length > 40 ? `${currentLineItem.substring(0, 40)}...` : currentLineItem}
                                     </p>
                                 </div>
                             </div>
@@ -662,14 +643,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className={`px-6 py-4 border-t ${colorMode ? 'border-slate-700 bg-slate-900/30' : 'border-gray-200 bg-gray-50/50'} relative`}>
+                {/* Condensed Action Buttons */}
+                <div className={`px-3 py-2 border-t ${colorMode ? 'border-slate-700 bg-slate-900/30' : 'border-gray-200 bg-gray-50/50'} relative`}>
                     {/* Back Button */}
                     {showCardBackButton && (
-                        <div className="absolute top-2 right-2 z-10">
+                        <div className="absolute top-1 right-1 z-10">
                             <button
                                 onClick={handleBackToSource}
-                                className={`px-3 py-1 text-xs rounded-md transition-all ${
+                                className={`px-2 py-1 text-xs rounded transition-all ${
                                     colorMode 
                                         ? 'bg-orange-700/80 text-white hover:bg-orange-600' 
                                         : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
@@ -680,7 +661,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         </div>
                     )}
                     
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                         <button
                             onClick={() => {
                               // Use the new direct navigation system for workflow
@@ -701,31 +682,31 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 targetSectionId
                               );
                             }}
-                            className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:shadow-md ${
+                            className={`flex flex-col items-center gap-1 p-2 rounded border transition-all hover:shadow-sm ${
                                 colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-blue-700/20 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-300'
                             }`}
                         >
-                            <span className="text-lg">🗂️</span>
+                            <span className="text-sm">🗂️</span>
                             <span className="text-xs font-medium">Workflow</span>
                         </button>
                         
                         <button
                             onClick={() => onProjectSelect(project, 'Alerts')}
-                            className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:shadow-md ${
+                            className={`flex flex-col items-center gap-1 p-2 rounded border transition-all hover:shadow-sm ${
                                 colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-amber-700/20 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-300'
                             }`}
                         >
-                            <span className="text-lg">⚠️</span>
+                            <span className="text-sm">⚠️</span>
                             <span className="text-xs font-medium">Alerts</span>
                         </button>
                         
                         <button
                             onClick={() => onProjectSelect(project, 'Messages')}
-                            className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:shadow-md ${
+                            className={`flex flex-col items-center gap-1 p-2 rounded border transition-all hover:shadow-sm ${
                                 colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-sky-700/20 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-300'
                             }`}
                         >
-                            <span className="text-lg">💬</span>
+                            <span className="text-sm">💬</span>
                             <span className="text-xs font-medium">Messages</span>
                         </button>
                     </div>
@@ -736,16 +717,16 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
     return (
         <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
-            <div className="w-full max-w-7xl mx-auto py-6 px-4">
-                {/* Professional Header */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-4">
+            <div className="w-full max-w-7xl mx-auto py-4 px-4">
+                {/* Condensed Header */}
+                <div className="mb-4">
+                    <div className="flex items-center justify-between mb-3">
                         <div>
-                            <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            <h1 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                 My Projects
                             </h1>
-                            <p className={`text-lg ${colorMode ? 'text-slate-400' : 'text-gray-600'} mt-1`}>
-                                {projectsArray.length} {projectsArray.length === 1 ? 'project' : 'projects'} in progress
+                            <p className={`text-sm ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                                {projectsArray.length} {projectsArray.length === 1 ? 'project' : 'projects'}
                             </p>
                         </div>
                         <button
@@ -761,7 +742,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
                             }}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg hover:shadow-xl ${
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg ${
                                 colorMode
                                     ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white'
                                     : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white'
@@ -803,7 +784,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
                 {/* Projects Grid */}
                 {projectsLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                         {[1, 2, 3, 4, 5, 6].map(i => (
                             <ProjectCardSkeleton key={i} colorMode={colorMode} />
                         ))}
@@ -850,7 +831,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                         {projectsArray.map((project) => (
                             <ProjectCard key={project.id} project={project} />
                         ))}
