@@ -1683,7 +1683,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                               const stepId = `${phase.id}-${item.id}-${subIdx}`;
                                               const completed = isStepCompleted(stepId);
                                               return (
-                                                <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}-${workflowData?._optimisticUpdate || 0}`} className="flex items-center gap-1 text-left font-normal">
+                                                <li key={`stable-${stepId}-${subIdx}`} className="flex items-center gap-1 text-left font-normal">
                                                   <div className="relative inline-flex items-center">
                                                     <input
                                                       type="checkbox"
@@ -1735,21 +1735,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
                                                 const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
                                                 const completed = isStepCompleted(stepId);
                                                 return (
-                                                  <li key={`${subIdx}-${stepId}-${completed}-${workflowData?._forceRender || 0}-${workflowData?._optimisticUpdate || 0}`} className="flex items-center gap-1 text-left font-normal">
+                                                  <li key={`stable-subheading-${stepId}-${subIdx}`} className="flex items-center gap-1 text-left font-normal">
                                                     <div className="relative inline-flex items-center">
                                                       <input
                                                         type="checkbox"
                                                         className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
                                                         checked={completed}
                                                         onChange={(e) => {
+                                                          e.preventDefault();
                                                           e.stopPropagation();
-                                                          const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                                                          const currentlyCompleted = isStepCompleted(stepId);
-                                                          const newCompletedState = !currentlyCompleted;
-                                                          console.log(`🔄 CHECKBOX SUBHEADING: User clicked checkbox for ${stepId}, changing from ${currentlyCompleted} to ${newCompletedState}`);
-                                                          updateWorkflowStep(stepId, newCompletedState);
+                                                          try {
+                                                            console.log(`🔄 CHECKBOX SUBHEADING: Using handleCheck for ${phase.id}-${item.id}-${subheading.id}-${subIdx}`);
+                                                            handleCheck(phase.id, `${item.id}-${subheading.id}`, subIdx);
+                                                          } catch (error) {
+                                                            console.error('❌ CHECKBOX SUBHEADING: Error in onChange handler:', error);
+                                                          }
                                                         }}
-                                                        onClick={(e) => e.stopPropagation()}
+                                                        onClick={(e) => {
+                                                          e.preventDefault();
+                                                          e.stopPropagation();
+                                                        }}
                                                       />
                                                       {completed && (
                                                         <svg 
