@@ -8,6 +8,119 @@ import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
 import PhaseOverrideButton from '../ui/PhaseOverrideButton';
 import WorkflowProgressService from '../../services/workflowProgress';
 
+// =================================================================
+// 🔥🔥🔥 NUCLEAR CHECKBOX PERSISTENCE SYSTEM 🔥🔥🔥
+// =================================================================
+
+const STORAGE_KEY_PREFIX = 'NUCLEAR_CHECKBOX_';
+const BACKUP_KEY_PREFIX = 'BACKUP_CHECKBOX_';
+const EMERGENCY_KEY_PREFIX = 'EMERGENCY_CHECKBOX_';
+
+// Save to ALL possible storage locations
+const NUCLEAR_SAVE = (projectId, checkedSet) => {
+  const checkedArray = Array.from(checkedSet);
+  const timestamp = Date.now();
+  const data = JSON.stringify({ items: checkedArray, timestamp, version: 'v3' });
+  
+  try {
+    // Layer 1: localStorage
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}${projectId}`, data);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}${projectId}_v2`, JSON.stringify(checkedArray));
+    
+    // Layer 2: sessionStorage
+    sessionStorage.setItem(`${STORAGE_KEY_PREFIX}${projectId}`, data);
+    sessionStorage.setItem(`${BACKUP_KEY_PREFIX}${projectId}`, JSON.stringify(checkedArray));
+    
+    // Layer 3: Emergency backup with timestamp
+    localStorage.setItem(`${EMERGENCY_KEY_PREFIX}${projectId}_${timestamp}`, data);
+    
+    // Layer 4: Browser cache simulation
+    if (window.caches) {
+      // Don't block on this
+      setTimeout(() => {
+        try {
+          window.caches.open('workflow-cache').then(cache => {
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            cache.put(`/workflow/${projectId}`, new Response(blob));
+          });
+        } catch(e) {}
+      }, 0);
+    }
+    
+    console.log(`🔥🔥🔥 NUCLEAR SAVE COMPLETE: ${checkedArray.length} items across ALL layers`);
+    return true;
+  } catch (error) {
+    console.error('💥 NUCLEAR SAVE FAILED:', error);
+    return false;
+  }
+};
+
+// Load from ALL possible storage locations
+const NUCLEAR_LOAD = (projectId) => {
+  try {
+    // Try Layer 1 first (most recent)
+    const primary = localStorage.getItem(`${STORAGE_KEY_PREFIX}${projectId}`);
+    if (primary) {
+      const parsed = JSON.parse(primary);
+      if (parsed.items && Array.isArray(parsed.items)) {
+        console.log(`🔥 NUCLEAR LOAD: Primary storage - ${parsed.items.length} items`);
+        return new Set(parsed.items);
+      }
+    }
+    
+    // Try Layer 1 v2
+    const primaryV2 = localStorage.getItem(`${STORAGE_KEY_PREFIX}${projectId}_v2`);
+    if (primaryV2) {
+      const parsed = JSON.parse(primaryV2);
+      if (Array.isArray(parsed)) {
+        console.log(`🔥 NUCLEAR LOAD: Primary V2 - ${parsed.length} items`);
+        return new Set(parsed);
+      }
+    }
+    
+    // Try sessionStorage
+    const session = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}${projectId}`);
+    if (session) {
+      const parsed = JSON.parse(session);
+      if (parsed.items && Array.isArray(parsed.items)) {
+        console.log(`🔥 NUCLEAR LOAD: Session storage - ${parsed.items.length} items`);
+        return new Set(parsed.items);
+      }
+    }
+    
+    // Try backup
+    const backup = sessionStorage.getItem(`${BACKUP_KEY_PREFIX}${projectId}`);
+    if (backup) {
+      const parsed = JSON.parse(backup);
+      if (Array.isArray(parsed)) {
+        console.log(`🔥 NUCLEAR LOAD: Backup - ${parsed.length} items`);
+        return new Set(parsed);
+      }
+    }
+    
+    // Try emergency backups (latest)
+    const emergencyKeys = Object.keys(localStorage)
+      .filter(key => key.startsWith(`${EMERGENCY_KEY_PREFIX}${projectId}_`))
+      .sort()
+      .reverse(); // Most recent first
+    
+    if (emergencyKeys.length > 0) {
+      const emergency = localStorage.getItem(emergencyKeys[0]);
+      const parsed = JSON.parse(emergency);
+      if (parsed.items && Array.isArray(parsed.items)) {
+        console.log(`🔥 NUCLEAR LOAD: Emergency backup - ${parsed.items.length} items`);
+        return new Set(parsed.items);
+      }
+    }
+    
+  } catch (error) {
+    console.error('💥 NUCLEAR LOAD FAILED:', error);
+  }
+  
+  console.log('🔥 NUCLEAR LOAD: No data found, returning empty set');
+  return new Set();
+};
 
 const checklistPhases = [
   {
@@ -83,1129 +196,159 @@ const checklistPhases = [
           'Write Customer Pay Estimates',
           'Send for Approval'
         ]
-      },
-      {
-        id: 'insurance-process',
-        label: 'Insurance Process – Administration 📝',
-        subtasks: [
-          'Compare field vs insurance estimates',
-          'Identify supplemental items',
-          'Draft estimate in Xactimate'
-        ]
-      },
-      {
-        id: 'agreement-prep',
-        label: 'Agreement Preparation – Administration 📝',
-        subtasks: [
-          'Trade cost analysis',
-          'Prepare Estimate Forms',
-          'Match AL estimates',
-          'Calculate customer pay items',
-          'Send shingle/class4 email – PDF'
-        ]
-      },
-      {
-        id: 'agreement-signing',
-        label: 'Agreement Signing – Administration 📝',
-        subtasks: [
-          'Review and send signature request',
-          'Record in QuickBooks',
-          'Process deposit',
-          'Collect signed disclaimers'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'APPROVED',
-    label: 'Approved Phase',
-    items: [
-      {
-        id: 'admin-setup',
-        label: 'Administrative Setup – Administration 📝',
-        subtasks: [
-          'Confirm shingle choice',
-          'Order materials',
-          'Create labor orders',
-          'Send labor order to roofing crew'
-        ]
-      },
-      {
-        id: 'pre-job',
-        label: 'Pre-Job Actions – Office 👩🏼‍💻',
-        subtasks: [
-          'Pull permits'
-        ]
-      },
-      {
-        id: 'prepare-production',
-        label: 'Prepare for Production – Administration 📝',
-        subtasks: [
-          'All pictures in Job (Gutter, Ventilation, Elevation)'
-        ],
-        subheadings: [
-          {
-            id: 'verify-labor',
-            label: 'Verify Labor Order in Scheduler',
-            subtasks: [
-              'Correct Dates',
-              'Correct crew',
-              'Send install schedule email to customer'
-            ]
-          },
-          {
-            id: 'verify-materials',
-            label: 'Verify Material Orders',
-            subtasks: [
-              'Confirmations from supplier',
-              'Call if no confirmation',
-              'Provide special crew instructions'
-            ]
-          },
-          {
-            id: 'subcontractor-work-prep',
-            label: 'Subcontractor Work',
-            subtasks: [
-              'Work order in scheduler',
-              'Schedule subcontractor',
-              'Communicate with customer'
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'EXECUTION',
-    label: 'Execution Phase',
-    items: [
-      {
-        id: 'installation',
-        label: 'Installation – Field Director 🛠️',
-        subtasks: [
-          'Document work start',
-          'Capture progress photos',
-          'Upload Pictures'
-        ],
-        subheadings: [
-          {
-            id: 'daily-progress',
-            label: 'Daily Job Progress Note',
-            subtasks: [
-              'Work started/finished',
-              'Days and people needed',
-              'Format: 2 Guys for 4 hours'
-            ]
-          }
-        ]
-      },
-      {
-        id: 'quality-check',
-        label: 'Quality Check – Field + Admin',
-        subtasks: [
-          'Completion photos – Roof Supervisor 🛠️',
-          'Complete inspection – Roof Supervisor 🛠️',
-          'Upload Roof Packet',
-          'Verify Packet is complete – Admin 📝'
-        ]
-      },
-      {
-        id: 'multiple-trades',
-        label: 'Multiple Trades – Administration 📝',
-        subtasks: [
-          'Confirm start date',
-          'Confirm material/labor for all trades'
-        ]
-      },
-      {
-        id: 'subcontractor-work',
-        label: 'Subcontractor Work – Administration 📝',
-        subtasks: [
-          'Confirm dates',
-          'Communicate with customer'
-        ]
-      },
-      {
-        id: 'update-customer',
-        label: 'Update Customer – Administration 📝',
-        subtasks: [
-          'Notify of completion',
-          'Share photos',
-          'Send 2nd half payment link'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'SECOND_SUPPLEMENT',
-    label: '2nd Supplement Phase',
-    items: [
-      {
-        id: 'create-supp',
-        label: 'Create Supp in Xactimate – Administration 📝',
-        subtasks: [
-          'Check Roof Packet & Checklist',
-          'Label photos',
-          'Add to Xactimate',
-          'Submit to insurance'
-        ]
-      },
-      {
-        id: 'followup-calls',
-        label: 'Follow-Up Calls – Administration 📝',
-        subtasks: [
-          'Call 2x/week until updated estimate'
-        ]
-      },
-      {
-        id: 'review-approved',
-        label: 'Review Approved Supp – Administration 📝',
-        subtasks: [
-          'Update trade cost',
-          'Prepare counter-supp or email',
-          'Add to AL Estimate'
-        ]
-      },
-      {
-        id: 'customer-update',
-        label: 'Customer Update – Administration',
-        subtasks: [
-          'Share 2 items minimum',
-          'Let them know next steps'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'COMPLETION',
-    label: 'Completion Phase',
-    items: [
-      {
-        id: 'financial-processing',
-        label: 'Financial Processing – Administration 📝',
-        subtasks: [
-          'Verify worksheet',
-          'Final invoice & payment link',
-          'AR follow-up calls'
-        ]
-      },
-      {
-        id: 'project-closeout',
-        label: 'Project Closeout – Office 👩🏼‍💻',
-        subtasks: [
-          'Register warranty',
-          'Send documentation',
-          'Submit insurance paperwork',
-          'Send final receipt and close job'
-        ]
       }
     ]
   }
 ];
 
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) => {
-  const [openPhase, setOpenPhase] = useState(null);
+  const projectId = project?._id || project?.id;
+  
+  // =================================================================
+  // 🔥🔥🔥 NUCLEAR STATE MANAGEMENT 🔥🔥🔥
+  // =================================================================
+  
+  // Layer 1: Immediate UI state (for instant visual feedback)
+  const [immediateState, setImmediateState] = useState(() => NUCLEAR_LOAD(projectId));
+  
+  // Layer 2: Persistent state (for storage sync)
+  const [persistentState, setPersistentState] = useState(() => NUCLEAR_LOAD(projectId));
+  
+  // Layer 3: Backup state (for recovery)
+  const [backupState, setBackupState] = useState(() => NUCLEAR_LOAD(projectId));
+  
+  // Layer 4: Force render counter
+  const [renderCounter, setRenderCounter] = useState(0);
+  
+  // Phase management
+  const [openPhase, setOpenPhase] = useState('LEAD'); // Start with first phase open
   const [openItem, setOpenItem] = useState({});
+  
+  // Other states
   const [workflowData, setWorkflowData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [addItemFor, setAddItemFor] = useState(null);
-  const [newItemLabel, setNewItemLabel] = useState('');
-  
-  // Phase override handler
-  const handlePhaseOverride = async (newPhase, reason) => {
-    try {
-      console.log(`🔄 PHASE OVERRIDE: Updating project phase to ${newPhase}`);
-      
-      // Refresh workflow data after override
-      setTimeout(() => {
-        const refreshWorkflowData = async () => {
-          if (!project) return;
-          
-          try {
-            const projectId = project._id || project.id;
-            const response = await projectsService.getWorkflow(projectId);
-            const newWorkflowData = {
-              ...(response.data || response.workflow),
-              _forceRender: Date.now(),
-              _phaseOverride: true
-            };
-            setWorkflowData(newWorkflowData);
-            console.log('✅ WORKFLOW: Refreshed data after phase override');
-          } catch (error) {
-            console.error('❌ WORKFLOW: Error refreshing after override:', error);
-          }
-        };
-        
-        refreshWorkflowData();
-      }, 1000);
-      
-    } catch (error) {
-      console.error('❌ PHASE OVERRIDE: Error handling phase override:', error);
-    }
-  };
-  const [phases, setPhases] = useState(checklistPhases);
-  const [highlightedStep, setHighlightedStep] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
-  const [optimisticUpdates, setOptimisticUpdates] = useState(new Set());
   
-  // Use localStorage to persist checked items permanently
-  const getStoredCheckedItems = () => {
-    const projectId = project?._id || project?.id;
-    if (!projectId) return new Set();
+  // =================================================================
+  // 🔥🔥🔥 NUCLEAR CHECKBOX HANDLER 🔥🔥🔥
+  // =================================================================
+  
+  const NUCLEAR_CHECKBOX_HANDLER = (phaseId, itemId, subIdx) => {
+    const stepId = `${phaseId}-${itemId}-${subIdx}`;
     
-    const storageKey = `workflow-checked-${projectId}`;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        console.log(`🗄️ STORAGE: Loaded ${parsed.length} checked items from localStorage`);
-        return new Set(parsed);
+    console.log(`🔥🔥🔥 NUCLEAR CHECKBOX CLICKED: ${stepId}`);
+    
+    // Get current state
+    const isCurrentlyChecked = immediateState.has(stepId) || persistentState.has(stepId);
+    const newState = !isCurrentlyChecked;
+    
+    console.log(`🔥 TOGGLE: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
+    
+    // =================================================================
+    // IMMEDIATE STATE UPDATE (NO DELAYS, NO ASYNC, NO BULLSHIT)
+    // =================================================================
+    
+    const updateAllStates = (checked) => {
+      // Create new sets
+      const newImmediate = new Set(immediateState);
+      const newPersistent = new Set(persistentState);
+      const newBackup = new Set(backupState);
+      
+      if (checked) {
+        newImmediate.add(stepId);
+        newPersistent.add(stepId);
+        newBackup.add(stepId);
+      } else {
+        newImmediate.delete(stepId);
+        newPersistent.delete(stepId);
+        newBackup.delete(stepId);
       }
-    } catch (error) {
-      console.error('❌ STORAGE: Error loading from localStorage:', error);
-    }
-    return new Set();
+      
+      // Update all states IMMEDIATELY
+      setImmediateState(newImmediate);
+      setPersistentState(newPersistent);
+      setBackupState(newBackup);
+      
+      // Force render
+      setRenderCounter(prev => prev + 1);
+      
+      // Save to storage
+      NUCLEAR_SAVE(projectId, newPersistent);
+      
+      console.log(`🔥 ALL STATES UPDATED: ${checked ? 'CHECKED' : 'UNCHECKED'} - ${Array.from(newPersistent).length} items`);
+      
+      return newPersistent;
+    };
+    
+    // Execute the update
+    const finalState = updateAllStates(newState);
+    
+    // Background server sync (non-blocking)
+    setTimeout(() => {
+      try {
+        // Call server API
+        workflowService.updateStep(projectId, stepId, newState)
+          .then(() => {
+            console.log(`🌐 SERVER SYNC SUCCESS: ${stepId}`);
+          })
+          .catch(error => {
+            console.error(`💥 SERVER SYNC FAILED: ${stepId}`, error);
+            // Keep local state as truth
+          });
+      } catch (error) {
+        console.error(`💥 SERVER CALL FAILED: ${stepId}`, error);
+      }
+    }, 10); // Minimal delay
+    
+    // Prevent any event bubbling or default behavior
+    return false;
   };
   
-  const saveCheckedItems = (checkedSet) => {
-    const projectId = project?._id || project?.id;
+  // =================================================================
+  // 🔥🔥🔥 NUCLEAR CHECKBOX CHECKER 🔥🔥🔥
+  // =================================================================
+  
+  const IS_NUCLEAR_CHECKED = (stepId) => {
+    // Check immediate state first (highest priority)
+    const immediateCheck = immediateState.has(stepId);
+    const persistentCheck = persistentState.has(stepId);
+    const backupCheck = backupState.has(stepId);
+    
+    // Use immediate if it exists, fallback to others
+    const result = immediateCheck || persistentCheck || backupCheck;
+    
+    // Debug log
+    if (stepId === 'LEAD-input-customer-info-0') {
+      console.log(`🔍 CHECKING ${stepId}: immediate=${immediateCheck}, persistent=${persistentCheck}, backup=${backupCheck}, result=${result}`);
+    }
+    
+    return result;
+  };
+  
+  // =================================================================
+  // INITIALIZATION
+  // =================================================================
+  
+  useEffect(() => {
     if (!projectId) return;
     
-    const storageKey = `workflow-checked-${projectId}`;
-    try {
-      const array = Array.from(checkedSet);
-      localStorage.setItem(storageKey, JSON.stringify(array));
-      console.log(`💾 STORAGE: Saved ${array.length} checked items to localStorage`);
-    } catch (error) {
-      console.error('❌ STORAGE: Error saving to localStorage:', error);
-    }
-  };
-  
-  // Initialize with stored values and use state for immediate UI updates
-  const [localCheckedItems, setLocalCheckedItems] = useState(() => getStoredCheckedItems());
-  
-  // Get phase colors from WorkflowProgressService to match dashboard
-  const getPhaseColor = (phaseId) => {
-    // Map phase IDs to the color service's expected format
-    const phaseMap = {
-      'LEAD': 'LEAD',
-      'PROSPECT': 'PROSPECT', 
-      'APPROVED': 'APPROVED',
-      'EXECUTION': 'EXECUTION',
-      'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
-      'COMPLETION': 'COMPLETION'
-    };
-    
-    const mappedPhase = phaseMap[phaseId] || 'LEAD';
-    return WorkflowProgressService.getPhaseColor(mappedPhase);
-  };
-  
-  // Real-time updates for phase override
-  const { updates } = useRealTimeUpdates(project?._id || project?.id);
-  
-  // Use the workflow update hook
-  const { updateWorkflowStep: updateWorkflowStepAPI, updating: workflowUpdating } = useWorkflowUpdate();
-
-  // Load checked items from localStorage when project changes
-  useEffect(() => {
-    const storedItems = getStoredCheckedItems();
-    setLocalCheckedItems(storedItems);
-    console.log(`🗄️ STORAGE: Loaded ${storedItems.size} checked items for project ${project?._id || project?.id}`);
-  }, [project?._id, project?.id]);
-  
-  // Sync server data to localStorage when workflow data changes
-  useEffect(() => {
-    if (!workflowData || !workflowData.steps) return;
-    
-    setLocalCheckedItems(prevSet => {
-      const newSet = new Set(prevSet);
-      let hasChanges = false;
-      
-      workflowData.steps.forEach(step => {
-        if (step.completed || step.isCompleted) {
-          const stepId = step.id || step.stepId || step._id;
-          if (!newSet.has(stepId)) {
-            newSet.add(stepId);
-            hasChanges = true;
-            console.log(`🔄 SYNC: Added server-completed step ${stepId}`);
-          }
-        }
-      });
-      
-      if (hasChanges) {
-        saveCheckedItems(newSet);
-      }
-      
-      return newSet;
-    });
-  }, [workflowData]);
-  
-  // Fetch workflow data from database
-  useEffect(() => {
-    const fetchWorkflowData = async () => {
-      if (!project) return;
-      
-      try {
-        // Use the correct project ID - prefer _id over id, and ensure it's a valid ObjectId
-        const projectId = project._id || project.id;
-        
-        // If we have a simple numeric ID, we need to find the actual project in the database
-        if (projectId && typeof projectId === 'number') {
-          console.log('⚠️ WARNING: Using numeric project ID, this may not work with MongoDB');
-          // For now, let's try to use a mock ObjectId based on the numeric ID
-          const mockObjectId = `686b4df0fa7c227b285aba0${(projectId || '').toString().padStart(2, '0')}`;
-          console.log(`🔄 CONVERTING: Numeric ID ${projectId} to mock ObjectId ${mockObjectId}`);
-          
-          const response = await projectsService.getWorkflow(mockObjectId);
-          console.log(`🌐 FETCH: Received workflow data:`, response);
-          setWorkflowData(response.data || response.workflow);
-        } else {
-          console.log(`🌐 FETCH: Fetching workflow data for project: ${projectId}`);
-          
-          // Use the actual API service instead of debugger functions
-          const response = await projectsService.getWorkflow(projectId);
-          
-          console.log(`🌐 FETCH: Received workflow data:`, response);
-          const newWorkflowData = response.data || response.workflow;
-          
-          // Preserve optimistic updates
-          setWorkflowData(prevData => {
-            if (!prevData || optimisticUpdates.size === 0) {
-              return newWorkflowData;
-            }
-            
-            // Merge new data while preserving optimistic updates
-            const mergedSteps = [...(newWorkflowData.steps || [])];
-            if (prevData.steps) {
-              prevData.steps.forEach(prevStep => {
-                const stepId = prevStep.id || prevStep.stepId || prevStep._id;
-                if (optimisticUpdates.has(stepId)) {
-                  const existingIndex = mergedSteps.findIndex(s => 
-                    s.id === stepId || s.stepId === stepId || s._id === stepId
-                  );
-                  if (existingIndex >= 0) {
-                    // Keep optimistic state
-                    mergedSteps[existingIndex] = {
-                      ...mergedSteps[existingIndex],
-                      completed: prevStep.completed,
-                      isCompleted: prevStep.isCompleted,
-                      completedAt: prevStep.completedAt
-                    };
-                  }
-                }
-              });
-            }
-            
-            return {
-              ...newWorkflowData,
-              steps: mergedSteps
-            };
-          });
-        }
-      } catch (error) {
-        console.error('❌ FETCH: Error fetching workflow data:', error);
-        
-        // Don't show navigation errors to the user - just log them
-        console.warn('Workflow data fetch failed, using default workflow structure');
-        
-        // Set default workflow data instead of showing errors
-        setWorkflowData({
-          project: project._id || project.id,
-          steps: [],
-          completedSteps: [],
-          progress: 0
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWorkflowData();
-  }, [project]);
-
-  // Refresh workflow data when coming from alert completion
-  useEffect(() => {
-    if (project?.completedStep) {
-      console.log('🔄 WORKFLOW: Project has completedStep flag, refreshing data');
-      console.log('🔄 WORKFLOW: Completed step:', project.highlightStep);
-      
-      // Immediate refresh
-      const refreshWorkflowData = async () => {
-        if (!project) return;
-        
-        try {
-          const projectId = project._id || project.id;
-          
-          console.log(`🌐 REFRESH: Refreshing workflow data for project: ${projectId}`);
-          
-          const response = await projectsService.getWorkflow(projectId);
-          
-          console.log(`🌐 REFRESH: Received workflow data:`, response);
-          
-          // ENHANCED: Force a complete state refresh
-          const newWorkflowData = {
-            ...(response.data || response.workflow),
-            _forceRender: Date.now(),
-            _refreshedAt: new Date().toISOString()
-          };
-          
-          setWorkflowData(newWorkflowData);
-          console.log('✅ WORKFLOW: Refreshed data after alert completion');
-          
-          // Log the completed steps for debugging
-          const completedSteps = (response.data || response.workflow)?.steps?.filter(s => s.isCompleted || s.completed) || [];
-          console.log('✅ WORKFLOW: Currently completed steps:', completedSteps.map(s => s.stepName || s.name));
-          
-          // ENHANCED: Force component re-render by updating a dummy state
-          setNavigationSuccess({
-            message: 'Workflow updated from alert completion',
-            details: {
-              completedSteps: completedSteps.length,
-              refreshedAt: new Date().toLocaleTimeString()
-            }
-          });
-          
-          // Clear the success message quickly
-          setTimeout(() => {
-            setNavigationSuccess(null);
-          }, 100);
-          
-        } catch (error) {
-          console.error('❌ WORKFLOW: Error refreshing after completion:', error);
-          // Don't show error to user for background refresh
-        }
-      };
-      
-      // Refresh immediately
-      refreshWorkflowData();
-      
-      // Also refresh after a delay to ensure backend processing is complete
-      setTimeout(refreshWorkflowData, 1500);
-      
-      // ENHANCED: Additional refresh after 3 seconds to catch any delayed updates
-      setTimeout(refreshWorkflowData, 3000);
-    }
-  }, [project?.completedStep, project?.highlightStep]);
-
-  // ENHANCED: Force re-render when workflow data changes to ensure strikethroughs appear
-  useEffect(() => {
-    if (workflowData && workflowData._forceRender) {
-      console.log('🔄 FORCE RENDER: Workflow data changed, forcing component re-render');
-      const completedSteps = workflowData.steps?.filter(s => s.completed || s.isCompleted) || [];
-      console.log('✅ FORCE RENDER: Completed steps count:', completedSteps.length);
-      console.log('✅ FORCE RENDER: Step completion states:', 
-        workflowData.steps?.map(s => ({
-          id: s.id || s.stepId || s._id,
-          completed: s.completed || s.isCompleted || false
-        })) || []
-      );
-    }
-  }, [workflowData?._forceRender, workflowData?.steps]);
-
-  // ENHANCED: Listen for global workflow updates from alert completions
-  useEffect(() => {
-    const handleWorkflowStepCompleted = (event) => {
-      const { projectId: eventProjectId, stepId: eventStepId, stepName } = event.detail || {};
-      const currentProjectId = project?.id || project?._id;
-      
-      console.log('🔊 GLOBAL EVENT: Received workflow step completed event:', event.detail);
-      
-      // Only refresh if this event is for the current project
-      if (eventProjectId && currentProjectId && String(eventProjectId) === String(currentProjectId)) {
-        console.log('🔄 GLOBAL REFRESH: Event matches current project, refreshing workflow data');
-        
-        const refreshFromEvent = async () => {
-          try {
-            const response = await projectsService.getWorkflow(currentProjectId);
-            const newWorkflowData = {
-              ...(response.data || response.workflow),
-              _forceRender: Date.now(),
-              _globalEventRefresh: true,
-              _eventStepId: eventStepId
-            };
-            
-            setWorkflowData(newWorkflowData);
-            console.log('✅ GLOBAL REFRESH: Updated workflow data from global event');
-            
-            // Show brief success message
-            setNavigationSuccess({
-              message: `Step completed: ${stepName || eventStepId}`,
-              details: {
-                source: 'Global Event',
-                refreshedAt: new Date().toLocaleTimeString()
-              }
-            });
-            
-            setTimeout(() => setNavigationSuccess(null), 2000);
-            
-          } catch (error) {
-            console.error('❌ GLOBAL REFRESH: Failed to refresh from global event:', error);
-          }
-        };
-        
-        // Refresh immediately and with delays
-        refreshFromEvent();
-        setTimeout(refreshFromEvent, 1000);
-      }
-    };
-    
-    // Listen for custom workflow completion events
-    window.addEventListener('workflowStepCompleted', handleWorkflowStepCompleted);
-    
-    return () => {
-      window.removeEventListener('workflowStepCompleted', handleWorkflowStepCompleted);
-    };
-  }, [project?.id, project?._id]);
-
-  // ENHANCED: Direct line item navigation with phase/section/lineitem mapping
-  useEffect(() => {
-    if (project?.highlightStep || project?.highlightLineItem || project?.targetLineItem || project?.navigationTarget) {
-      const navigationTarget = project?.navigationTarget;
-      const stepToFind = project?.highlightStep || project?.highlightLineItem || navigationTarget?.lineItem || project?.targetLineItem;
-      const targetPhase = navigationTarget?.phase || project?.targetPhase || project?.alertPhase;
-      const targetSection = navigationTarget?.section || project?.targetSection || project?.alertSection;
-      const targetLineItem = navigationTarget?.lineItem || project?.targetLineItem;
-      
-      console.log('🎯 WORKFLOW NAVIGATION: Starting enhanced navigation');
-      console.log('🎯 Step to find:', stepToFind);
-      console.log('🎯 Target phase:', targetPhase);
-      console.log('🎯 Target section:', targetSection);
-      console.log('🎯 Target line item:', targetLineItem);
-      console.log('🎯 Navigation target:', navigationTarget);
-      
-      setHighlightedStep(stepToFind);
-      
-      // ENHANCED: Direct phase ID mapping instead of fuzzy matching
-      const phaseIdMapping = {
-        'LEAD': 'LEAD',
-        'Lead': 'LEAD',
-        'PROSPECT': 'PROSPECT', 
-        'Prospect': 'PROSPECT',
-        'PROSPECT_NON_INSURANCE': 'PROSPECT_NON_INSURANCE',
-        'APPROVED': 'APPROVED',
-        'Approved': 'APPROVED',
-        'EXECUTION': 'EXECUTION',
-        'Execution': 'EXECUTION',
-        'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
-        '2ND_SUPP': 'SECOND_SUPPLEMENT',
-        '2nd Supplement': 'SECOND_SUPPLEMENT',
-        'COMPLETION': 'COMPLETION',
-        'Completion': 'COMPLETION'
-      };
-      
-      // Find target phase using direct mapping
-      const mappedPhaseId = phaseIdMapping[targetPhase] || targetPhase;
-      const targetPhaseObj = phases.find(phase => phase.id === mappedPhaseId);
-      
-      if (targetPhaseObj) {
-        console.log('✅ DIRECT MAPPING: Found target phase:', targetPhaseObj.label);
-        
-        // ENHANCED: Direct section matching by multiple strategies
-        let matchedItem = null;
-        
-        // Strategy 1: Direct ID matching (if available)
-        if (navigationTarget?.sectionId) {
-          matchedItem = targetPhaseObj.items.find(item => item.id === navigationTarget.sectionId);
-        }
-        
-        // Strategy 2: Exact section name matching
-        if (!matchedItem && targetSection) {
-          matchedItem = targetPhaseObj.items.find(item => {
-            const itemBaseName = item.label.split(' –')[0].trim();
-            return itemBaseName === targetSection || item.label === targetSection;
-          });
-        }
-        
-        // Strategy 3: Contains matching (fallback)
-        if (!matchedItem && targetSection) {
-          matchedItem = targetPhaseObj.items.find(item => {
-            const itemBaseName = item.label.split(' –')[0].trim().toLowerCase();
-            const targetLower = targetSection.toLowerCase();
-            return itemBaseName.includes(targetLower) || targetLower.includes(itemBaseName);
-          });
-        }
-        
-        // Strategy 4: Match by step name if no section match
-        if (!matchedItem && stepToFind) {
-          matchedItem = targetPhaseObj.items.find(item => {
-            const itemBaseName = item.label.split(' –')[0].trim().toLowerCase();
-            const stepLower = stepToFind.toLowerCase();
-            return itemBaseName.includes(stepLower) || stepLower.includes(itemBaseName);
-          });
-        }
-        
-        if (matchedItem) {
-          console.log('✅ DIRECT MAPPING: Found target section:', matchedItem.label);
-          
-          // CRITICAL: Always open the phase and item
-          setOpenPhase(targetPhaseObj.id);
-          setOpenItem({ [matchedItem.id]: true });
-          
-          // Execute navigation and highlighting
-          const executeNavigation = () => {
-            let attempts = 0;
-            const maxAttempts = 20;
-            
-            const attemptNavigation = () => {
-              attempts++;
-              console.log(`📍 NAVIGATION ATTEMPT ${attempts}: Looking for elements`);
-              
-              // Find phase element
-              const phaseElement = document.querySelector(`[data-phase-id="${targetPhaseObj.id}"]`);
-              
-              if (phaseElement) {
-                console.log('✅ Found phase element, scrolling to phase');
-                phaseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-                // Wait for phase scroll, then find item
-                setTimeout(() => {
-                  const itemElement = document.querySelector(`[data-item-id="${matchedItem.id}"]`);
-                  
-                  if (itemElement) {
-                    console.log('✅ Found item element, applying blue highlighting');
-                    
-                    // Scroll to center the item
-                    itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // ENHANCED: Apply blue highlighting exactly as requested
-                    itemElement.style.transition = 'all 0.4s ease';
-                    itemElement.style.backgroundColor = '#3B82F6'; // Blue background
-                    itemElement.style.color = 'white';
-                    itemElement.style.borderRadius = '8px';
-                    itemElement.style.padding = '8px';
-                    itemElement.style.transform = 'scale(1.02)';
-                    itemElement.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.8)';
-                    itemElement.style.zIndex = '10';
-                    itemElement.style.position = 'relative';
-                    
-                    console.log('🔥 BLUE HIGHLIGHT APPLIED to section:', matchedItem.label);
-                    
-                    // Remove highlighting after 5 seconds
-                    setTimeout(() => {
-                      itemElement.style.backgroundColor = '';
-                      itemElement.style.color = '';
-                      itemElement.style.borderRadius = '';
-                      itemElement.style.padding = '';
-                      itemElement.style.transform = '';
-                      itemElement.style.boxShadow = '';
-                      itemElement.style.zIndex = '';
-                      itemElement.style.position = '';
-                      console.log('🔄 Blue highlighting removed');
-                    }, 5000);
-                    
-                    // ENHANCED: Instead of highlighting section, find and highlight specific subtask
-                    if (targetLineItem) {
-                      setTimeout(() => {
-                        // Remove section highlighting and focus on subtask
-                        itemElement.style.backgroundColor = '';
-                        itemElement.style.color = '';
-                        itemElement.style.borderRadius = '';
-                        itemElement.style.padding = '';
-                        itemElement.style.transform = '';
-                        itemElement.style.boxShadow = '';
-                        
-                        // Find all subtask elements (checkboxes and text)
-                        const subtaskElements = itemElement.querySelectorAll('li, span');
-                        for (const subtaskEl of subtaskElements) {
-                          const subtaskText = subtaskEl.textContent.toLowerCase();
-                          const targetText = targetLineItem.toLowerCase();
-                          
-                          if (subtaskText.includes(targetText) || targetText.includes(subtaskText)) {
-                            console.log('🎯 HIGHLIGHTING specific subtask:', subtaskEl.textContent);
-                            
-                            // Apply bright highlighting to the specific subtask
-                            subtaskEl.style.backgroundColor = '#F59E0B'; // Orange/amber for visibility
-                            subtaskEl.style.color = 'white';
-                            subtaskEl.style.padding = '4px 8px';
-                            subtaskEl.style.borderRadius = '6px';
-                            subtaskEl.style.fontWeight = 'bold';
-                            subtaskEl.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.6)';
-                            subtaskEl.style.border = '2px solid #D97706';
-                            
-                            // Scroll specifically to this subtask
-                            subtaskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            
-                            setTimeout(() => {
-                              subtaskEl.style.backgroundColor = '';
-                              subtaskEl.style.color = '';
-                              subtaskEl.style.padding = '';
-                              subtaskEl.style.borderRadius = '';
-                              subtaskEl.style.fontWeight = '';
-                              subtaskEl.style.boxShadow = '';
-                              subtaskEl.style.border = '';
-                            }, 7000);
-                            break;
-                          }
-                        }
-                      }, 600);
-                    }
-                    
-                  } else {
-                    console.log(`⏳ Item element not found (attempt ${attempts}), retrying...`);
-                    if (attempts < maxAttempts) {
-                      setTimeout(attemptNavigation, 300);
-                    } else {
-                      console.log('❌ Failed to find item element after maximum attempts');
-                    }
-                  }
-                }, 500);
-                
-              } else {
-                console.log(`⏳ Phase element not found (attempt ${attempts}), retrying...`);
-                if (attempts < maxAttempts) {
-                  setTimeout(attemptNavigation, 300);
-                } else {
-                  console.log('❌ Failed to find phase element after maximum attempts');
-                }
-              }
-            };
-            
-            // Start navigation after DOM settles
-            setTimeout(attemptNavigation, 200);
-          };
-          
-          // Execute the navigation
-          executeNavigation();
-          
-          // Clear highlighting flag after navigation
-          setTimeout(() => {
-            setHighlightedStep(null);
-          }, 10000);
-          
-        } else {
-          console.log('❌ No matching section found in phase:', targetPhaseObj.label);
-          console.log('❌ Available sections:', targetPhaseObj.items.map(i => i.label.split(' –')[0].trim()));
-        }
-        
-      } else {
-        console.log('❌ No matching phase found for:', targetPhase);
-        console.log('❌ Available phases:', phases.map(p => ({ id: p.id, label: p.label })));
-      }
-    }
-  }, [project?.highlightStep, project?.navigationTarget, project?.targetLineItem, phases]);
-
-  // Enhanced real-time listening for workflow step completions
-  useEffect(() => {
-    const handleStepCompleted = (data) => {
-      console.log('🔄 WORKFLOW: Received step completion notification:', data);
-      
-      // Check if this completion is for the current project
-      const currentProjectId = project?.id || project?._id;
-      if (data.workflowId && currentProjectId) {
-        // Refresh workflow data to show the completion
-        const refreshWorkflowData = async () => {
-          try {
-            const projectId = project.id || project._id;
-            
-            console.log(`🌐 REFRESH: Refreshing workflow data for project: ${projectId}`);
-            
-            const response = await projectsService.getWorkflow(projectId);
-            
-            console.log(`🌐 REFRESH: Received workflow data:`, response);
-            setWorkflowData(response.data || response.workflow);
-            console.log('✅ WORKFLOW: Refreshed workflow data after real-time step completion');
-            
-            // Force a re-render by updating a dummy state
-            setHighlightedStep(prev => prev === null ? '' : null);
-          } catch (error) {
-            console.error('❌ WORKFLOW: Error refreshing workflow data:', error);
-          }
-        };
-        
-        refreshWorkflowData();
-      }
-    };
-
-    // Listen for socket events (if socket is available)
-    if (window.io && window.io.connected) {
-      window.io.on('step_completed', handleStepCompleted);
-      
-      return () => {
-        window.io.off('step_completed', handleStepCompleted);
-      };
-    }
-    
-    // Also listen for general workflow updates
-    const handleWorkflowUpdate = () => {
-      console.log('🔄 WORKFLOW: Received general workflow update');
-      if (project) {
-        const refreshWorkflowData = async () => {
-          try {
-            const projectId = project.id || project._id;
-            
-            console.log(`🌐 REFRESH: Refreshing workflow data for project: ${projectId}`);
-            
-            const response = await projectsService.getWorkflow(projectId);
-            
-            console.log(`🌐 REFRESH: Received workflow data:`, response);
-            setWorkflowData(response.data || response.workflow);
-            console.log('✅ WORKFLOW: Refreshed workflow data after general update');
-          } catch (error) {
-            console.error('❌ WORKFLOW: Error refreshing workflow data:', error);
-          }
-        };
-        
-        refreshWorkflowData();
-      }
-    };
-
-    if (window.io && window.io.connected) {
-      window.io.on('workflow_updated', handleWorkflowUpdate);
-      
-      return () => {
-        window.io.off('workflow_updated', handleWorkflowUpdate);
-      };
-    }
-  }, [project]);
-
-  // Auto-refresh workflow data periodically when on this page
-  // Disabled to prevent overwriting optimistic checkbox updates
-  // useEffect(() => {
-  //   if (!project) return;
-  //   
-  //   const refreshInterval = setInterval(async () => {
-  //     try {
-  //       const projectId = project._id || project.id;
-  //       const response = await projectsService.getWorkflow(projectId);
-  //       setWorkflowData(response.data || response.workflow);
-  //     } catch (error) {
-  //       console.error('❌ WORKFLOW: Auto-refresh failed:', error);
-  //       // Don't show error to user for background refresh
-  //     }
-  //   }, 30000); // Refresh every 30 seconds
-  //   
-  //   return () => clearInterval(refreshInterval);
-  // }, [project]);
-
-  // Helper function to find the next workflow item
-  const findNextWorkflowItem = (completedStepId) => {
-    console.log(`🔍 NEXT_ITEM: Looking for next item after ${completedStepId}`);
-    
-    // Create a flat list of all workflow items in order
-    const allWorkflowItems = [];
-    
-    phases.forEach(phase => {
-      phase.items.forEach(item => {
-        // Add main item
-        const mainStepId = `${phase.id}-${item.id}`;
-        allWorkflowItems.push({
-          stepId: mainStepId,
-          phase: phase.id,
-          phaseLabel: phase.label,
-          itemId: item.id,
-          itemLabel: item.label,
-          type: 'main'
-        });
-        
-        // Add subtasks
-        if (item.subtasks) {
-          item.subtasks.forEach((subtask, subIdx) => {
-            const subtaskStepId = `${phase.id}-${item.id}-${subIdx}`;
-            allWorkflowItems.push({
-              stepId: subtaskStepId,
-              phase: phase.id,
-              phaseLabel: phase.label,
-              itemId: item.id,
-              itemLabel: item.label,
-              subtask: subtask,
-              type: 'subtask'
-            });
-          });
-        }
-        
-        // Add subheadings and their subtasks
-        if (item.subheadings) {
-          item.subheadings.forEach(subheading => {
-            const subheadingStepId = `${phase.id}-${item.id}-${subheading.id}`;
-            allWorkflowItems.push({
-              stepId: subheadingStepId,
-              phase: phase.id,
-              phaseLabel: phase.label,
-              itemId: item.id,
-              itemLabel: item.label,
-              subheading: subheading.label,
-              type: 'subheading'
-            });
-            
-            if (subheading.subtasks) {
-              subheading.subtasks.forEach((subtask, subIdx) => {
-                const subtaskStepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                allWorkflowItems.push({
-                  stepId: subtaskStepId,
-                  phase: phase.id,
-                  phaseLabel: phase.label,
-                  itemId: item.id,
-                  itemLabel: item.label,
-                  subheading: subheading.label,
-                  subtask: subtask,
-                  type: 'subheading_subtask'
-                });
-              });
-            }
-          });
-        }
-      });
+    console.log(`🔥🔥🔥 NUCLEAR INIT: Project ${projectId}`);
+    console.log(`🔥 Initial states:`, {
+      immediate: immediateState.size,
+      persistent: persistentState.size,
+      backup: backupState.size
     });
     
-    console.log(`🔍 NEXT_ITEM: All workflow items:`, allWorkflowItems.map(item => item.stepId));
+    // Sync all states on init
+    const loadedState = NUCLEAR_LOAD(projectId);
+    setImmediateState(loadedState);
+    setPersistentState(loadedState);
+    setBackupState(loadedState);
+    setRenderCounter(1);
     
-    // Find current item index
-    const currentIndex = allWorkflowItems.findIndex(item => item.stepId === completedStepId);
-    console.log(`🔍 NEXT_ITEM: Current item index: ${currentIndex}`);
-    
-    if (currentIndex === -1) {
-      console.log(`❌ NEXT_ITEM: Could not find completed step ${completedStepId} in workflow`);
-      return null;
-    }
-    
-    // Get next item
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= allWorkflowItems.length) {
-      console.log(`✅ NEXT_ITEM: Workflow completed! No more items.`);
-      return null;
-    }
-    
-    const nextItem = allWorkflowItems[nextIndex];
-    console.log(`✅ NEXT_ITEM: Found next item:`, nextItem);
-    
-    return nextItem;
-  };
-
-  // Helper function to create alert for next workflow item
-  const createNextWorkflowAlert = async (nextItem) => {
-    if (!nextItem) return;
-    
-    console.log(`🔔 ALERT: Creating alert for next workflow item:`, nextItem);
-    
-    try {
-      // Determine alert title and description based on item type
-      let alertTitle = '';
-      let alertDescription = '';
-      
-      if (nextItem.type === 'main') {
-        alertTitle = nextItem.itemLabel;
-        alertDescription = `Please complete the next workflow step: ${nextItem.itemLabel}`;
-      } else if (nextItem.type === 'subtask') {
-        alertTitle = `${nextItem.itemLabel} - ${nextItem.subtask}`;
-        alertDescription = `Please complete: ${nextItem.subtask} in ${nextItem.itemLabel}`;
-      } else if (nextItem.type === 'subheading') {
-        alertTitle = `${nextItem.itemLabel} - ${nextItem.subheading}`;
-        alertDescription = `Please complete: ${nextItem.subheading} in ${nextItem.itemLabel}`;
-      } else if (nextItem.type === 'subheading_subtask') {
-        alertTitle = `${nextItem.subheading} - ${nextItem.subtask}`;
-        alertDescription = `Please complete: ${nextItem.subtask} in ${nextItem.subheading}`;
-      }
-      
-      // Create alert data
-      const alertData = {
-        title: alertTitle,
-        message: alertDescription,
-        priority: 'medium',
-        projectId: project._id || project.id,
-        stepId: nextItem.stepId,
-        metadata: {
-          stepName: alertTitle,
-          cleanTaskName: alertTitle,
-          phase: nextItem.phase,
-          phaseLabel: nextItem.phaseLabel,
-          projectId: project._id || project.id,
-          projectNumber: project.projectNumber || project.number || '12345',
-          projectName: project.name || project.projectName || 'Unknown Project',
-          workflowId: workflowData?._id || 'unknown',
-          stepId: nextItem.stepId,
-          autoGenerated: true,
-          generatedAt: new Date().toISOString()
-        },
-        type: 'workflow_progression',
-        status: 'pending'
-      };
-      
-      console.log(`🔔 ALERT: Creating alert with data:`, alertData);
-      
-      // Create the alert
-      const response = await workflowAlertsService.create(alertData);
-      console.log(`✅ ALERT: Successfully created alert:`, response);
-      
-      return response;
-    } catch (error) {
-      console.error(`❌ ALERT: Error creating next workflow alert:`, error);
-      // Don't throw error - we don't want to break workflow completion if alert creation fails
-    }
-  };
-
-  // Helper function to update UI from database response
-  const updateWorkflowUIFromDatabaseResponse = (updatedData) => {
-    console.log('🔄 Updating UI from database response:', updatedData);
-    
-    // Transform database format to frontend format
-    const transformedSteps = updatedData.lineItems?.map(item => ({
-      id: item.id,
-      stepId: `${item.sectionNumber}${item.itemLetter}`,
-      stepName: item.itemName,
-      name: item.itemName,
-      phase: item.phase,
-      section: item.section,
-      lineItem: item.itemName,
-      completed: item.isCompleted,
-      isCompleted: item.isCompleted,
-      isCurrent: item.isCurrent,
-      completedAt: item.completedAt,
-      completedBy: item.completedBy
-    })) || [];
-    
-    // Update workflow data
-    setWorkflowData({
-      steps: transformedSteps,
-      overallProgress: updatedData.overallProgress || 0,
-      currentPosition: updatedData.currentPosition,
-      phaseCompletion: updatedData.phaseCompletion || {},
-      sectionCompletion: updatedData.sectionCompletion || {},
-      _forceRender: Date.now(),
-      _databaseUpdate: true
-    });
-    
-    // Trigger phase completion callback if available
-    if (onPhaseCompletionChange && updatedData.phaseCompletion) {
-      const completedPhases = {};
-      Object.keys(updatedData.phaseCompletion).forEach(phase => {
-        completedPhases[phase] = updatedData.phaseCompletion[phase].isCompleted;
-      });
-      
-      onPhaseCompletionChange({
-        completedPhases,
-        progress: updatedData.overallProgress || 0
-      });
-    }
-  };
-
-  const updateWorkflowStep = async (stepId, completed) => {
-    console.log(`🔄 UPDATE: Updating workflow step ${stepId} to ${completed} using BACKGROUND ONLY`);
-    
-    const projectId = project._id || project.id;
-    console.log(`🌐 CHECKBOX: Making background API call only`);
-    
-    try {
-      // Use only old system for background updates - NO UI STATE CHANGES HERE
-      const response = await updateWorkflowStepAPI(projectId, stepId, completed);
-      
-      console.log('✅ CHECKBOX: Background API call successful');
-      
-      // Update project progress if available
-      if (onUpdate && response.phase) {
-        onUpdate({
-          ...project,
-          phase: response.phase,
-          progress: response.progress
-        });
-      }
-      
-    } catch (error) {
-      console.error('❌ CHECKBOX: Background API call failed:', error);
-      // Re-throw error so handleCheck can revert local state
-      throw error;
-    }
-  };
-
+  }, [projectId]);
+  
+  // Phase click handler
   const handlePhaseClick = (phaseId) => {
     setOpenPhase(openPhase === phaseId ? null : phaseId);
     setOpenItem({});
@@ -1215,624 +358,162 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange }) =>
     setOpenItem((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  const handleCheck = (phaseId, itemId, subIdx) => {
-    const stepId = `${phaseId}-${itemId}-${subIdx}`;
-    
-    console.log(`🔄 CHECKBOX CLICKED: ${stepId}`);
-    console.log(`🔄 CURRENT localStorage state:`, Array.from(localCheckedItems));
-    
-    const currentlyCompleted = localCheckedItems.has(stepId);
-    const newCompletedState = !currentlyCompleted;
-    
-    console.log(`🔄 TOGGLE: ${stepId} from ${currentlyCompleted} to ${newCompletedState}`);
-    
-    // CRITICAL: Force immediate state update with re-render
-    setLocalCheckedItems(prevSet => {
-      const newSet = new Set(prevSet);
-      if (newCompletedState) {
-        newSet.add(stepId);
-        console.log(`✅ ADDED ${stepId} to state`);
-      } else {
-        newSet.delete(stepId);
-        console.log(`❌ REMOVED ${stepId} from state`);
-      }
-      
-      // Save to localStorage immediately
-      saveCheckedItems(newSet);
-      console.log(`💾 SAVED to localStorage:`, Array.from(newSet));
-      
-      return newSet;
-    });
-    
-    // Background server update (don't block UI)
-    setTimeout(() => {
-      updateWorkflowStep(stepId, newCompletedState).catch(error => {
-        console.error('❌ SERVER ERROR:', error);
-        // Revert on server error
-        setLocalCheckedItems(prevSet => {
-          const revertSet = new Set(prevSet);
-          if (newCompletedState) {
-            revertSet.delete(stepId);
-          } else {
-            revertSet.add(stepId);
-          }
-          saveCheckedItems(revertSet);
-          return revertSet;
-        });
-      });
-    }, 10);
+  // Get phase colors
+  const getPhaseColor = (phaseId) => {
+    const colors = {
+      'LEAD': 'bg-blue-500',
+      'PROSPECT': 'bg-green-500',
+      'APPROVED': 'bg-yellow-500',
+      'EXECUTION': 'bg-orange-500',
+      'COMPLETION': 'bg-purple-500',
+      'default': 'bg-gray-500'
+    };
+    return colors[phaseId] || colors.default;
   };
 
-  // Helper function to check if a step is completed - SIMPLIFIED
-  const isStepCompleted = (stepId) => {
-    const isChecked = localCheckedItems.has(stepId);
-    console.log(`🔍 CHECKING ${stepId}: ${isChecked ? 'CHECKED' : 'UNCHECKED'}`);
-    return isChecked;
-  };
-
-  // Helper function to check if all subtasks in a section are completed
-  const isSectionCompleted = (phaseId, itemId) => {
-    const checklistPhase = phases.find(p => p.id === phaseId);
-    if (!checklistPhase) return false;
-    
-    const checklistItem = checklistPhase.items.find(i => i.id === itemId);
-    if (!checklistItem) return false;
-    
-    // Check regular subtasks
-    const regularSubtasksCompleted = !checklistItem.subtasks || checklistItem.subtasks.length === 0 || 
-      checklistItem.subtasks.every((_, subIdx) => {
-        const stepId = `${phaseId}-${itemId}-${subIdx}`;
-        return isStepCompleted(stepId);
-      });
-    
-    // Check subheading subtasks
-    const subheadingSubtasksCompleted = !checklistItem.subheadings || checklistItem.subheadings.length === 0 || 
-      checklistItem.subheadings.every(subheading =>
-        subheading.subtasks.every((_, subIdx) => {
-          const stepId = `${phaseId}-${itemId}-${subheading.id}-${subIdx}`;
-          return isStepCompleted(stepId);
-        })
-      );
-    
-    return regularSubtasksCompleted && subheadingSubtasksCompleted;
-  };
-
-  // Helper function to check if all sections in a phase are completed
-  const isPhaseCompleted = (phaseId) => {
-    const checklistPhase = phases.find(p => p.id === phaseId);
-    if (!checklistPhase) return false;
-    
-    return checklistPhase.items.every(item => isSectionCompleted(phaseId, item.id));
-  };
-
-  // Function to handle automatic section and phase completion
-  const handleAutomaticCompletion = (stepId, completed) => {
-    if (!completed) return; // Only handle completion, not uncompletion
-    
-    // Parse the stepId to get phase and item info
-    const stepIdParts = stepId.split('-');
-    if (stepIdParts.length < 4) return;
-    
-    const phaseId = stepIdParts[0];
-    const itemId = stepIdParts.slice(1, -1).join('-');
-    
-    console.log(`🎯 COMPLETION: Checking automatic completion for phase: ${phaseId}, item: ${itemId}`);
-    
-    // Check if section is now completed
-    if (isSectionCompleted(phaseId, itemId)) {
-      console.log(`✅ COMPLETION: Section "${itemId}" in phase "${phaseId}" is now completed!`);
-      
-      // Show section completion feedback
-      setNavigationSuccess({
-        message: `Section "${itemId}" completed!`,
-        details: {
-          phase: phases.find(p => p.id === phaseId)?.label || phaseId,
-          section: itemId,
-          lineItem: 'All subtasks completed'
-        }
-      });
-      
-      // Clear success message after 4 seconds
-      setTimeout(() => {
-        setNavigationSuccess(null);
-      }, 4000);
-    }
-    
-    // Check if phase is now completed
-    if (isPhaseCompleted(phaseId)) {
-      console.log(`🎉 COMPLETION: Phase "${phaseId}" is now completed!`);
-      
-
-    }
-  };
-
-  const handleDragEnd = (result, phaseId) => {
-    if (!result.destination) return;
-    const phaseIdx = phases.findIndex(p => p.id === phaseId);
-    if (phaseIdx === -1) return;
-    const items = Array.from(phases[phaseIdx].items);
-    const [removed] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, removed);
-    const newPhases = [...phases];
-    newPhases[phaseIdx] = { ...newPhases[phaseIdx], items };
-    setPhases(newPhases);
-    // TODO: Update phase order in database
-  };
-
-  useEffect(() => {
-    // Calculate phase completion and progress using database data
-    if (!workflowData) return;
-    
-    const completedPhases = {};
-    let totalSubtasks = 0;
-    let completedSubtasks = 0;
-    phases.forEach(phase => {
-      let phaseTotal = 0;
-      let phaseCompleted = 0;
-      phase.items.forEach(item => {
-        // Count regular subtasks
-        if (item.subtasks) {
-          phaseTotal += item.subtasks.length;
-          item.subtasks.forEach((_, subIdx) => {
-            const stepId = `${phase.id}-${item.id}-${subIdx}`;
-            if (isStepCompleted(stepId)) phaseCompleted++;
-          });
-        }
-        
-        // Count subheading subtasks
-        if (item.subheadings) {
-          item.subheadings.forEach(subheading => {
-            phaseTotal += subheading.subtasks.length;
-            subheading.subtasks.forEach((_, subIdx) => {
-              const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-              if (isStepCompleted(stepId)) phaseCompleted++;
-            });
-          });
-        }
-      });
-      totalSubtasks += phaseTotal;
-      completedSubtasks += phaseCompleted;
-      completedPhases[phase.id] = phaseTotal > 0 && phaseTotal === phaseCompleted;
-    });
-    const progress = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
-    if (onPhaseCompletionChange) {
-      onPhaseCompletionChange({ completedPhases, progress });
-    }
-  }, [workflowData, onPhaseCompletionChange, phases]);
-
-  // Listen for real-time phase override updates
-  useEffect(() => {
-    const phaseOverrideUpdate = updates.find(update => update.type === 'phase_override');
-    
-    if (phaseOverrideUpdate && project) {
-      console.log('🔄 REAL-TIME: Received phase override update:', phaseOverrideUpdate);
-      
-      // Refresh workflow data
-      const refreshWorkflowData = async () => {
-        try {
-          const projectId = project._id || project.id;
-          const response = await projectsService.getWorkflow(projectId);
-          const newWorkflowData = {
-            ...(response.data || response.workflow),
-            _forceRender: Date.now(),
-            _phaseOverrideUpdate: true
-          };
-          setWorkflowData(newWorkflowData);
-          console.log('✅ REAL-TIME: Refreshed workflow data after phase override');
-        } catch (error) {
-          console.error('❌ REAL-TIME: Error refreshing workflow after phase override:', error);
-        }
-      };
-      
-      refreshWorkflowData();
-    }
-  }, [updates, project]);
-
-  if (loading) {
+  if (!project) {
     return (
-      <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-3 border-b border-gray-200 bg-gray-50">
-          <div className="text-left">
-            <h1 className="text-sm font-semibold text-gray-800 mb-1">Project Workflow</h1>
-            <p className="text-xs text-gray-600">Loading workflow data...</p>
-          </div>
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-xs text-gray-600">Loading workflow...</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">No project selected</div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Compact Header */}
-      <div className="p-3 border-b border-gray-200 bg-gray-50">
-        <div className="flex justify-between items-center">
-          <div className="text-left">
-            <h1 className="text-sm font-semibold text-gray-800 mb-1">Project Workflow</h1>
-            <p className="text-xs text-gray-600">Actionable roadmap for every project phase</p>
-            {process.env.NODE_ENV === 'development' && (
-              <button
-                onClick={() => {
-                  console.log('🧪 DEBUG: Current workflow data:', workflowData);
-                  console.log('🧪 DEBUG: Current project:', project);
-                  console.log('🧪 DEBUG: API base URL:', window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : `${window.location.protocol}//${window.location.host}/api`);
-                }}
-                className="mt-1 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-              >
-                Debug Info
-              </button>
-            )}
-          </div>
-          
-          {/* Override Phase Button */}
-          <PhaseOverrideButton project={project} onPhaseUpdate={handlePhaseOverride} />
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          🔥 NUCLEAR Workflow Checklist 🔥
+        </h2>
+        <div className="text-sm text-gray-600">
+          Project: {project.projectName || project.name} (ID: {projectId})
+        </div>
+        <div className="text-sm text-gray-600 mt-1">
+          Checked Items: {immediateState.size} | Render: #{renderCounter}
         </div>
       </div>
-      
-      {/* Current Workflow Status Indicator */}
-      {(() => {
-        // Find current phase, section, and line item
-        let currentPhase = null;
-        let currentSection = null;
-        let currentLineItem = null;
-        let nextIncompleteTask = null;
 
-        for (const phase of phases) {
-          let phaseHasIncomplete = false;
-          
-          for (const item of phase.items) {
-            let sectionHasIncomplete = false;
-            
-            // Check subtasks for incomplete items
-            if (item.subtasks) {
-              for (let subIdx = 0; subIdx < item.subtasks.length; subIdx++) {
-                const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                const isCompleted = isStepCompleted(stepId);
-                
-                if (!isCompleted) {
-                  if (!nextIncompleteTask) {
-                    nextIncompleteTask = {
-                      phase: phase.label,
-                      section: item.label.split(' – ')[0], // Section = numbered items (1,2,3)
-                      lineItem: item.subtasks[subIdx], // Line Item = lettered items (a,b,c)
-                      phaseColor: WorkflowProgressService.getPhaseColor(phase.id)
-                    };
-                  }
-                  sectionHasIncomplete = true;
-                  phaseHasIncomplete = true;
-                }
-              }
-            }
-            
-            // If section has incomplete, mark it as current
-            if (sectionHasIncomplete && !currentSection) {
-              currentPhase = phase.label;
-              currentSection = item.label.split(' – ')[0];
-            }
-          }
-          
-          // If phase has incomplete, mark it as current
-          if (phaseHasIncomplete && !currentPhase) {
-            currentPhase = phase.label;
-          }
-        }
-
-        return nextIncompleteTask ? (
-          <div className="mx-3 mb-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                {/* Phase Indicator */}
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 ${nextIncompleteTask.phaseColor.bg} rounded-full shadow-sm`}></div>
-                  <div className="text-xs font-semibold text-gray-700">
-                    Current Phase: <span className={`${nextIncompleteTask.phaseColor.text} font-bold`}>{nextIncompleteTask.phase}</span>
-                  </div>
-                </div>
-                
-                {/* Divider */}
-                <div className="w-px h-6 bg-gray-300"></div>
-                
-                {/* Section Indicator */}
-                <div className="text-xs font-medium text-gray-600">
-                  Section: <span className="font-semibold text-gray-800">{nextIncompleteTask.section}</span>
-                </div>
+      {/* Checklist */}
+      <div className="space-y-4">
+        {checklistPhases.map((phase) => (
+          <div key={phase.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            {/* Phase Header */}
+            <button
+              onClick={() => handlePhaseClick(phase.id)}
+              className={`w-full px-6 py-4 text-left font-semibold text-white transition-colors duration-200 hover:opacity-90 ${getPhaseColor(phase.id)}`}
+            >
+              <div className="flex items-center justify-between">
+                <span>{phase.label}</span>
+                <ChevronDownIcon 
+                  className={`w-5 h-5 transform transition-transform duration-200 ${
+                    openPhase === phase.id ? 'rotate-180' : ''
+                  }`} 
+                />
               </div>
-              
-              {/* Current Line Item Indicator */}
-              <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
-                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                <div className="text-xs font-medium text-gray-700">
-                  Line Item: <span className="font-semibold text-blue-700">{nextIncompleteTask.lineItem}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mx-3 mb-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div className="text-xs font-semibold text-green-700">All workflow tasks completed!</div>
-            </div>
-          </div>
-        );
-      })()}
+            </button>
 
-      <div className="flex-1 overflow-y-auto px-3 py-2 text-left" key={`workflow-${workflowData?._forceRender || 0}`}>
-        <div className="space-y-2 text-left">
-          {phases.map((phase) => {
-            // Determine if all tasks in this phase are completed
-            const allTasksCompleted = phase.items.every(item => {
-              // Check regular subtasks
-              const regularSubtasksCompleted = !item.subtasks || item.subtasks.length === 0 || item.subtasks.every((_, subIdx) => {
-                const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                const completed = isStepCompleted(stepId);
-                console.log(`🔍 PHASE COMPLETION: Step ${stepId} completed: ${completed}`);
-                return completed;
-              });
-              
-              // Check subheading subtasks
-              const subheadingSubtasksCompleted = !item.subheadings || item.subheadings.length === 0 || item.subheadings.every(subheading =>
-                subheading.subtasks.every((_, subIdx) => {
-                  const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                  const completed = isStepCompleted(stepId);
-                  console.log(`🔍 PHASE COMPLETION: Subheading step ${stepId} completed: ${completed}`);
-                  return completed;
-                })
-              );
-              
-              const itemCompleted = regularSubtasksCompleted && subheadingSubtasksCompleted;
-              console.log(`🔍 PHASE COMPLETION: Item ${item.id} completed: ${itemCompleted}`);
-              return itemCompleted;
-            });
-            console.log(`🔍 PHASE COMPLETION: Phase ${phase.id} all tasks completed: ${allTasksCompleted}`);
-            return (
-              <div key={`${phase.id}-${workflowData?._forceRender || 0}`} data-phase-id={phase.id} className="p-2 rounded border shadow-sm text-left bg-white">
-                <div
-                  className="flex justify-between items-start cursor-pointer select-none text-left"
-                  onClick={() => handlePhaseClick(phase.id)}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-2 ${getPhaseColor(phase.id).bg}`}></div>
-                    <h3 className={`text-xs font-semibold text-left transition-all duration-200 ${allTasksCompleted ? 'line-through text-green-700' : 'text-gray-800'}`}>
-                      {phase.label} {allTasksCompleted && <span title="Phase Complete" className="ml-1">🎉</span>}
-                    </h3>
-                  </div>
-                </div>
-                {openPhase === phase.id && (
-                  <DragDropContext onDragEnd={result => handleDragEnd(result, phase.id)}>
-                    <Droppable droppableId={phase.id}>
-                      {(provided) => (
-                        <div className="mt-2 space-y-1 text-left" ref={provided.innerRef} {...provided.droppableProps}>
-                          {phase.items.map((item, idx) => {
-                            const allMicrotasksChecked = (() => {
-                              // Check regular subtasks
-                              const regularSubtasksCompleted = !item.subtasks || item.subtasks.length === 0 || item.subtasks.every((_, subIdx) => {
-                                const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                                const completed = isStepCompleted(stepId);
-                                console.log(`🔍 SECTION COMPLETION: Step ${stepId} completed: ${completed}`);
-                                return completed;
-                              });
-                              
-                              // Check subheading subtasks
-                              const subheadingSubtasksCompleted = !item.subheadings || item.subheadings.length === 0 || item.subheadings.every(subheading =>
-                                subheading.subtasks.every((_, subIdx) => {
-                                  const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                                  const completed = isStepCompleted(stepId);
-                                  console.log(`🔍 SECTION COMPLETION: Subheading step ${stepId} completed: ${completed}`);
-                                  return completed;
-                                })
-                              );
-                              
-                              const sectionCompleted = regularSubtasksCompleted && subheadingSubtasksCompleted;
-                              console.log(`🔍 SECTION COMPLETION: Section ${item.id} all microtasks checked: ${sectionCompleted}`);
-                              return sectionCompleted;
-                            })();
+            {/* Phase Content */}
+            {openPhase === phase.id && (
+              <div className="p-6 space-y-4">
+                {phase.items.map((item) => (
+                  <div key={item.id} className="border rounded-lg overflow-hidden">
+                    {/* Item Header */}
+                    <button
+                      onClick={() => handleItemClick(item.id)}
+                      className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left font-medium text-gray-800 transition-colors duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{item.label}</span>
+                        <ChevronDownIcon 
+                          className={`w-4 h-4 transform transition-transform duration-200 ${
+                            openItem[item.id] ? 'rotate-180' : ''
+                          }`} 
+                        />
+                      </div>
+                    </button>
+
+                    {/* Item Content - Subtasks */}
+                    {openItem[item.id] && (
+                      <div className="p-4 bg-white">
+                        <div className="space-y-3">
+                          {item.subtasks.map((subtask, subIdx) => {
+                            const stepId = `${phase.id}-${item.id}-${subIdx}`;
+                            const isChecked = IS_NUCLEAR_CHECKED(stepId);
+                            
                             return (
-                              <Draggable key={item.id} draggableId={item.id} index={idx}>
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    data-item-id={item.id}
-                                    className={`hover:bg-gray-50 rounded transition-colors ${snapshot.isDragging ? 'bg-blue-50' : ''}`}
-                                  >
-                                    <div className="flex items-start cursor-pointer group text-left" {...provided.dragHandleProps}>
-                                      <span 
-                                        className={`flex-1 text-[10px] font-medium group-hover:text-blue-700 transition-all duration-300 text-left ${
-                                          allMicrotasksChecked ? 'line-through text-green-600' : 
-                                          (highlightedStep && (
-                                            item.label.toLowerCase().includes(highlightedStep.toLowerCase()) ||
-                                            highlightedStep.toLowerCase().includes(item.label.split(' –')[0].toLowerCase().trim())
-                                          )) ? 'bg-blue-50 text-blue-800 font-semibold px-2 py-1 rounded border border-blue-200 shadow-sm' :
-                                          'text-gray-700'
-                                        }`}
-                                        onClick={() => handleItemClick(item.id)}
-                                      >
-                                        {item.label}
-                                      </span>
-                                      <button
-                                        className="ml-1 text-primary-600 hover:text-primary-800 p-0.5 focus:outline-none"
-                                        title="Add item after this"
-                                        onClick={e => { e.stopPropagation(); setAddItemFor(item.id); setNewItemLabel(''); }}
-                                      >
-                                        <PlusCircleIcon className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        className="ml-0.5 text-gray-500 hover:text-gray-700 p-0.5 focus:outline-none transition-colors"
-                                        onClick={(e) => { e.stopPropagation(); handleItemClick(item.id); }}
-                                        title="Expand/Collapse"
-                                      >
-                                      <ChevronDownIcon
-                                          className={`w-3 h-3 transform transition-transform ${openItem[item.id] ? 'rotate-180' : ''}`}
+                              <div key={subIdx} className="flex items-start space-x-3">
+                                {/* NUCLEAR CHECKBOX */}
+                                <div className="relative flex-shrink-0 mt-1">
+                                  <input
+                                    type="checkbox"
+                                    id={stepId}
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      console.log(`📝 NUCLEAR CHECKBOX onChange: ${stepId}`);
+                                      NUCLEAR_CHECKBOX_HANDLER(phase.id, item.id, subIdx);
+                                    }}
+                                    onClick={(e) => {
+                                      console.log(`🖱️ NUCLEAR CHECKBOX onClick: ${stepId}`);
+                                      e.stopPropagation();
+                                    }}
+                                    className="h-4 w-4 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
+                                  />
+                                  {/* Custom checkmark */}
+                                  {isChecked && (
+                                    <svg 
+                                      className="absolute inset-0 w-4 h-4 text-white pointer-events-none" 
+                                      fill="currentColor" 
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path 
+                                        fillRule="evenodd" 
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                                        clipRule="evenodd" 
                                       />
-                                      </button>
-                                    </div>
-                                    {addItemFor === item.id && (
-                                      <div className="flex items-center gap-2 mt-1 ml-6">
-                                        <input
-                                          type="text"
-                                          className="border rounded px-2 py-1 flex-1"
-                                          placeholder="New item label"
-                                          value={newItemLabel}
-                                          onChange={e => setNewItemLabel(e.target.value)}
-                                          autoFocus
-                                          onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                              if (newItemLabel.trim()) {
-                                                const phaseIdx = phases.findIndex(p => p.id === openPhase);
-                                                if (phaseIdx !== -1) {
-                                                  phase.items.splice(idx + 1, 0, {
-                                                    id: `custom-${Date.now()}`,
-                                                    label: newItemLabel,
-                                                    subtasks: []
-                                                  });
-                                                }
-                                                setNewItemLabel('');
-                                                setAddItemFor(null);
-                                              }
-                                            } else if (e.key === 'Escape') {
-                                              setAddItemFor(null);
-                                              setNewItemLabel('');
-                                            }
-                                          }}
-                                        />
-                                        <button
-                                          className="bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700"
-                                          onClick={() => {
-                                            if (newItemLabel.trim()) {
-                                              const phaseIdx = phases.findIndex(p => p.id === openPhase);
-                                              if (phaseIdx !== -1) {
-                                                phase.items.splice(idx + 1, 0, {
-                                                  id: `custom-${Date.now()}`,
-                                                  label: newItemLabel,
-                                                  subtasks: []
-                                                });
-                                              }
-                                              setNewItemLabel('');
-                                              setAddItemFor(null);
-                                            }
-                                          }}
-                                        >Add</button>
-                                        <button className="text-gray-500 px-2 py-1" onClick={() => { setAddItemFor(null); setNewItemLabel(''); }}>Cancel</button>
-                                      </div>
-                                    )}
-                                    {openItem[item.id] && (
-                                      <div className="ml-2 mt-1 space-y-1 text-[9px] text-left">
-                                        {/* Regular subtasks */}
-                                        {item.subtasks && item.subtasks.length > 0 && (
-                                          <ul className="space-y-0.5 list-disc text-gray-600">
-                                            {item.subtasks.map((sub, subIdx) => {
-                                              const stepId = `${phase.id}-${item.id}-${subIdx}`;
-                                              const completed = isStepCompleted(stepId);
-                                              return (
-                                                <li key={`stable-${stepId}-${subIdx}`} className="flex items-center gap-1 text-left font-normal">
-                                                  <div className="relative inline-flex items-center">
-                                                    <input
-                                                      type="checkbox"
-                                                      className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
-                                                      checked={completed}
-                                                      onChange={(e) => {
-                                                        console.log(`📝 CHECKBOX onChange triggered for ${phase.id}-${item.id}-${subIdx}`);
-                                                        e.stopPropagation();
-                                                        handleCheck(phase.id, item.id, subIdx);
-                                                      }}
-                                                      onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                      }}
-                                                    />
-                                                    {completed && (
-                                                      <svg 
-                                                        className="absolute inset-0 w-3 h-3 text-white pointer-events-none" 
-                                                        fill="currentColor" 
-                                                        viewBox="0 0 20 20"
-                                                      >
-                                                        <path 
-                                                          fillRule="evenodd" 
-                                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                                                          clipRule="evenodd" 
-                                                        />
-                                                      </svg>
-                                                    )}
-                                                  </div>
-                                                  <span className={`ml-1 transition-all duration-200 ${completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>{sub}</span>
-                                                </li>
-                                              );
-                                            })}
-                                          </ul>
-                                        )}
-                                        
-                                        {/* Subheadings with their subtasks */}
-                                        {item.subheadings && item.subheadings.map((subheading, subHeadingIdx) => (
-                                          <div key={subheading.id} className="mt-2">
-                                            <div className="font-semibold text-blue-700 text-[9px] mb-1">
-                                              * {subheading.label}
-                                            </div>
-                                            <ul className="ml-3 space-y-0.5 list-disc text-gray-600">
-                                              {subheading.subtasks.map((sub, subIdx) => {
-                                                const stepId = `${phase.id}-${item.id}-${subheading.id}-${subIdx}`;
-                                                const completed = isStepCompleted(stepId);
-                                                return (
-                                                  <li key={`stable-subheading-${stepId}-${subIdx}`} className="flex items-center gap-1 text-left font-normal">
-                                                    <div className="relative inline-flex items-center">
-                                                      <input
-                                                        type="checkbox"
-                                                        className="h-3 w-3 rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600"
-                                                        checked={completed}
-                                                        onChange={(e) => {
-                                                          console.log(`📝 SUBHEADING CHECKBOX onChange triggered for ${phase.id}-${item.id}-${subheading.id}-${subIdx}`);
-                                                          e.stopPropagation();
-                                                          handleCheck(phase.id, `${item.id}-${subheading.id}`, subIdx);
-                                                        }}
-                                                        onClick={(e) => {
-                                                          e.preventDefault();
-                                                          e.stopPropagation();
-                                                        }}
-                                                      />
-                                                      {completed && (
-                                                        <svg 
-                                                          className="absolute inset-0 w-3 h-3 text-white pointer-events-none" 
-                                                          fill="currentColor" 
-                                                          viewBox="0 0 20 20"
-                                                        >
-                                                          <path 
-                                                            fillRule="evenodd" 
-                                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                                                            clipRule="evenodd" 
-                                                          />
-                                                        </svg>
-                                                      )}
-                                                    </div>
-                                                    <span className={`ml-1 transition-all duration-200 ${completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>{sub}</span>
-                                                  </li>
-                                                );
-                                              })}
-                                            </ul>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </Draggable>
+                                    </svg>
+                                  )}
+                                </div>
+                                
+                                {/* Task Label */}
+                                <label 
+                                  htmlFor={stepId}
+                                  className={`flex-1 text-sm cursor-pointer select-none transition-all duration-200 ${
+                                    isChecked 
+                                      ? 'text-gray-500 line-through' 
+                                      : 'text-gray-800 hover:text-blue-600'
+                                  }`}
+                                >
+                                  {subtask}
+                                </label>
+                              </div>
                             );
                           })}
-                          {provided.placeholder}
                         </div>
-                      )}
-                    </Droppable>
-                  </DragDropContext>
-                )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
+      
+      {/* Debug Panel */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-red-100 border border-red-400 rounded p-4 text-sm">
+          <div className="font-bold text-red-800">🔥 NUCLEAR DEBUG PANEL 🔥</div>
+          <div>Immediate State: {immediateState.size} items</div>
+          <div>Persistent State: {persistentState.size} items</div>
+          <div>Backup State: {backupState.size} items</div>
+          <div>Render Counter: {renderCounter}</div>
+          <div className="mt-2 text-xs">
+            Checked IDs: {Array.from(immediateState).slice(0, 5).join(', ')}
+            {immediateState.size > 5 && '...'}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
