@@ -813,7 +813,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         <div className="mt-4 text-center">
                             <button 
                                 onClick={() => refetch()}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                className="btn-primary"
                             >
                                 Try Again
                             </button>
@@ -883,11 +883,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 name="projectNumber"
                                 value={newProject.projectNumber}
                                 onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                }`}
+                                className="input-modern"
                                 placeholder="Enter project number (e.g., 12345)"
                                 required
                             />
@@ -903,11 +899,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 name="customerName"
                                 value={newProject.customerName}
                                 onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                }`}
+                                className="input-modern"
                                 placeholder="Enter customer name"
                                 required
                             />
@@ -922,11 +914,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 name="jobType"
                                 value={newProject.jobType}
                                 onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-gray-300 text-gray-900'
-                                }`}
+                                className="input-modern"
                                 required
                             >
                                 <option value="">Select job type</option>
@@ -958,11 +946,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 name="projectManager"
                                 value={newProject.projectManager}
                                 onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-gray-300 text-gray-900'
-                                }`}
+                                className="input-modern"
                                 required
                                 disabled={usersLoading}
                             >
@@ -1238,18 +1222,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     setNewProject(defaultNewProject);
                                     setError('');
                                 }}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                                    colorMode
-                                        ? 'bg-slate-600 hover:bg-slate-700 text-white'
-                                        : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
-                                }`}
+                                className="btn-secondary"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={createProjectMutation.isLoading}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+                                className="btn-primary flex items-center gap-2"
                             >
                                 {createProjectMutation.isLoading && (
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

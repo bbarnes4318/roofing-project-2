@@ -883,13 +883,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const getStatusClasses = (status) => {
       switch (status.toLowerCase()) {
         case 'in progress':
-          return 'bg-green-100 text-green-800 border border-green-300';
+          return 'badge-success';
         case 'not started':
-          return 'bg-gray-100 text-gray-800 border border-gray-300';
+          return 'badge-primary';
         case 'completed':
-          return 'bg-blue-100 text-brand-800 border border-blue-300';
+          return 'badge-success';
         default:
-          return 'bg-gray-100 text-gray-800 border border-gray-300';
+          return 'badge-primary';
       }
     };
 
@@ -905,13 +905,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const getPriorityClasses = (priority) => {
       switch (priority.toLowerCase()) {
         case 'high':
-          return 'bg-red-100 text-red-800 border border-red-300';
+          return 'badge-error';
         case 'medium':
-          return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
+          return 'badge-warning';
         case 'low':
-          return 'bg-green-100 text-green-800 border border-green-300';
+          return 'badge-success';
         default:
-          return 'bg-gray-100 text-gray-800 border border-gray-300';
+          return 'badge-primary';
       }
     };
 
@@ -1520,7 +1520,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     <div className={`animate-fade-in w-full max-w-full ${isDarkMode ? 'dark' : ''}`}>
       {/* Full Width - Project Overview by Phase - AT THE TOP */}
       {(
-      <div className={`mb-6 border-t-4 border-brand-400 bg-white overflow-hidden relative shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-neutral-800/80' : 'bg-white'}`} data-section="project-phases">
+      <div className={`card-modern mb-6 border-t-4 border-brand-primary overflow-hidden relative ${colorMode ? 'bg-neutral-800/80' : ''}`} data-section="project-phases">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Projects by Phase</h2>
@@ -1603,7 +1603,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
             return (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-full">
+            <table className="table-modern text-sm min-w-full">
               {(() => {
 
                 // Filter projects based on selected phase

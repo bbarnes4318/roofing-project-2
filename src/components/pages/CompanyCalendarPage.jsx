@@ -461,7 +461,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     return (
         <div className="animate-fade-in w-full max-w-full">
             {/* Header Section */}
-            <div className={`mb-4 p-4 rounded-xl shadow-lg ${colorMode ? 'bg-gradient-to-r from-[#1e293b] to-[#334155] border border-[#3b82f6]/20' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200'}`}>
+            <div className={`card-modern mb-4 p-4 ${colorMode ? 'bg-gradient-to-r from-[#1e293b] to-[#334155] border border-[#3b82f6]/20' : ''}`}>
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3">
                     <div className="flex-1">
                         <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -471,15 +471,15 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                     
                     {/* Controls */}
                     <div className="flex items-center gap-2">
-                        <div className={`flex rounded-md p-0.5 shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white border border-gray-200'}`}>
+                        <div className={`flex rounded-md p-0.5 shadow-md card-simple ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : ''}`}>
                             {['month', 'week', 'day'].map(mode => (
                                 <button
                                     key={mode}
                                     onClick={() => setViewMode(mode)}
                                     className={`px-2 py-0.5 text-xs font-medium rounded transition-all duration-200 ${
                                         viewMode === mode
-                                            ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-blue-600 text-white shadow-md'}`
-                                            : `${colorMode ? 'text-gray-300 hover:text-white hover:bg-[#374151]' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`
+                                            ? 'btn-primary'
+                                            : 'btn-ghost text-xs'
                                     }`}
                                 >
                                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -503,7 +503,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             </div>
 
             {/* Filter Tabs */}
-            <div className={`mb-3 p-3 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/20' : 'bg-white border border-gray-200'}`}>
+            <div className={`card-modern mb-3 p-3 ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/20' : ''}`}>
                 <div className="flex flex-wrap gap-1.5">
                     {[
                         { key: 'all', label: 'All Events', icon: '📅' },

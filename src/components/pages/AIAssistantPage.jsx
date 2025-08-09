@@ -203,7 +203,7 @@ const AIAssistantPage = ({ projects = [] }) => {
             <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-4`}>
                 <div className={`flex max-w-[80%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'} items-start gap-2`}>
                     {isAssistant && (
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center flex-shrink-0">
                             <SparklesIcon className="w-5 h-5 text-white" />
                         </div>
                     )}
@@ -225,14 +225,14 @@ const AIAssistantPage = ({ projects = [] }) => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-white rounded-lg shadow-sm">
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
+        <div className="h-full flex flex-col card-modern">
+            <div className="p-4 border-b border-white/10 bg-neutral-800/30">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {quickActions.map(action => (
                         <button
                             key={action.id}
                             onClick={action.action}
-                            className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                            className="btn-ghost flex items-center gap-2 p-3 text-left justify-start !bg-neutral-800/50 hover:!bg-neutral-700/50"
                         >
                             <div className="text-blue-600">{action.icon}</div>
                             <span className="text-sm font-medium text-gray-700">{action.label}</span>

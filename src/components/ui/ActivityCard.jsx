@@ -18,7 +18,7 @@ const ActivityCard = ({ activity, onProjectSelect, projects, colorMode }) => {
     };
 
     return (
-        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-lg shadow-sm border transition-all duration-200 cursor-pointer`}>
+        <div className={`card-simple cursor-pointer ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'hover:bg-gray-50/50'}`}>
             {/* Top line - always visible */}
             <div 
                 className="flex items-center gap-2 p-2 hover:bg-opacity-80 transition-colors"
@@ -50,7 +50,7 @@ const ActivityCard = ({ activity, onProjectSelect, projects, colorMode }) => {
                     <div className="flex items-center gap-2">
                         {activity.projectId && (
                             <button
-                                className={`text-[8px] font-semibold underline-offset-1 hover:underline transition-all duration-200 flex-shrink-0 font-medium hover:bg-blue-50 hover:px-1 hover:rounded ${colorMode ? 'text-[#60a5fa]' : 'text-[#2563eb]'}`}
+                                className="btn-ghost text-[8px] font-semibold flex-shrink-0 px-1 py-0.5 !text-brand-primary hover:!text-brand-primary/80"
                                 onClick={(e) => {
                                     console.log('🔍 ACTIVITY_CARD: Project name clicked!');
                                     console.log('🔍 ACTIVITY_CARD: activity:', activity);

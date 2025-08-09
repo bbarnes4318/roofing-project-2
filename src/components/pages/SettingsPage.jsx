@@ -466,7 +466,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           />
         </div>
         <div>
@@ -475,7 +475,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           />
         </div>
         <div>
@@ -493,7 +493,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
               setPhone(formatPhoneNumber(e.target.value));
             }}
             placeholder="(555) 555-5555"
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           />
         </div>
         <div>
@@ -502,7 +502,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             type="text"
             value={company}
             onChange={e => setCompany(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           />
         </div>
       </div>
@@ -518,14 +518,14 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             <button
               type="button"
               onClick={() => setColorMode && setColorMode(false)}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${!colorMode ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`text-xs font-semibold ${!colorMode ? 'btn-primary' : 'btn-secondary'}`}
             >
               ☀️ Light
             </button>
             <button
               type="button"
               onClick={() => setColorMode && setColorMode(true)}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${colorMode ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`text-xs font-semibold ${colorMode ? 'btn-primary' : 'btn-secondary'}`}
             >
               🌙 Dark
             </button>
@@ -536,7 +536,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <select
             value={timezone}
             onChange={e => setTimezone(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           >
             <option value="America/New_York">Eastern Time (ET)</option>
             <option value="America/Chicago">Central Time (CT)</option>
@@ -549,7 +549,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <select
             value={language}
             onChange={e => setLanguage(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           >
             <option value="English">English</option>
             <option value="Spanish">Spanish</option>
@@ -559,7 +559,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         <div>
           <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Date Format</label>
           <select
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           >
             <option value="MM/DD/YYYY">MM/DD/YYYY</option>
             <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -680,7 +680,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <select
             value={sessionTimeout}
             onChange={e => setSessionTimeout(Number(e.target.value))}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           >
             <option value={15}>15 minutes</option>
             <option value={30}>30 minutes</option>
@@ -699,7 +699,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
               type="password"
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
-              className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+              className="input-modern text-sm"
               autoComplete="current-password"
             />
           </div>
@@ -710,7 +710,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                className="input-modern text-sm"
                 autoComplete="new-password"
               />
             </div>
@@ -720,7 +720,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
                 type="password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                className="input-modern text-sm"
                 autoComplete="new-password"
               />
             </div>
@@ -1244,13 +1244,13 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             type="text"
             value={company}
             onChange={e => setCompany(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           />
         </div>
         <div>
           <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Business Type</label>
           <select
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
           >
             <option value="construction">Construction</option>
             <option value="roofing">Roofing</option>
@@ -1262,7 +1262,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>License Number</label>
           <input
             type="text"
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
             placeholder="Enter license number"
           />
         </div>
@@ -1270,7 +1270,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Tax ID</label>
           <input
             type="text"
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
             placeholder="Enter tax ID"
           />
         </div>
@@ -1290,7 +1290,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Primary Contact</label>
           <input
             type="text"
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
             placeholder="Primary contact name"
           />
         </div>
@@ -1298,7 +1298,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Contact Phone</label>
           <input
             type="tel"
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+            className="input-modern text-sm"
             placeholder="Contact phone number"
           />
         </div>
@@ -1378,7 +1378,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => downloadCSVTemplate('combined')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="btn-primary text-sm font-medium"
           >
             🏗️👥 Combined Template
           </button>

@@ -202,11 +202,11 @@ const DraggablePopup = ({
       >
         <div 
           className={`
-            shadow-2xl rounded-lg border-2 min-w-[280px] max-w-[400px] transform transition-all duration-200
+            modal-content min-w-[280px] max-w-[400px] transform transition-all duration-200
             ${isDragging ? 'scale-105' : 'scale-100'}
             ${colorMode 
               ? 'bg-slate-800 border-slate-600 text-white' 
-              : 'bg-white border-gray-200 text-gray-900'
+              : ''
             }
           `}
         >
@@ -236,13 +236,7 @@ const DraggablePopup = ({
             {/* Close button */}
             <button
               onClick={onClose}
-              className={`
-                p-1 rounded hover:bg-opacity-10 transition-colors
-                ${colorMode 
-                  ? 'text-gray-400 hover:text-gray-200 hover:bg-white' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-black'
-                }
-              `}
+              className="btn-ghost p-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

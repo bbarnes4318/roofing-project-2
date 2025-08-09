@@ -175,7 +175,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
 
   if (allProjects.length === 0) {
     return (
-      <div className={`rounded-2xl shadow-lg p-8 ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200'}`}>
+      <div className={`card-modern p-8 ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : ''}`}>
         <div className="text-center">
           <div className="text-5xl mb-4 opacity-60">📋</div>
           <h3 className={`text-xl font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>No Projects Available</h3>
@@ -188,7 +188,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
   }
 
   return (
-    <div className={`rounded-2xl shadow-lg overflow-hidden ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200'}`}>
+    <div className={`card-modern overflow-hidden ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : ''}`}>
       {/* Header Section */}
       <div className={`px-6 py-5 border-b ${colorMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-white/80'} rounded-t-2xl`}>
         <div className="flex items-center justify-between">

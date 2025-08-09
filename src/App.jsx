@@ -800,10 +800,10 @@ export default function App() {
             )}
             
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 lg:w-72 flex flex-col transition-all duration-300 ease-in-out
+            <aside className={`sidebar-modern fixed lg:static inset-y-0 left-0 z-50 w-80 lg:w-72 flex flex-col transition-all duration-300 ease-in-out
                 ${colorMode 
                     ? 'bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-r-2 border-brand-500 text-white' 
-                    : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
+                    : 'sidebar-modern'}
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 mobile-safe-area`}> 
                 {/* Sidebar header (logo) */}
@@ -890,18 +890,14 @@ export default function App() {
                         ) : (
                         <button key={item.name} onClick={() => !item.isDisabled && navigate(item.page)}
                                 disabled={item.isDisabled}
-                                className={`w-full text-left flex items-center gap-3 py-2 px-4 text-[10px] font-semibold rounded-lg transition-all duration-200 ${
+                                className={`nav-item text-[10px] ${
                                 item.isDisabled 
-                                    ? colorMode 
-                                        ? 'text-gray-500 cursor-not-allowed opacity-50' 
-                                        : 'text-gray-400 cursor-not-allowed opacity-50'
+                                    ? 'text-ui-gray/50 cursor-not-allowed opacity-50' 
                                     : activePage === item.page && !navigationState.selectedProject 
-                                        ? colorMode 
-                                            ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                            : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
+                                        ? 'nav-item-active' 
                                         : colorMode 
                                             ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                    : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
+                                    : ''
                             }`}>
                             <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
                             <span className="flex-1">{item.name}</span>
@@ -942,7 +938,7 @@ export default function App() {
             {/* Main content */}
             <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white' : ''}`} style={{ minWidth: 0, fontSize: '12px' }}>
                 {/* Desktop header with user profile */}
-                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
+                <header className={`header-modern hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'header-modern'}`}>
                     <div className="flex items-center flex-1 min-w-0">
                         {activePage === 'Overview' ? (
                             <div className="flex-shrink-0">
@@ -1048,7 +1044,7 @@ export default function App() {
                 </header>
                 
                 {/* Mobile header */}
-                <header className={`lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-neutral-800 border-brand-500 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
+                <header className={`header-modern lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-neutral-800 border-brand-500 text-white' : 'header-modern'}`}>
                     <button 
                         onClick={() => setSidebarOpen(true)}
                         className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#232b4d] hover:bg-[#1e293b] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}

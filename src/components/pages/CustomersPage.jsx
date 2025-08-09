@@ -145,7 +145,7 @@ const CustomersPage = ({ colorMode }) => {
     const projectCount = customer.associatedProjects?.length || 0;
     
     return (
-      <div key={customer._id} className={`${colorMode ? 'bg-slate-800/90 hover:bg-slate-700/90 border-slate-600/50' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md overflow-hidden`}>
+      <div key={customer._id} className={`card-simple overflow-hidden ${colorMode ? 'bg-slate-800/90 hover:bg-slate-700/90 border-slate-600/50' : 'hover:bg-gray-50/50'}`}>
         
         {/* Customer header */}
         <div 
@@ -340,7 +340,7 @@ const CustomersPage = ({ colorMode }) => {
                     setSelectedCustomer(customer);
                     setIsEditModalOpen(true);
                   }}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors shadow-sm"
+                  className="btn-primary flex items-center gap-1 text-xs font-medium"
                 >
                   <PencilIcon className="w-3 h-3" />
                   Edit

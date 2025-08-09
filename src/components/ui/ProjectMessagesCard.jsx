@@ -165,7 +165,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     const contactButtonRef = useRef(null);
 
     return (
-        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
+        <div className={`card-simple ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'hover:bg-gray-50/50'}`}>
             {/* Main message header - Compact 2-row layout */}
             <div 
                 className="flex items-center gap-1.5 p-1.5 cursor-pointer hover:bg-opacity-80 transition-colors"

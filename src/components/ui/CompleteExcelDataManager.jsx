@@ -289,7 +289,7 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
             className={`w-full py-2 px-4 rounded-md font-medium flex items-center justify-center ${
               !uploadFile || isLoading
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'btn-primary'
             }`}
           >
             {isLoading ? (

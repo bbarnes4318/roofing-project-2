@@ -318,7 +318,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         <div className="w-full max-w-7xl mx-auto" data-section="my-alerts">
             {/* My Alerts - Current Alerts Section */}
             <div className="w-full" data-section="current-alerts">
-                <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] rounded-t-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`}>
+                <div className={`card-modern border-t-4 border-brand-primary px-4 py-3 overflow-hidden relative ${colorMode ? 'bg-[#232b4d]/80' : ''}`}>
                     <div className="mb-3">
                         <div className="flex items-center justify-between mb-2">
                             <div>

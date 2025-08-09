@@ -78,25 +78,25 @@ const getPhaseStyles = (phase) => {
     switch (phase?.toLowerCase()) {
         case 'lead':
         case 'lead phase':
-            return 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300';
+            return 'badge-primary bg-gradient-to-r from-brand-primary/20 to-red-500/20';
         case 'prospect':
         case 'prospect phase':
-            return 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300';
+            return 'badge-warning bg-gradient-to-r from-orange-500/20 to-yellow-500/20';
         case 'approved':
         case 'approved phase':
-            return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300';
+            return 'badge-success bg-gradient-to-r from-green-500/20 to-emerald-500/20';
         case 'execution':
         case 'execution phase':
-            return 'bg-gradient-to-r from-sky-100 to-sky-200 text-sky-800 border border-sky-300';
+            return 'badge-primary bg-gradient-to-r from-blue-500/20 to-cyan-500/20';
         case 'supplement':
         case '2nd supplement':
         case '2nd supplement phase':
         case '2nd supp':
-            return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300';
+            return 'badge-warning bg-gradient-to-r from-yellow-500/20 to-amber-500/20';
         case 'completion':
         case 'completion phase':
-            return 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300';
-        default: return 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300';
+            return 'badge-success bg-gradient-to-r from-teal-500/20 to-green-500/20';
+        default: return 'badge-primary bg-gradient-to-r from-brand-primary/20 to-red-500/20';
     }
 };
 
@@ -1927,12 +1927,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             <ScrollToTop />
             
             {/* Header with Back Button and Tabs - Normal Position */}
-            <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+            <div className="header-modern border-b border-white/10">
                 {/* Back Button Row */}
                 <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
                     <button 
                         onClick={handleBackButton} 
-                        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 border border-blue-200 hover:border-blue-300"
+                        className="btn-ghost text-xs flex items-center gap-1 px-2 py-1 !text-brand-primary hover:!text-brand-primary/80"
                     >
                         <ChevronLeftIcon className="w-3 h-3" />
                         {getBackButtonText()}

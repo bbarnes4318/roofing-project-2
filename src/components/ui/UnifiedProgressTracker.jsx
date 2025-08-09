@@ -92,7 +92,7 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
     if (!progressData) return null;
 
     return (
-        <div className={`${colorMode ? 'bg-slate-800/90' : 'bg-white'} rounded-xl shadow-lg overflow-hidden transition-all duration-500 ${isExpanded ? 'max-h-[800px]' : 'max-h-[200px]'}`}>
+        <div className={`card-modern overflow-hidden transition-all duration-500 ${isExpanded ? 'max-h-[800px]' : 'max-h-[200px]'} ${colorMode ? 'bg-slate-800/90' : ''}`}>
             {/* Main Progress Header - Always Visible */}
             <div 
                 className={`p-4 cursor-pointer transition-colors ${colorMode ? 'hover:bg-slate-700/50' : 'hover:bg-gray-50'}`}

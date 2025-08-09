@@ -125,7 +125,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
       {/* Override Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:border-blue-300 transition-colors"
+        className="btn-ghost flex items-center gap-1 text-xs font-medium !text-brand-primary"
         title="Override project phase"
       >
         <span>Override Phase</span>
@@ -134,7 +134,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-1 w-64 modal-content z-50">
           <div className="p-3 border-b border-gray-100">
             <div className="text-xs font-medium text-gray-600 mb-1">Current Phase:</div>
             <div className="text-xs text-gray-800">{getCurrentPhaseDisplay()}</div>
@@ -175,8 +175,8 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
 
       {/* Confirmation Modal */}
       {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="modal-overlay z-50">
+          <div className="modal-content max-w-md w-full mx-4">
             <div className="text-lg font-semibold text-gray-800 mb-2">
               Confirm Phase Override
             </div>
@@ -203,7 +203,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Enter reason for override..."
-                className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="input-modern text-xs resize-none"
                 rows="3"
                 maxLength="500"
               />
@@ -212,7 +212,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
             <div className="flex gap-3">
               <button
                 onClick={handleCancelOverride}
-                className="flex-1 px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                className="btn-secondary flex-1 text-xs font-medium"
                 disabled={loading}
               >
                 Cancel
@@ -220,7 +220,7 @@ const PhaseOverrideButton = ({ project, onPhaseUpdate }) => {
               <button
                 onClick={handleConfirmOverride}
                 disabled={loading}
-                className="flex-1 px-4 py-2 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex-1 text-xs font-medium"
               >
                 {loading ? 'Overriding...' : 'Confirm Override'}
               </button>
