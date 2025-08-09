@@ -99,7 +99,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'lead':
-        return 'from-blue-500 to-blue-600';
+        return 'from-brand-500 to-brand-600';
       case 'prospect':
         return 'from-teal-500 to-teal-600';
       case 'approved':
@@ -115,7 +115,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
       case 'completion':
         return 'from-green-500 to-green-600';
       default:
-        return 'from-blue-500 to-blue-600'; // Default to Lead (blue)
+        return 'from-brand-500 to-brand-600'; // Default to Lead (blue)
     }
   };
 
@@ -287,7 +287,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 key={project.id}
                 className={`group relative rounded-xl border transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer overflow-hidden p-3 ${
                   colorMode 
-                    ? 'bg-gradient-to-br from-slate-700/80 to-slate-800/80 border-slate-600/50 hover:border-blue-500/60 hover:shadow-blue-500/10' 
+                    ? 'bg-gradient-to-br from-slate-700/80 to-slate-800/80 border-slate-600/50 hover:border-brand-500/60 hover:shadow-brand-500/10' 
                     : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
                 } ${index >= 3 ? 'mt-8' : ''}`}
               >
@@ -299,7 +299,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       <div className="flex items-center gap-2 mb-1">
                         <button
                           onClick={() => onProjectSelect(project, 'Projects', null, 'Project Cubes')}
-                          className={`text-[9px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                          className={`text-[9px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'}`}
                           title={`View project ${project.projectNumber || project.id}`}
                         >
                           {project.projectNumber || `PRJ-${project.id}`}
@@ -324,7 +324,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       
                       <button
                         onClick={() => onProjectSelect(project, 'Projects', null, 'Project Cubes')}
-                        className={`text-[9px] font-bold truncate text-left w-full hover:underline transition-all duration-200 ${colorMode ? 'text-white hover:text-blue-300' : 'text-gray-800 hover:text-blue-600'}`}
+                        className={`text-[9px] font-bold truncate text-left w-full hover:underline transition-all duration-200 ${colorMode ? 'text-white hover:text-blue-300' : 'text-gray-800 hover:text-brand-600'}`}
                         title={`View ${project.name} details`}
                       >
                         {project.name}
@@ -344,7 +344,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         {/* Customer Information - Left Column */}
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-1 mb-1">
-                            <svg className="w-2 h-2 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <svg className="w-2 h-2 text-brand-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Customer</span>
@@ -364,7 +364,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Phone:</span>
                             <a 
                               href={`tel:${(project.client?.phone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-blue-700'}`}
                               title={formatPhoneNumber(project.client?.phone)}
                             >
                               {formatPhoneNumber(project.client?.phone)}
@@ -375,7 +375,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Email:</span>
                             <a 
                               href={`mailto:${project.client?.email || 'client@email.com'}`} 
-                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-700'}`}
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-blue-700'}`}
                               title={project.client?.email || 'client@email.com'}
                             >
                               {project.client?.email || 'client@email.com'}
@@ -426,7 +426,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 )}
 
                 {/* Enhanced Progress Bar Section */}
-                <div className={`p-2 mb-2 rounded-lg transition-all duration-300 relative ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'} ${expandedProgress[`${project.id || project._id}-materials-labor`] ? (colorMode ? 'border-8 border-blue-400 shadow-2xl shadow-blue-400/50 bg-blue-900/20' : 'border-8 border-blue-500 shadow-2xl shadow-blue-500/50 bg-blue-100') : ''}`}>
+                <div className={`p-2 mb-2 rounded-lg transition-all duration-300 relative ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'} ${expandedProgress[`${project.id || project._id}-materials-labor`] ? (colorMode ? 'border-8 border-blue-400 shadow-2xl shadow-blue-400/50 bg-blue-900/20' : 'border-8 border-brand-500 shadow-2xl shadow-brand-500/50 bg-blue-100') : ''}`}>
                   {/* Row 1: Main Project Progress Bar (clickable to expand) */}
                   <div className="mb-2">
                     <button
@@ -451,7 +451,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       </div>
                       <div className={`w-full h-2 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
                         <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
+                          className="bg-brand-500 h-2 rounded-full transition-all duration-500" 
                           style={{ width: `${Math.round(projectTrades.reduce((sum, trade) => sum + trade.laborProgress, 0) / projectTrades.length)}%` }}
                         ></div>
                       </div>
@@ -576,7 +576,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         );
                       }
                     }}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-brand-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}
                   >
                     <span className="mb-0.5">🗂️</span>
                     Project Workflow
@@ -678,7 +678,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
             <div className={`px-6 py-4 border-b ${colorMode ? 'border-slate-600/50 bg-gradient-to-r from-slate-800 to-slate-700' : 'border-gray-200/50 bg-gradient-to-r from-gray-50 to-white'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg`}>
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg`}>
                     <span className="text-white text-lg">📄</span>
                   </div>
                   <div>
@@ -714,7 +714,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-200 hover:scale-105 ${
                       colorMode 
-                        ? 'bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 hover:border-blue-500/50' 
+                        ? 'bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 hover:border-brand-500/50' 
                         : 'bg-white border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300'
                     }`}
                   >
@@ -744,13 +744,13 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                     onClick={() => handleProjectSelect(project)}
                     className={`group w-full p-4 rounded-xl border transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
                       colorMode 
-                        ? 'bg-slate-700/30 border-slate-600/30 hover:bg-slate-600/40 hover:border-blue-500/60 hover:shadow-blue-500/20' 
+                        ? 'bg-slate-700/30 border-slate-600/30 hover:bg-slate-600/40 hover:border-brand-500/60 hover:shadow-brand-500/20' 
                         : 'bg-white border-gray-200 hover:bg-blue-50/80 hover:border-blue-300 hover:shadow-blue-200/50'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 text-left">
-                        <h4 className={`font-bold text-xs text-blue-600 group-hover:text-blue-700`}>
+                        <h4 className={`font-bold text-xs text-brand-600 group-hover:text-blue-700`}>
                           {project.name}
                         </h4>
                         {project.client && (
@@ -767,7 +767,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         }`}>
                           {getPhaseText(project)}
                         </span>
-                        <svg className={`w-4 h-4 transition-all duration-200 ${colorMode ? 'text-gray-400 group-hover:text-blue-400' : 'text-gray-400 group-hover:text-blue-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-4 h-4 transition-all duration-200 ${colorMode ? 'text-gray-400 group-hover:text-blue-400' : 'text-gray-400 group-hover:text-brand-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>

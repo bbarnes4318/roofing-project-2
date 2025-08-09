@@ -612,7 +612,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                                         highlightMode: 'line-item',
                                                                                         scrollBehavior: 'smooth',
                                                                                         targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                                                                        highlightColor: '#3B82F6',
+                                                                                        highlightColor: '#0066CC',
                                                                                         highlightDuration: 3000
                                                                                     }
                                                                                 };
@@ -650,7 +650,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                                         highlightMode: 'line-item',
                                                                                         scrollBehavior: 'smooth',
                                                                                         targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                                                                        highlightColor: '#3B82F6',
+                                                                                        highlightColor: '#0066CC',
                                                                                         highlightDuration: 3000
                                                                                     }
                                                                                 };
@@ -681,7 +681,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                                     highlightMode: 'line-item',
                                                                                     scrollBehavior: 'smooth',
                                                                                     targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                                                                    highlightColor: '#3B82F6',
+                                                                                    highlightColor: '#0066CC',
                                                                                     highlightDuration: 3000
                                                                                 }
                                                                             };
@@ -712,7 +712,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                                 highlightMode: 'line-item',
                                                                                 scrollBehavior: 'smooth',
                                                                                 targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                                                                highlightColor: '#3B82F6',
+                                                                                highlightColor: '#0066CC',
                                                                                 highlightDuration: 3000
                                                                             }
                                                                         };

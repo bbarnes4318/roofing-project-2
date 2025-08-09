@@ -887,7 +887,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         case 'not started':
           return 'bg-gray-100 text-gray-800 border border-gray-300';
         case 'completed':
-          return 'bg-blue-100 text-blue-800 border border-blue-300';
+          return 'bg-blue-100 text-brand-800 border border-blue-300';
         default:
           return 'bg-gray-100 text-gray-800 border border-gray-300';
       }
@@ -1520,7 +1520,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     <div className={`animate-fade-in w-full max-w-full ${isDarkMode ? 'dark' : ''}`}>
       {/* Full Width - Project Overview by Phase - AT THE TOP */}
       {(
-      <div className={`mb-6 border-t-4 border-blue-400 bg-white overflow-hidden relative shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'}`} data-section="project-phases">
+      <div className={`mb-6 border-t-4 border-brand-400 bg-white overflow-hidden relative shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-neutral-800/80' : 'bg-white'}`} data-section="project-phases">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Projects by Phase</h2>
@@ -1553,13 +1553,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
                 className={`h-12 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 border flex items-center justify-center gap-2 hover:shadow-lg w-20 flex-shrink-0 ${
                   selectedPhase === 'all'
-                    ? 'border-blue-500 bg-blue-50 shadow-md text-blue-800'
+                    ? 'border-brand-500 bg-blue-50 shadow-md text-brand-800'
                     : colorMode 
                       ? 'border-gray-600 bg-slate-800/50 text-gray-300 hover:bg-gray-700 hover:border-gray-500' 
                       : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                 }`}
               >
-                <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
+                <div className="w-3 h-3 rounded-full bg-brand-500 flex-shrink-0"></div>
                 <span className="text-[10px] font-medium">All</span>
               </button>
             
@@ -1679,7 +1679,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     return (
                       <tr>
                         <td colSpan="8" className="text-center py-8">
-                          <div className="text-blue-600">Loading projects...</div>
+                          <div className="text-brand-600">Loading projects...</div>
                         </td>
                       </tr>
                     );
@@ -1715,7 +1715,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }
                                 }
                               }} 
-                              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                              className="px-4 py-2 bg-brand-500 text-white rounded hover:bg-blue-600 transition-colors"
                               disabled={projectsLoading}
                             >
                               {projectsLoading ? 'Retrying...' : 'Retry'}
@@ -1850,7 +1850,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               }
                             }}
                             className={`text-sm font-bold hover:underline cursor-pointer transition-colors ${
-                              colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+                              colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-brand-600 hover:text-brand-800'
                             }`}
                           >
                             {String(project.projectNumber || project.id).padStart(5, '0')}
@@ -1917,7 +1917,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             >
                               <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-blue-500 rounded-full"
+                                  className="h-full bg-brand-500 rounded-full"
                                   style={{ width: `${getProjectProgress(project)}%` }}
                                 ></div>
                               </div>
@@ -1952,7 +1952,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               };
                               handleProjectSelectWithScroll(projectWithDashboardState, 'Alerts', null, 'Project Phases');
                             }}
-                            className="w-16 h-6 border border-blue-500 text-black text-xs rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
+                            className="w-16 h-6 border border-brand-500 text-black text-xs rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
                           >
                             Alerts
                           </button>
@@ -1973,7 +1973,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               };
                               handleProjectSelectWithScroll(projectWithDashboardState, 'Messages', null, 'Project Phases');
                             }}
-                            className="w-16 h-6 border border-blue-500 text-black text-xs rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
+                            className="w-16 h-6 border border-brand-500 text-black text-xs rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
                           >
                             Messages
                           </button>
@@ -2072,7 +2072,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 }
                               }
                             }}
-                            className="w-16 h-6 border border-blue-500 text-black text-xs rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
+                            className="w-16 h-6 border border-brand-500 text-black text-xs rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
                           >
                             Workflow
                           </button>
@@ -2094,7 +2094,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 mb-12 items-start overflow-visible">
         {/* Left Column - Project Messages */}
         <div className="w-full pr-3" data-section="project-messages">
-          <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
+          <div className={`border-t-4 border-brand-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-neutral-800/80' : 'bg-white'} relative overflow-visible`}>
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <div>
@@ -2148,10 +2148,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       expandedMessages.size === currentActivities.length && currentActivities.length > 0
                         ? colorMode 
                           ? 'bg-blue-600 text-white border-blue-600' 
-                          : 'bg-blue-500 text-white border-blue-500'
+                          : 'bg-brand-500 text-white border-brand-500'
                         : colorMode 
                           ? 'bg-[#1e293b] text-blue-300 border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600' 
-                          : 'bg-white text-blue-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400'
+                          : 'bg-white text-brand-600 border-gray-300 hover:bg-brand-50 hover:border-brand-400'
                     }`}
                     title="Expand all message conversations"
                     disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
@@ -2188,11 +2188,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
                     showMessageDropdown
                       ? colorMode 
-                        ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
-                        : 'border-blue-400 bg-blue-50 text-blue-700'
+                        ? 'border-brand-400 bg-blue-900/20 text-blue-300' 
+                        : 'border-brand-400 bg-blue-50 text-blue-700'
                       : colorMode 
-                        ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
-                        : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
+                        ? 'border-gray-600 text-gray-300 hover:border-brand-400 hover:text-blue-300' 
+                        : 'border-gray-300 text-gray-600 hover:border-brand-400 hover:text-blue-700'
                   }`}
                 >
                   <span>+ Add Message</span>
@@ -2447,7 +2447,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         </div>
         {/* Right Column - Current Alerts */}
         <div className="w-full pl-3" data-section="current-alerts">
-          <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
+          <div className={`border-t-4 border-brand-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-neutral-800/80' : 'bg-white'} relative overflow-visible`}>
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <div>
@@ -2505,10 +2505,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     expandedAlerts.size === getPaginatedAlerts().length && getPaginatedAlerts().length > 0
                       ? colorMode 
                         ? 'bg-blue-600 text-white border-blue-600' 
-                        : 'bg-blue-500 text-white border-blue-500'
+                        : 'bg-brand-500 text-white border-brand-500'
                       : colorMode 
                         ? 'bg-[#1e293b] text-blue-300 border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600' 
-                        : 'bg-white text-blue-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400'
+                        : 'bg-white text-brand-600 border-gray-300 hover:bg-brand-50 hover:border-brand-400'
                   }`}
                   title="Expand all alert details"
                   disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === getPaginatedAlerts().length}
@@ -2613,7 +2613,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <div className="flex items-center text-[9px] flex-1">
                               {/* Project Number */}
                               <span 
-                                className={`font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                className={`font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'}`}
                                 style={{width: '50px'}}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -2742,7 +2742,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
-                                  colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                  colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'
                                 }`}
                                 title={lineItemName}
                                 onClick={async (e) => {
@@ -2842,7 +2842,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
                                               targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                              highlightColor: '#3B82F6',
+                                              highlightColor: '#0066CC',
                                               highlightDuration: 3000
                                             }
                                           };
@@ -2879,7 +2879,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
                                               targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                              highlightColor: '#3B82F6',
+                                              highlightColor: '#0066CC',
                                               highlightDuration: 3000
                                             }
                                           };
@@ -2908,7 +2908,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             highlightMode: 'line-item',
                                             scrollBehavior: 'smooth',
                                             targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                            highlightColor: '#3B82F6',
+                                            highlightColor: '#0066CC',
                                             highlightDuration: 3000
                                           }
                                         };
@@ -2937,7 +2937,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           highlightMode: 'line-item',
                                           scrollBehavior: 'smooth',
                                           targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
-                                          highlightColor: '#3B82F6',
+                                          highlightColor: '#0066CC',
                                           highlightDuration: 3000
                                         }
                                       };
@@ -2999,7 +2999,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
                                 actionLoading[`${alertId}-assign`]
                                   ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                                  : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600 shadow-sm hover:shadow-md'
+                                  : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-brand-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600 shadow-sm hover:shadow-md'
                               }`}
                             >
                               <span className="flex items-center justify-center">
@@ -3024,8 +3024,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               value={alertNotes[alertId] || ''}
                               className={`w-full p-2 text-[9px] border rounded resize-none transition-colors ${
                                 colorMode 
-                                  ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
-                                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                                  ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-blue-500' 
+                                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:border-brand-500 focus:ring-1 focus:ring-blue-500'
                               }`}
                               onChange={(e) => {
                                 setAlertNotes(prev => ({
@@ -3048,7 +3048,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
 
       {/* Project Cubes - Quick Access */}
-      <div className="mt-6 border-t-4 border-blue-400 bg-white overflow-hidden relative rounded-t-[8px]" data-section="project-cubes">
+      <div className="mt-6 border-t-4 border-brand-400 bg-white overflow-hidden relative rounded-t-[8px]" data-section="project-cubes">
         <div className="w-full">
           <ProjectCubes 
             projects={projects} 
@@ -3088,8 +3088,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 onChange={(e) => setAssignToUser(e.target.value)}
                 className={`w-full p-3 border rounded-lg text-sm transition-colors ${
                   colorMode 
-                    ? 'bg-[#1e293b] border-gray-600 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
-                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    ? 'bg-[#1e293b] border-gray-600 text-white focus:border-brand-500 focus:ring-1 focus:ring-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-brand-500 focus:ring-1 focus:ring-blue-500'
                 }`}
               >
                 <option value="">Select a user...</option>
@@ -3168,7 +3168,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-sm">📞</span>
                   <a 
                     href={`tel:${project.client?.phone || ''}`}
-                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project.client?.phone || 'No phone'}
                   </a>
@@ -3177,7 +3177,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-sm">✉️</span>
                   <a 
                     href={`mailto:${project.client?.email || ''}`}
-                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project.client?.email || 'No email'}
                   </a>
@@ -3212,7 +3212,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-sm">📞</span>
                   <a 
                     href={`tel:${project.pmPhone || project.projectManager?.phone || ''}`}
-                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project.pmPhone || project.projectManager?.phone || 'No phone'}
                   </a>
@@ -3221,7 +3221,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-sm">✉️</span>
                   <a 
                     href={`mailto:${project.pmEmail || project.projectManager?.email || ''}`}
-                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project.pmEmail || project.projectManager?.email || 'No email'}
                   </a>
@@ -3259,7 +3259,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </div>
                 <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
                   <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                    className="h-full bg-brand-500 rounded-full transition-all duration-300"
                     style={{ width: `${getProjectProgress(project)}%` }}
                   ></div>
                 </div>
@@ -3333,7 +3333,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <div className="space-y-2 ml-4">
                           {[
                             { name: 'Roofing', progress: project.roofingProgress || 90, color: 'bg-purple-500' },
-                            { name: 'Siding', progress: project.sidingProgress || 60, color: 'bg-blue-500' },
+                            { name: 'Siding', progress: project.sidingProgress || 60, color: 'bg-brand-500' },
                             { name: 'Windows', progress: project.windowsProgress || 40, color: 'bg-yellow-500' },
                             { name: 'Gutters', progress: project.guttersProgress || 30, color: 'bg-red-500' }
                           ].map((trade) => (
@@ -3397,7 +3397,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-[10px]">📞</span>
                   <a 
                     href={`tel:${(project?.customer?.primaryPhone || project?.customer?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
-                    className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project?.customer?.primaryPhone || project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
                   </a>
@@ -3406,7 +3406,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-[10px]">✉️</span>
                   <a 
                     href={`mailto:${project?.customer?.primaryEmail || project?.customer?.email || project?.clientEmail || 'customer@email.com'}`}
-                    className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project?.customer?.primaryEmail || project?.customer?.email || project?.clientEmail || 'customer@email.com'}
                   </a>
@@ -3430,7 +3430,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <span className="text-[10px]">📞</span>
                         <a 
                           href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
-                          className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                          className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                         >
                           {project.customer.secondaryPhone}
                         </a>
@@ -3441,7 +3441,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <span className="text-[10px]">✉️</span>
                         <a 
                           href={`mailto:${project.customer.secondaryEmail}`}
-                          className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                          className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                         >
                           {project.customer.secondaryEmail}
                         </a>
@@ -3493,7 +3493,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-sm">📞</span>
                   <a 
                     href={`tel:${(project?.projectManager?.phone || '(555) 234-5678').replace(/[^\d+]/g, '')}`}
-                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-sm hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project?.projectManager?.phone || '(555) 234-5678'}
                   </a>
@@ -3502,7 +3502,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span className="text-sm">✉️</span>
                   <a 
                     href={`mailto:${project?.projectManager?.email || 'mike.field@company.com'}`}
-                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    className={`text-sm hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                   >
                     {project?.projectManager?.email || 'mike.field@company.com'}
                   </a>

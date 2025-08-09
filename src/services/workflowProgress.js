@@ -261,7 +261,7 @@ class WorkflowProgressService {
     static getPhaseColor(phaseKey) {
         const colors = {
             LEAD: { bg: 'bg-[#E0E7FF]', text: 'text-gray-800', hex: '#E0E7FF' },
-            PROSPECT: { bg: 'bg-[#3B82F6]', text: 'text-white', hex: '#3B82F6' },
+            PROSPECT: { bg: 'bg-[#0066CC]', text: 'text-white', hex: '#0066CC' },
             APPROVED: { bg: 'bg-[#10B981]', text: 'text-white', hex: '#10B981' },
             EXECUTION: { bg: 'bg-[#F59E0B]', text: 'text-white', hex: '#F59E0B' },
             SECOND_SUPPLEMENT: { bg: 'bg-[#8B5CF6]', text: 'text-white', hex: '#8B5CF6' },
@@ -417,7 +417,7 @@ class WorkflowProgressService {
     static getAllPhases() {
         return [
             { id: 'LEAD', name: 'Lead', initial: 'L', color: '#E0E7FF', gradientColor: 'from-indigo-200 to-indigo-300', bgColor: 'bg-indigo-50', textColor: 'text-indigo-800', borderColor: 'border-indigo-200' },
-            { id: 'PROSPECT', name: 'Prospect', initial: 'P', color: '#3B82F6', gradientColor: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
+            { id: 'PROSPECT', name: 'Prospect', initial: 'P', color: '#0066CC', gradientColor: 'from-brand-500 to-brand-600', bgColor: 'bg-brand-50', textColor: 'text-brand-700', borderColor: 'border-brand-200' },
             { id: 'APPROVED', name: 'Approved', initial: 'A', color: '#10B981', gradientColor: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
             { id: 'EXECUTION', name: 'Execution', initial: 'E', color: '#F59E0B', gradientColor: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
             { id: 'SECOND_SUPPLEMENT', name: '2nd Supplement', initial: 'S', color: '#8B5CF6', gradientColor: 'from-violet-500 to-violet-600', bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },

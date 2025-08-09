@@ -494,7 +494,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     // Map to tailwind bg utility fallbacks if needed
     const map = {
       '#E0E7FF': 'bg-indigo-400',
-      '#3B82F6': 'bg-blue-500',
+      '#0066CC': 'bg-blue-500',
       '#10B981': 'bg-emerald-500',
       '#F59E0B': 'bg-amber-500',
       '#8B5CF6': 'bg-violet-500',

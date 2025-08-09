@@ -13,7 +13,7 @@ const SparkleIcon = () => (
 
 const AIPoweredBadge = () => (
   <div className="flex items-center justify-center gap-1 mt-2 w-full">
-    <span className="text-base font-semibold text-blue-500 tracking-wide">AI-Powered</span>
+    <span className="text-base font-semibold text-brand-500 tracking-wide">AI-Powered</span>
     <SparkleIcon />
   </div>
 );
