@@ -263,7 +263,15 @@ main {
 }
 
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
+}
+
+.shadow-brand-glow {
+  box-shadow: 0 0 30px rgba(0, 102, 204, 0.2);
+}
+
+.shadow-accent-glow {
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.15);
 }
 
 /* Mobile-specific utilities */
@@ -450,7 +458,7 @@ main {
 
 /* Mobile focus optimizations */
 .mobile-focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #0066CC;
   outline-offset: 2px;
 }
 

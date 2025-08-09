@@ -339,7 +339,7 @@ export default function App() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
                 <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-gray-600">Loading...</p>
                 </div>
             </div>
@@ -788,14 +788,14 @@ export default function App() {
             {/* Sidebar */}
             <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 lg:w-72 flex flex-col transition-all duration-300 ease-in-out
                 ${colorMode 
-                    ? 'bg-gradient-to-b from-[#181f3a] via-[#232b4d] to-[#1e293b] border-r-2 border-[#3b82f6] text-white' 
+                    ? 'bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-r-2 border-brand-500 text-white' 
                     : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 mobile-safe-area`}> 
                 {/* Sidebar header (logo) */}
-                <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-[#3b82f6] bg-gradient-to-r from-[#232b4d] to-[#1e293b]' : 'border-gray-100/50 bg-gradient-to-r from-white to-gray-50/50'}`}>
-                    <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-glow overflow-hidden border-2 ${colorMode ? 'bg-[#232b4d] border-[#3b82f6]' : 'bg-white border-white/50'}`}>
-                        <img src={colorMode ? "/logo2.png" : "/logo.png"} alt="Company Logo" className="w-full h-full object-contain rounded-xl" />
+                <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-brand-500 bg-gradient-to-r from-neutral-800 to-neutral-900' : 'border-neutral-200 bg-gradient-to-r from-white to-neutral-50'}`}>
+                    <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-brand-glow overflow-hidden border-2 ${colorMode ? 'bg-neutral-800 border-brand-500' : 'bg-white border-neutral-200'}`}>
+                        <img src={colorMode ? "/kenstruction-logo-dark.png" : "/kenstruction-logo.png"} alt="Kenstruction Logo" className="w-full h-full object-contain rounded-xl" />
                     </div>
                     
                     {/* AI-Powered Badge - directly under logo */}
@@ -926,9 +926,9 @@ export default function App() {
             </aside>
             
             {/* Main content */}
-            <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-gradient-to-br from-[#101624] via-[#232b4d] to-[#181f3a] text-white' : ''}`} style={{ minWidth: 0, fontSize: '12px' }}>
+            <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white' : ''}`} style={{ minWidth: 0, fontSize: '12px' }}>
                 {/* Desktop header with user profile */}
-                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-[#232b4d]/80 backdrop-blur-sm border-[#3b82f6]/40 text-white' : 'bg-white/80 backdrop-blur-sm border-gray-200'}`}>
+                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
                     <div className="flex items-center flex-1 min-w-0">
                         {activePage === 'Overview' ? (
                             <div className="flex-shrink-0">
@@ -1034,7 +1034,7 @@ export default function App() {
                 </header>
                 
                 {/* Mobile header */}
-                <header className={`lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-[#232b4d] border-[#3b82f6] text-white' : 'bg-white/80 backdrop-blur-sm border-gray-200'}`}>
+                <header className={`lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-neutral-800 border-brand-500 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
                     <button 
                         onClick={() => setSidebarOpen(true)}
                         className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#232b4d] hover:bg-[#1e293b] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
@@ -1044,7 +1044,7 @@ export default function App() {
                         </svg>
                     </button>
                     <div className="flex items-center">
-                        <img src={colorMode ? "/logo2.png" : "/logo.png"} alt="Logo" className="w-8 h-8 rounded-lg" />
+                        <img src={colorMode ? "/kenstruction-logo-dark.png" : "/kenstruction-logo.png"} alt="Kenstruction Logo" className="w-8 h-8 rounded-lg" />
                         <span className={`ml-2 font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Kenstruction</span>
                     </div>
                     <div className="w-10"></div> {/* Spacer for centering */}

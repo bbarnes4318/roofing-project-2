@@ -170,7 +170,7 @@ export const useRealTimeNotifications = () => {
         // Show browser notification if permission granted
         if (Notification.permission === 'granted') {
           new Notification(notification.message, {
-            icon: '/logo.png',
+            icon: '/kenstruction-logo.png',
             tag: notification.id
           });
         }
@@ -218,7 +218,7 @@ export const useRealTimeWorkflowAlerts = () => {
         // Show browser notification for urgent alerts
         if (Notification.permission === 'granted' && (alert.priority === 'urgent' || alert.priority === 'high')) {
           new Notification(`Workflow Alert: ${alert.message}`, {
-            icon: '/logo.png',
+            icon: '/kenstruction-logo.png',
             tag: alert.id,
             body: `Project: ${alert.projectId?.name || 'Unknown'}\nStep: ${alert.stepTitle || 'Unknown'}`
           });
