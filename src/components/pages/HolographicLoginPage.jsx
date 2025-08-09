@@ -48,10 +48,11 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   // Using upfront-logo-3.png as it's the stronger, more modern brand mark
   const logoSrc = (process.env.PUBLIC_URL || '') + '/upfront-logo-3.png';
 
-  // Initialize security features
+  // Initialize security features (disabled to prevent network errors)
   useEffect(() => {
-    initializeSecurity();
-    generateDeviceFingerprint();
+    // Commented out to prevent 401 errors on production
+    // initializeSecurity();
+    // generateDeviceFingerprint();
   }, []);
 
   const initializeSecurity = async () => {
@@ -160,16 +161,9 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
         return;
       }
 
-      // Production: Send behavioral data along with login
-      const behaviorData = {
-        keystrokes: keystrokeRef.current,
-        mouseMovements: mouseMovements,
-        deviceFingerprint
-      };
-
+      // Production: Simple login without behavioral data to avoid issues
       const response = await authService.login({
-        ...formData,
-        behaviorData
+        ...formData
       });
 
       if (response.success) {
