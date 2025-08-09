@@ -87,7 +87,7 @@ const BlueprintLoginPage = ({ onLoginSuccess }) => {
                 />
               </div>
               <h1 className="text-2xl font-bold text-neutral-100 mb-1">
-                System Access
+                Secure Login
               </h1>
               <p className="text-neutral-400 text-sm font-medium">
                 UpFront Restoration & Roofing Portal
