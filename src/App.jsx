@@ -690,7 +690,6 @@ export default function App() {
         { name: 'AI Assistant', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
         { name: 'AI Estimate Analysis', icon: <DocumentTextIcon />, page: 'Estimator' },
         { name: 'AI Training Tools', icon: <ChartBarIcon />, page: 'AI Tools' },
-        { name: 'Excel Data Manager', icon: <DocumentTextIcon />, page: 'Excel Data Manager' },
         { name: 'Project Schedules', icon: <CalendarIcon />, page: 'Project Schedules', isDisabled: true },
         { name: 'Project Documents', icon: <FolderIcon />, page: 'Project Documents', isDisabled: true },
         { name: 'AI Knowledge Base', icon: <ChatBubbleLeftRightIcon />, page: 'Training & Knowledge Base' },
@@ -773,7 +772,6 @@ export default function App() {
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} />;
             case 'Settings': return <SettingsPage colorMode={colorMode} />;
             case 'Estimator': return <EstimateComparisonTool />;
-            case 'Excel Data Manager': return <ExcelDataManagerPage colorMode={colorMode} />;
             default: return (
                 <DashboardPage
                     tasks={tasks}

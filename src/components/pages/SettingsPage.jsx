@@ -40,6 +40,12 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState(30);
 
+  // Excel Data Manager state
+  const [uploadFile, setUploadFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
+  const [excelError, setExcelError] = useState('');
+
   // Role assignments state
   const [roleAssignments, setRoleAssignments] = useState({
     productManager: '',
@@ -431,6 +437,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'security', label: 'Security', icon: '🔒' },
     { id: 'roles', label: 'Roles', icon: '👥' },
+    { id: 'excel-data', label: 'Excel Data', icon: '📊' },
     { id: 'company', label: 'Company', icon: '🏢' },
     { id: 'project-import', label: 'Project Import', icon: '🏗️' },
     { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
@@ -1615,6 +1622,342 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     </div>
   );
 
+  // Excel Data Manager functions
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadFile(file);
+      setExcelError('');
+      setUploadResult(null);
+    }
+  };
+
+  const handleExcelUpload = async () => {
+    if (!uploadFile) {
+      setExcelError('Please select an Excel file first');
+      return;
+    }
+
+    setIsUploading(true);
+    setExcelError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+
+      const response = await fetch('/api/excel-data/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Upload failed');
+      }
+
+      setUploadResult(data.data);
+      setUploadFile(null);
+      setSuccessMessage('Excel data uploaded successfully to DigitalOcean database!');
+      setSuccess(true);
+      
+      // Reset file input
+      const fileInput = document.getElementById('excel-file-input-settings');
+      if (fileInput) fileInput.value = '';
+
+      // Hide success message after 3 seconds
+      setTimeout(() => setSuccess(false), 3000);
+
+    } catch (err) {
+      console.error('Upload error:', err);
+      setExcelError(err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const downloadTemplate = async () => {
+    try {
+      const response = await fetch('/api/excel-data/template', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download template');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'project-data-template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setExcelError('Failed to download template: ' + err.message);
+    }
+  };
+
+  const exportDatabase = async () => {
+    try {
+      const response = await fetch('/api/excel-data/export', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export data');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `projects-export-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setSuccessMessage('Database exported to Excel successfully!');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setExcelError('Failed to export data: ' + err.message);
+    }
+  };
+
+  const renderExcelDataTab = () => (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className={`border rounded-lg p-4 ${colorMode ? 'bg-gray-800 border-gray-700' : 'bg-green-50 border-green-200'}`}>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🌐</span>
+          <div>
+            <h3 className={`font-semibold ${colorMode ? 'text-green-400' : 'text-green-800'}`}>
+              DigitalOcean PostgreSQL Integration
+            </h3>
+            <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-green-700'}`}>
+              Direct Excel control of your live database
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Section */}
+      <div className={`border rounded-lg p-4 ${colorMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h3 className={`font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+          📤 Upload Project Data
+        </h3>
+        
+        <div className={`border-2 border-dashed rounded-lg p-4 text-center mb-4 ${
+          uploadFile 
+            ? colorMode ? 'border-green-500 bg-green-900/20' : 'border-green-400 bg-green-50'
+            : colorMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
+        }`}>
+          {uploadFile ? (
+            <div>
+              <span className="text-2xl">✅</span>
+              <p className={`font-medium ${colorMode ? 'text-green-400' : 'text-green-800'}`}>
+                {uploadFile.name}
+              </p>
+              <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            </div>
+          ) : (
+            <div>
+              <span className="text-3xl">📊</span>
+              <p className={`font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                Choose Excel File
+              </p>
+              <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                .xlsx or .xls files only
+              </p>
+            </div>
+          )}
+          
+          <input
+            id="excel-file-input-settings"
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
+          <label
+            htmlFor="excel-file-input-settings"
+            className={`inline-block mt-3 px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
+              colorMode 
+                ? 'bg-blue-600 hover:bg-blue-500 text-white' 
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {uploadFile ? 'Choose Different File' : 'Select Excel File'}
+          </label>
+        </div>
+
+        <button
+          onClick={handleExcelUpload}
+          disabled={!uploadFile || isUploading}
+          className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors text-sm ${
+            !uploadFile || isUploading
+              ? colorMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : colorMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+          }`}
+        >
+          {isUploading ? 'Syncing to DigitalOcean...' : 'Upload to Database'}
+        </button>
+      </div>
+
+      {/* Download Section */}
+      <div className={`border rounded-lg p-4 ${colorMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h3 className={`font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+          📥 Download & Export
+        </h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`p-3 rounded-lg ${colorMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <h4 className={`font-medium mb-2 text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+              Excel Template
+            </h4>
+            <p className={`text-xs mb-3 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Download template with required format
+            </p>
+            <button
+              onClick={downloadTemplate}
+              className={`w-full py-2 px-3 rounded text-xs font-medium transition-colors ${
+                colorMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }`}
+            >
+              Download Template
+            </button>
+          </div>
+
+          <div className={`p-3 rounded-lg ${colorMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <h4 className={`font-medium mb-2 text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+              Export Database
+            </h4>
+            <p className={`text-xs mb-3 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Export current data from DigitalOcean
+            </p>
+            <button
+              onClick={exportDatabase}
+              className={`w-full py-2 px-3 rounded text-xs font-medium transition-colors ${
+                colorMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              Export to Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {excelError && (
+        <div className={`border rounded-lg p-3 ${colorMode ? 'bg-red-900/20 border-red-700' : 'bg-red-50 border-red-200'}`}>
+          <div className="flex items-center gap-2">
+            <span className="text-red-500">⚠️</span>
+            <span className={`text-sm font-medium ${colorMode ? 'text-red-400' : 'text-red-800'}`}>
+              {excelError}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Results */}
+      {uploadResult && (
+        <div className={`border rounded-lg p-4 ${colorMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h3 className={`font-semibold mb-3 text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+            Upload Results
+          </h3>
+          
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className={`text-center p-2 rounded ${colorMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+              <p className={`text-lg font-bold ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                {uploadResult.total}
+              </p>
+              <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Total</p>
+            </div>
+            <div className={`text-center p-2 rounded ${colorMode ? 'bg-green-900/20' : 'bg-green-50'}`}>
+              <p className={`text-lg font-bold ${colorMode ? 'text-green-400' : 'text-green-600'}`}>
+                {uploadResult.successful}
+              </p>
+              <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Success</p>
+            </div>
+            <div className={`text-center p-2 rounded ${colorMode ? 'bg-red-900/20' : 'bg-red-50'}`}>
+              <p className={`text-lg font-bold ${colorMode ? 'text-red-400' : 'text-red-600'}`}>
+                {uploadResult.failed}
+              </p>
+              <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Failed</p>
+            </div>
+          </div>
+
+          {uploadResult.errors && uploadResult.errors.length > 0 && (
+            <div className={`p-3 rounded ${colorMode ? 'bg-red-900/20' : 'bg-red-50'}`}>
+              <h4 className={`font-medium mb-2 text-xs ${colorMode ? 'text-red-400' : 'text-red-800'}`}>
+                Errors:
+              </h4>
+              <div className="space-y-1">
+                {uploadResult.errors.slice(0, 3).map((error, index) => (
+                  <p key={index} className={`text-xs ${colorMode ? 'text-red-300' : 'text-red-700'}`}>
+                    Row {error.row}: {error.error}
+                  </p>
+                ))}
+                {uploadResult.errors.length > 3 && (
+                  <p className={`text-xs ${colorMode ? 'text-red-300' : 'text-red-700'}`}>
+                    ... and {uploadResult.errors.length - 3} more errors
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Instructions */}
+      <div className={`border rounded-lg p-4 ${colorMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-blue-200'}`}>
+        <h3 className={`font-semibold mb-3 text-sm ${colorMode ? 'text-white' : 'text-blue-900'}`}>
+          📋 How to Use
+        </h3>
+        <div className="space-y-2 text-xs">
+          <div className="flex gap-2">
+            <span className={`flex-shrink-0 w-4 h-4 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center`}>1</span>
+            <p className={`${colorMode ? 'text-gray-300' : 'text-blue-800'}`}>
+              Download template with required format and fields
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <span className={`flex-shrink-0 w-4 h-4 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center`}>2</span>
+            <p className={`${colorMode ? 'text-gray-300' : 'text-blue-800'}`}>
+              Fill in your project data using same column names
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <span className={`flex-shrink-0 w-4 h-4 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center`}>3</span>
+            <p className={`${colorMode ? 'text-gray-300' : 'text-blue-800'}`}>
+              Upload file - syncs directly to DigitalOcean PostgreSQL
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <span className={`flex-shrink-0 w-4 h-4 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center`}>4</span>
+            <p className={`${colorMode ? 'text-gray-300' : 'text-blue-800'}`}>
+              Changes appear immediately across the entire application
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -1627,6 +1970,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         return renderSecurityTab();
       case 'roles':
         return renderRolesTab();
+      case 'excel-data':
+        return renderExcelDataTab();
       case 'company':
         return renderCompanyTab();
       case 'project-import':
