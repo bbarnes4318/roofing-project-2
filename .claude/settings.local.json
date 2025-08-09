@@ -24,7 +24,9 @@
       "Bash(npm uninstall:*)",
       "Bash(npx prisma:*)",
       "Bash(git checkout:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(timeout:*)",
+      "Bash(git pull:*)"
     ],
     "deny": []
   }
