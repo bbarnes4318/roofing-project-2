@@ -19,11 +19,14 @@ RUN npm run build
 # Backend stage
 FROM node:20-alpine AS backend
 
+# Install OpenSSL for Prisma compatibility
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Copy backend package files
 COPY server/package*.json ./
-# Install all dependencies including xlsx, csv-parse, multer
+# Install all dependencies including xlsx, csv-parse, multer, express-validator
 RUN npm install --production=false
 
 # Copy backend source
