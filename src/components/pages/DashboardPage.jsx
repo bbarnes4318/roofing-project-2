@@ -2759,23 +2759,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     console.log('🎯 ALERTS CLICK: Line Item:', lineItemName);
                                     
                                     try {
-                                      // Get project position data to generate proper targetLineItemId (matching workflow button logic)
-                                      const positionResponse = await fetch(`/api/projects/${project.id}/position`, {
+                                      // EXACT SAME API CALL AS WORKING WORKFLOW BUTTON
+                                      const response = await fetch(`/api/workflow-data/project-position/${project.id}`, {
                                         headers: {
                                           'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
                                         }
                                       });
                                       
-                                      if (positionResponse.ok) {
-                                        const positionResult = await positionResponse.json();
-                                        console.log('🎯 ALERTS CLICK: Position data:', positionResult);
-                                        
-                                        if (positionResult.success && positionResult.data) {
-                                          const position = positionResult.data;
+                                      if (response.ok) {
+                                        const result = await response.json();
+                                        if (result.success && result.data) {
+                                          const position = result.data;
                                           
-                                          // Generate the correct line item ID format that ProjectChecklistPage expects
-                                          // Format: ${phase.id}-${item.id}-${subIdx}
-                                          // Get the workflow structure to find the subtask index
+                                          // EXACT SAME LOGIC AS WORKING WORKFLOW BUTTON
                                           const getSubtaskIndex = async () => {
                                             try {
                                               const workflowResponse = await fetch('/api/workflow-data/full-structure', {
@@ -2788,39 +2784,27 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                                 const workflowResult = await workflowResponse.json();
                                                 if (workflowResult.success && workflowResult.data) {
                                                   // Find the current phase
-                                                  const currentPhaseData = workflowResult.data.find(phaseData => phaseData.id === phase);
+                                                  const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
                                                   if (currentPhaseData) {
-                                                    // Find the section by matching the name
-                                                    const sectionBaseName = sectionName?.split('–')[0]?.trim() || sectionName;
-                                                    const currentSectionData = currentPhaseData.items.find(item => 
-                                                      item.name === sectionBaseName || 
-                                                      item.name === sectionName ||
-                                                      item.name.includes(sectionBaseName)
-                                                    );
+                                                    // Find the current section
+                                                    const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                                     if (currentSectionData) {
-                                                      // Find the subtask index by matching the line item name
-                                                      const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => 
-                                                        subtask === lineItemName || 
-                                                        subtask.includes(lineItemName) ||
-                                                        lineItemName.includes(subtask)
-                                                      );
-                                                      console.log('🎯 ALERTS CLICK: Found subtask index:', subtaskIndex, 'for line item:', lineItemName);
+                                                      // Find the subtask index by matching the current line item name
+                                                      const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => subtask === position.currentLineItemName);
                                                       return subtaskIndex >= 0 ? subtaskIndex : 0;
                                                     }
                                                   }
                                                 }
                                               }
                                             } catch (error) {
-                                              console.warn('🎯 ALERTS CLICK: Could not determine subtask index:', error);
+                                              console.warn('Could not determine subtask index:', error);
                                             }
                                             return 0; // Default fallback
                                           };
                                           
                                           const subtaskIndex = await getSubtaskIndex();
-                                          
-                                          // Use the alert's phase and section data to create the target IDs
-                                          const targetLineItemId = `${phase}-${actionData.sectionId || 'unknown'}-${subtaskIndex}`;
-                                          const targetSectionId = actionData.sectionId || null;
+                                          const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                          const targetSectionId = position.currentSection;
                                           
                                           console.log('🎯 ALERTS CLICK: Generated targetLineItemId:', targetLineItemId);
                                           console.log('🎯 ALERTS CLICK: Generated targetSectionId:', targetSectionId);
