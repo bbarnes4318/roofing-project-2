@@ -466,7 +466,6 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                   size="large"
                   className="w-full"
                   disabled={isLoading}
-                  loading={isLoading}
                 >
                   {isLoading ? 'Authenticating...' : 'Access System'}
                 </QuantumButton>

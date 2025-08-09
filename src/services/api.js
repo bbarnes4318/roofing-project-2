@@ -8,7 +8,7 @@ const getApiBaseUrl = () => {
     return `${window.location.protocol}//${window.location.host}/api`;
   }
   // Local development
-  return 'http://localhost:5000/api';
+  return 'http://localhost:8080/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
