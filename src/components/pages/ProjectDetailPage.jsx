@@ -1316,22 +1316,204 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                 colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                                             }`}
                                                             title={lineItemName}
-                                                            onClick={(e) => {
+                                                            onClick={async (e) => {
                                                                 e.stopPropagation();
                                                                 if (alertProject && onProjectSelect) {
-                                                                    const projectWithStepInfo = {
-                                                                        ...alertProject,
-                                                                        highlightStep: alertTitle,
-                                                                        alertPhase: phase,
-                                                                        navigationTarget: {
-                                                                            phase: phase,
-                                                                            section: sectionName,
-                                                                            lineItem: lineItemName,
-                                                                            stepName: alertTitle,
-                                                                            alertId: alertId
+                                                                    console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Starting alert line item navigation');
+                                                                    console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Project:', alertProject.name);
+                                                                    console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Phase:', phase);
+                                                                    console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Section:', sectionName);
+                                                                    console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Line Item:', lineItemName);
+                                                                    
+                                                                    try {
+                                                                        // Get project position data to generate proper targetLineItemId (matching workflow button logic)
+                                                                        const positionResponse = await fetch(`/api/projects/${alertProject.id}/position`, {
+                                                                            headers: {
+                                                                                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                                            }
+                                                                        });
+                                                                        
+                                                                        if (positionResponse.ok) {
+                                                                            const positionResult = await positionResponse.json();
+                                                                            console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Position data:', positionResult);
+                                                                            
+                                                                            if (positionResult.success && positionResult.data) {
+                                                                                const position = positionResult.data;
+                                                                                
+                                                                                // Generate the correct line item ID format that ProjectChecklistPage expects
+                                                                                // Format: ${phase.id}-${item.id}-${subIdx}
+                                                                                // Get the workflow structure to find the subtask index
+                                                                                const getSubtaskIndex = async () => {
+                                                                                    try {
+                                                                                        const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                                                                                            headers: {
+                                                                                                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                                                            }
+                                                                                        });
+                                                                                        
+                                                                                        if (workflowResponse.ok) {
+                                                                                            const workflowResult = await workflowResponse.json();
+                                                                                            if (workflowResult.success && workflowResult.data) {
+                                                                                                // Find the current phase
+                                                                                                const currentPhaseData = workflowResult.data.find(phaseData => phaseData.id === phase);
+                                                                                                if (currentPhaseData) {
+                                                                                                    // Find the section by matching the name
+                                                                                                    const sectionBaseName = sectionName?.split('–')[0]?.trim() || sectionName;
+                                                                                                    const currentSectionData = currentPhaseData.items.find(item => 
+                                                                                                        item.name === sectionBaseName || 
+                                                                                                        item.name === sectionName ||
+                                                                                                        item.name.includes(sectionBaseName)
+                                                                                                    );
+                                                                                                    if (currentSectionData) {
+                                                                                                        // Find the subtask index by matching the line item name
+                                                                                                        const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => 
+                                                                                                            subtask === lineItemName || 
+                                                                                                            subtask.includes(lineItemName) ||
+                                                                                                            lineItemName.includes(subtask)
+                                                                                                        );
+                                                                                                        console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Found subtask index:', subtaskIndex, 'for line item:', lineItemName);
+                                                                                                        return subtaskIndex >= 0 ? subtaskIndex : 0;
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    } catch (error) {
+                                                                                        console.warn('🎯 PROJECT_DETAIL ALERTS CLICK: Could not determine subtask index:', error);
+                                                                                    }
+                                                                                    return 0; // Default fallback
+                                                                                };
+                                                                                
+                                                                                const subtaskIndex = await getSubtaskIndex();
+                                                                                
+                                                                                // Use the alert's phase and section data to create the target IDs
+                                                                                const targetLineItemId = `${phase}-${actionData.sectionId || 'unknown'}-${subtaskIndex}`;
+                                                                                const targetSectionId = actionData.sectionId || null;
+                                                                                
+                                                                                console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Generated targetLineItemId:', targetLineItemId);
+                                                                                console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Generated targetSectionId:', targetSectionId);
+                                                                                
+                                                                                const projectWithNavigation = {
+                                                                                    ...alertProject,
+                                                                                    highlightStep: lineItemName,
+                                                                                    highlightLineItem: lineItemName,
+                                                                                    targetPhase: phase,
+                                                                                    targetSection: sectionName,
+                                                                                    targetLineItem: lineItemName,
+                                                                                    scrollToCurrentLineItem: true,
+                                                                                    alertPhase: phase,
+                                                                                    // Enhanced navigation target with unique identifiers
+                                                                                    navigationTarget: {
+                                                                                        phase: phase,
+                                                                                        section: sectionName,
+                                                                                        lineItem: lineItemName,
+                                                                                        stepName: lineItemName,
+                                                                                        alertId: alertId,
+                                                                                        stepId: actionData.stepId,
+                                                                                        workflowId: actionData.workflowId,
+                                                                                        highlightMode: 'line-item',
+                                                                                        scrollBehavior: 'smooth',
+                                                                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                        highlightColor: '#3B82F6',
+                                                                                        highlightDuration: 3000
+                                                                                    }
+                                                                                };
+                                                                                
+                                                                                // Use the enhanced navigation system with precise targeting (matching workflow button)
+                                                                                handleProjectSelectWithScroll(
+                                                                                    projectWithNavigation, 
+                                                                                    'Project Workflow', 
+                                                                                    null, 
+                                                                                    'Current Alerts',
+                                                                                    targetLineItemId,
+                                                                                    targetSectionId
+                                                                                );
+                                                                            } else {
+                                                                                console.warn('🎯 PROJECT_DETAIL ALERTS CLICK: No position data found, using fallback navigation');
+                                                                                // Fallback to enhanced static navigation
+                                                                                const projectWithStepInfo = {
+                                                                                    ...alertProject,
+                                                                                    highlightStep: lineItemName,
+                                                                                    highlightLineItem: lineItemName,
+                                                                                    targetPhase: phase,
+                                                                                    targetSection: sectionName,
+                                                                                    targetLineItem: lineItemName,
+                                                                                    scrollToCurrentLineItem: true,
+                                                                                    alertPhase: phase,
+                                                                                    navigationTarget: {
+                                                                                        phase: phase,
+                                                                                        section: sectionName,
+                                                                                        lineItem: lineItemName,
+                                                                                        stepName: lineItemName,
+                                                                                        alertId: alertId,
+                                                                                        stepId: actionData.stepId,
+                                                                                        workflowId: actionData.workflowId,
+                                                                                        highlightMode: 'line-item',
+                                                                                        scrollBehavior: 'smooth',
+                                                                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                        highlightColor: '#3B82F6',
+                                                                                        highlightDuration: 3000
+                                                                                    }
+                                                                                };
+                                                                                handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                            }
+                                                                        } else {
+                                                                            console.error('🎯 PROJECT_DETAIL ALERTS CLICK: Failed to get project position, using fallback navigation');
+                                                                            // Fallback to basic navigation
+                                                                            const projectWithStepInfo = {
+                                                                                ...alertProject,
+                                                                                highlightStep: lineItemName,
+                                                                                highlightLineItem: lineItemName,
+                                                                                targetPhase: phase,
+                                                                                targetSection: sectionName,
+                                                                                targetLineItem: lineItemName,
+                                                                                scrollToCurrentLineItem: true,
+                                                                                alertPhase: phase,
+                                                                                navigationTarget: {
+                                                                                    phase: phase,
+                                                                                    section: sectionName,
+                                                                                    lineItem: lineItemName,
+                                                                                    stepName: lineItemName,
+                                                                                    alertId: alertId,
+                                                                                    stepId: actionData.stepId,
+                                                                                    workflowId: actionData.workflowId,
+                                                                                    highlightMode: 'line-item',
+                                                                                    scrollBehavior: 'smooth',
+                                                                                    targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                    highlightColor: '#3B82F6',
+                                                                                    highlightDuration: 3000
+                                                                                }
+                                                                            };
+                                                                            handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
                                                                         }
-                                                                    };
-                                                                    handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                    } catch (error) {
+                                                                        console.error('🎯 PROJECT_DETAIL ALERTS CLICK: Error getting project position:', error);
+                                                                        // Fallback to basic navigation
+                                                                        const projectWithStepInfo = {
+                                                                            ...alertProject,
+                                                                            highlightStep: lineItemName,
+                                                                            highlightLineItem: lineItemName,
+                                                                            targetPhase: phase,
+                                                                            targetSection: sectionName,
+                                                                            targetLineItem: lineItemName,
+                                                                            scrollToCurrentLineItem: true,
+                                                                            alertPhase: phase,
+                                                                            navigationTarget: {
+                                                                                phase: phase,
+                                                                                section: sectionName,
+                                                                                lineItem: lineItemName,
+                                                                                stepName: lineItemName,
+                                                                                alertId: alertId,
+                                                                                stepId: actionData.stepId,
+                                                                                workflowId: actionData.workflowId,
+                                                                                highlightMode: 'line-item',
+                                                                                scrollBehavior: 'smooth',
+                                                                                targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                highlightColor: '#3B82F6',
+                                                                                highlightDuration: 3000
+                                                                            }
+                                                                        };
+                                                                        handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                    }
                                                                 }
                                                             }}
                                                         >

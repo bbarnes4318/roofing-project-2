@@ -65,18 +65,20 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleProjectSelectWithScroll = (project, view = 'Project Profile', phase = null, sourceSection = null) => {
+    const handleProjectSelectWithScroll = (project, view = 'Project Profile', phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null) => {
         console.log('🎯 PROJECT_SELECT: handleProjectSelectWithScroll called');
         console.log('🎯 PROJECT_SELECT: project:', project);
         console.log('🎯 PROJECT_SELECT: view:', view);
         console.log('🎯 PROJECT_SELECT: phase:', phase);
         console.log('🎯 PROJECT_SELECT: sourceSection:', sourceSection);
+        console.log('🎯 PROJECT_SELECT: targetLineItemId:', targetLineItemId);
+        console.log('🎯 PROJECT_SELECT: targetSectionId:', targetSectionId);
         console.log('🎯 PROJECT_SELECT: onProjectSelect exists:', !!onProjectSelect);
         
         scrollToTop();
         if (onProjectSelect) {
-            console.log('🎯 PROJECT_SELECT: Calling onProjectSelect with sourceSection:', sourceSection);
-            onProjectSelect(project, view, phase, sourceSection);
+            console.log('🎯 PROJECT_SELECT: Calling onProjectSelect with all parameters');
+            onProjectSelect(project, view, phase, sourceSection, targetLineItemId, targetSectionId);
         }
     };
 
@@ -562,40 +564,160 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                 colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                                             }`}
                                                             title={lineItemName}
-                                                            onClick={(e) => {
+                                                            onClick={async (e) => {
                                                                 e.stopPropagation();
                                                                 if (project && onProjectSelect) {
-                                                                    console.log('🚀 ALERT CLICK: Navigating to workflow with enhanced mapping');
+                                                                    console.log('🎯 TASKS_ALERTS CLICK: Starting alert line item navigation');
+                                                                    console.log('🎯 TASKS_ALERTS CLICK: Project:', project.name);
+                                                                    console.log('🎯 TASKS_ALERTS CLICK: Phase:', directMapping.phase);
+                                                                    console.log('🎯 TASKS_ALERTS CLICK: Section:', directMapping.section);
+                                                                    console.log('🎯 TASKS_ALERTS CLICK: Line Item:', lineItemName);
                                                                     
-                                                                    // ENHANCED: Use direct mapping for reliable navigation
-                                                                    const projectWithStepInfo = {
-                                                                        ...project,
-                                                                        highlightStep: alertTitle,
-                                                                        alertPhase: directMapping.phase,
-                                                                        scrollToCurrentLineItem: true,
-                                                                        targetPhase: directMapping.phase,
-                                                                        targetSection: directMapping.section,
-                                                                        targetLineItem: lineItemName,
-                                                                        highlightLineItem: lineItemName,
-                                                                        sourceSection: sourceSection,
-                                                                        navigationTarget: {
-                                                                            phase: directMapping.phase,
-                                                                            section: directMapping.section,
-                                                                            sectionId: directMapping.sectionId, // CRITICAL: Add section ID for direct lookup
-                                                                            lineItem: lineItemName,
-                                                                            stepName: alertTitle,
-                                                                            stepId: actionData.stepId,
-                                                                            workflowId: actionData.workflowId,
-                                                                            alertId: alertId,
-                                                                            highlightMode: 'line-item',
-                                                                            scrollBehavior: 'smooth',
-                                                                            highlightColor: '#3B82F6',
-                                                                            highlightDuration: 5000
+                                                                    try {
+                                                                        // Get project position data to generate proper targetLineItemId (matching workflow button logic)
+                                                                        const positionResponse = await fetch(`/api/projects/${project.id}/position`, {
+                                                                            headers: {
+                                                                                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                                            }
+                                                                        });
+                                                                        
+                                                                        if (positionResponse.ok) {
+                                                                            const positionResult = await positionResponse.json();
+                                                                            console.log('🎯 TASKS_ALERTS CLICK: Position data:', positionResult);
+                                                                            
+                                                                            if (positionResult.success && positionResult.data) {
+                                                                                // Use enhanced targeting logic similar to DashboardPage
+                                                                                const targetLineItemId = `${directMapping.phase}-${directMapping.sectionId || 'unknown'}-0`;
+                                                                                const targetSectionId = directMapping.sectionId || null;
+                                                                                
+                                                                                const projectWithNavigation = {
+                                                                                    ...project,
+                                                                                    highlightStep: lineItemName,
+                                                                                    highlightLineItem: lineItemName,
+                                                                                    targetPhase: directMapping.phase,
+                                                                                    targetSection: directMapping.section,
+                                                                                    targetLineItem: lineItemName,
+                                                                                    scrollToCurrentLineItem: true,
+                                                                                    alertPhase: directMapping.phase,
+                                                                                    sourceSection: sourceSection,
+                                                                                    navigationTarget: {
+                                                                                        phase: directMapping.phase,
+                                                                                        section: directMapping.section,
+                                                                                        sectionId: directMapping.sectionId,
+                                                                                        lineItem: lineItemName,
+                                                                                        stepName: lineItemName,
+                                                                                        alertId: alertId,
+                                                                                        stepId: actionData.stepId,
+                                                                                        workflowId: actionData.workflowId,
+                                                                                        highlightMode: 'line-item',
+                                                                                        scrollBehavior: 'smooth',
+                                                                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                        highlightColor: '#3B82F6',
+                                                                                        highlightDuration: 3000
+                                                                                    }
+                                                                                };
+                                                                                
+                                                                                // Use the enhanced navigation system with precise targeting
+                                                                                handleProjectSelectWithScroll(
+                                                                                    projectWithNavigation, 
+                                                                                    'Project Workflow', 
+                                                                                    null, 
+                                                                                    sourceSection,
+                                                                                    targetLineItemId,
+                                                                                    targetSectionId
+                                                                                );
+                                                                            } else {
+                                                                                // Fallback navigation with enhanced project data
+                                                                                const projectWithStepInfo = {
+                                                                                    ...project,
+                                                                                    highlightStep: lineItemName,
+                                                                                    highlightLineItem: lineItemName,
+                                                                                    targetPhase: directMapping.phase,
+                                                                                    targetSection: directMapping.section,
+                                                                                    targetLineItem: lineItemName,
+                                                                                    scrollToCurrentLineItem: true,
+                                                                                    alertPhase: directMapping.phase,
+                                                                                    sourceSection: sourceSection,
+                                                                                    navigationTarget: {
+                                                                                        phase: directMapping.phase,
+                                                                                        section: directMapping.section,
+                                                                                        sectionId: directMapping.sectionId,
+                                                                                        lineItem: lineItemName,
+                                                                                        stepName: lineItemName,
+                                                                                        alertId: alertId,
+                                                                                        stepId: actionData.stepId,
+                                                                                        workflowId: actionData.workflowId,
+                                                                                        highlightMode: 'line-item',
+                                                                                        scrollBehavior: 'smooth',
+                                                                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                        highlightColor: '#3B82F6',
+                                                                                        highlightDuration: 3000
+                                                                                    }
+                                                                                };
+                                                                                handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);
+                                                                            }
+                                                                        } else {
+                                                                            console.error('🎯 TASKS_ALERTS CLICK: Failed to get project position, using fallback navigation');
+                                                                            // Fallback to basic navigation
+                                                                            const projectWithStepInfo = {
+                                                                                ...project,
+                                                                                highlightStep: lineItemName,
+                                                                                highlightLineItem: lineItemName,
+                                                                                targetPhase: directMapping.phase,
+                                                                                targetSection: directMapping.section,
+                                                                                targetLineItem: lineItemName,
+                                                                                scrollToCurrentLineItem: true,
+                                                                                alertPhase: directMapping.phase,
+                                                                                sourceSection: sourceSection,
+                                                                                navigationTarget: {
+                                                                                    phase: directMapping.phase,
+                                                                                    section: directMapping.section,
+                                                                                    sectionId: directMapping.sectionId,
+                                                                                    lineItem: lineItemName,
+                                                                                    stepName: lineItemName,
+                                                                                    alertId: alertId,
+                                                                                    stepId: actionData.stepId,
+                                                                                    workflowId: actionData.workflowId,
+                                                                                    highlightMode: 'line-item',
+                                                                                    scrollBehavior: 'smooth',
+                                                                                    targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                    highlightColor: '#3B82F6',
+                                                                                    highlightDuration: 3000
+                                                                                }
+                                                                            };
+                                                                            handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);
                                                                         }
-                                                                    };
-                                                                    
-                                                                    console.log('🎯 ALERT NAVIGATION: Project with enhanced mapping:', projectWithStepInfo);
-                                                                    handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);
+                                                                    } catch (error) {
+                                                                        console.error('🎯 TASKS_ALERTS CLICK: Error getting project position:', error);
+                                                                        // Fallback to basic navigation
+                                                                        const projectWithStepInfo = {
+                                                                            ...project,
+                                                                            highlightStep: lineItemName,
+                                                                            highlightLineItem: lineItemName,
+                                                                            targetPhase: directMapping.phase,
+                                                                            targetSection: directMapping.section,
+                                                                            targetLineItem: lineItemName,
+                                                                            scrollToCurrentLineItem: true,
+                                                                            alertPhase: directMapping.phase,
+                                                                            sourceSection: sourceSection,
+                                                                            navigationTarget: {
+                                                                                phase: directMapping.phase,
+                                                                                section: directMapping.section,
+                                                                                sectionId: directMapping.sectionId,
+                                                                                lineItem: lineItemName,
+                                                                                stepName: lineItemName,
+                                                                                alertId: alertId,
+                                                                                stepId: actionData.stepId,
+                                                                                workflowId: actionData.workflowId,
+                                                                                highlightMode: 'line-item',
+                                                                                scrollBehavior: 'smooth',
+                                                                                targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                highlightColor: '#3B82F6',
+                                                                                highlightDuration: 3000
+                                                                            }
+                                                                        };
+                                                                        handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, sourceSection);
+                                                                    }
                                                                 }
                                                             }}
                                                         >
