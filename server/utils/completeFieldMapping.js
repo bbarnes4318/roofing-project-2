@@ -298,7 +298,7 @@ const DataProcessor = {
    * Generate sample data for a table
    */
   generateSampleData: (tableName) => {
-    const uploadableFields = this.getUploadableFields(tableName);
+    const uploadableFields = DataProcessor.getUploadableFields(tableName);
     const sampleData = {};
 
     uploadableFields.forEach(field => {
