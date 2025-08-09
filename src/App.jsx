@@ -73,7 +73,8 @@ export default function App() {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const token = localStorage.getItem('token');
+                // Check both possible token keys (authToken is what login sets)
+                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
                 if (token) {
                     const user = authService.getStoredUser();
                     if (user) {
@@ -85,6 +86,7 @@ export default function App() {
                 console.error('Auth check failed:', error);
                 // Clear invalid tokens
                 localStorage.removeItem('token');
+                localStorage.removeItem('authToken');
                 localStorage.removeItem('user');
             } finally {
                 setIsLoading(false);
@@ -96,10 +98,18 @@ export default function App() {
 
     // Handle successful login
     const handleLoginSuccess = (user, token) => {
-        setCurrentUser(user);
+        // Get user and token from localStorage (set by login page)
+        const storedUser = authService.getStoredUser();
+        const storedToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+        
+        setCurrentUser(storedUser);
         setIsAuthenticated(true);
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        
+        // Ensure both token keys are set for compatibility
+        if (storedToken) {
+            localStorage.setItem('token', storedToken);
+            localStorage.setItem('authToken', storedToken);
+        }
     };
 
     // Handle logout
@@ -107,6 +117,7 @@ export default function App() {
         setCurrentUser(null);
         setIsAuthenticated(false);
         localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         authService.logout();
     };
