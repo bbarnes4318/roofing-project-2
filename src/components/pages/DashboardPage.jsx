@@ -1664,7 +1664,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           )}
                         </button>
                       </th>
-                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <button 
+                          onClick={() => handleProjectSort('progress')}
+                          className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                          Progress
+                          {sortConfig.key === 'progress' && (
+                            <span className="text-xs">
+                              {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </button>
+                      </th>
                       <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Alerts</th>
                       <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Messages</th>
                       <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflow</th>
@@ -1903,19 +1915,21 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             <button 
                               ref={(el) => progressButtonRefs.current[project.id] = el}
                               onClick={() => toggleProgress(project.id)}
-                              className="flex items-center gap-1 hover:bg-gray-100 rounded px-2 py-1.5 transition-colors w-full min-w-[100px]"
+                              className="flex items-center gap-2 hover:bg-gray-100 rounded px-2 py-1.5 transition-colors w-full"
                             >
-                              <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-brand-500 rounded-full"
-                                  style={{ width: `${getProjectProgress(project)}%` }}
-                                ></div>
+                              <div className="flex-1 min-w-0">
+                                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-brand-500 rounded-full transition-all duration-300"
+                                    style={{ width: `${getProjectProgress(project)}%` }}
+                                  ></div>
+                                </div>
                               </div>
-                              <span className={`text-sm ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                              <span className={`text-sm font-medium whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                                 {getProjectProgress(project)}%
                               </span>
                               <svg 
-                                className={`w-4 h-4 transition-transform ml-auto ${expandedProgress.has(project.id) ? 'rotate-180' : ''}`} 
+                                className={`w-4 h-4 transition-transform flex-shrink-0 ${expandedProgress.has(project.id) ? 'rotate-180' : ''}`} 
                                 fill="none" 
                                 stroke="currentColor" 
                                 viewBox="0 0 24 24"
