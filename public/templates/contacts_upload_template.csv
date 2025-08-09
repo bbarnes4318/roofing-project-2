@@ -1,0 +1,2 @@
+id,name,phone,email,role,isPrimary,isActive,notes,customerId
+Sample id,Sample name,Sample phone,Sample email,Sample role,true,true,Sample notes,Sample customerId

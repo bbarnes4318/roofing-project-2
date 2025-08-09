@@ -1,0 +1,2 @@
+id,fileName,originalName,fileUrl,mimeType,fileSize,fileType,description,tags,version,isActive,downloadCount,lastDownloadedAt,checksum,isPublic,projectId,uploadedById
+Sample id,Sample fileName,Sample originalName,Sample fileUrl,Sample mimeType,1,BLUEPRINT,Sample description,Sample tags,1,true,1,Sample lastDownloadedAt,Sample checksum,true,Sample projectId,Sample uploadedById

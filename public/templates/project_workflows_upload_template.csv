@@ -1,0 +1,2 @@
+id,projectId,workflowType,status,currentStepIndex,overallProgress,workflowStartDate,workflowEndDate,estimatedCompletionDate,actualCompletionDate,enableAlerts,alertMethods,escalationEnabled,escalationDelayDays,teamAssignments,createdById,lastModifiedById
+Sample id,Sample projectId,ROOFING,NOT_STARTED,1,1,Sample workflowStartDate,Sample workflowEndDate,Sample estimatedCompletionDate,Sample actualCompletionDate,true,IN_APP,true,1,Sample teamAssignments,Sample createdById,Sample lastModifiedById

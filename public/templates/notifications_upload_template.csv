@@ -1,0 +1,2 @@
+id,title,message,type,isRead,readAt,actionUrl,actionData,recipientId
+Sample id,Sample title,Sample message,TASK_ASSIGNED,true,Sample readAt,Sample actionUrl,Sample actionData,Sample recipientId

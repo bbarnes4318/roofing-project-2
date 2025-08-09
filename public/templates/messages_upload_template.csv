@@ -1,0 +1,2 @@
+id,text,messageType,isEdited,editedAt,isDeleted,deletedAt,conversationId,senderId,replyToId,attachments,reactions,systemData
+Sample id,Sample text,TEXT,true,Sample editedAt,true,Sample deletedAt,Sample conversationId,Sample senderId,Sample replyToId,Sample attachments,Sample reactions,Sample systemData

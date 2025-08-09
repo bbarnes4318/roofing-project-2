@@ -1,0 +1,2 @@
+id,userId,method,secret,backupCodes,phoneNumber,enabled,lastUsed
+Sample id,Sample userId,TOTP,Sample secret,Sample backupCodes,Sample phoneNumber,true,Sample lastUsed

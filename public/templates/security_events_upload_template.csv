@@ -1,0 +1,2 @@
+id,userId,eventType,riskScore,details,ipAddress,userAgent,resolved,resolvedAt,resolvedBy,response
+Sample id,Sample userId,LOGIN_SUCCESS,Sample riskScore,Sample details,Sample ipAddress,Sample userAgent,true,Sample resolvedAt,Sample resolvedBy,Sample response

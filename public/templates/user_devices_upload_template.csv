@@ -1,0 +1,2 @@
+id,userId,deviceFingerprint,deviceName,deviceType,userAgent,ipAddress,location,trusted,biometricEnabled,lastUsed,isActive
+Sample id,Sample userId,Sample deviceFingerprint,Sample deviceName,Sample deviceType,Sample userAgent,Sample ipAddress,Sample location,true,true,Sample lastUsed,true

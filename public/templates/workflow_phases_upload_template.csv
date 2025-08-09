@@ -1,0 +1,2 @@
+id,phaseName,phaseType,displayOrder,description,isActive
+Sample id,Sample phaseName,LEAD,1,Sample description,true

@@ -1,0 +1,2 @@
+id,type,priority,status,title,message,stepName,isRead,readAt,acknowledged,acknowledgedAt,dueDate,projectId,workflowId,stepId,assignedToId,createdById,metadata,responsibleRole
+Sample id,Sample type,LOW,ACTIVE,Sample title,Sample message,Sample stepName,true,Sample readAt,true,Sample acknowledgedAt,Sample dueDate,Sample projectId,Sample workflowId,Sample stepId,Sample assignedToId,Sample createdById,Sample metadata,OFFICE

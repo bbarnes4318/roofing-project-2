@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
+import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import { API_BASE_URL } from '../../services/api';
 
 const mockUser = {
@@ -438,6 +439,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     { id: 'security', label: 'Security', icon: '🔒' },
     { id: 'roles', label: 'Roles', icon: '👥' },
     { id: 'excel-data', label: 'Excel Data', icon: '📊' },
+    { id: 'complete-excel', label: 'Complete DB Manager', icon: '🗄️' },
     { id: 'company', label: 'Company', icon: '🏢' },
     { id: 'project-import', label: 'Project Import', icon: '🏗️' },
     { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
@@ -1972,6 +1974,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         return renderRolesTab();
       case 'excel-data':
         return renderExcelDataTab();
+      case 'complete-excel':
+        return <CompleteExcelDataManager colorMode={colorMode} />;
       case 'company':
         return renderCompanyTab();
       case 'project-import':
