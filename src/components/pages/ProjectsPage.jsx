@@ -773,7 +773,14 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'} shadow-sm`}>
                             <div className={`text-sm font-medium ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>Avg Progress</div>
                             <div className={`text-2xl font-bold text-green-600`}>
-                                {projectsArray.length > 0 ? Math.round(projectsArray.reduce((sum, p) => sum + getProjectProgress(p), 0) / projectsArray.length) : 0}%
+                                {projectsArray.length > 0 ? Math.round(projectsArray.reduce((sum, p) => {
+                                    try {
+                                        return sum + (getProjectProgress ? getProjectProgress(p) : 0);
+                                    } catch (err) {
+                                        console.error('Error calculating progress for project:', p?.id, err);
+                                        return sum;
+                                    }
+                                }, 0) / projectsArray.length) : 0}%
                             </div>
                         </div>
                         <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'} shadow-sm`}>
