@@ -1,321 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  HolographicCard,
-  NeuralBackground,
-  QuantumButton,
-  ParticleField,
-  ParticlePresets,
-  FuturisticThemes
-} from '../futuristic';
 import { 
   EyeIcon, 
   EyeSlashIcon, 
-  FingerPrintIcon, 
-  ShieldCheckIcon,
-  DevicePhoneMobileIcon,
-  ComputerDesktopIcon,
-  ExclamationTriangleIcon,
   SunIcon,
   MoonIcon
 } from '@heroicons/react/24/outline';
 import { authService } from '../../services/api';
 
 const HolographicLoginPage = ({ onLoginSuccess }) => {
-  // Authentication state
-  const [loginMethod, setLoginMethod] = useState('traditional'); // traditional, biometric, mfa
+  // Simple state - NO BULLSHIT
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [error, setError] = useState('');
-  const [mfaToken, setMfaToken] = useState('');
-  const [backupCode, setBackupCode] = useState('');
-  const [deviceFingerprint, setDeviceFingerprint] = useState(null);
   
-  // Biometric authentication state
-  const [biometricSupported, setBiometricSupported] = useState(false);
-  const [biometricRegistered, setBiometricRegistered] = useState(false);
-  const [scanningBiometric, setScanningBiometric] = useState(false);
-  
-  // UI state
-  const [keystrokes, setKeystrokes] = useState([]);
-  const [mouseMovements, setMouseMovements] = useState([]);
-  const [securityLevel, setSecurityLevel] = useState('standard');
-  
-  const keystrokeRef = useRef([]);
-  const formRef = useRef(null);
-  // Using upfront-logo-3.png as it's the stronger, more modern brand mark
   const logoSrc = (process.env.PUBLIC_URL || '') + '/upfront-logo-3.png';
 
-  // Initialize security features (disabled to prevent network errors)
-  useEffect(() => {
-    // Commented out to prevent 401 errors on production
-    // initializeSecurity();
-    // generateDeviceFingerprint();
-  }, []);
-
-  const initializeSecurity = async () => {
-    // Check WebAuthn support
-    if (window.PublicKeyCredential) {
-      setBiometricSupported(true);
-      
-      // In development mode, skip API call for credentials check
-      if (process.env.NODE_ENV === 'development') {
-        setBiometricRegistered(false);
-        return;
-      }
-      
-      // Production: Check if user has registered credentials
-      try {
-        const response = await fetch('/api/auth/webauthn/credentials', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setBiometricRegistered(data.data?.credentials?.length > 0);
-        }
-      } catch (err) {
-        console.log('No existing credentials found');
-      }
-    }
-  };
-
-  const generateDeviceFingerprint = () => {
-    // Generate client-side fingerprint
-    const fingerprint = {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      platform: navigator.platform,
-      screenResolution: `${window.screen.width}x${window.screen.height}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      cookiesEnabled: navigator.cookieEnabled,
-      doNotTrack: navigator.doNotTrack,
-      plugins: Array.from(navigator.plugins).map(p => p.name).sort().join(','),
-      canvas: generateCanvasFingerprint(),
-    };
-    setDeviceFingerprint(fingerprint);
-  };
-
-  const generateCanvasFingerprint = () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.textBaseline = 'top';
-    ctx.font = '14px Arial';
-    ctx.fillText('Device fingerprinting', 2, 2);
-    return canvas.toDataURL();
-  };
-
-  // Behavioral biometrics - keystroke dynamics
-  const handleKeyDown = (e) => {
-    const timestamp = Date.now();
-    keystrokeRef.current.push({
-      key: e.key,
-      pressTime: timestamp,
-      keyCode: e.keyCode,
-    });
-  };
-
-  const handleKeyUp = (e) => {
-    const timestamp = Date.now();
-    const pressEvent = keystrokeRef.current.find(k => k.key === e.key && !k.releaseTime);
-    if (pressEvent) {
-      pressEvent.releaseTime = timestamp;
-    }
-  };
-
-  // Mouse behavior tracking
-  const handleMouseMove = (e) => {
-    const timestamp = Date.now();
-    setMouseMovements(prev => [
-      ...prev.slice(-50), // Keep only last 50 movements
-      {
-        x: e.clientX,
-        y: e.clientY,
-        timestamp
-      }
-    ]);
-  };
-
-  // Traditional email/password login with construction-themed loading
-  const handleTraditionalLogin = async (e) => {
+  // SIMPLE LOGIN - NO NETWORK ERRORS
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
+    setIsLoading(true);
 
     try {
-      // In development mode, skip API call and auto-login with demo user
-      if (process.env.NODE_ENV === 'development') {
-        // Start construction-themed transition
-        setTimeout(() => {
-          setIsTransitioning(true);
-        }, 500);
-        
-        setTimeout(() => {
-          const demoUser = authService.getStoredUser();
-          const demoToken = 'demo-token-' + Date.now();
-          onLoginSuccess(demoUser, demoToken);
-          setIsLoading(false);
-          setIsTransitioning(false);
-        }, 2500); // Extended loading time for dramatic effect
-        return;
-      }
-
-      // Production: Simple login without behavioral data to avoid issues
-      const response = await authService.login({
-        ...formData
-      });
-
-      if (response.success) {
-        // Check if MFA is required
-        if (response.requiresMFA) {
-          setLoginMethod('mfa');
-          setSecurityLevel('enhanced');
-        } else {
-          onLoginSuccess(response.data.user, response.data.token);
-        }
+      // BARE MINIMUM LOGIN REQUEST
+      const response = await authService.login(formData);
+      
+      if (response?.token || response?.success) {
+        onLoginSuccess();
       } else {
-        setError(response.message || 'Login failed');
+        setError('Invalid credentials');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      console.error('Login error:', err);
+      setError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Biometric authentication
-  const handleBiometricLogin = async () => {
-    setScanningBiometric(true);
-    setError('');
-
-    try {
-      // Request authentication options
-      const optionsResponse = await fetch('/api/auth/webauthn/authenticate/begin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-
-      if (!optionsResponse.ok) {
-        throw new Error('Failed to get authentication options');
-      }
-
-      const { data: options } = await optionsResponse.json();
-
-      // Perform WebAuthn authentication
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          ...options,
-          challenge: new Uint8Array(options.challenge),
-          allowCredentials: options.allowCredentials.map(cred => ({
-            ...cred,
-            id: new Uint8Array(cred.id)
-          }))
-        }
-      });
-
-      // Verify authentication
-      const verifyResponse = await fetch('/api/auth/webauthn/authenticate/finish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          response: {
-            id: credential.id,
-            rawId: Array.from(new Uint8Array(credential.rawId)),
-            type: credential.type,
-            response: {
-              authenticatorData: Array.from(new Uint8Array(credential.response.authenticatorData)),
-              clientDataJSON: Array.from(new Uint8Array(credential.response.clientDataJSON)),
-              signature: Array.from(new Uint8Array(credential.response.signature)),
-              userHandle: credential.response.userHandle ? Array.from(new Uint8Array(credential.response.userHandle)) : null
-            }
-          },
-          challengeKey: options.challengeKey
-        })
-      });
-
-      const result = await verifyResponse.json();
-
-      if (result.success) {
-        onLoginSuccess(result.data.user, result.data.token);
-      } else {
-        setError(result.message || 'Biometric authentication failed');
-      }
-
-    } catch (err) {
-      console.error('Biometric auth error:', err);
-      setError('Biometric authentication failed. Please try another method.');
-    } finally {
-      setScanningBiometric(false);
-    }
-  };
-
-  // MFA verification
-  const handleMFAVerification = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const endpoint = backupCode ? '/api/auth/mfa/backup/verify' : '/api/auth/mfa/totp/verify';
-      const token = backupCode || mfaToken;
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: formData.userId, // This would be set from the initial login response
-          [backupCode ? 'code' : 'token']: token
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        onLoginSuccess(result.data.user, result.data.token);
-      } else {
-        setError(result.message || 'Invalid verification code');
-      }
-
-    } catch (err) {
-      setError('Verification failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Security level indicator
-  const getSecurityIndicator = () => {
-    const levels = {
-      standard: { color: 'cyan', label: 'Standard Security' },
-      enhanced: { color: 'purple', label: 'Enhanced Security' },
-      quantum: { color: 'green', label: 'Quantum Security' }
-    };
-    return levels[securityLevel];
   };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-red-50 via-orange-50/30 to-yellow-50/50 dark:from-red-950 dark:via-red-900 dark:to-red-800 transition-all duration-500">
       {/* UpFront Brand Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Subtle geometric shapes using UpFront colors */}
         <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-red-600/8 rounded-full blur-xl"></div>
         <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-yellow-500/8 rounded-full blur-xl"></div>
         <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-orange-500/8 rounded-full blur-xl"></div>
-        {/* Colorado-inspired subtle pattern */}
-        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
-          <div 
-            style={{ 
-              backgroundImage: `
-                linear-gradient(rgba(220, 38, 38, 0.1) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(220, 38, 38, 0.1) 1px, transparent 1px)
-              `, 
-              backgroundSize: '60px 60px' 
-            }} 
-            className="w-full h-full"
-          />
-        </div>
       </div>
 
       {/* Theme Toggle */}
@@ -323,33 +54,28 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
         <ThemeToggle />
       </div>
 
-      {/* Modern Login Interface */}
-      <motion.div 
-        className="relative z-10 w-full max-w-md mx-auto px-4"
-        onMouseMove={handleMouseMove}
+      {/* SIMPLE LOGIN FORM */}
+      <motion.div
+        className="w-full max-w-md mx-auto px-4 sm:px-6"
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
       >
-        {/* UpFront Brand Card Design */}
         <div className="relative">
-          {/* UpFront brand glow */}
           <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/15 to-yellow-500/15 rounded-2xl blur opacity-75" />
           
-          {/* Main card with UpFront styling */}
           <div className="relative bg-white/98 dark:bg-red-950/95 backdrop-blur-xl rounded-2xl border border-red-100/60 dark:border-red-800/60 shadow-xl shadow-red-500/5 dark:shadow-red-900/20 p-8">
             
-            {/* Prominent Logo Header */}
+            {/* Logo Header */}
             <motion.div 
               className="text-center mb-8"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              {/* Beautiful Logo Display */}
               <div className="mb-6">
-                <img 
-                  src={logoSrc} 
+                <img
+                  src={logoSrc}
                   alt="UpFront Restoration & Roofing" 
                   className="h-20 mx-auto drop-shadow-lg" 
                 />
@@ -367,26 +93,20 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
             <AnimatePresence>
               {error && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-300 text-sm"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  className="mb-6 p-4 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg"
                 >
-                  <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0" />
-                  {error}
+                  <p className="text-red-700 dark:text-red-300 text-sm text-center font-medium">
+                    {error}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Compact Modern Form */}
-            <motion.form
-              ref={formRef}
-              onSubmit={handleTraditionalLogin}
-              className="space-y-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
+            {/* SIMPLE FORM */}
+            <form onSubmit={handleLogin} className="space-y-4">
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-red-800 dark:text-red-200 mb-2">
@@ -398,8 +118,6 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  onKeyDown={handleKeyDown}
-                  onKeyUp={handleKeyUp}
                   className="w-full px-4 py-3 bg-red-50/50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-900 dark:text-red-100 placeholder-red-500 dark:placeholder-red-400 
                            focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-600 
                            transition-all duration-200 hover:border-red-300 dark:hover:border-red-600"
@@ -421,8 +139,6 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    onKeyDown={handleKeyDown}
-                    onKeyUp={handleKeyUp}
                     className="w-full px-4 py-3 bg-red-50/50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-900 dark:text-red-100 placeholder-red-500 dark:placeholder-red-400 
                              focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-600 
                              transition-all duration-200 hover:border-red-300 dark:hover:border-red-600 pr-12"
@@ -434,7 +150,6 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/40 rounded p-1"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? (
                       <EyeSlashIcon className="w-4 h-4" />
@@ -445,26 +160,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                 </div>
               </div>
 
-              {/* UpFront Styled Options Row */}
-              <div className="flex items-center justify-between text-sm pt-2">
-                <label htmlFor="remember" className="flex items-center gap-2 text-red-700 dark:text-red-300 cursor-pointer">
-                  <input 
-                    id="remember"
-                    name="remember"
-                    type="checkbox" 
-                    className="w-4 h-4 rounded border-red-300 dark:border-red-600 text-red-600 focus:ring-red-500/30 focus:ring-2"
-                  />
-                  Remember me
-                </label>
-                <button 
-                  type="button"
-                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200 font-medium"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              {/* UpFront Brand Sign In Button */}
+              {/* Login Button */}
               <motion.button
                 type="submit"
                 disabled={isLoading}
@@ -475,9 +171,6 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                          focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2"
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
               >
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -489,7 +182,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                 </span>
               </motion.button>
 
-              {/* UpFront Footer */}
+              {/* Footer */}
               <div className="text-center pt-6">
                 <p className="text-red-600 dark:text-red-400 text-sm">
                   Need help?{' '}
@@ -501,75 +194,29 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                   </button>
                 </p>
               </div>
-            </motion.form>
+            </form>
           </div>
         </div>
       </motion.div>
-      
-      {/* Modern Loading Overlay */}
-      <AnimatePresence>
-        {isTransitioning && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center"
-          >
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.4 }}
-            >
-              {/* UpFront Brand Loading Spinner */}
-              <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 border-4 border-red-200/20 rounded-full"></div>
-                <motion.div
-                  className="absolute inset-0 border-4 border-transparent border-t-red-600 rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                />
-                <motion.div
-                  className="absolute inset-2 border-3 border-transparent border-t-yellow-500 rounded-full"
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                />
-              </div>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.4 }}
-              >
-                <h2 className="text-xl font-semibold text-white mb-2">Signing you in</h2>
-                <p className="text-slate-400 text-sm">Please wait a moment...</p>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
-export default HolographicLoginPage;
-
-// Modern theme toggle component
+// SIMPLE THEME TOGGLE
 function ThemeToggle() {
   const [dark, setDark] = React.useState(() => document.documentElement.classList.contains('dark'));
   
-  useEffect(() => {
-    const root = document.documentElement;
+  React.useEffect(() => {
     if (dark) {
-      root.classList.add('dark');
+      document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
     } else {
-      root.classList.remove('dark');
+      document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
   }, [dark]);
   
-  useEffect(() => {
+  React.useEffect(() => {
     const saved = localStorage.getItem('theme');
     if (saved) setDark(saved === 'dark');
   }, []);
@@ -581,7 +228,6 @@ function ThemeToggle() {
                  shadow-lg shadow-red-500/5 dark:shadow-red-900/20 hover:shadow-xl hover:shadow-red-500/10 dark:hover:shadow-red-900/30
                  transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0
                  focus:outline-none focus:ring-2 focus:ring-red-500/30"
-      aria-label="Toggle theme"
       whileHover={{ y: -2 }}
       whileTap={{ y: 0 }}
     >
@@ -600,3 +246,5 @@ function ThemeToggle() {
     </motion.button>
   );
 }
+
+export default HolographicLoginPage;
