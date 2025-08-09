@@ -296,13 +296,26 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500">
-      {/* Modern Background Elements */}
+    <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-red-50 via-orange-50/30 to-yellow-50/50 dark:from-red-950 dark:via-red-900 dark:to-red-800 transition-all duration-500">
+      {/* UpFront Brand Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Subtle geometric shapes */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-brand-primary/5 rounded-full blur-xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-brand-accent/5 rounded-full blur-xl"></div>
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-blue-500/5 rounded-full blur-xl"></div>
+        {/* Subtle geometric shapes using UpFront colors */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-red-600/8 rounded-full blur-xl"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-yellow-500/8 rounded-full blur-xl"></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-orange-500/8 rounded-full blur-xl"></div>
+        {/* Colorado-inspired subtle pattern */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
+          <div 
+            style={{ 
+              backgroundImage: `
+                linear-gradient(rgba(220, 38, 38, 0.1) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(220, 38, 38, 0.1) 1px, transparent 1px)
+              `, 
+              backgroundSize: '60px 60px' 
+            }} 
+            className="w-full h-full"
+          />
+        </div>
       </div>
 
       {/* Theme Toggle */}
@@ -318,13 +331,13 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
       >
-        {/* Modern Card Design */}
+        {/* UpFront Brand Card Design */}
         <div className="relative">
-          {/* Subtle glow */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-primary/10 to-brand-accent/10 rounded-2xl blur opacity-75" />
+          {/* UpFront brand glow */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/15 to-yellow-500/15 rounded-2xl blur opacity-75" />
           
-          {/* Main card */}
-          <div className="relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-xl shadow-black/5 dark:shadow-black/20 p-8">
+          {/* Main card with UpFront styling */}
+          <div className="relative bg-white/98 dark:bg-red-950/95 backdrop-blur-xl rounded-2xl border border-red-100/60 dark:border-red-800/60 shadow-xl shadow-red-500/5 dark:shadow-red-900/20 p-8">
             
             {/* Prominent Logo Header */}
             <motion.div 
@@ -342,11 +355,11 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                 />
               </div>
               
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-                Welcome back
+              <h1 className="text-2xl font-bold text-red-900 dark:text-red-100 mb-1">
+                Welcome Back
               </h1>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Sign in to your account
+              <p className="text-red-700 dark:text-red-300 text-sm font-medium">
+                Colorado Springs Restoration & Roofing
               </p>
             </motion.div>
 
@@ -376,8 +389,8 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
             >
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Email
+                <label htmlFor="email" className="block text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                  Email Address
                 </label>
                 <input
                   id="email"
@@ -387,9 +400,9 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   onKeyDown={handleKeyDown}
                   onKeyUp={handleKeyUp}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 
-                           focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary 
-                           transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500"
+                  className="w-full px-4 py-3 bg-red-50/50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-900 dark:text-red-100 placeholder-red-500 dark:placeholder-red-400 
+                           focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-600 
+                           transition-all duration-200 hover:border-red-300 dark:hover:border-red-600"
                   placeholder="you@company.com"
                   autoComplete="email"
                   required
@@ -398,7 +411,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-red-800 dark:text-red-200 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -410,9 +423,9 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     onKeyDown={handleKeyDown}
                     onKeyUp={handleKeyUp}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 
-                             focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary 
-                             transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500 pr-12"
+                    className="w-full px-4 py-3 bg-red-50/50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-900 dark:text-red-100 placeholder-red-500 dark:placeholder-red-400 
+                             focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-600 
+                             transition-all duration-200 hover:border-red-300 dark:hover:border-red-600 pr-12"
                     placeholder="Enter your password"
                     autoComplete="current-password"
                     required
@@ -420,7 +433,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 rounded p-1"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/40 rounded p-1"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? (
@@ -432,34 +445,34 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                 </div>
               </div>
 
-              {/* Compact Options Row */}
+              {/* UpFront Styled Options Row */}
               <div className="flex items-center justify-between text-sm pt-2">
-                <label htmlFor="remember" className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer">
+                <label htmlFor="remember" className="flex items-center gap-2 text-red-700 dark:text-red-300 cursor-pointer">
                   <input 
                     id="remember"
                     name="remember"
                     type="checkbox" 
-                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-brand-primary focus:ring-brand-primary/30 focus:ring-2"
+                    className="w-4 h-4 rounded border-red-300 dark:border-red-600 text-red-600 focus:ring-red-500/30 focus:ring-2"
                   />
                   Remember me
                 </label>
                 <button 
                   type="button"
-                  className="text-brand-primary hover:text-brand-primary/80 transition-colors duration-200 font-medium"
+                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200 font-medium"
                 >
                   Forgot password?
                 </button>
               </div>
 
-              {/* Modern Sign In Button */}
+              {/* UpFront Brand Sign In Button */}
               <motion.button
                 type="submit"
                 disabled={isLoading}
-                className="w-full relative px-4 py-3 mt-6 bg-gradient-to-r from-brand-primary to-brand-accent text-white font-medium rounded-lg
-                         hover:shadow-lg hover:shadow-brand-primary/25 hover:-translate-y-0.5
+                className="w-full relative px-4 py-3 mt-6 bg-gradient-to-r from-red-600 to-yellow-500 text-white font-semibold rounded-lg
+                         hover:shadow-lg hover:shadow-red-500/25 hover:-translate-y-0.5
                          active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
                          transition-all duration-200 ease-out
-                         focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:ring-offset-2"
+                         focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2"
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
                 initial={{ opacity: 0, y: 10 }}
@@ -472,19 +485,19 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
                   </div>
                 )}
                 <span className={isLoading ? 'opacity-0' : 'opacity-100'}>
-                  {isLoading ? 'Signing in...' : 'Sign in'}
+                  {isLoading ? 'Signing in...' : 'Access Your Account'}
                 </span>
               </motion.button>
 
-              {/* Compact Footer */}
+              {/* UpFront Footer */}
               <div className="text-center pt-6">
-                <p className="text-slate-500 dark:text-slate-400 text-sm">
-                  Don't have an account?{' '}
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  Need help?{' '}
                   <button 
                     type="button"
-                    className="text-brand-primary hover:text-brand-primary/80 transition-colors duration-200 font-medium"
+                    className="text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200 transition-colors duration-200 font-medium"
                   >
-                    Sign up
+                    Call (719) 799-3526
                   </button>
                 </p>
               </div>
@@ -508,16 +521,16 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
             >
-              {/* Modern Loading Spinner */}
+              {/* UpFront Brand Loading Spinner */}
               <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 border-4 border-slate-200/20 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-red-200/20 rounded-full"></div>
                 <motion.div
-                  className="absolute inset-0 border-4 border-transparent border-t-brand-primary rounded-full"
+                  className="absolute inset-0 border-4 border-transparent border-t-red-600 rounded-full"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
                 <motion.div
-                  className="absolute inset-2 border-3 border-transparent border-t-brand-accent rounded-full"
+                  className="absolute inset-2 border-3 border-transparent border-t-yellow-500 rounded-full"
                   animate={{ rotate: -360 }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                 />
@@ -564,22 +577,22 @@ function ThemeToggle() {
   return (
     <motion.button
       onClick={() => setDark(v => !v)}
-      className="relative p-2.5 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 
-                 shadow-lg shadow-black/5 dark:shadow-black/20 hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30
+      className="relative p-2.5 rounded-lg bg-white/90 dark:bg-red-900/90 backdrop-blur-sm border border-red-200/60 dark:border-red-700/60 
+                 shadow-lg shadow-red-500/5 dark:shadow-red-900/20 hover:shadow-xl hover:shadow-red-500/10 dark:hover:shadow-red-900/30
                  transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0
-                 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                 focus:outline-none focus:ring-2 focus:ring-red-500/30"
       aria-label="Toggle theme"
       whileHover={{ y: -2 }}
       whileTap={{ y: 0 }}
     >
       <div className="relative w-5 h-5">
         <SunIcon 
-          className={`absolute inset-0 w-5 h-5 text-amber-500 transition-all duration-300 ${
+          className={`absolute inset-0 w-5 h-5 text-yellow-500 transition-all duration-300 ${
             dark ? 'opacity-0 rotate-180 scale-0' : 'opacity-100 rotate-0 scale-100'
           }`} 
         />
         <MoonIcon 
-          className={`absolute inset-0 w-5 h-5 text-indigo-500 transition-all duration-300 ${
+          className={`absolute inset-0 w-5 h-5 text-red-400 transition-all duration-300 ${
             dark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-180 scale-0'
           }`} 
         />
