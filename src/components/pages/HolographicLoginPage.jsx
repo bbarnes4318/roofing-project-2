@@ -18,7 +18,6 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { authService } from '../../services/api';
-import logo from '../../../public/upfront-logo-3.png';
 
 const HolographicLoginPage = ({ onLoginSuccess }) => {
   // Authentication state
@@ -43,6 +42,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   
   const keystrokeRef = useRef([]);
   const formRef = useRef(null);
+  const logoSrc = (process.env.PUBLIC_URL || '') + '/upfront-logo-3.png';
 
   // Initialize security features
   useEffect(() => {
@@ -300,7 +300,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
         {/* Scanning overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-blueprint-scan" />
         {/* Brand logo */}
-        <img src={logo} alt="UpFront Restoration & Roofing" className="relative z-10 w-64 drop-shadow-[0_6px_30px_rgba(0,0,0,0.35)]" />
+        <img src={logoSrc} alt="UpFront Restoration & Roofing" className="relative z-10 w-64 drop-shadow-[0_6px_30px_rgba(0,0,0,0.35)]" />
       </div>
 
       {/* RIGHT: Form column */}
@@ -338,7 +338,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
           {/* Glassmorphism form card */}
           <div className="p-8 rounded-2xl bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-strong">
             <div className="flex items-center justify-center mb-6">
-              <img src={logo} alt="UpFront" className="h-12" />
+              <img src={logoSrc} alt="UpFront" className="h-12" />
             </div>
           {/* Header */}
           <motion.div
