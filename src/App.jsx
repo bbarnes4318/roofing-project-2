@@ -19,6 +19,7 @@ import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import CustomersPage from './components/pages/CustomersPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
+import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
 // Removed mock data import
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
@@ -361,7 +362,8 @@ export default function App() {
     if (!isAuthenticated) {
         return (
             <QueryClientProvider client={queryClient}>
-                <HolographicLoginPage onLoginSuccess={handleLoginSuccess} />
+                <BlueprintLoginPage onLoginSuccess={handleLoginSuccess} />
+                {/* <HolographicLoginPage onLoginSuccess={handleLoginSuccess} /> */}
                 <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         );
