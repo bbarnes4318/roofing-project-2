@@ -145,20 +145,20 @@ const CustomersPage = ({ colorMode }) => {
     const projectCount = customer.associatedProjects?.length || 0;
     
     return (
-      <div key={customer._id} className={`${colorMode ? 'bg-slate-800/90 hover:bg-slate-700/90 border-slate-600/50' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md overflow-hidden`}>
+      <div key={customer._id} className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl hover:shadow-medium transition-all duration-300 overflow-hidden hover:-translate-y-1">
         
         {/* Customer header */}
         <div 
-          className="flex items-center gap-2 p-2 cursor-pointer hover:bg-opacity-80 transition-all duration-200"
+          className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50/50 transition-all duration-300"
           onClick={() => toggleCustomerExpansion(customer._id)}
         >
           {/* Customer avatar */}
           <div className="relative flex-shrink-0">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
-              <UserIcon className="w-4 h-4" />
+            <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
+              <UserIcon className="w-6 h-6" />
             </div>
             {/* Project count indicator */}
-            <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border border-white flex items-center justify-center text-xs font-bold ${
+            <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold ${
               projectCount > 0 ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'
             }`}>
               {projectCount}
@@ -167,35 +167,33 @@ const CustomersPage = ({ colorMode }) => {
           
           <div className="flex-1 min-w-0">
             {/* Customer name and status */}
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className={`text-sm font-semibold truncate ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-lg font-bold text-gray-900 truncate">
                 {customer.name}
               </h3>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              <span className={`px-3 py-1 rounded-xl text-sm font-medium ${
                 projectCount > 0 
-                  ? 'bg-green-100 text-green-800 border border-green-200' 
-                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+                  ? 'bg-green-100 text-green-800 border-2 border-green-200' 
+                  : 'bg-gray-100 text-gray-600 border-2 border-gray-200'
               }`}>
                 {projectCount} {projectCount === 1 ? 'Project' : 'Projects'}
               </span>
             </div>
             
             {/* Contact info */}
-            <div className="flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1">
-                <EnvelopeIcon className={`w-3 h-3 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} />
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <EnvelopeIcon className="w-4 h-4 text-gray-500" />
                 <a 
                   href={`mailto:${customer.email}`}
-                  className={`hover:underline cursor-pointer transition-all duration-200 truncate max-w-32 ${
-                    colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                  }`}
+                  className="hover:underline cursor-pointer transition-all duration-300 truncate max-w-48 text-brand-600 hover:text-brand-700"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {customer.email}
                 </a>
               </div>
-              <div className="flex items-center gap-1">
-                <span className={`${colorMode ? 'text-gray-400' : 'text-gray-500'} text-xs`}>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 text-sm">
                   Added {formatDate(customer.createdAt)}
                 </span>
               </div>
@@ -203,8 +201,8 @@ const CustomersPage = ({ colorMode }) => {
           </div>
           
           {/* Expand/collapse arrow */}
-          <div className={`transform transition-transform duration-200 p-1 rounded ${colorMode ? 'text-gray-300 hover:bg-slate-600/50' : 'text-gray-500 hover:bg-gray-100'} ${isExpanded ? 'rotate-180' : ''}`}>
-            <ChevronDownIcon className="w-4 h-4" />
+          <div className={`transform transition-transform duration-300 p-2 rounded-xl text-gray-500 hover:bg-gray-100 ${isExpanded ? 'rotate-180' : ''}`}>
+            <ChevronDownIcon className="w-5 h-5" />
           </div>
         </div>
 
@@ -644,32 +642,29 @@ const CustomersPage = ({ colorMode }) => {
   );
 
   return (
-    <div className="h-full flex flex-col">
-      <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`} style={{ height: '750px' }}>
-        
-        {/* Header with controls */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                Customer Management
-              </h1>
-              <p className={`text-[8px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {filteredCustomers.length} customers • {customers.reduce((acc, customer) => acc + (customer.associatedProjects?.length || 0), 0)} total projects
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900">
+      <div className="w-full max-w-7xl mx-auto py-6 px-6">
+        <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 overflow-hidden relative">
+          
+          {/* Header with controls */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                  Customer Management
+                </h1>
+                <p className="text-lg text-gray-600 font-medium">
+                  {filteredCustomers.length} customers • {customers.reduce((acc, customer) => acc + (customer.associatedProjects?.length || 0), 0)} total projects
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-brand-500 to-red-500 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
+              >
+                <PlusIcon className="w-5 h-5" />
+                Add Customer
+              </button>
             </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-medium transition-colors ${
-                colorMode 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              <PlusIcon className="w-3 h-3" />
-              Add Customer
-            </button>
-          </div>
           
           {/* Search control */}
           <div className="relative">
@@ -678,31 +673,27 @@ const CustomersPage = ({ colorMode }) => {
               placeholder="Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-3 pr-3 py-1 border rounded text-[9px] transition-colors focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                colorMode
-                  ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 placeholder-gray-400'
-                  : 'bg-white border-gray-300 placeholder-gray-500'
-              }`}
+              className="w-full pl-4 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 bg-white/80 placeholder-gray-500 hover:bg-white hover:border-gray-300"
             />
           </div>
         </div>
 
         {/* Customer list */}
-        <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
+        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {loading ? (
-            <div className="text-center py-8">
-              <div className={`text-center ${colorMode ? 'text-white' : 'text-gray-600'}`}>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                <p className="text-[9px]">Loading customers...</p>
+            <div className="text-center py-12">
+              <div className="text-center text-gray-600">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-4"></div>
+                <p className="text-lg font-medium">Loading customers...</p>
               </div>
             </div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-2xl mb-2 opacity-60">👥</div>
-              <h3 className={`text-sm font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-6 opacity-60">👥</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 {searchTerm ? 'No customers found' : 'No customers yet'}
               </h3>
-              <p className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className="text-lg text-gray-600 mb-8">
                 {searchTerm 
                   ? 'Try adjusting your search terms' 
                   : 'Get started by adding your first customer'
@@ -711,7 +702,7 @@ const CustomersPage = ({ colorMode }) => {
               {!searchTerm && (
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="mt-2 px-2 py-1 bg-blue-600 text-white rounded text-[9px] font-medium hover:bg-blue-700 transition-colors"
+                  className="px-8 py-4 bg-gradient-to-r from-brand-500 to-red-500 text-white rounded-xl text-lg font-semibold transition-all duration-300 shadow-soft hover:shadow-medium hover:-translate-y-0.5"
                 >
                   Add Your First Customer
                 </button>
