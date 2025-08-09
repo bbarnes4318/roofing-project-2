@@ -18,6 +18,7 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { authService } from '../../services/api';
+import logo from '../../../public/upfront-logo-3.png';
 
 const HolographicLoginPage = ({ onLoginSuccess }) => {
   // Authentication state
@@ -291,41 +292,29 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-black">
-      {/* Dynamic background based on security level */}
-      <NeuralBackground
-        {...(securityLevel === 'quantum' ? {
-          nodeColor: FuturisticThemes.green.primary,
-          connectionColor: FuturisticThemes.green.glow,
-          nodeCount: 40,
-          synapticFiring: true,
-          interactive: true
-        } : securityLevel === 'enhanced' ? {
-          nodeColor: FuturisticThemes.purple.primary,
-          connectionColor: FuturisticThemes.purple.glow,
-          nodeCount: 35,
-          synapticFiring: true,
-          interactive: false
-        } : {
-          nodeColor: FuturisticThemes.cyan.primary,
-          connectionColor: FuturisticThemes.cyan.glow,
-          nodeCount: 30,
-          synapticFiring: false,
-          interactive: true
-        })}
-      />
+    <div className="min-h-screen relative flex flex-col md:flex-row bg-ui-light dark:bg-ui-dark transition-colors">
+      {/* LEFT: Blueprint animated showcase */}
+      <div className="md:w-1/2 w-full relative overflow-hidden flex items-center justify-center p-10 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-700">
+        {/* Static blueprint grid */}
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        {/* Scanning overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-blueprint-scan" />
+        {/* Brand logo */}
+        <img src={logo} alt="UpFront Restoration & Roofing" className="relative z-10 w-64 drop-shadow-[0_6px_30px_rgba(0,0,0,0.35)]" />
+      </div>
 
-      {/* Particle field overlay */}
-      <ParticleField
-        {...ParticlePresets.subtle}
-        className="opacity-40"
-      />
+      {/* RIGHT: Form column */}
+      <div className="md:w-1/2 w-full relative flex items-center justify-center p-6 md:p-12">
+        {/* Theme toggle */}
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
 
-      {/* Main login interface */}
-      <div 
-        className="relative z-10 w-full max-w-md p-6"
-        onMouseMove={handleMouseMove}
-      >
+        {/* Main login interface */}
+        <div 
+          className="relative z-10 w-full max-w-md"
+          onMouseMove={handleMouseMove}
+        >
         {/* Security level indicator */}
         <motion.div
           className="mb-6 flex items-center justify-center"
@@ -346,11 +335,11 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
         </motion.div>
 
         {/* Login form container */}
-        <HolographicCard
-          glowColor={getSecurityIndicator().color}
-          elevation="high"
-          className="p-8"
-        >
+          {/* Glassmorphism form card */}
+          <div className="p-8 rounded-2xl bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-strong">
+            <div className="flex items-center justify-center mb-6">
+              <img src={logo} alt="UpFront" className="h-12" />
+            </div>
           {/* Header */}
           <motion.div
             className="text-center mb-8"
@@ -634,21 +623,50 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
               </button>
             </motion.div>
           )}
-        </HolographicCard>
+          </div>
 
         {/* Company branding */}
         <motion.div
-          className="text-center mt-6 text-gray-400 text-xs"
+          className="text-center mt-6 text-ui-gray text-xs"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
-          <p>Kenstruction Management System</p>
-          <p>Secured by Quantum Authentication Protocol</p>
+          <p>UpFront Restoration & Roofing</p>
+          <p>Secure Access Portal</p>
         </motion.div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default HolographicLoginPage;
+
+// Simple theme toggle using localStorage
+function ThemeToggle() {
+  const [dark, setDark] = React.useState(() => document.documentElement.classList.contains('dark'));
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [dark]);
+  useEffect(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) setDark(saved === 'dark');
+  }, []);
+  return (
+    <button
+      onClick={() => setDark(v => !v)}
+      className="px-3 py-1.5 rounded-full border border-ui-gray/40 text-xs text-ui-gray hover:text-brand-primary hover:border-brand-primary transition shadow-soft bg-white/70 dark:bg-black/30 backdrop-blur"
+      aria-label="Toggle theme"
+    >
+      {dark ? 'Light Mode' : 'Dark Mode'}
+    </button>
+  );
+}
