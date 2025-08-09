@@ -53,7 +53,14 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
     // Check WebAuthn support
     if (window.PublicKeyCredential) {
       setBiometricSupported(true);
-      // Check if user has registered credentials
+      
+      // In development mode, skip API call for credentials check
+      if (process.env.NODE_ENV === 'development') {
+        setBiometricRegistered(false);
+        return;
+      }
+      
+      // Production: Check if user has registered credentials
       try {
         const response = await fetch('/api/auth/webauthn/credentials', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -131,7 +138,18 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      // Send behavioral data along with login
+      // In development mode, skip API call and auto-login with demo user
+      if (process.env.NODE_ENV === 'development') {
+        setTimeout(() => {
+          const demoUser = authService.getStoredUser();
+          const demoToken = 'demo-token-' + Date.now();
+          onLoginSuccess(demoUser, demoToken);
+          setIsLoading(false);
+        }, 1000); // Simulate loading time
+        return;
+      }
+
+      // Production: Send behavioral data along with login
       const behaviorData = {
         keystrokes: keystrokeRef.current,
         mouseMovements: mouseMovements,
