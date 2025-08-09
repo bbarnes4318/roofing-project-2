@@ -1616,7 +1616,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 
                 console.log('Selected Phase:', selectedPhase, 'Filtered Projects Count:', filteredProjects.length);
                 
-                // Always show header for better UX - never return null
+                // Show headers only when there are projects to display
+                if (filteredProjects.length === 0) {
+                  return null;
+                }
+                
                 return (
                   <thead>
                     <tr className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>

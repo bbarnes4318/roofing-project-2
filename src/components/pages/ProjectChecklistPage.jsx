@@ -553,21 +553,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Project Workflow Checklist
+          Project Workflow
         </h2>
         <div className="text-sm text-gray-600">
           Project: {project.projectName || project.name}
         </div>
         {projectPosition && (
-          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="text-sm font-medium text-blue-900">
-              📍 Current Phase: {projectPosition.phaseName}
-            </div>
-            <div className="text-sm text-blue-800 mt-1">
-              Section: {projectPosition.sectionDisplayName}
-            </div>
-            <div className="text-sm text-blue-800 mt-1">
-              Line Item: {projectPosition.currentLineItemName}
+          <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 font-medium">Phase:</span>
+                <span className="text-gray-900 font-semibold">{projectPosition.phaseName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 font-medium">Section:</span>
+                <span className="text-gray-900 font-semibold">{projectPosition.sectionDisplayName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 font-medium">Line Item:</span>
+                <span className="text-gray-900 font-semibold">{projectPosition.currentLineItemName}</span>
+              </div>
             </div>
           </div>
         )}
@@ -582,7 +587,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             {/* Phase Header */}
             <button
               onClick={() => handlePhaseClick(phase.id)}
-              className={`w-full px-6 py-4 text-left font-semibold text-white transition-colors duration-200 hover:opacity-90 ${getPhaseColor(phase.id)} ${
+              className={`w-full px-6 py-4 text-left font-semibold bg-white hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 ${
                 phase.items.length > 0 && phase.items.every(item => 
                   item.subtasks.every((_, subIdx) => {
                     const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
@@ -592,9 +597,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               }`}
             >
               <div className="flex items-center justify-between">
-                <span>{phase.label}</span>
+                <div className="flex items-center gap-3">
+                  {/* Phase Color Circle */}
+                  <div 
+                    className={`w-4 h-4 rounded-full ${getPhaseColor(phase.id)} flex-shrink-0`}
+                  ></div>
+                  {/* Phase Title */}
+                  <span className="text-gray-900">{phase.label}</span>
+                </div>
                 <ChevronDownIcon 
-                  className={`w-5 h-5 transform transition-transform duration-200 ${
+                  className={`w-5 h-5 transform transition-transform duration-200 text-gray-600 ${
                     openPhase === phase.id || openPhase === 'ALL' ? 'rotate-180' : ''
                   }`} 
                 />
