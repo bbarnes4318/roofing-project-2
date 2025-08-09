@@ -15,7 +15,9 @@ import {
   ShieldCheckIcon,
   DevicePhoneMobileIcon,
   ComputerDesktopIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/react/24/outline';
 import { authService } from '../../services/api';
 
@@ -25,6 +27,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [error, setError] = useState('');
   const [mfaToken, setMfaToken] = useState('');
   const [backupCode, setBackupCode] = useState('');
@@ -42,6 +45,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   
   const keystrokeRef = useRef([]);
   const formRef = useRef(null);
+  // Using upfront-logo-3.png as it's the stronger, more modern brand mark
   const logoSrc = (process.env.PUBLIC_URL || '') + '/upfront-logo-3.png';
 
   // Initialize security features
@@ -132,7 +136,7 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
     ]);
   };
 
-  // Traditional email/password login
+  // Traditional email/password login with construction-themed loading
   const handleTraditionalLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -141,12 +145,18 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
     try {
       // In development mode, skip API call and auto-login with demo user
       if (process.env.NODE_ENV === 'development') {
+        // Start construction-themed transition
+        setTimeout(() => {
+          setIsTransitioning(true);
+        }, 500);
+        
         setTimeout(() => {
           const demoUser = authService.getStoredUser();
           const demoToken = 'demo-token-' + Date.now();
           onLoginSuccess(demoUser, demoToken);
           setIsLoading(false);
-        }, 1000); // Simulate loading time
+          setIsTransitioning(false);
+        }, 2500); // Extended loading time for dramatic effect
         return;
       }
 
@@ -292,360 +302,255 @@ const HolographicLoginPage = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col md:flex-row bg-ui-light dark:bg-ui-dark transition-colors">
-      {/* LEFT: Blueprint animated showcase */}
-      <div className="md:w-1/2 w-full relative overflow-hidden flex items-center justify-center p-10 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-700">
-        {/* Static blueprint grid */}
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        {/* Scanning overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-blueprint-scan" />
-        {/* Brand logo */}
-        <img src={logoSrc} alt="UpFront Restoration & Roofing" className="relative z-10 w-64 drop-shadow-[0_6px_30px_rgba(0,0,0,0.35)]" />
+    <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500">
+      {/* Modern Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Subtle geometric shapes */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-brand-primary/5 rounded-full blur-xl"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-brand-accent/5 rounded-full blur-xl"></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-blue-500/5 rounded-full blur-xl"></div>
       </div>
 
-      {/* RIGHT: Form column */}
-      <div className="md:w-1/2 w-full relative flex items-center justify-center p-6 md:p-12">
-        {/* Theme toggle */}
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
+      {/* Theme Toggle */}
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle />
+      </div>
 
-        {/* Main login interface */}
-        <div 
-          className="relative z-10 w-full max-w-md"
-          onMouseMove={handleMouseMove}
-        >
-        {/* Security level indicator */}
-        <motion.div
-          className="mb-6 flex items-center justify-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <HolographicCard
-            glowColor={getSecurityIndicator().color}
-            elevation="low"
-            className="px-4 py-2 text-center"
-          >
-            <div className="flex items-center gap-2 text-sm">
-              <ShieldCheckIcon className="w-4 h-4" />
-              {getSecurityIndicator().label}
-            </div>
-          </HolographicCard>
-        </motion.div>
-
-        {/* Login form container */}
-          {/* Glassmorphism form card */}
-          <div className="p-8 rounded-2xl bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-strong">
-            <div className="flex items-center justify-center mb-6">
-              <img src={logoSrc} alt="UpFront" className="h-12" />
-            </div>
-          {/* Header */}
-          <motion.div
-            className="text-center mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h1 className="text-2xl font-bold text-white mb-2">
-              Quantum Access Portal
-            </h1>
-            <p className="text-cyan-300 text-sm">
-              Secure authentication with advanced biometrics
-            </p>
-          </motion.div>
-
-          {/* Error message */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-lg flex items-center gap-2 text-red-300 text-sm"
-              >
-                <ExclamationTriangleIcon className="w-4 h-4" />
-                {error}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Authentication method selector */}
-          <div className="mb-6">
-            <div className="flex gap-2 p-1 bg-black/20 rounded-lg">
-              <button
-                onClick={() => setLoginMethod('traditional')}
-                className={`flex-1 py-2 px-3 rounded-md text-xs transition-all ${
-                  loginMethod === 'traditional'
-                    ? 'bg-cyan-500/30 text-cyan-300'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                <ComputerDesktopIcon className="w-4 h-4 mx-auto mb-1" />
-                Traditional
-              </button>
+      {/* Modern Login Interface */}
+      <motion.div 
+        className="relative z-10 w-full max-w-md mx-auto px-4"
+        onMouseMove={handleMouseMove}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {/* Modern Card Design */}
+        <div className="relative">
+          {/* Subtle glow */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-primary/10 to-brand-accent/10 rounded-2xl blur opacity-75" />
+          
+          {/* Main card */}
+          <div className="relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-xl shadow-black/5 dark:shadow-black/20 p-8">
+            
+            {/* Prominent Logo Header */}
+            <motion.div 
+              className="text-center mb-8"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              {/* Beautiful Logo Display */}
+              <div className="mb-6">
+                <img 
+                  src={logoSrc} 
+                  alt="UpFront Restoration & Roofing" 
+                  className="h-20 mx-auto drop-shadow-lg" 
+                />
+              </div>
               
-              {biometricSupported && (
-                <button
-                  onClick={() => setLoginMethod('biometric')}
-                  className={`flex-1 py-2 px-3 rounded-md text-xs transition-all ${
-                    loginMethod === 'biometric'
-                      ? 'bg-purple-500/30 text-purple-300'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  <FingerPrintIcon className="w-4 h-4 mx-auto mb-1" />
-                  Biometric
-                </button>
-              )}
-              
-              {loginMethod === 'mfa' && (
-                <button
-                  className="flex-1 py-2 px-3 rounded-md text-xs bg-green-500/30 text-green-300"
-                >
-                  <DevicePhoneMobileIcon className="w-4 h-4 mx-auto mb-1" />
-                  MFA Required
-                </button>
-              )}
-            </div>
-          </div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+                Welcome back
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Sign in to your account
+              </p>
+            </motion.div>
 
-          {/* Traditional login form */}
-          <AnimatePresence mode="wait">
-            {loginMethod === 'traditional' && (
-              <motion.form
-                key="traditional"
-                ref={formRef}
-                onSubmit={handleTraditionalLogin}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-cyan-300 mb-2">
-                    Email Address
-                  </label>
+            {/* Error message */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-300 text-sm"
+                >
+                  <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Compact Modern Form */}
+            <motion.form
+              ref={formRef}
+              onSubmit={handleTraditionalLogin}
+              className="space-y-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={handleKeyUp}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 
+                           focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary 
+                           transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500"
+                  placeholder="you@company.com"
+                  autoComplete="email"
+                  required
+                />
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Password
+                </label>
+                <div className="relative">
                   <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     onKeyDown={handleKeyDown}
                     onKeyUp={handleKeyUp}
-                    className="w-full px-4 py-3 bg-black/30 border border-cyan-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
-                    placeholder="Enter your email"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 
+                             focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary 
+                             transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500 pr-12"
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
                     required
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-cyan-300 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      onKeyDown={handleKeyDown}
-                      onKeyUp={handleKeyUp}
-                      className="w-full px-4 py-3 bg-black/30 border border-cyan-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all pr-12"
-                      placeholder="Enter your password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cyan-300 transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeSlashIcon className="w-5 h-5" />
-                      ) : (
-                        <EyeIcon className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <QuantumButton
-                  type="submit"
-                  variant="primary"
-                  size="large"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Authenticating...' : 'Access System'}
-                </QuantumButton>
-              </motion.form>
-            )}
-
-            {/* Biometric authentication */}
-            {loginMethod === 'biometric' && (
-              <motion.div
-                key="biometric"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="text-center space-y-6"
-              >
-                <div className="relative">
-                  <motion.div
-                    animate={scanningBiometric ? { scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] } : {}}
-                    transition={{ duration: 2, repeat: scanningBiometric ? Infinity : 0 }}
-                    className="w-24 h-24 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center border-2 border-purple-500/40"
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 rounded p-1"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    <FingerPrintIcon className="w-12 h-12 text-purple-300" />
-                  </motion.div>
-                  
-                  {scanningBiometric && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full border-2 border-purple-400"
-                      animate={{ scale: [1, 1.5], opacity: [1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    />
-                  )}
+                    {showPassword ? (
+                      <EyeSlashIcon className="w-4 h-4" />
+                    ) : (
+                      <EyeIcon className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
+              </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Biometric Authentication
-                  </h3>
-                  <p className="text-purple-300 text-sm mb-4">
-                    Use your fingerprint, face, or other biometric data
-                  </p>
-                </div>
-
-                <QuantumButton
-                  variant="secondary"
-                  size="large"
-                  className="w-full"
-                  onClick={handleBiometricLogin}
-                  disabled={scanningBiometric}
+              {/* Compact Options Row */}
+              <div className="flex items-center justify-between text-sm pt-2">
+                <label htmlFor="remember" className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer">
+                  <input 
+                    id="remember"
+                    name="remember"
+                    type="checkbox" 
+                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-brand-primary focus:ring-brand-primary/30 focus:ring-2"
+                  />
+                  Remember me
+                </label>
+                <button 
+                  type="button"
+                  className="text-brand-primary hover:text-brand-primary/80 transition-colors duration-200 font-medium"
                 >
-                  {scanningBiometric ? 'Scanning...' : 'Scan Biometric'}
-                </QuantumButton>
-
-                <button
-                  onClick={() => setLoginMethod('traditional')}
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
-                >
-                  Use traditional login instead
+                  Forgot password?
                 </button>
-              </motion.div>
-            )}
+              </div>
 
-            {/* MFA verification */}
-            {loginMethod === 'mfa' && (
-              <motion.form
-                key="mfa"
-                onSubmit={handleMFAVerification}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="space-y-4"
+              {/* Modern Sign In Button */}
+              <motion.button
+                type="submit"
+                disabled={isLoading}
+                className="w-full relative px-4 py-3 mt-6 bg-gradient-to-r from-brand-primary to-brand-accent text-white font-medium rounded-lg
+                         hover:shadow-lg hover:shadow-brand-primary/25 hover:-translate-y-0.5
+                         active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+                         transition-all duration-200 ease-out
+                         focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:ring-offset-2"
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
               >
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Multi-Factor Authentication
-                  </h3>
-                  <p className="text-green-300 text-sm">
-                    Enter your verification code or backup code
-                  </p>
-                </div>
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+                <span className={isLoading ? 'opacity-0' : 'opacity-100'}>
+                  {isLoading ? 'Signing in...' : 'Sign in'}
+                </span>
+              </motion.button>
 
-                <div className="flex gap-2 mb-4">
-                  <button
+              {/* Compact Footer */}
+              <div className="text-center pt-6">
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
+                  Don't have an account?{' '}
+                  <button 
                     type="button"
-                    onClick={() => setBackupCode('')}
-                    className={`flex-1 py-2 px-3 rounded-md text-xs transition-all ${
-                      !backupCode
-                        ? 'bg-green-500/30 text-green-300'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className="text-brand-primary hover:text-brand-primary/80 transition-colors duration-200 font-medium"
                   >
-                    TOTP Code
+                    Sign up
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setBackupCode(' ')} // Non-empty to trigger backup mode
-                    className={`flex-1 py-2 px-3 rounded-md text-xs transition-all ${
-                      backupCode
-                        ? 'bg-orange-500/30 text-orange-300'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Backup Code
-                  </button>
-                </div>
-
-                <div>
-                  <input
-                    type="text"
-                    value={backupCode ? backupCode.trim() : mfaToken}
-                    onChange={(e) => backupCode 
-                      ? setBackupCode(e.target.value)
-                      : setMfaToken(e.target.value)
-                    }
-                    className="w-full px-4 py-3 bg-black/30 border border-green-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-all text-center text-lg font-mono"
-                    placeholder={backupCode ? "Enter backup code" : "Enter 6-digit code"}
-                    required
-                    maxLength={backupCode ? 8 : 6}
-                  />
-                </div>
-
-                <QuantumButton
-                  type="submit"
-                  variant="success"
-                  size="large"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Verifying...' : 'Verify Identity'}
-                </QuantumButton>
-              </motion.form>
-            )}
-          </AnimatePresence>
-
-          {/* Additional options */}
-          {loginMethod === 'traditional' && (
-            <motion.div
-              className="mt-6 text-center space-y-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <button className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors">
-                Forgot password?
-              </button>
-              <br />
-              <button className="text-gray-400 hover:text-white text-sm transition-colors">
-                Need help accessing your account?
-              </button>
-            </motion.div>
-          )}
+                </p>
+              </div>
+            </motion.form>
           </div>
-
-        {/* Company branding */}
-        <motion.div
-          className="text-center mt-6 text-ui-gray text-xs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          <p>UpFront Restoration & Roofing</p>
-          <p>Secure Access Portal</p>
-        </motion.div>
         </div>
-      </div>
+      </motion.div>
+      
+      {/* Modern Loading Overlay */}
+      <AnimatePresence>
+        {isTransitioning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center"
+          >
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              {/* Modern Loading Spinner */}
+              <div className="relative w-16 h-16 mx-auto mb-6">
+                <div className="absolute inset-0 border-4 border-slate-200/20 rounded-full"></div>
+                <motion.div
+                  className="absolute inset-0 border-4 border-transparent border-t-brand-primary rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                />
+                <motion.div
+                  className="absolute inset-2 border-3 border-transparent border-t-brand-accent rounded-full"
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                />
+              </div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                <h2 className="text-xl font-semibold text-white mb-2">Signing you in</h2>
+                <p className="text-slate-400 text-sm">Please wait a moment...</p>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
 export default HolographicLoginPage;
 
-// Simple theme toggle using localStorage
+// Modern theme toggle component
 function ThemeToggle() {
   const [dark, setDark] = React.useState(() => document.documentElement.classList.contains('dark'));
+  
   useEffect(() => {
     const root = document.documentElement;
     if (dark) {
@@ -656,17 +561,35 @@ function ThemeToggle() {
       localStorage.setItem('theme', 'light');
     }
   }, [dark]);
+  
   useEffect(() => {
     const saved = localStorage.getItem('theme');
     if (saved) setDark(saved === 'dark');
   }, []);
+  
   return (
-    <button
+    <motion.button
       onClick={() => setDark(v => !v)}
-      className="px-3 py-1.5 rounded-full border border-ui-gray/40 text-xs text-ui-gray hover:text-brand-primary hover:border-brand-primary transition shadow-soft bg-white/70 dark:bg-black/30 backdrop-blur"
+      className="relative p-2.5 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 
+                 shadow-lg shadow-black/5 dark:shadow-black/20 hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30
+                 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0
+                 focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
       aria-label="Toggle theme"
+      whileHover={{ y: -2 }}
+      whileTap={{ y: 0 }}
     >
-      {dark ? 'Light Mode' : 'Dark Mode'}
-    </button>
+      <div className="relative w-5 h-5">
+        <SunIcon 
+          className={`absolute inset-0 w-5 h-5 text-amber-500 transition-all duration-300 ${
+            dark ? 'opacity-0 rotate-180 scale-0' : 'opacity-100 rotate-0 scale-100'
+          }`} 
+        />
+        <MoonIcon 
+          className={`absolute inset-0 w-5 h-5 text-indigo-500 transition-all duration-300 ${
+            dark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-180 scale-0'
+          }`} 
+        />
+      </div>
+    </motion.button>
   );
 }
