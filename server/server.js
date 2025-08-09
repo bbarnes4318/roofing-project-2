@@ -39,6 +39,7 @@ const customerRoutes = require('./routes/customers');
 const notificationRoutes = require('./routes/notifications');
 const searchRoutes = require('./routes/search');
 const workflowDataRoutes = require('./routes/workflow-data');
+const excelDataRoutes = require('./routes/excelDataManager');
 
 let workflowRoutes;
 try {
@@ -638,6 +639,7 @@ if (projectImportRoutes) {
 }
 app.use('/api/search', searchRoutes);
 app.use('/api/workflow-data', workflowDataRoutes);
+app.use('/api/excel-data', excelDataRoutes);
 app.use('/api/roles', roleRoutes);
 
 // Serve React build files in production
