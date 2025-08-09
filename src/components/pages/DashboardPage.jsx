@@ -1704,7 +1704,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <td colSpan="8" className="text-center py-8">
                           <div className="text-red-600 mb-4">
                             <div className="font-semibold">Error loading projects:</div>
-                            <div className="text-sm">{projectsError}</div>
+                            <div className="text-sm">{String(projectsError?.message || projectsError || 'Unknown error')}</div>
                             <div className="text-xs mt-2 text-gray-500">
                               This often happens after navigating back from Project Workflow. Try refreshing the data.
                             </div>

@@ -198,7 +198,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         ...prev,
         [roleType]: ''
       }));
-      showSuccessMessage(`Failed to assign role: ${error.message || 'Unknown error'}`);
+      showSuccessMessage(`Failed to assign role: ${error.message || error.toString() || 'Unknown error'}`);
     }
   };
 
@@ -365,7 +365,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         showSuccessMessage(message);
         setImportFile(null);
       } else {
-        showSuccessMessage(`Import failed: ${data.message}`);
+        showSuccessMessage(`Import failed: ${String(data.message || 'Unknown error')}`);
       }
     } catch (error) {
       console.error('Error importing projects:', error);
@@ -1532,7 +1532,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
                   <div key={index} className={`text-xs p-2 rounded ${
                     colorMode ? 'bg-red-900/30' : 'bg-red-100'
                   }`}>
-                    <strong>Row {failed.row || index + 1}:</strong> {failed.error || failed.message || 'Unknown error'}
+                    <strong>Row {failed.row || index + 1}:</strong> {String(failed.error || failed.message || 'Unknown error')}
                   </div>
                 ))}
                 {importResults.failed.length > 3 && (
@@ -1673,7 +1673,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
     } catch (err) {
       console.error('Upload error:', err);
-      setExcelError(err.message);
+      setExcelError(err.message || err.toString() || 'Upload failed');
     } finally {
       setIsUploading(false);
     }
@@ -1701,7 +1701,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setExcelError('Failed to download template: ' + err.message);
+      setExcelError('Failed to download template: ' + (err.message || err.toString() || 'Unknown error'));
     }
   };
 
@@ -1731,7 +1731,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setExcelError('Failed to export data: ' + err.message);
+      setExcelError('Failed to export data: ' + (err.message || err.toString() || 'Unknown error'));
     }
   };
 
@@ -1867,7 +1867,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
           <div className="flex items-center gap-2">
             <span className="text-red-500">⚠️</span>
             <span className={`text-sm font-medium ${colorMode ? 'text-red-400' : 'text-red-800'}`}>
-              {excelError}
+              {String(excelError)}
             </span>
           </div>
         </div>
@@ -1909,7 +1909,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
               <div className="space-y-1">
                 {uploadResult.errors.slice(0, 3).map((error, index) => (
                   <p key={index} className={`text-xs ${colorMode ? 'text-red-300' : 'text-red-700'}`}>
-                    Row {error.row}: {error.error}
+                    Row {error.row}: {String(error.error || error.message || 'Unknown error')}
                   </p>
                 ))}
                 {uploadResult.errors.length > 3 && (
@@ -2026,7 +2026,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
               <div className={`fixed top-4 right-4 p-3 rounded shadow-sm z-50 ${colorMode ? 'bg-green-800 text-white' : 'bg-green-100 text-green-800'}`}>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">✅</span>
-                  <span className="font-semibold text-sm">{successMessage}</span>
+                  <span className="font-semibold text-sm">{String(successMessage)}</span>
                 </div>
               </div>
             )}
