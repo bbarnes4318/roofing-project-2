@@ -530,20 +530,20 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         return (
             <div 
                 data-project-id={String(project.id)}
-                className={`${colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden`}
+                className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl hover:shadow-medium transition-all duration-300 overflow-hidden hover:-translate-y-1"
             >
                 {/* Condensed Header */}
-                <div className={`px-3 py-2 ${colorMode ? 'bg-gradient-to-r from-slate-900 to-slate-800' : 'bg-gradient-to-r from-gray-50 to-white'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${phaseColors.bg} ${phaseColors.text} text-xs font-bold`}>
+                <div className="px-4 py-4 bg-gradient-to-r from-gray-50 to-white">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${phaseColors.bg} ${phaseColors.text} text-sm font-bold shadow-sm`}>
                                 {project.projectNumber?.slice(-2) || '#'}
                             </div>
                             <div>
-                                <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                <h3 className="text-lg font-bold text-gray-900">
                                     #{project.projectNumber || '12345'}
                                 </h3>
-                                <span className={`text-xs ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
+                                <span className="text-sm text-gray-600">
                                     {projectType}
                                 </span>
                             </div>
@@ -551,49 +551,49 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         
                         {/* Phase Badge */}
                         <div className="text-right">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${phaseColors.bg} ${phaseColors.text}`}>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-xl text-sm font-medium ${phaseColors.bg} ${phaseColors.text} shadow-sm`}>
                                 {currentPhase}
                             </span>
-                            <div className={`text-xs mt-0.5 ${colorMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                            <div className="text-sm mt-1 text-gray-600 font-medium">
                                 {getProjectProgress(project)}%
                             </div>
                         </div>
                     </div>
                     
                     {/* Progress Bar */}
-                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
+                    <div className="w-full h-2 rounded-full overflow-hidden bg-gray-200">
                         <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
+                            className="h-full bg-gradient-to-r from-brand-500 to-red-500 rounded-full transition-all duration-300"
                             style={{ width: `${getProjectProgress(project)}%` }}
                         ></div>
                     </div>
                 </div>
 
                 {/* Customer & Contact Info */}
-                <div className="px-3 py-2 space-y-2">
+                <div className="px-4 py-4 space-y-4">
                     {/* Customer Section */}
                     <div>
-                        <h4 className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Customer</h4>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Customer</h4>
                         <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                                <p className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                                <p className="text-base font-medium text-gray-900 truncate">
                                     {project.customer?.primaryName || project.client?.name || 'Not Set'}
                                 </p>
-                                <p className={`text-xs ${colorMode ? 'text-slate-400' : 'text-gray-600'} truncate`}>
+                                <p className="text-sm text-gray-600 truncate">
                                     {project.customer?.address || project.client?.address || project.projectName || 'No Address'}
                                 </p>
                             </div>
-                            <div className="flex gap-1 ml-2">
+                            <div className="flex gap-2 ml-3">
                                 {project.customer?.primaryPhone && (
                                     <a href={`tel:${project.customer.primaryPhone.replace(/[^\d+]/g, '')}`}
-                                       className={`text-xs hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
+                                       className="text-sm hover:underline text-brand-600 hover:text-brand-700 transition-colors"
                                        title={project.customer.primaryPhone}>
                                         📞
                                     </a>
                                 )}
                                 {project.customer?.primaryEmail && (
                                     <a href={`mailto:${project.customer.primaryEmail}`}
-                                       className={`text-xs hover:underline ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}
+                                       className="text-sm hover:underline text-brand-600 hover:text-brand-700 transition-colors"
                                        title={project.customer.primaryEmail}>
                                         ✉️
                                     </a>
@@ -603,16 +603,16 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                     
                     {/* Project Manager Section */}
-                    <div className={`pt-2 border-t ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
-                        <h4 className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Project Manager</h4>
-                        <p className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                    <div className="pt-3 border-t border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Project Manager</h4>
+                        <p className="text-base font-medium text-gray-900 truncate">
                             {project.projectManager ? `${project.projectManager.firstName || ''} ${project.projectManager.lastName || ''}`.trim() : 'Not Assigned'}
                         </p>
                     </div>
                     
                     {/* Current Task Section */}
-                    <div className={`pt-2 border-t ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
-                        <h4 className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>Current Task</h4>
+                    <div className="pt-3 border-t border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Current Task</h4>
                         <button
                             onClick={() => {
                                 // Use the new direct navigation system for workflow
@@ -723,16 +723,16 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
     return (
         <>
-        <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
-            <div className="w-full max-w-7xl mx-auto py-4 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900">
+            <div className="w-full max-w-7xl mx-auto py-6 px-6">
                 {/* Condensed Header */}
-                <div className="mb-4">
-                    <div className="flex items-center justify-between mb-3">
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h1 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
                                 My Projects
                             </h1>
-                            <p className={`text-sm ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                            <p className="text-lg text-gray-600 font-medium">
                                 {projectsArray.length} {projectsArray.length === 1 ? 'project' : 'projects'}
                             </p>
                         </div>
@@ -749,11 +749,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
                             }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg ${
-                                colorMode
-                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white'
-                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white'
-                            }`}
+                            className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-brand-500 to-red-500 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
                         >
                             <span className="text-lg">+</span>
                             <span>Add New Project</span>
@@ -761,18 +757,18 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     </div>
                     
                     {/* Stats Bar */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'} shadow-sm`}>
-                            <div className={`text-sm font-medium ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>Total Projects</div>
-                            <div className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>{projectsArray.length}</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                            <div className="text-sm font-medium text-gray-600 mb-1">Total Projects</div>
+                            <div className="text-3xl font-bold text-gray-900">{projectsArray.length}</div>
                         </div>
-                        <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'} shadow-sm`}>
-                            <div className={`text-sm font-medium ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>In Progress</div>
-                            <div className={`text-2xl font-bold text-blue-600`}>{projectsArray.filter(p => p.status !== 'COMPLETED').length}</div>
+                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                            <div className="text-sm font-medium text-gray-600 mb-1">In Progress</div>
+                            <div className="text-3xl font-bold text-brand-600">{projectsArray.filter(p => p.status !== 'COMPLETED').length}</div>
                         </div>
-                        <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'} shadow-sm`}>
-                            <div className={`text-sm font-medium ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>Avg Progress</div>
-                            <div className={`text-2xl font-bold text-green-600`}>
+                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                            <div className="text-sm font-medium text-gray-600 mb-1">Avg Progress</div>
+                            <div className="text-3xl font-bold text-green-600">
                                 {projectsArray.length > 0 ? Math.round(projectsArray.reduce((sum, p) => {
                                     try {
                                         return sum + (getProjectProgress ? getProjectProgress(p) : 0);
@@ -783,9 +779,9 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 }, 0) / projectsArray.length) : 0}%
                             </div>
                         </div>
-                        <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'} shadow-sm`}>
-                            <div className={`text-sm font-medium ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>This Month</div>
-                            <div className={`text-2xl font-bold text-purple-600`}>
+                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                            <div className="text-sm font-medium text-gray-600 mb-1">This Month</div>
+                            <div className="text-3xl font-bold text-purple-600">
                                 {projectsArray.filter(p => {
                                     const created = new Date(p.createdAt);
                                     const now = new Date();
@@ -804,29 +800,29 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         ))}
                     </div>
                 ) : projectsError ? (
-                    <div className={`p-8 rounded-xl ${colorMode ? 'bg-slate-800' : 'bg-white'} shadow-lg`}>
+                    <div className="p-8 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
                         <ErrorState 
                             message={projectsError?.message || 'Unable to load projects. Please try again.'}
                             onRetry={() => refetch()}
                             colorMode={colorMode}
                         />
-                        <div className="mt-4 text-center">
+                        <div className="mt-6 text-center">
                             <button 
                                 onClick={() => refetch()}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                className="px-6 py-3 bg-brand-500 text-white rounded-xl hover:bg-brand-600 transition-all duration-300 shadow-soft hover:shadow-medium"
                             >
                                 Try Again
                             </button>
                         </div>
                     </div>
                 ) : projectsArray.length === 0 ? (
-                    <div className={`p-12 rounded-xl text-center ${colorMode ? 'bg-slate-800' : 'bg-white'} shadow-lg`}>
-                        <div className="mb-6">
-                            <div className="text-6xl mb-4">🏗️</div>
-                            <h3 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                    <div className="p-12 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl text-center">
+                        <div className="mb-8">
+                            <div className="text-6xl mb-6">🏗️</div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                 No projects yet
                             </h3>
-                            <p className={`${colorMode ? 'text-slate-400' : 'text-gray-600'} mb-6`}>
+                            <p className="text-lg text-gray-600 mb-8">
                                 Get started by creating your first project and begin managing your roofing business more efficiently.
                             </p>
                         </div>
@@ -843,11 +839,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
                             }}
-                            className={`px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl ${
-                                colorMode
-                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white'
-                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white'
-                            }`}
+                            className="px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 bg-gradient-to-r from-brand-500 to-red-500 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
                         >
                             Create Your First Project
                         </button>
