@@ -20,7 +20,7 @@ import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import CustomersPage from './components/pages/CustomersPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
 import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
-import ExcelDataManagerPage from './components/pages/ExcelDataManagerPage';
+
 // Removed mock data import
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
