@@ -14,6 +14,47 @@ const {
   getUploadableTables
 } = require('../utils/completeFieldMapping');
 
+/**
+ * Table name to Prisma model name mapping
+ */
+const TABLE_TO_MODEL_MAPPING = {
+  'users': 'User',
+  'customers': 'Customer',
+  'contacts': 'Contact',
+  'projects': 'Project',
+  'project_team_members': 'ProjectTeamMember',
+  'project_workflows': 'ProjectWorkflow',
+  'workflow_steps': 'WorkflowStep',
+  'workflow_subtasks': 'WorkflowSubTask',
+  'workflow_step_attachments': 'WorkflowStepAttachment',
+  'workflow_alerts': 'WorkflowAlert',
+  'tasks': 'Task',
+  'task_dependencies': 'TaskDependency',
+  'documents': 'Document',
+  'document_downloads': 'DocumentDownload',
+  'project_messages': 'ProjectMessage',
+  'conversations': 'Conversation',
+  'conversation_participants': 'ConversationParticipant',
+  'messages': 'Message',
+  'message_reads': 'MessageRead',
+  'calendar_events': 'CalendarEvent',
+  'calendar_event_attendees': 'CalendarEventAttendee',
+  'notifications': 'Notification',
+  'project_phase_overrides': 'ProjectPhaseOverride',
+  'suppressed_workflow_alerts': 'SuppressedWorkflowAlert',
+  'role_assignments': 'RoleAssignment',
+  'workflow_phases': 'WorkflowPhase',
+  'workflow_sections': 'WorkflowSection',
+  'workflow_line_items': 'WorkflowLineItem',
+  'project_workflow_trackers': 'ProjectWorkflowTracker',
+  'completed_workflow_items': 'CompletedWorkflowItem',
+  'user_devices': 'UserDevice',
+  'user_mfa': 'UserMFA',
+  'security_events': 'SecurityEvent',
+  'user_behavior_patterns': 'UserBehaviorPattern',
+  'webauthn_credentials': 'WebAuthnCredential'
+};
+
 // Configure multer for Excel file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -486,47 +527,6 @@ router.get('/export/:tableName', asyncHandler(async (req, res) => {
     throw new AppError(`Export failed: ${error.message}`, 500);
   }
 }));
-
-/**
- * Table name to Prisma model name mapping
- */
-const TABLE_TO_MODEL_MAPPING = {
-  'users': 'User',
-  'customers': 'Customer',
-  'contacts': 'Contact',
-  'projects': 'Project',
-  'project_team_members': 'ProjectTeamMember',
-  'project_workflows': 'ProjectWorkflow',
-  'workflow_steps': 'WorkflowStep',
-  'workflow_subtasks': 'WorkflowSubTask',
-  'workflow_step_attachments': 'WorkflowStepAttachment',
-  'workflow_alerts': 'WorkflowAlert',
-  'tasks': 'Task',
-  'task_dependencies': 'TaskDependency',
-  'documents': 'Document',
-  'document_downloads': 'DocumentDownload',
-  'project_messages': 'ProjectMessage',
-  'conversations': 'Conversation',
-  'conversation_participants': 'ConversationParticipant',
-  'messages': 'Message',
-  'message_reads': 'MessageRead',
-  'calendar_events': 'CalendarEvent',
-  'calendar_event_attendees': 'CalendarEventAttendee',
-  'notifications': 'Notification',
-  'project_phase_overrides': 'ProjectPhaseOverride',
-  'suppressed_workflow_alerts': 'SuppressedWorkflowAlert',
-  'role_assignments': 'RoleAssignment',
-  'workflow_phases': 'WorkflowPhase',
-  'workflow_sections': 'WorkflowSection',
-  'workflow_line_items': 'WorkflowLineItem',
-  'project_workflow_trackers': 'ProjectWorkflowTracker',
-  'completed_workflow_items': 'CompletedWorkflowItem',
-  'user_devices': 'UserDevice',
-  'user_mfa': 'UserMFA',
-  'security_events': 'SecurityEvent',
-  'user_behavior_patterns': 'UserBehaviorPattern',
-  'webauthn_credentials': 'WebAuthnCredential'
-};
 
 /**
  * GET /api/complete-excel-data/export/all - Export entire database to Excel
