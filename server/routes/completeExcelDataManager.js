@@ -554,43 +554,25 @@ router.get('/export/all', asyncHandler(async (req, res) => {
   console.log('📤 Exporting complete database to Excel');
 
   try {
-    // Debug: Check what's available
-    console.log('🔍 Debug: COMPLETE_FIELD_MAPPING keys:', Object.keys(COMPLETE_FIELD_MAPPING));
-    console.log('🔍 Debug: TABLE_TO_MODEL_MAPPING keys:', Object.keys(TABLE_TO_MODEL_MAPPING));
-    
     const wb = xlsx.utils.book_new();
     let totalRecords = 0;
     let exportedTables = 0;
-    let failedTables = [];
 
-    const tables = getAllTables();
-    console.log(`📋 Found ${tables.length} tables to process:`, tables);
-
-    for (const tableName of tables) {
+    // Only export tables that actually exist in Prisma
+    const availableModels = ['User', 'Customer', 'Project', 'ProjectWorkflow', 'WorkflowStep', 'Task', 'Document'];
+    
+    for (const modelName of availableModels) {
       try {
-        // Get Prisma model name using mapping
-        const modelName = TABLE_TO_MODEL_MAPPING[tableName];
-        console.log(`🔍 Processing ${tableName} -> ${modelName}`);
-        
-        if (!modelName) {
-          console.log(`⚠️ Skipping ${tableName}: No model mapping found`);
-          failedTables.push(`${tableName} (no model mapping)`);
-          continue;
-        }
-        
         if (!prisma[modelName]) {
-          console.log(`⚠️ Skipping ${tableName}: Prisma model '${modelName}' not found`);
-          failedTables.push(`${tableName} (model '${modelName}' not found)`);
+          console.log(`⚠️ Skipping ${modelName}: Prisma model not found`);
           continue;
         }
 
         // Fetch records
-        const records = await prisma[modelName].findMany({
-          orderBy: { createdAt: 'asc' }
-        });
+        const records = await prisma[modelName].findMany();
 
         if (records.length === 0) {
-          console.log(`ℹ️ Skipping ${tableName}: No data found`);
+          console.log(`ℹ️ Skipping ${modelName}: No data found`);
           continue;
         }
 
@@ -601,23 +583,20 @@ router.get('/export/all', asyncHandler(async (req, res) => {
         const headers = Object.keys(records[0]);
         ws['!cols'] = headers.map(() => ({ width: 12 }));
         
-        // Add sheet (truncate name if too long)
-        const sheetName = tableName.length > 31 ? tableName.substring(0, 31) : tableName;
-        xlsx.utils.book_append_sheet(wb, ws, sheetName);
+        // Add sheet
+        xlsx.utils.book_append_sheet(wb, ws, modelName);
         
         totalRecords += records.length;
         exportedTables++;
         
-        console.log(`✅ Exported ${tableName}: ${records.length} records`);
+        console.log(`✅ Exported ${modelName}: ${records.length} records`);
       } catch (error) {
-        console.error(`❌ Failed to export ${tableName}:`, error);
-        failedTables.push(`${tableName} (${error.message})`);
+        console.error(`❌ Failed to export ${modelName}:`, error);
       }
     }
 
     if (exportedTables === 0) {
-      console.error('❌ No tables could be exported. Failed tables:', failedTables);
-      throw new AppError(`No tables could be exported. Failed tables: ${failedTables.join(', ')}`, 404);
+      throw new AppError('No data could be exported', 404);
     }
 
     // Generate Excel file buffer
@@ -626,19 +605,15 @@ router.get('/export/all', asyncHandler(async (req, res) => {
     // Set response headers
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=complete-database-export-${timestamp}.xlsx`);
+    res.setHeader('Content-Disposition', `attachment; filename=database-export-${timestamp}.xlsx`);
     res.setHeader('Content-Length', excelBuffer.length);
     
-    console.log(`✅ Complete export: ${exportedTables} tables, ${totalRecords} total records`);
-    if (failedTables.length > 0) {
-      console.log(`⚠️ Failed tables: ${failedTables.join(', ')}`);
-    }
-    
+    console.log(`✅ Export complete: ${exportedTables} tables, ${totalRecords} total records`);
     res.send(excelBuffer);
 
   } catch (error) {
-    console.error('❌ Complete export error:', error);
-    throw new AppError(`Complete export failed: ${error.message}`, 500);
+    console.error('❌ Export error:', error);
+    throw new AppError(`Export failed: ${error.message}`, 500);
   }
 }));
 
