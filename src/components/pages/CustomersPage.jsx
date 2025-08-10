@@ -666,15 +666,16 @@ const CustomersPage = ({ colorMode }) => {
               </button>
             </div>
           
-          {/* Search control */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search customers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-4 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 bg-white/80 placeholder-gray-500 hover:bg-white hover:border-gray-300"
-            />
+            {/* Search control */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search customers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-4 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 bg-white/80 placeholder-gray-500 hover:bg-white hover:border-gray-300"
+              />
+            </div>
           </div>
         </div>
 
