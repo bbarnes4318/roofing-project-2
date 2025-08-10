@@ -535,6 +535,10 @@ router.get('/export/all', asyncHandler(async (req, res) => {
   console.log('📤 Exporting complete database to Excel');
 
   try {
+    // Debug: Check what's available
+    console.log('🔍 Debug: COMPLETE_FIELD_MAPPING keys:', Object.keys(COMPLETE_FIELD_MAPPING));
+    console.log('🔍 Debug: TABLE_TO_MODEL_MAPPING keys:', Object.keys(TABLE_TO_MODEL_MAPPING));
+    
     const wb = xlsx.utils.book_new();
     let totalRecords = 0;
     let exportedTables = 0;
