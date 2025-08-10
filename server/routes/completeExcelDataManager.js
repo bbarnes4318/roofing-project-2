@@ -471,6 +471,76 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
 
 
 /**
+ * GET /api/complete-excel-data/export/all - Export entire database to Excel
+ */
+router.get('/export/all', asyncHandler(async (req, res) => {
+  console.log('📤 Exporting complete database to Excel');
+
+  try {
+    const wb = xlsx.utils.book_new();
+    let totalRecords = 0;
+    let exportedTables = 0;
+
+    // Only export tables that actually exist in Prisma
+    const availableModels = ['User', 'Customer', 'Project', 'ProjectWorkflow', 'WorkflowStep', 'Task', 'Document'];
+    
+    for (const modelName of availableModels) {
+      try {
+        if (!prisma[modelName]) {
+          console.log(`⚠️ Skipping ${modelName}: Prisma model not found`);
+          continue;
+        }
+
+        // Fetch records
+        const records = await prisma[modelName].findMany();
+
+        if (records.length === 0) {
+          console.log(`ℹ️ Skipping ${modelName}: No data found`);
+          continue;
+        }
+
+        // Create worksheet
+        const ws = xlsx.utils.json_to_sheet(records);
+        
+        // Set column widths
+        const headers = Object.keys(records[0]);
+        ws['!cols'] = headers.map(() => ({ width: 12 }));
+        
+        // Add sheet
+        xlsx.utils.book_append_sheet(wb, ws, modelName);
+        
+        totalRecords += records.length;
+        exportedTables++;
+        
+        console.log(`✅ Exported ${modelName}: ${records.length} records`);
+      } catch (error) {
+        console.error(`❌ Failed to export ${modelName}:`, error);
+      }
+    }
+
+    if (exportedTables === 0) {
+      throw new AppError('No data could be exported', 404);
+    }
+
+    // Generate Excel file buffer
+    const excelBuffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    
+    // Set response headers
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=database-export-${timestamp}.xlsx`);
+    res.setHeader('Content-Length', excelBuffer.length);
+    
+    console.log(`✅ Export complete: ${exportedTables} tables, ${totalRecords} total records`);
+    res.send(excelBuffer);
+
+  } catch (error) {
+    console.error('❌ Export error:', error);
+    throw new AppError(`Export failed: ${error.message}`, 500);
+  }
+}));
+
+/**
  * GET /api/complete-excel-data/export/:tableName - Export specific table to Excel
  */
 router.get('/export/:tableName', asyncHandler(async (req, res) => {
@@ -547,72 +617,6 @@ router.get('/debug', asyncHandler(async (req, res) => {
   
   console.log('🔍 Debug info:', debugInfo);
   res.json(debugInfo);
-}));
-router.get('/export/all', asyncHandler(async (req, res) => {
-  console.log('📤 Exporting complete database to Excel');
-
-  try {
-    const wb = xlsx.utils.book_new();
-    let totalRecords = 0;
-    let exportedTables = 0;
-
-    // Only export tables that actually exist in Prisma
-    const availableModels = ['User', 'Customer', 'Project', 'ProjectWorkflow', 'WorkflowStep', 'Task', 'Document'];
-    
-    for (const modelName of availableModels) {
-      try {
-        if (!prisma[modelName]) {
-          console.log(`⚠️ Skipping ${modelName}: Prisma model not found`);
-          continue;
-        }
-
-        // Fetch records
-        const records = await prisma[modelName].findMany();
-
-        if (records.length === 0) {
-          console.log(`ℹ️ Skipping ${modelName}: No data found`);
-          continue;
-        }
-
-        // Create worksheet
-        const ws = xlsx.utils.json_to_sheet(records);
-        
-        // Set column widths
-        const headers = Object.keys(records[0]);
-        ws['!cols'] = headers.map(() => ({ width: 12 }));
-        
-        // Add sheet
-        xlsx.utils.book_append_sheet(wb, ws, modelName);
-        
-        totalRecords += records.length;
-        exportedTables++;
-        
-        console.log(`✅ Exported ${modelName}: ${records.length} records`);
-      } catch (error) {
-        console.error(`❌ Failed to export ${modelName}:`, error);
-      }
-    }
-
-    if (exportedTables === 0) {
-      throw new AppError('No data could be exported', 404);
-    }
-
-    // Generate Excel file buffer
-    const excelBuffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    
-    // Set response headers
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=database-export-${timestamp}.xlsx`);
-    res.setHeader('Content-Length', excelBuffer.length);
-    
-    console.log(`✅ Export complete: ${exportedTables} tables, ${totalRecords} total records`);
-    res.send(excelBuffer);
-
-  } catch (error) {
-    console.error('❌ Export error:', error);
-    throw new AppError(`Export failed: ${error.message}`, 500);
-  }
 }));
 
 /**
