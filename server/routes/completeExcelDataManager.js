@@ -468,6 +468,8 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
   }
 }));
 
+
+
 /**
  * GET /api/complete-excel-data/export/:tableName - Export specific table to Excel
  */
@@ -546,10 +548,6 @@ router.get('/debug', asyncHandler(async (req, res) => {
   console.log('🔍 Debug info:', debugInfo);
   res.json(debugInfo);
 }));
-
-/**
- * GET /api/complete-excel-data/export/all - Export entire database to Excel
- */
 router.get('/export/all', asyncHandler(async (req, res) => {
   console.log('📤 Exporting complete database to Excel');
 
