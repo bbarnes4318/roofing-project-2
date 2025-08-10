@@ -18,6 +18,7 @@ import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import CustomersPage from './components/pages/CustomersPage';
+import MyMessagesPage from './components/pages/MyMessagesPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
 import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
 
@@ -685,6 +686,8 @@ export default function App() {
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Projects', icon: <DocumentTextIcon />, page: 'Projects' },
+        { name: 'Customers', icon: <UserGroupIcon />, page: 'Customers' },
+        { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
         { name: 'AI Assistant', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
@@ -725,6 +728,7 @@ export default function App() {
                 />
             );
             case 'Customers': return <CustomersPage colorMode={colorMode} />;
+            case 'Project Messages': return <MyMessagesPage colorMode={colorMode} projects={projects} onProjectSelect={handleProjectSelect} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
