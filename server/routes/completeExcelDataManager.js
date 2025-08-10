@@ -529,6 +529,25 @@ router.get('/export/:tableName', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * GET /api/complete-excel-data/debug - Debug endpoint to check what's available
+ */
+router.get('/debug', asyncHandler(async (req, res) => {
+  console.log('🔍 Debug endpoint called');
+  
+  const debugInfo = {
+    completeFieldMappingKeys: Object.keys(COMPLETE_FIELD_MAPPING),
+    tableToModelMappingKeys: Object.keys(TABLE_TO_MODEL_MAPPING),
+    allTables: getAllTables(),
+    tableCount: getAllTables().length,
+    hasPrisma: !!prisma,
+    prismaModels: Object.keys(prisma).filter(key => typeof prisma[key] === 'object' && prisma[key].findMany)
+  };
+  
+  console.log('🔍 Debug info:', debugInfo);
+  res.json(debugInfo);
+}));
+
+/**
  * GET /api/complete-excel-data/export/all - Export entire database to Excel
  */
 router.get('/export/all', asyncHandler(async (req, res) => {
