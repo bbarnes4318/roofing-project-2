@@ -135,8 +135,12 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
       errors: []
     };
 
-    // Get the Prisma model name (convert snake_case to camelCase)
-    const modelName = tableName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    // Get the Prisma model name using mapping
+    const modelName = TABLE_TO_MODEL_MAPPING[tableName];
+    
+    if (!modelName) {
+      throw new Error(`No model mapping found for table '${tableName}'`);
+    }
     
     // Check if model exists in Prisma
     if (!prisma[modelName]) {
@@ -436,8 +440,12 @@ router.get('/export/:tableName', asyncHandler(async (req, res) => {
   console.log(`📤 Exporting table: ${tableName}`);
 
   try {
-    // Get Prisma model name
-    const modelName = tableName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    // Get Prisma model name using mapping
+    const modelName = TABLE_TO_MODEL_MAPPING[tableName];
+    
+    if (!modelName) {
+      throw new AppError(`No model mapping found for table '${tableName}'`, 404);
+    }
     
     if (!prisma[modelName]) {
       throw new AppError(`Prisma model '${modelName}' not found`, 404);
@@ -480,6 +488,47 @@ router.get('/export/:tableName', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * Table name to Prisma model name mapping
+ */
+const TABLE_TO_MODEL_MAPPING = {
+  'users': 'User',
+  'customers': 'Customer',
+  'contacts': 'Contact',
+  'projects': 'Project',
+  'project_team_members': 'ProjectTeamMember',
+  'project_workflows': 'ProjectWorkflow',
+  'workflow_steps': 'WorkflowStep',
+  'workflow_subtasks': 'WorkflowSubTask',
+  'workflow_step_attachments': 'WorkflowStepAttachment',
+  'workflow_alerts': 'WorkflowAlert',
+  'tasks': 'Task',
+  'task_dependencies': 'TaskDependency',
+  'documents': 'Document',
+  'document_downloads': 'DocumentDownload',
+  'project_messages': 'ProjectMessage',
+  'conversations': 'Conversation',
+  'conversation_participants': 'ConversationParticipant',
+  'messages': 'Message',
+  'message_reads': 'MessageRead',
+  'calendar_events': 'CalendarEvent',
+  'calendar_event_attendees': 'CalendarEventAttendee',
+  'notifications': 'Notification',
+  'project_phase_overrides': 'ProjectPhaseOverride',
+  'suppressed_workflow_alerts': 'SuppressedWorkflowAlert',
+  'role_assignments': 'RoleAssignment',
+  'workflow_phases': 'WorkflowPhase',
+  'workflow_sections': 'WorkflowSection',
+  'workflow_line_items': 'WorkflowLineItem',
+  'project_workflow_trackers': 'ProjectWorkflowTracker',
+  'completed_workflow_items': 'CompletedWorkflowItem',
+  'user_devices': 'UserDevice',
+  'user_mfa': 'UserMFA',
+  'security_events': 'SecurityEvent',
+  'user_behavior_patterns': 'UserBehaviorPattern',
+  'webauthn_credentials': 'WebAuthnCredential'
+};
+
+/**
  * GET /api/complete-excel-data/export/all - Export entire database to Excel
  */
 router.get('/export/all', asyncHandler(async (req, res) => {
@@ -489,16 +538,26 @@ router.get('/export/all', asyncHandler(async (req, res) => {
     const wb = xlsx.utils.book_new();
     let totalRecords = 0;
     let exportedTables = 0;
+    let failedTables = [];
 
     const tables = getAllTables();
+    console.log(`📋 Found ${tables.length} tables to process:`, tables);
 
     for (const tableName of tables) {
       try {
-        // Get Prisma model name
-        const modelName = tableName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        // Get Prisma model name using mapping
+        const modelName = TABLE_TO_MODEL_MAPPING[tableName];
+        console.log(`🔍 Processing ${tableName} -> ${modelName}`);
+        
+        if (!modelName) {
+          console.log(`⚠️ Skipping ${tableName}: No model mapping found`);
+          failedTables.push(`${tableName} (no model mapping)`);
+          continue;
+        }
         
         if (!prisma[modelName]) {
-          console.log(`⚠️ Skipping ${tableName}: Prisma model not found`);
+          console.log(`⚠️ Skipping ${tableName}: Prisma model '${modelName}' not found`);
+          failedTables.push(`${tableName} (model '${modelName}' not found)`);
           continue;
         }
 
@@ -528,12 +587,14 @@ router.get('/export/all', asyncHandler(async (req, res) => {
         
         console.log(`✅ Exported ${tableName}: ${records.length} records`);
       } catch (error) {
-        console.log(`❌ Failed to export ${tableName}: ${error.message}`);
+        console.error(`❌ Failed to export ${tableName}:`, error);
+        failedTables.push(`${tableName} (${error.message})`);
       }
     }
 
     if (exportedTables === 0) {
-      throw new AppError('No tables could be exported', 404);
+      console.error('❌ No tables could be exported. Failed tables:', failedTables);
+      throw new AppError(`No tables could be exported. Failed tables: ${failedTables.join(', ')}`, 404);
     }
 
     // Generate Excel file buffer
@@ -546,6 +607,9 @@ router.get('/export/all', asyncHandler(async (req, res) => {
     res.setHeader('Content-Length', excelBuffer.length);
     
     console.log(`✅ Complete export: ${exportedTables} tables, ${totalRecords} total records`);
+    if (failedTables.length > 0) {
+      console.log(`⚠️ Failed tables: ${failedTables.join(', ')}`);
+    }
     
     res.send(excelBuffer);
 
