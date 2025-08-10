@@ -1,0 +1,33 @@
+id,createdAt,updatedAt,sectionNumber,sectionName,displayName,displayOrder,description,isActive,phaseId
+cmdz32fsr0002umpc92vzc2ny,8/5/2025,8/5/2025,1,Input Customer Information,Input Customer Information ,0,,TRUE,cmdz32fob0000umpc9m2kyph2
+cmdz32g1d0008umpcix3ss3wk,8/5/2025,8/5/2025,2,Complete Questions to Ask Checklist,Complete Questions to Ask Checklist ,2,,TRUE,cmdz32fob0000umpc9m2kyph2
+cmdz32g5y000eumpc2dree1ur,8/5/2025,8/5/2025,3,Input Lead Property Information,Input Lead Property Information,4,,TRUE,cmdz32fob0000umpc9m2kyph2
+cmdz32gex000qumpcg9j1lg9o,8/5/2025,8/5/2025,4,Assign A Project Manager,Assign A Project Manager ,6,,TRUE,cmdz32fob0000umpc9m2kyph2
+cmdz32gjb000wumpc55b51d1u,8/5/2025,8/5/2025,5,Schedule Initial Inspection,Schedule Initial Inspection,8,,TRUE,cmdz32fob0000umpc9m2kyph2
+cmdz32hak0013umpc8irn74qw,8/5/2025,8/5/2025,1,Site Inspection,Site Inspection,0,,TRUE,cmdz32gyl0011umpcfry7utim
+cmdz32hho001fumpc2r67ae1v,8/5/2025,8/5/2025,2,Write Estimate,Write Estimate,2,,TRUE,cmdz32gyl0011umpcfry7utim
+cmdz32hoo001pumpchm69jemr,8/5/2025,8/5/2025,3,Insurance Process,Insurance Process,4,,TRUE,cmdz32gyl0011umpcfry7utim
+cmdz32huy001xumpcxor67mh2,8/5/2025,8/5/2025,4,Agreement Preparation,Agreement Preparation,6,,TRUE,cmdz32gyl0011umpcfry7utim
+cmdz32i1x0029umpcv26cl6yv,8/5/2025,8/5/2025,5,Agreement Signing,Agreement Signing,8,,TRUE,cmdz32gyl0011umpcfry7utim
+cmdz32iol0035umpcyqopejhj,8/5/2025,8/5/2025,1,Administrative Setup,Administrative Setup,0,,TRUE,cmdz32ing0033umpc4ixpym7z
+cmdz32iul003fumpc8xzulxi7,8/5/2025,8/5/2025,2,Pre Job Actions,Pre Job Actions,2,,TRUE,cmdz32ing0033umpc4ixpym7z
+cmdz32iww003jumpcasign2v2,8/5/2025,8/5/2025,3,Prepare for Production-Ensure all pictures in job (if roof work),Prepare for Production-Ensure all pictures in job (if roof work),4,,TRUE,cmdz32ing0033umpc4ixpym7z
+cmdz32iz8003numpcbu6b1e6w,8/5/2025,8/5/2025,4,Prepare for Production-Verify Labor Order in Scheduler,Prepare for Production-Verify Labor Order in Scheduler,6,,TRUE,cmdz32ing0033umpc4ixpym7z
+cmdz32j3x003vumpcb69d3gsi,8/5/2025,8/5/2025,5,Verify Material Orders-Confirm supplier orders,Verify Material Orders-Confirm supplier orders,8,,TRUE,cmdz32ing0033umpc4ixpym7z
+cmdz32jur0043umpcxtvj1mdx,8/5/2025,8/5/2025,6,Subcontractor Work,Subcontractor Work,10,,TRUE,cmdz32ing0033umpc4ixpym7z
+,,,7,Paint,Paint,12,,TRUE,cmdz32ing0033umpc4ixpym7z
+cmdz32l17004cumpcu4t3avnw,8/5/2025,8/5/2025,1,Installation,Installation ,0,,TRUE,cmdz32jzp004aumpcxxcspp8d
+cmdz32l63004kumpcmas3up8y,8/5/2025,8/5/2025,2,Daily Job Progress Note,Daily Job Progress Note,2,,TRUE,cmdz32jzp004aumpcxxcspp8d
+,,,3,Update Daily Photos,Update Daily Photos,4,,TRUE,cmdz32jzp004aumpcxxcspp8d
+cmdz32pnr004sumpc58jz2xn7,8/5/2025,8/5/2025,4,Quality Check,Quality Check,6,,TRUE,cmdz32jzp004aumpcxxcspp8d
+cmdz32ptv0052umpcixszk70a,8/5/2025,8/5/2025,5,Multiple Trades,Multiple Trades,8,,TRUE,cmdz32jzp004aumpcxxcspp8d
+cmdz32pxo0058umpcf3h3938u,8/5/2025,8/5/2025,6,Subcontractor Work,Subcontractor Work,10,,TRUE,cmdz32jzp004aumpcxxcspp8d
+cmdz32q21005eumpcav5j2jju,8/5/2025,8/5/2025,4,Update Customer,Update Customer,12,,TRUE,cmdz32jzp004aumpcxxcspp8d
+,,,1,Create Supplement in Xactimate,Create Supplement in Xactimate,0,,TRUE,cme1pk1r90000umz4tmheyw7g
+,,,2,Call on Supp Submission: 2x Weekly Until New Estimate,Call on Supp Submission: 2x Weekly Until New Estimate,2,,TRUE,cme1pk1r90000umz4tmheyw7g
+,,,3,Review Approved Items in Supp after receiving,Review Approved Items in Supp after receiving,4,,TRUE,cme1pk1r90000umz4tmheyw7g
+,,,4,Update Customer,Update Customer,6,,TRUE,cme1pk1r90000umz4tmheyw7g
+,,,1,Final Inspection,Final Inspection,0,,TRUE,cmdz32qpc006eumpc31hcjco7
+cmdz32qqf006gumpcs23tteuh,8/5/2025,8/5/2025,2,Financial Processing,Financial Processing,2,,TRUE,cmdz32qpc006eumpc31hcjco7
+,,,3,AR Follow-Up,AR Follow-Up,4,,TRUE,cmdz32qpc006eumpc31hcjco7
+cmdz32qv2006oumpcy2must52,8/5/2025,8/5/2025,4,Project Closeout,Project Closeout,6,,TRUE,cmdz32qpc006eumpc31hcjco7
