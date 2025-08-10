@@ -481,10 +481,11 @@ router.get('/export/all', asyncHandler(async (req, res) => {
     let totalRecords = 0;
     let exportedTables = 0;
 
-    // Only export tables that actually exist in Prisma
-    const availableModels = ['User', 'Customer', 'Project', 'ProjectWorkflow', 'WorkflowStep', 'Task', 'Document'];
+    // Export all available tables using the mapping
+    const availableTables = Object.keys(TABLE_TO_MODEL_MAPPING);
     
-    for (const modelName of availableModels) {
+    for (const tableName of availableTables) {
+      const modelName = TABLE_TO_MODEL_MAPPING[tableName];
       try {
         if (!prisma[modelName]) {
           console.log(`⚠️ Skipping ${modelName}: Prisma model not found`);
@@ -506,16 +507,16 @@ router.get('/export/all', asyncHandler(async (req, res) => {
         const headers = Object.keys(records[0]);
         ws['!cols'] = headers.map(() => ({ width: 12 }));
         
-        // Add sheet
-        xlsx.utils.book_append_sheet(wb, ws, modelName);
+        // Add sheet with table name (not model name) for clarity
+        xlsx.utils.book_append_sheet(wb, ws, tableName);
         
         totalRecords += records.length;
         exportedTables++;
         
-        console.log(`✅ Exported ${modelName}: ${records.length} records`);
-      } catch (error) {
-        console.error(`❌ Failed to export ${modelName}:`, error);
-      }
+        console.log(`✅ Exported ${tableName} (${modelName}): ${records.length} records`);
+              } catch (error) {
+          console.error(`❌ Failed to export ${tableName} (${modelName}):`, error);
+        }
     }
 
     if (exportedTables === 0) {
