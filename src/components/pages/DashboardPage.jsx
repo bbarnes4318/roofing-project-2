@@ -1541,52 +1541,51 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </button>
         </div>
         
-        {/* Professional Phase Filter Section */}
+        {/* Professional Phase Filter Section - Optimized Layout */}
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Filter by Phase</h3>
             <div className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent"></div>
           </div>
           
-          <div className="overflow-x-auto">
-            <div className="flex gap-3 pb-2 min-w-max">
-              {/* All Projects Button */}
-              <button 
-                onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
-                className={`h-14 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium w-24 flex-shrink-0 ${
-                  selectedPhase === 'all'
-                    ? 'border-brand-500 bg-brand-50 shadow-brand-glow text-brand-800'
-                    : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
-                }`}
-              >
-                <div className="w-4 h-4 rounded-full bg-brand-500 flex-shrink-0 shadow-sm"></div>
-                <span className="text-xs font-medium">All</span>
-              </button>
-            
-            {/* 6 Phase Containers - Uniform width except 'All' */}
-            {PROJECT_PHASES.map(phase => (
-              <button
-                key={phase.id}
-                onClick={() => {
-                  console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
-                  setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
-                }}
-                className={`h-14 w-36 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium flex-shrink-0 ${
-                  selectedPhase === phase.id
-                    ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-800'
-                    : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
-                }`}
-              >
-                <div 
-                  className="w-4 h-4 rounded-full flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: phase.color }}
-                ></div>
-                <span className="text-center leading-tight text-xs font-medium break-words max-w-full">
-                  {phase.name}
-                </span>
-              </button>
-            ))}
-            </div>
+          {/* Optimized Phase Container Row - No Scrollbar Required */}
+          <div className="flex flex-wrap gap-2 justify-start">
+            {/* All Projects Button - Compact */}
+            <button 
+              onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
+              className={`h-12 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
+                selectedPhase === 'all'
+                  ? 'border-brand-500 bg-brand-50 shadow-brand-glow text-brand-800'
+                  : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+              }`}
+            >
+              <div className="w-3 h-3 rounded-full bg-brand-500 flex-shrink-0 shadow-sm"></div>
+              <span className="text-xs font-medium">All</span>
+            </button>
+          
+          {/* 6 Phase Containers - Optimized Sizing */}
+          {PROJECT_PHASES.map(phase => (
+            <button
+              key={phase.id}
+              onClick={() => {
+                console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
+                setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
+              }}
+              className={`h-12 px-3 py-2 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
+                selectedPhase === phase.id
+                  ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-800'
+                  : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+              }`}
+            >
+              <div 
+                className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
+                style={{ backgroundColor: phase.color }}
+              ></div>
+              <span className="text-center leading-tight text-xs font-medium whitespace-nowrap">
+                {phase.name}
+              </span>
+            </button>
+          ))}
           </div>
         </div>
 
@@ -2111,36 +2110,38 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </div>
               </div>
               
-              {/* Filter Controls */}
-              <div className="flex items-center gap-3 mb-4 mt-4">
-                <span className="text-sm font-medium text-gray-700">Filter by:</span>
-                <select 
-                  value={activityProjectFilter} 
-                  onChange={(e) => setActivityProjectFilter(e.target.value)} 
-                  className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300"
-                >
-                  <option value="">All Projects</option>
-                  {(projects || []).map(p => (
-                    <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
-                  ))}
-                </select>
+              {/* Filter Controls - Optimized Layout */}
+              <div className="flex items-center justify-between gap-3 mb-4 mt-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700">Filter by:</span>
+                  <select 
+                    value={activityProjectFilter} 
+                    onChange={(e) => setActivityProjectFilter(e.target.value)} 
+                    className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300"
+                  >
+                    <option value="">All Projects</option>
+                    {(projects || []).map(p => (
+                      <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                    ))}
+                  </select>
+                  
+                  <select 
+                    value={activitySubjectFilter} 
+                    onChange={(e) => setActivitySubjectFilter(e.target.value)} 
+                    className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300"
+                  >
+                    <option value="">All Subjects</option>
+                    {subjects.map(subject => (
+                      <option key={subject} value={subject}>{subject}</option>
+                    ))}
+                  </select>
+                </div>
                 
-                <select 
-                  value={activitySubjectFilter} 
-                  onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                  className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300"
-                >
-                  <option value="">All Subjects</option>
-                  {subjects.map(subject => (
-                    <option key={subject} value={subject}>{subject}</option>
-                  ))}
-                </select>
-                
-                {/* Condensed Expand/Collapse Controls - Aligned with Current Alerts */}
+                {/* Expand/Collapse Controls - Positioned to the right */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExpandAllMessages}
-                    className={`px-3 py-2 text-xs font-medium rounded-xl border-2 transition-all duration-300 ${
+                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
                       expandedMessages.size === currentActivities.length && currentActivities.length > 0
                         ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
                         : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
@@ -2154,7 +2155,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   </button>
                   <button
                     onClick={handleCollapseAllMessages}
-                    className={`px-3 py-2 text-xs font-medium rounded-xl border-2 transition-all duration-300 ${
+                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
                       expandedMessages.size === 0
                         ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
                         : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
@@ -2479,7 +2480,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExpandAllAlerts}
-                    className={`px-3 py-2 text-xs font-medium rounded-xl border-2 transition-all duration-300 ${
+                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
                     expandedAlerts.size === getPaginatedAlerts().length && getPaginatedAlerts().length > 0
                       ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
                       : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
@@ -2494,10 +2495,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 
                   <button
                     onClick={handleCollapseAllAlerts}
-                    className={`px-3 py-2 text-xs font-medium rounded-xl border-2 transition-all duration-300 ${
+                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
                     expandedAlerts.size === 0 || getPaginatedAlerts().length === 0
-                      ? 'bg-gray-400 text-white border-gray-400 shadow-soft'
-                      : 'bg-white/80 text-gray-600 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                      ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
+                      : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
                   }`}
                   title="Collapse all alert details"
                   disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === 0}
@@ -2633,7 +2634,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }}
                                   className={`transform transition-transform duration-200 ${expandedContacts.has(alertId) ? 'rotate-180' : ''}`}
                                 >
-                                  <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </button>
@@ -2674,7 +2675,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }}
                                   className={`transform transition-transform duration-200 ${expandedPMs.has(alertId) ? 'rotate-180' : ''}`}
                                 >
-                                  <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </button>
