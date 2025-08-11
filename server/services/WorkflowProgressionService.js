@@ -149,8 +149,89 @@ class WorkflowProgressionService {
           }
         });
 
-        // Generate new alert AFTER transaction (simplified for now)
+        // Generate new alert AFTER transaction
         let newAlert = null;
+        if (nextPosition.updates.currentLineItemId) {
+          try {
+            // Get line item data for alert
+            const lineItemData = await prisma.workflowLineItem.findUnique({
+              where: { id: nextPosition.updates.currentLineItemId },
+              include: {
+                section: {
+                  include: {
+                    phase: true
+                  }
+                }
+              }
+            });
+
+            if (lineItemData) {
+              // Get project data
+              const projectData = await prisma.project.findUnique({
+                where: { id: projectId },
+                include: {
+                  customer: true,
+                  projectManager: true
+                }
+              });
+
+              // Find the project workflow
+              const projectWorkflow = await prisma.projectWorkflow.findFirst({
+                where: { projectId: projectId }
+              });
+
+              if (projectData && projectWorkflow) {
+                // Create or find a WorkflowStep for this line item
+                let workflowStep = await prisma.workflowStep.findFirst({
+                  where: {
+                    workflowId: projectWorkflow.id,
+                    stepName: lineItemData.itemName
+                  }
+                });
+
+                if (!workflowStep) {
+                  // Create a new workflow step for this line item
+                  workflowStep = await prisma.workflowStep.create({
+                    data: {
+                      workflowId: projectWorkflow.id,
+                      stepName: lineItemData.itemName,
+                      description: lineItemData.description || lineItemData.itemName,
+                      responsibleRole: lineItemData.responsibleRole,
+                      estimatedHours: Math.ceil(lineItemData.estimatedMinutes / 60),
+                      status: 'PENDING',
+                      priority: 'MEDIUM',
+                      displayOrder: lineItemData.displayOrder
+                    }
+                  });
+                }
+
+                // Create alert with proper relationships
+                newAlert = await prisma.workflowAlert.create({
+                  data: {
+                    type: 'Work Flow Line Item',
+                    priority: 'MEDIUM',
+                    status: 'ACTIVE',
+                    title: `${lineItemData.itemName} - ${projectData.customer?.primaryName || 'Customer'}`,
+                    message: `${lineItemData.itemName} is now ready to be completed for project ${projectData.projectName}`,
+                    stepName: lineItemData.itemName,
+                    responsibleRole: lineItemData.responsibleRole,
+                    dueDate: new Date(Date.now() + (lineItemData.alertDays || 1) * 24 * 60 * 60 * 1000),
+                    projectId: projectId,
+                    workflowId: projectWorkflow.id,
+                    stepId: workflowStep.id,
+                    assignedToId: projectData.projectManagerId,
+                    createdById: completedById
+                  }
+                });
+
+                console.log(`✅ Created alert for next line item: ${lineItemData.itemName}`);
+              }
+            }
+          } catch (alertError) {
+            console.error('Error creating alert:', alertError);
+            // Don't fail the entire transaction if alert creation fails
+          }
+        }
 
         console.log(`✅ Completed line item and progressed workflow for project ${projectId}`);
         
