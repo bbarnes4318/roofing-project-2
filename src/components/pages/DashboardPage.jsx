@@ -2780,9 +2780,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             return 0; // Default fallback
                                           };
                                           
-                                          const subtaskIndex = await getSubtaskIndex();
-                                          const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-                                          const targetSectionId = position.currentSection;
+                                           const subtaskIndex = await getSubtaskIndex();
+                                           // Prefer DB step id from alert metadata when present; fallback to composite
+                                           const targetLineItemId = actionData.stepId || actionData.lineItemId || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                           const targetSectionId = actionData.sectionId || position.currentSection;
                                           
                                           console.log('🎯 ALERTS CLICK: Generated targetLineItemId:', targetLineItemId);
                                           console.log('🎯 ALERTS CLICK: Generated targetSectionId:', targetSectionId);

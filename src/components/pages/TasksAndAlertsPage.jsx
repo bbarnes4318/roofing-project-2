@@ -588,8 +588,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                             
                                                                             if (positionResult.success && positionResult.data) {
                                                                                 // Use enhanced targeting logic similar to DashboardPage
-                                                                                // Prefer real DB step id if present
-                                                                                const targetLineItemId = actionData.stepId || `${directMapping.phase}-${directMapping.sectionId || 'unknown'}-0`;
+                                                                                // Prefer DB step id/line item id from alert metadata when present
+                                                                                const targetLineItemId = actionData.stepId || actionData.lineItemId || `${directMapping.phase}-${directMapping.sectionId || 'unknown'}-0`;
                                                                                 const targetSectionId = actionData.sectionId || directMapping.sectionId || null;
                                                                                 
                                                                                 const projectWithNavigation = {
