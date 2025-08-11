@@ -138,20 +138,18 @@ class WorkflowProgressionService {
         });
 
         // Complete old alerts WITHIN TRANSACTION
-        // First, find the WorkflowStep for this line item
-        const currentWorkflowStep = await tx.workflowStep.findFirst({
-          where: {
-            stepName: {
-              contains: lineItemId // This is a hack - we need to find the actual relationship
-            }
-          }
+        // Get the line item data to find the step name
+        const lineItemData = await tx.workflowLineItem.findUnique({
+          where: { id: lineItemId }
         });
-
+        
         let completedAlerts = { count: 0 };
-        if (currentWorkflowStep) {
+        if (lineItemData) {
+          // Complete alerts by project and step name
           completedAlerts = await tx.workflowAlert.updateMany({
             where: { 
-              stepId: currentWorkflowStep.id, 
+              projectId: projectId,
+              stepName: lineItemData.itemName,
               status: 'ACTIVE' 
             },
             data: { 
@@ -159,25 +157,6 @@ class WorkflowProgressionService {
               acknowledgedAt: new Date()
             }
           });
-        } else {
-          // Fallback: try to complete alerts by project and step name
-          const lineItemData = await tx.workflowLineItem.findUnique({
-            where: { id: lineItemId }
-          });
-          
-          if (lineItemData) {
-            completedAlerts = await tx.workflowAlert.updateMany({
-              where: { 
-                projectId: projectId,
-                stepName: lineItemData.itemName,
-                status: 'ACTIVE' 
-              },
-              data: { 
-                status: 'COMPLETED',
-                acknowledgedAt: new Date()
-              }
-            });
-          }
         }
 
         // Generate new alert AFTER transaction
