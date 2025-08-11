@@ -1548,44 +1548,47 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent"></div>
           </div>
           
-          {/* Optimized Phase Container Row - No Scrollbar Required */}
-          <div className="flex flex-wrap gap-2 justify-start">
-            {/* All Projects Button - Compact */}
+          {/* Optimized Phase Container Row - Single Row, Uniform Sizing */}
+          <div className="w-full flex items-center gap-3">
+            {/* All Projects Button - Smaller */}
             <button 
               onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
-              className={`h-12 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
+              className={`h-12 px-4 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
                 selectedPhase === 'all'
                   ? 'border-brand-500 bg-brand-50 shadow-brand-glow text-brand-800'
                   : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
               }`}
+              style={{ minWidth: 72 }}
             >
-              <div className="w-3 h-3 rounded-full bg-brand-500 flex-shrink-0 shadow-sm"></div>
-              <span className="text-xs font-medium">All</span>
+              <div className="w-3.5 h-3.5 rounded-full bg-brand-500 flex-shrink-0 shadow-sm"></div>
+              <span className="text-xs font-semibold">All</span>
             </button>
-          
-          {/* 6 Phase Containers - Optimized Sizing */}
-          {PROJECT_PHASES.map(phase => (
-            <button
-              key={phase.id}
-              onClick={() => {
-                console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
-                setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
-              }}
-              className={`h-12 px-3 py-2 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
-                selectedPhase === phase.id
-                  ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-800'
-                  : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
-              }`}
-            >
-              <div 
-                className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
-                style={{ backgroundColor: phase.color }}
-              ></div>
-              <span className="text-center leading-tight text-xs font-medium whitespace-nowrap">
-                {phase.name}
-              </span>
-            </button>
-          ))}
+
+            {/* Six phases - equal width pill buttons, bigger text and circle */}
+            <div className="flex-1 grid grid-cols-6 gap-3">
+              {PROJECT_PHASES.map(phase => (
+                <button
+                  key={phase.id}
+                  onClick={() => {
+                    console.log('Phase button clicked:', phase.id, 'Current selectedPhase:', selectedPhase);
+                    setSelectedPhase(selectedPhase === phase.id ? null : phase.id);
+                  }}
+                  className={`h-14 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
+                    selectedPhase === phase.id
+                      ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-900'
+                      : 'border-gray-200 bg-white/90 text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                  }`}
+                >
+                  <div 
+                    className="w-4.5 h-4.5 rounded-full flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: phase.color, width: 18, height: 18 }}
+                  ></div>
+                  <span className="text-center leading-tight whitespace-nowrap truncate">
+                    {phase.name}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
