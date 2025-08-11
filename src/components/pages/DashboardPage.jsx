@@ -2171,10 +2171,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </div>
               
               {/* Add Message Dropdown Trigger */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <button
                   onClick={() => setShowMessageDropdown(!showMessageDropdown)}
-                  className={`w-full px-4 py-3 text-sm font-medium border-2 rounded-xl transition-all duration-300 flex items-center justify-between ${
+                  className={`w-full px-2 py-1.5 text-xs font-medium border rounded-lg transition-all duration-300 flex items-center justify-between ${
                     showMessageDropdown
                       ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-soft' 
                       : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-brand-400 hover:text-brand-600'
@@ -2183,7 +2183,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <span>+ Add Message</span>
                   
                   {/* Dropdown Arrow */}
-                  <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-3 h-3 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -2191,7 +2191,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               
               {/* Add Message Dropdown Form */}
               {showMessageDropdown && (
-                <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                   <form onSubmit={(e) => {
                     e.preventDefault();
                     if (newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
@@ -2226,9 +2226,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       setAttachTask(false);
                       setTaskAssignee('');
                     }
-                  }} className="space-y-3">
+                  }} className="space-y-2">
                     {/* First Row: Project and To fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
                         <label className={`block text-xs font-medium mb-1 ${
                           colorMode ? 'text-gray-300' : 'text-gray-700'
@@ -2239,7 +2239,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           value={newMessageProject}
                           onChange={(e) => setNewMessageProject(e.target.value)}
                           required
-                          className={`w-full p-2 border rounded text-xs ${
+                          className={`w-full px-2 py-1 border rounded text-xs ${
                             colorMode 
                               ? 'bg-[#232b4d] border-gray-600 text-white' 
                               : 'bg-white border-gray-300 text-gray-800'
@@ -2268,12 +2268,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           }}
                           multiple
                           required
-                          className={`w-full p-2 border rounded text-xs ${
+                          className={`w-full px-2 py-1 border rounded text-xs ${
                             colorMode 
                               ? 'bg-[#232b4d] border-gray-600 text-white' 
                               : 'bg-white border-gray-300 text-gray-800'
                           }`}
-                          style={{ minHeight: '60px' }}
+                          style={{ minHeight: '40px' }}
                         >
                           <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
                           <option value="sarah-owner">Sarah Owner</option>
@@ -2292,7 +2292,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     </div>
                     
                     {/* Second Row: Subject and Task Assignment */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
                         <label className={`block text-xs font-medium mb-1 ${
                           colorMode ? 'text-gray-300' : 'text-gray-700'
@@ -2303,7 +2303,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           value={newMessageSubject}
                           onChange={(e) => setNewMessageSubject(e.target.value)}
                           required
-                          className={`w-full p-2 border rounded text-xs ${
+                          className={`w-full px-2 py-1 border rounded text-xs ${
                             colorMode 
                               ? 'bg-[#232b4d] border-gray-600 text-white' 
                               : 'bg-white border-gray-300 text-gray-800'
@@ -2332,7 +2332,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <select
                             value={taskAssignee || ''}
                             onChange={(e) => setTaskAssignee(e.target.value)}
-                            className={`w-full p-2 border rounded text-xs ${
+                            className={`w-full px-2 py-1 border rounded text-xs ${
                               colorMode 
                                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                                 : 'bg-white border-gray-300 text-gray-800'
@@ -2361,8 +2361,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         onChange={(e) => setNewMessageText(e.target.value)}
                         placeholder="Enter your message here..."
                         required
-                        rows={3}
-                        className={`w-full p-2 border rounded text-xs resize-none ${
+                        rows={2}
+                        className={`w-full px-2 py-1 border rounded text-xs resize-none ${
                           colorMode 
                             ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
                             : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
@@ -2370,7 +2370,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       />
                     </div>
                     
-                    <div className="flex justify-end gap-2 pt-2">
+                    <div className="flex justify-end gap-1.5 pt-1">
                       <button
                         type="button"
                         onClick={() => {
