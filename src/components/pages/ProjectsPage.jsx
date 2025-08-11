@@ -635,8 +635,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             }}
                             className={`w-full text-left px-3 py-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600' 
-                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600'
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700' 
+                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700'
                             }`}
                         >
                             <div className="flex items-center gap-1">
@@ -692,8 +692,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             }}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600' 
-                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600'
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700' 
+                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700'
                             }`}
                         >
                             <span className="text-sm">🗂️</span>
@@ -704,8 +704,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             onClick={() => onProjectSelect(project, 'Alerts')}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-500 hover:from-amber-600 hover:to-amber-700 hover:border-amber-600' 
-                                    : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-500 hover:from-amber-600 hover:to-amber-700 hover:border-amber-600'
+                                    ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-red-600 hover:from-red-700 hover:to-pink-700 hover:border-red-700' 
+                                    : 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-red-600 hover:from-red-700 hover:to-pink-700 hover:border-red-700'
                             }`}
                         >
                             <span className="text-sm">⚠️</span>
@@ -716,8 +716,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             onClick={() => onProjectSelect(project, 'Messages')}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white border-sky-500 hover:from-sky-600 hover:to-sky-700 hover:border-sky-600' 
-                                    : 'bg-gradient-to-r from-sky-500 to-sky-600 text-white border-sky-500 hover:from-sky-600 hover:to-sky-700 hover:border-sky-600'
+                                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-600 hover:from-gray-700 hover:to-gray-800 hover:border-gray-700' 
+                                    : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-600 hover:from-gray-700 hover:to-gray-800 hover:border-gray-700'
                             }`}
                         >
                             <span className="text-sm">💬</span>
