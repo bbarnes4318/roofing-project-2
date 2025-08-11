@@ -431,13 +431,19 @@ export default function App() {
             return;
         }
         
-        const fullProject = projects.find(p => p.id === project.id);
+        // Normalize project id to avoid null selection due to id shape/type
+        const incomingId = project?.id || project?._id || project?.projectId || project?.project_id;
+        const fullProject = projects.find(p => String(p.id) === String(incomingId));
         const projectWithEnhancements = fullProject ? {
             ...fullProject,
             ...project,
             id: fullProject.id,
             _id: fullProject._id
-        } : project;
+        } : {
+            ...project,
+            id: incomingId || `temp-${Date.now()}`,
+            name: project?.name || project?.projectName || 'Selected Project'
+        };
 
         const newNavigationState = {
             selectedProject: projectWithEnhancements,
