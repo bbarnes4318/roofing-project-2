@@ -2111,13 +2111,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </div>
               
               {/* Filter Controls - Optimized Layout */}
-              <div className="flex items-center justify-between gap-3 mb-4 mt-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">Filter by:</span>
+              <div className="flex items-center justify-between gap-2 mb-3 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-700">Filter by:</span>
                   <select 
                     value={activityProjectFilter} 
                     onChange={(e) => setActivityProjectFilter(e.target.value)} 
-                    className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
                   >
                     <option value="">All Projects</option>
                     {(projects || []).map(p => (
@@ -2128,7 +2128,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <select 
                     value={activitySubjectFilter} 
                     onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                    className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
                   >
                     <option value="">All Subjects</option>
                     {subjects.map(subject => (
@@ -2138,7 +2138,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </div>
                 
                 {/* Expand/Collapse Controls - Positioned to the right */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={handleExpandAllMessages}
                     className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
@@ -2448,9 +2448,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </div>
               
               {/* Filter Controls with Expand/Collapse Controls */}
-              <div className="flex items-center justify-between gap-3 mb-4 mt-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">Filter by:</span>
+              <div className="flex items-center justify-between gap-2 mb-3 mt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-700">Filter by:</span>
                   <select 
                     value={alertProjectFilter} 
                     onChange={(e) => setAlertProjectFilter(e.target.value)} 
