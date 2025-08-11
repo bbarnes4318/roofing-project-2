@@ -34,11 +34,14 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             setLoading(true);
             const response = await fetch('http://localhost:5000/api/calendar-events');
             if (response.ok) {
-                const events = await response.json();
+                const data = await response.json();
+                // Ensure we always have an array, even if API returns different structure
+                const events = Array.isArray(data) ? data : (data.data || data.events || []);
                 setCalendarEvents(events);
             }
         } catch (error) {
             console.error('Error fetching calendar events:', error);
+            setCalendarEvents([]); // Ensure we always have an array
         } finally {
             setLoading(false);
         }
@@ -86,18 +89,19 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         const dateString = date.toDateString();
         const dateOnly = date.toISOString().split('T')[0]; // Get YYYY-MM-DD format
         
-        // Database calendar events
-        calendarEvents.forEach(event => {
-            if (event.date === dateOnly) {
-                events.push({
-                    id: event._id || `db-event-${event.title}`,
-                    title: event.title,
-                    type: event.type,
-                    time: event.time,
-                    priority: event.priority,
-                    color: event.color || getEventColor(event.type),
-                    description: event.description,
-                    projectId: event.projectId
+        // Database calendar events - ensure calendarEvents is always an array
+        if (Array.isArray(calendarEvents)) {
+            calendarEvents.forEach(event => {
+                if (event.date === dateOnly) {
+                    events.push({
+                        id: event._id || `db-event-${event.title}`,
+                        title: event.title,
+                        type: event.type,
+                        time: event.time,
+                        priority: event.priority,
+                        color: event.color || getEventColor(event.type),
+                        description: event.description,
+                        projectId: event.projectId
                 });
             }
         });

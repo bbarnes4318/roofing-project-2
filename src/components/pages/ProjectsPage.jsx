@@ -633,8 +633,10 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     targetSectionId
                                 );
                             }}
-                            className={`w-full text-left px-2 py-2 rounded transition-all hover:shadow-sm ${
-                                colorMode ? 'bg-blue-900/30 hover:bg-blue-800/40 text-blue-200 border border-blue-700/50' : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'
+                            className={`w-full text-left px-3 py-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                colorMode 
+                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600' 
+                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600'
                             }`}
                         >
                             <div className="flex items-center gap-1">
@@ -688,32 +690,38 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 targetSectionId
                               );
                             }}
-                            className={`flex flex-col items-center gap-1 p-2 rounded border transition-all hover:shadow-sm ${
-                                colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-blue-700/20 hover:border-blue-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-300'
+                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                colorMode 
+                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600' 
+                                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600'
                             }`}
                         >
                             <span className="text-sm">🗂️</span>
-                            <span className="text-xs font-medium">Workflow</span>
+                            <span className="text-xs font-semibold">Workflow</span>
                         </button>
                         
                         <button
                             onClick={() => onProjectSelect(project, 'Alerts')}
-                            className={`flex flex-col items-center gap-1 p-2 rounded border transition-all hover:shadow-sm ${
-                                colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-amber-700/20 hover:border-amber-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-amber-50 hover:border-amber-300'
+                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                colorMode 
+                                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-500 hover:from-amber-600 hover:to-amber-700 hover:border-amber-600' 
+                                    : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-500 hover:from-amber-600 hover:to-amber-700 hover:border-amber-600'
                             }`}
                         >
                             <span className="text-sm">⚠️</span>
-                            <span className="text-xs font-medium">Alerts</span>
+                            <span className="text-xs font-semibold">Alerts</span>
                         </button>
                         
                         <button
                             onClick={() => onProjectSelect(project, 'Messages')}
-                            className={`flex flex-col items-center gap-1 p-2 rounded border transition-all hover:shadow-sm ${
-                                colorMode ? 'bg-slate-800 border-slate-600 text-white hover:bg-sky-700/20 hover:border-sky-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-sky-50 hover:border-sky-300'
+                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                colorMode 
+                                    ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white border-sky-500 hover:from-sky-600 hover:to-sky-700 hover:border-sky-600' 
+                                    : 'bg-gradient-to-r from-sky-500 to-sky-600 text-white border-sky-500 hover:from-sky-600 hover:to-sky-700 hover:border-sky-600'
                             }`}
                         >
                             <span className="text-sm">💬</span>
-                            <span className="text-xs font-medium">Messages</span>
+                            <span className="text-xs font-semibold">Messages</span>
                         </button>
                     </div>
                 </div>
