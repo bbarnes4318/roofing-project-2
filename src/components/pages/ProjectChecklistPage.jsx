@@ -663,18 +663,21 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                         <div className={`p-4 ${isCurrentSection ? 'bg-blue-50/30' : 'bg-white'}`}>
                           <div className="space-y-3">
                             {item.subtasks.map((subtask, subIdx) => {
-                              // Use database IDs for better persistence
-                              const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
+                              // Support object format from DB: { id, label }
+                              const subtaskId = typeof subtask === 'object' ? subtask.id : null;
+                              const subtaskLabel = typeof subtask === 'object' ? subtask.label : subtask;
+                              // Prefer DB line item id when available for persistence and server calls
+                              const stepId = subtaskId ? subtaskId : `DB_${phase.id}-${item.id}-${subIdx}`;
                               const isChecked = isItemChecked(stepId);
                               // console.log(`🔍 CHECKING SUBTASK: ${subtask} | stepId: ${stepId} | checked: ${isChecked}`);
                               
                               // Check if this is the current active line item
                               const isCurrentLineItem = projectPosition && 
                                 projectPosition.currentSection === item.id && 
-                                projectPosition.currentLineItemName === subtask;
+                                (projectPosition.currentLineItem === subtaskId || projectPosition.currentLineItemName === subtaskLabel);
                               
                               // Create unique line item ID for navigation targeting
-                              const lineItemId = `${phase.id}-${item.id}-${subIdx}`;
+                              const lineItemId = subtaskId ? subtaskId : `${phase.id}-${item.id}-${subIdx}`;
                               
                               // Check if this line item is being targeted for navigation
                               const isTargetedLineItem = highlightedLineItemId && highlightedLineItemId === lineItemId;
@@ -692,7 +695,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                   <div className="relative flex-shrink-0 mt-1">
                                     <input
                                       type="checkbox"
-                                      id={stepId}
+                                      id={`lineitem-checkbox-${stepId}`}
                                       checked={isChecked}
                                       onChange={() => {
                                         console.log(`Checkbox onChange: ${stepId}`);
@@ -724,7 +727,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                   
                                   {/* Task Label */}
                                   <label 
-                                    htmlFor={stepId}
+                                    htmlFor={`lineitem-checkbox-${stepId}`}
                                     className={`flex-1 text-sm cursor-pointer select-none transition-all duration-200 ${
                                       isCurrentLineItem
                                         ? 'font-semibold text-blue-800'
@@ -737,7 +740,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                   >
                                     {isCurrentLineItem && <span className="text-blue-500">👈 </span>}
                                     {isTargetedLineItem && <span className="text-yellow-500">⭐ </span>}
-                                    {subtask}
+                                    {subtaskLabel}
                                   </label>
                                 </div>
                               );

@@ -63,6 +63,28 @@ class WorkflowService {
   }
 
   /**
+   * Update a legacy/checkbox step state (backwards compatibility)
+   * If stepId is a DB UUID, delegate to complete-item when marking complete
+   */
+  async updateStep(projectId, stepId, completed) {
+    try {
+      // If stepId looks like a UUID from DB and completed=true, use new endpoint
+      const isDbId = typeof stepId === 'string' && stepId.length > 20 && !stepId.includes('DB_');
+      if (completed && isDbId) {
+        return await this.completeLineItem(projectId, stepId, 'Completed via checkbox', null);
+      }
+      // Otherwise call legacy updater to persist UI state only
+      const response = await api.put(`/workflows/project/${projectId}/workflow/${encodeURIComponent(stepId)}`, {
+        completed
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error updating step:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get workflow for project (legacy compatibility)
    */
   async getWorkflow(projectId) {

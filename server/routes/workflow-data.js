@@ -24,14 +24,15 @@ router.get('/full-structure', async (req, res) => {
       }
     });
     
-    // Convert to React format
+    // Convert to React format with stable IDs for sections and line items
     const reactFormat = phases.map(phase => ({
       id: phase.phaseType,
       label: phase.phaseName,
       items: phase.sections.map(section => ({
         id: section.id,
         label: section.displayName || section.sectionName,
-        subtasks: section.lineItems.map(item => item.itemName)
+        // Include both id and label for each line item to support reliable actions
+        subtasks: section.lineItems.map(item => ({ id: item.id, label: item.itemName }))
       }))
     }));
     

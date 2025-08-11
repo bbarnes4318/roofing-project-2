@@ -583,8 +583,13 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                                         // Find the current section
                                         const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                         if (currentSectionData) {
-                                          // Find the subtask index by matching the current line item name
-                                          const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => subtask === position.currentLineItemName);
+                                          // Find the subtask index by matching the current DB id or name
+                                          const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                            if (typeof subtask === 'object') {
+                                              return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                            }
+                                            return subtask === position.currentLineItemName;
+                                          });
                                           return subtaskIndex >= 0 ? subtaskIndex : 0;
                                         }
                                       }

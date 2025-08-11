@@ -575,7 +575,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                     
                                                                     try {
                                                                         // Get project position data to generate proper targetLineItemId (matching workflow button logic)
-                                                                        const positionResponse = await fetch(`/api/projects/${project.id}/position`, {
+                                                                        // Use the dedicated workflow-data endpoint for consistent fields
+                                                                        const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
                                                                             headers: {
                                                                                 'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
                                                                             }
@@ -587,8 +588,9 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                             
                                                                             if (positionResult.success && positionResult.data) {
                                                                                 // Use enhanced targeting logic similar to DashboardPage
-                                                                                const targetLineItemId = `${directMapping.phase}-${directMapping.sectionId || 'unknown'}-0`;
-                                                                                const targetSectionId = directMapping.sectionId || null;
+                                                                                // Prefer real DB step id if present
+                                                                                const targetLineItemId = actionData.stepId || `${directMapping.phase}-${directMapping.sectionId || 'unknown'}-0`;
+                                                                                const targetSectionId = actionData.sectionId || directMapping.sectionId || null;
                                                                                 
                                                                                 const projectWithNavigation = {
                                                                                     ...project,
@@ -607,11 +609,11 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                                                         lineItem: lineItemName,
                                                                                         stepName: lineItemName,
                                                                                         alertId: alertId,
-                                                                                        stepId: actionData.stepId,
-                                                                                        workflowId: actionData.workflowId,
+                                                                                            stepId: actionData.stepId || actionData.lineItemId || alert.stepId,
+                                                                                            workflowId: actionData.workflowId || alert.workflowId,
                                                                                         highlightMode: 'line-item',
                                                                                         scrollBehavior: 'smooth',
-                                                                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                        targetElementId: `lineitem-${actionData.stepId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                                                                         highlightColor: '#0066CC',
                                                                                         highlightDuration: 3000
                                                                                     }

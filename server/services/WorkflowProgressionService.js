@@ -190,10 +190,14 @@ class WorkflowProgressionService {
                 assignedToId: projectData.projectManagerId,
                 metadata: {
                   phase: lineItemData.section.phase.phaseType,
+                  phaseId: lineItemData.section.phase.id,
                   section: lineItemData.section.displayName,
+                  sectionId: lineItemData.section.id,
+                  lineItem: lineItemData.itemName,
+                  lineItemId: nextPosition.updates.currentLineItemId,
                   projectNumber: projectData.projectNumber,
-                  customerName: projectData.customer?.primaryName,
-                  address: projectData.customer?.address
+                  projectId: projectId,
+                  workflowId: tracker.id
                 }
               }
             });

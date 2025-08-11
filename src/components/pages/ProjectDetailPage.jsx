@@ -252,17 +252,17 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             let stepId = null;
             
             // Try multiple possible field locations for workflow and step IDs
-            if (alert.metadata?.workflowId && alert.metadata?.stepId) {
+            if (alert.metadata?.workflowId && (alert.metadata?.stepId || alert.metadata?.lineItemId)) {
                 workflowId = alert.metadata.workflowId;
-                stepId = alert.metadata.stepId;
+                stepId = alert.metadata.stepId || alert.metadata.lineItemId;
                 console.log('✅ Found workflow/step IDs in metadata');
-            } else if (alert.data?.workflowId && alert.data?.stepId) {
+            } else if (alert.data?.workflowId && (alert.data?.stepId || alert.data?.lineItemId)) {
                 workflowId = alert.data.workflowId;
-                stepId = alert.data.stepId;
+                stepId = alert.data.stepId || alert.data.lineItemId;
                 console.log('✅ Found workflow/step IDs in data field');
-            } else if (alert.workflowId && alert.stepId) {
+            } else if (alert.workflowId && (alert.stepId || alert.lineItemId)) {
                 workflowId = alert.workflowId;
-                stepId = alert.stepId;
+                stepId = alert.stepId || alert.lineItemId;
                 console.log('✅ Found workflow/step IDs directly on alert');
             } else {
                 console.error('❌ Could not find workflow or step information in alert:', {

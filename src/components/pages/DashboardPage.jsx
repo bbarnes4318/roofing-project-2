@@ -2019,7 +2019,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                                 const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                                 if (currentSectionData) {
                                                   // Find the subtask index by matching the current line item name
-                                                  const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => subtask === position.currentLineItemName);
+                                                  const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                                    if (typeof subtask === 'object') {
+                                                      return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                                    }
+                                                    return subtask === position.currentLineItemName;
+                                                  });
                                                   return subtaskIndex >= 0 ? subtaskIndex : 0;
                                                 }
                                               }
@@ -2757,7 +2762,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                                     const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                                     if (currentSectionData) {
                                                       // Find the subtask index by matching the current line item name
-                                                      const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => subtask === position.currentLineItemName);
+                                                      const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                                        if (typeof subtask === 'object') {
+                                                          return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                                        }
+                                                        return subtask === position.currentLineItemName;
+                                                      });
                                                       return subtaskIndex >= 0 ? subtaskIndex : 0;
                                                     }
                                                   }
@@ -2792,11 +2802,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               lineItem: lineItemName,
                                               stepName: lineItemName,
                                               alertId: alertId,
-                                              stepId: actionData.stepId,
-                                              workflowId: actionData.workflowId,
+                                              stepId: actionData.stepId || actionData.lineItemId || alert.stepId,
+                                              workflowId: actionData.workflowId || alert.workflowId,
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
-                                              targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                              // Prefer DB id if available
+                                              targetElementId: `lineitem-${actionData.stepId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                               highlightColor: '#0066CC',
                                               highlightDuration: 3000
                                             }
