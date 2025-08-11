@@ -2141,7 +2141,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExpandAllMessages}
-                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
+                    className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                       expandedMessages.size === currentActivities.length && currentActivities.length > 0
                         ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
                         : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
@@ -2149,13 +2149,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     title="Expand all message conversations"
                     disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
                   </button>
                   <button
                     onClick={handleCollapseAllMessages}
-                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
+                    className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                       expandedMessages.size === 0
                         ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
                         : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
@@ -2163,7 +2163,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     title="Collapse all message conversations"
                     disabled={expandedMessages.size === 0}
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                     </svg>
                   </button>
@@ -2454,7 +2454,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <select 
                     value={alertProjectFilter} 
                     onChange={(e) => setAlertProjectFilter(e.target.value)} 
-                    className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[160px]"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
                   >
                     <option value="all">All Projects</option>
                     <option value="general">General</option>
@@ -2466,7 +2466,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <select 
                     value={alertUserGroupFilter} 
                     onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
-                    className="text-sm font-medium px-3 py-2 rounded-xl border-2 border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[140px]"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
                   >
                     <option value="all">All Roles</option>
                     <option value="PM">Project Manager</option>
@@ -2480,7 +2480,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExpandAllAlerts}
-                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
+                    className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                     expandedAlerts.size === getPaginatedAlerts().length && getPaginatedAlerts().length > 0
                       ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
                       : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
@@ -2488,14 +2488,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   title="Expand all alert details"
                   disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === getPaginatedAlerts().length}
                 >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
                 </button>
                 
                   <button
                     onClick={handleCollapseAllAlerts}
-                    className={`px-2 py-2 text-xs font-medium rounded-lg border-2 transition-all duration-300 ${
+                    className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                     expandedAlerts.size === 0 || getPaginatedAlerts().length === 0
                       ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
                       : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
@@ -2503,7 +2503,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   title="Collapse all alert details"
                   disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === 0}
                 >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                     </svg>
                   </button>
@@ -2600,8 +2600,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 {project?.projectNumber || actionData.projectNumber || '12345'}
                               </span>
                               
-                              {/* Customer with dropdown arrow - Moved 2 more spaces left */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '140px', marginLeft: '2px'}}>
+                              {/* Customer with dropdown arrow - Made smaller */}
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '2px'}}>
                                 <button 
                                   ref={(el) => alertContactButtonRefs.current[alertId] = el}
                                   className={`text-[9px] font-semibold cursor-pointer hover:underline ${
@@ -2634,7 +2634,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }}
                                   className={`transform transition-transform duration-200 ${expandedContacts.has(alertId) ? 'rotate-180' : ''}`}
                                 >
-                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </button>
@@ -2645,7 +2645,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
                                   ref={(el) => alertPmButtonRefs.current[alertId] = el}
-                                  className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
+                                  className={`text-[8px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
                                     colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'
                                   }`}
                                   title={project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Mike Field'}
@@ -2675,7 +2675,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   }}
                                   className={`transform transition-transform duration-200 ${expandedPMs.has(alertId) ? 'rotate-180' : ''}`}
                                 >
-                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </button>
@@ -2688,7 +2688,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 {correctUserGroup}
                               </div>
                               <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </div>
