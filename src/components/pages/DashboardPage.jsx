@@ -2037,7 +2037,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       };
                                       
                                       const subtaskIndex = await getSubtaskIndex();
-                                      const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                      // Prefer DB line item id for precise highlight; keep section id for expansion
+                                      const targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
                                       const targetSectionId = position.currentSection;
                                       
                                       console.log('🎯 WORKFLOW NAVIGATION: Generated targetLineItemId:', targetLineItemId);
