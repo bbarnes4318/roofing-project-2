@@ -102,9 +102,10 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                         color: event.color || getEventColor(event.type),
                         description: event.description,
                         projectId: event.projectId
-                });
-            }
-        });
+                    });
+                }
+            });
+        }
         
         // Project events
         projects.forEach(project => {
