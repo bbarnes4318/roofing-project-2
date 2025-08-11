@@ -371,25 +371,46 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           // Handle navigation targets - expand phase/section if navigating to specific item
           if (targetLineItemId || targetSectionId || urlHighlight) {
             const effectiveTargetLineItem = targetLineItemId || urlHighlight;
+            let expanded = false;
+
             if (effectiveTargetLineItem) {
-              // Parse line item ID to get phase and section
-              // Format: PHASE-SECTION-INDEX (e.g., "APPROVED-admin-setup-0")
+              // Case 1: Composite format PHASE-SECTION-INDEX
+              const knownPhaseIds = new Set((workflowResult.data || []).map(p => p.id));
               const parts = effectiveTargetLineItem.split('-');
-              if (parts.length >= 3) {
-                const phaseId = parts[0]; // e.g., "APPROVED"
-                const sectionId = parts.slice(1, -1).join('-'); // e.g., "admin-setup" 
-                console.log(`🎯 NAVIGATION: Expanding phase: ${phaseId}, section: ${sectionId}`);
+              if (parts.length >= 3 && knownPhaseIds.has(parts[0])) {
+                const phaseId = parts[0];
+                const sectionId = parts.slice(1, -1).join('-');
+                console.log(`🎯 NAVIGATION: Expanding by composite id: phase=${phaseId}, section=${sectionId}`);
                 setOpenPhase(phaseId);
                 setOpenItem(prev => ({ ...prev, [sectionId]: true }));
+                expanded = true;
+              } else {
+                // Case 2: DB line item id - find its phase/section in workflow data
+                outer: for (const phase of workflowResult.data || []) {
+                  for (const item of phase.items || []) {
+                    const match = (item.subtasks || []).some(st => typeof st === 'object' && st.id === effectiveTargetLineItem);
+                    if (match) {
+                      console.log(`🎯 NAVIGATION: Expanding by DB id: phase=${phase.id}, section=${item.id}`);
+                      setOpenPhase(phase.id);
+                      setOpenItem(prev => ({ ...prev, [item.id]: true }));
+                      expanded = true;
+                      break outer;
+                    }
+                  }
+                }
               }
-            } else if (targetSectionId) {
-              // For section navigation, determine the phase from workflow data
-              const targetPhase = workflowResult.data.find(phase => 
+            }
+
+            // Case 3: Fallback to explicit section targeting if provided
+            if (!expanded && targetSectionId) {
+              const targetPhase = (workflowResult.data || []).find(phase => 
                 phase.items.some(item => item.id === targetSectionId)
               );
               if (targetPhase) {
+                console.log(`🎯 NAVIGATION: Expanding by targetSectionId: phase=${targetPhase.id}, section=${targetSectionId}`);
                 setOpenPhase(targetPhase.id);
                 setOpenItem(prev => ({ ...prev, [targetSectionId]: true }));
+                expanded = true;
               }
             }
           }
