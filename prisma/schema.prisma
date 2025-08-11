@@ -303,7 +303,7 @@ model ProjectWorkflow {
 
   // Workflow Configuration
   workflowType WorkflowType @default(ROOFING)
-  status       WorkflowStatus @default(NOT_STARTED)
+  status       WorkflowStatus @default(IN_PROGRESS) // Lead phase starts automatically
 
   // Progress Tracking
   currentStepIndex    Int     @default(0)
@@ -475,8 +475,8 @@ model WorkflowAlert {
   workflowId  String    @map("workflow_id")
   workflow    ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   
-  stepId      String    @map("step_id")
-  step        WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  stepId      String?   @map("step_id") // Can be either WorkflowStep ID or WorkflowLineItem ID
+  step        WorkflowStep? @relation(fields: [stepId], references: [id], onDelete: Cascade)
   
   // Assignment
   assignedToId String?  @map("assigned_to_id")

@@ -397,7 +397,7 @@ class ProjectService {
         data: {
           projectId,
           workflowType,
-          status: 'NOT_STARTED',
+          status: 'IN_PROGRESS', // Lead phase starts automatically
           currentStepIndex: 0,
           overallProgress: 0,
           enableAlerts: true,

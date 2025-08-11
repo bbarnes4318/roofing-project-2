@@ -21,11 +21,11 @@ class WorkflowInitializationService {
                 return existingWorkflow;
             }
 
-            // Create new workflow
+            // Create new workflow - ALL projects start IN_PROGRESS immediately
             const workflow = await prisma.projectWorkflow.create({
                 data: {
                     projectId,
-                    status: 'NOT_STARTED',
+                    status: 'IN_PROGRESS', // Lead phase starts automatically
                     overallProgress: 0,
                     currentStepIndex: 0,
                     enableAlerts: true,
