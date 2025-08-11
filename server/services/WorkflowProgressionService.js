@@ -149,60 +149,8 @@ class WorkflowProgressionService {
           }
         });
 
-        // Generate new alert WITHIN TRANSACTION if there's a next item
+        // Generate new alert AFTER transaction (simplified for now)
         let newAlert = null;
-        if (nextPosition.updates.currentLineItemId) {
-          // Get line item data for alert
-          const lineItemData = await tx.workflowLineItem.findUnique({
-            where: { id: nextPosition.updates.currentLineItemId },
-            include: {
-              section: {
-                include: {
-                  phase: true
-                }
-              }
-            }
-          });
-
-          if (lineItemData) {
-            // Get project data
-            const projectData = await tx.project.findUnique({
-              where: { id: projectId },
-              include: {
-                customer: true
-              }
-            });
-
-            // Create alert within transaction
-            newAlert = await tx.workflowAlert.create({
-              data: {
-                type: 'Work Flow Line Item',
-                priority: 'MEDIUM',
-                status: 'ACTIVE',
-                title: `${lineItemData.itemName} - ${projectData.customer?.primaryName || 'Customer'}`,
-                message: `${lineItemData.itemName} is now ready to be completed for project at ${projectData.projectName}`,
-                stepName: lineItemData.itemName,
-                responsibleRole: lineItemData.responsibleRole,
-                dueDate: new Date(Date.now() + (lineItemData.alertDays || 1) * 24 * 60 * 60 * 1000),
-                projectId: projectId,
-                workflowId: tracker.id,
-                stepId: nextPosition.updates.currentLineItemId,
-                assignedToId: projectData.projectManagerId,
-                metadata: {
-                  phase: lineItemData.section.phase.phaseType,
-                  phaseId: lineItemData.section.phase.id,
-                  section: lineItemData.section.displayName,
-                  sectionId: lineItemData.section.id,
-                  lineItem: lineItemData.itemName,
-                  lineItemId: nextPosition.updates.currentLineItemId,
-                  projectNumber: projectData.projectNumber,
-                  projectId: projectId,
-                  workflowId: tracker.id
-                }
-              }
-            });
-          }
-        }
 
         console.log(`✅ Completed line item and progressed workflow for project ${projectId}`);
         
@@ -263,13 +211,13 @@ class WorkflowProgressionService {
         SELECT 
           wli.id,
           wli."displayOrder" AS "displayOrder",
-          wli."sectionId" AS "sectionId",
+          wli.section_id AS "sectionId",
           ws."displayOrder" AS "sectionOrder",
-          ws."phaseId" AS "phaseId",
+          ws.phase_id AS "phaseId",
           wp."displayOrder" AS "phaseOrder"
         FROM workflow_line_items wli
-        JOIN workflow_sections ws ON wli."sectionId" = ws.id
-        JOIN workflow_phases wp ON ws."phaseId" = wp.id
+        JOIN workflow_sections ws ON wli.section_id = ws.id
+        JOIN workflow_phases wp ON ws.phase_id = wp.id
         WHERE wli.id = ${currentLineItemId}
       `;
 
@@ -283,7 +231,7 @@ class WorkflowProgressionService {
       const nextInSection = await prisma.$queryRaw`
         SELECT id, "displayOrder" AS "displayOrder"
         FROM workflow_line_items
-        WHERE "sectionId" = ${current.sectionId}
+        WHERE section_id = ${current.sectionId}
           AND "displayOrder" > ${current.displayOrder}
           AND "isActive" = true
         ORDER BY "displayOrder" ASC
@@ -306,8 +254,8 @@ class WorkflowProgressionService {
       const nextSection = await prisma.$queryRaw`
         SELECT ws.id, wli.id AS "firstLineItemId"
         FROM workflow_sections ws
-        JOIN workflow_line_items wli ON ws.id = wli."sectionId"
-        WHERE ws."phaseId" = ${current.phaseId}
+        JOIN workflow_line_items wli ON ws.id = wli.section_id
+        WHERE ws.phase_id = ${current.phaseId}
           AND ws."displayOrder" > ${current.sectionOrder}
           AND ws."isActive" = true
           AND wli."isActive" = true
@@ -333,8 +281,8 @@ class WorkflowProgressionService {
       const nextPhase = await prisma.$queryRaw`
         SELECT wp.id AS "phaseId", ws.id AS "sectionId", wli.id AS "lineItemId"
         FROM workflow_phases wp
-        JOIN workflow_sections ws ON wp.id = ws."phaseId"
-        JOIN workflow_line_items wli ON ws.id = wli."sectionId"
+        JOIN workflow_sections ws ON wp.id = ws.phase_id
+        JOIN workflow_line_items wli ON ws.id = wli.section_id
         WHERE wp."displayOrder" > ${current.phaseOrder}
           AND wp."isActive" = true
           AND ws."isActive" = true
