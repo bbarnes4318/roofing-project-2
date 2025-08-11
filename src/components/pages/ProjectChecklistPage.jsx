@@ -420,6 +420,18 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             console.log(`🎯 NAVIGATION: Default expand to current position: phase=${positionResult.data.currentPhase}, section=${positionResult.data.currentSection}`);
             setOpenPhase(positionResult.data.currentPhase);
             setOpenItem(prev => ({ ...prev, [positionResult.data.currentSection]: true }));
+            expanded = true;
+          }
+
+          // Final fallback: open the first phase/section from workflow data so the UI always responds
+          if (!expanded && Array.isArray(workflowResult.data) && workflowResult.data.length > 0) {
+            const firstPhase = workflowResult.data[0];
+            const firstSection = firstPhase.items && firstPhase.items.length > 0 ? firstPhase.items[0] : null;
+            if (firstPhase && firstSection) {
+              console.log(`🎯 NAVIGATION: Fallback expand to first phase/section: phase=${firstPhase.id}, section=${firstSection.id}`);
+              setOpenPhase(firstPhase.id);
+              setOpenItem(prev => ({ ...prev, [firstSection.id]: true }));
+            }
           }
           
           // Auto-scroll to target or current position after a brief delay
