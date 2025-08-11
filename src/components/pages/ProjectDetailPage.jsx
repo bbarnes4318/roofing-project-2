@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { ChevronLeftIcon, LocationMarkerIcon } from '../common/Icons';
+import { HeaderBackButton } from '../common/BackButton';
 import ProjectChecklistPage from './ProjectChecklistPage';
 import ProjectMessagesPage from './ProjectMessagesPage';
 import ProjectDocumentsPage from './ProjectDocumentsPage';
@@ -1926,13 +1927,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
                 {/* Back Button Row */}
                 <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
-                    <button 
-                        onClick={handleBackButton} 
-                        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 border border-blue-200 hover:border-blue-300"
-                    >
-                        <ChevronLeftIcon className="w-3 h-3" />
-                        {getBackButtonText()}
-                    </button>
+                    <HeaderBackButton onClick={handleBackButton} />
                     
                     {/* Compact Project Number & Customer Info */}
                     <div className="flex items-center gap-2 text-xs">

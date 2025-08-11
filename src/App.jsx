@@ -27,6 +27,7 @@ import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
 import { SubjectsProvider } from './contexts/SubjectsContext';
+import { NavigationProvider } from './contexts/NavigationContext';
 import './App.css';
 
 // Create a client for React Query
@@ -797,6 +798,7 @@ export default function App() {
 
     return (
         <QueryClientProvider client={queryClient}>
+            <NavigationProvider>
             <SubjectsProvider>
             <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
                 ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
@@ -1113,6 +1115,7 @@ export default function App() {
             </main>
         </div>
         </SubjectsProvider>
+        </NavigationProvider>
         <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     );
