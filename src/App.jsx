@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
-  ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, UserGroupIcon, FolderIcon, ArchiveBoxIcon
+  ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, FolderIcon, ArchiveBoxIcon
 } from './components/common/Icons';
 import { authService } from './services/api';
 import DashboardPage from './components/pages/DashboardPage';
@@ -17,7 +17,6 @@ import EstimateComparisonTool from './components/pages/EstimateComparisonTool';
 import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
-import CustomersPage from './components/pages/CustomersPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
 import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
@@ -673,10 +672,6 @@ export default function App() {
                     handleProjectSelect(target.project, 'Messages', null, 'Global Search');
                 }
                 break;
-            case 'customers':
-                navigate('Customers');
-                // Could add customer filtering here if CustomersPage supports it
-                break;
             case 'projects':
                 if (target.project) {
                     handleProjectSelect(target.project, 'Projects', null, 'Global Search');
@@ -693,7 +688,6 @@ export default function App() {
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Projects', icon: <DocumentTextIcon />, page: 'Projects' },
-        { name: 'Customers', icon: <UserGroupIcon />, page: 'Customers' },
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
@@ -734,7 +728,6 @@ export default function App() {
                     scrollToProject={navigationState.scrollToProject}
                 />
             );
-            case 'Customers': return <CustomersPage colorMode={colorMode} />;
             case 'Project Messages': return <MyMessagesPage colorMode={colorMode} projects={projects} onProjectSelect={handleProjectSelect} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
