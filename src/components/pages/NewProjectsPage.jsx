@@ -1,6 +1,6 @@
 import React from 'react';
 import ProjectsByPhaseSection from '../dashboard/ProjectsByPhaseSection';
-import CurrentProjectAccessSection from '../dashboard/CurrentProjectAccessSection';
+import ProjectCubes from '../dashboard/ProjectCubes';
 
 const NewProjectsPage = ({ 
   projects, 
@@ -71,12 +71,17 @@ const NewProjectsPage = ({
           colorMode={colorMode}
         />
 
-        {/* Project Access Section */}
-        <CurrentProjectAccessSection
-          projects={projects}
-          onProjectSelect={onProjectSelect}
-          colorMode={colorMode}
-        />
+        {/* Project Access Section - Using Original ProjectCubes */}
+        <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
+            Current Project Access
+          </h2>
+          <ProjectCubes
+            projects={projects}
+            onProjectSelect={onProjectSelect}
+            colorMode={colorMode}
+          />
+        </div>
 
         {/* Project Summary Stats */}
         <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6">
