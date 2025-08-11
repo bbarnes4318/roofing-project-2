@@ -6,7 +6,7 @@ import {
 } from './components/common/Icons';
 import { authService } from './services/api';
 import DashboardPage from './components/pages/DashboardPage';
-import ProjectsPage from './components/pages/ProjectsPage';
+import NewProjectsPage from './components/pages/NewProjectsPage';
 import ProjectDetailPage from './components/pages/ProjectDetailPage';
 import ArchivedProjectsPage from './components/pages/ArchivedProjectsPage';
 import ActivityFeedPage from './components/pages/ActivityFeedPage';
@@ -685,7 +685,7 @@ export default function App() {
     // Define navigationItems after all state variables are declared
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
-        { name: 'My Projects', icon: <DocumentTextIcon />, page: 'Projects' },
+        { name: 'Projects', icon: <DocumentTextIcon />, page: 'Projects' },
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
@@ -715,10 +715,8 @@ export default function App() {
                 />
             );
             case 'Projects': return (
-                <ProjectsPage 
+                <NewProjectsPage 
                     onProjectSelect={handleProjectSelect} 
-                    onProjectActionSelect={handleProjectSelect} 
-                    onCreateProject={handleCreateProject} 
                     projects={projects} 
                     colorMode={colorMode} 
                     projectSourceSection={navigationState.projectSourceSection}
