@@ -369,9 +369,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           console.log(`Loaded project position:`, positionResult.data);
           
           // Handle navigation targets - expand phase/section if navigating to specific item
+          let expanded = false;
           if (targetLineItemId || targetSectionId || urlHighlight) {
             const effectiveTargetLineItem = targetLineItemId || urlHighlight;
-            let expanded = false;
 
             if (effectiveTargetLineItem) {
               // Case 1: Composite format PHASE-SECTION-INDEX
@@ -413,6 +413,13 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 expanded = true;
               }
             }
+          }
+
+          // Default: if nothing targeted, open the current phase and section from project position
+          if (!expanded && positionResult?.data?.currentPhase && positionResult?.data?.currentSection) {
+            console.log(`🎯 NAVIGATION: Default expand to current position: phase=${positionResult.data.currentPhase}, section=${positionResult.data.currentSection}`);
+            setOpenPhase(positionResult.data.currentPhase);
+            setOpenItem(prev => ({ ...prev, [positionResult.data.currentSection]: true }));
           }
           
           // Auto-scroll to target or current position after a brief delay
