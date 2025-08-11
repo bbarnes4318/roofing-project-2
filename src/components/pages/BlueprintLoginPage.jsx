@@ -21,20 +21,42 @@ const BlueprintLoginPage = ({ onLoginSuccess }) => {
       // Simulate a successful login after a short delay for better UX
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const demoToken = 'demo-sarah-owner-token-fixed-12345';
-      localStorage.setItem('authToken', demoToken);
-      localStorage.setItem('user', JSON.stringify({
-        _id: 'demo-sarah-owner-id',
-        firstName: 'Sarah',
-        lastName: 'Owner',
-        email: 'sarah@upfrontrnr.com',
-        role: 'admin',
-        avatar: 'SO',
-        company: 'UpFront Restoration & Roofing',
-        position: 'Owner',
-        department: 'Management',
-        isVerified: true
-      }));
+      // Check email to determine which user to log in
+      let userData;
+      let token;
+
+      if (formData.email.toLowerCase().includes('david') || formData.email.toLowerCase().includes('chen')) {
+        token = 'demo-david-chen-token-fixed-12345';
+        userData = {
+          _id: 'demo-david-chen-id',
+          firstName: 'David',
+          lastName: 'Chen',
+          email: 'david.chen@upfrontrnr.com',
+          role: 'project_manager',
+          avatar: 'DC',
+          company: 'UpFront Restoration & Roofing',
+          position: 'Project Manager',
+          department: 'Operations',
+          isVerified: true
+        };
+      } else {
+        token = 'demo-sarah-owner-token-fixed-12345';
+        userData = {
+          _id: 'demo-sarah-owner-id',
+          firstName: 'Sarah',
+          lastName: 'Owner',
+          email: 'sarah@upfrontrnr.com',
+          role: 'admin',
+          avatar: 'SO',
+          company: 'UpFront Restoration & Roofing',
+          position: 'Owner',
+          department: 'Management',
+          isVerified: true
+        };
+      }
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(userData));
 
       onLoginSuccess();
 
