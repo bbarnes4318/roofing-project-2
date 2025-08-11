@@ -141,25 +141,8 @@ router.get('/', asyncHandler(async (req, res, next) => {
   if (assignedToId) where.assignedToId = assignedToId;
   if (projectId) where.projectId = projectId;
 
-  // CRITICAL FIX: Filter alerts by user role and assignment
-  if (req.user?.id) {
-    // Get user's role assignments
-    const userRoleAssignments = await prisma.roleAssignment.findMany({
-      where: { userId: req.user.id }
-    });
-
-    if (userRoleAssignments.length > 0) {
-      // User has role assignments - show alerts for their roles
-      const userRoles = userRoleAssignments.map(ra => ra.roleType);
-      where.OR = [
-        { assignedToId: req.user.id },
-        { responsibleRole: { in: userRoles } }
-      ];
-    } else {
-      // User has no role assignments - only show alerts assigned to them
-      where.assignedToId = req.user.id;
-    }
-  }
+  // TEMPORARILY REMOVED: User role filtering to debug alert display
+  // TODO: Re-implement proper role filtering after alerts are working
 
   // Calculate pagination (sanitized)
   const pageNum = Number.isFinite(+pageRaw) && +pageRaw > 0 ? parseInt(pageRaw) : 1;

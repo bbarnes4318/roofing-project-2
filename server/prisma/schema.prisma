@@ -177,7 +177,7 @@ model ProjectWorkflow {
   updatedAt               DateTime               @updatedAt
   projectId               String                 @unique @map("project_id")
   workflowType            WorkflowType           @default(ROOFING)
-  status                  WorkflowStatus         @default(NOT_STARTED)
+  status                  WorkflowStatus         @default(IN_PROGRESS)
   currentStepIndex        Int                    @default(0)
   overallProgress         Int                    @default(0)
   workflowStartDate       DateTime?
