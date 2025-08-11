@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { ChevronLeftIcon, LocationMarkerIcon } from '../common/Icons';
-import { HeaderBackButton } from '../common/BackButton';
 import ProjectChecklistPage from './ProjectChecklistPage';
 import ProjectMessagesPage from './ProjectMessagesPage';
 import ProjectDocumentsPage from './ProjectDocumentsPage';
@@ -620,74 +619,39 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     };
 
     const getBackButtonText = () => {
-        console.log('🔍 BACK BUTTON DEBUG:');
-        console.log('🔍 previousPage:', previousPage);
-        console.log('🔍 projectSourceSection:', projectSourceSection);
-        console.log('🔍 projectSourceSection type:', typeof projectSourceSection);
-        console.log('🔍 projectSourceSection === "Current Alerts":', projectSourceSection === 'Current Alerts');
-        
-        // FORCE TEST - if projectSourceSection is Current Alerts, return the correct text
-        if (projectSourceSection === 'Current Alerts') {
-            console.log('🔍 FORCE TEST: Returning Back to Current Alerts');
-            return 'Back to Current Alerts';
+        // First check projectSourceSection for specific dashboard sections
+        if (projectSourceSection) {
+            switch (projectSourceSection) {
+                case 'Current Alerts':
+                    return 'Back to Current Alerts';
+                case 'Project Messages':
+                    return 'Back to Project Messages';
+                case 'Project Cubes':
+                    return 'Back to Project Access';
+                case 'Project Phases':
+                    return 'Back to Projects by Phase';
+                case 'Project Workflow Alerts':
+                    return 'Back to Alerts';
+                default:
+                    // Continue to check previousPage
+                    break;
+            }
         }
         
-        // FORCE TEST - if projectSourceSection is Project Cubes, return the correct text
-        if (projectSourceSection === 'Project Cubes') {
-            console.log('🔍 FORCE TEST: Returning Back to Current Project Access');
-            return 'Back to Current Project Access';
-        }
-        
-        // NEW: Handle Project Workflow Alerts specifically
-        if (projectSourceSection === 'Project Workflow Alerts') {
-            console.log('🔍 FORCE TEST: Returning Back to Alerts');
-            return 'Back to Alerts';
-        }
-        
-
-        
+        // Fallback to previousPage if no specific source section
         switch (previousPage) {
             case 'Overview':
-                // Check if we came from a specific section on the dashboard
-                if (projectSourceSection === 'Project Messages') {
-                    console.log('🔍 Returning: Back to Project Messages');
-                    return 'Back to Project Messages';
-                } else if (projectSourceSection === 'Current Alerts') {
-                    console.log('🔍 Returning: Back to Current Alerts');
-                    return 'Back to Current Alerts';
-                } else if (projectSourceSection === 'Project Cubes') {
-                    console.log('🔍 Returning: Back to Current Project Access');
-                    return 'Back to Current Project Access';
-                } else if (projectSourceSection === 'Project Phases') {
-                    console.log('🔍 Returning: Back to Project Phases');
-                    return 'Back to Project Phases';
-                } else if (projectSourceSection === 'Project Workflow Alerts') {
-                    console.log('🔍 Returning: Back to Alerts');
-                    return 'Back to Alerts';
-                }
-                console.log('🔍 Returning: Back to Current Project Access (default)');
-                return 'Back to Current Project Access';
+                return 'Back to Dashboard';
             case 'Projects':
-                return 'Back to Current Projects';
-            case 'Alerts':
-                return 'Back to Project Alerts';
+                return 'Back to My Projects';
             case 'Project Messages':
-                return 'Back to Project Messages';
-            case 'Project Schedules':
-                return 'Back to Project Schedules';
+                return 'Back to Messages';
             case 'Company Calendar':
-                return 'Back to Company Calendar';
+                return 'Back to Calendar';
             case 'AI Assistant':
                 return 'Back to AI Assistant';
-            case 'AI Tools':
-                return 'Back to AI Training Tools';
-            case 'Training & Knowledge Base':
-                return 'Back to AI Knowledge Base';
-            case 'Archived Projects':
-                return 'Back to Archived Projects';
             default:
-                console.log('🔍 Returning: Back to Current Project Access (default case)');
-                return 'Back to Current Project Access';
+                return 'Back';
         }
     };
 
@@ -1927,7 +1891,13 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
                 {/* Back Button Row */}
                 <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
-                    <HeaderBackButton onClick={handleBackButton} />
+                    <button 
+                        onClick={handleBackButton} 
+                        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 border border-blue-200 hover:border-blue-300"
+                    >
+                        <ChevronLeftIcon className="w-3 h-3" />
+                        {getBackButtonText()}
+                    </button>
                     
                     {/* Compact Project Number & Customer Info */}
                     <div className="flex items-center gap-2 text-xs">
