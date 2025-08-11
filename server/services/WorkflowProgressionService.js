@@ -230,7 +230,19 @@ class WorkflowProgressionService {
                     workflowId: projectWorkflow.id,
                     stepId: workflowStep.id,
                     assignedToId: projectData.projectManagerId,
-                    createdById: completedById
+                    createdById: completedById,
+                    metadata: {
+                      phase: lineItemData.section.phase.phaseType,
+                      phaseId: lineItemData.section.phase.id,
+                      section: lineItemData.section.displayName,
+                      sectionId: lineItemData.section.id,
+                      lineItem: lineItemData.itemName,
+                      lineItemId: nextPosition.updates.currentLineItemId,
+                      projectNumber: projectData.projectNumber,
+                      projectId: projectId,
+                      workflowId: projectWorkflow.id,
+                      responsibleRole: lineItemData.responsibleRole
+                    }
                   }
                 });
 
