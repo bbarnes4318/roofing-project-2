@@ -1327,7 +1327,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                     
                                                                     try {
                                                                         // Get project position data to generate proper targetLineItemId (matching workflow button logic)
-                                                                        const positionResponse = await fetch(`/api/projects/${alertProject.id}/position`, {
+                                                                        const positionResponse = await fetch(`/api/workflow-data/project-position/${alertProject.id}`, {
                                                                             headers: {
                                                                                 'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
                                                                             }
@@ -1340,9 +1340,9 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                             if (positionResult.success && positionResult.data) {
                                                                                 const position = positionResult.data;
                                                                                 
-                                                                                // Generate the correct line item ID format that ProjectChecklistPage expects
-                                                                                // Format: ${phase.id}-${item.id}-${subIdx}
-                                                                                // Get the workflow structure to find the subtask index
+                                                                                 // Generate the correct line item ID or fallback composite that ProjectChecklistPage expects
+                                                                                 // Prefer DB line item id when available; otherwise use ${phase.id}-${item.id}-${subIdx}
+                                                                                 // Get the workflow structure to find the subtask index reliably
                                                                                 const getSubtaskIndex = async () => {
                                                                                     try {
                                                                                         const workflowResponse = await fetch('/api/workflow-data/full-structure', {
@@ -1355,22 +1355,18 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                             const workflowResult = await workflowResponse.json();
                                                                                             if (workflowResult.success && workflowResult.data) {
                                                                                                 // Find the current phase
-                                                                                                const currentPhaseData = workflowResult.data.find(phaseData => phaseData.id === phase);
+                                                                                                 const currentPhaseData = workflowResult.data.find(phaseData => phaseData.id === position.currentPhase);
                                                                                                 if (currentPhaseData) {
-                                                                                                    // Find the section by matching the name
-                                                                                                    const sectionBaseName = sectionName?.split('–')[0]?.trim() || sectionName;
-                                                                                                    const currentSectionData = currentPhaseData.items.find(item => 
-                                                                                                        item.name === sectionBaseName || 
-                                                                                                        item.name === sectionName ||
-                                                                                                        item.name.includes(sectionBaseName)
-                                                                                                    );
+                                                                                                     // Find the current section by id
+                                                                                                     const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                                                                                     if (currentSectionData) {
-                                                                                                        // Find the subtask index by matching the line item name
-                                                                                                        const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => 
-                                                                                                            subtask === lineItemName || 
-                                                                                                            subtask.includes(lineItemName) ||
-                                                                                                            lineItemName.includes(subtask)
-                                                                                                        );
+                                                                                                         // Find the subtask index by matching the DB id or label
+                                                                                                         const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                                                                                           if (typeof subtask === 'object') {
+                                                                                                             return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                                                                                           }
+                                                                                                           return subtask === position.currentLineItemName;
+                                                                                                         });
                                                                                                         console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Found subtask index:', subtaskIndex, 'for line item:', lineItemName);
                                                                                                         return subtaskIndex >= 0 ? subtaskIndex : 0;
                                                                                                     }
@@ -1384,10 +1380,10 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                 };
                                                                                 
                                                                                 const subtaskIndex = await getSubtaskIndex();
-                                                                                
-                                                                                // Use the alert's phase and section data to create the target IDs
-                                                                                const targetLineItemId = `${phase}-${actionData.sectionId || 'unknown'}-${subtaskIndex}`;
-                                                                                const targetSectionId = actionData.sectionId || null;
+                                                                                 
+                                                                                 // Prefer DB step id for targeting when available
+                                                                                 const targetLineItemId = actionData.stepId || actionData.lineItemId || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                                                                 const targetSectionId = actionData.sectionId || position.currentSection || null;
                                                                                 
                                                                                 console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Generated targetLineItemId:', targetLineItemId);
                                                                                 console.log('🎯 PROJECT_DETAIL ALERTS CLICK: Generated targetSectionId:', targetSectionId);
@@ -1408,11 +1404,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                         lineItem: lineItemName,
                                                                                         stepName: lineItemName,
                                                                                         alertId: alertId,
-                                                                                        stepId: actionData.stepId,
-                                                                                        workflowId: actionData.workflowId,
+                                                                                         stepId: actionData.stepId || actionData.lineItemId || alert.stepId,
+                                                                                         workflowId: actionData.workflowId || alert.workflowId,
                                                                                         highlightMode: 'line-item',
                                                                                         scrollBehavior: 'smooth',
-                                                                                        targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                                                                         targetElementId: `lineitem-${actionData.stepId || actionData.lineItemId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                                                                         highlightColor: '#0066CC',
                                                                                         highlightDuration: 3000
                                                                                     }
