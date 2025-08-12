@@ -292,33 +292,12 @@ class WorkflowProgressService {
             return this.normalizePhase(activity.metadata.phase);
         }
 
-        // Priority 2: Use workflow progress if available
-        if (project?.workflow?.steps && project.workflow.steps.length > 0) {
-            // Find the most recently completed step to determine actual current phase
-            const completedSteps = project.workflow.steps
-                .filter(step => step.isCompleted)
-                .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
-            
-            const incompleteSteps = project.workflow.steps
-                .filter(step => !step.isCompleted)
-                .sort((a, b) => a.stepId.localeCompare(b.stepId));
-            
-            // If there are incomplete steps, use the phase of the first incomplete step
-            if (incompleteSteps.length > 0) {
-                return this.normalizePhase(incompleteSteps[0].phase);
-            } 
-            // If all steps are complete, use the phase of the last completed step
-            else if (completedSteps.length > 0) {
-                return this.normalizePhase(completedSteps[0].phase);
-            }
-        }
-
-        // Priority 3: Use project.phase field directly
+        // Priority 2: Use project.phase field directly FROM DATABASE
         if (project?.phase) {
             return this.normalizePhase(project.phase);
         }
 
-        // Priority 4: Use project.status and map to phase
+        // Priority 3: Use project.status and map to phase
         if (project?.status) {
             const statusPhaseMap = {
                 'IN_PROGRESS': 'EXECUTION',
@@ -337,6 +316,27 @@ class WorkflowProgressService {
                 return this.normalizePhase(mappedPhase);
             }
             return this.normalizePhase(project.status);
+        }
+
+        // Priority 4: Use workflow progress if available (LAST RESORT - not primary)
+        if (project?.workflow?.steps && project.workflow.steps.length > 0) {
+            // Find the most recently completed step to determine actual current phase
+            const completedSteps = project.workflow.steps
+                .filter(step => step.isCompleted)
+                .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+            
+            const incompleteSteps = project.workflow.steps
+                .filter(step => !step.isCompleted)
+                .sort((a, b) => a.stepId.localeCompare(b.stepId));
+            
+            // If there are incomplete steps, use the phase of the first incomplete step
+            if (incompleteSteps.length > 0) {
+                return this.normalizePhase(incompleteSteps[0].phase);
+            } 
+            // If all steps are complete, use the phase of the last completed step
+            else if (completedSteps.length > 0) {
+                return this.normalizePhase(completedSteps[0].phase);
+            }
         }
 
         // Priority 5: Fallback to LEAD
