@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSectionNavigation } from '../../contexts/NavigationContext';
 import BackButton from '../common/BackButton';
+import { useWorkflowAlerts } from '../../hooks/useQueryApi';
 
 const CurrentAlertsSection = ({ 
   alerts = [], 
@@ -172,9 +173,56 @@ const CurrentAlertsSection = ({
     }
   };
 
+  // Normalize alert to a consistent shape for this component
+  const normalizeAlert = (alert) => {
+    const metadata = alert.metadata || alert.actionData || {};
+    const project = alert.relatedProject || alert.project || {};
+    const priorityRaw = (alert.priority || metadata.priority || '').toString().toUpperCase();
+    const statusRaw = (alert.status || metadata.status || 'ACTIVE').toString().toUpperCase();
+
+    // Map various role representations to enum values used in filters here
+    const resolveRole = () => {
+      const role = metadata.responsibleRole
+        || alert.responsibleRole
+        || metadata.defaultResponsible
+        || alert.user?.role
+        || 'OFFICE';
+      const r = role.toString().toUpperCase();
+      if (r === 'PM') return 'PROJECT_MANAGER';
+      if (r === 'FIELD') return 'FIELD_DIRECTOR';
+      if (r === 'ADMIN') return 'ADMINISTRATION';
+      return r;
+    };
+
+    const normalized = {
+      id: alert._id || alert.id,
+      projectId: metadata.projectId || alert.projectId || project._id || project.id,
+      projectName: project.projectName || alert.projectName || project.name,
+      title: alert.title || metadata.title || metadata.stepName || alert.stepName || 'Alert',
+      message: alert.message || metadata.message || '',
+      stepName: alert.stepName || metadata.stepName || metadata.lineItem,
+      responsibleRole: resolveRole(),
+      createdAt: alert.createdAt || alert.timestamp || new Date().toISOString(),
+      dueDate: alert.dueDate || metadata.dueDate,
+      status: statusRaw,
+      priority: priorityRaw === 'HIGH' || priorityRaw === 'MEDIUM' || priorityRaw === 'LOW'
+        ? priorityRaw
+        : (priorityRaw.charAt(0) ? priorityRaw : 'MEDIUM'),
+      // keep original fields for potential navigation helpers
+      stepId: alert.stepId || metadata.stepId || metadata.lineItemId,
+      sectionId: metadata.sectionId || metadata.section,
+    };
+    return normalized;
+  };
+
+  // Optionally fetch alerts if none were passed in
+  const { data: fetchedAlerts = [], isLoading: fetchedLoading } = useWorkflowAlerts({ status: 'active' });
+  const sourceAlerts = (alerts && alerts.length > 0) ? alerts : (fetchedAlerts || []);
+  const alertsForView = sourceAlerts.map(normalizeAlert).filter(a => !!a.id);
+
   // Filter and sort alerts
   const getFilteredAndSortedAlerts = () => {
-    let filteredAlerts = [...alerts];
+    let filteredAlerts = [...alertsForView];
 
     // Apply project filter
     if (selectedProjectFilter) {
@@ -272,7 +320,7 @@ const CurrentAlertsSection = ({
   // Get unique projects for filter dropdown
   const getUniqueProjects = () => {
     const projectsMap = new Map();
-    alerts.forEach(alert => {
+    alertsForView.forEach(alert => {
       if (alert.projectId && !projectsMap.has(alert.projectId)) {
         projectsMap.set(alert.projectId, {
           id: alert.projectId,
