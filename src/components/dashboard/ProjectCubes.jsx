@@ -298,11 +298,11 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       {/* Project Number and Primary Contact at top left */}
                       <div className="flex items-center gap-2 mb-1">
                         <button
-                          onClick={() => onProjectSelect(project, 'Projects', null, 'Project Cubes')}
-                          className={`text-[9px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'}`}
-                          title={`View project ${project.projectNumber || project.id}`}
+                          onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Cubes')}
+                          className={`text-[10px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                          title={`View project profile for ${project.projectNumber || project.id}`}
                         >
-                          {project.projectNumber || `PRJ-${project.id}`}
+                          #{project.projectNumber || `PRJ-${project.id}`}
                         </button>
                         
                         {/* Primary Contact with dropdown arrow */}
@@ -324,9 +324,9 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                           
                           {/* Customer Address below customer name - Formatted as requested */}
                           {(project.customer?.address || project.client?.address) && (
-                            <div className="text-[8px] mt-0.5 font-normal text-black" style={{fontFamily: 'inherit', lineHeight: '1.2'}}>
-                              <div>{(project.customer?.address || project.client?.address).split(',')[0]?.trim() || ''}</div>
-                              <div>
+                            <div className="text-[9px] mt-0.5 font-normal text-black" style={{fontFamily: 'inherit', lineHeight: '1.3'}}>
+                              <div className="font-medium">{(project.customer?.address || project.client?.address).split(',')[0]?.trim() || ''}</div>
+                              <div className="opacity-90">
                                 {(() => {
                                   const address = project.customer?.address || project.client?.address;
                                   const parts = address.split(',').slice(1);
@@ -344,9 +344,9 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       </div>
                       
                       <button
-                        onClick={() => onProjectSelect(project, 'Projects', null, 'Project Cubes')}
-                        className={`text-[9px] font-bold truncate text-left w-full hover:underline transition-all duration-200 ${colorMode ? 'text-white hover:text-blue-300' : 'text-gray-800 hover:text-brand-600'}`}
-                        title={`View ${project.name} details`}
+                        onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Cubes')}
+                        className={`text-[11px] font-bold truncate text-left w-full hover:underline transition-all duration-200 ${colorMode ? 'text-white hover:text-blue-300' : 'text-gray-900 hover:text-brand-600'}`}
+                        title={`View ${project.name} profile`}
                       >
                         {project.name}
                       </button>
@@ -721,14 +721,14 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         ...project,
                         scrollToProjectId: String(project.id)
                       };
-                      onProjectSelect(projectWithScrollId, 'Projects', null, 'Project Cubes');
+                      onProjectSelect(projectWithScrollId, 'Project Profile', null, 'Project Cubes');
                     }}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-gray-700/80 hover:border-gray-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 hover:border-gray-400'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-indigo-700/80 hover:border-indigo-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-indigo-50 hover:border-indigo-400'}`}
                   >
                     <span className="mb-0.5 flex flex-col items-center">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="8" r="4" fill="#2563eb" />
-                        <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#2563eb" />
+                        <circle cx="12" cy="8" r="4" fill="#4f46e5" />
+                        <path d="M4 20c0-2.5 3.5-4.5 8-4.5s8 2 8 4.5" fill="#4f46e5" />
                       </svg>
                     </span>
                     Project Profile
