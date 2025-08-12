@@ -589,34 +589,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Project Workflow
-        </h2>
-        <div className="text-sm text-gray-600">
-          Project: {project.projectName || project.name}
-        </div>
-        {projectPosition && (
-          <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 font-medium">Phase:</span>
-                <span className="text-gray-900 font-semibold">{projectPosition.phaseName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 font-medium">Section:</span>
-                <span className="text-gray-900 font-semibold">{projectPosition.sectionDisplayName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 font-medium">Line Item:</span>
-                <span className="text-gray-900 font-semibold">{projectPosition.currentLineItemName}</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="max-w-4xl mx-auto p-0 space-y-0">
 
       {/* Checklist */}
       <div className="space-y-4">

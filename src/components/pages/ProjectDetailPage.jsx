@@ -1977,7 +1977,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             {/* Content Area */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto">
                 {/* Scrollable Content */}
-                <div className="p-4">
+                <div className="p-0">
                     <div className="min-h-[calc(100vh-200px)]">
                         {renderProjectView()}
                     </div>

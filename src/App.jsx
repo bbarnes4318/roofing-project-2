@@ -961,6 +961,7 @@ export default function App() {
                                         activePage === 'Project Messages' ? 'Messages' :
                                         activePage === 'Estimator' ? 'Estimate Comparison & Analysis' :
                                         activePage === 'Customers' ? 'Customer Management' :
+                                        activePage === 'Projects' ? 'Project Workflow' :
                                         activePage}
                                 </h1>
                                 <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-600'}`}>
@@ -1066,7 +1067,7 @@ export default function App() {
                 </header>
                 
                 {/* Page content */}
-                <div className={`flex-1 p-4 overflow-x-hidden ${colorMode ? 'bg-[#181f3a]/80' : ''}`}>
+                <div className={`flex-1 p-4 overflow-x-hidden`}>
                     {/* Main Content */}
                     <div className="flex-1 overflow-hidden">
                         {(() => {

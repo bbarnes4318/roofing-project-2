@@ -259,6 +259,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   console.log('🔍 DASHBOARD: Alerts data:', workflowAlerts);
   console.log('🔍 DASHBOARD: Alerts array length:', workflowAlerts?.length || 0);
   
+  // Force refresh alerts (for debugging)
+  const forceRefreshAlerts = () => {
+    console.log('🔄 Force refreshing alerts...');
+    refetchWorkflowAlerts();
+  };
+  
   // Activity feed filter state (separate from posting state)
   const [newMessage, setNewMessage] = useState('');
   const [sortBy, setSortBy] = useState('startDate');
@@ -2453,6 +2459,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       {expandedAlerts.size} of {getPaginatedAlerts().length} alert{getPaginatedAlerts().length !== 1 ? 's' : ''} expanded
                     </p>
                   )}
+                  <p className="text-xs text-gray-500">
+                    API Data: {workflowAlerts?.length || 0} alerts | Loading: {alertsLoading ? 'Yes' : 'No'} | Error: {alertsError ? 'Yes' : 'No'}
+                  </p>
                 </div>
               </div>
               
@@ -2487,6 +2496,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 
                 {/* Condensed Expand/Collapse Controls - Right side */}
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={forceRefreshAlerts}
+                    className="px-2 py-1 text-xs font-medium bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                    title="Refresh alerts"
+                  >
+                    🔄
+                  </button>
                   <button
                     onClick={handleExpandAllAlerts}
                     className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
