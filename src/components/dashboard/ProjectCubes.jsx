@@ -329,6 +329,17 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       >
                         {project.name}
                       </button>
+                      
+                      {/* Customer Address below project name */}
+                      {project.client?.address && (
+                        <div className={`text-[8px] mt-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <div>{project.client.address.split(',')[0]?.trim() || ''}</div>
+                          <div>
+                            {project.client.address.split(',').slice(1).join(',').trim() || 
+                             'City, State 00000'}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className={`ml-2 px-1 py-0.5 ${getPhaseColor(project).bg} rounded-full text-[8px] font-semibold ${getPhaseColor(project).text} shadow-sm`}>
                       {getPhaseText(project)}
@@ -349,14 +360,10 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             </svg>
                             <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Customer</span>
                           </div>
-                          <div className="mb-1">
-                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name:</span>
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.client?.name || 'Unknown Client'}>
                               {project.client?.name || 'Unknown Client'}
-                            </span>
-                          </div>
-                          <div className="mb-1">
-                            <span className={`text-[8px] ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                              {project.client?.address || project.clientAddress || '123 Main Street, City, State 12345'}
                             </span>
                           </div>
                           
@@ -364,7 +371,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Phone:</span>
                             <a 
                               href={`tel:${(project.client?.phone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-blue-700'}`}
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-black hover:text-gray-700'}`}
                               title={formatPhoneNumber(project.client?.phone)}
                             >
                               {formatPhoneNumber(project.client?.phone)}
@@ -375,7 +382,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Email:</span>
                             <a 
                               href={`mailto:${project.client?.email || 'client@email.com'}`} 
-                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-blue-700'}`}
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-black hover:text-gray-700'}`}
                               title={project.client?.email || 'client@email.com'}
                             >
                               {project.client?.email || 'client@email.com'}
@@ -386,12 +393,12 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         {/* Project Manager Information - Right Column */}
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-1 mb-1">
-                            <svg className="w-2 h-2 text-green-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <svg className="w-2 h-2 text-brand-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Manager</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mb-0.5">
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name:</span>
                             <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'Sarah Johnson'}>
                               {project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'Sarah Johnson'}
@@ -402,7 +409,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Phone:</span>
                             <a 
                               href={`tel:${(project.pmPhone || project.projectManager?.phone || '(555) 987-6543').replace(/[^\d+]/g, '')}`} 
-                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-700'}`}
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-black hover:text-gray-700'}`}
                               title={formatPhoneNumber(project.pmPhone || project.projectManager?.phone)}
                             >
                               {formatPhoneNumber(project.pmPhone || project.projectManager?.phone || '(555) 987-6543')}
@@ -413,7 +420,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Email:</span>
                             <a 
                               href={`mailto:${project.pmEmail || project.projectManager?.email || 'sarah.johnson@company.com'}`} 
-                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-green-300 hover:text-green-200' : 'text-green-600 hover:text-green-700'}`}
+                              className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-black hover:text-gray-700'}`}
                               title={project.pmEmail || project.projectManager?.email || 'sarah.johnson@company.com'}
                             >
                               {project.pmEmail || project.projectManager?.email || 'sarah.johnson@company.com'}
