@@ -16,6 +16,33 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Check if it's a demo token first
+    if (token.startsWith('demo-david-chen-token-')) {
+      // Find David Chen in the database
+      let davidChen = await prisma.user.findFirst({ 
+        where: { email: 'david.chen@kenstruction.com' } 
+      });
+      
+      if (!davidChen) {
+        // Create mock user object for demo purposes
+        davidChen = {
+          id: 'cme0ia6t00006umy4950saarf',
+          firstName: 'David',
+          lastName: 'Chen',
+          email: 'david.chen@kenstruction.com',
+          role: 'MANAGER',
+          isActive: true,
+          company: 'Kenstruction',
+          position: 'Manager',
+          department: 'Office',
+          isVerified: true
+        };
+      }
+      
+      req.user = davidChen;
+      return next();
+    }
+    
+    // Legacy Sarah Owner token support
     if (token.startsWith('demo-sarah-owner-token-')) {
       // Find Sarah Owner in the database or create a mock user
       let sarahOwner = await prisma.user.findFirst({ 

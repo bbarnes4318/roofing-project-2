@@ -48,20 +48,20 @@ api.interceptors.request.use(
     
     // If no token exists, create a STATIC demo token (not timestamp based)
     if (!token) {
-      const demoToken = 'demo-sarah-owner-token-fixed-12345';
+      const demoToken = 'demo-david-chen-token-fixed-12345';
       localStorage.setItem('authToken', demoToken);
       // Only set default user if no user exists in localStorage
       if (!localStorage.getItem('user')) {
         localStorage.setItem('user', JSON.stringify({
-          _id: 'demo-sarah-owner-id',
-          firstName: 'Sarah',
-          lastName: 'Owner',
-          email: 'sarah@example.com',
-          role: 'admin',
-          avatar: 'SO',
+          _id: 'cme0ia6t00006umy4950saarf',
+          firstName: 'David',
+          lastName: 'Chen',
+          email: 'david.chen@kenstruction.com',
+          role: 'MANAGER',
+          avatar: 'DC',
           company: 'Kenstruction',
-          position: 'Owner',
-          department: 'Management',
+          position: 'Manager',
+          department: 'Office',
           isVerified: true
         }));
       }
