@@ -2469,9 +2469,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       {expandedAlerts.size} of {getPaginatedAlerts().length} alert{getPaginatedAlerts().length !== 1 ? 's' : ''} expanded
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
-                    API Data: {workflowAlerts?.length || 0} alerts | Loading: {alertsLoading ? 'Yes' : 'No'} | Error: {alertsError ? 'Yes' : 'No'}
-                  </p>
                 </div>
               </div>
               
