@@ -68,7 +68,7 @@ export default function App() {
     // Navigation state must be declared before conditional returns
     const [navigationState, setNavigationState] = useState({
         selectedProject: null,
-        projectInitialView: 'Project Workflow',
+        projectInitialView: 'Profile',
         projectSourceSection: null,
         previousPage: 'Overview'
     });

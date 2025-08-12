@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSectionNavigation } from '../../contexts/NavigationContext';
 import BackButton from '../common/BackButton';
 
@@ -46,11 +46,76 @@ const ProjectsByPhaseSection = ({
   // Progress expansion state and helpers (match Current Project Access section)
   const [expandedProgress, setExpandedProgress] = useState({});
 
+  // Refs for progress chart containers to handle positioning
+  const progressChartRefs = useRef({});
+
   const toggleProgressExpansion = (projectId, section) => {
-    setExpandedProgress(prev => ({
-      ...prev,
-      [`${projectId}-${section}`]: !prev[`${projectId}-${section}`]
-    }));
+    const expandedKey = `${projectId}-${section}`;
+    const newExpandedState = {
+      ...expandedProgress,
+      [expandedKey]: !expandedProgress[expandedKey]
+    };
+    
+    setExpandedProgress(newExpandedState);
+    
+    // If expanding, ensure the chart is visible
+    if (!expandedProgress[expandedKey]) {
+      setTimeout(() => {
+        ensureProgressChartVisibility(projectId, section);
+      }, 100); // Small delay to allow DOM update
+    }
+  };
+
+  // Function to ensure progress chart is fully visible
+  const ensureProgressChartVisibility = (projectId, section) => {
+    const chartRef = progressChartRefs.current[`${projectId}-${section}`];
+    if (!chartRef) return;
+
+    const rect = chartRef.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const buffer = 20; // Extra space for padding
+
+    // Check if chart is cut off at the bottom
+    if (rect.bottom > viewportHeight - buffer) {
+      // Calculate how much we need to scroll
+      const scrollAmount = rect.bottom - viewportHeight + buffer;
+      
+      // Smooth scroll to make chart fully visible
+      window.scrollBy({
+        top: scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+
+    // Check if chart is cut off at the top
+    if (rect.top < buffer) {
+      // Scroll to position chart with some buffer at the top
+      const scrollAmount = rect.top - buffer;
+      
+      window.scrollBy({
+        top: -scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+
+    // Fallback: Use scrollIntoView for better browser compatibility
+    if (rect.bottom > viewportHeight - buffer || rect.top < buffer) {
+      chartRef.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+  };
+
+  // Function to handle dynamic positioning for expanded charts
+  const handleChartPositioning = (projectId, section, isExpanded) => {
+    if (isExpanded) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        ensureProgressChartVisibility(projectId, section);
+      });
+    }
   };
 
   const getProjectTrades = (project) => {
@@ -268,7 +333,7 @@ const ProjectsByPhaseSection = ({
                       {phaseProjects.map(project => (
                         <div
                           key={project.id}
-                          className="group bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition-all duration-200 overflow-hidden"
+                          className="group bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition-all duration-200 overflow-visible"
                         >
                           {/* Project Header */}
                           <div className="p-4 border-b border-gray-100">
@@ -301,20 +366,40 @@ const ProjectsByPhaseSection = ({
                           </div>
 
                           {/* Enhanced Progress Bar (exact from Current Project Access) */}
-                          <div className="p-4">
+                          <div className="p-4 relative">
                             {(() => {
                               const trades = getProjectTrades(project);
                               const overall = Math.round(
                                 trades.reduce((sum, t) => sum + (t.laborProgress || 0), 0) / (trades.length || 1)
                               );
                               const expandedKey = `${project.id || project._id}-materials-labor`;
+                              const isExpanded = expandedProgress[expandedKey];
+                              
+                              // Handle positioning when expanded
+                              useEffect(() => {
+                                handleChartPositioning(project.id || project._id, 'materials-labor', isExpanded);
+                              }, [isExpanded]);
+
+                              // Handle positioning for trades section
+                              useEffect(() => {
+                                const tradesExpanded = expandedProgress[`${project.id || project._id}-trades`];
+                                handleChartPositioning(project.id || project._id, 'trades', tradesExpanded);
+                              }, [expandedProgress[`${project.id || project._id}-trades`]]);
+                              
                               return (
                                 <div
                                   className={`rounded-lg transition-all duration-300 relative ${
                                     colorMode
-                                      ? `bg-slate-700/20 border border-slate-600/30 ${expandedProgress[expandedKey] ? 'border-8 border-blue-400 shadow-2xl shadow-blue-400/50 bg-blue-900/20' : ''}`
-                                      : `bg-gray-50/90 border border-gray-200/50 ${expandedProgress[expandedKey] ? 'border-8 border-brand-500 shadow-2xl shadow-brand-500/50 bg-blue-100' : ''}`
+                                      ? `bg-slate-700/20 border border-slate-600/30 ${isExpanded ? 'border-8 border-blue-400 shadow-2xl shadow-blue-400/50 bg-blue-900/20 z-10' : ''}`
+                                      : `bg-gray-50/90 border border-gray-200/50 ${isExpanded ? 'border-8 border-brand-500 shadow-2xl shadow-brand-500/50 bg-blue-100 z-10' : ''}`
                                   }`}
+                                  ref={el => progressChartRefs.current[expandedKey] = el}
+                                  style={{
+                                    ...(isExpanded && {
+                                      position: 'relative',
+                                      zIndex: 10
+                                    })
+                                  }}
                                 >
                                   <div className="mb-2">
                                     <button
@@ -332,7 +417,7 @@ const ProjectsByPhaseSection = ({
                                           <svg
                                             className={`w-3 h-3 transition-transform duration-200 ${
                                               colorMode ? 'text-gray-300' : 'text-gray-600'
-                                            } ${expandedProgress[expandedKey] ? 'rotate-180' : ''}`}
+                                            } ${isExpanded ? 'rotate-180' : ''}`}
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -349,7 +434,7 @@ const ProjectsByPhaseSection = ({
                                       </div>
                                     </button>
 
-                                    {expandedProgress[expandedKey] && (
+                                    {isExpanded && (
                                       <div className="space-y-2 mt-2">
                                         <div>
                                           <div className="flex items-center justify-between mb-1">
@@ -387,8 +472,10 @@ const ProjectsByPhaseSection = ({
                                     )}
                                   </div>
 
-                                  {expandedProgress[expandedKey] && (
-                                    <div>
+                                  {isExpanded && (
+                                    <div
+                                      ref={el => progressChartRefs.current[`${project.id || project._id}-trades`] = el}
+                                    >
                                       <button
                                         onClick={() => toggleProgressExpansion(project.id || project._id, 'trades')}
                                         className={`w-full flex items-center justify-between p-1 rounded transition-all duration-200 ${
