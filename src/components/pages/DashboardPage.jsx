@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronDownIcon, ChevronLeftIcon } from '../common/Icons';
+import { ChevronDownIcon, ChevronLeftIcon, XCircleIcon } from '../common/Icons';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import DraggablePopup from '../ui/DraggablePopup';
-import { X } from 'lucide-react';
 
 import ProjectCubes from '../dashboard/ProjectCubes';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
@@ -3289,7 +3288,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   onClick={() => toggleProgress(projectId)}
                   className={`p-1 rounded hover:bg-opacity-10 ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-500'}`}
                 >
-                  <X size={14} />
+                  <XCircleIcon className="w-3.5 h-3.5" />
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
