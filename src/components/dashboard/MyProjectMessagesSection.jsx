@@ -280,7 +280,7 @@ const MyProjectMessagesSection = ({
           <select
             value={selectedProjectFilter || ''}
             onChange={(e) => setSelectedProjectFilter(e.target.value || null)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[200px]"
           >
             <option value="">All Projects</option>
             {uniqueProjects.map(project => (
@@ -294,7 +294,7 @@ const MyProjectMessagesSection = ({
           <select
             value={selectedPriorityFilter || ''}
             onChange={(e) => setSelectedPriorityFilter(e.target.value || null)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[150px]"
           >
             <option value="">All Priorities</option>
             <option value="high">High Priority</option>
@@ -307,7 +307,7 @@ const MyProjectMessagesSection = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[120px]"
             >
               <option value="timestamp">Date</option>
               <option value="project">Project</option>

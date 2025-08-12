@@ -205,7 +205,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
               <select 
                 value={activityProjectFilter} 
                 onChange={(e) => setActivityProjectFilter(e.target.value)} 
-                className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors max-w-[180px] ${
                   colorMode 
                     ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
                     : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
@@ -220,7 +220,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
               <select 
                 value={activitySubjectFilter} 
                 onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
+                className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors max-w-[140px] ${
                   colorMode 
                     ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
                     : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'

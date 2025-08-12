@@ -2126,7 +2126,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <select 
                     value={activityProjectFilter} 
                     onChange={(e) => setActivityProjectFilter(e.target.value)} 
-                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px] max-w-[200px]"
                   >
                     <option value="">All Projects</option>
                     {(projects || []).map(p => (
@@ -2137,7 +2137,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   <select 
                     value={activitySubjectFilter} 
                     onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[80px]"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[80px] max-w-[150px]"
                   >
                     <option value="">All Subjects</option>
                     {subjects.map(subject => (
