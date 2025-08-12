@@ -43,6 +43,30 @@ const ProjectsByPhaseSection = ({
     return savedFilters.sortConfig || sortConfig;
   });
 
+  // Progress expansion state and helpers (match Current Project Access section)
+  const [expandedProgress, setExpandedProgress] = useState({});
+
+  const toggleProgressExpansion = (projectId, section) => {
+    setExpandedProgress(prev => ({
+      ...prev,
+      [`${projectId}-${section}`]: !prev[`${projectId}-${section}`]
+    }));
+  };
+
+  const getProjectTrades = (project) => {
+    if (project.trades && project.trades.length > 0) {
+      return project.trades;
+    }
+    const tradeName = project.projectType || project.type || 'General';
+    return [
+      {
+        name: tradeName,
+        laborProgress: project.progress || 0,
+        materialsDelivered: project.materialsDelivered || false
+      }
+    ];
+  };
+
   // Save expanded state whenever it changes
   useEffect(() => {
     saveExpandedState(expandedPhases);
@@ -276,20 +300,157 @@ const ProjectsByPhaseSection = ({
                             </button>
                           </div>
 
-                          {/* Project Progress */}
+                          {/* Enhanced Progress Bar (exact from Current Project Access) */}
                           <div className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-gray-700">Progress</span>
-                              <span className="text-sm font-semibold text-gray-900">
-                                {getProjectProgress ? getProjectProgress(project) : project.progress || 0}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${getProjectProgress ? getProjectProgress(project) : project.progress || 0}%` }}
-                              ></div>
-                            </div>
+                            {(() => {
+                              const trades = getProjectTrades(project);
+                              const overall = Math.round(
+                                trades.reduce((sum, t) => sum + (t.laborProgress || 0), 0) / (trades.length || 1)
+                              );
+                              const expandedKey = `${project.id || project._id}-materials-labor`;
+                              return (
+                                <div
+                                  className={`rounded-lg transition-all duration-300 relative ${
+                                    colorMode
+                                      ? `bg-slate-700/20 border border-slate-600/30 ${expandedProgress[expandedKey] ? 'border-8 border-blue-400 shadow-2xl shadow-blue-400/50 bg-blue-900/20' : ''}`
+                                      : `bg-gray-50/90 border border-gray-200/50 ${expandedProgress[expandedKey] ? 'border-8 border-brand-500 shadow-2xl shadow-brand-500/50 bg-blue-100' : ''}`
+                                  }`}
+                                >
+                                  <div className="mb-2">
+                                    <button
+                                      onClick={() => toggleProgressExpansion(project.id || project._id, 'materials-labor')}
+                                      className={`w-full text-left transition-all duration-200 ${
+                                        colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'
+                                      } rounded p-1`}
+                                    >
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                          Overall Project Progress
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                          <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{overall}%</span>
+                                          <svg
+                                            className={`w-3 h-3 transition-transform duration-200 ${
+                                              colorMode ? 'text-gray-300' : 'text-gray-600'
+                                            } ${expandedProgress[expandedKey] ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                      <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div
+                                          className="bg-brand-500 h-2 rounded-full transition-all duration-500"
+                                          style={{ width: `${overall}%` }}
+                                        ></div>
+                                      </div>
+                                    </button>
+
+                                    {expandedProgress[expandedKey] && (
+                                      <div className="space-y-2 mt-2">
+                                        <div>
+                                          <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-[11px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                              Materials Progress
+                                            </span>
+                                            <span className={`text-[11px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                              {Math.round((trades.filter(t => t.materialsDelivered).length / trades.length) * 100)}%
+                                            </span>
+                                          </div>
+                                          <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                            <div
+                                              className="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                                              style={{
+                                                width: `${Math.round((trades.filter(t => t.materialsDelivered).length / trades.length) * 100)}%`
+                                              }}
+                                            ></div>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-[11px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                              Labor Progress
+                                            </span>
+                                            <span className={`text-[11px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{overall}%</span>
+                                          </div>
+                                          <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                            <div
+                                              className="bg-orange-400 h-1.5 rounded-full transition-all duration-500"
+                                              style={{ width: `${overall}%` }}
+                                            ></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {expandedProgress[expandedKey] && (
+                                    <div>
+                                      <button
+                                        onClick={() => toggleProgressExpansion(project.id || project._id, 'trades')}
+                                        className={`w-full flex items-center justify-between p-1 rounded transition-all duration-200 ${
+                                          colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'
+                                        }`}
+                                      >
+                                        <span className={`text-[11px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                          Individual Trades
+                                        </span>
+                                        <svg
+                                          className={`w-3 h-3 transition-transform duration-200 ${
+                                            colorMode ? 'text-gray-300' : 'text-gray-600'
+                                          } ${expandedProgress[`${project.id || project._id}-trades`] ? 'rotate-180' : ''}`}
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </button>
+                                      {expandedProgress[`${project.id || project._id}-trades`] && (
+                                        <div className="space-y-2 mt-2">
+                                          {trades.map((trade, tradeIndex) => {
+                                            const tradeColors = [
+                                              'bg-purple-500',
+                                              'bg-pink-500',
+                                              'bg-yellow-500',
+                                              'bg-teal-500',
+                                              'bg-red-500',
+                                              'bg-indigo-500',
+                                              'bg-cyan-500',
+                                              'bg-amber-500',
+                                              'bg-lime-500',
+                                              'bg-fuchsia-500',
+                                            ];
+                                            const barColor = tradeColors[tradeIndex % tradeColors.length];
+                                            return (
+                                              <div key={tradeIndex}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                  <span className={`${colorMode ? 'text-white' : 'text-gray-800'} text-[11px] font-semibold`}>
+                                                    {trade.name}
+                                                  </span>
+                                                  <span className={`${colorMode ? 'text-white' : 'text-gray-800'} text-[11px] font-bold`}>
+                                                    {trade.laborProgress}%
+                                                  </span>
+                                                </div>
+                                                <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                                  <div
+                                                    className={`${barColor} h-1.5 rounded-full transition-all duration-500`}
+                                                    style={{ width: `${trade.laborProgress}%` }}
+                                                  ></div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           {/* Project Actions */}
