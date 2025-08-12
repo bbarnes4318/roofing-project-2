@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronDownIcon, ChevronLeftIcon } from '../common/Icons';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import DraggablePopup from '../ui/DraggablePopup';
+import { X } from 'lucide-react';
 
 import ProjectCubes from '../dashboard/ProjectCubes';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
@@ -235,6 +236,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const contactButtonRefs = useRef({});
   const pmButtonRefs = useRef({});
   const progressButtonRefs = useRef({});
+  
+  // Refs for progress dropdowns
+  const progressDropdownRefs = useRef({});
   
   // Refs for alert popups
   const alertContactButtonRefs = useRef({});
@@ -470,6 +474,45 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   useEffect(() => {
     removeLatestDDD();
   }, []);
+
+  // Handle click outside for progress dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside any progress dropdown
+      let shouldClose = [];
+      
+      for (const projectId of expandedProgress) {
+        const dropdown = progressDropdownRefs.current[projectId];
+        const button = progressButtonRefs.current[projectId];
+        
+        if (dropdown && !dropdown.contains(event.target) &&
+            button && !button.contains(event.target)) {
+          shouldClose.push(projectId);
+        }
+      }
+      
+      if (shouldClose.length > 0) {
+        const newExpanded = new Set(expandedProgress);
+        shouldClose.forEach(id => {
+          newExpanded.delete(id);
+          // Also close trades
+          const newTrades = new Set(expandedTrades);
+          newTrades.delete(id);
+          setExpandedTrades(newTrades);
+          // Also close additional trades
+          const newAdditionalTrades = new Set(expandedAdditionalTrades);
+          newAdditionalTrades.delete(id);
+          setExpandedAdditionalTrades(newAdditionalTrades);
+        });
+        setExpandedProgress(newExpanded);
+      }
+    };
+
+    if (expandedProgress.size > 0) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [expandedProgress, expandedTrades, expandedAdditionalTrades]);
 
   // Subject options for dropdown
   const subjectOptions = subjects;
@@ -3222,92 +3265,143 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         );
       })}
 
-      {/* Draggable Progress Popups */}
+      {/* Progress Dropdowns */}
       {Array.from(expandedProgress).map(projectId => {
         const project = projects?.find(p => p.id === projectId);
         if (!project) return null;
         
+        const overallProgress = getProjectProgress(project);
+        
         return (
-          <DraggablePopup
-            key={`progress-${projectId}`}
-            isOpen={true}
-            onClose={() => toggleProgress(projectId)}
-            colorMode={colorMode}
-            triggerRef={progressButtonRefs.current[projectId] ? { current: progressButtonRefs.current[projectId] } : null}
-            className="min-w-[300px]"
+          <div
+            key={`progress-dropdown-${projectId}`}
+            ref={el => progressDropdownRefs.current[projectId] = el}
+            className={`absolute z-50 mt-1 w-80 ${colorMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-xl border ${colorMode ? 'border-slate-600' : 'border-gray-200'} animate-fadeIn`}
+            style={{
+              top: progressButtonRefs.current[projectId]?.getBoundingClientRect().bottom + window.scrollY + 8,
+              left: progressButtonRefs.current[projectId]?.getBoundingClientRect().left + window.scrollX,
+            }}
           >
-            <div className="space-y-4">
-              <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                Project Progress Details
-              </div>
-              
-              {/* Overall Progress */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Overall Project Progress</span>
-                  <span className={`text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getProjectProgress(project)}%</span>
-                </div>
-                <div className={`w-full h-2 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
-                  <div 
-                    className="h-full bg-brand-500 rounded-full transition-all duration-300"
-                    style={{ width: `${getProjectProgress(project)}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              {/* Materials & Labor Section */}
-              <div className="space-y-2">
+            <div className={`px-4 py-3 border-b ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Project Progress</h3>
                 <button
-                  onClick={() => toggleTrades(project.id)}
-                  className={`flex items-center gap-2 text-xs font-semibold hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}
+                  onClick={() => toggleProgress(projectId)}
+                  className={`p-1 rounded hover:bg-opacity-10 ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-500'}`}
                 >
-                  <span>Materials & Labor</span>
-                  <svg 
-                    className={`w-3 h-3 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <X size={14} />
                 </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {project.name} (#{project.projectNumber || project.id})
+              </p>
+            </div>
+            
+            <div className="p-4 space-y-4">
+              {/* Enhanced Progress Bar Section */}
+              <div className="space-y-3">
+                {/* Overall Progress Header */}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Overall Progress</span>
+                  <span className={`text-sm font-bold ${overallProgress === 100 ? 'text-green-500' : 'text-blue-500'}`}>
+                    {Math.round(overallProgress || 0)}%
+                  </span>
+                </div>
                 
-                {/* Materials & Labor Details */}
+                {/* Enhanced Progress Bar */}
+                <div className="relative">
+                  <div className={`w-full h-3 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ease-out shadow-sm ${
+                        overallProgress === 100 
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                          : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                      }`}
+                      style={{ width: `${Math.min(overallProgress || 0, 100)}%` }}
+                    >
+                      {overallProgress > 15 && (
+                        <div className="h-full w-full bg-gradient-to-t from-black/10 to-transparent rounded-full" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Progress indicator dot */}
+                  {overallProgress > 0 && (
+                    <div 
+                      className={`absolute top-1/2 transform -translate-y-1/2 w-2 h-2 rounded-full border-2 ${
+                        overallProgress === 100 
+                          ? 'bg-green-500 border-green-300' 
+                          : 'bg-blue-500 border-blue-300'
+                      } shadow-lg transition-all duration-700`}
+                      style={{ left: `calc(${Math.min(overallProgress || 0, 100)}% - 4px)` }}
+                    />
+                  )}
+                </div>
+              </div>
+              
+              {/* Enhanced Materials & Labor Section */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Phase Breakdown</span>
+                  <button
+                    onClick={() => toggleTrades(project.id)}
+                    className={`flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}
+                  >
+                    <span>Details</span>
+                    <svg 
+                      className={`w-3 h-3 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Base Material & Labor Progress */}
+                <div className="space-y-2.5">
+                  <div className="group">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-green-600 dark:text-green-400">Materials</span>
+                      <span className="text-xs font-bold text-green-600 dark:text-green-400">
+                        {project.materialsProgress || 85}%
+                      </span>
+                    </div>
+                    <div className={`w-full h-2 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 ease-out shadow-sm"
+                        style={{ width: `${project.materialsProgress || 85}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="group">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-orange-600 dark:text-orange-400">Labor</span>
+                      <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                        {project.laborProgress || 75}%
+                      </span>
+                    </div>
+                    <div className={`w-full h-2 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 ease-out shadow-sm"
+                        style={{ width: `${project.laborProgress || 75}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Detailed Trades Breakdown */}
                 {expandedTrades.has(project.id) && (
-                  <div className="space-y-3 ml-4">
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Materials</span>
-                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.materialsProgress || 85}%</span>
-                      </div>
-                      <div className={`w-full h-1.5 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
-                        <div 
-                          className="h-full bg-green-500 rounded-full transition-all duration-300"
-                          style={{ width: `${project.materialsProgress || 85}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Labor</span>
-                        <span className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{project.laborProgress || 75}%</span>
-                      </div>
-                      <div className={`w-full h-1.5 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
-                        <div 
-                          className="h-full bg-orange-500 rounded-full transition-all duration-300"
-                          style={{ width: `${project.laborProgress || 75}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    {/* Additional Trades Section */}
-                    <div className="space-y-2">
+                  <div className="space-y-3 pt-2 border-t border-gray-200/50">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Trade Progress</span>
                       <button
                         onClick={() => toggleAdditionalTrades(project.id)}
-                        className={`flex items-center gap-2 text-xs font-semibold hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}
+                        className={`flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}
                       >
-                        <span>Additional Trades</span>
+                        <span>{expandedAdditionalTrades.has(project.id) ? 'Less' : 'More'}</span>
                         <svg 
                           className={`w-3 h-3 transition-transform ${expandedAdditionalTrades.has(project.id) ? 'rotate-180' : ''}`} 
                           fill="none" 
@@ -3317,37 +3411,40 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
-                      
-                      {/* Additional Trades Details */}
-                      {expandedAdditionalTrades.has(project.id) && (
-                        <div className="space-y-2 ml-4">
-                          {[
-                            { name: 'Roofing', progress: project.roofingProgress || 90, color: 'bg-purple-500' },
-                            { name: 'Siding', progress: project.sidingProgress || 60, color: 'bg-brand-500' },
-                            { name: 'Windows', progress: project.windowsProgress || 40, color: 'bg-yellow-500' },
-                            { name: 'Gutters', progress: project.guttersProgress || 30, color: 'bg-red-500' }
-                          ].map((trade) => (
-                            <div key={trade.name} className="space-y-1">
-                              <div className="flex justify-between items-center">
-                                <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>{trade.name}</span>
-                                <span className={`text-xs font-semibold ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>{trade.progress}%</span>
-                              </div>
-                              <div className={`w-full h-1 rounded-full overflow-hidden border ${colorMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
-                                <div 
-                                  className={`h-full ${trade.color} rounded-full transition-all duration-300`}
-                                  style={{ width: `${trade.progress}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          ))}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {[
+                        { name: 'Roofing', progress: project.roofingProgress || 90, color: 'from-purple-500 to-purple-600' },
+                        { name: 'Siding', progress: project.sidingProgress || 60, color: 'from-blue-500 to-indigo-600' },
+                        ...(expandedAdditionalTrades.has(project.id) ? [
+                          { name: 'Windows', progress: project.windowsProgress || 40, color: 'from-yellow-500 to-amber-500' },
+                          { name: 'Gutters', progress: project.guttersProgress || 30, color: 'from-red-500 to-rose-500' }
+                        ] : [])
+                      ].map((trade) => (
+                        <div key={trade.name} className="group">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium group-hover:text-blue-500 transition-colors">
+                              {trade.name}
+                            </span>
+                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                              {trade.progress}%
+                            </span>
+                          </div>
+                          <div className={`w-full h-1.5 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
+                            <div
+                              className={`h-full rounded-full bg-gradient-to-r ${trade.color} transition-all duration-500 ease-out shadow-sm`}
+                              style={{ width: `${trade.progress}%` }}
+                            />
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
             </div>
-          </DraggablePopup>
+          </div>
         );
       })}
       
