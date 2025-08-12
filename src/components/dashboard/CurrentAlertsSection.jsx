@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSectionNavigation } from '../../contexts/NavigationContext';
 import BackButton from '../common/BackButton';
 import { useWorkflowAlerts } from '../../hooks/useQueryApi';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const CurrentAlertsSection = ({ 
   alerts = [], 
@@ -60,6 +62,12 @@ const CurrentAlertsSection = ({
     return savedFilters.searchTerm || '';
   });
 
+  // State for assign user modal
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedAlertForAssign, setSelectedAlertForAssign] = useState(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+
   // State for sort configuration
   const [sortBy, setSortBy] = useState(() => {
     const savedFilters = getSavedFilters();
@@ -73,6 +81,49 @@ const CurrentAlertsSection = ({
 
   // Scroll container ref for restoring position
   const scrollContainerRef = useRef(null);
+
+  // Fetch available users for assignment
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get('/users');
+        if (response.data.success) {
+          setAvailableUsers(response.data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // Handle user assignment
+  const handleAssignUser = async (userId) => {
+    if (!selectedAlertForAssign || !userId) return;
+    
+    setAssignLoading(true);
+    try {
+      const response = await api.patch(`/alerts/${selectedAlertForAssign.id}/assign`, {
+        assignedTo: userId
+      });
+      
+      if (response.data.success) {
+        const assignedUser = availableUsers.find(u => u.id === userId);
+        toast.success(`Alert assigned to ${assignedUser?.firstName} ${assignedUser?.lastName}`);
+        setShowAssignModal(false);
+        setSelectedAlertForAssign(null);
+        
+        // Refresh alerts
+        setExpandedAlerts(prev => ({ ...prev }));
+      }
+    } catch (error) {
+      console.error('Failed to assign alert:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to assign alert. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setAssignLoading(false);
+    }
+  };
 
   // Save expanded state whenever it changes
   useEffect(() => {
@@ -676,8 +727,33 @@ const CurrentAlertsSection = ({
                     <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
                       <button
                         onClick={() => {
-                          // Handle acknowledge alert
-                          console.log('Acknowledge alert:', alert.id);
+                          setSelectedAlertForAssign(alert);
+                          setShowAssignModal(true);
+                        }}
+                        className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                      >
+                        Assign User
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const loadingToast = toast.loading('Acknowledging alert...');
+                          try {
+                            const response = await api.patch(`/alerts/${alert.id}/acknowledge`);
+                            toast.dismiss(loadingToast);
+                            if (response.data.success) {
+                              toast.success('Alert acknowledged successfully', {
+                                duration: 3000,
+                                icon: '👍'
+                              });
+                              // Refresh alerts to show updated status
+                              window.location.reload();
+                            }
+                          } catch (error) {
+                            toast.dismiss(loadingToast);
+                            console.error('Failed to acknowledge alert:', error);
+                            const errorMessage = error.response?.data?.message || 'Failed to acknowledge alert. Please try again.';
+                            toast.error(errorMessage, { duration: 4000 });
+                          }
                         }}
                         disabled={alert.status === 'ACKNOWLEDGED'}
                         className="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -698,14 +774,54 @@ const CurrentAlertsSection = ({
                       </button>
                       
                       <button
-                        onClick={() => {
-                          // Handle mark as completed
-                          console.log('Mark alert as completed:', alert.id);
+                        onClick={async () => {
+                          try {
+                            // Show loading state
+                            const loadingToast = toast.loading('Processing completion...');
+                            
+                            // Complete the workflow line item
+                            const response = await api.post('/workflow/complete-item', {
+                              projectId: alert.projectId,
+                              lineItemId: alert.stepId || alert.metadata?.stepId,
+                              notes: `Completed via Current Alerts Section at ${new Date().toLocaleString()}`,
+                              alertId: alert.id
+                            });
+                            
+                            toast.dismiss(loadingToast);
+                            
+                            if (response.data.success) {
+                              toast.success('Task completed successfully! Moving to next step.', {
+                                duration: 4000,
+                                icon: '✅'
+                              });
+                              
+                              // Update UI with completion feedback
+                              const nextStep = response.data.updatedData?.nextLineItem;
+                              if (nextStep) {
+                                toast.success(`Next task: ${nextStep.itemName}`, { 
+                                  duration: 6000,
+                                  icon: '📋'
+                                });
+                              }
+                              
+                              // Refresh alerts after successful completion
+                              if (onAlertDismiss) {
+                                onAlertDismiss(alert.id);
+                              }
+                              
+                              // Clear this alert from expanded view
+                              setSelectedAlertFilter(null);
+                            }
+                          } catch (error) {
+                            console.error('Failed to complete line item:', error);
+                            const errorMessage = error.response?.data?.message || 'Failed to complete task. Please try again.';
+                            toast.error(errorMessage);
+                          }
                         }}
                         disabled={alert.status === 'COMPLETED'}
                         className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
-                        {alert.status === 'COMPLETED' ? 'Completed' : 'Mark Complete'}
+                        {alert.status === 'COMPLETED' ? 'Completed' : 'Complete'}
                       </button>
                     </div>
                   </div>
@@ -760,6 +876,74 @@ const CurrentAlertsSection = ({
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 {filteredAlerts.filter(a => a.priority === 'LOW').length} Low
               </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign User Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Assign Alert to User</h3>
+              <button
+                onClick={() => {
+                  setShowAssignModal(false);
+                  setSelectedAlertForAssign(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Alert: <span className="font-medium">{selectedAlertForAssign?.title}</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                Project: <span className="font-medium">{selectedAlertForAssign?.projectName}</span>
+              </p>
+            </div>
+            
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {availableUsers.length > 0 ? (
+                availableUsers.map(user => (
+                  <button
+                    key={user.id}
+                    onClick={() => handleAssignUser(user.id)}
+                    disabled={assignLoading}
+                    className="w-full px-4 py-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{user.firstName} {user.lastName}</div>
+                        <div className="text-sm text-gray-600">{user.role || 'Team Member'}</div>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-4">No users available</p>
+              )}
+            </div>
+            
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowAssignModal(false);
+                  setSelectedAlertForAssign(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

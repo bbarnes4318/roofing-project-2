@@ -446,6 +446,29 @@ router.patch('/:id/read', asyncHandler(async (req, res) => {
   sendSuccess(res, alert, 'Alert marked as read successfully');
 }));
 
+// @desc    Acknowledge alert
+// @route   PATCH /api/alerts/:id/acknowledge
+// @access  Private
+router.patch('/:id/acknowledge', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const alert = await prisma.workflowAlert.update({
+    where: { id },
+    data: { 
+      status: 'ACKNOWLEDGED',
+      acknowledgedAt: new Date(),
+      acknowledgedById: req.user?.id || null
+    }
+  });
+  
+  // Invalidate cache for the user
+  if (req.user?.id) {
+    AlertCacheService.invalidateUserAlerts(req.user.id);
+  }
+  
+  sendSuccess(res, alert, 'Alert acknowledged successfully');
+}));
+
 // @desc    Mark all alerts as read
 // @route   PATCH /api/alerts/read-all
 // @access  Private
@@ -518,53 +541,52 @@ router.patch('/:id/assign',
       return next(new AppError('Target user not found', 404));
     }
 
-    // Find the current alert
-    const currentAlert = await prisma.notification.findFirst({
-      where: {
-        id: req.params.id,
-        userId: req.user.id
-      }
+    // Find and update the current alert
+    const currentAlert = await prisma.workflowAlert.findUnique({
+      where: { id: req.params.id }
     });
 
     if (!currentAlert) {
       return next(new AppError('Alert not found', 404));
     }
 
-    // Create a new alert for the assigned user
-    const newAlert = await prisma.notification.create({
+    // Update the alert with new assignment
+    const updatedAlert = await prisma.workflowAlert.update({
+      where: { id: req.params.id },
       data: {
-        userId: assignedTo,
-        type: currentAlert.type,
-        priority: currentAlert.priority,
-        message: currentAlert.message,
-        relatedProjectId: currentAlert.relatedProjectId,
-        actionData: {
-          ...currentAlert.actionData,
-          reassignedFrom: req.user.id,
-          reassignedFromName: `${req.user.firstName} ${req.user.lastName}`,
-          reassignedAt: new Date()
+        assignedToId: assignedTo,
+        metadata: {
+          ...currentAlert.metadata,
+          reassignedFrom: req.user?.id,
+          reassignedFromName: req.user ? `${req.user.firstName} ${req.user.lastName}` : 'System',
+          reassignedAt: new Date().toISOString(),
+          originalAssignee: currentAlert.assignedToId || currentAlert.metadata?.originalAssignee
         }
       }
     });
 
-    // Remove the alert from current user
-    await prisma.notification.delete({
-      where: { id: req.params.id }
-    });
+    // Log the assignment in the alert history
+    console.log(`✅ Alert ${req.params.id} assigned from ${req.user?.firstName} ${req.user?.lastName} to ${targetUser.firstName} ${targetUser.lastName}`);
+
+    // Invalidate cache for both users
+    if (currentAlert.assignedToId) {
+      AlertCacheService.invalidateUserAlerts(currentAlert.assignedToId);
+    }
+    AlertCacheService.invalidateUserAlerts(assignedTo);
 
     // Emit real-time notification to assigned user
     const io = req.app.get('io');
     if (io) {
       io.to(`user_${assignedTo}`).emit('alert_assigned', {
-        alert: newAlert,
-        assignedBy: `${req.user.firstName} ${req.user.lastName}`,
+        alert: updatedAlert,
+        assignedBy: req.user ? `${req.user.firstName} ${req.user.lastName}` : 'System',
         message: `Alert "${currentAlert.title}" has been assigned to you`
       });
     }
 
-    sendSuccess(res, 200, { 
-      alert: newAlert,
-      assignedTo: targetUser.firstName + ' ' + targetUser.lastName
+    sendSuccess(res, { 
+      alert: updatedAlert,
+      assignedTo: `${targetUser.firstName} ${targetUser.lastName}`
     }, 'Alert assigned successfully');
   })
 );
