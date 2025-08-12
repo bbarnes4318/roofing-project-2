@@ -645,3 +645,312 @@
 .global-search-container.has-results .global-search-input {
   animation: pulse 1s;
 }
+
+/* ========================= */
+/* ENHANCED ACTION SECTIONS */
+/* ========================= */
+
+/* Project Actions */
+.enhanced-project-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 280px;
+  padding: 8px;
+}
+
+.action-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.primary-actions {
+  margin-bottom: 4px;
+}
+
+.secondary-actions {
+  margin-left: 8px;
+}
+
+/* Enhanced Action Button Base */
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  color: #374151;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Primary Action Buttons */
+.action-btn.primary {
+  background: #3B82F6;
+  color: white;
+  border-color: #2563EB;
+}
+
+.action-btn.primary:hover {
+  background: #2563EB;
+  border-color: #1D4ED8;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.action-btn.primary.profile-btn {
+  background: #6366F1;
+  border-color: #5B21B6;
+}
+
+.action-btn.primary.profile-btn:hover {
+  background: #5B21B6;
+  border-color: #4C1D95;
+}
+
+.action-btn.primary.workflow-btn {
+  background: #8B5CF6;
+  border-color: #7C3AED;
+}
+
+.action-btn.primary.workflow-btn:hover {
+  background: #7C3AED;
+  border-color: #6D28D9;
+}
+
+.action-btn.primary.call-btn {
+  background: #10B981;
+  border-color: #059669;
+}
+
+.action-btn.primary.call-btn:hover {
+  background: #059669;
+  border-color: #047857;
+}
+
+.action-btn.primary.email-btn {
+  background: #DC2626;
+  border-color: #B91C1C;
+}
+
+.action-btn.primary.email-btn:hover {
+  background: #B91C1C;
+  border-color: #991B1B;
+}
+
+/* Secondary Action Buttons */
+.action-btn.secondary {
+  background: #F9FAFB;
+  color: #6B7280;
+  border-color: #E5E7EB;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.action-btn.secondary:hover {
+  background: #F3F4F6;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+.action-btn.secondary.messages-btn:hover {
+  color: #8B5CF6;
+  border-color: #C4B5FD;
+  background: #F3F4F6;
+}
+
+.action-btn.secondary.send-message-btn:hover {
+  color: #3B82F6;
+  border-color: #93C5FD;
+  background: #EFF6FF;
+}
+
+.action-btn.secondary.alerts-btn:hover {
+  color: #F59E0B;
+  border-color: #FCD34D;
+  background: #FFFBEB;
+}
+
+.action-btn.secondary.email-btn:hover {
+  color: #DC2626;
+  border-color: #FCA5A5;
+  background: #FEF2F2;
+}
+
+.action-btn.secondary.sms-btn:hover {
+  color: #10B981;
+  border-color: #6EE7B7;
+  background: #F0FDF4;
+}
+
+.action-btn.secondary.text-btn:hover {
+  color: #3B82F6;
+  border-color: #93C5FD;
+  background: #EFF6FF;
+}
+
+/* Customer Actions */
+.enhanced-customer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  padding: 6px;
+}
+
+.customer-primary {
+  margin-bottom: 2px;
+}
+
+.customer-contact {
+  margin-left: 8px;
+  gap: 4px;
+}
+
+/* Phone Actions */
+.enhanced-phone-actions,
+.enhanced-email-actions,
+.enhanced-address-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  padding: 6px;
+}
+
+.phone-actions,
+.email-actions,
+.address-actions {
+  gap: 6px;
+}
+
+/* Workflow Status Badge */
+.workflow-status-badge {
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3B82F6;
+  animation: pulse 2s infinite;
+}
+
+.status-text {
+  color: #1E40AF;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+/* Default Actions */
+.enhanced-default-actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  min-width: 120px;
+}
+
+/* Dark Mode Support for Enhanced Actions */
+.bg-\[\#1e293b\] .action-btn {
+  background: #374151;
+  color: #F3F4F6;
+  border-color: #4B5563;
+}
+
+.bg-\[\#1e293b\] .action-btn:hover {
+  background: #4B5563;
+  border-color: #6B7280;
+}
+
+.bg-\[\#1e293b\] .action-btn.primary {
+  background: #3B82F6;
+  color: white;
+  border-color: #2563EB;
+}
+
+.bg-\[\#1e293b\] .action-btn.secondary {
+  background: #1F2937;
+  color: #9CA3AF;
+  border-color: #374151;
+}
+
+.bg-\[\#1e293b\] .workflow-status-badge {
+  background: #1F2937;
+  border-color: #374151;
+}
+
+/* Responsive Design for Enhanced Actions */
+@media (max-width: 768px) {
+  .enhanced-project-actions,
+  .enhanced-customer-actions,
+  .enhanced-phone-actions,
+  .enhanced-email-actions,
+  .enhanced-address-actions {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .action-group {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .action-btn {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+  
+  .action-btn.secondary {
+    font-size: 10px;
+    padding: 3px 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .enhanced-project-actions {
+    padding: 4px;
+  }
+  
+  .action-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+  }
+  
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .workflow-status-badge {
+    margin-top: 4px;
+    padding: 3px 6px;
+  }
+  
+  .status-text {
+    font-size: 9px;
+  }
+}
