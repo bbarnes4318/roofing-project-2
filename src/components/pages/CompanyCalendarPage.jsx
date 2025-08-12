@@ -28,6 +28,21 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         priority: 'medium'
     });
 
+    // Helper: identify alert-type events that should NOT appear on Company Calendar
+    const isAlertEvent = (evt) => {
+        const type = (evt?.type || '').toLowerCase();
+        const title = (evt?.title || '');
+        const titleLower = title.toLowerCase();
+        // Treat workflow/task alerts and explicit alerts as alerts
+        // Exclude anything clearly marked as an alert from the Company Calendar
+        return (
+            type === 'task' ||
+            type === 'alert' ||
+            title.includes('⚠️') ||
+            titleLower.includes('alert')
+        );
+    };
+
     // Fetch calendar events from database
     const fetchCalendarEvents = async () => {
         try {
@@ -37,7 +52,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 const data = await response.json();
                 // Ensure we always have an array, even if API returns different structure
                 const events = Array.isArray(data) ? data : (data.data || data.events || []);
-                setCalendarEvents(events);
+                // Proactively remove alert-type records from the source list as well
+                setCalendarEvents(events.filter(e => !isAlertEvent(e)));
             }
         } catch (error) {
             console.error('Error fetching calendar events:', error);
@@ -93,7 +109,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         if (Array.isArray(calendarEvents)) {
             calendarEvents.forEach(event => {
                 if (event.date === dateOnly) {
-                    events.push({
+                    const candidate = {
                         id: event._id || `db-event-${event.title}`,
                         title: event.title,
                         type: event.type,
@@ -102,7 +118,10 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                         color: event.color || getEventColor(event.type),
                         description: event.description,
                         projectId: event.projectId
-                    });
+                    };
+                    if (!isAlertEvent(candidate)) {
+                        events.push(candidate);
+                    }
                 }
             });
         }
