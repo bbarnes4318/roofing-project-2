@@ -7,7 +7,8 @@ const DraggablePopup = ({
   colorMode, 
   className = "",
   initialPosition = { x: 0, y: 0 },
-  triggerRef = null 
+  triggerRef = null,
+  closeOnOutsideClick = true 
 }) => {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
@@ -149,7 +150,7 @@ const DraggablePopup = ({
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (popupRef.current && !popupRef.current.contains(e.target)) {
+      if (closeOnOutsideClick && popupRef.current && !popupRef.current.contains(e.target)) {
         onClose?.();
       }
     };
@@ -163,7 +164,7 @@ const DraggablePopup = ({
         document.removeEventListener('click', handleClickOutside);
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, closeOnOutsideClick]);
 
   // Handle escape key
   useEffect(() => {

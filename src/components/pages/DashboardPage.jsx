@@ -3468,55 +3468,63 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               setExpandedContacts(newExpanded);
             }}
             colorMode={colorMode}
+            closeOnOutsideClick={false}
             triggerRef={alertContactButtonRefs.current[alertId] ? { current: alertContactButtonRefs.current[alertId] } : null}
           >
-            <div className="space-y-2 max-w-[280px]">
-              {/* Primary Customer */}
-              <div className={`text-xs font-semibold border-b ${colorMode ? 'text-white border-gray-600' : 'text-gray-900 border-gray-200'} pb-1`}>
-                Primary Customer
+            <div className="space-y-1.5 max-w-[400px] min-w-[350px]">
+              {/* Project Address - Moved to top */}
+              <div className={`text-[9px] ${colorMode ? 'text-gray-400' : 'text-gray-600'} flex items-start gap-1 pb-1.5 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                <span>📍</span>
+                <span className="leading-tight font-medium">{project?.customer?.address || project?.clientAddress || project?.address || '123 Main Street, City, State 12345'}</span>
               </div>
-              <div className="space-y-1">
-                <div className={`text-xs font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                  {project?.customer?.primaryName || project?.customer?.name || project?.clientName || 'Primary Customer'}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px]">📞</span>
-                  <a 
-                    href={`tel:${(project?.customer?.primaryPhone || project?.customer?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
-                    className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
-                  >
-                    {project?.customer?.primaryPhone || project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
-                  </a>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px]">✉️</span>
-                  <a 
-                    href={`mailto:${project?.customer?.primaryEmail || project?.customer?.email || project?.clientEmail || 'customer@email.com'}`}
-                    className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
-                  >
-                    {project?.customer?.primaryEmail || project?.customer?.email || project?.clientEmail || 'customer@email.com'}
-                  </a>
-                </div>
-              </div>
-              
-              {/* Secondary Customer (if exists) */}
-              {(project?.customer?.secondaryName || project?.customer?.secondaryPhone || project?.customer?.secondaryEmail) && (
-                <>
-                  <div className={`text-xs font-semibold border-b ${colorMode ? 'text-white border-gray-600' : 'text-gray-900 border-gray-200'} pb-1 pt-2`}>
-                    Secondary Customer
+
+              {/* Customer Info in Horizontal Layout */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Primary Customer */}
+                <div className="space-y-1">
+                  <div className={`text-[10px] font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                    Primary Customer
                   </div>
+                  <div className={`text-[9px] font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'} truncate`}>
+                    {project?.customer?.primaryName || project?.customer?.name || project?.clientName || 'Primary Customer'}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px]">📞</span>
+                    <a 
+                      href={`tel:${(project?.customer?.primaryPhone || project?.customer?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
+                      className={`text-[8px] hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
+                    >
+                      {project?.customer?.primaryPhone || project?.customer?.phone || project?.clientPhone || '(555) 123-4567'}
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px]">✉️</span>
+                    <a 
+                      href={`mailto:${project?.customer?.primaryEmail || project?.customer?.email || project?.clientEmail || 'customer@email.com'}`}
+                      className={`text-[8px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
+                    >
+                      {project?.customer?.primaryEmail || project?.customer?.email || project?.clientEmail || 'customer@email.com'}
+                    </a>
+                  </div>
+                </div>
+
+                {/* Secondary Customer (if exists) */}
+                {(project?.customer?.secondaryName || project?.customer?.secondaryPhone || project?.customer?.secondaryEmail) && (
                   <div className="space-y-1">
+                    <div className={`text-[10px] font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                      Secondary Customer
+                    </div>
                     {project?.customer?.secondaryName && (
-                      <div className={`text-xs font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                      <div className={`text-[9px] font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'} truncate`}>
                         {project.customer.secondaryName}
                       </div>
                     )}
                     {project?.customer?.secondaryPhone && (
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px]">📞</span>
+                        <span className="text-[8px]">📞</span>
                         <a 
                           href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
-                          className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
+                          className={`text-[8px] hover:underline ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                         >
                           {project.customer.secondaryPhone}
                         </a>
@@ -3524,23 +3532,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     )}
                     {project?.customer?.secondaryEmail && (
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px]">✉️</span>
+                        <span className="text-[8px]">✉️</span>
                         <a 
                           href={`mailto:${project.customer.secondaryEmail}`}
-                          className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
+                          className={`text-[8px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-brand-600'}`}
                         >
                           {project.customer.secondaryEmail}
                         </a>
                       </div>
                     )}
                   </div>
-                </>
-              )}
-              
-              {/* Project Address */}
-              <div className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-600'} flex items-start gap-1 pt-1 border-t ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                <span>📍</span>
-                <span className="leading-tight">{project?.customer?.address || project?.clientAddress || project?.address || '123 Main Street, City, State 12345'}</span>
+                )}
               </div>
             </div>
           </DraggablePopup>
