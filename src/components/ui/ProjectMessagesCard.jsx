@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
-import DraggablePopup from './DraggablePopup';
 import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
 
 const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false }) => {
@@ -161,8 +160,25 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     // State for contact info expansion
     const [showContactInfo, setShowContactInfo] = useState(false);
     
-    // Ref for tracking primary contact button
+    // Refs for dropdown functionality
     const contactButtonRef = useRef(null);
+    const dropdownRef = useRef(null);
+    
+    // Handle click outside to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showContactInfo && 
+                dropdownRef.current && 
+                !dropdownRef.current.contains(event.target) &&
+                contactButtonRef.current &&
+                !contactButtonRef.current.contains(event.target)) {
+                setShowContactInfo(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showContactInfo]);
 
     return (
         <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
@@ -352,87 +368,211 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
             </div>
             
-            {/* Draggable Contact Info Popup */}
-            <DraggablePopup
-                isOpen={showContactInfo}
-                onClose={() => setShowContactInfo(false)}
-                colorMode={colorMode}
-                triggerRef={contactButtonRef}
-            >
-                <div className="space-y-2 max-w-[280px]">
-                    {/* Primary Customer */}
-                    <div className={`text-xs font-semibold border-b ${colorMode ? 'text-white border-gray-600' : 'text-gray-900 border-gray-200'} pb-1`}>
-                        Primary Customer
-                    </div>
-                    <div className="space-y-1">
-                        <div className={`text-xs font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                            {project?.customer?.primaryName || project?.client?.name || project?.clientName || primaryCustomer}
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px]">📞</span>
-                            <a 
-                                href={`tel:${(project?.customer?.primaryPhone || project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
-                                className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
-                            >
-                                {project?.customer?.primaryPhone || project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
-                            </a>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[10px]">✉️</span>
-                            <a 
-                                href={`mailto:${project?.customer?.primaryEmail || project?.client?.email || project?.clientEmail || 'customer@email.com'}`}
-                                className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
-                            >
-                                {project?.customer?.primaryEmail || project?.client?.email || project?.clientEmail || 'customer@email.com'}
-                            </a>
-                        </div>
-                    </div>
-                    
-                    {/* Secondary Customer (if exists) */}
-                    {(project?.customer?.secondaryName || project?.customer?.secondaryPhone || project?.customer?.secondaryEmail) && (
-                        <>
-                            <div className={`text-xs font-semibold border-b ${colorMode ? 'text-white border-gray-600' : 'text-gray-900 border-gray-200'} pb-1 pt-2`}>
-                                Secondary Customer
+            {/* Customer Info Dropdown */}
+            {showContactInfo && (
+                <div className="relative">
+                    <div 
+                        ref={dropdownRef}
+                        className={`absolute top-full left-0 z-50 mt-1 w-80 rounded-lg shadow-lg border backdrop-blur-sm ${
+                            colorMode 
+                                ? 'bg-slate-800/95 border-slate-600/50 shadow-black/20' 
+                                : 'bg-white/95 border-gray-200/50 shadow-gray-900/10'
+                        }`}
+                        style={{
+                            animation: 'fadeIn 0.15s ease-out'
+                        }}
+                    >
+                        {/* Dropdown Header */}
+                        <div className={`px-4 py-3 border-b ${colorMode ? 'border-slate-600/50' : 'border-gray-200/50'}`}>
+                            <div className="flex items-center justify-between">
+                                <h3 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                    Customer Information
+                                </h3>
+                                <button
+                                    onClick={() => setShowContactInfo(false)}
+                                    className={`p-1 rounded-full transition-colors ${
+                                        colorMode 
+                                            ? 'hover:bg-slate-700 text-slate-400 hover:text-slate-200' 
+                                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                                    }`}
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
-                            <div className="space-y-1">
-                                {project?.customer?.secondaryName && (
-                                    <div className={`text-xs font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                                        {project.customer.secondaryName}
+                        </div>
+
+                        {/* Dropdown Content */}
+                        <div className="p-4 space-y-4">
+                            {/* Primary Customer */}
+                            <div className="space-y-3">
+                                <div className={`text-xs font-semibold uppercase tracking-wide ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
+                                    Primary Contact
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    {/* Customer Name */}
+                                    <div className="flex items-center gap-2">
+                                        <div className={`p-1.5 rounded-full ${colorMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                                                {project?.customer?.primaryName || project?.client?.name || project?.clientName || primaryCustomer}
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                                {project?.customer?.secondaryPhone && (
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[10px]">📞</span>
-                                        <a 
-                                            href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
-                                            className={`text-[10px] hover:underline ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
-                                        >
-                                            {project.customer.secondaryPhone}
-                                        </a>
+
+                                    {/* Phone Number */}
+                                    <div className="flex items-center gap-2">
+                                        <div className={`p-1.5 rounded-full ${colorMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <a 
+                                                href={`tel:${(project?.customer?.primaryPhone || project?.client?.phone || project?.clientPhone || '(555) 123-4567').replace(/[^\d+]/g, '')}`}
+                                                className={`text-sm hover:underline transition-colors ${
+                                                    colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                                                }`}
+                                            >
+                                                {project?.customer?.primaryPhone || project?.client?.phone || project?.clientPhone || '(555) 123-4567'}
+                                            </a>
+                                        </div>
                                     </div>
-                                )}
-                                {project?.customer?.secondaryEmail && (
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[10px]">✉️</span>
-                                        <a 
-                                            href={`mailto:${project.customer.secondaryEmail}`}
-                                            className={`text-[10px] hover:underline truncate ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}
-                                        >
-                                            {project.customer.secondaryEmail}
-                                        </a>
+
+                                    {/* Email */}
+                                    <div className="flex items-center gap-2">
+                                        <div className={`p-1.5 rounded-full ${colorMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <a 
+                                                href={`mailto:${project?.customer?.primaryEmail || project?.client?.email || project?.clientEmail || 'customer@email.com'}`}
+                                                className={`text-sm hover:underline transition-colors truncate ${
+                                                    colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                                                }`}
+                                            >
+                                                {project?.customer?.primaryEmail || project?.client?.email || project?.clientEmail || 'customer@email.com'}
+                                            </a>
+                                        </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
-                        </>
-                    )}
-                    
-                    {/* Project Address */}
-                    <div className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-600'} flex items-start gap-1 pt-1 border-t ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                        <span>📍</span>
-                        <span className="leading-tight">{project?.customer?.address || project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345'}</span>
+                            
+                            {/* Secondary Customer (if exists) */}
+                            {(project?.customer?.secondaryName || project?.customer?.secondaryPhone || project?.customer?.secondaryEmail) && (
+                                <div className="space-y-3">
+                                    <div className={`text-xs font-semibold uppercase tracking-wide ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
+                                        Secondary Contact
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        {/* Secondary Name */}
+                                        {project?.customer?.secondaryName && (
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-full ${colorMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                                                        {project.customer.secondaryName}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Secondary Phone */}
+                                        {project?.customer?.secondaryPhone && (
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-full ${colorMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <a 
+                                                        href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
+                                                        className={`text-sm hover:underline transition-colors ${
+                                                            colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                                                        }`}
+                                                    >
+                                                        {project.customer.secondaryPhone}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Secondary Email */}
+                                        {project?.customer?.secondaryEmail && (
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-full ${colorMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <a 
+                                                        href={`mailto:${project.customer.secondaryEmail}`}
+                                                        className={`text-sm hover:underline transition-colors truncate ${
+                                                            colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                                                        }`}
+                                                    >
+                                                        {project.customer.secondaryEmail}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Project Address */}
+                            {(project?.customer?.address || project?.client?.address || project?.clientAddress) && (
+                                <div className="space-y-3">
+                                    <div className={`text-xs font-semibold uppercase tracking-wide ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
+                                        Project Address
+                                    </div>
+                                    
+                                    <div className="flex items-start gap-2">
+                                        <div className={`p-1.5 rounded-full mt-0.5 ${colorMode ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className={`text-sm leading-relaxed ${colorMode ? 'text-slate-300' : 'text-gray-700'}`}>
+                                                {(() => {
+                                                    const address = project?.customer?.address || project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345';
+                                                    const parts = address.split(',');
+                                                    if (parts.length >= 2) {
+                                                        return (
+                                                            <div>
+                                                                <div className="font-medium">{parts[0]?.trim()}</div>
+                                                                <div className="text-xs opacity-75">{parts.slice(1).join(',').trim()}</div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return address;
+                                                })()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </DraggablePopup>
+            )}
             
             {/* Quick Reply Section */}
             {showQuickReply && (
