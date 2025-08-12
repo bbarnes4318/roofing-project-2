@@ -548,6 +548,8 @@ const CurrentAlertsSection = ({
                         {alert.status}
                       </div>
                       
+
+                      
                       {/* Title */}
                       <h3 className="font-semibold text-gray-900 truncate flex-1">
                         {alert.title}
@@ -630,14 +632,10 @@ const CurrentAlertsSection = ({
                               const lineItemName = alert.stepName || alert.title || 'Unknown Item';
                               
                               // Get project position data for proper targeting
-                              const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                                headers: {
-                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-david-chen-token-fixed-12345'}`
-                                }
-                              });
+                              const positionResponse = await api.get(`/workflow-data/project-position/${project.id}`);
                               
-                              if (positionResponse.ok) {
-                                const positionResult = await positionResponse.json();
+                              if (positionResponse.data) {
+                                const positionResult = positionResponse.data;
                                 if (positionResult.success && positionResult.data) {
                                   const position = positionResult.data;
                                   

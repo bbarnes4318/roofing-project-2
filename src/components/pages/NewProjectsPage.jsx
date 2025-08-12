@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ProjectsByPhaseSection from '../dashboard/ProjectsByPhaseSection';
 import ProjectCubes from '../dashboard/ProjectCubes';
+import { ResponsiveBackButton } from '../common/BackButton';
+import { useNavigationHistory } from '../../hooks/useNavigationHistory';
 
 const NewProjectsPage = ({ 
   projects, 
@@ -10,6 +12,16 @@ const NewProjectsPage = ({
   onNavigateBack,
   scrollToProject 
 }) => {
+  const { pushNavigation } = useNavigationHistory();
+
+  // Track page navigation for back button functionality
+  useEffect(() => {
+    pushNavigation('Projects', {
+      projects,
+      projectSourceSection,
+      scrollToProject
+    });
+  }, [pushNavigation, projectSourceSection]);
   // Group projects by phase for the ProjectsByPhaseSection
   const PROJECT_PHASES = [
     { id: 'lead', name: 'Lead', color: 'bg-blue-500', bgColor: 'bg-blue-50', textColor: 'text-blue-800' },
@@ -50,6 +62,21 @@ const NewProjectsPage = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
+        {/* Back Button - Responsive and context-aware */}
+        <div className="flex items-center justify-between mb-6">
+          <ResponsiveBackButton
+            onBack={onNavigateBack}
+            colorMode={colorMode}
+            variant="secondary"
+            preservePosition={true}
+          />
+          <div className="text-right">
+            <span className="text-sm text-gray-500">
+              {(projects || []).length} project{(projects || []).length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
+
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">

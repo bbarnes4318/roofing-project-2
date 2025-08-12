@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket, useRealTimeUpdates } from '../../hooks/useSocket';
-import { projectsService, workflowAlertsService } from '../../services/api';
+import api, { projectsService, workflowAlertsService } from '../../services/api';
 import workflowService from '../../services/workflowService';
 import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -340,20 +340,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       try {
         // Load both workflow structure and project position in parallel
         const [workflowResponse, positionResponse] = await Promise.all([
-          fetch('/api/workflow-data/full-structure', {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-            }
-          }),
-          fetch(`/api/workflow-data/project-position/${projectId}`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-            }
-          })
+          api.get('/workflow-data/full-structure'),
+          api.get(`/workflow-data/project-position/${projectId}`)
         ]);
         
-        const workflowResult = await workflowResponse.json();
-        const positionResult = await positionResponse.json();
+        const workflowResult = workflowResponse.data;
+        const positionResult = positionResponse.data;
         
         if (workflowResult.success) {
           setWorkflowData(workflowResult.data);

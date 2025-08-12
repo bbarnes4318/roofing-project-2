@@ -15,6 +15,61 @@ const { transformWorkflowStep, transformWorkflowSubTask } = require('../utils/wo
 
 const router = express.Router();
 
+// Helper: return canonical phase key used across the app (e.g., 'LEAD','PROSPECT',...)
+const getProjectPhaseKey = (project) => {
+  // If project has workflow with steps, get the phase from the current step
+  if (project.workflow && project.workflow.steps && project.workflow.steps.length > 0) {
+    const sortedSteps = project.workflow.steps.sort((a, b) => a.stepId.localeCompare(b.stepId));
+    let currentStep = sortedSteps.find(step => !step.isCompleted);
+    if (!currentStep) {
+      currentStep = sortedSteps[sortedSteps.length - 1];
+    }
+    if (currentStep && currentStep.phase) {
+      const phaseMap = {
+        'LEAD': 'LEAD',
+        'PROSPECT': 'PROSPECT',
+        'APPROVED': 'APPROVED',
+        'EXECUTION': 'EXECUTION',
+        'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
+        'SECOND_SUPP': 'SECOND_SUPPLEMENT',
+        '2ND_SUPP': 'SECOND_SUPPLEMENT',
+        '2ND SUPPLEMENT': 'SECOND_SUPPLEMENT',
+        'COMPLETION': 'COMPLETION'
+      };
+      const key = String(currentStep.phase).toUpperCase();
+      return phaseMap[key] || key;
+    }
+  }
+
+  // Fallback to status-based mapping if no workflow data
+  if (project.status) {
+    const statusPhaseMap = {
+      'PENDING': 'LEAD',
+      'IN_PROGRESS': 'EXECUTION',
+      'INPROGRESS': 'EXECUTION',
+      'ACTIVE': 'EXECUTION',
+      'COMPLETED': 'COMPLETION',
+      'ON_HOLD': 'LEAD'
+    };
+    const key = String(project.status).toUpperCase();
+    return statusPhaseMap[key] || 'LEAD';
+  }
+  return 'LEAD';
+};
+
+// Helper: pretty display for phase
+const getProjectPhaseDisplay = (phaseKey) => {
+  const displayMap = {
+    'LEAD': 'Lead',
+    'PROSPECT': 'Prospect',
+    'APPROVED': 'Approved',
+    'EXECUTION': 'Execution',
+    'SECOND_SUPPLEMENT': '2nd Supplement',
+    'COMPLETION': 'Completion'
+  };
+  return displayMap[phaseKey] || phaseKey;
+};
+
 // **CRITICAL: Data transformation layer for frontend compatibility**
 const transformProjectForFrontend = (project) => {
   if (!project) return null;
@@ -119,7 +174,9 @@ const transformProjectForFrontend = (project) => {
         };
       }) : []
     } : null,
-    phase: getProjectPhase(project),
+    // Provide both canonical key and display value for the phase
+    phase: getProjectPhaseKey(project),
+    phaseDisplay: getProjectPhaseDisplay(getProjectPhaseKey(project)),
     
     // Additional fields for compatibility
     archived: project.archived || false,
@@ -128,43 +185,7 @@ const transformProjectForFrontend = (project) => {
   };
 };
 
-// Get the actual phase from workflow data
-const getProjectPhase = (project) => {
-  // If project has workflow with steps, get the phase from the current step
-  if (project.workflow && project.workflow.steps && project.workflow.steps.length > 0) {
-    // Find the first incomplete step to determine current phase
-    const sortedSteps = project.workflow.steps.sort((a, b) => a.stepId.localeCompare(b.stepId));
-    let currentStep = sortedSteps.find(step => !step.isCompleted);
-    
-    // If all steps are completed, use the last step
-    if (!currentStep) {
-      currentStep = sortedSteps[sortedSteps.length - 1];
-    }
-    
-    if (currentStep && currentStep.phase) {
-      // Map database phase names to frontend display names
-      const phaseMap = {
-        'LEAD': 'Lead',
-        'PROSPECT': 'Prospect', 
-        'APPROVED': 'Approved',
-        'EXECUTION': 'Execution',
-        'SECOND_SUPPLEMENT': '2nd Supplement',
-        '2ND_SUPP': '2nd Supplement',
-        'COMPLETION': 'Completion'
-      };
-      return phaseMap[currentStep.phase] || currentStep.phase;
-    }
-  }
-  
-  // Fallback to status-based mapping if no workflow data
-  const statusPhaseMap = {
-    'PENDING': 'Lead',
-    'IN_PROGRESS': 'Execution',
-    'COMPLETED': 'Completion',
-    'ON_HOLD': 'Lead'
-  };
-  return statusPhaseMap[project.status] || 'Lead';
-};
+// (Deprecated) getProjectPhase: replaced by getProjectPhaseKey/getProjectPhaseDisplay
 
 // Helper function to enhance projects with calculated progress data
 const enhanceProjectsWithProgress = async (projects) => {

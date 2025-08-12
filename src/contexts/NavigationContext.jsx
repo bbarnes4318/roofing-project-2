@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigationHistory } from '../hooks/useNavigationHistory';
 
 const NavigationContext = createContext();
 
@@ -90,6 +91,7 @@ function navigationReducer(state, action) {
 export function NavigationProvider({ children }) {
   const [state, dispatch] = useReducer(navigationReducer, initialState);
   const navigate = useNavigate();
+  const historyManager = useNavigationHistory();
 
   // Create a unique context ID for tracking
   const createContextId = useCallback((section, additionalData = {}) => {
@@ -115,7 +117,7 @@ export function NavigationProvider({ children }) {
     return contextId;
   }, [createContextId]);
 
-  // Navigate to a subpage with context tracking
+  // Enhanced navigation with both context and history tracking
   const navigateWithContext = useCallback((path, contextData) => {
     // Save current scroll position if we're in a context
     if (state.currentContext) {
@@ -132,14 +134,44 @@ export function NavigationProvider({ children }) {
     // Push new navigation context
     const contextId = pushNavigationContext(contextData);
 
+    // Also push to navigation history for enhanced back functionality
+    historyManager.pushNavigation(
+      contextData.section || 'Unknown Page',
+      {
+        contextId,
+        contextData,
+        path
+      },
+      {
+        contextNavigation: true,
+        originalContextId: contextId
+      }
+    );
+
     // Navigate to the new path
     navigate(path);
 
     return contextId;
-  }, [state.currentContext, pushNavigationContext, navigate]);
+  }, [state.currentContext, pushNavigationContext, navigate, historyManager]);
 
-  // Navigate back to the previous context
+  // Enhanced back navigation with history integration
   const navigateBack = useCallback(() => {
+    // Try navigation history first (for enhanced position restoration)
+    if (historyManager.canGoBack()) {
+      const previousNavigation = historyManager.goBack();
+      if (previousNavigation?.pageData?.contextNavigation) {
+        // This was a context-based navigation, handle accordingly
+        const contextData = previousNavigation.pageData.contextData;
+        if (contextData?.returnPath) {
+          navigate(contextData.returnPath);
+          return;
+        }
+      }
+      // Navigation history handled the restoration
+      return;
+    }
+
+    // Fallback to traditional context navigation
     if (state.navigationStack.length === 0) {
       // No context to go back to, use browser back
       navigate(-1);
@@ -166,7 +198,7 @@ export function NavigationProvider({ children }) {
       // No previous context, go to dashboard
       navigate('/dashboard');
     }
-  }, [state.navigationStack, state.scrollPositions, navigate]);
+  }, [state.navigationStack, state.scrollPositions, navigate, historyManager]);
 
   // Update scroll position for current context
   const updateScrollPosition = useCallback((position) => {
@@ -228,10 +260,10 @@ export function NavigationProvider({ children }) {
     return state.navigationStack[state.navigationStack.length - 2];
   }, [state.navigationStack]);
 
-  // Check if we can navigate back
+  // Enhanced check for back navigation availability
   const canNavigateBack = useCallback(() => {
-    return state.navigationStack.length > 0;
-  }, [state.navigationStack]);
+    return state.navigationStack.length > 0 || historyManager.canGoBack();
+  }, [state.navigationStack, historyManager]);
 
   const contextValue = {
     // State
@@ -257,7 +289,14 @@ export function NavigationProvider({ children }) {
     // Utilities
     getPreviousContext,
     canNavigateBack,
-    createContextId
+    createContextId,
+
+    // Navigation history integration
+    historyManager,
+    navigationHistory: historyManager.history,
+    canGoBackInHistory: historyManager.canGoBack,
+    clearNavigationHistory: historyManager.clearHistory,
+    getBreadcrumbs: historyManager.getBreadcrumbs
   };
 
   return (

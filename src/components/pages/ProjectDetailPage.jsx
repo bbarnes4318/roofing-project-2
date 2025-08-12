@@ -15,6 +15,8 @@ import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import WorkflowProgressService from '../../services/workflowProgress';
 import workflowService from '../../services/workflowService';
 import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
+import { ResponsiveBackButton, HeaderBackButton } from '../common/BackButton';
+import { useNavigationHistory } from '../../hooks/useNavigationHistory';
 
 // Helper functions for advanced progress bars (moved to top level)
 
@@ -103,6 +105,20 @@ const getPhaseStyles = (phase) => {
 
 
 const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect, targetLineItemId, targetSectionId }) => {
+    const { pushNavigation } = useNavigationHistory();
+    
+    // Track page navigation for back button functionality
+    useEffect(() => {
+        if (project) {
+            pushNavigation(`Project: ${project.projectName || project.name || 'Project Detail'}`, {
+                project,
+                initialView,
+                previousPage,
+                projectSourceSection
+            });
+        }
+    }, [pushNavigation, project?.id, initialView]);
+
     console.log('🔍 PROJECT DETAIL PAGE PROPS:');
     
     // Helper functions for Project Messages
@@ -1897,15 +1913,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             
             {/* Header with Back Button and Tabs - Modern Design */}
             <div className="bg-white border-b border-gray-200 shadow-sm">
-                {/* Back Button Row */}
+                {/* Enhanced Back Button Row with Position Preservation */}
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-                    <button 
-                        onClick={handleBackButton} 
-                        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 border border-blue-200 hover:border-blue-300"
-                    >
-                        <ChevronLeftIcon className="w-3 h-3" />
-                        {getBackButtonText()}
-                    </button>
+                    <HeaderBackButton 
+                        onClick={onBack || handleBackButton}
+                        colorMode={colorMode}
+                        variant="primary"
+                        size="small"
+                        preservePosition={true}
+                        customLabel={getBackButtonText()}
+                    />
                     
                     {/* Compact Project Number & Customer Info */}
                     <div className="flex items-center gap-2 text-xs">

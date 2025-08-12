@@ -479,7 +479,26 @@ const CurrentProjectAccessSection = ({
                   <h4 className="font-semibold text-gray-900 mb-2">{selectedProject.projectName || selectedProject.name}</h4>
                   <p className="text-sm text-gray-600 mb-4">Project #{selectedProject.projectNumber}</p>
                   <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">Client:</span> {selectedProject.client?.name || 'Unknown'}</div>
+                    <div>
+                      <span className="font-medium">Client:</span> {selectedProject.client?.name || 'Unknown'}
+                      {/* Customer Address - Formatted as requested */}
+                      {selectedProject.client?.address && (
+                        <div className="text-sm font-normal text-black mt-1" style={{fontFamily: 'inherit'}}>
+                          <div>{selectedProject.client.address.split(',')[0]?.trim() || ''}</div>
+                          <div>
+                            {(() => {
+                              const parts = selectedProject.client.address.split(',').slice(1);
+                              if (parts.length >= 2) {
+                                return `${parts[0].trim()}, ${parts[1].trim()}`;
+                              } else if (parts.length === 1) {
+                                return parts[0].trim();
+                              }
+                              return 'City, State 00000';
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div><span className="font-medium">Phase:</span> {selectedProject.phase || selectedProject.status || 'Lead'}</div>
                     <div><span className="font-medium">Progress:</span> {selectedProject.progress || 0}%</div>
                   </div>

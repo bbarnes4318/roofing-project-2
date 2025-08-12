@@ -2,8 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import { messagesService, authService } from '../../services/api';
+import { ResponsiveBackButton } from '../common/BackButton';
+import { useNavigationHistory } from '../../hooks/useNavigationHistory';
 
 const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
+  const { pushNavigation } = useNavigationHistory();
+  
+  // Track page navigation
+  useEffect(() => {
+    pushNavigation('My Messages', {
+      projects
+    });
+  }, [pushNavigation]);
+
   // State management - matching dashboard implementation exactly
   const [messagesData, setMessagesData] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
@@ -175,6 +186,15 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
   return (
     <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
       <div className="w-full max-w-4xl mx-auto py-6 px-4">
+        {/* Back Button */}
+        <div className="mb-6">
+          <ResponsiveBackButton
+            colorMode={colorMode}
+            variant="secondary"
+            preservePosition={true}
+          />
+        </div>
+
         {/* Page Header */}
         <div className="mb-6">
           <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-2`}>

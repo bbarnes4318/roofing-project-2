@@ -302,6 +302,34 @@ router.get('/', asyncHandler(async (req, res, next) => {
     const transformed = alerts.map(alert => {
       // For database alerts, metadata should already contain the correct values
       const metadata = alert.metadata || {};
+      // Normalize phase to canonical key; prefer metadata.phase, fallback to project.status mapping
+      const normalizePhase = (p, projectStatus) => {
+        if (p) {
+          const key = String(p).toUpperCase();
+          const map = {
+            'LEAD': 'LEAD',
+            'PROSPECT': 'PROSPECT',
+            'APPROVED': 'APPROVED',
+            'EXECUTION': 'EXECUTION',
+            'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            'SECOND_SUPP': 'SECOND_SUPPLEMENT',
+            '2ND_SUPP': 'SECOND_SUPPLEMENT',
+            '2ND SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            'COMPLETION': 'COMPLETION'
+          };
+          return map[key] || key;
+        }
+        const statusKey = String(projectStatus || '').toUpperCase();
+        const statusMap = {
+          'PENDING': 'LEAD',
+          'IN_PROGRESS': 'EXECUTION',
+          'INPROGRESS': 'EXECUTION',
+          'ACTIVE': 'EXECUTION',
+          'COMPLETED': 'COMPLETION'
+        };
+        return statusMap[statusKey] || 'LEAD';
+      };
+      const normalizedPhase = normalizePhase(metadata.phase, alert.project?.status);
       
       return {
         _id: alert.id,
@@ -333,7 +361,8 @@ router.get('/', asyncHandler(async (req, res, next) => {
           projectName: alert.project.projectName,
           projectNumber: alert.project.projectNumber,
           customerName: alert.project.customer?.primaryName,
-          phase: metadata.phase || 'UNKNOWN',
+          // Ensure a normalized canonical phase is always present
+          phase: normalizedPhase,
           // CRITICAL: Use metadata values
           section: metadata.section || 'General Workflow',
           lineItem: metadata.lineItem || alert.stepName,

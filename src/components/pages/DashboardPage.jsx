@@ -9,7 +9,7 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import { authService, messagesService } from '../../services/api';
+import api, { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ALERT_SUBJECTS } from '../../data/constants';
 import { useSubjects } from '../../contexts/SubjectsContext';
@@ -122,7 +122,8 @@ const convertProjectToTableFormat = (project) => {
     clientName: project.client?.name || 'Unknown',
     clientEmail: project.client?.email || '',
     projectManager: project.projectManager || 'Sarah Johnson', // Default value
-    phase: project.phase || 'Lead'
+    // Use canonical phase key from API (server provides uppercase key)
+    phase: project.phase || 'LEAD'
   };
 };
 
@@ -338,6 +339,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 const subject = subjectMatch ? subjectMatch[1] : 'Project Update';
                 const content = message.text.replace(/\*\*(.+?)\*\*\n\n/, '');
                 
+                // Use canonical phase from project to ensure consistency
+                const canonicalPhase = (project.phase || 'LEAD');
                 allMessages.push({
                   id: message.id,
                   author: message.sender ? `${message.sender.firstName} ${message.sender.lastName}` : 'Unknown User',
@@ -350,7 +353,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   subject: subject,
                   priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
                   metadata: {
-                    projectPhase: project.status || 'Lead',
+                    projectPhase: canonicalPhase,
                     projectValue: project.budget || project.estimatedCost,
                     assignedTo: project.projectManager || 'Unknown',
                     customerName: project.customer?.primaryName || 'Unknown Customer'
@@ -696,7 +699,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const safeTableProjects = Array.isArray(tableProjects) ? tableProjects : [];
     
     safeTableProjects.forEach(project => {
-      const phase = project.phase;
+      // Ensure canonical uppercase phase key for grouping
+      const phase = (project.phase || 'LEAD').toUpperCase();
       if (grouped[phase]) {
         grouped[phase].push(project);
       } else {
@@ -2005,14 +2009,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               if (onProjectSelect) {
                                 try {
                                   // Get current project position from the API
-                                  const response = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                                    headers: {
-                                      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                    }
-                                  });
+                                  const response = await api.get(`/workflow-data/project-position/${project.id}`);
                                   
-                                  if (response.ok) {
-                                    const result = await response.json();
+                                  if (response.data) {
+                                    const result = response.data;
                                     if (result.success && result.data) {
                                       const position = result.data;
                                       
@@ -2759,14 +2759,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     
                                     try {
                                       // EXACT SAME API CALL AS WORKING WORKFLOW BUTTON
-                                      const response = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                                        headers: {
-                                          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                        }
-                                      });
+                                      const response = await api.get(`/workflow-data/project-position/${project.id}`);
                                       
-                                      if (response.ok) {
-                                        const result = await response.json();
+                                      if (response.data) {
+                                        const result = response.data;
                                         if (result.success && result.data) {
                                           const position = result.data;
                                           

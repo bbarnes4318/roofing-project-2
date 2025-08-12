@@ -193,7 +193,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
       <div className={`px-6 py-5 border-b ${colorMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-white/80'} rounded-t-2xl`}>
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h2 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-1`}>Current Project Access</h2>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">Current Project Access</h2>
             <p className={`text-xs mt-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Quick access to project management tools and communications</p>
           </div>
           
@@ -306,20 +306,41 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         </button>
                         
                         {/* Primary Contact with dropdown arrow */}
-                        <button
-                          onClick={() => toggleCustomerInfo(project.id || project._id)}
-                          className={`flex items-center gap-1 text-[9px] font-semibold hover:underline transition-all duration-200 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'}`}
-                        >
-                          <span>{project.client?.name || 'Unknown Client'}</span>
-                          <svg 
-                            className={`w-2.5 h-2.5 transition-transform duration-200 ${expandedCustomers[project.id || project._id] ? 'rotate-180' : ''}`} 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
+                        <div className="flex flex-col">
+                          <button
+                            onClick={() => toggleCustomerInfo(project.id || project._id)}
+                            className={`flex items-center gap-1 text-[9px] font-semibold hover:underline transition-all duration-200 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'}`}
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
+                            <span>{project.customer?.primaryName || project.client?.name || 'Unknown Client'}</span>
+                            <svg 
+                              className={`w-2.5 h-2.5 transition-transform duration-200 ${expandedCustomers[project.id || project._id] ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          
+                          {/* Customer Address below customer name - Formatted as requested */}
+                          {(project.customer?.address || project.client?.address) && (
+                            <div className="text-[8px] mt-0.5 font-normal text-black" style={{fontFamily: 'inherit', lineHeight: '1.2'}}>
+                              <div>{(project.customer?.address || project.client?.address).split(',')[0]?.trim() || ''}</div>
+                              <div>
+                                {(() => {
+                                  const address = project.customer?.address || project.client?.address;
+                                  const parts = address.split(',').slice(1);
+                                  if (parts.length >= 2) {
+                                    return `${parts[0].trim()}, ${parts[1].trim()}`;
+                                  } else if (parts.length === 1) {
+                                    return parts[0].trim();
+                                  }
+                                  return 'City, State 00000';
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
                       <button
@@ -329,17 +350,6 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       >
                         {project.name}
                       </button>
-                      
-                      {/* Customer Address below project name */}
-                      {project.client?.address && (
-                        <div className={`text-[8px] mt-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                          <div>{project.client.address.split(',')[0]?.trim() || ''}</div>
-                          <div>
-                            {project.client.address.split(',').slice(1).join(',').trim() || 
-                             'City, State 00000'}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     <div className={`ml-2 px-1 py-0.5 ${getPhaseColor(project).bg} rounded-full text-[8px] font-semibold ${getPhaseColor(project).text} shadow-sm`}>
                       {getPhaseText(project)}
@@ -362,30 +372,30 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                           </div>
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name:</span>
-                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.client?.name || 'Unknown Client'}>
-                              {project.client?.name || 'Unknown Client'}
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.customer?.primaryName || project.client?.name || 'Unknown Client'}>
+                              {project.customer?.primaryName || project.client?.name || 'Unknown Client'}
                             </span>
                           </div>
                           
                           <div className="flex items-center gap-2">
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Phone:</span>
                             <a 
-                              href={`tel:${(project.client?.phone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
+                              href={`tel:${(project.customer?.primaryPhone || project.client?.phone || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
                               className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-black hover:text-gray-700'}`}
-                              title={formatPhoneNumber(project.client?.phone)}
+                              title={formatPhoneNumber(project.customer?.primaryPhone || project.client?.phone)}
                             >
-                              {formatPhoneNumber(project.client?.phone)}
+                              {formatPhoneNumber(project.customer?.primaryPhone || project.client?.phone)}
                             </a>
                           </div>
                           
                           <div className="flex items-center gap-2">
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-white' : 'text-black'}`}>Email:</span>
                             <a 
-                              href={`mailto:${project.client?.email || 'client@email.com'}`} 
+                              href={`mailto:${project.customer?.primaryEmail || project.client?.email || 'client@email.com'}`} 
                               className={`text-[8px] font-semibold hover:underline cursor-pointer transition-all duration-200 truncate max-w-20 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-black hover:text-gray-700'}`}
-                              title={project.client?.email || 'client@email.com'}
+                              title={project.customer?.primaryEmail || project.client?.email || 'client@email.com'}
                             >
-                              {project.client?.email || 'client@email.com'}
+                              {project.customer?.primaryEmail || project.client?.email || 'client@email.com'}
                             </a>
                           </div>
                         </div>
@@ -825,9 +835,9 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         <h4 className={`font-bold text-xs text-brand-600 group-hover:text-blue-700`}>
                           {project.name}
                         </h4>
-                        {project.client && (
+                        {(project.customer || project.client) && (
                           <p className={`text-[10px] mt-1 ${colorMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-gray-600 group-hover:text-gray-700'}`}>
-                            {project.client.name}
+                            {project.customer?.primaryName || project.client?.name}
                           </p>
                         )}
                       </div>

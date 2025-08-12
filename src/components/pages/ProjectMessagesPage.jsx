@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 // import { teamMembers } from '../../data/mockData';
 import { useSubjects } from '../../contexts/SubjectsContext';
+import { ResponsiveBackButton } from '../common/BackButton';
+import { useNavigationHistory } from '../../hooks/useNavigationHistory';
 
 const mockCoworkers = [
   { id: 1, name: 'Sarah Owner', status: 'online' },
@@ -29,6 +31,16 @@ const initialChats = {
 };
 
 const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, projects, onProjectSelect, sourceSection = 'Project Messages', initialTab = 'project' }) => {
+    const { pushNavigation } = useNavigationHistory();
+    
+    // Track page navigation
+    useEffect(() => {
+        pushNavigation('Project Messages', {
+            project,
+            sourceSection,
+            initialTab
+        });
+    }, [pushNavigation, project?.id, initialTab]);
     const [tab, setTab] = useState(initialTab);
     
     // Get subjects from context
@@ -271,6 +283,15 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
 
     return (
         <div className="w-full max-w-full m-0 p-0">
+            {/* Back Button */}
+            <div className="mb-4">
+                <ResponsiveBackButton
+                    colorMode={colorMode}
+                    variant="ghost"
+                    preservePosition={true}
+                />
+            </div>
+            
             {/* Tabs - Project Messages, Direct Messages, and AI Directive */}
             <div className="flex gap-2 m-0 p-0">
               <button
