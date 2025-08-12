@@ -68,8 +68,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     const [activityProjectFilter, setActivityProjectFilter] = useState('');
     const [activitySubjectFilter, setActivitySubjectFilter] = useState('');
     
-    // Message modal state
-    const [showMessageModal, setShowMessageModal] = useState(false);
+    // Message dropdown state
     const [showMessageDropdown, setShowMessageDropdown] = useState(false);
     const [newMessageProject, setNewMessageProject] = useState('');
     const [newMessageSubject, setNewMessageSubject] = useState('');
@@ -318,21 +317,208 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
             {tab === 'project' && (
                 <div className={`w-full rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
                     <div className="flex flex-col h-full">
-                        {/* Header with Add Message Button */}
-                        <div className={`p-4 border-b flex justify-between items-center ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-200 bg-gray-50'}`}>
-                            <h3 className={`font-semibold text-lg ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                Project Messages
-                            </h3>
+                        {/* Header with Add Message Dropdown */}
+                        <div className={`p-4 border-b ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-200 bg-gray-50'}`}>
+                            <div className="flex justify-between items-center mb-3">
+                                <h3 className={`font-semibold text-lg ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                    Project Messages
+                                </h3>
+                            </div>
+                            
+                            {/* Add Message Dropdown Trigger */}
                             <button
-                                onClick={() => setShowMessageModal(true)}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    colorMode
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                onClick={() => setShowMessageDropdown(!showMessageDropdown)}
+                                className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
+                                    showMessageDropdown
+                                        ? colorMode 
+                                            ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
+                                            : 'border-blue-400 bg-blue-50 text-blue-700'
+                                        : colorMode 
+                                            ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
+                                            : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
                                 }`}
                             >
-                                + Add Message
+                                <span>+ Add Message</span>
+                                <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
                             </button>
+                            
+                            {/* Add Message Dropdown Form */}
+                            {showMessageDropdown && (
+                                <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (newMessageSubject && newMessageText.trim() && selectedToUser) {
+                                            // Create new message activity for this specific project
+                                            const newActivity = {
+                                                id: `msg_${Date.now()}`,
+                                                projectId: project.id,
+                                                projectName: project.name,
+                                                projectNumber: project.projectNumber || Math.floor(Math.random() * 90000) + 10000,
+                                                subject: newMessageSubject,
+                                                description: newMessageText,
+                                                user: 'You',
+                                                timestamp: new Date().toISOString(),
+                                                type: sendAsTask ? 'task' : 'message',
+                                                priority: sendAsTask ? 'high' : 'medium',
+                                                targetedTo: selectedToUser,
+                                                isTask: sendAsTask,
+                                                taskAssigneeId: sendAsTask ? taskAssignee : null
+                                            };
+                                            
+                                            // Add to activities via the parent callback
+                                            if (onAddActivity) {
+                                                onAddActivity(project, newMessageText, newMessageSubject);
+                                            }
+                                            
+                                            // Close dropdown and reset form
+                                            setShowMessageDropdown(false);
+                                            setNewMessageSubject('');
+                                            setNewMessageText('');
+                                            setSelectedToUser('');
+                                            setSendAsTask(false);
+                                            setTaskAssignee('');
+                                        }
+                                    }} className="space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className={`block text-xs font-medium mb-1 ${
+                                                    colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                    Subject <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    value={newMessageSubject}
+                                                    onChange={(e) => setNewMessageSubject(e.target.value)}
+                                                    required
+                                                    className={`w-full p-2 border rounded text-xs ${
+                                                        colorMode 
+                                                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-800'
+                                                    }`}
+                                                >
+                                                    <option value="">Select Subject</option>
+                                                    {subjects.map(subject => (
+                                                        <option key={subject} value={subject}>{subject}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            
+                                            <div>
+                                                <label className={`block text-xs font-medium mb-1 ${
+                                                    colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                    To <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    value={selectedToUser}
+                                                    onChange={(e) => setSelectedToUser(e.target.value)}
+                                                    required
+                                                    className={`w-full p-2 border rounded text-xs ${
+                                                        colorMode 
+                                                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-800'
+                                                    }`}
+                                                >
+                                                    <option value="">Select User</option>
+                                                    {availableUsers.map(user => (
+                                                        <option key={user.id} value={user.id}>
+                                                            {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="md:col-span-2">
+                                                <label className={`block text-xs font-medium mb-1 ${
+                                                    colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                    Send as Task (Optional)
+                                                </label>
+                                                <select
+                                                    value={sendAsTask ? taskAssignee : ''}
+                                                    onChange={(e) => {
+                                                        if (e.target.value) {
+                                                            setSendAsTask(true);
+                                                            setTaskAssignee(e.target.value);
+                                                        } else {
+                                                            setSendAsTask(false);
+                                                            setTaskAssignee('');
+                                                        }
+                                                    }}
+                                                    className={`w-full p-2 border rounded text-xs ${
+                                                        colorMode 
+                                                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-800'
+                                                    }`}
+                                                >
+                                                    <option value="">No - Send as Message</option>
+                                                    {availableUsers.map(user => (
+                                                        <option key={user.id} value={user.id}>
+                                                            Assign to: {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className={`block text-xs font-medium mb-1 ${
+                                                colorMode ? 'text-gray-300' : 'text-gray-700'
+                                            }`}>
+                                                Message <span className="text-red-500">*</span>
+                                            </label>
+                                            <textarea
+                                                value={newMessageText}
+                                                onChange={(e) => setNewMessageText(e.target.value)}
+                                                placeholder="Enter your message here..."
+                                                required
+                                                rows={3}
+                                                className={`w-full p-2 border rounded text-xs resize-none ${
+                                                    colorMode 
+                                                        ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                                                        : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                                                }`}
+                                            />
+                                        </div>
+                                        
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowMessageDropdown(false);
+                                                    setNewMessageSubject('');
+                                                    setNewMessageText('');
+                                                    setSelectedToUser('');
+                                                    setSendAsTask(false);
+                                                    setTaskAssignee('');
+                                                }}
+                                                className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
+                                                    colorMode 
+                                                        ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                                                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={!newMessageSubject || !newMessageText.trim() || !selectedToUser}
+                                                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                                                    newMessageSubject && newMessageText.trim() && selectedToUser
+                                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                Send Message
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            )}
                         </div>
 
                         {/* Messages List */}
@@ -462,200 +648,6 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                   </form>
                 </div>
               </div>
-            )}
-            
-            {/* Message Composition Modal */}
-            {showMessageModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
-                    <div className={`w-full max-w-md mx-4 rounded-lg shadow-xl ${
-                        colorMode ? 'bg-[#232b4d]' : 'bg-white'
-                    }`}>
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className={`text-lg font-semibold ${
-                                    colorMode ? 'text-white' : 'text-gray-800'
-                                }`}>
-                                    Add Message to {project.name}
-                                </h2>
-                                <button
-                                    onClick={() => {
-                                        setShowMessageModal(false);
-                                        setNewMessageSubject('');
-                                        setNewMessageText('');
-                                    }}
-                                    className={`text-gray-400 hover:text-gray-600 transition-colors`}
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            
-                            <form onSubmit={(e) => {
-                                e.preventDefault();
-                                if (newMessageSubject && newMessageText.trim() && selectedToUser) {
-                                    // Create new message activity for this specific project
-                                    const newActivity = {
-                                        id: `msg_${Date.now()}`,
-                                        projectId: project.id,
-                                        projectName: project.name,
-                                        projectNumber: project.projectNumber || Math.floor(Math.random() * 90000) + 10000,
-                                        subject: newMessageSubject,
-                                        description: newMessageText,
-                                        user: 'You',
-                                        timestamp: new Date().toISOString(),
-                                        type: 'message',
-                                        priority: 'medium'
-                                    };
-                                    
-                                    // Add to activities via the parent callback
-                                    if (onAddActivity) {
-                                        onAddActivity(project, newMessageText, newMessageSubject);
-                                    }
-                                    
-                                    // Close modal and reset form
-                                    setShowMessageModal(false);
-                                    setNewMessageSubject('');
-                                    setNewMessageText('');
-                                    setSelectedToUser('');
-                                    setSendAsTask(false);
-                                    setTaskAssignee('');
-                                }
-                            }} className="space-y-4">
-                                <div>
-                                    <label className={`block text-sm font-medium mb-2 ${
-                                        colorMode ? 'text-gray-300' : 'text-gray-700'
-                                    }`}>
-                                        Subject <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={newMessageSubject}
-                                        onChange={(e) => setNewMessageSubject(e.target.value)}
-                                        required
-                                        className={`w-full p-2 border rounded-lg text-sm ${
-                                            colorMode 
-                                                ? 'bg-[#1e293b] border-gray-600 text-white' 
-                                                : 'bg-white border-gray-300 text-gray-800'
-                                        }`}
-                                    >
-                                        <option value="">Select Subject</option>
-                                        {subjects.map(subject => (
-                                            <option key={subject} value={subject}>{subject}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                
-                                {/* To User Dropdown */}
-                                <div>
-                                    <label className={`block text-sm font-medium mb-2 ${
-                                        colorMode ? 'text-gray-300' : 'text-gray-700'
-                                    }`}>
-                                        To <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={selectedToUser}
-                                        onChange={(e) => setSelectedToUser(e.target.value)}
-                                        required
-                                        className={`w-full p-2 border rounded-lg text-sm ${
-                                            colorMode 
-                                                ? 'bg-[#1e293b] border-gray-600 text-white' 
-                                                : 'bg-white border-gray-300 text-gray-800'
-                                        }`}
-                                    >
-                                        <option value="">Select recipient...</option>
-                                        {availableUsers.map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.firstName} {user.lastName} ({user.role || 'User'})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                
-                                {/* Send as Task Option */}
-                                <div>
-                                    <label className={`flex items-center text-sm ${
-                                        colorMode ? 'text-gray-300' : 'text-gray-700'
-                                    }`}>
-                                        <input
-                                            type="checkbox"
-                                            checked={sendAsTask}
-                                            onChange={(e) => setSendAsTask(e.target.checked)}
-                                            className="mr-2"
-                                        />
-                                        Send as Task
-                                    </label>
-                                    {sendAsTask && (
-                                        <select
-                                            value={taskAssignee}
-                                            onChange={(e) => setTaskAssignee(e.target.value)}
-                                            className={`w-full p-2 border rounded-lg text-sm mt-2 ${
-                                                colorMode 
-                                                    ? 'bg-[#1e293b] border-gray-600 text-white' 
-                                                    : 'bg-white border-gray-300 text-gray-800'
-                                            }`}
-                                        >
-                                            <option value="">Assign task to...</option>
-                                            {availableUsers.map(user => (
-                                                <option key={user.id} value={user.id}>
-                                                    {user.firstName} {user.lastName} ({user.role || 'User'})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-                                
-                                <div>
-                                    <label className={`block text-sm font-medium mb-2 ${
-                                        colorMode ? 'text-gray-300' : 'text-gray-700'
-                                    }`}>
-                                        Message <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        value={newMessageText}
-                                        onChange={(e) => setNewMessageText(e.target.value)}
-                                        placeholder="Enter your message here..."
-                                        required
-                                        rows={4}
-                                        className={`w-full p-2 border rounded-lg text-sm resize-none ${
-                                            colorMode 
-                                                ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' 
-                                                : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
-                                        }`}
-                                    />
-                                </div>
-                                
-                                <div className="flex justify-end gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowMessageModal(false);
-                                            setNewMessageSubject('');
-                                            setNewMessageText('');
-                                        }}
-                                        className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                                            colorMode 
-                                                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={!newMessageSubject || !newMessageText.trim() || !selectedToUser}
-                                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                            newMessageSubject && newMessageText.trim() && selectedToUser
-                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        }`}
-                                    >
-                                        Send Message
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             )}
         </div>
     );
