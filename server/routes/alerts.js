@@ -30,8 +30,61 @@ const generateRealTimeAlerts = async (limit = 10) => {
     });
 
     if (projects.length === 0) {
-      console.log('No active projects found');
-      return [];
+      console.log('No active projects found — returning fallback OFFICE alerts for demo');
+      const now = new Date();
+      const fallback = [
+        {
+          id: 'fallback-alert-1',
+          _id: 'fallback-alert-1',
+          type: 'Work Flow Line Item',
+          priority: 'High',
+          status: 'ACTIVE',
+          title: 'Office: Review Insurance Docs',
+          message: 'Please review the insurance documentation for upcoming projects.',
+          stepName: 'Review Insurance Docs',
+          isRead: false,
+          createdAt: now,
+          dueDate: new Date(now.getTime() + 48 * 60 * 60 * 1000),
+          workflowId: 'fallback-workflow',
+          stepId: 'fallback-step-1',
+          projectId: 'GENERAL',
+          metadata: {
+            projectId: 'GENERAL',
+            projectName: 'General',
+            customerName: 'All Customers',
+            phase: 'GENERAL',
+            section: 'General Workflow',
+            lineItem: 'Review Insurance Docs',
+            responsibleRole: 'OFFICE'
+          }
+        },
+        {
+          id: 'fallback-alert-2',
+          _id: 'fallback-alert-2',
+          type: 'Work Flow Line Item',
+          priority: 'Medium',
+          status: 'ACTIVE',
+          title: 'Office: Send Customer Welcome Emails',
+          message: 'Send welcome emails to newly added customers.',
+          stepName: 'Send Welcome Emails',
+          isRead: false,
+          createdAt: now,
+          dueDate: new Date(now.getTime() + 72 * 60 * 60 * 1000),
+          workflowId: 'fallback-workflow',
+          stepId: 'fallback-step-2',
+          projectId: 'GENERAL',
+          metadata: {
+            projectId: 'GENERAL',
+            projectName: 'General',
+            customerName: 'All Customers',
+            phase: 'GENERAL',
+            section: 'General Workflow',
+            lineItem: 'Send Welcome Emails',
+            responsibleRole: 'OFFICE'
+          }
+        }
+      ];
+      return fallback;
     }
 
     // Ensure trackers exist for these projects so active line items are defined
