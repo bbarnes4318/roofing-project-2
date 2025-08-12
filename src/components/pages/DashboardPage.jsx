@@ -2123,9 +2123,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="mb-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+                  <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
                     My Project Messages
-                  </h1>
+                  </h2>
                   {expandedMessages.size > 0 && (
                     <p className="text-sm text-gray-600 font-medium">
                       {expandedMessages.size} of {currentActivities.length} conversation{currentActivities.length !== 1 ? 's' : ''} expanded
@@ -2461,9 +2461,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="mb-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+                  <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
                     Current Alerts
-                  </h1>
+                  </h2>
                   {expandedAlerts.size > 0 && (
                     <p className="text-sm text-gray-600 font-medium">
                       {expandedAlerts.size} of {getPaginatedAlerts().length} alert{getPaginatedAlerts().length !== 1 ? 's' : ''} expanded
