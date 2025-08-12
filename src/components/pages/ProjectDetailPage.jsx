@@ -1904,7 +1904,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         }
     };
 
-    const navItems = ['Project Workflow', 'Profile', 'Alerts', 'Messages', 'Project Schedule', 'Project Documents', 'Work Order'];
+    const navItems = ['Profile', 'Project Workflow', 'Alerts', 'Messages', 'Project Schedule', 'Project Documents', 'Work Order'];
 
     if (!project) {
         return <div className="text-red-600 font-bold p-8">No project selected or project data is missing.</div>;
