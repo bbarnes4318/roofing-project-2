@@ -16,6 +16,7 @@ import AIToolsPage from './components/pages/AIToolsPage';
 import EstimateComparisonTool from './components/pages/EstimateComparisonTool';
 import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
+import AlertsCalendarPage from './components/pages/AlertsCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
@@ -728,6 +729,7 @@ export default function App() {
             case 'Project Messages': return <MyMessagesPage colorMode={colorMode} projects={projects} onProjectSelect={handleProjectSelect} />;
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
+            case 'Alerts Calendar': return <AlertsCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
             case 'Training & Knowledge Base':
                 return (

@@ -8,7 +8,7 @@ const ChevronRightIcon = ({ className = "w-5 h-5" }) => (
     </svg>
 );
 
-const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProjectSelect }) => {
+const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectSelect }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('month');
@@ -158,6 +158,20 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             }
         });
         
+        // Task deadlines
+        tasks.forEach(task => {
+            if (task.alertDate && new Date(task.alertDate).toDateString() === dateString) {
+                events.push({
+                    id: `task-${task.id}`,
+                    title: `⚠️ ${task.title}`,
+                    type: 'task',
+                    task: task,
+                    time: '12:00 PM',
+                    priority: task.priority,
+                    color: task.priority === 'high' ? 'bg-red-500' : 'bg-purple-500'
+                });
+            }
+        });
         
         // Mock events - Comprehensive construction company calendar
         const mockEvents = [
@@ -315,6 +329,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 return 'bg-amber-500';
             case 'labor':
                 return 'bg-indigo-500';
+            case 'task':
+                return 'bg-red-500';
             default:
                 return 'bg-gray-500';
         }
@@ -357,7 +373,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         
         // If it's a project event, also trigger project selection
         if (event.project && onProjectSelect) {
-                                    onProjectSelect(event.project, 'Project Workflow', null, 'Company Calendar');
+                                    onProjectSelect(event.project, 'Project Workflow', null, 'Alerts Calendar');
         }
     };
 
@@ -454,7 +470,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3">
                     <div className="flex-1">
                         <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                            Manage schedules, meetings, and important company events
+                            View and manage project alerts in calendar format
                         </p>
                     </div>
                     
@@ -504,7 +520,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                         { key: 'project-start', label: 'Project Start', icon: '🚀' },
                         { key: 'project-end', label: 'Project End', icon: '🏁' },
                         { key: 'delivery', label: 'Deliveries', icon: '📦' },
-                        { key: 'labor', label: 'Labor', icon: '👷' }
+                        { key: 'labor', label: 'Labor', icon: '👷' },
+                        { key: 'task', label: 'Tasks', icon: '📋' }
                     ].map(filter => (
                         <button
                             key={filter.key}
@@ -652,6 +669,12 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     </div>
                                 )}
                                 
+                                {selectedEvent.task && (
+                                    <div className={`p-4 rounded-lg shadow-sm ${colorMode ? 'bg-[#374151] border border-[#3b82f6]/20' : 'bg-purple-50 border border-purple-200'}`}>
+                                        <p className={`text-sm font-bold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Related Task:</p>
+                                        <p className={`text-sm ${colorMode ? 'text-white' : 'text-gray-800'}`}>{selectedEvent.task.title}</p>
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="flex gap-3 mt-8">
@@ -670,7 +693,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onClick={() => {
                                             closeEventModal();
                                             if (onProjectSelect) {
-                                                onProjectSelect(selectedEvent.project, 'Project Workflow', null, 'Company Calendar');
+                                                onProjectSelect(selectedEvent.project, 'Project Workflow', null, 'Alerts Calendar');
                                             }
                                         }}
                                         className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
@@ -747,6 +770,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         <option value="project-end">Project End</option>
                                         <option value="delivery">Delivery</option>
                                         <option value="labor">Labor</option>
+                                        <option value="task">Task</option>
                                     </select>
                                 </div>
 
@@ -876,4 +900,4 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     );
 };
 
-export default CompanyCalendarPage; 
+export default AlertsCalendarPage;

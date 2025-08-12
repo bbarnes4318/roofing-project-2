@@ -520,7 +520,7 @@ const ProjectProfilePage = ({
                                     {/* Quick Navigation */}
                                     <div className="pt-4 border-t border-gray-200">
                                         <h3 className="text-sm font-medium text-gray-600 mb-3">Quick Navigation</h3>
-                                        <div className="grid grid-cols-3 gap-2">
+                                        <div className="grid grid-cols-2 gap-2">
                                             <button
                                                 onClick={() => onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile')}
                                                 className="flex flex-col items-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
@@ -541,6 +541,13 @@ const ProjectProfilePage = ({
                                             >
                                                 <span className="text-lg">⚠️</span>
                                                 <span className="text-xs font-medium">Alerts</span>
+                                            </button>
+                                            <button
+                                                onClick={() => onProjectSelect(selectedProject, 'Alerts Calendar', null, 'Project Profile')}
+                                                className="flex flex-col items-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                                            >
+                                                <span className="text-lg">📅</span>
+                                                <span className="text-xs font-medium">Alerts Calendar</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1150,7 +1157,7 @@ const ProjectListCard = ({
                         )}
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-2 mt-4">
+                    <div className="grid grid-cols-2 gap-2 mt-4">
                         <button
                             onClick={() => onProjectSelect(project, 'Project Workflow', null, 'Project Profile')}
                             className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-xs"
@@ -1171,6 +1178,13 @@ const ProjectListCard = ({
                         >
                             <span>⚠️</span>
                             Alerts
+                        </button>
+                        <button
+                            onClick={() => onProjectSelect(project, 'Alerts Calendar', null, 'Project Profile')}
+                            className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-xs"
+                        >
+                            <span>📅</span>
+                            Alerts Calendar
                         </button>
                     </div>
                 </div>
