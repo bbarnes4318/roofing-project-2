@@ -6,7 +6,7 @@ import {
 } from './components/common/Icons';
 import { authService } from './services/api';
 import DashboardPage from './components/pages/DashboardPage';
-import NewProjectsPage from './components/pages/NewProjectsPage';
+import ProjectProfilePage from './components/pages/ProjectProfilePage';
 import ProjectDetailPage from './components/pages/ProjectDetailPage';
 import ArchivedProjectsPage from './components/pages/ArchivedProjectsPage';
 import ActivityFeedPage from './components/pages/ActivityFeedPage';
@@ -715,8 +715,9 @@ export default function App() {
                 />
             );
             case 'Projects': return (
-                <NewProjectsPage 
+                <ProjectProfilePage 
                     onProjectSelect={handleProjectSelect} 
+                    onCreateProject={handleCreateProject}
                     projects={projects} 
                     colorMode={colorMode} 
                     projectSourceSection={navigationState.projectSourceSection}
