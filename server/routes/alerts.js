@@ -254,15 +254,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
             }
           }
         },
-        step: {
-          select: {
-            id: true,
-            stepId: true,
-            stepName: true,
-            phase: true,
-            isCompleted: true
-          }
-        },
+        step: false, // Disabled - many alerts don't have valid step_id
         assignedTo: {
           select: {
             id: true,

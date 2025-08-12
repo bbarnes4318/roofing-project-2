@@ -143,33 +143,11 @@ const CurrentAlertsSection = ({
     navigateToAlert(alert, `/project/${alert.projectId}/alerts`);
   };
 
-  // Handle project selection through alert
-  const handleProjectSelectFromAlert = (project, targetPage, additionalContext) => {
-    const contextData = {
-      section: 'Current Alerts',
-      type: 'project',
-      returnPath: '/dashboard',
-      projectId: project.id,
-      projectName: project.projectName || project.name,
-      selectedData: project,
-      sourceContext: 'alert',
-      filters: {
-        selectedAlert: selectedAlertFilter,
-        selectedProject: selectedProjectFilter,
-        selectedPriority: selectedPriorityFilter,
-        selectedStatus: selectedStatusFilter,
-        selectedRole: selectedRoleFilter,
-        searchTerm: searchFilter,
-        sortBy,
-        sortOrder
-      },
-      expandedState: expandedAlerts,
-      scrollPosition: window.scrollY,
-      ...additionalContext
-    };
-
+  // Handle project selection through alert - matches DashboardPage pattern
+  const handleProjectSelectFromAlert = (project, targetPage, phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null) => {
     if (onProjectSelect) {
-      onProjectSelect(project, targetPage, contextData, 'Current Alerts');
+      // Pass parameters in the same order as DashboardPage
+      onProjectSelect(project, targetPage, phase, sourceSection, targetLineItemId, targetSectionId);
     }
   };
 
@@ -215,8 +193,8 @@ const CurrentAlertsSection = ({
     return normalized;
   };
 
-  // Optionally fetch alerts if none were passed in
-  const { data: fetchedAlerts = [], isLoading: fetchedLoading } = useWorkflowAlerts({ status: 'active' });
+  // Optionally fetch alerts if none were passed in - use ACTIVE (uppercase) for API
+  const { data: fetchedAlerts = [], isLoading: fetchedLoading } = useWorkflowAlerts({ status: 'ACTIVE' });
   const sourceAlerts = (alerts && alerts.length > 0) ? alerts : (fetchedAlerts || []);
   const alertsForView = sourceAlerts.map(normalizeAlert).filter(a => !!a.id);
 
@@ -590,13 +568,78 @@ const CurrentAlertsSection = ({
                       </button>
                       
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const project = projects?.find(p => p.id === alert.projectId);
                           if (project) {
-                            handleProjectSelectFromAlert(project, 'Project Workflow', { 
-                              targetStepId: alert.stepId,
-                              targetSectionId: alert.sectionId
-                            });
+                            try {
+                              // Use the same logic as DashboardPage for navigation
+                              const metadata = alert.metadata || {};
+                              const phase = metadata.phase || alert.phase || 'LEAD';
+                              const sectionName = metadata.section || alert.section || 'Unknown Section';
+                              const lineItemName = alert.stepName || alert.title || 'Unknown Item';
+                              
+                              // Get project position data for proper targeting
+                              const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                                headers: {
+                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-david-chen-token-fixed-12345'}`
+                                }
+                              });
+                              
+                              if (positionResponse.ok) {
+                                const positionResult = await positionResponse.json();
+                                if (positionResult.success && positionResult.data) {
+                                  const position = positionResult.data;
+                                  
+                                  // Generate targetLineItemId and targetSectionId like Dashboard
+                                  const targetLineItemId = alert.stepId || metadata.stepId || `${position.currentPhase}-${position.currentSection}-0`;
+                                  const targetSectionId = metadata.sectionId || position.currentSection;
+                                  
+                                  const projectWithNavigation = {
+                                    ...project,
+                                    highlightStep: lineItemName,
+                                    navigationContext: {
+                                      phase: phase,
+                                      section: sectionName,
+                                      lineItem: lineItemName,
+                                      stepName: lineItemName,
+                                      alertId: alert.id,
+                                      stepId: alert.stepId || metadata.stepId,
+                                      workflowId: alert.workflowId || metadata.workflowId,
+                                      highlightMode: 'line-item',
+                                      scrollBehavior: 'smooth',
+                                      targetElementId: `lineitem-${alert.stepId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                      highlightColor: '#0066CC',
+                                      highlightDuration: 3000
+                                    }
+                                  };
+                                  
+                                  handleProjectSelectFromAlert(
+                                    projectWithNavigation,
+                                    'Project Workflow',
+                                    null,
+                                    'Current Alerts',
+                                    targetLineItemId,
+                                    targetSectionId
+                                  );
+                                } else {
+                                  // Fallback navigation
+                                  handleProjectSelectFromAlert(project, 'Project Workflow', {
+                                    targetStepId: alert.stepId,
+                                    targetSectionId: alert.sectionId || metadata.sectionId
+                                  });
+                                }
+                              } else {
+                                // Fallback navigation
+                                handleProjectSelectFromAlert(project, 'Project Workflow', {
+                                  targetStepId: alert.stepId,
+                                  targetSectionId: alert.sectionId || metadata.sectionId
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Error navigating to workflow step:', error);
+                              // Final fallback
+                              handleProjectSelectFromAlert(project, 'Project Workflow');
+                            }
                           }
                         }}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -608,7 +651,7 @@ const CurrentAlertsSection = ({
                         onClick={() => {
                           const project = projects?.find(p => p.id === alert.projectId);
                           if (project) {
-                            handleProjectSelectFromAlert(project, 'Messages');
+                            handleProjectSelectFromAlert(project, 'Messages', null, 'Current Alerts');
                           }
                         }}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -620,7 +663,7 @@ const CurrentAlertsSection = ({
                         onClick={() => {
                           const project = projects?.find(p => p.id === alert.projectId);
                           if (project) {
-                            handleProjectSelectFromAlert(project, 'Projects');
+                            handleProjectSelectFromAlert(project, 'Projects', null, 'Current Alerts');
                           }
                         }}
                         className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"

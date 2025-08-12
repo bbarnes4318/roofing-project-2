@@ -4,6 +4,7 @@ import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import DraggablePopup from '../ui/DraggablePopup';
 
 import ProjectCubes from '../dashboard/ProjectCubes';
+import CurrentAlertsSection from '../dashboard/CurrentAlertsSection';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
@@ -251,7 +252,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [availableUsers, setAvailableUsers] = useState([]);
   
   // Fetch real alerts from API
-  const { data: workflowAlerts, isLoading: alertsLoading, error: alertsError, refetch: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'active' });
+  const { data: workflowAlerts, isLoading: alertsLoading, error: alertsError, refetch: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'ACTIVE' });
   
   // Debug alerts loading
   console.log('🔍 DASHBOARD: Alerts loading state:', alertsLoading);
@@ -2456,6 +2457,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         </div>
         {/* Right Column - Current Alerts */}
         <div className="w-full" data-section="current-alerts">
+          <CurrentAlertsSection 
+            alerts={workflowAlerts}
+            projects={projects}
+            onProjectSelect={handleProjectSelectWithScroll}
+            colorMode={colorMode}
+          />
+          {/* Old inline alert rendering - keeping temporarily for reference */}
+          {false && (
           <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
             <div className="mb-4">
               <div className="flex items-center justify-between mb-3">
@@ -3039,6 +3048,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               )}
             </div>
           </div>
+          )}
         </div>
       </div>
 
