@@ -1006,13 +1006,22 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       });
     }
     
-    // Apply user group filter
+    // Normalize responsible role from alert data
+    const resolveAlertRole = (alert) => {
+      // Prefer explicit metadata.responsibleRole (backend transformation),
+      // then actionData.responsibleRole, then defaultResponsible
+      const role = alert.metadata?.responsibleRole
+        || alert.actionData?.responsibleRole
+        || alert.metadata?.defaultResponsible
+        || alert.actionData?.defaultResponsible
+        || alert.user?.role
+        || 'OFFICE';
+      return formatUserRole(String(role));
+    };
+
+    // Apply user group filter (by responsible role)
     if (alertUserGroupFilter !== 'all') {
-      filteredAlerts = filteredAlerts.filter(alert => {
-        const userRole = alert.user?.role || alert.metadata?.defaultResponsible || 'OFFICE';
-        const formattedRole = formatUserRole(userRole);
-        return formattedRole === alertUserGroupFilter;
-      });
+      filteredAlerts = filteredAlerts.filter(alert => resolveAlertRole(alert) === alertUserGroupFilter);
     }
     
     // Apply sorting
@@ -1030,8 +1039,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         }
       }
       if (alertSortConfig.key === 'subject') {
-        const subjectA = a.stepName || a.subject || '';
-        const subjectB = b.stepName || b.subject || '';
+        const subjectA = a.stepName || a.metadata?.lineItem || a.subject || '';
+        const subjectB = b.stepName || b.metadata?.lineItem || b.subject || '';
         if (alertSortConfig.direction === 'asc') {
           return subjectA.localeCompare(subjectB);
         } else {

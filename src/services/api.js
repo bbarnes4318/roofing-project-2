@@ -8,7 +8,8 @@ const getApiBaseUrl = () => {
     return `${window.location.protocol}//${window.location.host}/api`;
   }
   // Local development
-  return 'http://localhost:8080/api';
+  // Use the same dev API port as other pages (e.g., calendar) to avoid mixed backends
+  return 'http://localhost:5000/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

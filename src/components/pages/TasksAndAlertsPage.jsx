@@ -100,13 +100,20 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
             });
         }
         
-        // Apply user group filter
+        // Normalize responsible role from alert data
+        const resolveAlertRole = (alert) => {
+            const role = alert.metadata?.responsibleRole
+                || alert.actionData?.responsibleRole
+                || alert.metadata?.defaultResponsible
+                || alert.actionData?.defaultResponsible
+                || alert.user?.role
+                || 'OFFICE';
+            return formatUserRole(String(role));
+        };
+
+        // Apply user group filter (by responsible role)
         if (alertUserGroupFilter !== 'all') {
-            filteredAlerts = filteredAlerts.filter(alert => {
-                const userRole = alert.user?.role || alert.metadata?.defaultResponsible || 'OFFICE';
-                const formattedRole = formatUserRole(userRole);
-                return formattedRole === alertUserGroupFilter;
-            });
+            filteredAlerts = filteredAlerts.filter(alert => resolveAlertRole(alert) === alertUserGroupFilter);
         }
         
         // Apply sorting

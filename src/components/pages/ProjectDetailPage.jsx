@@ -148,8 +148,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             // Check if alert is assigned to current user
             const assignedToId = alert.assignedTo || alert.assignedToId || alert.metadata?.assignedTo;
             const targetUserId = alert.targetedTo || alert.targetUserId || alert.metadata?.targetedTo;
-            const userRole = alert.user?.role || alert.actionData?.defaultResponsible || alert.metadata?.defaultResponsible;
-            
+            const resolveAlertRole = () => {
+                const role = alert.metadata?.responsibleRole
+                    || alert.actionData?.responsibleRole
+                    || alert.metadata?.defaultResponsible
+                    || alert.actionData?.defaultResponsible
+                    || alert.user?.role
+                    || 'OFFICE';
+                return formatUserRole(String(role));
+            };
+
             // If alert has specific user assignment, only show to that user
             if (assignedToId) {
                 return assignedToId === currentUser.id || String(assignedToId) === String(currentUser.id);
@@ -161,14 +169,9 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             }
             
             // If alert is for a specific role, check if current user has that role
-            if (userRole) {
-                const normalizedUserRole = formatUserRole(currentUser.role);
-                const normalizedAlertRole = formatUserRole(userRole);
-                return normalizedUserRole === normalizedAlertRole;
-            }
-            
-            // Default: show alert if no specific assignment
-            return true;
+            const normalizedUserRole = formatUserRole(currentUser.role);
+            const normalizedAlertRole = resolveAlertRole();
+            return normalizedUserRole === normalizedAlertRole;
         });
         
         // Apply additional project filter (if user has applied a specific filter)
@@ -182,8 +185,13 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         // Apply user group filter
         if (alertUserGroupFilter !== 'all') {
             filteredAlerts = filteredAlerts.filter(alert => {
-                const userRole = alert.user?.role || alert.actionData?.defaultResponsible || 'OFFICE';
-                return formatUserRole(userRole) === alertUserGroupFilter;
+                const role = alert.metadata?.responsibleRole
+                    || alert.actionData?.responsibleRole
+                    || alert.metadata?.defaultResponsible
+                    || alert.actionData?.defaultResponsible
+                    || alert.user?.role
+                    || 'OFFICE';
+                return formatUserRole(String(role)) === alertUserGroupFilter;
             });
         }
         
