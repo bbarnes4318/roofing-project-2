@@ -1900,7 +1900,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </div>
                         </td>
                         
-                        {/* Project Number - Second position - 5 digits only - Navigate to My Projects page */}
+                        {/* Project Number - Second position - 5 digits only - Navigate to Project Profile tab */}
                         <td className="py-2 px-2 whitespace-nowrap">
                           <button 
                             onClick={() => {
@@ -1909,12 +1909,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   ...project,
                                   scrollToProjectId: String(project.id)
                                 };
-                                onProjectSelect(projectWithScrollId, 'Projects', null, 'Project Phases');
+                                onProjectSelect(projectWithScrollId, 'Profile', null, 'Project Phases');
                               }
                             }}
-                            className={`text-sm font-bold hover:underline cursor-pointer transition-colors ${
-                              colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-brand-600 hover:text-brand-800'
-                            }`}
+                            className="text-sm font-bold hover:underline cursor-pointer transition-colors text-blue-600 hover:text-blue-800"
                           >
                             {String(project.projectNumber || project.id).padStart(5, '0')}
                           </button>
@@ -2667,7 +2665,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       ...project,
                                       scrollToProjectId: String(project.id)
                                     };
-                                    handleProjectSelectWithScroll(projectWithScrollId, 'Projects', null, 'Current Alerts');
+                                    handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Current Alerts');
                                   }
                                 }}
                               >
