@@ -1892,13 +1892,13 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     }
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col bg-white">
             <ScrollToTop />
             
-            {/* Header with Back Button and Tabs - Normal Position */}
-            <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+            {/* Header with Back Button and Tabs - Modern Design */}
+            <div className="bg-white border-b border-gray-200 shadow-sm">
                 {/* Back Button Row */}
-                <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
                     <button 
                         onClick={handleBackButton} 
                         className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 border border-blue-200 hover:border-blue-300"
@@ -1938,8 +1938,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 </div>
                 
                 {/* Tabs Navigation */}
-                <div className="px-3 py-1">
-                    <nav className="flex space-x-4" aria-label="Tabs">
+                <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+                    <nav className="flex space-x-6" aria-label="Tabs">
                         {navItems.map(item => {
                             // Define which tabs are disabled/not ready
                             const disabledTabs = ['Project Schedule', 'Work Order', 'Project Documents'];
@@ -1964,12 +1964,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             }, 1);
                                         }
                                     }} 
-                                    className={`whitespace-nowrap py-1 px-1 border-b-2 font-medium text-xs transition-colors duration-200 ${
+                                    className={`whitespace-nowrap py-2 px-3 border-b-2 font-medium text-sm transition-colors duration-200 rounded-t-lg ${
                                         isDisabled 
                                             ? 'border-transparent text-gray-400 opacity-70 cursor-not-allowed' 
                                             : activeView === item 
-                                                ? 'border-primary-500 text-primary-600' 
-                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                ? 'border-blue-500 text-blue-600 bg-white shadow-sm' 
+                                                : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 hover:bg-gray-100'
                                     }`}
                                 >
                                     {item === 'Project Workflow' && phaseCompletion.completedPhases && Object.values(phaseCompletion.completedPhases).length === 7 && Object.values(phaseCompletion.completedPhases).every(Boolean) ? (
@@ -1983,10 +1983,10 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             </div>
             
             {/* Content Area */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto">
-                {/* Scrollable Content */}
-                <div className="p-0">
-                    <div className="min-h-[calc(100vh-200px)]">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white">
+                {/* Scrollable Content with proper spacing */}
+                <div className="p-6 bg-white">
+                    <div className="min-h-[calc(100vh-200px)] bg-white">
                         {renderProjectView()}
                     </div>
                 </div>
