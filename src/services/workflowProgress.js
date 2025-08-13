@@ -238,6 +238,28 @@ class WorkflowProgressService {
     }
 
     /**
+     * Get the current phase for a project
+     * @param {Object} project - Project object with phase information
+     * @returns {string} Current phase key (e.g. 'LEAD', 'EXECUTION', etc.)
+     */
+    static getProjectPhase(project) {
+        if (!project) return 'LEAD';
+
+        // Use currentWorkflowItem if available (new system)
+        if (project.currentWorkflowItem && project.currentWorkflowItem.phase) {
+            return project.currentWorkflowItem.phase;
+        }
+
+        // Fallback to project.phase if available
+        if (project.phase) {
+            return project.phase;
+        }
+
+        // Default fallback
+        return 'LEAD';
+    }
+
+    /**
      * DEPRECATED: Legacy method for backward compatibility
      * @deprecated Use calculateProjectProgress instead
      */
