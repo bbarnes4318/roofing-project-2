@@ -225,6 +225,19 @@ class WorkflowProgressService {
     }
 
     /**
+     * Get all available project phases
+     * @returns {Array} Array of phase objects with keys and display names
+     */
+    static getAllPhases() {
+        return Object.keys(PHASES).map(phaseKey => ({
+            key: phaseKey,
+            name: PHASES[phaseKey].name,
+            weight: PHASES[phaseKey].weight,
+            color: this.getPhaseColor(phaseKey)
+        }));
+    }
+
+    /**
      * DEPRECATED: Legacy method for backward compatibility
      * @deprecated Use calculateProjectProgress instead
      */
