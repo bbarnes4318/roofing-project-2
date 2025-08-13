@@ -3015,11 +3015,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   
                   const correctUserGroup = getUserGroupFromSection(sectionName);
                   
-                  // Use WorkflowProgressService for consistent phase colors
-                  const getPhaseCircleColors = (phase) => {
-                    // Use centralized phase normalization
-                    const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
-                    return WorkflowProgressService.getPhaseColor(normalizedPhase);
+                  // Use WorkflowProgressService for consistent phase colors and initials
+                  const getPhaseProps = (phase) => {
+                    return WorkflowProgressService.getPhaseButtonProps(phase || 'LEAD');
                   };
                   return (
                     <div key={alertId} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[12px] shadow-sm border transition-all duration-200 cursor-pointer`}>
@@ -3032,8 +3030,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <div className="flex items-center justify-between gap-3">
                           {/* Phase Circle - Smaller */}
                           <div className="relative flex-shrink-0">
-                            <div className={`w-5 h-5 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-[9px] shadow-sm`}>
-                              {phase.charAt(0).toUpperCase()}
+                            <div className={`w-5 h-5 ${getPhaseProps(phase).bgColor} rounded-full flex items-center justify-center ${getPhaseProps(phase).textColor} font-bold text-[9px] shadow-sm`}>
+                              {getPhaseProps(phase).initials}
                             </div>
                             {priority === 'high' && (
                               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white shadow-sm"></div>

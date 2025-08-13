@@ -175,14 +175,14 @@ class WorkflowProgressService {
     static getPhaseInitials(phase) {
         const normalizedPhase = this.normalizePhase(phase);
         const initials = {
-            LEAD: 'LD',
-            PROSPECT: 'PR',
-            APPROVED: 'AP',
-            EXECUTION: 'EX',
-            SECOND_SUPPLEMENT: '2S',
-            COMPLETION: 'CM'
+            LEAD: 'L',
+            PROSPECT: 'P',
+            APPROVED: 'A',
+            EXECUTION: 'E',
+            SECOND_SUPPLEMENT: 'S',
+            COMPLETION: 'C'
         };
-        return initials[normalizedPhase] || 'LD';
+        return initials[normalizedPhase] || 'L';
     }
 
     /**
