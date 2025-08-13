@@ -537,28 +537,82 @@ const ProjectProfilePage = ({
                                         </button>
                                     </div>
 
-                                    {/* Project Address */}
-                                    <div>
-                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Address</div>
-                                        <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                            {selectedProject.customer?.address ? (
-                                                <div>
-                                                    <div>{selectedProject.customer.address.split(',')[0]?.trim()}</div>
-                                                    <div>
-                                                        {(() => {
-                                                            const parts = selectedProject.customer.address.split(',').slice(1);
-                                                            if (parts.length >= 2) {
-                                                                return `${parts[0].trim()}, ${parts[1].trim()}`;
-                                                            } else if (parts.length === 1) {
-                                                                return parts[0].trim();
-                                                            }
-                                                            return 'Address not available';
-                                                        })()}
-                                                    </div>
+                                    {/* Addresses and Project Manager (side-by-side) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* Project Address */}
+                                        <div>
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Address</div>
+                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                                {(() => {
+                                                    const address = selectedProject.address || selectedProject.customer?.address || selectedProject.client?.address;
+                                                    if (!address) return 'Address not available';
+                                                    const parts = address.split(',');
+                                                    if (parts.length >= 2) {
+                                                        return (
+                                                            <div>
+                                                                <div>{parts[0]?.trim()}</div>
+                                                                <div>{parts.slice(1).join(',').trim()}</div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return address;
+                                                })()}
+                                            </div>
+                                        </div>
+
+                                        {/* Customer Address */}
+                                        <div>
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Customer Address</div>
+                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                                {(() => {
+                                                    const address = selectedProject.customer?.address || selectedProject.client?.address || selectedProject.clientAddress || selectedProject.address;
+                                                    if (!address) return 'Address not available';
+                                                    const parts = address.split(',');
+                                                    if (parts.length >= 2) {
+                                                        return (
+                                                            <div>
+                                                                <div>{parts[0]?.trim()}</div>
+                                                                <div>{parts.slice(1).join(',').trim()}</div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return address;
+                                                })()}
+                                            </div>
+                                        </div>
+
+                                        {/* Project Manager Details */}
+                                        <div>
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Manager</div>
+                                            <div className="space-y-1">
+                                                <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                                    {selectedProject.projectManager?.firstName && selectedProject.projectManager?.lastName 
+                                                        ? `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName}` 
+                                                        : selectedProject.projectManager?.name || 'Not Assigned'}
                                                 </div>
-                                            ) : (
-                                                'Address not available'
-                                            )}
+                                                {selectedProject.projectManager?.phone && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-blue-500">📞</span>
+                                                        <a 
+                                                            href={`tel:${selectedProject.projectManager.phone.replace(/[^\d+]/g, '')}`}
+                                                            className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                                        >
+                                                            {selectedProject.projectManager.phone}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {selectedProject.projectManager?.email && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-blue-500">✉️</span>
+                                                        <a 
+                                                            href={`mailto:${selectedProject.projectManager.email}`}
+                                                            className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                                        >
+                                                            {selectedProject.projectManager.email}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -570,34 +624,24 @@ const ProjectProfilePage = ({
                                         </span>
                                     </div>
 
-                                    {/* Project Phase */}
-                                    <div>
-                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Phase</div>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            getPhaseColorForProject ? 
-                                            `${getPhaseColorForProject(selectedProject.id)?.bg} ${getPhaseColorForProject(selectedProject.id)?.text}` : 
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
+                                    {/* Phase / Section / Line Item (names before values) */}
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                                        <span className={`${colorMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Phase:</span>
+                                        <span className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                             {WorkflowProgressService.getPhaseName(getPhaseForProject(selectedProject.id)) || 'Lead'}
                                         </span>
-                                    </div>
-
-                                    {/* Project Section */}
-                                    <div>
-                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Section</div>
-                                        <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                        <span className={`${colorMode ? 'text-gray-500' : 'text-gray-300'}`}>|</span>
+                                        <span className={`${colorMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Section:</span>
+                                        <span className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                             {WorkflowDataService.getCurrentSection(selectedProject) || 'Not Available'}
-                                        </div>
-                                    </div>
-
-                                    {/* Project Line Item - Clickable Link */}
-                                    <div>
-                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Current Line Item</div>
+                                        </span>
+                                        <span className={`${colorMode ? 'text-gray-500' : 'text-gray-300'}`}>|</span>
+                                        <span className={`${colorMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Line Item:</span>
                                         <button
                                             onClick={() => onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile')}
                                             className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
                                         >
-                                            {WorkflowDataService.getCurrentLineItem(selectedProject)?.stepName || 'View Workflow'}
+                                            {WorkflowDataService.getCurrentLineItem(selectedProject)?.name || 'View Workflow'}
                                         </button>
                                     </div>
                                 </div>
@@ -633,40 +677,7 @@ const ProjectProfilePage = ({
                                     </div>
                                 </div>
 
-                                {/* Project Manager */}
-                                <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
-                                    <h4 className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-3`}>Project Manager</h4>
-                                    <div className="space-y-2">
-                                        <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                            {selectedProject.projectManager?.firstName && selectedProject.projectManager?.lastName 
-                                                ? `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName}`
-                                                : selectedProject.projectManager?.name || 'Not Assigned'
-                                            }
-                                        </div>
-                                        {selectedProject.projectManager?.phone && (
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-blue-500">📞</span>
-                                                <a 
-                                                    href={`tel:${selectedProject.projectManager.phone.replace(/[^\d+]/g, '')}`}
-                                                    className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
-                                                >
-                                                    {selectedProject.projectManager.phone}
-                                                </a>
-                                            </div>
-                                        )}
-                                        {selectedProject.projectManager?.email && (
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-blue-500">✉️</span>
-                                                <a 
-                                                    href={`mailto:${selectedProject.projectManager.email}`}
-                                                    className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
-                                                >
-                                                    {selectedProject.projectManager.email}
-                                                </a>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                {/* Project Manager removed from this card (moved to Project Info grid) */}
                             </div>
                         </div>
                     </div>

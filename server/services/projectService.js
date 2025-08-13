@@ -146,7 +146,7 @@ class ProjectService {
       const project = await prisma.project.create({
         data: {
           projectNumber,
-          projectName: customer.address, // projectName = customer address (NEW REQUIREMENT)
+          projectName: projectData.projectName || customer.address,
           projectType: projectData.projectType,
           description: projectData.description,
           priority: projectData.priority || 'MEDIUM',
@@ -190,7 +190,7 @@ class ProjectService {
         });
         
         if (customer) {
-          projectName = customer.address; // Keep projectName = customer address
+          projectName = projectName || customer.address;
         }
       }
 

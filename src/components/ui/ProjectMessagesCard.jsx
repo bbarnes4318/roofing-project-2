@@ -152,9 +152,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
     const projectPhase = WorkflowProgressService.getProjectPhase(project, activity);
     
-    // Use WorkflowProgressService for consistent phase colors
-    const getPhaseColors = (phase) => {
-        return WorkflowProgressService.getPhaseColor(phase);
+    // Use WorkflowProgressService for consistent phase colors and initials
+    const getPhaseButton = (phase) => {
+        try {
+            return WorkflowProgressService.getPhaseButtonProps(phase || 'LEAD');
+        } catch (err) {
+            console.warn('Phase data unavailable for phase:', phase, err);
+            return { initials: 'N', bgColor: 'bg-gray-400', textColor: 'text-black' };
+        }
     };
 
     // State for contact info expansion
@@ -194,9 +199,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 }}
             >
                 {/* Phase Circle - Align to top */}
-                <div className={`w-5 h-5 ${getPhaseColors(projectPhase).bg} rounded-full flex items-center justify-center ${getPhaseColors(projectPhase).text} font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
-                    {projectPhase.charAt(0).toUpperCase()}
-                </div>
+                {(() => {
+                    const phaseProps = getPhaseButton(projectPhase);
+                    return (
+                        <div className={`w-5 h-5 ${phaseProps.bgColor} rounded-full flex items-center justify-center ${phaseProps.textColor} font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
+                            {phaseProps.initials || 'N'}
+                        </div>
+                    );
+                })()}
                 
                 <div className="flex-1 min-w-0">
                     {/* Row 1: Project# | Customer | Subject */}
@@ -531,7 +541,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             )}
                             
                             {/* Project Address */}
-                            {(project?.customer?.address || project?.client?.address || project?.clientAddress) && (
+                            {(project?.address || project?.customer?.address || project?.client?.address) && (
                                 <div className="space-y-3">
                                     <div className={`text-xs font-semibold uppercase tracking-wide ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
                                         Project Address
@@ -547,7 +557,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                         <div className="flex-1 min-w-0">
                                             <div className={`text-sm leading-relaxed ${colorMode ? 'text-slate-300' : 'text-gray-700'}`}>
                                                 {(() => {
-                                                    const address = project?.customer?.address || project?.client?.address || project?.clientAddress || '123 Main Street, City, State 12345';
+                                                    const address = project?.address || project?.customer?.address || project?.client?.address || 'Address not available';
                                                     const parts = address.split(',');
                                                     if (parts.length >= 2) {
                                                         return (

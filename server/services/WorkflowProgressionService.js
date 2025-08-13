@@ -278,16 +278,64 @@ class WorkflowProgressionService {
         }
 
         // Generate new alert AFTER transaction
-        // ALWAYS generate alert for the NEXT line item after the one that was completed
-        const nextLineItemId = nextPosition.updates.currentLineItemId;
-        console.log(`🔔 ALERT GENERATION: Checking if should generate alert for NEXT line item after ${lineItemId}: ${nextLineItemId}`);
+        // Find next uncompleted line item that needs an alert
+        let alertLineItemId = null;
+        
+        // First priority: if we're advancing to a new line item, generate alert for it
+        if (nextPosition.updates.currentLineItemId && tracker.currentLineItemId === lineItemId) {
+          alertLineItemId = nextPosition.updates.currentLineItemId;
+          console.log(`🔔 ALERT GENERATION: Advancing to next item, will generate alert for: ${alertLineItemId}`);
+        } else {
+          // Otherwise, find the first uncompleted line item that doesn't have an active alert
+          console.log(`🔔 ALERT GENERATION: Finding next uncompleted line item that needs an alert`);
+          
+          // Get all completed line items for this project
+          const completedItems = await prisma.completedWorkflowItem.findMany({
+            where: { trackerId: tracker.id },
+            select: { lineItemId: true }
+          });
+          const completedItemIds = new Set(completedItems.map(item => item.lineItemId));
+          
+          // Get all active alerts for this project
+          const activeAlerts = await prisma.workflowAlert.findMany({
+            where: { 
+              projectId: projectId,
+              status: 'ACTIVE'
+            },
+            select: { stepName: true }
+          });
+          const alertedStepNames = new Set(activeAlerts.map(alert => alert.stepName));
+          
+          // Find next uncompleted line item that doesn't have an alert
+          const nextUncompleted = await prisma.workflowLineItem.findFirst({
+            where: {
+              isActive: true,
+              id: { notIn: Array.from(completedItemIds) }
+            },
+            orderBy: { displayOrder: 'asc' },
+            include: {
+              section: {
+                include: {
+                  phase: true
+                }
+              }
+            }
+          });
+          
+          if (nextUncompleted && !alertedStepNames.has(nextUncompleted.itemName)) {
+            alertLineItemId = nextUncompleted.id;
+            console.log(`🔔 ALERT GENERATION: Found uncompleted item without alert: ${nextUncompleted.itemName} (${alertLineItemId})`);
+          }
+        }
+        
+        console.log(`🔔 ALERT GENERATION: Will generate alert for line item: ${alertLineItemId}`);
         let newAlert = null;
-        if (nextLineItemId) {
-          console.log(`🔔 ALERT GENERATION: Starting alert generation for NEXT line item: ${nextLineItemId}`);
+        if (alertLineItemId) {
+          console.log(`🔔 ALERT GENERATION: Starting alert generation for line item: ${alertLineItemId}`);
           try {
             // Get line item data for alert
             const lineItemData = await prisma.workflowLineItem.findUnique({
-              where: { id: nextLineItemId },
+              where: { id: alertLineItemId },
               include: {
                 section: {
                   include: {

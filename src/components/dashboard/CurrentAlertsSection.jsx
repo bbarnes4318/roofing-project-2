@@ -778,7 +778,7 @@ const CurrentAlertsSection = ({
                             const loadingToast = toast.loading('Processing completion...');
                             
                             // Complete the workflow line item
-                            const response = await api.post('/workflow/complete-item', {
+                            const response = await api.post('/workflows/complete-item', {
                               projectId: alert.projectId,
                               lineItemId: alert.stepId || alert.metadata?.stepId,
                               notes: `Completed via Current Alerts Section at ${new Date().toLocaleString()}`,

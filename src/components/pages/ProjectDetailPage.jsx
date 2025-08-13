@@ -317,13 +317,13 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 // Show success feedback with toast notification
                 console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
                 
-                // Show success toast with checkmark
+                // Show success toast with clear confirmation
                 toast.success(
                   <div className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>Saved to Workflow</span>
+                    <span>Task marked as completed and saved successfully</span>
                   </div>,
                   {
                     duration: 3000,
@@ -349,26 +349,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 window.dispatchEvent(globalEvent);
                 console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from Project Detail Alerts');
                 
-                // Navigate to Project Workflow tab with highlighting after completion
-                setTimeout(() => {
-                  if (project && onProjectSelect) {
-                    const projectWithStepInfo = {
-                      ...project,
-                      highlightStep: alert.metadata?.stepName || alert.title,
-                      alertPhase: alert.metadata?.phase,
-                      completedStep: true,
-                      // Add navigation context for proper workflow highlighting
-                      navigationTarget: {
-                        phase: alert.metadata?.phase,
-                        section: alert.metadata?.section,
-                        lineItem: stepName,
-                        stepName: stepName,
-                        alertId: alertId
-                      }
-                    };
-                    setActiveView('Project Workflow');
-                  }
-                }, 500);
+                // Stay on the same page: do not switch view after completion
             
         } catch (error) {
             console.error('❌ Failed to complete alert:', error);

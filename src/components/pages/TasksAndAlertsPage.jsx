@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import { authService, messagesService } from '../../services/api';
+import api, { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ACTIVITY_FEED_SUBJECTS, ALERT_SUBJECTS } from '../../data/constants';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
@@ -291,33 +291,26 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
 
             console.log(`🚀 Attempting to complete workflow step: workflowId=${workflowId}, stepId=${stepId}`);
 
-            // Step 1: Complete the workflow step via API
-            const response = await fetch(`/api/workflows/${workflowId}/steps/${stepId}/complete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    notes: `Completed via dashboard alert by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
-                    alertId: alertId
-                })
+            // Step 1: Complete the workflow step via API (use centralized axios instance)
+            const response = await api.post(`/workflows/${workflowId}/steps/${stepId}/complete`, {
+                notes: `Completed via dashboard alert by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
+                alertId
             });
 
-            if (response.ok) {
-                const result = await response.json();
+            if (response.status >= 200 && response.status < 300) {
+                const result = response.data;
                 console.log('✅ Workflow step completed successfully:', result);
                 
                 // Show success feedback with toast notification
                 console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
                 
-                // Show success toast with checkmark
+                // Show success toast with clear confirmation
                 toast.success(
                     <div className="flex items-center gap-2">
                         <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Saved to Workflow</span>
+                        <span>Task marked as completed and saved successfully</span>
                     </div>,
                     {
                         duration: 3000,
@@ -348,30 +341,10 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                     refetchWorkflowAlerts();
                 }
                 
-                // Navigate to Project Workflow to show the completion
-                setTimeout(() => {
-                    const project = projects.find(p => p.id === projectId);
-                    if (project && onProjectSelect) {
-                        const projectWithStepInfo = {
-                            ...project,
-                            highlightStep: alert.metadata?.stepName || alert.title,
-                            alertPhase: alert.metadata?.phase,
-                            completedStep: true,
-                            navigationTarget: {
-                                phase: alert.metadata?.phase,
-                                section: alert.metadata?.section,
-                                lineItem: stepName,
-                                stepName: stepName,
-                                alertId: alertId
-                            }
-                        };
-                        onProjectSelect(projectWithStepInfo, 'Project Workflow', null, sourceSection);
-                    }
-                }, 500);
+                // Stay on the same page: do not navigate after completion
             } else {
-                const errorResult = await response.json();
-                console.error('❌ Failed to complete workflow step:', errorResult);
-                throw new Error(errorResult.message || 'Failed to complete workflow step');
+                // Centralized axios error will throw; this is a safety net
+                throw new Error('Failed to complete workflow step');
             }
             
         } catch (error) {

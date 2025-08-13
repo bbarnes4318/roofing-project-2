@@ -376,10 +376,17 @@ const MyProjectMessagesSection = ({
                         {message.subject}
                       </h3>
                       
-                      {/* Project Name */}
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {message.projectName}
-                      </span>
+                      {/* Phase Badge with initial and color */}
+                      {(() => {
+                        const project = projects?.find(p => p.id === message.projectId);
+                        const phaseKey = project?.currentWorkflowItem?.phase || project?.phase;
+                        const props = require('../../services/workflowProgress').default.getPhaseButtonProps(phaseKey || 'LEAD');
+                        return (
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${props.bgColor} ${props.textColor}`} title={props.fullName}>
+                            {props.initials}
+                          </span>
+                        );
+                      })()}
                     </div>
                     
                     {/* Description */}

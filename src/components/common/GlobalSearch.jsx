@@ -221,6 +221,25 @@ export default function GlobalSearch({
     );
   };
 
+  // Address helpers for concise, consistent display in results
+  const formatAddressOneLine = (address) => {
+    if (!address || typeof address !== 'string') return 'Address not available';
+    const parts = address.split(',').map(p => p.trim()).filter(Boolean);
+    if (parts.length === 0) return 'Address not available';
+    return parts.join(', ');
+  };
+
+  const getProjectAddress = (proj) => {
+    if (!proj) return '';
+    // Strict priority to true project site address; avoid mislabeled fields
+    return (
+      proj.address ||
+      (proj.customer && proj.customer.address) ||
+      (proj.client && proj.client.address) ||
+      ''
+    );
+  };
+
   // Create bubbles effect on input focus/click
   const createBubblesEffect = () => {
     const newBubbles = [];
@@ -415,23 +434,23 @@ export default function GlobalSearch({
                         <div className="flex items-center gap-3 mb-2">
                           <PhaseButton phase={result.data.phase} size="sm" />
                           
-                          {/* Clickable Project Number */}
-                          <button
-                            className={`text-sm font-semibold hover:underline ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (onNavigateToResult) {
-                                onNavigateToResult({ ...result, page: 'Profile' });
-                              }
-                            }}
-                            title="View Project Profile"
-                          >
-                            #{String(result.data.projectNumber || result.data.id || '00000').padStart(5, '0')}
-                          </button>
-                          
-                          <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
+                            {/* Single consolidated title: Project # + Name */}
+                            <button
+                              className={`font-semibold hover:underline ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onNavigateToResult) {
+                                  onNavigateToResult({ ...result, page: 'Profile' });
+                                }
+                              }}
+                              title="View Project Profile"
+                            >
+                              #{String(result.data.projectNumber || result.data.id || '00000').padStart(5, '0')}
+                            </button>
+                            <span className={`${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>•</span>
                             <Highlight 
-                              text={result.title || result.data.projectName || 'Unnamed Project'} 
+                              text={result.data.projectName || result.title || 'Unnamed Project'} 
                               matches={getMatchesForField(result, 'name')} 
                               query={query}
                             />
@@ -495,6 +514,10 @@ export default function GlobalSearch({
                               <span className="ml-1">Not Available</span>
                             )}
                           </div>
+                          {/* Address */}
+                          <div>
+                            <strong>Address:</strong> {formatAddressOneLine(getProjectAddress(result.data))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -515,6 +538,10 @@ export default function GlobalSearch({
                       <div className={`text-xs flex gap-4 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {result.data.phone && <span>📞 {result.data.phone}</span>}
                         {result.data.email && <span>✉️ {result.data.email}</span>}
+                      </div>
+                      {/* Address */}
+                      <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <strong>Address:</strong> {formatAddressOneLine(result.data.address)}
                       </div>
                       {/* Clickable Project Link */}
                       {result.data.projectId && (

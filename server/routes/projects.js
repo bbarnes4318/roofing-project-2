@@ -145,9 +145,9 @@ const transformProjectForFrontend = (project) => {
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
     
-    // Address - map projectName to address for frontend compatibility
-    address: project.projectName, // projectName contains the address
-    location: project.projectName,
+    // Address - use customer's address as the single source of truth
+    address: project.customer?.address || null,
+    location: project.customer?.address || null,
     
     // Customer mapping - frontend expects both customer and client
     customer: project.customer ? {
