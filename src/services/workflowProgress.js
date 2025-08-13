@@ -186,6 +186,27 @@ class WorkflowProgressService {
     }
 
     /**
+     * Determine text color for optimal contrast on background
+     * @param {string} backgroundColor - Hex color (e.g., '#6B7280')
+     * @returns {string} 'white' or 'black' for best contrast
+     */
+    static getContrastTextColor(backgroundColor) {
+        // Remove # if present
+        const hex = backgroundColor.replace('#', '');
+        
+        // Convert to RGB
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calculate luminance using W3C formula
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return white for dark backgrounds, black for light backgrounds
+        return luminance > 0.5 ? 'black' : 'white';
+    }
+
+    /**
      * Get complete phase button props for UI components
      * @param {string} phase - Phase key or display name
      * @returns {Object} Phase properties with initials, colors, and display name
@@ -195,6 +216,7 @@ class WorkflowProgressService {
         const phaseName = this.getPhaseName(normalizedPhase);
         const phaseColor = this.getPhaseColor(normalizedPhase);
         const initials = this.getPhaseInitials(normalizedPhase);
+        const textColor = this.getContrastTextColor(phaseColor);
         
         // Convert hex colors to Tailwind background classes
         const colorToBg = {
@@ -206,13 +228,16 @@ class WorkflowProgressService {
             '#059669': 'bg-emerald-600'
         };
         
+        const tailwindTextColor = textColor === 'white' ? 'text-white' : 'text-black';
+        
         return {
             initials,
             bgColor: colorToBg[phaseColor] || 'bg-gray-500',
-            textColor: 'text-white',
+            textColor: tailwindTextColor,
             fullName: phaseName,
             hexColor: phaseColor,
-            phase: normalizedPhase
+            phase: normalizedPhase,
+            contrastTextColor: textColor
         };
     }
 
