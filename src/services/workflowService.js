@@ -68,9 +68,15 @@ class WorkflowService {
    */
   async updateStep(projectId, stepId, completed) {
     try {
+      // Debug logging to understand stepId format
+      console.log(`🔍 WORKFLOW SERVICE: updateStep called with stepId: "${stepId}" (length: ${stepId?.length}), completed: ${completed}`);
+      
       // If stepId looks like a UUID from DB and completed=true, use new endpoint
       const isDbId = typeof stepId === 'string' && stepId.length > 20 && !stepId.includes('DB_');
+      console.log(`🔍 WORKFLOW SERVICE: isDbId detection: ${isDbId}`);
+      
       if (completed && isDbId) {
+        console.log(`✅ WORKFLOW SERVICE: Calling completeLineItem for UUID stepId: ${stepId}`);
         return await this.completeLineItem(projectId, stepId, 'Completed via checkbox', null);
       }
       // Otherwise call legacy updater to persist UI state only

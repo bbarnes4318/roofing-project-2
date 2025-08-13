@@ -11,7 +11,7 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import api, { authService, messagesService } from '../../services/api';
+import api, { authService, messagesService, customersService, usersService } from '../../services/api';
 import toast from 'react-hot-toast';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ALERT_SUBJECTS } from '../../data/constants';
@@ -264,6 +264,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     projectNumber: '',
     projectName: '',
     customerName: '',
+    customerEmail: '',
     jobType: '',
     projectManager: '',
     fieldDirector: '',
@@ -324,21 +325,16 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/users', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          }
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            setAvailableUsers(result.data);
-            console.log('✅ Loaded users for assignment:', result.data.length);
-          }
+        const result = await usersService.getTeamMembers();
+        if (result && (result.data?.teamMembers || result.data)) {
+          const teamMembers = result.data.teamMembers || result.data;
+          setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
+          console.log('✅ Loaded users for assignment:', Array.isArray(teamMembers) ? teamMembers.length : 0);
         }
       } catch (error) {
         console.error('❌ Failed to fetch users:', error);
+      } finally {
+        setUsersLoading(false);
       }
     };
     
@@ -1740,8 +1736,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     setProjectError('');
     
     // Validate required fields
-    if (!newProject.projectNumber || !newProject.customerName || !newProject.jobType) {
-      setProjectError('Please fill in all required fields: Project Number, Customer Name, and Job Type');
+    if (!newProject.projectNumber || !newProject.customerName || !newProject.jobType || !newProject.customerEmail) {
+      setProjectError('Please fill in all required fields: Project Number, Customer Name, Customer Email, and Job Type');
+      return;
+    }
+    // Basic email validation for primary customer email (required by backend)
+    if (typeof newProject.customerEmail !== 'string' || !newProject.customerEmail.includes('@')) {
+      setProjectError('Please enter a valid Customer Email');
       return;
     }
 
@@ -1766,7 +1767,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       const customerData = {
         primaryName: newProject.customerName,
-        primaryEmail: primaryContact?.email || null,
+        primaryEmail: newProject.customerEmail,
         primaryPhone: primaryContact?.phone || null,
         secondaryName: secondaryContact?.name || null,
         secondaryEmail: secondaryContact?.email || null,
@@ -1784,21 +1785,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           }))
       };
 
-      const customerResponse = await fetch('/api/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-        },
-        body: JSON.stringify(customerData)
-      });
-
-      if (!customerResponse.ok) {
-        const errorData = await customerResponse.json();
-        throw new Error(errorData.message || 'Failed to create customer');
-      }
-
-      const customerResult = await customerResponse.json();
+      const customerResult = await customersService.create(customerData);
       const customerId = customerResult.data?.id || customerResult.id;
 
       if (!customerId) {
@@ -1831,6 +1818,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         projectNumber: '',
         projectName: '',
         customerName: '',
+        customerEmail: '',
         jobType: '',
         projectManager: '',
         fieldDirector: '',
@@ -1888,6 +1876,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       projectNumber: '',
       projectName: '',
       customerName: '',
+      customerEmail: '',
       jobType: '',
       projectManager: '',
       fieldDirector: '',
@@ -2487,8 +2476,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       const targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
                                       const targetSectionId = position.currentSection;
                                       
-                                      console.log('🎯 WORKFLOW NAVIGATION: Generated targetLineItemId:', targetLineItemId);
-                                      console.log('🎯 WORKFLOW NAVIGATION: Generated targetSectionId:', targetSectionId);
+                                      console.log('🎯 WORKFLOW BUTTON CLICKED for project', project.projectNumber);
+                                      console.log('   Phase:', position.currentPhase, '(' + position.phaseName + ')');
+                                      console.log('   Section:', position.sectionDisplayName, '(ID:', targetSectionId + ')');
+                                      console.log('   Line Item:', position.currentLineItemName, '(ID:', targetLineItemId + ')');
+                                      console.log('   Will navigate to Project Workflow tab with highlighting');
                                       
                                       const projectWithNavigation = {
                                         ...project,
@@ -4089,6 +4081,26 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                 }`}
                 placeholder="Enter customer name"
+                required
+              />
+            </div>
+
+            {/* Customer Email */}
+            <div>
+              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                Customer Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="customerEmail"
+                value={newProject.customerEmail}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  colorMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+                placeholder="Enter primary customer email"
                 required
               />
             </div>

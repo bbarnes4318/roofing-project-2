@@ -171,8 +171,24 @@ class WorkflowProgressionService {
           }
         });
 
-        if (!tracker || tracker.currentLineItemId !== lineItemId) {
-          throw new Error('Can only complete the current active line item');
+        console.log(`🔍 VALIDATION: tracker.currentLineItemId: ${tracker?.currentLineItemId}, requested lineItemId: ${lineItemId}`);
+        
+        if (!tracker) {
+          throw new Error('No workflow tracker found for project');
+        }
+        
+        // Allow completing any line item (not just the current active one)
+        // This enables users to complete workflow items in any order
+        console.log(`✅ VALIDATION: Allowing completion of line item ${lineItemId}`);
+        
+        // Check if the line item exists in the workflow
+        const lineItemExists = await tx.workflowLineItem.findUnique({
+          where: { id: lineItemId },
+          select: { id: true, itemName: true }
+        });
+        
+        if (!lineItemExists) {
+          throw new Error(`Line item ${lineItemId} not found in workflow`);
         }
 
         // OPTIMIZED: Mark corresponding workflow step as completed
@@ -209,19 +225,34 @@ class WorkflowProgressionService {
         const nextStep = nextStepResult[0];
 
         // Find next position in template system
+        // If completing the current line item, find the next one
+        // If completing a different line item, keep current position but update completed items
+        console.log(`🔍 NEXT POSITION: Looking for next line item after completed: ${lineItemId}`);
         const nextPosition = await this.findNextLineItem(
           tracker.currentPhaseId,
           tracker.currentSectionId,
-          tracker.currentLineItemId
+          lineItemId
         );
+        console.log(`🔍 NEXT POSITION: Found next position:`, JSON.stringify(nextPosition, null, 2));
 
         // Update tracker
+        // Only update current position if we completed the current active line item
+        // Otherwise just track the completion
+        const trackerUpdates = {
+          lastCompletedItemId: lineItemId
+        };
+        
+        // If completing the current active line item, advance to next position
+        if (tracker.currentLineItemId === lineItemId && nextPosition.updates.currentLineItemId) {
+          console.log(`🔄 ADVANCING: Moving from ${lineItemId} to ${nextPosition.updates.currentLineItemId}`);
+          Object.assign(trackerUpdates, nextPosition.updates);
+        } else {
+          console.log(`📝 TRACKING: Completed ${lineItemId} but keeping current position at ${tracker.currentLineItemId}`);
+        }
+        
         const updatedTracker = await tx.projectWorkflowTracker.update({
           where: { id: tracker.id },
-          data: {
-            lastCompletedItemId: lineItemId,
-            ...nextPosition.updates
-          }
+          data: trackerUpdates
         });
 
         // Complete old alerts WITHIN TRANSACTION
@@ -247,12 +278,16 @@ class WorkflowProgressionService {
         }
 
         // Generate new alert AFTER transaction
+        // ALWAYS generate alert for the NEXT line item after the one that was completed
+        const nextLineItemId = nextPosition.updates.currentLineItemId;
+        console.log(`🔔 ALERT GENERATION: Checking if should generate alert for NEXT line item after ${lineItemId}: ${nextLineItemId}`);
         let newAlert = null;
-        if (nextPosition.updates.currentLineItemId) {
+        if (nextLineItemId) {
+          console.log(`🔔 ALERT GENERATION: Starting alert generation for NEXT line item: ${nextLineItemId}`);
           try {
             // Get line item data for alert
             const lineItemData = await prisma.workflowLineItem.findUnique({
-              where: { id: nextPosition.updates.currentLineItemId },
+              where: { id: nextLineItemId },
               include: {
                 section: {
                   include: {
@@ -289,7 +324,7 @@ class WorkflowProgressionService {
                 if (!workflowStep) {
                   // Create a new workflow step for this line item
                   // Generate stepId based on phase and step name
-                  const stepId = `${sectionData.phase?.phaseType || 'GENERAL'}-${lineItemData.itemName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                  const stepId = `${lineItemData.section.phase?.phaseType || 'GENERAL'}-${lineItemData.itemName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
                   
                   workflowStep = await prisma.workflowStep.create({
                     data: {
@@ -297,7 +332,7 @@ class WorkflowProgressionService {
                       stepId: stepId,
                       stepName: lineItemData.itemName,
                       description: lineItemData.description || lineItemData.itemName,
-                      phase: sectionData.phase?.phaseType || 'LEAD',
+                      phase: lineItemData.section.phase?.phaseType || 'LEAD',
                       defaultResponsible: lineItemData.responsibleRole,
                       estimatedDuration: Math.ceil(lineItemData.estimatedMinutes / 60),
                       stepOrder: lineItemData.displayOrder
@@ -327,7 +362,7 @@ class WorkflowProgressionService {
                       section: lineItemData.section.displayName,
                       sectionId: lineItemData.section.id,
                       lineItem: lineItemData.itemName,
-                      lineItemId: nextPosition.updates.currentLineItemId,
+                      lineItemId: nextLineItemId,
                       projectNumber: projectData.projectNumber,
                       projectId: projectId,
                       workflowId: projectWorkflow.id,
@@ -340,9 +375,12 @@ class WorkflowProgressionService {
               }
             }
           } catch (alertError) {
-            console.error('Error creating alert:', alertError);
+            console.error('❌ ALERT GENERATION: Error creating alert:', alertError);
+            console.error('❌ ALERT GENERATION: Alert error details:', alertError.message);
             // Don't fail the entire transaction if alert creation fails
           }
+        } else {
+          console.log(`🔔 ALERT GENERATION: No next line item found, not generating alert`);
         }
 
         console.log(`✅ Completed line item and progressed workflow for project ${projectId}`);

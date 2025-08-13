@@ -127,6 +127,26 @@ const loadCheckboxState = (projectId) => {
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId }) => {
   const projectId = project?._id || project?.id;
   
+  // LOG NAVIGATION PARAMETERS
+  console.log('📍 PROJECT CHECKLIST PAGE - Navigation params received:');
+  console.log('   targetLineItemId:', targetLineItemId);
+  console.log('   targetSectionId:', targetSectionId);
+  console.log('   projectId:', projectId);
+  
+  // Add pulse animation styles
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.02); opacity: 0.9; }
+      }
+      .workflow-line-item { transition: all 0.3s ease; }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+  
   // =================================================================
   // CHECKBOX STATE MANAGEMENT
   // =================================================================
@@ -436,6 +456,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             if (effectiveTargetLineItem) {
               targetElement = document.getElementById(`lineitem-${effectiveTargetLineItem}`);
               scrollReason = `target line item: ${effectiveTargetLineItem}`;
+              
+              // If not found by lineitem ID, try checkbox ID format
+              if (!targetElement) {
+                targetElement = document.getElementById(`checkbox-${effectiveTargetLineItem}`);
+                if (targetElement) {
+                  targetElement = targetElement.closest('.workflow-line-item');
+                  scrollReason = `target line item (via checkbox): ${effectiveTargetLineItem}`;
+                }
+              }
             }
             // Priority 2: Navigate to specific target section
             else if (targetSectionId) {
@@ -449,22 +478,43 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             }
             
             if (targetElement) {
+              console.log('🎯 HIGHLIGHTING:', scrollReason);
+              
               targetElement.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'center' 
               });
               
-              // Add bright highlighting for targeted navigation
-              const highlightClass = (targetLineItemId || targetSectionId) 
-                ? ['ring-4', 'ring-yellow-400', 'ring-opacity-90', 'bg-yellow-100'] 
-                : ['ring-4', 'ring-blue-500', 'ring-opacity-75'];
+              // Enhanced highlighting for targeted navigation
+              if (targetLineItemId) {
+                // Apply strong highlight for line items
+                targetElement.style.backgroundColor = '#FEF3C7';
+                targetElement.style.border = '3px solid #F59E0B';
+                targetElement.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
+                targetElement.style.transition = 'all 0.3s ease';
+                
+                // Add pulsing animation
+                targetElement.style.animation = 'pulse 1.5s ease-in-out 3';
+                
+                // Remove highlight after delay
+                setTimeout(() => {
+                  targetElement.style.backgroundColor = '';
+                  targetElement.style.border = '';
+                  targetElement.style.boxShadow = '';
+                  targetElement.style.animation = '';
+                }, 8000);
+              } else {
+                // Standard highlight for sections
+                const highlightClass = ['ring-4', 'ring-blue-500', 'ring-opacity-75'];
+                targetElement.classList.add(...highlightClass);
+                setTimeout(() => {
+                  targetElement.classList.remove(...highlightClass);
+                }, 5000);
+              }
               
-              targetElement.classList.add(...highlightClass);
-              setTimeout(() => {
-                targetElement.classList.remove(...highlightClass);
-              }, targetLineItemId ? 8000 : 5000); // Longer highlight for targeted items
-              
-              console.log(`Auto-navigated to ${scrollReason}`);
+              console.log(`✅ Auto-navigated and highlighted: ${scrollReason}`);
+            } else {
+              console.log('⚠️ Could not find element to highlight:', scrollReason);
             }
           }, 1000);
           
@@ -520,19 +570,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     setOpenItem((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  // Get phase colors (standardized via WorkflowProgressService)
+  // Get phase color circle background class using centralized props
   const getPhaseColor = (phaseId) => {
-    const color = WorkflowProgressService.getPhaseColor(phaseId);
-    // Map to tailwind bg utility fallbacks if needed
-    const map = {
-      '#E0E7FF': 'bg-indigo-400',
-      '#0066CC': 'bg-blue-500',
-      '#10B981': 'bg-emerald-500',
-      '#F59E0B': 'bg-amber-500',
-      '#8B5CF6': 'bg-violet-500',
-      '#14532D': 'bg-green-900'
-    };
-    return map[color.hex] || 'bg-gray-500';
+    const props = WorkflowProgressService.getPhaseButtonProps(phaseId);
+    return props.bgColor || 'bg-gray-500';
   };
 
   if (!project) {
@@ -703,8 +744,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                       id={`lineitem-checkbox-${stepId}`}
                                       checked={isChecked}
                                       onChange={() => {
-                                        console.log(`Checkbox onChange: ${stepId}`);
-                                        handleCheckboxToggle(stepId, phase.id, item.id, subIdx);
+                                        console.log(`Checkbox onChange: ${stepId}, Database ID: ${subtaskId}`);
+                                        handleCheckboxToggle(subtaskId || stepId, phase.id, item.id, subIdx);
                                       }}
                                       onClick={(e) => {
                                         console.log(`Checkbox onClick: ${stepId}`);

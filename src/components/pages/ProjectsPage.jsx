@@ -632,8 +632,11 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
                                 const currentPhase = WorkflowProgressService.getProjectPhase(project);
                                 
-                                // Create navigation-compatible line item ID 
-                                const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
+                                // Create navigation-compatible line item ID
+                                // Prefer DB subtask id when available; otherwise use PHASE-SECTION-INDEX (no DB_ prefix)
+                                const targetLineItemId = currentStep?.stepId 
+                                    ? currentStep.stepId 
+                                    : `${currentPhase}-${currentStep?.sectionId || 'unknown'}-${currentStep?.stepIndex ?? 0}`;
                                 const targetSectionId = currentStep?.sectionId || null;
                                 
                                 // Use the new navigation system with targetLineItemId
@@ -689,8 +692,11 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                               const currentStep = project.workflow?.steps?.find(step => !step.isCompleted);
                               const currentPhase = WorkflowProgressService.getProjectPhase(project);
                               
-                              // Create navigation-compatible line item ID 
-                              const targetLineItemId = currentStep?.stepId ? `DB_${currentPhase}-${currentStep.sectionId || 'unknown'}-${currentStep.stepIndex || 0}` : null;
+                              // Create navigation-compatible line item ID
+                              // Prefer DB subtask id when available; otherwise use PHASE-SECTION-INDEX (no DB_ prefix)
+                              const targetLineItemId = currentStep?.stepId 
+                                ? currentStep.stepId 
+                                : `${currentPhase}-${currentStep?.sectionId || 'unknown'}-${currentStep?.stepIndex ?? 0}`;
                               const targetSectionId = currentStep?.sectionId || null;
                               
                               // Use the new navigation system with targetLineItemId
