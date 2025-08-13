@@ -3,7 +3,7 @@ import { ChevronDownIcon, ChevronUpIcon, ChevronLeftIcon, ChevronRightIcon } fro
 import { formatPhoneNumber } from '../../utils/helpers';
 import Modal from '../common/Modal';
 import { useProjects, useCustomers, useCreateProject } from '../../hooks/useQueryApi';
-import { projectsService } from '../../services/api';
+import { projectsService, customersService, usersService } from '../../services/api';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -78,9 +78,11 @@ const ProjectProfilePage = ({
     // Use centralized workflow states
     const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
     
-    // Always use database projects
-    const projectsData = projectsFromDb || [];
-    const projectsArray = Array.isArray(projectsData) ? projectsData : [];
+    // Always use database projects (handle paginated response shape)
+    const projectsData = Array.isArray(projectsFromDb?.data)
+        ? projectsFromDb.data
+        : (Array.isArray(projectsFromDb) ? projectsFromDb : []);
+    const projectsArray = projectsData;
     const customers = Array.isArray(customersData) ? customersData : [];
     
     const projectsPerPage = 6;
@@ -104,8 +106,8 @@ const ProjectProfilePage = ({
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await projectsService.getUsers();
-                setAvailableUsers(response.data || []);
+                const response = await usersService.getTeamMembers();
+                setAvailableUsers(response.data || response || []);
                 
                 // Set default roles
                 const roles = {};
@@ -140,7 +142,7 @@ const ProjectProfilePage = ({
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
             filteredProjects = filteredProjects.filter(project => 
-                (project.name || '').toLowerCase().includes(searchTerm) ||
+                ((project.name || project.projectName || '')).toLowerCase().includes(searchTerm) ||
                 (project.projectNumber || '').toString().toLowerCase().includes(searchTerm) ||
                 (project.customer?.primaryName || '').toLowerCase().includes(searchTerm) ||
                 (project.customer?.address || '').toLowerCase().includes(searchTerm)
@@ -174,8 +176,8 @@ const ProjectProfilePage = ({
                     break;
                 case 'name':
                 default:
-                    aValue = (a.name || '').toLowerCase();
-                    bValue = (b.name || '').toLowerCase();
+                    aValue = (a.name || a.projectName || '').toLowerCase();
+                    bValue = (b.name || b.projectName || '').toLowerCase();
                     break;
             }
             
@@ -246,25 +248,6 @@ const ProjectProfilePage = ({
                 return phone;
             };
             
-            // Prepare project data
-            const projectData = {
-                projectNumber: newProject.projectNumber,
-                name: newProject.projectName,
-                description: newProject.description || '',
-                status: newProject.status,
-                projectType: newProject.jobType || 'General',
-                priority: newProject.priority,
-                budget: newProject.budget ? parseFloat(newProject.budget) : null,
-                startDate: newProject.startDate ? new Date(newProject.startDate).toISOString() : null,
-                endDate: newProject.endDate ? new Date(newProject.endDate).toISOString() : null,
-                address: newProject.address || `${newProject.customerName} Project`,
-                projectManagerId: newProject.projectManager || null,
-                fieldDirectorId: newProject.fieldDirector || null,
-                salesRepId: newProject.salesRep || null,
-                qualityInspectorId: newProject.qualityInspector || null,
-                adminAssistantId: newProject.adminAssistant || null
-            };
-            
             // Customer data
             const primaryContact = newProject.contacts.find(c => c.isPrimary) || newProject.contacts[0] || {};
             const secondaryContact = newProject.contacts.find(c => !c.isPrimary && c.name) || {};
@@ -289,11 +272,50 @@ const ProjectProfilePage = ({
                     }))
             };
             
-            // Create project with customer
-            const response = await createProjectMutation.mutateAsync({
-                projectData,
-                customerData
-            });
+            // Ensure customer exists or create
+            let customerId = null;
+            const existing = customers.find(c => c.primaryName === newProject.customerName || c.name === newProject.customerName);
+            if (existing) {
+                customerId = existing.id;
+            } else {
+                const createdCustomer = await customersService.create(customerData);
+                customerId = createdCustomer?.data?.id || createdCustomer?.id;
+                if (!customerId) throw new Error('Customer ID not received from server');
+            }
+
+            // Map UI jobType to backend enum
+            const mapJobTypeToEnum = (jt) => {
+                const map = {
+                    'Residential Roofing': 'ROOF_REPLACEMENT',
+                    'Commercial Roofing': 'ROOF_REPLACEMENT',
+                    'Repair & Maintenance': 'OTHER',
+                    'New Construction': 'OTHER',
+                    'Emergency Repair': 'OTHER',
+                    'Inspection': 'OTHER',
+                    'Gutter Installation': 'SIDING_INSTALLATION',
+                    'Siding': 'SIDING_INSTALLATION',
+                    'Windows': 'WINDOW_REPLACEMENT',
+                    'General': 'OTHER'
+                };
+                return map[jt] || 'OTHER';
+            };
+
+            // Prepare project payload matching backend validation
+            const projectPayload = {
+                projectName: newProject.projectName,
+                projectType: mapJobTypeToEnum(newProject.jobType),
+                customerId,
+                status: 'PENDING',
+                budget: newProject.budget ? parseFloat(newProject.budget) : 1000,
+                startDate: newProject.startDate ? new Date(newProject.startDate).toISOString() : new Date().toISOString(),
+                endDate: newProject.endDate ? new Date(newProject.endDate).toISOString() : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+                priority: (newProject.priority || 'Medium').toUpperCase(),
+                description: newProject.description || `Project #${newProject.projectNumber}`,
+                projectManagerId: newProject.projectManager || null
+            };
+
+            // Create project
+            const response = await createProjectMutation.mutateAsync(projectPayload);
             
             // Close modal and reset form
             setIsModalOpen(false);
@@ -305,6 +327,8 @@ const ProjectProfilePage = ({
             
             // Refresh projects
             refetch();
+            
+            // Log success
             
             console.log('Project created successfully:', response.data || response);
         } catch (err) {
@@ -399,7 +423,7 @@ const ProjectProfilePage = ({
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-                                    {selectedProject.name || 'Project Details'}
+                                    {selectedProject.name || selectedProject.projectName || 'Project Details'}
                                 </h2>
                                 <div className="flex items-center gap-4">
                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${colorMode ? getProjectTypeColorDark(selectedProject.projectType) : getProjectTypeColor(selectedProject.projectType)}`}>
@@ -1180,7 +1204,7 @@ const ProjectListCard = ({
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">
-                            #{project.projectNumber || 'N/A'} - {project.name}
+                            #{project.projectNumber || 'N/A'} - {(project.name || project.projectName || 'Untitled Project')}
                         </h3>
                         <p className="text-sm text-gray-600 truncate">
                             {project.customer?.primaryName || 'Unknown Customer'}

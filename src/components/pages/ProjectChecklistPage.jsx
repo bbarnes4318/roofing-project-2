@@ -239,6 +239,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         workflowService.updateStep(projectId, stepId, newState)
           .then(() => {
             console.log(`Server sync success: ${stepId}`);
+            // Trigger project data refresh to update phase colors and status
+            if (onUpdate && typeof onUpdate === 'function') {
+              console.log('🔄 Triggering project data refresh after workflow completion');
+              onUpdate();
+            }
           })
           .catch(error => {
             console.error(`Server sync failed: ${stepId}`, error);

@@ -731,6 +731,13 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     // Transform project for frontend compatibility
     const transformedProject = transformProjectForFrontend(project);
 
+    // Invalidate caches so the new project and related lists show up immediately
+    try {
+      await cacheService.invalidateRelated('project', project.id);
+    } catch (cacheErr) {
+      console.warn('⚠️ Cache invalidation failed after project create:', cacheErr?.message);
+    }
+
     sendSuccess(res, 201, transformedProject, 'Project created successfully');
   } catch (error) {
     console.error('Error creating project:', error);

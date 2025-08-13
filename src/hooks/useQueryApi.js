@@ -388,6 +388,8 @@ export const useCreateProject = () => {
       // Invalidate and refetch projects
       queryClient.invalidateQueries({ queryKey: queryKeys.projects });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectStats });
+      // Also refresh alerts so initial workflow alert appears
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflowAlerts });
       
       // Optionally add the new project to the cache
       if (data?.data) {
