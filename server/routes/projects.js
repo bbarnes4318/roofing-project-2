@@ -417,8 +417,6 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
               }
             }
           },
-            }
-          },
           phaseOverrides: {
             where: { isActive: true },
             select: {
