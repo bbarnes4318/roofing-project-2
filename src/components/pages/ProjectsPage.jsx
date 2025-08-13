@@ -49,21 +49,34 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
     const [defaultRoles, setDefaultRoles] = useState({});
     const [usersLoading, setUsersLoading] = useState(true);
     
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    
     // Removed expandable progress states - simplified compact design
     
     // Removed drag and drop state - reverted to original layout
     
-    // Fetch projects directly from database with retry enabled
-    const { data: projectsFromDb, isLoading: projectsLoading, error: projectsError, refetch } = useProjects({ 
-        limit: 100, 
+    // Fetch projects directly from database with pagination
+    const { data: projectsResponse, isLoading: projectsLoading, error: projectsError, refetch } = useProjects({ 
+        page: currentPage,
+        limit: pageSize,
+        search: searchTerm,
+        status: statusFilter,
         retry: 3, // Enable retries
         retryDelay: 1000, // 1 second retry delay
         refetchOnWindowFocus: true // Refetch when window regains focus
     });
     
+    // Extract projects data from paginated response
+    const projectsFromDb = projectsResponse?.data || [];
+    const totalProjects = projectsResponse?.total || 0;
+    const totalPages = Math.ceil(totalProjects / pageSize);
+    
     // CRITICAL: Use centralized workflow states for 100% consistency
     const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
-    
     
     // Always use database projects - no fallback to props
     const projectsData = projectsFromDb || [];
@@ -741,7 +754,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 My Projects
                             </h1>
                             <p className="text-lg text-gray-600 font-medium">
-                                {projectsArray.length} {projectsArray.length === 1 ? 'project' : 'projects'}
+                                {totalProjects} total {totalProjects === 1 ? 'project' : 'projects'} • Showing page {currentPage} of {totalPages}
                             </p>
                         </div>
                         <button
@@ -796,6 +809,60 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
                                 }).length}
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search and Filter Controls */}
+                <div className="mb-6 p-4 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                        {/* Search */}
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                placeholder="Search projects..."
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1); // Reset to first page on search
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            />
+                        </div>
+                        
+                        {/* Status Filter */}
+                        <div className="min-w-[200px]">
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value);
+                                    setCurrentPage(1); // Reset to first page on filter
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="ON_HOLD">On Hold</option>
+                            </select>
+                        </div>
+                        
+                        {/* Page Size */}
+                        <div className="min-w-[120px]">
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    setPageSize(parseInt(e.target.value));
+                                    setCurrentPage(1); // Reset to first page on page size change
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            >
+                                <option value={10}>10 per page</option>
+                                <option value={20}>20 per page</option>
+                                <option value={50}>50 per page</option>
+                                <option value={100}>100 per page</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -857,6 +924,63 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         {projectsArray.map((project) => (
                             <ProjectCard key={project.id} project={project} />
                         ))}
+                    </div>
+                )}
+                
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="mt-8 flex items-center justify-between">
+                        <div className="text-sm text-gray-600">
+                            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalProjects)} of {totalProjects} projects
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                            {/* Previous Button */}
+                            <button
+                                onClick={() => setCurrentPage(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Previous
+                            </button>
+                            
+                            {/* Page Numbers */}
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum;
+                                if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                    pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                } else {
+                                    pageNum = currentPage - 2 + i;
+                                }
+                                
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                                            currentPage === pageNum
+                                                ? 'bg-brand-600 text-white'
+                                                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                            
+                            {/* Next Button */}
+                            <button
+                                onClick={() => setCurrentPage(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

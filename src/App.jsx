@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'react-hot-toast';
 import {
   ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, FolderIcon, ArchiveBoxIcon
 } from './components/common/Icons';
@@ -686,7 +687,6 @@ export default function App() {
     // Define navigationItems after all state variables are declared
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
-        { name: 'Projects', icon: <DocumentTextIcon />, page: 'Projects' },
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
@@ -1110,6 +1110,7 @@ export default function App() {
         </SubjectsProvider>
         </NavigationProvider>
         <ReactQueryDevtools initialIsOpen={false} />
+        <Toaster />
         </QueryClientProvider>
     );
 }

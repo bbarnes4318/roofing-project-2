@@ -1,3 +1,7 @@
+// Optimized Prisma Schema
+// Updated: 2025-08-12
+// Changes: Standardized data types, added new constraints, template-instance relationships
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,11 +15,11 @@ model User {
   id                       String                    @id @default(cuid())
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
-  firstName                String                    @db.VarChar(100)
-  lastName                 String                    @db.VarChar(100)
-  email                    String                    @unique @db.VarChar(320)
+  firstName                String                    @db.VarChar(100)  // Standardized to 100
+  lastName                 String                    @db.VarChar(100)  // Standardized to 100
+  email                    String                    @unique @db.VarChar(320)  // RFC 5321 standard
   password                 String                    @db.VarChar(255)
-  avatar                   String?                   @db.VarChar(2000)
+  avatar                   String?                   @db.VarChar(2000)  // Standardized URL length
   phone                    String?                   @db.VarChar(20)
   position                 String?                   @db.VarChar(100)
   department               String?                   @db.VarChar(100)
@@ -36,17 +40,16 @@ model User {
   twoFactorSecret          String?
   twoFactorEnabled         Boolean                   @default(false)
   theme                    Theme                     @default(LIGHT)
-  notificationPreferences  Json?
+  notificationPreferences  Json?                     // Validated with constraints
   language                 String                    @default("en") @db.VarChar(5)
   timezone                 String                    @default("UTC") @db.VarChar(50)
   skills                   String[]
   certifications           Json?
   experience               Int?
-  emergencyContact         Json?
-  address                  Json?
+  emergencyContact         Json?                     // Validated with constraints
+  address                  Json?                     // Validated with constraints
   eventAttendees           CalendarEventAttendee[]
   calendarEvents           CalendarEvent[]           @relation("Organizer")
-  completedWorkflowItems   CompletedWorkflowItem[]
   conversationParticipants ConversationParticipant[]
   downloadedDocuments      DocumentDownload[]
   uploadedDocuments        Document[]                @relation("UploadedBy")
@@ -62,18 +65,19 @@ model User {
   projectsAsManager        Project[]                 @relation("ProjectManager")
   assignedRoles            RoleAssignment[]          @relation("AssignedRoles")
   roleAssignments          RoleAssignment[]          @relation("RoleAssignments")
-  resolvedSecurityEvents   SecurityEvent[]           @relation("SecurityEventResolver")
-  securityEvents           SecurityEvent[]           @relation("SecurityEvents")
   assignedTasks            Task[]                    @relation("AssignedUser")
   createdTasks             Task[]                    @relation("CreatedByUser")
-  behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
-  devices                  UserDevice[]              @relation("UserDevices")
-  mfaSettings              UserMFA[]                 @relation("UserMFA")
-  webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
   assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
   workflowStepsAssigned    WorkflowStep[]            @relation("AssignedTo")
   workflowStepsCompleted   WorkflowStep[]            @relation("CompletedBy")
+  completedWorkflowItems   CompletedWorkflowItem[]
+  devices                  UserDevice[]              @relation("UserDevices")
+  mfaSettings              UserMFA[]                 @relation("UserMFA")
+  securityEvents           SecurityEvent[]           @relation("SecurityEvents")
+  resolvedSecurityEvents   SecurityEvent[]           @relation("SecurityEventResolver")
+  behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
+  webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
 
   @@map("users")
 }
@@ -82,15 +86,15 @@ model Customer {
   id             String      @id @default(cuid())
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
-  primaryName    String      @db.VarChar(100)
-  primaryEmail   String      @unique @db.VarChar(320)
+  primaryName    String      @db.VarChar(100)  // Standardized
+  primaryEmail   String      @unique @db.VarChar(320)  // RFC standard
   primaryPhone   String      @db.VarChar(20)
-  secondaryName  String?     @db.VarChar(100)
-  secondaryEmail String?     @db.VarChar(320)
+  secondaryName  String?     @db.VarChar(100)  // Standardized
+  secondaryEmail String?     @db.VarChar(320)  // RFC standard
   secondaryPhone String?     @db.VarChar(20)
   primaryContact ContactType @default(PRIMARY)
   address        String      @db.VarChar(500)
-  notes          String?
+  notes          String?     @db.Text  // Changed to TEXT for unlimited length
   contacts       Contact[]
   projects       Project[]
 
@@ -101,13 +105,13 @@ model Contact {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  name       String   @db.VarChar(100)
+  name       String   @db.VarChar(100)  // Standardized
   phone      String?  @db.VarChar(20)
-  email      String?  @db.VarChar(320)
+  email      String?  @db.VarChar(320)  // RFC standard
   role       String?  @db.VarChar(50)
   isPrimary  Boolean  @default(false)
   isActive   Boolean  @default(true)
-  notes      String?
+  notes      String?  @db.Text  // Changed to TEXT
   customerId String   @map("customer_id")
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
@@ -117,43 +121,43 @@ model Contact {
 }
 
 model Project {
-  id               String                  @id @default(cuid())
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  projectNumber    Int                     @unique
-  projectName      String                  @db.VarChar(255)
+  id               String                 @id @default(cuid())
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  projectNumber    Int                    @unique
+  projectName      String                 @db.VarChar(255)  // Standardized
   projectType      ProjectType
-  status           ProjectStatus           @default(PENDING)
-  archived         Boolean                 @default(false)
+  status           ProjectStatus          @default(PENDING)
+  archived         Boolean                @default(false)
   archivedAt       DateTime?
-  progress         Int                     @default(0)
-  description      String?                 @db.VarChar(500)
-  priority         Priority                @default(MEDIUM)
-  budget           Decimal                 @db.Decimal(12, 2)
-  estimatedCost    Decimal?                @db.Decimal(12, 2)
-  actualCost       Decimal?                @db.Decimal(12, 2)
+  progress         Int                    @default(0)
+  description      String?                @db.VarChar(500)  // Standardized short description
+  priority         Priority               @default(MEDIUM)
+  budget           Decimal                @db.Decimal(12, 2)
+  estimatedCost    Decimal?               @db.Decimal(12, 2)
+  actualCost       Decimal?               @db.Decimal(12, 2)
   startDate        DateTime
   endDate          DateTime
-  notes            String?
-  pmPhone          String?                 @db.VarChar(20)
-  pmEmail          String?                 @db.VarChar(320)
-  customerId       String                  @map("customer_id")
-  projectManagerId String?                 @map("project_manager_id")
-  createdById      String?                 @map("created_by_id")
-  phase            ProjectPhase?
-  searchVector     String?
+  notes            String?                @db.Text  // Changed to TEXT
+  pmPhone          String?                @db.VarChar(20)
+  pmEmail          String?                @db.VarChar(320)  // RFC standard
+  customerId       String                 @map("customer_id")
+  projectManagerId String?                @map("project_manager_id")
+  createdById      String?                @map("created_by_id")
+  phase            ProjectPhase?          // DEPRECATED: Use ProjectWorkflowTracker instead
+  searchVector     String?                // For full-text search
   calendarEvents   CalendarEvent[]
   documents        Document[]
   projectMessages  ProjectMessage[]
   phaseOverrides   ProjectPhaseOverride[]
   teamMembers      ProjectTeamMember[]
-  workflowTracker  ProjectWorkflowTracker?
   workflow         ProjectWorkflow?
-  createdBy        User?                   @relation("CreatedBy", fields: [createdById], references: [id])
-  customer         Customer                @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  projectManager   User?                   @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  createdBy        User?                  @relation("CreatedBy", fields: [createdById], references: [id])
+  customer         Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  projectManager   User?                  @relation("ProjectManager", fields: [projectManagerId], references: [id])
   tasks            Task[]
   workflowAlerts   WorkflowAlert[]
+  workflowTracker  ProjectWorkflowTracker?
 
   @@map("projects")
 }
@@ -202,44 +206,46 @@ model ProjectWorkflow {
 }
 
 model WorkflowStep {
-  id                 String                   @id @default(cuid())
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
-  stepId             String                   @db.VarChar(50)
-  stepName           String                   @db.VarChar(255)
-  description        String                   @db.VarChar(2000)
-  phase              ProjectPhase
-  defaultResponsible ResponsibleRole
-  assignedToId       String?                  @map("assigned_to_id")
-  estimatedDuration  Int
-  scheduledStartDate DateTime?
-  scheduledEndDate   DateTime?
-  actualStartDate    DateTime?
-  actualEndDate      DateTime?
-  isCompleted        Boolean                  @default(false)
-  completedAt        DateTime?
-  completedById      String?                  @map("completed_by_id")
-  alertPriority      AlertPriority            @default(MEDIUM)
-  alertDays          Int                      @default(1)
-  overdueIntervals   Int[]                    @default([1, 3, 7, 14])
-  notes              String?
-  completionNotes    String?
-  dependencies       String[]
-  workflowId         String                   @map("workflow_id")
-  stepOrder          Int
-  state              WorkflowState?           @default(PENDING)
-  templateLineItemId String?                  @map("template_line_item_id")
-  templatePhaseId    String?                  @map("template_phase_id")
-  templateSectionId  String?                  @map("template_section_id")
-  attachments        WorkflowStepAttachment[]
-  assignedTo         User?                    @relation("AssignedTo", fields: [assignedToId], references: [id])
-  completedBy        User?                    @relation("CompletedBy", fields: [completedById], references: [id])
-  templateLineItem   WorkflowLineItem?        @relation("StepTemplateLineItem", fields: [templateLineItemId], references: [id])
-  templatePhase      WorkflowPhase?           @relation("StepTemplatePhase", fields: [templatePhaseId], references: [id])
-  templateSection    WorkflowSection?         @relation("StepTemplateSection", fields: [templateSectionId], references: [id])
-  workflow           ProjectWorkflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  subTasks           WorkflowSubTask[]
-  alerts             WorkflowAlert[]
+  id                     String                   @id @default(cuid())
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  stepId                 String                   @db.VarChar(50)  // Standardized
+  stepName               String                   @db.VarChar(255)  // Standardized
+  description            String                   @db.VarChar(2000)  // Standardized long description
+  phase                  ProjectPhase
+  defaultResponsible     ResponsibleRole
+  assignedToId           String?                  @map("assigned_to_id")
+  estimatedDuration      Int
+  stepOrder              Int
+  scheduledStartDate     DateTime?
+  scheduledEndDate       DateTime?
+  actualStartDate        DateTime?
+  actualEndDate          DateTime?
+  isCompleted            Boolean                  @default(false)
+  completedAt            DateTime?
+  completedById          String?                  @map("completed_by_id")
+  alertPriority          AlertPriority            @default(MEDIUM)
+  alertDays              Int                      @default(1)
+  overdueIntervals       Int[]                    @default([1, 3, 7, 14])
+  notes                  String?                  @db.Text  // Changed to TEXT
+  completionNotes        String?                  @db.Text  // Changed to TEXT
+  dependencies           String[]
+  workflowId             String                   @map("workflow_id")
+  // NEW: Template system references
+  templatePhaseId        String?                  @map("template_phase_id")
+  templateSectionId      String?                  @map("template_section_id")
+  templateLineItemId     String?                  @map("template_line_item_id")
+  state                  WorkflowState?           @default(PENDING)  // NEW: State machine
+  workflowAlerts         WorkflowAlert[]
+  attachments            WorkflowStepAttachment[]
+  assignedTo             User?                    @relation("AssignedTo", fields: [assignedToId], references: [id])
+  completedBy            User?                    @relation("CompletedBy", fields: [completedById], references: [id])
+  workflow               ProjectWorkflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  subTasks               WorkflowSubTask[]
+  // NEW: Template relationships
+  templatePhase          WorkflowPhase?           @relation("StepTemplatePhase", fields: [templatePhaseId], references: [id])
+  templateSection        WorkflowSection?         @relation("StepTemplateSection", fields: [templateSectionId], references: [id])
+  templateLineItem       WorkflowLineItem?        @relation("StepTemplateLineItem", fields: [templateLineItemId], references: [id])
 
   @@map("workflow_steps")
 }
@@ -248,13 +254,13 @@ model WorkflowSubTask {
   id            String       @id @default(cuid())
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  subTaskId     String       @db.VarChar(50)
+  subTaskId     String       @db.VarChar(50)  // Standardized
   subTaskName   String       @db.VarChar(500)
-  description   String?      @db.VarChar(2000)
+  description   String?      @db.VarChar(2000)  // Standardized
   isCompleted   Boolean      @default(false)
   completedAt   DateTime?
   completedById String?      @map("completed_by_id")
-  notes         String?
+  notes         String?      @db.Text  // Changed to TEXT
   stepId        String       @map("step_id")
   step          WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
@@ -281,7 +287,7 @@ model WorkflowAlert {
   priority        AlertPriority   @default(MEDIUM)
   status          AlertStatus     @default(ACTIVE)
   title           String          @db.VarChar(255)
-  message         String          @db.VarChar(2000)
+  message         String          @db.VarChar(2000)  // Standardized
   stepName        String          @db.VarChar(255)
   isRead          Boolean         @default(false)
   readAt          DateTime?
@@ -298,15 +304,15 @@ model WorkflowAlert {
   assignedTo      User?           @relation("AlertAssignedTo", fields: [assignedToId], references: [id])
   createdBy       User?           @relation("AlertCreatedBy", fields: [createdById], references: [id])
   project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workflow        ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   step            WorkflowStep    @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  workflow        ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, stepId, status], map: "unique_active_alert")
   @@index([projectId, status])
   @@index([assignedToId, status])
   @@index([workflowId, stepId])
   @@index([createdAt(sort: Desc), projectId])
   @@index([stepId, status])
+  @@unique([projectId, stepId, status], map: "unique_active_alert")
   @@map("workflow_alerts")
 }
 
@@ -314,8 +320,8 @@ model Task {
   id             String           @id @default(cuid())
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  title          String           @db.VarChar(255)
-  description    String?          @db.VarChar(2000)
+  title          String           @db.VarChar(255)  // Standardized
+  description    String?          @db.VarChar(2000)  // Standardized
   dueDate        DateTime
   status         TaskStatus       @default(TO_DO)
   priority       Priority         @default(MEDIUM)
@@ -323,7 +329,7 @@ model Task {
   actualHours    Int?
   category       TaskCategory     @default(OTHER)
   tags           String[]
-  notes          String?
+  notes          String?          @db.Text  // Changed to TEXT
   completedAt    DateTime?
   projectId      String           @map("project_id")
   assignedToId   String           @map("assigned_to_id")
@@ -355,11 +361,11 @@ model Document {
   updatedAt           DateTime                 @updatedAt
   fileName            String                   @db.VarChar(255)
   originalName        String                   @db.VarChar(255)
-  fileUrl             String                   @db.VarChar(2000)
+  fileUrl             String                   @db.VarChar(2000)  // Standardized URL length
   mimeType            String                   @db.VarChar(100)
   fileSize            Int
   fileType            DocumentType
-  description         String?                  @db.VarChar(500)
+  description         String?                  @db.VarChar(500)  // Standardized
   tags                String[]
   version             Int                      @default(1)
   isActive            Boolean                  @default(true)
@@ -369,7 +375,7 @@ model Document {
   isPublic            Boolean                  @default(false)
   projectId           String                   @map("project_id")
   uploadedById        String                   @map("uploaded_by_id")
-  searchVector        String?
+  searchVector        String?                  // For full-text search
   downloads           DocumentDownload[]
   project             Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy          User                     @relation("UploadedBy", fields: [uploadedById], references: [id])
@@ -393,12 +399,12 @@ model ProjectMessage {
   id                String             @id @default(cuid())
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  content           String             @db.VarChar(2000)
+  content           String             @db.VarChar(2000)  // Standardized
   subject           String             @db.VarChar(255)
   messageType       ProjectMessageType @default(WORKFLOW_UPDATE)
   priority          MessagePriority    @default(MEDIUM)
   authorId          String?            @map("author_id")
-  authorName        String             @db.VarChar(100)
+  authorName        String             @db.VarChar(100)  // Standardized
   authorRole        String?            @db.VarChar(50)
   projectId         String             @map("project_id")
   projectNumber     Int
@@ -414,7 +420,7 @@ model ProjectMessage {
   readBy            String[]           @default([])
   readCount         Int                @default(0)
   metadata          Json?
-  searchVector      String?
+  searchVector      String?            // For full-text search
   author            User?              @relation("MessageAuthor", fields: [authorId], references: [id])
   parentMessage     ProjectMessage?    @relation("MessageReplies", fields: [parentMessageId], references: [id])
   replies           ProjectMessage[]   @relation("MessageReplies")
@@ -432,8 +438,8 @@ model Conversation {
   id           String                    @id @default(cuid())
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
-  title        String?                   @db.VarChar(255)
-  description  String?                   @db.VarChar(500)
+  title        String?                   @db.VarChar(255)  // Standardized
+  description  String?                   @db.VarChar(500)  // Standardized
   isGroup      Boolean                   @default(false)
   isActive     Boolean                   @default(true)
   participants ConversationParticipant[]
@@ -461,7 +467,7 @@ model Message {
   id             String        @id @default(cuid())
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  text           String        @db.VarChar(2000)
+  text           String        @db.VarChar(2000)  // Standardized
   messageType    MessageType   @default(TEXT)
   isEdited       Boolean       @default(false)
   editedAt       DateTime?
@@ -499,11 +505,11 @@ model CalendarEvent {
   id             String                  @id @default(cuid())
   createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
-  title          String                  @db.VarChar(255)
-  description    String?                 @db.VarChar(2000)
+  title          String                  @db.VarChar(255)  // Standardized
+  description    String?                 @db.VarChar(2000)  // Standardized
   startTime      DateTime
   endTime        DateTime
-  location       String?                 @db.VarChar(500)
+  location       String?                 @db.VarChar(500)  // Standardized
   isAllDay       Boolean                 @default(false)
   eventType      EventType               @default(MEETING)
   status         EventStatus             @default(CONFIRMED)
@@ -540,12 +546,12 @@ model Notification {
   id          String           @id @default(cuid())
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
-  title       String           @db.VarChar(255)
-  message     String           @db.VarChar(2000)
+  title       String           @db.VarChar(255)  // Standardized
+  message     String           @db.VarChar(2000)  // Standardized
   type        NotificationType
   isRead      Boolean          @default(false)
   readAt      DateTime?
-  actionUrl   String?          @db.VarChar(2000)
+  actionUrl   String?          @db.VarChar(2000)  // Standardized URL length
   actionData  Json?
   recipientId String           @map("recipient_id")
   recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
@@ -564,7 +570,7 @@ model ProjectPhaseOverride {
   overriddenById      String                    @map("overridden_by_id")
   reason              String?                   @db.VarChar(500)
   suppressAlertsFor   ProjectPhase[]
-  autoLogMessage      String                    @db.VarChar(2000)
+  autoLogMessage      String                    @db.VarChar(2000)  // Standardized
   isActive            Boolean                   @default(true)
   conversationMessage String?                   @map("conversation_message_id")
   overriddenBy        User                      @relation("OverridePerformedBy", fields: [overriddenById], references: [id])
@@ -588,7 +594,7 @@ model SuppressedWorkflowAlert {
   suppressedStepId   String               @map("suppressed_step_id")
   suppressedStepName String               @map("suppressed_step_name") @db.VarChar(255)
   originalTitle      String               @map("original_title") @db.VarChar(255)
-  originalMessage    String               @map("original_message") @db.VarChar(2000)
+  originalMessage    String               @map("original_message") @db.VarChar(2000)  // Standardized
   originalPriority   AlertPriority        @map("original_priority")
   suppressionReason  String               @map("suppression_reason") @db.VarChar(500)
   override           ProjectPhaseOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
@@ -618,41 +624,43 @@ model RoleAssignment {
   @@map("role_assignments")
 }
 
+// NEW: Template System Models
 model WorkflowPhase {
-  id              String                   @id @default(cuid())
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  phaseName       String                   @db.VarChar(255)
-  phaseType       ProjectPhase             @unique
-  displayOrder    Int
-  description     String?                  @db.VarChar(500)
-  isActive        Boolean                  @default(true)
-  isCurrent       Boolean                  @default(true)
-  version         Int                      @default(1)
-  projectTrackers ProjectWorkflowTracker[]
-  sections        WorkflowSection[]
-  stepReferences  WorkflowStep[]           @relation("StepTemplatePhase")
+  id               String                     @id @default(cuid())
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  phaseName        String                     @db.VarChar(255)  // Standardized
+  phaseType        ProjectPhase
+  displayOrder     Int
+  description      String?                    @db.VarChar(500)  // Standardized
+  isActive         Boolean                    @default(true)
+  version          Int                        @default(1)  // NEW: Version tracking
+  isCurrent        Boolean                    @default(true)  // NEW: Version tracking
+  sections         WorkflowSection[]
+  projectTrackers  ProjectWorkflowTracker[]
+  stepReferences   WorkflowStep[]             @relation("StepTemplatePhase")
 
+  @@unique([phaseType])
   @@map("workflow_phases")
 }
 
 model WorkflowSection {
-  id              String                   @id @default(cuid())
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  sectionNumber   String                   @db.VarChar(10)
-  sectionName     String                   @db.VarChar(255)
-  displayName     String                   @db.VarChar(255)
-  displayOrder    Int
-  description     String?                  @db.VarChar(500)
-  isActive        Boolean                  @default(true)
-  phaseId         String                   @map("phase_id")
-  isCurrent       Boolean                  @default(true)
-  version         Int                      @default(1)
-  projectTrackers ProjectWorkflowTracker[]
-  lineItems       WorkflowLineItem[]
-  phase           WorkflowPhase            @relation(fields: [phaseId], references: [id], onDelete: Cascade)
-  stepReferences  WorkflowStep[]           @relation("StepTemplateSection")
+  id               String                     @id @default(cuid())
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  sectionNumber    String                     @db.VarChar(10)
+  sectionName      String                     @db.VarChar(255)  // Standardized
+  displayName      String                     @db.VarChar(255)
+  displayOrder     Int
+  description      String?                    @db.VarChar(500)  // Standardized
+  isActive         Boolean                    @default(true)
+  version          Int                        @default(1)  // NEW: Version tracking
+  isCurrent        Boolean                    @default(true)  // NEW: Version tracking
+  phaseId          String                     @map("phase_id")
+  phase            WorkflowPhase              @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  lineItems        WorkflowLineItem[]
+  projectTrackers  ProjectWorkflowTracker[]
+  stepReferences   WorkflowStep[]             @relation("StepTemplateSection")
 
   @@unique([phaseId, sectionNumber])
   @@index([phaseId])
@@ -660,24 +668,24 @@ model WorkflowSection {
 }
 
 model WorkflowLineItem {
-  id               String                   @id @default(cuid())
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
-  itemLetter       String                   @db.VarChar(10)
-  itemName         String                   @db.VarChar(500)
+  id               String                     @id @default(cuid())
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  itemLetter       String                     @db.VarChar(10)
+  itemName         String                     @db.VarChar(500)
   responsibleRole  ResponsibleRole
   displayOrder     Int
-  description      String?                  @db.VarChar(2000)
-  isActive         Boolean                  @default(true)
-  estimatedMinutes Int                      @default(30)
-  alertDays        Int                      @default(1)
-  sectionId        String                   @map("section_id")
-  isCurrent        Boolean                  @default(true)
-  searchVector     String?
-  version          Int                      @default(1)
+  description      String?                    @db.VarChar(2000)  // Standardized
+  isActive         Boolean                    @default(true)
+  estimatedMinutes Int                        @default(30)
+  alertDays        Int                        @default(1)
+  version          Int                        @default(1)  // NEW: Version tracking
+  isCurrent        Boolean                    @default(true)  // NEW: Version tracking
+  searchVector     String?                    // For full-text search
+  sectionId        String                     @map("section_id")
+  section          WorkflowSection            @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   progressTrackers ProjectWorkflowTracker[]
-  section          WorkflowSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  stepReferences   WorkflowStep[]           @relation("StepTemplateLineItem")
+  stepReferences   WorkflowStep[]             @relation("StepTemplateLineItem")
 
   @@unique([sectionId, itemLetter])
   @@index([sectionId])
@@ -686,43 +694,68 @@ model WorkflowLineItem {
   @@map("workflow_line_items")
 }
 
+// UPDATED: Enhanced Workflow Tracker
 model ProjectWorkflowTracker {
-  id                  String                  @id @default(cuid())
-  createdAt           DateTime                @default(now())
-  updatedAt           DateTime                @updatedAt
-  projectId           String                  @unique @map("project_id")
-  currentPhaseId      String?                 @map("current_phase_id")
-  currentSectionId    String?                 @map("current_section_id")
-  currentLineItemId   String?                 @map("current_line_item_id")
-  lastCompletedItemId String?                 @map("last_completed_item_id")
-  phaseStartedAt      DateTime?
-  sectionStartedAt    DateTime?
-  lineItemStartedAt   DateTime?
-  currentStepId       String?                 @map("current_step_id")
-  workflowInstanceId  String?                 @map("workflow_instance_id")
-  completedItems      CompletedWorkflowItem[]
-  currentLineItem     WorkflowLineItem?       @relation(fields: [currentLineItemId], references: [id])
-  currentPhase        WorkflowPhase?          @relation(fields: [currentPhaseId], references: [id])
-  currentSection      WorkflowSection?        @relation(fields: [currentSectionId], references: [id])
-  project             Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                    String            @id @default(cuid())
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  projectId             String            @unique @map("project_id")
+  currentPhaseId        String?           @map("current_phase_id")
+  currentSectionId      String?           @map("current_section_id")
+  currentLineItemId     String?           @map("current_line_item_id")
+  lastCompletedItemId   String?           @map("last_completed_item_id")
+  phaseStartedAt        DateTime?
+  sectionStartedAt      DateTime?
+  lineItemStartedAt     DateTime?
+  // NEW: Instance references
+  currentStepId         String?           @map("current_step_id")
+  workflowInstanceId    String?           @map("workflow_instance_id")
+  project               Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  currentPhase          WorkflowPhase?    @relation(fields: [currentPhaseId], references: [id])
+  currentSection        WorkflowSection?  @relation(fields: [currentSectionId], references: [id])
+  currentLineItem       WorkflowLineItem? @relation(fields: [currentLineItemId], references: [id])
+  // NEW: Instance relationships
+  currentStep           WorkflowStep?     @relation("TrackerCurrentStep", fields: [currentStepId], references: [id])
+  workflowInstance      ProjectWorkflow?  @relation("TrackerWorkflowInstance", fields: [workflowInstanceId], references: [id])
+  completedItems        CompletedWorkflowItem[]
 
   @@index([currentLineItemId])
   @@index([projectId, currentPhaseId])
   @@map("project_workflow_trackers")
 }
 
+// Add relation to WorkflowStep
+model WorkflowStepTracker {
+  stepId    String       @id @map("step_id")
+  trackerId String       @map("tracker_id")
+  step      WorkflowStep @relation("TrackerCurrentStep", fields: [stepId], references: [id], onDelete: Cascade)
+  tracker   ProjectWorkflowTracker @relation("TrackerCurrentStep", fields: [trackerId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_step_trackers")
+}
+
+// Add relation to ProjectWorkflow
+model WorkflowInstanceTracker {
+  workflowId String             @id @map("workflow_id")
+  trackerId  String             @map("tracker_id")
+  workflow   ProjectWorkflow    @relation("TrackerWorkflowInstance", fields: [workflowId], references: [id], onDelete: Cascade)
+  tracker    ProjectWorkflowTracker @relation("TrackerWorkflowInstance", fields: [trackerId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_instance_trackers")
+}
+
 model CompletedWorkflowItem {
-  id            String                 @id @default(cuid())
-  createdAt     DateTime               @default(now())
-  trackerId     String                 @map("tracker_id")
-  phaseId       String                 @map("phase_id")
-  sectionId     String                 @map("section_id")
-  lineItemId    String                 @map("line_item_id")
-  completedAt   DateTime               @default(now())
-  completedById String?                @map("completed_by_id")
-  notes         String?
-  completedBy   User?                  @relation(fields: [completedById], references: [id])
-  tracker       ProjectWorkflowTracker @relation(fields: [trackerId], references: [id], onDelete: Cascade)
+  id              String                 @id @default(cuid())
+  createdAt       DateTime               @default(now())
+  trackerId       String                 @map("tracker_id")
+  phaseId         String                 @map("phase_id")
+  sectionId       String                 @map("section_id")
+  lineItemId      String                 @map("line_item_id")
+  completedAt     DateTime               @default(now())
+  completedById   String?                @map("completed_by_id")
+  notes           String?                @db.Text  // Changed to TEXT
+  tracker         ProjectWorkflowTracker @relation(fields: [trackerId], references: [id], onDelete: Cascade)
+  completedBy     User?                  @relation(fields: [completedById], references: [id])
 
   @@index([trackerId])
   @@index([completedAt])
@@ -731,6 +764,7 @@ model CompletedWorkflowItem {
   @@map("completed_workflow_items")
 }
 
+// Enhanced Security Models
 model UserDevice {
   id                String    @id @default(cuid())
   createdAt         DateTime  @default(now())
@@ -756,17 +790,17 @@ model UserDevice {
 }
 
 model UserMFA {
-  id          String    @id @default(cuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String    @map("user_id")
-  method      MFAMethod
-  secret      String?   @db.VarChar(255)
-  backupCodes String[]  @map("backup_codes")
-  phoneNumber String?   @map("phone_number") @db.VarChar(20)
-  enabled     Boolean   @default(false)
-  lastUsed    DateTime? @map("last_used")
-  user        User      @relation("UserMFA", fields: [userId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String    @map("user_id")
+  method       MFAMethod
+  secret       String?   @db.VarChar(255)
+  backupCodes  String[]  @map("backup_codes")
+  phoneNumber  String?   @map("phone_number") @db.VarChar(20)
+  enabled      Boolean   @default(false)
+  lastUsed     DateTime? @map("last_used")
+  user         User      @relation("UserMFA", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([method, enabled])
@@ -774,21 +808,21 @@ model UserMFA {
 }
 
 model SecurityEvent {
-  id         String            @id @default(cuid())
-  createdAt  DateTime          @default(now())
-  userId     String?           @map("user_id")
-  eventType  SecurityEventType @map("event_type")
-  riskScore  Int?              @map("risk_score")
-  details    Json?
-  ipAddress  String?           @map("ip_address") @db.VarChar(45)
-  userAgent  String?           @map("user_agent") @db.VarChar(500)
-  deviceId   String?           @map("device_id")
-  resolved   Boolean           @default(false)
-  resolvedAt DateTime?         @map("resolved_at")
-  resolvedBy String?           @map("resolved_by")
-  response   Json?
-  resolver   User?             @relation("SecurityEventResolver", fields: [resolvedBy], references: [id])
-  user       User?             @relation("SecurityEvents", fields: [userId], references: [id])
+  id          String            @id @default(cuid())
+  createdAt   DateTime          @default(now())
+  userId      String?           @map("user_id")
+  eventType   SecurityEventType @map("event_type")
+  riskScore   Int?              @map("risk_score")
+  details     Json?
+  ipAddress   String?           @map("ip_address") @db.VarChar(45)
+  userAgent   String?           @map("user_agent") @db.VarChar(500)
+  deviceId    String?           @map("device_id")
+  resolved    Boolean           @default(false)
+  resolvedAt  DateTime?         @map("resolved_at")
+  resolvedBy  String?           @map("resolved_by")
+  response    Json?
+  user        User?             @relation("SecurityEvents", fields: [userId], references: [id], onDelete: SetNull)
+  resolver    User?             @relation("SecurityEventResolver", fields: [resolvedBy], references: [id])
 
   @@index([userId])
   @@index([eventType])
@@ -819,20 +853,20 @@ model UserBehaviorPattern {
 }
 
 model WebAuthnCredential {
-  id                  String    @id @default(cuid())
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  userId              String    @map("user_id")
-  credentialID        String    @unique @map("credential_id") @db.VarChar(255)
-  credentialPublicKey Bytes     @map("credential_public_key")
-  counter             Int       @default(0)
-  deviceType          String    @map("device_type") @db.VarChar(50)
-  backedUp            Boolean   @default(false) @map("backed_up")
-  transports          String[]
-  nickname            String?   @db.VarChar(100)
-  lastUsed            DateTime? @map("last_used")
-  isActive            Boolean   @default(true) @map("is_active")
-  user                User      @relation("UserWebAuthn", fields: [userId], references: [id], onDelete: Cascade)
+  id                     String    @id @default(cuid())
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  userId                 String    @map("user_id")
+  credentialID           String    @unique @map("credential_id") @db.VarChar(255)
+  credentialPublicKey    Bytes     @map("credential_public_key")
+  counter                Int       @default(0)
+  deviceType             String    @map("device_type") @db.VarChar(50)
+  backedUp               Boolean   @default(false) @map("backed_up")
+  transports             String[]
+  nickname               String?   @db.VarChar(100)
+  lastUsed               DateTime? @map("last_used")
+  isActive               Boolean   @default(true) @map("is_active")
+  user                   User      @relation("UserWebAuthn", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([credentialID])
@@ -840,6 +874,7 @@ model WebAuthnCredential {
   @@map("webauthn_credentials")
 }
 
+// NEW: State Machine Enum
 enum WorkflowState {
   PENDING
   ACTIVE
@@ -851,6 +886,7 @@ enum WorkflowState {
   @@map("workflow_states")
 }
 
+// Existing Enums (updated where needed)
 enum UserRole {
   ADMIN
   MANAGER

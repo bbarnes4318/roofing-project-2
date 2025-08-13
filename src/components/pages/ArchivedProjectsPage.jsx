@@ -153,31 +153,13 @@ const ArchivedProjectsPage = ({ colorMode, onProjectSelect }) => {
     };
 
     const getProjectTypeColor = (type) => {
-        switch (type?.toLowerCase()) {
-            case 'roof replacement': return 'bg-gradient-to-r from-blue-500 to-blue-600';
-            case 'siding installation': return 'bg-gradient-to-r from-green-500 to-green-600';
-            case 'window replacement': return 'bg-gradient-to-r from-purple-500 to-purple-600';
-            case 'kitchen remodel': return 'bg-gradient-to-r from-orange-500 to-orange-600';
-            case 'bathroom renovation': return 'bg-gradient-to-r from-teal-500 to-teal-600';
-            case 'flooring': return 'bg-gradient-to-r from-indigo-500 to-indigo-600';
-            case 'painting': return 'bg-gradient-to-r from-pink-500 to-pink-600';
-            case 'deck construction': return 'bg-gradient-to-r from-amber-500 to-amber-600';
-            default: return 'bg-gradient-to-r from-gray-500 to-gray-600';
-        }
+        // Professional, subtle styling - no bright colors
+        return 'bg-gradient-to-r from-gray-500 to-gray-600';
     };
 
     const getProjectTypeTextColor = (type) => {
-        switch (type?.toLowerCase()) {
-            case 'roof replacement': return 'text-blue-700 dark:text-blue-300';
-            case 'siding installation': return 'text-green-700 dark:text-green-300';
-            case 'window replacement': return 'text-purple-700 dark:text-purple-300';
-            case 'kitchen remodel': return 'text-orange-700 dark:text-orange-300';
-            case 'bathroom renovation': return 'text-teal-700 dark:text-teal-300';
-            case 'flooring': return 'text-indigo-700 dark:text-indigo-300';
-            case 'painting': return 'text-pink-700 dark:text-pink-300';
-            case 'deck construction': return 'text-amber-700 dark:text-amber-300';
-            default: return 'text-gray-700 dark:text-gray-300';
-        }
+        // Professional, subtle styling
+        return 'text-gray-700 dark:text-gray-300';
     };
 
     const getArchiveBadge = (project) => {
@@ -376,7 +358,7 @@ const ArchivedProjectsPage = ({ colorMode, onProjectSelect }) => {
                                                     </div>
                                                 </td>
                                                 <td className="px-3 py-3" role="cell">
-                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 ${getProjectTypeTextColor(project.projectType)} border`}>
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-300 shadow-sm`}>
                                                         {project.projectType || 'Unknown'}
                                                     </span>
                                                 </td>

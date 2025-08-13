@@ -55,6 +55,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     
     // User management state
     const [availableUsers, setAvailableUsers] = useState([]);
+    const [usersLoading, setUsersLoading] = useState(true);
     const [selectedToUser, setSelectedToUser] = useState('');
     const [sendAsTask, setSendAsTask] = useState(false);
     const [taskAssignee, setTaskAssignee] = useState('');
@@ -73,10 +74,13 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
     const [newMessageProject, setNewMessageProject] = useState('');
     const [newMessageSubject, setNewMessageSubject] = useState('');
     const [newMessageText, setNewMessageText] = useState('');
+    const [newMessageRecipients, setNewMessageRecipients] = useState([]);
+    const [attachTask, setAttachTask] = useState(false);
 
     // Fetch available users for assignment dropdown
     useEffect(() => {
         const fetchUsers = async () => {
+            setUsersLoading(true);
             try {
                 const response = await fetch('/api/users', {
                     headers: {
@@ -93,6 +97,8 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                 }
             } catch (error) {
                 console.error('❌ Failed to fetch users:', error);
+            } finally {
+                setUsersLoading(false);
             }
         };
         
@@ -326,30 +332,30 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                             </div>
                             
                             {/* Add Message Dropdown Trigger */}
-                            <button
-                                onClick={() => setShowMessageDropdown(!showMessageDropdown)}
-                                className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
-                                    showMessageDropdown
-                                        ? colorMode 
-                                            ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
-                                            : 'border-blue-400 bg-blue-50 text-blue-700'
-                                        : colorMode 
-                                            ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
-                                            : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
-                                }`}
-                            >
-                                <span>+ Add Message</span>
-                                <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
+                            <div className="mb-3">
+                                <button
+                                    onClick={() => setShowMessageDropdown(!showMessageDropdown)}
+                                    className={`w-full px-2 py-1.5 text-xs font-medium border rounded-lg transition-all duration-300 flex items-center justify-between ${
+                                        showMessageDropdown
+                                            ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-soft' 
+                                            : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-brand-400 hover:text-brand-600'
+                                    }`}
+                                >
+                                    <span>+ Add Message</span>
+                                    
+                                    {/* Dropdown Arrow */}
+                                    <svg className={`w-3 h-3 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
                             
                             {/* Add Message Dropdown Form */}
                             {showMessageDropdown && (
-                                <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                                     <form onSubmit={(e) => {
                                         e.preventDefault();
-                                        if (newMessageSubject && newMessageText.trim() && selectedToUser) {
+                                        if (newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
                                             // Create new message activity for this specific project
                                             const newActivity = {
                                                 id: `msg_${Date.now()}`,
@@ -360,11 +366,11 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                 description: newMessageText,
                                                 user: 'You',
                                                 timestamp: new Date().toISOString(),
-                                                type: sendAsTask ? 'task' : 'message',
-                                                priority: sendAsTask ? 'high' : 'medium',
-                                                targetedTo: selectedToUser,
-                                                isTask: sendAsTask,
-                                                taskAssigneeId: sendAsTask ? taskAssignee : null
+                                                type: attachTask ? 'task' : 'message',
+                                                priority: attachTask ? 'high' : 'medium',
+                                                recipients: newMessageRecipients,
+                                                hasTask: attachTask,
+                                                taskAssignedTo: attachTask ? taskAssignee : null
                                             };
                                             
                                             // Add to activities via the parent callback
@@ -376,12 +382,13 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                             setShowMessageDropdown(false);
                                             setNewMessageSubject('');
                                             setNewMessageText('');
-                                            setSelectedToUser('');
-                                            setSendAsTask(false);
+                                            setNewMessageRecipients([]);
+                                            setAttachTask(false);
                                             setTaskAssignee('');
                                         }
-                                    }} className="space-y-3">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    }} className="space-y-2">
+                                        {/* First Row: Subject and To fields */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                             <div>
                                                 <label className={`block text-xs font-medium mb-1 ${
                                                     colorMode ? 'text-gray-300' : 'text-gray-700'
@@ -392,7 +399,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                     value={newMessageSubject}
                                                     onChange={(e) => setNewMessageSubject(e.target.value)}
                                                     required
-                                                    className={`w-full p-2 border rounded text-xs ${
+                                                    className={`w-full px-2 py-1 border rounded text-xs ${
                                                         colorMode 
                                                             ? 'bg-[#232b4d] border-gray-600 text-white' 
                                                             : 'bg-white border-gray-300 text-gray-800'
@@ -412,56 +419,83 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                     To <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
-                                                    value={selectedToUser}
-                                                    onChange={(e) => setSelectedToUser(e.target.value)}
+                                                    value={newMessageRecipients || ''}
+                                                    onChange={(e) => {
+                                                        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                                                        setNewMessageRecipients(selectedOptions);
+                                                    }}
+                                                    multiple
                                                     required
-                                                    className={`w-full p-2 border rounded text-xs ${
+                                                    className={`w-full px-2 py-1 border rounded text-xs ${
                                                         colorMode 
                                                             ? 'bg-[#232b4d] border-gray-600 text-white' 
                                                             : 'bg-white border-gray-300 text-gray-800'
                                                     }`}
+                                                    style={{ minHeight: '40px' }}
                                                 >
-                                                    <option value="">Select User</option>
-                                                    {availableUsers.map(user => (
-                                                        <option key={user.id} value={user.id}>
-                                                            {user.firstName} {user.lastName} - {user.role || 'User'}
-                                                        </option>
-                                                    ))}
+                                                    <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
+                                                    <option value="sarah-owner">Sarah Owner</option>
+                                                    <option value="mike-rodriguez">Mike Rodriguez (PM)</option>
+                                                    <option value="john-smith">John Smith</option>
+                                                    <option value="jane-doe">Jane Doe</option>
+                                                    <option value="bob-wilson">Bob Wilson</option>
+                                                    <option value="alice-johnson">Alice Johnson</option>
                                                 </select>
+                                                <p className={`text-[10px] mt-1 ${
+                                                    colorMode ? 'text-gray-400' : 'text-gray-500'
+                                                }`}>
+                                                    Hold Ctrl/Cmd to select multiple recipients
+                                                </p>
                                             </div>
                                         </div>
                                         
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {/* Second Row: Task Assignment */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                             <div className="md:col-span-2">
                                                 <label className={`block text-xs font-medium mb-1 ${
                                                     colorMode ? 'text-gray-300' : 'text-gray-700'
                                                 }`}>
-                                                    Send as Task (Optional)
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={attachTask || false}
+                                                        onChange={(e) => setAttachTask(e.target.checked)}
+                                                        className="mr-1"
+                                                    />
+                                                    Send as a Task
                                                 </label>
-                                                <select
-                                                    value={sendAsTask ? taskAssignee : ''}
-                                                    onChange={(e) => {
-                                                        if (e.target.value) {
-                                                            setSendAsTask(true);
-                                                            setTaskAssignee(e.target.value);
-                                                        } else {
-                                                            setSendAsTask(false);
-                                                            setTaskAssignee('');
-                                                        }
-                                                    }}
-                                                    className={`w-full p-2 border rounded text-xs ${
-                                                        colorMode 
-                                                            ? 'bg-[#232b4d] border-gray-600 text-white' 
-                                                            : 'bg-white border-gray-300 text-gray-800'
-                                                    }`}
-                                                >
-                                                    <option value="">No - Send as Message</option>
-                                                    {availableUsers.map(user => (
-                                                        <option key={user.id} value={user.id}>
-                                                            Assign to: {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                {attachTask && (
+                                                    <select
+                                                        value={taskAssignee || ''}
+                                                        onChange={(e) => setTaskAssignee(e.target.value)}
+                                                        disabled={usersLoading}
+                                                        className={`w-full px-2 py-1 border rounded text-xs ${
+                                                            colorMode 
+                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-800'
+                                                        } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        <option value="">
+                                                            {usersLoading ? 'Loading users...' : 'Assign Task To...'}
                                                         </option>
-                                                    ))}
-                                                </select>
+                                                        {!usersLoading && availableUsers.length > 0 ? (
+                                                            availableUsers.map(user => (
+                                                                <option key={user.id} value={user.id}>
+                                                                    {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                                </option>
+                                                            ))
+                                                        ) : !usersLoading ? (
+                                                            // Fallback options if API fails
+                                                            <>
+                                                                <option value="sarah-owner">Sarah Owner - Owner</option>
+                                                                <option value="mike-rodriguez">Mike Rodriguez - Project Manager</option>
+                                                                <option value="john-smith">John Smith - Field Director</option>
+                                                                <option value="jane-doe">Jane Doe - Administration</option>
+                                                                <option value="bob-wilson">Bob Wilson - Roof Supervisor</option>
+                                                                <option value="alice-johnson">Alice Johnson - Customer Service</option>
+                                                            </>
+                                                        ) : null}
+                                                    </select>
+                                                )}
                                             </div>
                                         </div>
                                         
@@ -476,8 +510,8 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                 onChange={(e) => setNewMessageText(e.target.value)}
                                                 placeholder="Enter your message here..."
                                                 required
-                                                rows={3}
-                                                className={`w-full p-2 border rounded text-xs resize-none ${
+                                                rows={2}
+                                                className={`w-full px-2 py-1 border rounded text-xs resize-none ${
                                                     colorMode 
                                                         ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
                                                         : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
@@ -485,15 +519,15 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                             />
                                         </div>
                                         
-                                        <div className="flex justify-end gap-2 pt-2">
+                                        <div className="flex justify-end gap-1.5 pt-1">
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     setShowMessageDropdown(false);
                                                     setNewMessageSubject('');
                                                     setNewMessageText('');
-                                                    setSelectedToUser('');
-                                                    setSendAsTask(false);
+                                                    setNewMessageRecipients([]);
+                                                    setAttachTask(false);
                                                     setTaskAssignee('');
                                                 }}
                                                 className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
@@ -506,9 +540,9 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                             </button>
                                             <button
                                                 type="submit"
-                                                disabled={!newMessageSubject || !newMessageText.trim() || !selectedToUser}
+                                                disabled={!newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
                                                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                                                    newMessageSubject && newMessageText.trim() && selectedToUser
+                                                    newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
                                                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 }`}

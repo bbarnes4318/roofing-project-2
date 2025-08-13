@@ -2,14 +2,17 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronDownIcon, ChevronLeftIcon, XCircleIcon } from '../common/Icons';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import DraggablePopup from '../ui/DraggablePopup';
+import Modal from '../common/Modal';
+import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 
 import ProjectCubes from '../dashboard/ProjectCubes';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import api, { authService, messagesService } from '../../services/api';
+import toast from 'react-hot-toast';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ALERT_SUBJECTS } from '../../data/constants';
 import { useSubjects } from '../../contexts/SubjectsContext';
@@ -131,7 +134,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   console.log('🔍 DASHBOARD: Component rendering...');
   // Use database data instead of props
   const { data: projectsData, isLoading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
-  const projects = projectsData || [];
+  // Extract the projects array from the response object
+  const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || []);
   
   // Get subjects from context
   const { subjects } = useSubjects();
@@ -253,6 +257,40 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [assignToUser, setAssignToUser] = useState('');
   const [actionLoading, setActionLoading] = useState({});
   const [availableUsers, setAvailableUsers] = useState([]);
+  
+  // Add Project state
+  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [newProject, setNewProject] = useState({
+    projectNumber: '',
+    projectName: '',
+    customerName: '',
+    jobType: '',
+    projectManager: '',
+    fieldDirector: '',
+    salesRep: '',
+    qualityInspector: '',
+    adminAssistant: '',
+    status: 'Pending',
+    budget: '',
+    startDate: '',
+    endDate: '',
+    customer: '',
+    address: '',
+    priority: 'Low',
+    description: '',
+    contacts: [
+      { name: '', phone: '', email: '', isPrimary: false },
+      { name: '', phone: '', email: '', isPrimary: false },
+      { name: '', phone: '', email: '', isPrimary: false }
+    ]
+  });
+  const [projectError, setProjectError] = useState('');
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [defaultRoles, setDefaultRoles] = useState({});
+  
+  // Add Project hooks
+  const createProjectMutation = useCreateProject();
+  const { data: customersData } = useCustomers();
   
   // Fetch real alerts from API
   const { data: workflowAlerts, isLoading: alertsLoading, error: alertsError, refetch: refetchWorkflowAlerts } = useWorkflowAlerts({ status: 'ACTIVE' });
@@ -727,6 +765,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   // Convert projects to table format for consistency
   const tableProjects = useMemo(() => {
+    if (!Array.isArray(projects)) return [];
     return projects.map(project => convertProjectToTableFormat(project));
   }, [projects]);
 
@@ -1184,8 +1223,26 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         const result = await response.json();
         console.log('✅ Workflow step completed successfully:', result);
         
-        // Show success feedback
+        // Show success feedback with toast notification
         console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
+        
+        // Show success toast with checkmark
+        toast.success(
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Saved to Workflow</span>
+          </div>,
+          {
+            duration: 3000,
+            style: {
+              background: '#10B981',
+              color: '#ffffff',
+              fontWeight: '600',
+            },
+          }
+        );
         
         // ENHANCED: Dispatch global event to notify Project Workflow tab
         const globalEvent = new CustomEvent('workflowStepCompleted', {
@@ -1460,8 +1517,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     } catch (error) {
       console.error('❌ Failed to complete alert:', error);
       
-      // Show error feedback to user
-      alert(`Failed to complete workflow step: ${error.message}`);
+      // Show error toast to user
+      toast.error(`Failed to complete workflow step: ${error.message}`, {
+        duration: 4000,
+        style: {
+          background: '#EF4444',
+          color: '#ffffff',
+          fontWeight: '600',
+        },
+      });
     } finally {
       setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
       
@@ -1508,8 +1572,23 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         const result = await response.json();
         console.log('✅ Alert assigned successfully:', result);
         
-        // Show success message
-        alert(`Alert successfully assigned to ${selectedUser?.firstName} ${selectedUser?.lastName}!`);
+        // Show success toast with user assignment confirmation
+        toast.success(
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Assigned to {selectedUser?.firstName} {selectedUser?.lastName}</span>
+          </div>,
+          {
+            duration: 3000,
+            style: {
+              background: '#3B82F6',
+              color: '#ffffff',
+              fontWeight: '600',
+            },
+          }
+        );
         
         // Refresh alerts to show updated assignment
         if (typeof refetchWorkflowAlerts === 'function') {
@@ -1523,12 +1602,26 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       } else {
         const errorResult = await response.json();
         console.error('❌ Failed to assign alert:', errorResult);
-        alert('Failed to assign alert. Please try again.');
+        toast.error('Failed to assign alert. Please try again.', {
+          duration: 4000,
+          style: {
+            background: '#EF4444',
+            color: '#ffffff',
+            fontWeight: '600',
+          },
+        });
       }
       
     } catch (error) {
       console.error('❌ Failed to assign alert:', error);
-      alert('Network error. Please check your connection and try again.');
+      toast.error('Network error. Please check your connection and try again.', {
+        duration: 4000,
+        style: {
+          background: '#EF4444',
+          color: '#ffffff',
+          fontWeight: '600',
+        },
+      });
     } finally {
       setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
     }
@@ -1576,6 +1669,247 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     setCurrentPage(1);
   }, [selectedProjectId]);
 
+  // Keyboard event listener for closing progress side panel with Escape key
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && expandedProgress.size > 0) {
+        // Close all open progress panels
+        setExpandedProgress(new Set());
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [expandedProgress.size]);
+
+  // Add Project form handling functions
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProject(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleContactChange = (index, field, value) => {
+    const updatedContacts = [...newProject.contacts];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [field]: value
+    };
+    setNewProject(prev => ({
+      ...prev,
+      contacts: updatedContacts
+    }));
+  };
+
+  const handlePrimaryContactChange = (index) => {
+    const updatedContacts = newProject.contacts.map((contact, i) => ({
+      ...contact,
+      isPrimary: i === index
+    }));
+    setNewProject(prev => ({
+      ...prev,
+      contacts: updatedContacts
+    }));
+  };
+
+  const addContact = () => {
+    if (newProject.contacts.length < 10) {
+      setNewProject(prev => ({
+        ...prev,
+        contacts: [...prev.contacts, { name: '', phone: '', email: '', isPrimary: false }]
+      }));
+    }
+  };
+
+  const removeContact = (index) => {
+    if (newProject.contacts.length > 1) {
+      const updatedContacts = newProject.contacts.filter((_, i) => i !== index);
+      setNewProject(prev => ({
+        ...prev,
+        contacts: updatedContacts
+      }));
+    }
+  };
+
+  const handleSubmitProject = async (e) => {
+    e.preventDefault();
+    setProjectError('');
+    
+    // Validate required fields
+    if (!newProject.projectNumber || !newProject.customerName || !newProject.jobType) {
+      setProjectError('Please fill in all required fields: Project Number, Customer Name, and Job Type');
+      return;
+    }
+
+    // Validate that at least one contact has a name
+    const validContacts = newProject.contacts.filter(contact => contact.name.trim());
+    if (validContacts.length === 0) {
+      setProjectError('Please add at least one contact with a name');
+      return;
+    }
+
+    // Ensure one contact is marked as primary
+    const hasPrimaryContact = validContacts.some(contact => contact.isPrimary);
+    if (!hasPrimaryContact && validContacts.length > 0) {
+      const firstValidIndex = newProject.contacts.findIndex(contact => contact.name.trim());
+      handlePrimaryContactChange(firstValidIndex);
+    }
+
+    try {
+      // Step 1: Create customer first
+      const primaryContact = newProject.contacts.find(contact => contact.isPrimary) || newProject.contacts[0];
+      const secondaryContact = newProject.contacts.find(contact => !contact.isPrimary && contact.name.trim());
+      
+      const customerData = {
+        primaryName: newProject.customerName,
+        primaryEmail: primaryContact?.email || null,
+        primaryPhone: primaryContact?.phone || null,
+        secondaryName: secondaryContact?.name || null,
+        secondaryEmail: secondaryContact?.email || null,
+        secondaryPhone: secondaryContact?.phone || null,
+        primaryContact: 'PRIMARY',
+        address: newProject.address || `${newProject.customerName} Project`,
+        notes: `Project created from dashboard: ${newProject.projectNumber}`,
+        contacts: newProject.contacts
+          .filter(contact => contact.name && contact.name.trim())
+          .map(contact => ({
+            name: contact.name.trim(),
+            phone: contact.phone || null,
+            email: contact.email || null,
+            isPrimary: contact.isPrimary || false
+          }))
+      };
+
+      const customerResponse = await fetch('/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        },
+        body: JSON.stringify(customerData)
+      });
+
+      if (!customerResponse.ok) {
+        const errorData = await customerResponse.json();
+        throw new Error(errorData.message || 'Failed to create customer');
+      }
+
+      const customerResult = await customerResponse.json();
+      const customerId = customerResult.data?.id || customerResult.id;
+
+      if (!customerId) {
+        throw new Error('Customer ID not received from server');
+      }
+
+      // Step 2: Create project with customerId
+      const projectData = {
+        projectName: newProject.customerName,
+        projectType: newProject.jobType,
+        customerId: customerId,
+        status: 'PENDING',
+        budget: 1000, // Default budget for now
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
+        priority: 'MEDIUM',
+        description: `Project #${newProject.projectNumber}`,
+        projectManagerId: newProject.projectManager || null,
+        fieldDirectorId: newProject.fieldDirector || null,
+        salesRepId: newProject.salesRep || null,
+        qualityInspectorId: newProject.qualityInspector || null,
+        adminAssistantId: newProject.adminAssistant || null
+      };
+
+      const response = await createProjectMutation.mutateAsync(projectData);
+      
+      // Close modal and reset form
+      setShowAddProjectModal(false);
+      setNewProject({
+        projectNumber: '',
+        projectName: '',
+        customerName: '',
+        jobType: '',
+        projectManager: '',
+        fieldDirector: '',
+        salesRep: '',
+        qualityInspector: '',
+        adminAssistant: '',
+        status: 'Pending',
+        budget: '',
+        startDate: '',
+        endDate: '',
+        customer: '',
+        address: '',
+        priority: 'Low',
+        description: '',
+        contacts: [
+          { name: '', phone: '', email: '', isPrimary: false },
+          { name: '', phone: '', email: '', isPrimary: false },
+          { name: '', phone: '', email: '', isPrimary: false }
+        ]
+      });
+      
+      // Show success toast
+      toast.success(
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Project created successfully!</span>
+        </div>,
+        {
+          duration: 3000,
+          style: {
+            background: '#10B981',
+            color: '#ffffff',
+            fontWeight: '600',
+          },
+        }
+      );
+      
+      // Refresh projects list
+      if (refetchProjects) {
+        refetchProjects();
+      }
+      
+      console.log('Project created successfully:', response.data || response);
+    } catch (err) {
+      console.error('Error creating project:', err);
+      setProjectError(err.message || 'Failed to create project');
+    }
+  };
+
+  // Reset form when modal closes
+  const resetProjectForm = () => {
+    setNewProject({
+      projectNumber: '',
+      projectName: '',
+      customerName: '',
+      jobType: '',
+      projectManager: '',
+      fieldDirector: '',
+      salesRep: '',
+      qualityInspector: '',
+      adminAssistant: '',
+      status: 'Pending',
+      budget: '',
+      startDate: '',
+      endDate: '',
+      customer: '',
+      address: '',
+      priority: 'Low',
+      description: '',
+      contacts: [
+        { name: '', phone: '', email: '', isPrimary: false },
+        { name: '', phone: '', email: '', isPrimary: false },
+        { name: '', phone: '', email: '', isPrimary: false }
+      ]
+    });
+    setProjectError('');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900 overflow-hidden">
@@ -1592,14 +1926,27 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             </p>
           </div>
           
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-3 rounded-xl transition-all duration-300 bg-white/80 hover:bg-white border border-gray-200/50 hover:shadow-medium hover:-translate-y-0.5"
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? '☀️' : '🌙'}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Add Project Button - Modern Design */}
+            <button
+              onClick={() => setShowAddProjectModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5 border border-blue-500/20"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span>Add Project</span>
+            </button>
+            
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-3 rounded-xl transition-all duration-300 bg-white/80 hover:bg-white border border-gray-200/50 hover:shadow-medium hover:-translate-y-0.5"
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
         
         {/* Professional Phase Filter Section - Optimized Layout */}
@@ -1727,6 +2074,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       </th>
                       <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         <button 
+                          onClick={() => handleProjectSort('projectType')}
+                          className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                          Project Type
+                          {sortConfig.key === 'projectType' && (
+                            <span className="text-xs">
+                              {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </button>
+                      </th>
+                      <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <button 
                           onClick={() => handleProjectSort('progress')}
                           className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
                         >
@@ -1751,7 +2111,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   if (projectsLoading) {
                     return (
                       <tr>
-                        <td colSpan="8" className="text-center py-8">
+                        <td colSpan="9" className="text-center py-8">
                           <div className="text-brand-600">Loading projects...</div>
                         </td>
                       </tr>
@@ -1762,7 +2122,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   if (projectsError && (!projects || projects.length === 0)) {
                     return (
                       <tr>
-                        <td colSpan="8" className="text-center py-8">
+                        <td colSpan="9" className="text-center py-8">
                           <div className="text-red-600 mb-4">
                             <div className="font-semibold">Error loading projects:</div>
                             <div className="text-sm">{String(projectsError?.message || projectsError || 'Unknown error')}</div>
@@ -1812,7 +2172,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   if (!projects || projects.length === 0) {
                     return (
                       <tr>
-                        <td colSpan="8" className="text-center py-8">
+                        <td colSpan="9" className="text-center py-8">
                           <div className="text-gray-600">No projects found</div>
                         </td>
                       </tr>
@@ -1848,6 +2208,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           bValue = typeof b.projectManager === 'object' && b.projectManager !== null
                             ? (b.projectManager.name || `${b.projectManager.firstName || ''} ${b.projectManager.lastName || ''}`.trim() || '')
                             : b.projectManager || '';
+                        } else if (sortConfig.key === 'projectType') {
+                          aValue = a.projectType || 'N/A';
+                          bValue = b.projectType || 'N/A';
                         }
                         
                         // Convert to strings for comparison
@@ -1872,7 +2235,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     
                     return (
                       <tr>
-                        <td colSpan="8" className="text-center py-12">
+                        <td colSpan="9" className="text-center py-12">
                           <div className={`${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             <div className="text-4xl mb-3">📋</div>
                             <div className="font-medium text-sm mb-1">No projects in {phaseName}</div>
@@ -1968,27 +2331,53 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </div>
                         </td>
                         
-                        {/* Progress - Click-based Collapsible */}
+                        {/* Project Type Column */}
+                        <td className="py-2 px-2 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${colorMode ? getProjectTypeColorDark(project.projectType) : getProjectTypeColor(project.projectType)}`}>
+                            {formatProjectType(project.projectType)}
+                          </span>
+                        </td>
+                        
+                        {/* Progress - Enhanced Professional Design */}
                         <td className="py-2 px-2 whitespace-nowrap">
                           <div className="relative">
                             <button 
                               ref={(el) => progressButtonRefs.current[project.id] = el}
                               onClick={() => toggleProgress(project.id)}
-                              className="flex items-center gap-2 hover:bg-gray-100 rounded px-2 py-1.5 transition-colors w-full"
+                              className={`flex items-center gap-3 hover:bg-opacity-80 rounded-lg px-3 py-2 transition-all duration-200 w-full ${
+                                colorMode ? 'hover:bg-slate-700/50' : 'hover:bg-gray-50'
+                              }`}
                             >
                               <div className="flex-1 min-w-0">
-                                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Progress
+                                  </span>
+                                  <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                    {getProjectProgress(project)}%
+                                  </span>
+                                </div>
+                                <div className={`w-full h-2.5 rounded-full overflow-hidden shadow-inner ${
+                                  colorMode ? 'bg-slate-700' : 'bg-gray-200'
+                                }`}>
                                   <div 
-                                    className="h-full bg-brand-500 rounded-full transition-all duration-300"
+                                    className={`h-full rounded-full transition-all duration-500 ease-out ${
+                                      getProjectProgress(project) === 100 
+                                        ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                                        : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                                    }`}
                                     style={{ width: `${getProjectProgress(project)}%` }}
-                                  ></div>
+                                  >
+                                    {getProjectProgress(project) > 15 && (
+                                      <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                              <span className={`text-sm font-medium whitespace-nowrap ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                                {getProjectProgress(project)}%
-                              </span>
                               <svg 
-                                className={`w-4 h-4 transition-transform flex-shrink-0 ${expandedProgress.has(project.id) ? 'rotate-180' : ''}`} 
+                                className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ${
+                                  colorMode ? 'text-gray-400' : 'text-gray-500'
+                                } ${expandedProgress.has(project.id) ? 'rotate-180' : ''}`} 
                                 fill="none" 
                                 stroke="currentColor" 
                                 viewBox="0 0 24 24"
@@ -1996,7 +2385,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                               </svg>
                             </button>
-                            
                           </div>
                         </td>
                         
@@ -3270,46 +3658,74 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         const overallProgress = getProjectProgress(project);
         
         return (
-          <div
-            key={`progress-dropdown-${projectId}`}
-            ref={el => progressDropdownRefs.current[projectId] = el}
-            className={`absolute z-50 mt-1 w-80 ${colorMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'} rounded-lg shadow-xl border ${colorMode ? 'border-slate-600' : 'border-gray-200'} animate-fadeIn`}
-            style={{
-              top: progressButtonRefs.current[projectId]?.getBoundingClientRect().bottom + window.scrollY + 8,
-              left: progressButtonRefs.current[projectId]?.getBoundingClientRect().left + window.scrollX,
-            }}
-          >
-            <div className={`px-4 py-3 border-b ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
+          <>
+            {/* Backdrop */}
+            {expandedProgress.has(projectId) && (
+              <div 
+                className="fixed inset-0 bg-black/20 z-40"
+                onClick={() => toggleProgress(projectId)}
+              />
+            )}
+            
+            {/* Side Panel */}
+            <div
+              key={`progress-side-panel-${projectId}`}
+              ref={el => progressDropdownRefs.current[projectId] = el}
+              className={`fixed z-50 top-0 right-0 h-full w-96 ${colorMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'} shadow-2xl border-l ${colorMode ? 'border-slate-600' : 'border-gray-200'} transform transition-transform duration-300 ease-out`}
+              style={{
+                transform: expandedProgress.has(projectId) ? 'translateX(0)' : 'translateX(100%)',
+              }}
+            >
+            <div className={`px-6 py-4 border-b ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Project Progress</h3>
+                <div>
+                  <h3 className="text-lg font-semibold">Project Progress</h3>
+                  <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+                    {project.name} (
+                    <button
+                      onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Progress Panel')}
+                      className={`hover:underline transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                    >
+                      #{project.projectNumber || project.id}
+                    </button>
+                    )
+                  </p>
+                </div>
                 <button
                   onClick={() => toggleProgress(projectId)}
-                  className={`p-1 rounded hover:bg-opacity-10 ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-500'}`}
+                  className={`p-2 rounded-lg hover:bg-opacity-10 transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 >
-                  <XCircleIcon className="w-3.5 h-3.5" />
+                  <XCircleIcon className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {project.name} (#{project.projectNumber || project.id})
-              </p>
             </div>
             
-            <div className="p-4 space-y-4">
+            <div className="p-6 space-y-6 overflow-y-auto h-full">
               {/* Enhanced Progress Bar Section */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {/* Overall Progress Header */}
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Overall Progress</span>
-                  <span className={`text-sm font-bold ${overallProgress === 100 ? 'text-green-500' : 'text-blue-500'}`}>
-                    {Math.round(overallProgress || 0)}%
-                  </span>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Overall Progress</span>
+                    <p className="text-xs text-gray-500 mt-0.5">Complete project status</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-2xl font-bold ${overallProgress === 100 ? 'text-green-600' : 'text-blue-600'}`}>
+                      {Math.round(overallProgress || 0)}%
+                    </span>
+                    <div className={`text-xs ${overallProgress === 100 ? 'text-green-500' : 'text-blue-500'}`}>
+                      {overallProgress === 100 ? 'Complete' : 'In Progress'}
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Enhanced Progress Bar */}
                 <div className="relative">
-                  <div className={`w-full h-3 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ease-out shadow-sm ${
+                  <div className={`w-full h-3 rounded-full overflow-hidden shadow-inner ${
+                    colorMode ? 'bg-slate-700' : 'bg-gray-200'
+                  }`}>
+                    <div 
+                      className={`h-full rounded-full transition-all duration-700 ease-out ${
                         overallProgress === 100 
                           ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
                           : 'bg-gradient-to-r from-blue-500 to-indigo-600'
@@ -3317,7 +3733,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       style={{ width: `${Math.min(overallProgress || 0, 100)}%` }}
                     >
                       {overallProgress > 15 && (
-                        <div className="h-full w-full bg-gradient-to-t from-black/10 to-transparent rounded-full" />
+                        <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
                       )}
                     </div>
                   </div>
@@ -3325,28 +3741,33 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   {/* Progress indicator dot */}
                   {overallProgress > 0 && (
                     <div 
-                      className={`absolute top-1/2 transform -translate-y-1/2 w-2 h-2 rounded-full border-2 ${
+                      className={`absolute top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full border-2 shadow-lg transition-all duration-700 ${
                         overallProgress === 100 
                           ? 'bg-green-500 border-green-300' 
                           : 'bg-blue-500 border-blue-300'
-                      } shadow-lg transition-all duration-700`}
-                      style={{ left: `calc(${Math.min(overallProgress || 0, 100)}% - 4px)` }}
+                      }`}
+                      style={{ left: `calc(${Math.min(overallProgress || 0, 100)}% - 6px)` }}
                     />
                   )}
                 </div>
               </div>
               
               {/* Enhanced Materials & Labor Section */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Phase Breakdown</span>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Phase Breakdown</span>
+                    <p className="text-xs text-gray-500 mt-0.5">Materials and labor progress</p>
+                  </div>
                   <button
                     onClick={() => toggleTrades(project.id)}
-                    className={`flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}
+                    className={`flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity px-2 py-1 rounded ${
+                      colorMode ? 'text-gray-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
                   >
-                    <span>Details</span>
+                    <span>{expandedTrades.has(project.id) ? 'Hide' : 'Show'} Details</span>
                     <svg 
-                      className={`w-3 h-3 transition-transform ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
+                      className={`w-3 h-3 transition-transform duration-200 ${expandedTrades.has(project.id) ? 'rotate-180' : ''}`} 
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -3357,34 +3778,52 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 </div>
                 
                 {/* Base Material & Labor Progress */}
-                <div className="space-y-2.5">
+                <div className="space-y-4">
                   <div className="group">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-green-600 dark:text-green-400">Materials</span>
-                      <span className="text-xs font-bold text-green-600 dark:text-green-400">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-green-600 dark:text-green-400">Materials</span>
+                      </div>
+                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
                         {project.materialsProgress || 85}%
                       </span>
                     </div>
-                    <div className={`w-full h-2 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 ease-out shadow-sm"
+                    <div className={`w-full h-2 rounded-full overflow-hidden shadow-inner ${
+                      colorMode ? 'bg-slate-700' : 'bg-gray-200'
+                    }`}>
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 ease-out"
                         style={{ width: `${project.materialsProgress || 85}%` }}
-                      />
+                      >
+                        {(project.materialsProgress || 85) > 15 && (
+                          <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
+                        )}
+                      </div>
                     </div>
                   </div>
                   
                   <div className="group">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-orange-600 dark:text-orange-400">Labor</span>
-                      <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-orange-600 dark:text-orange-400">Labor</span>
+                      </div>
+                      <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
                         {project.laborProgress || 75}%
                       </span>
                     </div>
-                    <div className={`w-full h-2 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 ease-out shadow-sm"
+                    <div className={`w-full h-2 rounded-full overflow-hidden shadow-inner ${
+                      colorMode ? 'bg-slate-700' : 'bg-gray-200'
+                    }`}>
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 ease-out"
                         style={{ width: `${project.laborProgress || 75}%` }}
-                      />
+                      >
+                        {(project.laborProgress || 75) > 15 && (
+                          <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3428,11 +3867,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               {trade.progress}%
                             </span>
                           </div>
-                          <div className={`w-full h-1.5 rounded-full ${colorMode ? 'bg-slate-700' : 'bg-gray-100'} shadow-inner`}>
-                            <div
-                              className={`h-full rounded-full bg-gradient-to-r ${trade.color} transition-all duration-500 ease-out shadow-sm`}
+                          <div className={`w-full h-1.5 bg-gray-200 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                            <div 
+                              className={`h-1.5 rounded-full transition-all duration-500 ${
+                                trade.name === 'Roofing' ? 'bg-purple-500' :
+                                trade.name === 'Siding' ? 'bg-pink-500' :
+                                trade.name === 'Windows' ? 'bg-yellow-500' :
+                                trade.name === 'Gutters' ? 'bg-red-500' :
+                                'bg-blue-500'
+                              }`}
                               style={{ width: `${trade.progress}%` }}
-                            />
+                            ></div>
                           </div>
                         </div>
                       ))}
@@ -3442,6 +3887,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               </div>
             </div>
           </div>
+          </>
         );
       })}
       
@@ -3598,6 +4044,269 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </DraggablePopup>
         );
       })}
+      
+      {/* Add Project Modal */}
+      <Modal isOpen={showAddProjectModal} onClose={() => {
+        setShowAddProjectModal(false);
+        resetProjectForm();
+      }}>
+        <div className="p-6">
+          <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+            Add New Project
+          </h3>
+          <form onSubmit={handleSubmitProject} className="space-y-6">
+            {/* Project Number */}
+            <div>
+              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                Project Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="projectNumber"
+                value={newProject.projectNumber}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  colorMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+                placeholder="Enter project number (e.g., 12345)"
+                required
+              />
+            </div>
+
+            {/* Customer Name */}
+            <div>
+              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                Customer Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="customerName"
+                value={newProject.customerName}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  colorMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+                placeholder="Enter customer name"
+                required
+              />
+            </div>
+
+            {/* Job Type */}
+            <div>
+              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                Job Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="jobType"
+                value={newProject.jobType}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  colorMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                required
+              >
+                <option value="">Select job type</option>
+                <option value="ROOF_REPLACEMENT">Roof Replacement</option>
+                <option value="KITCHEN_REMODEL">Kitchen Remodel</option>
+                <option value="BATHROOM_RENOVATION">Bathroom Renovation</option>
+                <option value="SIDING_INSTALLATION">Siding Installation</option>
+                <option value="WINDOW_REPLACEMENT">Window Replacement</option>
+                <option value="FLOORING">Flooring</option>
+                <option value="PAINTING">Painting</option>
+                <option value="ELECTRICAL_WORK">Electrical Work</option>
+                <option value="PLUMBING">Plumbing</option>
+                <option value="HVAC">HVAC</option>
+                <option value="DECK_CONSTRUCTION">Deck Construction</option>
+                <option value="LANDSCAPING">Landscaping</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+
+            {/* Project Manager */}
+            <div>
+              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                Project Manager
+              </label>
+              <select
+                name="projectManager"
+                value={newProject.projectManager}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  colorMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                disabled={usersLoading}
+              >
+                <option value="">
+                  {usersLoading ? 'Loading project managers...' : 'Select Project Manager (Optional)'}
+                </option>
+                {availableUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.firstName} {user.lastName} - {user.role || 'User'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Project Contacts Section */}
+            <div className={`border-t pt-6 ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                  Project Contacts
+                </h4>
+                <button
+                  type="button"
+                  onClick={addContact}
+                  className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+                    colorMode
+                      ? 'border-slate-600 text-gray-300 hover:bg-slate-700'
+                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  + Add Contact
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {newProject.contacts.map((contact, index) => (
+                  <div key={index} className={`p-4 border rounded-lg ${
+                    colorMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`font-medium ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Contact {index + 1}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {/* Set as Primary Radio */}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="primaryContact"
+                            checked={contact.isPrimary}
+                            onChange={() => handlePrimaryContactChange(index)}
+                            className="text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Set as Primary
+                          </span>
+                        </label>
+                        {/* Remove Contact Button */}
+                        {newProject.contacts.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeContact(index)}
+                            className={`text-sm text-red-500 hover:text-red-700 ml-3`}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* Name */}
+                      <div>
+                        <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          value={contact.name}
+                          onChange={(e) => handleContactChange(index, 'name', e.target.value)}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                            colorMode
+                              ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          placeholder="Enter contact name"
+                        />
+                      </div>
+                      
+                      {/* Phone */}
+                      <div>
+                        <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                            colorMode
+                              ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      
+                      {/* Email */}
+                      <div>
+                        <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, 'email', e.target.value)}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                            colorMode
+                              ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Error Display */}
+            {(projectError || createProjectMutation.error) && (
+              <div className="text-red-500 text-sm">
+                {projectError || createProjectMutation.error?.message || 'An error occurred'}
+              </div>
+            )}
+
+            {/* Form Actions */}
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddProjectModal(false);
+                  resetProjectForm();
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  colorMode
+                    ? 'bg-slate-600 hover:bg-slate-700 text-white'
+                    : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={createProjectMutation.isLoading}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+              >
+                {createProjectMutation.isLoading && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {createProjectMutation.isLoading ? 'Creating...' : 'Create Project'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </Modal>
       
     </div>
   );

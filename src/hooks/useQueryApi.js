@@ -109,11 +109,26 @@ export const useProjects = (params = {}) => {
     queryKey: [...queryKeys.projects, params],
     queryFn: () => projectsService.getAll(params),
     select: (data) => {
-      // Handle both paginated and direct array responses
-      if (data && data.data && Array.isArray(data.data)) {
-        return data.data;
+      // Handle paginated response structure
+      if (data && data.success && data.data) {
+        // Return full pagination info
+        return {
+          data: data.data, // The projects array
+          total: data.total,
+          page: data.page,
+          limit: data.limit,
+          totalPages: data.totalPages
+        };
       }
-      return data?.data || data || [];
+      // Fallback for non-paginated response (backward compatibility)
+      const projects = data?.data || data || [];
+      return {
+        data: Array.isArray(projects) ? projects : [],
+        total: Array.isArray(projects) ? projects.length : 0,
+        page: 1,
+        limit: Array.isArray(projects) ? projects.length : 0,
+        totalPages: 1
+      };
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for projects (frequently updated)
     retry: false,

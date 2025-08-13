@@ -6,6 +6,7 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import { ACTIVITY_FEED_SUBJECTS, ALERT_SUBJECTS } from '../../data/constants';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
+import toast from 'react-hot-toast';
 
 const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSection = 'My Alerts' }) => {
     // Current user state
@@ -175,17 +176,68 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         try {
             console.log('🔄 Assigning alert to user:', assignToUser);
             
-            // Simulate API call to assign alert
-            setTimeout(() => {
-                console.log('✅ Alert assigned successfully');
+            // Make API call to assign alert
+            const response = await fetch(`/api/alerts/${alertId}/assign`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                },
+                body: JSON.stringify({
+                    assignedTo: assignToUser
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Alert assigned successfully:', result);
+                
+                // Show success toast with user assignment confirmation
+                toast.success(
+                    <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Alert assigned successfully</span>
+                    </div>,
+                    {
+                        duration: 3000,
+                        style: {
+                            background: '#3B82F6',
+                            color: '#ffffff',
+                            fontWeight: '600',
+                        },
+                    }
+                );
+                
+                // Close modal and reset state
                 setShowAssignModal(false);
                 setSelectedAlertForAssign(null);
                 setAssignToUser('');
-                setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
-            }, 500);
+            } else {
+                const errorResult = await response.json();
+                console.error('❌ Failed to assign alert:', errorResult);
+                toast.error('Failed to assign alert. Please try again.', {
+                    duration: 4000,
+                    style: {
+                        background: '#EF4444',
+                        color: '#ffffff',
+                        fontWeight: '600',
+                    },
+                });
+            }
             
         } catch (error) {
             console.error('❌ Failed to assign alert:', error);
+            toast.error('Network error. Please check your connection and try again.', {
+                duration: 4000,
+                style: {
+                    background: '#EF4444',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                },
+            });
+        } finally {
             setActionLoading(prev => ({ ...prev, [`${alertId}-assign`]: false }));
         }
     };
@@ -256,8 +308,26 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 const result = await response.json();
                 console.log('✅ Workflow step completed successfully:', result);
                 
-                // Show success feedback
+                // Show success feedback with toast notification
                 console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
+                
+                // Show success toast with checkmark
+                toast.success(
+                    <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Saved to Workflow</span>
+                    </div>,
+                    {
+                        duration: 3000,
+                        style: {
+                            background: '#10B981',
+                            color: '#ffffff',
+                            fontWeight: '600',
+                        },
+                    }
+                );
                 
                 // ENHANCED: Dispatch global event to notify Project Workflow tab
                 const globalEvent = new CustomEvent('workflowStepCompleted', {
@@ -307,8 +377,15 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         } catch (error) {
             console.error('❌ Failed to complete alert:', error);
             
-            // Show error feedback to user
-            alert(`Failed to complete workflow step: ${error.message}`);
+            // Show error toast to user
+            toast.error(`Failed to complete workflow step: ${error.message}`, {
+                duration: 4000,
+                style: {
+                    background: '#EF4444',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                },
+            });
         } finally {
             setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
             
@@ -524,11 +601,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 if (project && onProjectSelect) {
-                                                                    const projectWithScrollId = {
-                                                                        ...project,
-                                                                        scrollToProjectId: String(project.id)
-                                                                    };
-                                                                    handleProjectSelectWithScroll(projectWithScrollId, 'Projects', null, sourceSection);
+                                                                    onProjectSelect(project, 'Project Profile', null, sourceSection);
                                                                 }
                                                             }}
                                                         >

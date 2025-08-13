@@ -9,6 +9,8 @@ import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ResponsiveBackButton } from '../common/BackButton';
 import { useNavigationHistory } from '../../hooks/useNavigationHistory';
+import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
+import WorkflowDataService from '../../services/workflowDataService';
 
 // Default form structure for new projects (reused from existing ProjectsPage)
 const defaultNewProject = {
@@ -390,35 +392,131 @@ const ProjectProfilePage = ({
                     </button>
                 </div>
                 
-                {/* Selected Project Information */}
+                {/* Selected Project Information - Complete View */}
                 {selectedProject && (
-                    <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 mb-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Main Project Information */}
+                    <div className={`${colorMode ? 'bg-slate-800/90' : 'bg-white/90'} backdrop-blur-sm border ${colorMode ? 'border-slate-600/50' : 'border-gray-200/50'} shadow-soft rounded-2xl p-6 mb-6`}>
+                        {/* Project Header */}
+                        <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">Project Information</h2>
-                                <div className="space-y-3">
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-600">Project #:</span>
-                                        <span className="ml-2 text-base font-semibold text-gray-900">
-                                            {selectedProject.projectNumber || 'Not Set'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-600">Project Name:</span>
-                                        <span className="ml-2 text-base text-gray-900">
-                                            {selectedProject.name || 'Not Set'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-600">Primary Customer:</span>
-                                        <span className="ml-2 text-base font-semibold text-gray-900">
+                                <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                                    {selectedProject.name || 'Project Details'}
+                                </h2>
+                                <div className="flex items-center gap-4">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${colorMode ? getProjectTypeColorDark(selectedProject.projectType) : getProjectTypeColor(selectedProject.projectType)}`}>
+                                        {formatProjectType(selectedProject.projectType)}
+                                    </span>
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                        getPhaseColorForProject ? 
+                                        `${getPhaseColorForProject(selectedProject.id)?.bg} ${getPhaseColorForProject(selectedProject.id)?.text}` : 
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {WorkflowProgressService.getPhaseName(getPhaseForProject(selectedProject.id)) || 'Lead'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                    {getProjectProgress(selectedProject)}%
+                                </div>
+                                <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Complete
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Content Grid */}
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                            {/* Customer Contact Information */}
+                            <div className="space-y-4">
+                                <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} border-b ${colorMode ? 'border-slate-600' : 'border-gray-200'} pb-2`}>
+                                    Customer Contact Info
+                                </h3>
+                                
+                                {/* Primary Customer */}
+                                <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                                    <h4 className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-3`}>Primary Customer</h4>
+                                    <div className="space-y-2">
+                                        <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                             {selectedProject.customer?.primaryName || 'Not Set'}
-                                        </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-blue-500">📞</span>
+                                            <a 
+                                                href={`tel:${(selectedProject.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
+                                                className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                            >
+                                                {selectedProject.customer?.primaryPhone || 'Not Set'}
+                                            </a>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-blue-500">✉️</span>
+                                            <a 
+                                                href={`mailto:${selectedProject.customer?.primaryEmail || ''}`}
+                                                className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                            >
+                                                {selectedProject.customer?.primaryEmail || 'Not Set'}
+                                            </a>
+                                        </div>
                                     </div>
+                                </div>
+
+                                {/* Secondary Customer (when applicable) */}
+                                {selectedProject.customer?.secondaryName && (
+                                    <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                                        <h4 className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-3`}>Secondary Customer</h4>
+                                        <div className="space-y-2">
+                                            <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                                {selectedProject.customer.secondaryName}
+                                            </div>
+                                            {selectedProject.customer?.secondaryPhone && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-blue-500">📞</span>
+                                                    <a 
+                                                        href={`tel:${selectedProject.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
+                                                        className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                                    >
+                                                        {selectedProject.customer.secondaryPhone}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {selectedProject.customer?.secondaryEmail && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-blue-500">✉️</span>
+                                                    <a 
+                                                        href={`mailto:${selectedProject.customer.secondaryEmail}`}
+                                                        className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                                    >
+                                                        {selectedProject.customer.secondaryEmail}
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Project Information */}
+                            <div className="space-y-4">
+                                <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} border-b ${colorMode ? 'border-slate-600' : 'border-gray-200'} pb-2`}>
+                                    Project Info
+                                </h3>
+                                
+                                <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'} space-y-3`}>
+                                    {/* Project Number - Clickable Link */}
                                     <div>
-                                        <span className="text-sm font-medium text-gray-600">Address:</span>
-                                        <div className="ml-2 mt-1 text-sm text-black">
+                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Number</div>
+                                        <button
+                                            onClick={() => onProjectSelect(selectedProject, 'Project Profile', null, 'Project Profile')}
+                                            className={`text-lg font-bold ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                        >
+                                            #{selectedProject.projectNumber || 'Not Set'}
+                                        </button>
+                                    </div>
+
+                                    {/* Project Address */}
+                                    <div>
+                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Address</div>
+                                        <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                             {selectedProject.customer?.address ? (
                                                 <div>
                                                     <div>{selectedProject.customer.address.split(',')[0]?.trim()}</div>
@@ -439,76 +537,19 @@ const ProjectProfilePage = ({
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Project Type */}
                                     <div>
-                                        <span className="text-sm font-medium text-gray-600">Primary Phone:</span>
-                                        <a 
-                                            href={`tel:${(selectedProject.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
-                                            className="ml-2 text-base text-blue-600 hover:text-blue-800 hover:underline"
-                                        >
-                                            {selectedProject.customer?.primaryPhone || 'Not Set'}
-                                        </a>
+                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Type</div>
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${colorMode ? getProjectTypeColorDark(selectedProject.projectType) : getProjectTypeColor(selectedProject.projectType)}`}>
+                                            {formatProjectType(selectedProject.projectType)}
+                                        </span>
                                     </div>
+
+                                    {/* Project Phase */}
                                     <div>
-                                        <span className="text-sm font-medium text-gray-600">Primary Email:</span>
-                                        <a 
-                                            href={`mailto:${selectedProject.customer?.primaryEmail || ''}`}
-                                            className="ml-2 text-base text-blue-600 hover:text-blue-800 hover:underline"
-                                        >
-                                            {selectedProject.customer?.primaryEmail || 'Not Set'}
-                                        </a>
-                                    </div>
-                                    {selectedProject.customer?.secondaryName && (
-                                        <>
-                                            <div>
-                                                <span className="text-sm font-medium text-gray-600">Secondary Contact:</span>
-                                                <span className="ml-2 text-base text-gray-900">
-                                                    {selectedProject.customer.secondaryName}
-                                                </span>
-                                            </div>
-                                            {selectedProject.customer?.secondaryPhone && (
-                                                <div>
-                                                    <span className="text-sm font-medium text-gray-600">Secondary Phone:</span>
-                                                    <a 
-                                                        href={`tel:${selectedProject.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
-                                                        className="ml-2 text-base text-blue-600 hover:text-blue-800 hover:underline"
-                                                    >
-                                                        {selectedProject.customer.secondaryPhone}
-                                                    </a>
-                                                </div>
-                                            )}
-                                            {selectedProject.customer?.secondaryEmail && (
-                                                <div>
-                                                    <span className="text-sm font-medium text-gray-600">Secondary Email:</span>
-                                                    <a 
-                                                        href={`mailto:${selectedProject.customer.secondaryEmail}`}
-                                                        className="ml-2 text-base text-blue-600 hover:text-blue-800 hover:underline"
-                                                    >
-                                                        {selectedProject.customer.secondaryEmail}
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {/* Project Progress Chart */}
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">Project Progress</h2>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-600">Overall Progress</span>
-                                        <span className="text-lg font-bold text-gray-900">{getProjectProgress(selectedProject)}%</span>
-                                    </div>
-                                    <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-brand-500 to-red-500 rounded-full transition-all duration-300"
-                                            style={{ width: `${getProjectProgress(selectedProject)}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600">Current Phase:</span>
-                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Phase</div>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                             getPhaseColorForProject ? 
                                             `${getPhaseColorForProject(selectedProject.id)?.bg} ${getPhaseColorForProject(selectedProject.id)?.text}` : 
                                             'bg-gray-100 text-gray-800'
@@ -516,40 +557,90 @@ const ProjectProfilePage = ({
                                             {WorkflowProgressService.getPhaseName(getPhaseForProject(selectedProject.id)) || 'Lead'}
                                         </span>
                                     </div>
-                                    
-                                    {/* Quick Navigation */}
-                                    <div className="pt-4 border-t border-gray-200">
-                                        <h3 className="text-sm font-medium text-gray-600 mb-3">Quick Navigation</h3>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button
-                                                onClick={() => onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile')}
-                                                className="flex flex-col items-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                                            >
-                                                <span className="text-lg">🗂️</span>
-                                                <span className="text-xs font-medium">Workflow</span>
-                                            </button>
-                                            <button
-                                                onClick={() => onProjectSelect(selectedProject, 'Messages', null, 'Project Profile')}
-                                                className="flex flex-col items-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                                            >
-                                                <span className="text-lg">💬</span>
-                                                <span className="text-xs font-medium">Messages</span>
-                                            </button>
-                                            <button
-                                                onClick={() => onProjectSelect(selectedProject, 'Alerts', null, 'Project Profile')}
-                                                className="flex flex-col items-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                                            >
-                                                <span className="text-lg">⚠️</span>
-                                                <span className="text-xs font-medium">Alerts</span>
-                                            </button>
-                                            <button
-                                                onClick={() => onProjectSelect(selectedProject, 'Alerts Calendar', null, 'Project Profile')}
-                                                className="flex flex-col items-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                                            >
-                                                <span className="text-lg">📅</span>
-                                                <span className="text-xs font-medium">Alerts Calendar</span>
-                                            </button>
+
+                                    {/* Project Section */}
+                                    <div>
+                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Section</div>
+                                        <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                            {WorkflowDataService.getCurrentSection(selectedProject) || 'Not Available'}
                                         </div>
+                                    </div>
+
+                                    {/* Project Line Item - Clickable Link */}
+                                    <div>
+                                        <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Current Line Item</div>
+                                        <button
+                                            onClick={() => onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile')}
+                                            className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                        >
+                                            {WorkflowDataService.getCurrentLineItem(selectedProject)?.stepName || 'View Workflow'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Project Progress & Manager */}
+                            <div className="space-y-4">
+                                <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} border-b ${colorMode ? 'border-slate-600' : 'border-gray-200'} pb-2`}>
+                                    Progress & Management
+                                </h3>
+                                
+                                {/* Progress Bar Chart */}
+                                <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Progress</span>
+                                        <span className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                            {getProjectProgress(selectedProject)}%
+                                        </span>
+                                    </div>
+                                    <div className={`w-full h-3 rounded-full overflow-hidden shadow-inner ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-500 ease-out ${
+                                                getProjectProgress(selectedProject) === 100 
+                                                    ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                                                    : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                                            }`}
+                                            style={{ width: `${getProjectProgress(selectedProject)}%` }}
+                                        >
+                                            {getProjectProgress(selectedProject) > 15 && (
+                                                <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Project Manager */}
+                                <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                                    <h4 className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-3`}>Project Manager</h4>
+                                    <div className="space-y-2">
+                                        <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                            {selectedProject.projectManager?.firstName && selectedProject.projectManager?.lastName 
+                                                ? `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName}`
+                                                : selectedProject.projectManager?.name || 'Not Assigned'
+                                            }
+                                        </div>
+                                        {selectedProject.projectManager?.phone && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-blue-500">📞</span>
+                                                <a 
+                                                    href={`tel:${selectedProject.projectManager.phone.replace(/[^\d+]/g, '')}`}
+                                                    className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                                >
+                                                    {selectedProject.projectManager.phone}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {selectedProject.projectManager?.email && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-blue-500">✉️</span>
+                                                <a 
+                                                    href={`mailto:${selectedProject.projectManager.email}`}
+                                                    className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
+                                                >
+                                                    {selectedProject.projectManager.email}
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

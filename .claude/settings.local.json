@@ -26,7 +26,10 @@
       "Bash(git checkout:*)",
       "Bash(git reset:*)",
       "Bash(timeout:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(cp:*)",
+      "Bash(copy GlobalSearch.jsx GlobalSearch.backup.jsx)",
+      "Bash(copy GlobalSearchSimplified.jsx GlobalSearch.jsx)"
     ],
     "deny": []
   }

@@ -211,12 +211,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (onProjectSelect && project) {
-                                        const projectWithHighlight = {
-                                            ...project,
-                                            highlightOnProjectsPage: true,
-                                            scrollToProjectId: String(project.id)
-                                        };
-                                        onProjectSelect(projectWithHighlight, 'Projects', null, 'Project Messages');
+                                        onProjectSelect(project, 'Project Profile', null, 'Project Messages');
                                     }
                                 }}
                             >

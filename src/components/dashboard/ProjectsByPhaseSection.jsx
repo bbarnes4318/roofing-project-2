@@ -347,7 +347,15 @@ const ProjectsByPhaseSection = ({
                                     {project.projectName || project.name}
                                   </h4>
                                   <p className="text-sm text-gray-600 mt-1">
-                                    #{project.projectNumber || project.id}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onProjectSelect(project, 'Project Profile', null, 'Current Projects by Phase');
+                                      }}
+                                      className="hover:underline transition-colors text-blue-600 hover:text-blue-800"
+                                    >
+                                      #{project.projectNumber || project.id}
+                                    </button>
                                   </p>
                                 </div>
                                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${phase.bgColor} ${phase.textColor}`}>
