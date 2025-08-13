@@ -260,6 +260,71 @@ class WorkflowProgressService {
     }
 
     /**
+     * Get the display name for a phase
+     * @param {string} phaseKey - Phase key (e.g. 'LEAD', 'EXECUTION')
+     * @returns {string} Display name (e.g. 'Lead', 'Execution')
+     */
+    static getPhaseName(phaseKey) {
+        if (!phaseKey) return 'Lead';
+        const normalizedKey = this.normalizePhase(phaseKey);
+        return PHASES[normalizedKey]?.name || this.formatPhase(phaseKey);
+    }
+
+    /**
+     * Normalize phase key to standard format
+     * @param {string} phase - Raw phase string
+     * @returns {string} Normalized phase key
+     */
+    static normalizePhase(phase) {
+        if (!phase) return 'LEAD';
+        
+        const normalized = phase.toUpperCase()
+            .replace(/\s*PHASE$/i, '')
+            .replace('PHASE-', '')
+            .replace('PHASE', '')
+            .replace(/-INSURANCE-1ST SUPPLEMENT/i, '')
+            .replace('2ND SUPPLEMENT', 'SECOND_SUPPLEMENT')
+            .replace('2ND SUPP', 'SECOND_SUPPLEMENT')
+            .replace('EXECUTE', 'EXECUTION')
+            .trim();
+            
+        // Map common variations
+        const phaseMap = {
+            'LEAD': 'LEAD',
+            'PROSPECT': 'PROSPECT',
+            'APPROVED': 'APPROVED',
+            'EXECUTION': 'EXECUTION',
+            'EXECUTE': 'EXECUTION',
+            'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            '2ND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            'SUPPLEMENT': 'SECOND_SUPPLEMENT',
+            'COMPLETION': 'COMPLETION',
+            'COMPLETE': 'COMPLETION'
+        };
+        
+        return phaseMap[normalized] || 'LEAD';
+    }
+
+    /**
+     * Notify listeners of phase changes
+     * @param {Object} project - Updated project
+     * @param {string} oldPhase - Previous phase
+     * @param {string} newPhase - New phase
+     */
+    static notifyPhaseChange(project, oldPhase, newPhase) {
+        if (oldPhase !== newPhase) {
+            console.log(`🔄 Phase change for project ${project.projectNumber}: ${oldPhase} → ${newPhase}`);
+            
+            // Emit custom event for phase change
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('workflowPhaseChange', {
+                    detail: { project, oldPhase, newPhase }
+                }));
+            }
+        }
+    }
+
+    /**
      * DEPRECATED: Legacy method for backward compatibility
      * @deprecated Use calculateProjectProgress instead
      */
