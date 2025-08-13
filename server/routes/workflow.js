@@ -113,18 +113,20 @@ router.get('/position/:projectId', asyncHandler(async (req, res) => {
   });
 }));
 
-// @desc    Get workflow status (NEW DATABASE-DRIVEN)
+// @desc    Get workflow status (OPTIMIZED DATABASE-DRIVEN)
 // @route   GET /api/workflows/status/:projectId
 // @access  Private
 router.get('/status/:projectId', asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   
-  const status = await WorkflowProgressionService.getWorkflowStatus(projectId);
+  // OPTIMIZED: Try optimized status first, fallback to original
+  const status = await WorkflowProgressionService.getOptimizedWorkflowStatus(projectId) ||
+                 await WorkflowProgressionService.getWorkflowStatus(projectId);
   
   res.status(200).json({
     success: true,
     data: status,
-    message: 'Workflow status retrieved successfully'
+    message: 'Optimized workflow status retrieved successfully'
   });
 }));
 
@@ -186,9 +188,10 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
       });
     }
     
-    // Get workflow tracker and status
+    // OPTIMIZED: Get workflow tracker and status using optimized methods
     const tracker = await WorkflowProgressionService.getCurrentPosition(project.id);
-    const workflowStatus = await WorkflowProgressionService.getWorkflowStatus(project.id);
+    const workflowStatus = await WorkflowProgressionService.getOptimizedWorkflowStatus(project.id) ||
+                          await WorkflowProgressionService.getWorkflowStatus(project.id);
     
     // Transform to frontend-compatible format
     const transformedWorkflow = await transformWorkflowForFrontend(project.id, tracker, workflowStatus);

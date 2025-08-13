@@ -17,28 +17,70 @@ const router = express.Router();
 
 // Helper: return canonical phase key used across the app (e.g., 'LEAD','PROSPECT',...)
 const getProjectPhaseKey = (project) => {
-  // If project has workflow with steps, get the phase from the current step
+  // FIXED: Use ProjectWorkflowTracker for accurate phase determination
+  if (project.workflowTracker) {
+    const tracker = project.workflowTracker;
+    
+    // Check for phase overrides first
+    if (project.phaseOverrides && project.phaseOverrides.length > 0) {
+      const override = project.phaseOverrides[0];
+      if (override.toPhase) {
+        console.log(`📍 Using phase override: ${override.toPhase} for project ${project.id}`);
+        return override.toPhase;
+      }
+    }
+    
+    // Get phase from current workflow position
+    if (tracker.currentPhase && tracker.currentPhase.phaseType) {
+      const phaseType = tracker.currentPhase.phaseType;
+      console.log(`📍 Using tracker phase: ${phaseType} for project ${project.id}`);
+      return phaseType;
+    }
+    
+    // Fallback to current line item's phase if available
+    if (tracker.currentLineItem && tracker.currentLineItem.section && tracker.currentLineItem.section.phase) {
+      const phaseType = tracker.currentLineItem.section.phase.phaseType;
+      console.log(`📍 Using line item phase: ${phaseType} for project ${project.id}`);
+      return phaseType;
+    }
+    
+    // If workflow is complete (no current items), project should be in COMPLETION phase
+    if (!tracker.currentPhaseId && !tracker.currentSectionId && !tracker.currentLineItemId) {
+      console.log(`📍 Workflow complete, using COMPLETION phase for project ${project.id}`);
+      return 'COMPLETION';
+    }
+  }
+
+  // FIXED: If project has workflow steps, find current phase based on WORKFLOW ORDER not alphabetical
   if (project.workflow && project.workflow.steps && project.workflow.steps.length > 0) {
-    const sortedSteps = project.workflow.steps.sort((a, b) => a.stepId.localeCompare(b.stepId));
-    let currentStep = sortedSteps.find(step => !step.isCompleted);
-    if (!currentStep) {
-      currentStep = sortedSteps[sortedSteps.length - 1];
+    // Define proper phase order for workflow progression
+    const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
+    
+    console.log(`🔍 Calculating phase for project ${project.id}, total steps: ${project.workflow.steps.length}`);
+    
+    // Find first incomplete step in phase order
+    let currentPhase = 'COMPLETION'; // Default if all complete
+    
+    for (const phase of phaseOrder) {
+      const phaseSteps = project.workflow.steps.filter(step => 
+        step.phase?.toUpperCase() === phase
+      );
+      const incompleteSteps = phaseSteps.filter(step => !step.isCompleted);
+      
+      console.log(`📊 Phase ${phase}: ${phaseSteps.length} total steps, ${incompleteSteps.length} incomplete`);
+      
+      if (incompleteSteps.length > 0) {
+        currentPhase = phase;
+        console.log(`📍 Using phase: ${phase} for project ${project.id} (found incomplete step: ${incompleteSteps[0].stepId})`);
+        break;
+      }
     }
-    if (currentStep && currentStep.phase) {
-      const phaseMap = {
-        'LEAD': 'LEAD',
-        'PROSPECT': 'PROSPECT',
-        'APPROVED': 'APPROVED',
-        'EXECUTION': 'EXECUTION',
-        'SECOND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
-        'SECOND_SUPP': 'SECOND_SUPPLEMENT',
-        '2ND_SUPP': 'SECOND_SUPPLEMENT',
-        '2ND SUPPLEMENT': 'SECOND_SUPPLEMENT',
-        'COMPLETION': 'COMPLETION'
-      };
-      const key = String(currentStep.phase).toUpperCase();
-      return phaseMap[key] || key;
+    
+    if (currentPhase === 'COMPLETION') {
+      console.log(`📍 All workflow phases complete for project ${project.id}`);
     }
+    
+    return currentPhase;
   }
 
   // Fallback to status-based mapping if no workflow data
@@ -52,8 +94,11 @@ const getProjectPhaseKey = (project) => {
       'ON_HOLD': 'LEAD'
     };
     const key = String(project.status).toUpperCase();
+    console.log(`📍 Using status-based phase: ${key} for project ${project.id}`);
     return statusPhaseMap[key] || 'LEAD';
   }
+  
+  console.log(`📍 Using default LEAD phase for project ${project.id}`);
   return 'LEAD';
 };
 
@@ -161,22 +206,28 @@ const transformProjectForFrontend = (project) => {
       role: member.role || member.user?.role || ''
     })) : [],
     
-    // Workflow and phase mapping with section/lineItem transformation
+    // DEPRECATED: Legacy workflow field - use currentWorkflowItem instead
     workflow: project.workflow ? {
-      ...project.workflow,
-      steps: project.workflow.steps ? project.workflow.steps.map(step => {
-        const transformedStep = transformWorkflowStep(step);
-        return {
-          ...transformedStep,
-          subTasks: step.subTasks ? step.subTasks.map(subTask => 
-            transformWorkflowSubTask(subTask, step)
-          ) : []
-        };
-      }) : []
+      id: project.workflow.id,
+      status: project.workflow.status || 'IN_PROGRESS',
+      // Remove steps array - use currentWorkflowItem for workflow data
+      steps: []
     } : null,
     // Provide both canonical key and display value for the phase
     phase: getProjectPhaseKey(project),
     phaseDisplay: getProjectPhaseDisplay(getProjectPhaseKey(project)),
+    
+    // ENABLED: currentWorkflowItem now that ProjectWorkflowTracker is properly populated
+    currentWorkflowItem: project.workflowTracker ? {
+      phase: project.workflowTracker.currentPhase?.phaseType || null,
+      phaseDisplay: project.workflowTracker.currentPhase?.phaseName || null,
+      section: project.workflowTracker.currentSection?.displayName || null,
+      lineItem: project.workflowTracker.currentLineItem?.itemName || null,
+      lineItemId: project.workflowTracker.currentLineItem?.id || null,
+      sectionId: project.workflowTracker.currentSectionId || null,
+      phaseId: project.workflowTracker.currentPhaseId || null,
+      isComplete: !project.workflowTracker.currentPhaseId && !project.workflowTracker.currentSectionId && !project.workflowTracker.currentLineItemId
+    } : null,
     
     // Additional fields for compatibility
     archived: project.archived || false,
@@ -196,8 +247,8 @@ const enhanceProjectsWithProgress = async (projects) => {
       materials: Math.max(0, (project.progress || 0) - 10),
       labor: Math.min(100, (project.progress || 0) + 5),
       trades: [],
-      totalSteps: project.workflow?.steps?.length || 0,
-      completedSteps: project.workflow?.steps?.filter(step => step.isCompleted)?.length || 0
+      totalSteps: 0, // Use currentWorkflowItem for step counting
+      completedSteps: 0 // Use currentWorkflowItem for completion tracking
     };
     
     return project;
@@ -358,16 +409,7 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
                   phase: true,
                   isCompleted: true,
                   completedAt: true,
-                  actualStartDate: true,
-                  subTasks: {
-                    select: {
-                      id: true,
-                      subTaskId: true,
-                      subTaskName: true,
-                      isCompleted: true,
-                      completedAt: true
-                    }
-                  }
+                  actualStartDate: true
                 },
                 orderBy: {
                   stepId: 'asc'
@@ -375,11 +417,62 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
               }
             }
           },
+            }
+          },
+          phaseOverrides: {
+            where: { isActive: true },
+            select: {
+              id: true,
+              fromPhase: true,
+              toPhase: true,
+              suppressAlertsFor: true,
+              isActive: true,
+              createdAt: true
+            },
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 1
+          },
           _count: {
             select: {
               tasks: true,
               documents: true,
               workflowAlerts: true
+            }
+          },
+          workflowTracker: {
+            include: {
+              currentPhase: {
+                select: {
+                  id: true,
+                  phaseType: true,
+                  phaseName: true
+                }
+              },
+              currentSection: {
+                select: {
+                  id: true,
+                  displayName: true
+                }
+              },
+              currentLineItem: {
+                select: {
+                  id: true,
+                  itemName: true,
+                  section: {
+                    select: {
+                      displayName: true,
+                      phase: {
+                        select: {
+                          phaseType: true,
+                          phaseName: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -447,13 +540,31 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
           }
         },
         workflow: {
-          include: {
+          select: {
+            id: true,
+            currentStepIndex: true,
+            overallProgress: true,
+            status: true,
             steps: {
-              include: {
-                subTasks: true
+              select: {
+                id: true,
+                stepId: true,
+                stepName: true,
+                phase: true,
+                isCompleted: true,
+                completedAt: true,
+                actualStartDate: true
+              },
+              orderBy: {
+                stepId: 'asc'
               }
             }
           }
+        },
+        phaseOverrides: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
         },
         tasks: {
           include: {
@@ -473,6 +584,40 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
                 id: true,
                 firstName: true,
                 lastName: true
+              }
+            }
+          }
+        },
+        workflowTracker: {
+          include: {
+            currentPhase: {
+              select: {
+                id: true,
+                phaseType: true,
+                phaseName: true
+              }
+            },
+            currentSection: {
+              select: {
+                id: true,
+                displayName: true
+              }
+            },
+            currentLineItem: {
+              select: {
+                id: true,
+                itemName: true,
+                section: {
+                  select: {
+                    displayName: true,
+                    phase: {
+                      select: {
+                        phaseType: true,
+                        phaseName: true
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -570,18 +715,19 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       }
     });
 
-    // Initialize workflow tracker and create initial alert for the first Lead line item
+    // OPTIMIZED: Initialize workflow with template-instance integration
     try {
-      const tracker = await WorkflowProgressionService.initializeProjectWorkflow(project.id);
-      if (tracker?.currentLineItemId) {
-        await AlertGenerationService.generateActiveLineItemAlert(
-          project.id,
-          tracker.id,
-          tracker.currentLineItemId
-        );
+      const workflowResult = await WorkflowProgressionService.initializeProjectWorkflow(
+        project.id, 
+        project.projectType === 'ROOF_REPLACEMENT' ? 'ROOFING' : 'GENERAL'
+      );
+      
+      if (workflowResult?.tracker?.currentLineItemId) {
+        // Alert is automatically generated in optimized workflow
+        console.log(`✅ Optimized workflow initialized with ${workflowResult.totalSteps} steps`);
       }
     } catch (werr) {
-      console.warn('⚠️ Workflow init/initial alert failed (project still created):', werr?.message);
+      console.warn('⚠️ Optimized workflow init failed (project still created):', werr?.message);
     }
 
     // Transform project for frontend compatibility

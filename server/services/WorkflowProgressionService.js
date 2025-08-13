@@ -1,53 +1,117 @@
 const { prisma } = require('../config/prisma');
 
+// OPTIMIZED: Import the optimized workflow functions
+// These provide template-instance integration and performance improvements
+
 class WorkflowProgressionService {
   /**
-   * Initialize workflow tracker for a new project
+   * OPTIMIZED: Initialize workflow with template-instance integration
    */
-  async initializeProjectWorkflow(projectId) {
+  async initializeProjectWorkflow(projectId, workflowType = 'ROOFING') {
     try {
-      // Get the first phase, section, and line item
-      const firstPhase = await prisma.workflowPhase.findFirst({
-        where: { isActive: true },
-        orderBy: { displayOrder: 'asc' },
-        include: {
-          sections: {
-            where: { isActive: true },
-            orderBy: { displayOrder: 'asc' },
-            take: 1,
-            include: {
-              lineItems: {
-                where: { isActive: true },
-                orderBy: { displayOrder: 'asc' },
-                take: 1
+      return await prisma.$transaction(async (tx) => {
+        // Create project workflow instance
+        const projectWorkflow = await tx.projectWorkflow.create({
+          data: {
+            projectId,
+            workflowType,
+            status: 'IN_PROGRESS',
+            currentStepIndex: 0,
+            overallProgress: 0,
+            workflowStartDate: new Date(),
+            enableAlerts: true,
+            alertMethods: ['IN_APP', 'EMAIL'],
+            escalationEnabled: true,
+            escalationDelayDays: 2
+          }
+        });
+
+        // Get the first phase from template system
+        const firstPhase = await tx.workflowPhase.findFirst({
+          where: { isActive: true, isCurrent: true },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            sections: {
+              where: { isActive: true, isCurrent: true },
+              orderBy: { displayOrder: 'asc' },
+              include: {
+                lineItems: {
+                  where: { isActive: true, isCurrent: true },
+                  orderBy: { displayOrder: 'asc' }
+                }
               }
             }
           }
+        });
+
+        if (!firstPhase) {
+          throw new Error('No active workflow template found');
         }
-      });
 
-      if (!firstPhase || !firstPhase.sections[0] || !firstPhase.sections[0].lineItems[0]) {
-        throw new Error('No active workflow structure found');
-      }
+        // Create workflow steps from template
+        let stepOrder = 1;
+        const createdSteps = [];
 
-      const firstSection = firstPhase.sections[0];
-      const firstLineItem = firstSection.lineItems[0];
-
-      // Create workflow tracker
-      const tracker = await prisma.projectWorkflowTracker.create({
-        data: {
-          projectId,
-          currentPhaseId: firstPhase.id,
-          currentSectionId: firstSection.id,
-          currentLineItemId: firstLineItem.id,
-          phaseStartedAt: new Date(),
-          sectionStartedAt: new Date(),
-          lineItemStartedAt: new Date()
+        for (const section of firstPhase.sections) {
+          for (const lineItem of section.lineItems) {
+            const step = await tx.workflowStep.create({
+              data: {
+                stepId: `${section.sectionNumber}${lineItem.itemLetter}`,
+                stepName: lineItem.itemName,
+                description: lineItem.description || '',
+                phase: firstPhase.phaseType,
+                defaultResponsible: lineItem.responsibleRole,
+                estimatedDuration: lineItem.estimatedMinutes,
+                stepOrder,
+                alertPriority: 'MEDIUM',
+                alertDays: lineItem.alertDays,
+                workflowId: projectWorkflow.id,
+                // OPTIMIZED: Link to template system
+                templatePhaseId: firstPhase.id,
+                templateSectionId: section.id,
+                templateLineItemId: lineItem.id,
+                state: stepOrder === 1 ? 'ACTIVE' : 'PENDING'
+              }
+            });
+            createdSteps.push(step);
+            stepOrder++;
+          }
         }
-      });
 
-      console.log(`✅ Initialized workflow for project ${projectId}`);
-      return tracker;
+        // Create project workflow tracker with template and instance references
+        const firstSection = firstPhase.sections[0];
+        const firstLineItem = firstSection?.lineItems[0];
+        const firstStep = createdSteps[0];
+
+        const tracker = await tx.projectWorkflowTracker.create({
+          data: {
+            projectId,
+            currentPhaseId: firstPhase.id,
+            currentSectionId: firstSection?.id,
+            currentLineItemId: firstLineItem?.id,
+            // OPTIMIZED: Add instance references
+            currentStepId: firstStep?.id,
+            workflowInstanceId: projectWorkflow.id,
+            phaseStartedAt: new Date(),
+            sectionStartedAt: new Date(),
+            lineItemStartedAt: new Date()
+          }
+        });
+
+        // Generate initial alert for first step
+        if (firstStep) {
+          await this.generateAlertForStep(tx, firstStep, projectId);
+        }
+
+        console.log(`✅ Initialized optimized workflow for project ${projectId} with ${createdSteps.length} steps`);
+        
+        return {
+          projectWorkflow,
+          tracker,
+          steps: createdSteps,
+          totalSteps: createdSteps.length
+        };
+      });
     } catch (error) {
       console.error('Error initializing project workflow:', error);
       throw error;
@@ -89,24 +153,40 @@ class WorkflowProgressionService {
   }
 
   /**
-   * Complete a line item and progress to the next (TRANSACTION-SAFE with alert generation)
+   * OPTIMIZED: Complete workflow item with template-instance consistency
    */
   async completeLineItem(projectId, lineItemId, completedById = null, notes = null, io = null) {
     try {
       const result = await prisma.$transaction(async (tx) => {
-        // Get tracker with minimal data
+        // OPTIMIZED: Get tracker with instance references
         const tracker = await tx.projectWorkflowTracker.findUnique({
           where: { projectId },
           select: { 
             id: true, 
             currentLineItemId: true,
             currentPhaseId: true,
-            currentSectionId: true
+            currentSectionId: true,
+            currentStepId: true,
+            workflowInstanceId: true
           }
         });
 
         if (!tracker || tracker.currentLineItemId !== lineItemId) {
           throw new Error('Can only complete the current active line item');
+        }
+
+        // OPTIMIZED: Mark corresponding workflow step as completed
+        if (tracker.currentStepId) {
+          await tx.workflowStep.update({
+            where: { id: tracker.currentStepId },
+            data: {
+              isCompleted: true,
+              completedAt: new Date(),
+              completedById,
+              completionNotes: notes,
+              state: 'COMPLETED'
+            }
+          });
         }
 
         // Record completion
@@ -121,7 +201,14 @@ class WorkflowProgressionService {
           }
         });
 
-        // Find next position
+        // OPTIMIZED: Use database function for progression
+        const nextStepResult = await tx.$queryRaw`
+          SELECT * FROM progress_to_next_workflow_step(${projectId}, ${tracker.currentStepId})
+        `;
+
+        const nextStep = nextStepResult[0];
+
+        // Find next position in template system
         const nextPosition = await this.findNextLineItem(
           tracker.currentPhaseId,
           tracker.currentSectionId,
@@ -201,16 +288,19 @@ class WorkflowProgressionService {
 
                 if (!workflowStep) {
                   // Create a new workflow step for this line item
+                  // Generate stepId based on phase and step name
+                  const stepId = `${sectionData.phase?.phaseType || 'GENERAL'}-${lineItemData.itemName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                  
                   workflowStep = await prisma.workflowStep.create({
                     data: {
                       workflowId: projectWorkflow.id,
+                      stepId: stepId,
                       stepName: lineItemData.itemName,
                       description: lineItemData.description || lineItemData.itemName,
-                      responsibleRole: lineItemData.responsibleRole,
-                      estimatedHours: Math.ceil(lineItemData.estimatedMinutes / 60),
-                      status: 'PENDING',
-                      priority: 'MEDIUM',
-                      displayOrder: lineItemData.displayOrder
+                      phase: sectionData.phase?.phaseType || 'LEAD',
+                      defaultResponsible: lineItemData.responsibleRole,
+                      estimatedDuration: Math.ceil(lineItemData.estimatedMinutes / 60),
+                      stepOrder: lineItemData.displayOrder
                     }
                   });
                 }
@@ -434,6 +524,18 @@ class WorkflowProgressionService {
     try {
       const tracker = await this.getCurrentPosition(projectId);
       
+      // Get the project with phase overrides
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          phaseOverrides: {
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        }
+      });
+
       // Count completed items
       const completedCount = await prisma.completedWorkflowItem.count({
         where: { trackerId: tracker.id }
@@ -444,18 +546,257 @@ class WorkflowProgressionService {
         where: { isActive: true }
       });
 
-      // Calculate progress percentage
-      const progress = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+      // If there's an active phase override, we need to count skipped phase items as completed
+      let adjustedCompletedCount = completedCount;
+      if (project?.phaseOverrides?.length > 0) {
+        const override = project.phaseOverrides[0];
+        const skippedPhases = override.suppressAlertsFor || [];
+        
+        // Count items in skipped phases
+        if (skippedPhases.length > 0) {
+          const skippedItemsCount = await prisma.workflowLineItem.count({
+            where: {
+              isActive: true,
+              section: {
+                phase: {
+                  phaseType: {
+                    in: skippedPhases
+                  }
+                }
+              }
+            }
+          });
+          
+          // Add skipped items to completed count for progress calculation
+          adjustedCompletedCount += skippedItemsCount;
+          console.log(`📊 Added ${skippedItemsCount} skipped items to progress calculation for project ${projectId}`);
+        }
+      }
+
+      // Calculate progress percentage with adjusted count
+      const progress = totalItems > 0 ? Math.round((adjustedCompletedCount / totalItems) * 100) : 0;
 
       return {
         tracker,
         completedItems: completedCount,
+        skippedItems: adjustedCompletedCount - completedCount,
+        adjustedCompletedItems: adjustedCompletedCount,
         totalItems,
         progress,
+        hasPhaseOverride: project?.phaseOverrides?.length > 0,
         isComplete: tracker.currentLineItemId === null
       };
     } catch (error) {
       console.error('Error getting workflow status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * OPTIMIZED: Generate alert for a workflow step
+   */
+  async generateAlertForStep(tx, step, projectId) {
+    try {
+      // Check if alert already exists
+      const existingAlert = await tx.workflowAlert.findFirst({
+        where: {
+          projectId,
+          stepId: step.id,
+          status: 'ACTIVE'
+        }
+      });
+
+      if (existingAlert) {
+        return existingAlert;
+      }
+
+      const alert = await tx.workflowAlert.create({
+        data: {
+          type: 'Work Flow Line Item',
+          priority: step.alertPriority,
+          status: 'ACTIVE',
+          title: `Action Required: ${step.stepName}`,
+          message: `Please complete the workflow step: ${step.stepName}`,
+          stepName: step.stepName,
+          projectId,
+          workflowId: step.workflowId,
+          stepId: step.id,
+          responsibleRole: step.defaultResponsible,
+          dueDate: new Date(Date.now() + (step.alertDays * 24 * 60 * 60 * 1000))
+        }
+      });
+
+      console.log(`✅ Generated alert for step: ${step.stepName}`);
+      return alert;
+    } catch (error) {
+      console.error('❌ Error generating alert:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * OPTIMIZED: Get comprehensive project workflow status using database view
+   */
+  async getOptimizedWorkflowStatus(projectId) {
+    try {
+      // Use optimized database view
+      const status = await prisma.$queryRaw`
+        SELECT * FROM workflow_status_view WHERE project_id = ${projectId}
+      `;
+
+      if (!status || status.length === 0) {
+        return null;
+      }
+
+      const projectStatus = status[0];
+
+      // Get the project with phase overrides
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          phaseOverrides: {
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        }
+      });
+
+      // Get completed items for progress tracking
+      const completedItems = await prisma.completedWorkflowItem.findMany({
+        where: {
+          tracker: {
+            projectId
+          }
+        },
+        include: {
+          tracker: {
+            include: {
+              currentPhase: true,
+              currentSection: true,
+              currentLineItem: true
+            }
+          }
+        },
+        orderBy: { completedAt: 'desc' }
+      });
+
+      // Get active alerts
+      const activeAlerts = await prisma.workflowAlert.findMany({
+        where: {
+          projectId,
+          status: 'ACTIVE'
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // Adjust progress if there are phase overrides
+      let adjustedProgress = projectStatus.overall_progress || 0;
+      if (project?.phaseOverrides?.length > 0) {
+        const override = project.phaseOverrides[0];
+        const skippedPhases = override.suppressAlertsFor || [];
+        
+        if (skippedPhases.length > 0) {
+          // Get total items and items in skipped phases
+          const totalItems = await prisma.workflowLineItem.count({
+            where: { isActive: true }
+          });
+          
+          const skippedItemsCount = await prisma.workflowLineItem.count({
+            where: {
+              isActive: true,
+              section: {
+                phase: {
+                  phaseType: {
+                    in: skippedPhases
+                  }
+                }
+              }
+            }
+          });
+          
+          // Recalculate progress with skipped items counted as completed
+          const adjustedCompletedCount = completedItems.length + skippedItemsCount;
+          adjustedProgress = totalItems > 0 ? Math.round((adjustedCompletedCount / totalItems) * 100) : 0;
+          
+          console.log(`📊 Adjusted progress for project ${projectId}: ${adjustedProgress}% (added ${skippedItemsCount} skipped items)`);
+        }
+      }
+
+      return {
+        ...projectStatus,
+        completedItems,
+        activeAlerts,
+        alertCount: activeAlerts.length,
+        overall_progress: adjustedProgress,
+        hasPhaseOverride: project?.phaseOverrides?.length > 0
+      };
+    } catch (error) {
+      console.error('❌ Error getting optimized workflow status:', error);
+      // Fallback to original method
+      return await this.getWorkflowStatus(projectId);
+    }
+  }
+
+  /**
+   * OPTIMIZED: Validate workflow state transition
+   */
+  async validateStateTransition(stepId, newState) {
+    try {
+      const step = await prisma.workflowStep.findUnique({
+        where: { id: stepId },
+        select: { state: true, assignedToId: true }
+      });
+
+      if (!step) {
+        throw new Error('Workflow step not found');
+      }
+
+      const validTransitions = {
+        'PENDING': ['ACTIVE', 'SKIPPED'],
+        'ACTIVE': ['IN_PROGRESS', 'SKIPPED'],
+        'IN_PROGRESS': ['COMPLETED', 'BLOCKED'],
+        'BLOCKED': ['ACTIVE', 'IN_PROGRESS'],
+        'SKIPPED': ['ACTIVE'],
+        'COMPLETED': ['ACTIVE'] // Allow reopening if needed
+      };
+
+      const allowedTransitions = validTransitions[step.state] || [];
+      
+      if (!allowedTransitions.includes(newState)) {
+        throw new Error(`Invalid state transition from ${step.state} to ${newState}`);
+      }
+
+      if (newState === 'IN_PROGRESS' && !step.assignedToId) {
+        throw new Error('Cannot set state to IN_PROGRESS without assignment');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error validating state transition:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * OPTIMIZED: Update workflow step state
+   */
+  async updateStepState(stepId, newState, userId) {
+    try {
+      await this.validateStateTransition(stepId, newState);
+
+      const updatedStep = await prisma.workflowStep.update({
+        where: { id: stepId },
+        data: { 
+          state: newState,
+          updatedAt: new Date()
+        }
+      });
+
+      console.log(`✅ Updated step ${stepId} state to ${newState}`);
+      return updatedStep;
+    } catch (error) {
+      console.error('❌ Error updating step state:', error);
       throw error;
     }
   }

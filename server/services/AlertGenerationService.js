@@ -8,7 +8,7 @@ class AlertGenerationService {
    */
   static async generateBatchAlerts(projectIds) {
     try {
-      // Simplified query - generate alerts for current line items without step_id constraint
+      // Query to generate alerts with proper step references
       const activeItems = await prisma.$queryRaw`
         SELECT 
           pwt.project_id,
@@ -24,7 +24,8 @@ class AlertGenerationService {
           p."project_manager_id" as project_manager_id,
           c."primaryName" as customer_name,
           c.address as customer_address,
-          pw.id as project_workflow_id
+          pw.id as project_workflow_id,
+          wst.id as workflow_step_id
         FROM project_workflow_trackers pwt
         INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
         INNER JOIN workflow_sections ws ON ws.id = wli.section_id
@@ -32,6 +33,7 @@ class AlertGenerationService {
         INNER JOIN projects p ON p.id = pwt.project_id
         LEFT JOIN customers c ON c.id = p.customer_id
         LEFT JOIN project_workflows pw ON pw.project_id = p.id
+        LEFT JOIN workflow_steps wst ON wst."stepName" = wli."itemName" AND wst.workflow_id = pw.id
         WHERE pwt.project_id = ANY(${projectIds}::text[])
           AND wli."isActive" = true
           AND p.status IN ('PENDING','IN_PROGRESS')
@@ -88,8 +90,14 @@ class AlertGenerationService {
       const now = new Date();
 
       for (const item of activeItems) {
-        // Skip if alert already exists (use line_item_id since we don't have workflow_step_id)
-        const key = `${item.project_id}-${item.line_item_id}`;
+        // Skip if no workflow step exists for this line item
+        if (!item.workflow_step_id) {
+          console.log(`⚠️ Skipping alert for ${item.item_name} - no corresponding workflow step found`);
+          continue;
+        }
+
+        // Skip if alert already exists (use workflow_step_id for proper FK reference)
+        const key = `${item.project_id}-${item.workflow_step_id}`;
         if (existingSet.has(key)) {
           continue;
         }
@@ -120,8 +128,8 @@ class AlertGenerationService {
           dueDate: new Date(now.getTime() + (item.alert_days || 1) * 24 * 60 * 60 * 1000),
           projectId: item.project_id,
           workflowId: item.project_workflow_id,
-          // Use the current active line item id to satisfy FK with step mapping in migrated schema
-          stepId: item.line_item_id,
+          // Use the actual workflow step ID for proper foreign key reference
+          stepId: item.workflow_step_id,
           assignedToId: assignedUserId,
           metadata: {
             phase: item.phase_type,

@@ -30,28 +30,27 @@ class WorkflowDataService {
     }
 
     /**
-     * Calculate the complete workflow state for a project
+     * Calculate the complete workflow state for a project using currentWorkflowItem
      */
     static calculateWorkflowState(project) {
-        // CRITICAL: Use project.phase FIRST, only calculate if missing
-        let currentPhase = project.phase || 'Lead';
+        // Use currentWorkflowItem for accurate workflow state
+        const currentWorkflow = project.currentWorkflowItem;
+        let currentPhase = 'LEAD';
+        let currentPhaseDisplay = 'Lead';
         
-        // Normalize the phase name to match the phase keys
-        currentPhase = this.normalizePhaseKey(currentPhase);
-        
-        // Use the existing WorkflowProgressService for calculations
-        // BUT prefer the project's actual progress value if available
-        let overallProgress = project.progress || 0;
-        const progress = WorkflowProgressService.calculateProjectProgress(project);
-        
-        // Use calculated progress only if project doesn't have a progress value
-        if (!project.progress && progress.overall) {
-            overallProgress = progress.overall;
+        if (currentWorkflow) {
+            currentPhase = currentWorkflow.phase || 'LEAD';
+            currentPhaseDisplay = currentWorkflow.phaseDisplay || this.formatPhaseDisplay(currentPhase);
+        } else if (project.phase) {
+            // Fallback to project.phase if currentWorkflowItem is missing
+            currentPhase = this.normalizePhaseKey(project.phase);
+            currentPhaseDisplay = this.formatPhaseDisplay(currentPhase);
         }
         
-        const nextSteps = WorkflowProgressService.getNextSteps(project);
-
-        // Get current section and line item
+        // Use the updated WorkflowProgressService
+        const progress = WorkflowProgressService.calculateProjectProgress(project);
+        
+        // Get current section and line item from currentWorkflowItem
         const currentSection = this.getCurrentSection(project);
         const currentLineItem = this.getCurrentLineItem(project);
 
@@ -69,11 +68,13 @@ class WorkflowDataService {
             currentLineItemDisplay: this.formatLineItemDisplay(currentLineItem),
             
             // Progress data
-            overallProgress: overallProgress,
-            phaseProgress: progress.phaseBreakdown,
+            overallProgress: progress.overall || 0,
+            phaseProgress: progress.phaseBreakdown || {},
+            hasPhaseOverride: progress.hasPhaseOverride || false,
+            skippedPhases: progress.skippedPhases || [],
             
             // Next actions
-            nextSteps: nextSteps,
+            nextSteps: [], // Use currentWorkflowItem for next steps
             
             // Display data
             phaseConfig: phaseConfig,
@@ -91,25 +92,24 @@ class WorkflowDataService {
     }
 
     /**
-     * Get current section based on workflow progress
+     * Get current section from currentWorkflowItem
      */
     static getCurrentSection(project) {
-        if (!project.workflow || !project.workflow.steps) return null;
-
-        // Find the first incomplete step to determine current section
-        const incompleteStep = project.workflow.steps.find(step => !step.isCompleted);
-        return incompleteStep ? incompleteStep.section : null;
+        if (!project || !project.currentWorkflowItem) return null;
+        return project.currentWorkflowItem.section || null;
     }
 
     /**
-     * Get current line item based on workflow progress
+     * Get current line item from currentWorkflowItem
      */
     static getCurrentLineItem(project) {
-        if (!project.workflow || !project.workflow.steps) return null;
-
-        // Find the first incomplete step
-        const incompleteStep = project.workflow.steps.find(step => !step.isCompleted);
-        return incompleteStep ? incompleteStep : null;
+        if (!project || !project.currentWorkflowItem) return null;
+        return {
+            id: project.currentWorkflowItem.lineItemId,
+            name: project.currentWorkflowItem.lineItem,
+            section: project.currentWorkflowItem.section,
+            phase: project.currentWorkflowItem.phase
+        };
     }
 
     /**
