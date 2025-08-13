@@ -1991,15 +1991,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     className="w-4.5 h-4.5 rounded-full flex-shrink-0 shadow-sm"
                     style={{ backgroundColor: phase.color, width: 18, height: 18 }}
                   ></div>
-                  <div 
-                    className="px-2 py-1 rounded-md text-center leading-tight whitespace-nowrap truncate text-xs font-semibold shadow-sm"
-                    style={{ 
-                      backgroundColor: phase.color,
-                      color: WorkflowProgressService.getContrastTextColor(phase.color)
-                    }}
-                  >
+                  <span className="text-center leading-tight whitespace-nowrap truncate">
                     {phase.name}
-                  </div>
+                  </span>
                 </button>
               ))}
             </div>
