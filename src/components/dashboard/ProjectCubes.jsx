@@ -351,7 +351,13 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         {project.name}
                       </button>
                     </div>
-                    <div className={`ml-2 px-1 py-0.5 ${getPhaseColor(project).bg} rounded-full text-[8px] font-semibold ${getPhaseColor(project).text} shadow-sm`}>
+                    <div 
+                      className="ml-2 px-2 py-1 rounded-md text-[8px] font-semibold shadow-sm"
+                      style={{ 
+                        backgroundColor: WorkflowProgressService.getPhaseColor(getProjectPhase(project)),
+                        color: WorkflowProgressService.getContrastTextColor(WorkflowProgressService.getPhaseColor(getProjectPhase(project)))
+                      }}
+                    >
                       {getPhaseText(project)}
                     </div>
                   </div>
@@ -842,11 +848,13 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-semibold transition-all duration-200 ${
-                          colorMode 
-                            ? 'bg-gradient-to-r from-slate-600 to-slate-500 text-white shadow-sm' 
-                            : 'bg-gradient-to-r from-gray-200 to-gray-100 text-gray-700 shadow-sm'
-                        }`}>
+                        <span 
+                          className="px-2 py-1 rounded-md text-[10px] font-semibold shadow-sm transition-all duration-200"
+                          style={{ 
+                            backgroundColor: WorkflowProgressService.getPhaseColor(getProjectPhase(project)),
+                            color: WorkflowProgressService.getContrastTextColor(WorkflowProgressService.getPhaseColor(getProjectPhase(project)))
+                          }}
+                        >
                           {getPhaseText(project)}
                         </span>
                         <svg className={`w-4 h-4 transition-all duration-200 ${colorMode ? 'text-gray-400 group-hover:text-blue-400' : 'text-gray-400 group-hover:text-brand-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
