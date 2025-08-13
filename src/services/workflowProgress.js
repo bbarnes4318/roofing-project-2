@@ -155,6 +155,7 @@ class WorkflowProgressService {
      * Get phase color for UI display
      */
     static getPhaseColor(phase) {
+        const normalizedPhase = this.normalizePhase(phase);
         const colors = {
             LEAD: '#6B7280',
             PROSPECT: '#3B82F6',
@@ -163,7 +164,56 @@ class WorkflowProgressService {
             SECOND_SUPPLEMENT: '#8B5CF6',
             COMPLETION: '#059669'
         };
-        return colors[phase] || '#6B7280';
+        return colors[normalizedPhase] || '#6B7280';
+    }
+
+    /**
+     * Get phase initials
+     * @param {string} phase - Phase key
+     * @returns {string} Phase initials
+     */
+    static getPhaseInitials(phase) {
+        const normalizedPhase = this.normalizePhase(phase);
+        const initials = {
+            LEAD: 'LD',
+            PROSPECT: 'PR',
+            APPROVED: 'AP',
+            EXECUTION: 'EX',
+            SECOND_SUPPLEMENT: '2S',
+            COMPLETION: 'CM'
+        };
+        return initials[normalizedPhase] || 'LD';
+    }
+
+    /**
+     * Get complete phase button props for UI components
+     * @param {string} phase - Phase key or display name
+     * @returns {Object} Phase properties with initials, colors, and display name
+     */
+    static getPhaseButtonProps(phase) {
+        const normalizedPhase = this.normalizePhase(phase);
+        const phaseName = this.getPhaseName(normalizedPhase);
+        const phaseColor = this.getPhaseColor(normalizedPhase);
+        const initials = this.getPhaseInitials(normalizedPhase);
+        
+        // Convert hex colors to Tailwind background classes
+        const colorToBg = {
+            '#6B7280': 'bg-gray-500',
+            '#3B82F6': 'bg-blue-500', 
+            '#10B981': 'bg-emerald-500',
+            '#F59E0B': 'bg-orange-500',
+            '#8B5CF6': 'bg-purple-500',
+            '#059669': 'bg-emerald-600'
+        };
+        
+        return {
+            initials,
+            bgColor: colorToBg[phaseColor] || 'bg-gray-500',
+            textColor: 'text-white',
+            fullName: phaseName,
+            hexColor: phaseColor,
+            phase: normalizedPhase
+        };
     }
 
     /**
@@ -230,10 +280,12 @@ class WorkflowProgressService {
      */
     static getAllPhases() {
         return Object.keys(PHASES).map(phaseKey => ({
+            id: phaseKey,
             key: phaseKey,
             name: PHASES[phaseKey].name,
             weight: PHASES[phaseKey].weight,
-            color: this.getPhaseColor(phaseKey)
+            color: this.getPhaseColor(phaseKey),
+            initial: this.getPhaseInitials(phaseKey)
         }));
     }
 

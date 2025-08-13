@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { SearchService } from "../../services/searchService";
 import NaturalLanguageSearchService from "../../services/nlSearchService";
+import WorkflowProgressService from "../../services/workflowProgress";
 import "./GlobalSearch.css";
 
 // Helper component for highlighting matched text using Fuse.js matches
@@ -191,68 +192,9 @@ export default function GlobalSearch({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Phase button styling - matches dashboard design
+  // Phase button styling - uses centralized WorkflowProgressService
   const getPhaseButtonProps = (phase) => {
-    const normalizedPhase = phase?.toUpperCase() || 'LEAD';
-    
-    switch (normalizedPhase) {
-      case 'LEAD':
-      case 'LEAD PHASE':
-        return {
-          initials: 'LD',
-          bgColor: 'bg-blue-500',
-          textColor: 'text-white',
-          fullName: 'Lead'
-        };
-      case 'PROSPECT':
-      case 'PROSPECT PHASE':
-        return {
-          initials: 'PR',
-          bgColor: 'bg-teal-500',
-          textColor: 'text-white',
-          fullName: 'Prospect'
-        };
-      case 'APPROVED':
-      case 'APPROVED PHASE':
-        return {
-          initials: 'AP',
-          bgColor: 'bg-purple-500',
-          textColor: 'text-white',
-          fullName: 'Approved'
-        };
-      case 'EXECUTION':
-      case 'EXECUTION PHASE':
-        return {
-          initials: 'EX',
-          bgColor: 'bg-orange-500',
-          textColor: 'text-white',
-          fullName: 'Execution'
-        };
-      case '2ND SUPPLEMENT':
-      case '2ND SUPPLEMENT PHASE':
-      case 'SUPPLEMENT':
-        return {
-          initials: '2S',
-          bgColor: 'bg-pink-500',
-          textColor: 'text-white',
-          fullName: '2nd Supplement'
-        };
-      case 'COMPLETION':
-      case 'COMPLETION PHASE':
-        return {
-          initials: 'CM',
-          bgColor: 'bg-green-500',
-          textColor: 'text-white',
-          fullName: 'Completion'
-        };
-      default:
-        return {
-          initials: 'LD',
-          bgColor: 'bg-blue-500',
-          textColor: 'text-white',
-          fullName: 'Lead'
-        };
-    }
+    return WorkflowProgressService.getPhaseButtonProps(phase);
   };
 
   // Phase Button Component
