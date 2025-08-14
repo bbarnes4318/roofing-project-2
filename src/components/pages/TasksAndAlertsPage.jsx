@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import api, { authService, messagesService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -9,6 +10,9 @@ import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import toast from 'react-hot-toast';
 
 const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSection = 'My Alerts' }) => {
+    // React Query client for cache invalidation
+    const queryClient = useQueryClient();
+    
     // Current user state
     const [currentUser, setCurrentUser] = useState(null);
 
@@ -336,7 +340,12 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event for Project Workflow tab');
                 
                 // The comprehensive endpoint handles all workflow progression, alert dismissal, and alert generation
-                // Refresh alerts to show updated state
+                // Invalidate and refresh queries to show updated state
+                queryClient.invalidateQueries(['workflowAlerts']);
+                
+                // CRITICAL: Invalidate projects data to update progress bars and currentWorkflowItem
+                queryClient.invalidateQueries(['projects']);
+                
                 if (typeof refetchWorkflowAlerts === 'function') {
                     refetchWorkflowAlerts();
                 }
@@ -360,7 +369,12 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         } finally {
             setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
             
-            // Remove completed alert from the local state to provide immediate feedback
+            // Invalidate cache to provide immediate feedback
+            queryClient.invalidateQueries(['workflowAlerts']);
+            
+            // CRITICAL: Also invalidate projects data even on error to ensure UI consistency
+            queryClient.invalidateQueries(['projects']);
+            
             setTimeout(() => {
                 if (typeof refetchWorkflowAlerts === 'function') {
                     refetchWorkflowAlerts();

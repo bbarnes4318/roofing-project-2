@@ -1257,6 +1257,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         try {
           // Invalidate and refetch workflow alerts to remove completed alert
           queryClient.invalidateQueries(['workflowAlerts']);
+          
+          // CRITICAL: Invalidate projects data to update progress bars and currentWorkflowItem
+          queryClient.invalidateQueries(['projects']);
+          
           if (typeof refetchWorkflowAlerts === 'function') {
             refetchWorkflowAlerts();
           }
@@ -1320,6 +1324,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       // Invalidate cache and remove completed alert from the local state to provide immediate feedback
       queryClient.invalidateQueries(['workflowAlerts']);
+      
+      // CRITICAL: Also invalidate projects data even on error to ensure UI consistency
+      queryClient.invalidateQueries(['projects']);
+      
       setTimeout(() => {
         if (typeof refetchWorkflowAlerts === 'function') {
           refetchWorkflowAlerts();

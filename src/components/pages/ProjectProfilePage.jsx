@@ -544,8 +544,9 @@ const ProjectProfilePage = ({
                                             <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Address</div>
                                             <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                                 {(() => {
-                                                    const address = selectedProject.address || selectedProject.customer?.address || selectedProject.client?.address;
-                                                    if (!address) return 'Address not available';
+                                                    // Prioritize customer address over project address to avoid project name contamination
+                                                    const address = selectedProject.customer?.address || selectedProject.client?.address || selectedProject.location || selectedProject.address;
+                                                    if (!address || address === selectedProject.projectName) return 'Address not available';
                                                     const parts = address.split(',');
                                                     if (parts.length >= 2) {
                                                         return (
@@ -565,8 +566,9 @@ const ProjectProfilePage = ({
                                             <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Customer Address</div>
                                             <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
                                                 {(() => {
-                                                    const address = selectedProject.customer?.address || selectedProject.client?.address || selectedProject.clientAddress || selectedProject.address;
-                                                    if (!address) return 'Address not available';
+                                                    // For customer address, prioritize direct customer fields and avoid project contamination
+                                                    const address = selectedProject.customer?.address || selectedProject.client?.address || selectedProject.clientAddress;
+                                                    if (!address || address === selectedProject.projectName) return 'Address not available';
                                                     const parts = address.split(',');
                                                     if (parts.length >= 2) {
                                                         return (
