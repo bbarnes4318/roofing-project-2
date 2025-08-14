@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChevronDownIcon, ChevronLeftIcon, XCircleIcon } from '../common/Icons';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import DraggablePopup from '../ui/DraggablePopup';
@@ -132,6 +133,8 @@ const convertProjectToTableFormat = (project) => {
 
 const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colorMode, dashboardState }) => {
   console.log('🔍 DASHBOARD: Component rendering...');
+  const queryClient = useQueryClient();
+  
   // Use database data instead of props
   const { data: projectsData, isLoading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
   // Extract the projects array from the response object
@@ -1445,7 +1448,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         
         // Step 5: Refresh dashboard data to reflect changes immediately
         try {
-          // Refresh workflow alerts to remove completed alert
+          // Invalidate and refetch workflow alerts to remove completed alert
+          queryClient.invalidateQueries(['workflowAlerts']);
           if (typeof refetchWorkflowAlerts === 'function') {
             refetchWorkflowAlerts();
           }
@@ -1507,7 +1511,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     } finally {
       setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
       
-      // Remove completed alert from the local state to provide immediate feedback
+      // Invalidate cache and remove completed alert from the local state to provide immediate feedback
+      queryClient.invalidateQueries(['workflowAlerts']);
       setTimeout(() => {
         if (typeof refetchWorkflowAlerts === 'function') {
           refetchWorkflowAlerts();

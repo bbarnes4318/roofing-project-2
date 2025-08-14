@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Production Auth</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background: #c82333;
+        }
+        .success {
+            background: #28a745;
+        }
+        .success:hover {
+            background: #218838;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Production Authentication</h1>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Open the production site: <a href="https://goldfish-app-4yuma.ondigitalocean.app" target="_blank">goldfish-app-4yuma.ondigitalocean.app</a></li>
+                <li>Open browser DevTools (F12)</li>
+                <li>Go to Console tab</li>
+                <li>Copy and paste the code below</li>
+                <li>Press Enter to run it</li>
+                <li>Refresh the page (Ctrl+F5)</li>
+            </ol>
+        </div>
+        
+        <button onclick="copyFix()">📋 Copy Fix Code</button>
+        <button class="success" onclick="window.open('https://goldfish-app-4yuma.ondigitalocean.app', '_blank')">🌐 Open Production Site</button>
+        
+        <div id="status" style="display:none;" class="status">
+            ✅ Code copied to clipboard! Now paste it in the production site's console.
+        </div>
+    </div>
+
+    <script>
+        const fixCode = `// Clear old invalid tokens
+localStorage.removeItem('authToken');
+localStorage.removeItem('token');
+localStorage.removeItem('user');
+
+// Set new demo token
+const demoToken = 'demo-david-chen-token-' + Date.now();
+localStorage.setItem('authToken', demoToken);
+localStorage.setItem('token', demoToken);
+
+console.log('✅ Authentication fixed!');
+console.log('Token set to:', demoToken);
+console.log('Now refresh the page (Ctrl+F5)');`;
+
+        function copyFix() {
+            navigator.clipboard.writeText(fixCode).then(() => {
+                document.getElementById('status').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('status').style.display = 'none';
+                }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>

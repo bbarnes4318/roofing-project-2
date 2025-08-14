@@ -328,9 +328,10 @@ export const useWorkflowAlerts = (params = {}) => {
     queryKey: [...queryKeys.workflowAlerts, params],
     queryFn: () => workflowAlertsService.getAll(params),
     select: (data) => data?.data || data || [],
-    staleTime: 1 * 60 * 1000,
+    staleTime: 0, // Always fresh - alerts need immediate updates
+    cacheTime: 0, // Don't cache alerts
     retry: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 };
 

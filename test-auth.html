@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Authentication</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .clear-btn {
+            background: #dc3545;
+        }
+        .clear-btn:hover {
+            background: #c82333;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Authentication Test</h1>
+        
+        <div>
+            <button onclick="clearTokens()">🗑️ Clear All Tokens</button>
+            <button onclick="setDemoToken()">🔑 Set Demo Token</button>
+            <button onclick="checkCurrentToken()">🔍 Check Current Token</button>
+            <button onclick="testAPI()">🚀 Test API Call</button>
+        </div>
+        
+        <div id="status" class="status info">
+            Ready to test authentication...
+        </div>
+    </div>
+
+    <script>
+        // Always use localhost:5000 for testing
+        const API_BASE = 'http://localhost:5000/api';
+        
+        console.log('Current location:', window.location.href);
+        console.log('API Base URL:', API_BASE);
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `<pre>${message}</pre>`;
+        }
+
+        function clearTokens() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            updateStatus('✅ All tokens cleared from localStorage', 'success');
+        }
+
+        function setDemoToken() {
+            const demoToken = 'demo-david-chen-token-' + Date.now();
+            localStorage.setItem('authToken', demoToken);
+            localStorage.setItem('token', demoToken);
+            updateStatus(`✅ Demo token set:\n${demoToken}`, 'success');
+        }
+
+        function checkCurrentToken() {
+            const authToken = localStorage.getItem('authToken');
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            let message = '📋 Current localStorage values:\n\n';
+            message += `authToken: ${authToken || '(not set)'}\n`;
+            message += `token: ${token || '(not set)'}\n`;
+            message += `user: ${user ? '(user data exists)' : '(not set)'}`;
+            
+            updateStatus(message, 'info');
+        }
+
+        async function testAPI() {
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                
+                if (!token) {
+                    updateStatus('⚠️ No token found. Setting demo token first...', 'info');
+                    setDemoToken();
+                    return testAPI();
+                }
+
+                updateStatus(`🔄 Testing API with token:\n${token}\n\nCalling ${API_BASE}/users/team-members...`, 'info');
+                
+                console.log('Making API call to:', `${API_BASE}/users/team-members`);
+                console.log('With token:', token);
+                
+                const response = await fetch(`${API_BASE}/users/team-members`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    updateStatus(`✅ API call successful!\n\nResponse:\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    updateStatus(`❌ API call failed (${response.status}):\n\n${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                console.error('Full error:', error);
+                updateStatus(`❌ Error calling API:\n${error.message}\n\nCheck browser console for details.`, 'error');
+            }
+        }
+
+        // Check initial state
+        checkCurrentToken();
+    </script>
+</body>
+</html>
