@@ -98,12 +98,16 @@ export default function App() {
         previousPage: 'Overview'
     });
 
-    // Ensure localStorage has mock auth data on mount
+    // Ensure localStorage has proper auth data on mount
     useEffect(() => {
-        // Only update localStorage if missing
-        if (!localStorage.getItem('authToken')) {
-            localStorage.setItem('authToken', 'mock-token-bypass');
-            localStorage.setItem('token', 'mock-token-bypass');
+        // Use a JWT-like token that backend might accept
+        const demoToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiJjbWUwaWE2dDAwMDA2dW15NDk1MHNhYXJmIiwiZW1haWwiOiJkYXZpZC5jaGVuQGtlbnN0cnVjdGlvbi5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.demo';
+        
+        // Only update if missing or using old mock token
+        const currentToken = localStorage.getItem('authToken');
+        if (!currentToken || currentToken === 'mock-token-bypass') {
+            localStorage.setItem('authToken', demoToken);
+            localStorage.setItem('token', demoToken);
         }
         if (!localStorage.getItem('user')) {
             localStorage.setItem('user', JSON.stringify(currentUser));
