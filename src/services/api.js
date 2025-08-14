@@ -108,11 +108,9 @@ api.interceptors.response.use(
     });
     
     if (error.response?.status === 401) {
-      console.warn('🔐 UNAUTHORIZED: Clearing auth tokens');
-      // Clear invalid token but don't redirect to login since login is disabled
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      console.warn('🔐 UNAUTHORIZED: Ignoring 401 error (mock auth mode)');
+      // Don't clear tokens since we're using mock authentication
+      // Just log the error for debugging
     }
     
     // Add more specific error messages for common issues

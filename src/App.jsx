@@ -80,19 +80,56 @@ export default function App() {
             try {
                 // Check both possible token keys (authToken is what login sets)
                 const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                if (token) {
-                    const user = authService.getStoredUser();
-                    if (user) {
-                        setCurrentUser(user);
-                        setIsAuthenticated(true);
-                    }
+                const user = authService.getStoredUser();
+                
+                if (token && user) {
+                    setCurrentUser(user);
+                    setIsAuthenticated(true);
+                } else {
+                    // Create default user for mock auth (frontend bypasses login per CLAUDE.md)
+                    const defaultUser = {
+                        _id: 'cme0ia6t00006umy4950saarf',
+                        firstName: 'David',
+                        lastName: 'Chen',
+                        email: 'david.chen@kenstruction.com',
+                        role: 'MANAGER',
+                        avatar: 'DC',
+                        company: 'Kenstruction',
+                        position: 'Manager',
+                        department: 'Office',
+                        isVerified: true
+                    };
+                    
+                    // Set default user and bypass authentication
+                    localStorage.setItem('user', JSON.stringify(defaultUser));
+                    localStorage.setItem('authToken', 'mock-token-bypass');
+                    localStorage.setItem('token', 'mock-token-bypass');
+                    
+                    setCurrentUser(defaultUser);
+                    setIsAuthenticated(true);
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
-                // Clear invalid tokens
-                localStorage.removeItem('token');
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('user');
+                // Don't clear tokens on error - just set default auth
+                const defaultUser = {
+                    _id: 'cme0ia6t00006umy4950saarf',
+                    firstName: 'David',
+                    lastName: 'Chen',
+                    email: 'david.chen@kenstruction.com',
+                    role: 'MANAGER',
+                    avatar: 'DC',
+                    company: 'Kenstruction',
+                    position: 'Manager',
+                    department: 'Office',
+                    isVerified: true
+                };
+                
+                localStorage.setItem('user', JSON.stringify(defaultUser));
+                localStorage.setItem('authToken', 'mock-token-bypass');
+                localStorage.setItem('token', 'mock-token-bypass');
+                
+                setCurrentUser(defaultUser);
+                setIsAuthenticated(true);
             } finally {
                 setIsLoading(false);
             }
