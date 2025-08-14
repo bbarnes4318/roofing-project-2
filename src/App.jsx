@@ -56,9 +56,33 @@ export default function App() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    // Initialize with default user for mock auth to avoid re-renders
+    const defaultUser = {
+        _id: 'cme0ia6t00006umy4950saarf',
+        firstName: 'David',
+        lastName: 'Chen',
+        email: 'david.chen@kenstruction.com',
+        role: 'MANAGER',
+        avatar: 'DC',
+        company: 'Kenstruction',
+        position: 'Manager',
+        department: 'Office',
+        isVerified: true
+    };
+    
+    const [currentUser, setCurrentUser] = useState(() => {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                return defaultUser;
+            }
+        }
+        return defaultUser;
+    });
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Always true in mock mode
+    const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -74,60 +98,17 @@ export default function App() {
         previousPage: 'Overview'
     });
 
-    // Check authentication status on component mount
+    // Ensure localStorage has mock auth data on mount
     useEffect(() => {
-        // Simple synchronous auth check - no async needed for mock auth
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        
-        if (!token || !storedUser) {
-            // Create default user for mock auth (frontend bypasses login per CLAUDE.md)
-            const defaultUser = {
-                _id: 'cme0ia6t00006umy4950saarf',
-                firstName: 'David',
-                lastName: 'Chen',
-                email: 'david.chen@kenstruction.com',
-                role: 'MANAGER',
-                avatar: 'DC',
-                company: 'Kenstruction',
-                position: 'Manager',
-                department: 'Office',
-                isVerified: true
-            };
-            
-            // Set default user and bypass authentication
-            localStorage.setItem('user', JSON.stringify(defaultUser));
+        // Only update localStorage if missing
+        if (!localStorage.getItem('authToken')) {
             localStorage.setItem('authToken', 'mock-token-bypass');
             localStorage.setItem('token', 'mock-token-bypass');
-            
-            setCurrentUser(defaultUser);
-        } else {
-            // Use existing user
-            try {
-                setCurrentUser(JSON.parse(storedUser));
-            } catch (e) {
-                // If parse fails, set default user
-                const defaultUser = {
-                    _id: 'cme0ia6t00006umy4950saarf',
-                    firstName: 'David',
-                    lastName: 'Chen',
-                    email: 'david.chen@kenstruction.com',
-                    role: 'MANAGER',
-                    avatar: 'DC',
-                    company: 'Kenstruction',
-                    position: 'Manager',
-                    department: 'Office',
-                    isVerified: true
-                };
-                localStorage.setItem('user', JSON.stringify(defaultUser));
-                setCurrentUser(defaultUser);
-            }
         }
-        
-        // Always authenticated in mock mode
-        setIsAuthenticated(true);
-        setIsLoading(false);
-    }, []);
+        if (!localStorage.getItem('user')) {
+            localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+    }, []); // Empty deps - only run once on mount
 
     // Handle successful login
     const handleLoginSuccess = (user, token) => {
@@ -378,17 +359,17 @@ export default function App() {
         console.log('🔍 NAV_STATE_CHANGE: activePage:', activePage);
     }, [navigationState, activePage]);
 
-    // Early returns AFTER all hooks have been declared
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-                <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600">Loading...</p>
-                </div>
-            </div>
-        );
-    }
+    // Remove loading screen - we're never loading in mock auth mode
+    // if (isLoading) {
+    //     return (
+    //         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    //             <div className="text-center">
+    //                 <div className="w-12 h-12 mx-auto mb-4 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+    //                 <p className="text-gray-600">Loading...</p>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     // Skip login page entirely in mock auth mode - we're always authenticated
     // if (!isAuthenticated) {
