@@ -45,29 +45,7 @@ api.interceptors.request.use(
         });
       }
     }
-    let token = localStorage.getItem('authToken') || localStorage.getItem('token');
-    
-    // If no token exists, create a STATIC demo token (not timestamp based)
-    if (!token) {
-      const demoToken = 'demo-david-chen-token-fixed-12345';
-      localStorage.setItem('authToken', demoToken);
-      // Only set default user if no user exists in localStorage
-      if (!localStorage.getItem('user')) {
-        localStorage.setItem('user', JSON.stringify({
-          _id: 'cme0ia6t00006umy4950saarf',
-          firstName: 'David',
-          lastName: 'Chen',
-          email: 'david.chen@kenstruction.com',
-          role: 'MANAGER',
-          avatar: 'DC',
-          company: 'Kenstruction',
-          position: 'Manager',
-          department: 'Office',
-          isVerified: true
-        }));
-      }
-      token = demoToken;
-    }
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -177,9 +155,9 @@ export const authService = {
   // Logout user
   logout: () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Since login is disabled, just reload the page
-    window.location.reload();
+    // Don't reload - let the app handle the logout state change
   },
 
   // Get current user
