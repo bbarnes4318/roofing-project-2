@@ -410,7 +410,7 @@ class WorkflowProgressionService {
                       section: lineItemData.section.displayName,
                       sectionId: lineItemData.section.id,
                       lineItem: lineItemData.itemName,
-                      lineItemId: nextLineItemId,
+                      lineItemId: alertLineItemId,
                       projectNumber: projectData.projectNumber,
                       projectId: projectId,
                       workflowId: projectWorkflow.id,

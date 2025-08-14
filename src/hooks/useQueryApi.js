@@ -567,8 +567,8 @@ export const useCompleteWorkflowStep = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ alertId, workflowId, stepId, notes }) => 
-      workflowAlertsService.completeStep(alertId, workflowId, stepId, notes),
+    mutationFn: ({ alertId, projectId, lineItemId, notes }) => 
+      workflowAlertsService.completeStep(alertId, projectId, lineItemId, notes),
     onSuccess: (data, variables) => {
       // Invalidate workflow alerts
       queryClient.invalidateQueries({ queryKey: queryKeys.workflowAlerts });

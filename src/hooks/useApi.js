@@ -408,9 +408,9 @@ export const useWorkflowAlerts = (params = {}) => {
     }
   };
 
-  const completeStep = async (alertId, workflowId, stepId, notes = '') => {
+  const completeStep = async (alertId, projectId, lineItemId, notes = '') => {
     try {
-      await workflowAlertsService.completeStep(alertId, workflowId, stepId, notes);
+      await workflowAlertsService.completeStep(alertId, projectId, lineItemId, notes);
       // Remove from local state since step is completed
       setAlerts(prev => prev.filter(alert => alert._id !== alertId));
     } catch (err) {
@@ -553,9 +553,9 @@ export const useWorkflow = (projectId) => {
     fetchWorkflow();
   }, [projectId]);
 
-  const completeStep = async (stepId) => {
+  const completeStep = async (lineItemId) => {
     try {
-      await workflowService.completeStep(projectId, stepId);
+      await workflowService.completeStep(projectId, lineItemId);
       await fetchWorkflow(); // Refresh workflow data
     } catch (err) {
       console.error('Error completing step:', err);

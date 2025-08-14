@@ -624,9 +624,11 @@ export const workflowAlertsService = {
     return response.data;
   },
 
-  // Mark step as complete (completes the workflow step)
-  completeStep: async (alertId, workflowId, stepId, notes = '') => {
-    const response = await api.post(`/workflows/${workflowId}/steps/${stepId}/complete`, { 
+  // Mark step as complete (NEW: uses comprehensive workflow completion)
+  completeStep: async (alertId, projectId, lineItemId, notes = '') => {
+    const response = await api.post('/workflows/complete-item', { 
+      projectId,
+      lineItemId,
       notes,
       alertId // Include alert ID to mark it as resolved
     });
@@ -698,9 +700,13 @@ export const workflowService = {
     return response.data;
   },
 
-  // Complete workflow step
-  completeStep: async (workflowId, stepId) => {
-    const response = await api.post(`/workflows/${workflowId}/steps/${stepId}/complete`);
+  // Complete workflow step (NEW: requires projectId and lineItemId)
+  completeStep: async (projectId, lineItemId, notes = '') => {
+    const response = await api.post('/workflows/complete-item', {
+      projectId,
+      lineItemId,
+      notes
+    });
     return response.data;
   },
 

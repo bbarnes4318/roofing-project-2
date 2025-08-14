@@ -267,44 +267,41 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             
             console.log('🎯 COMPLETION: Target info:', { projectId, stepName, projectName });
             
-            // Extract workflow and step IDs from alert metadata
-            let workflowId = null;
-            let stepId = null;
+            // Extract line item ID from alert metadata
+            let lineItemId = null;
             
-            // Try multiple possible field locations for workflow and step IDs
-            if (alert.metadata?.workflowId && (alert.metadata?.stepId || alert.metadata?.lineItemId)) {
-                workflowId = alert.metadata.workflowId;
-                stepId = alert.metadata.stepId || alert.metadata.lineItemId;
-                console.log('✅ Found workflow/step IDs in metadata');
-            } else if (alert.data?.workflowId && (alert.data?.stepId || alert.data?.lineItemId)) {
-                workflowId = alert.data.workflowId;
-                stepId = alert.data.stepId || alert.data.lineItemId;
-                console.log('✅ Found workflow/step IDs in data field');
-            } else if (alert.workflowId && (alert.stepId || alert.lineItemId)) {
-                workflowId = alert.workflowId;
-                stepId = alert.stepId || alert.lineItemId;
-                console.log('✅ Found workflow/step IDs directly on alert');
+            // Try multiple possible field locations for lineItemId
+            if (alert.metadata?.lineItemId) {
+                lineItemId = alert.metadata.lineItemId;
+                console.log('✅ Found lineItemId in metadata');
+            } else if (alert.stepId) {
+                // Use stepId as lineItemId if that's what the alert contains
+                lineItemId = alert.stepId;
+                console.log('✅ Using stepId as lineItemId');
+            } else if (alert.id) {
+                // Last resort - try using alert ID (might work for some alert types)
+                lineItemId = alert.id;
+                console.log('⚠️ Using alert ID as lineItemId (fallback)');
             } else {
-                console.error('❌ Could not find workflow or step information in alert:', {
+                console.error('❌ Could not find line item information in alert:', {
                     hasMetadata: !!alert.metadata,
                     metadataKeys: alert.metadata ? Object.keys(alert.metadata) : [],
-                    hasData: !!alert.data,
-                    dataKeys: alert.data ? Object.keys(alert.data) : [],
+                    hasStepId: !!alert.stepId,
                     alertKeys: Object.keys(alert)
                 });
                 
                 // Fallback: just mark alert as read if we can't complete the workflow step
-                console.log('🔄 Marking alert as read since workflow info is missing');
+                console.log('🔄 Marking alert as read since line item info is missing');
                 setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
                 return;
             }
 
-            console.log(`🚀 Attempting to complete workflow item using NEW DATABASE SYSTEM: stepId=${stepId}`);
+            console.log(`🚀 Attempting to complete workflow item using NEW DATABASE SYSTEM: lineItemId=${lineItemId}`);
 
             // CRITICAL: Use NEW database-driven workflow completion
             const response = await workflowService.completeLineItem(
                     projectId,
-                    stepId,
+                    lineItemId,
                     'Completed via project detail alerts by user',
                     alertId
                 );
@@ -339,7 +336,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 const globalEvent = new CustomEvent('workflowStepCompleted', {
                   detail: {
                     projectId: projectId,
-                    stepId: stepId,
+                    lineItemId: lineItemId,
                     stepName: stepName,
                     projectName: projectName,
                     source: 'Project Detail Alerts Tab',
@@ -1446,7 +1443,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                         lineItem: lineItemName,
                                                                                         stepName: lineItemName,
                                                                                         alertId: alertId,
-                                                                                         stepId: actionData.stepId || actionData.lineItemId || alert.stepId,
+                                                                                         lineItemId: actionData.stepId || actionData.lineItemId || alert.stepId,
                                                                                          workflowId: actionData.workflowId || alert.workflowId,
                                                                                         highlightMode: 'line-item',
                                                                                         scrollBehavior: 'smooth',
@@ -1483,7 +1480,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                         lineItem: lineItemName,
                                                                                         stepName: lineItemName,
                                                                                         alertId: alertId,
-                                                                                        stepId: actionData.stepId,
+                                                                                        lineItemId: actionData.stepId || actionData.lineItemId,
                                                                                         workflowId: actionData.workflowId,
                                                                                         highlightMode: 'line-item',
                                                                                         scrollBehavior: 'smooth',
@@ -1512,7 +1509,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                     lineItem: lineItemName,
                                                                                     stepName: lineItemName,
                                                                                     alertId: alertId,
-                                                                                    stepId: actionData.stepId,
+                                                                                    lineItemId: actionData.stepId || actionData.lineItemId,
                                                                                     workflowId: actionData.workflowId,
                                                                                     highlightMode: 'line-item',
                                                                                     scrollBehavior: 'smooth',
@@ -1541,7 +1538,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                 lineItem: lineItemName,
                                                                                 stepName: lineItemName,
                                                                                 alertId: alertId,
-                                                                                stepId: actionData.stepId,
+                                                                                lineItemId: actionData.stepId || actionData.lineItemId,
                                                                                 workflowId: actionData.workflowId,
                                                                                 highlightMode: 'line-item',
                                                                                 scrollBehavior: 'smooth',

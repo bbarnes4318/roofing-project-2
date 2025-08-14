@@ -1171,49 +1171,48 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       console.log('🎯 COMPLETION: Target info:', { projectId, stepName, projectName });
       
-      // Extract workflow and step IDs from alert metadata
-      let workflowId = null;
-      let stepId = null;
+      // Extract line item ID from alert metadata for the new comprehensive endpoint
+      let lineItemId = null;
       
-      // Try multiple possible field locations for workflow and step IDs
-      if (alert.metadata?.workflowId && alert.metadata?.stepId) {
-        workflowId = alert.metadata.workflowId;
-        stepId = alert.metadata.stepId;
-        console.log('✅ Found workflow/step IDs in metadata');
-      } else if (alert.data?.workflowId && alert.data?.stepId) {
-        workflowId = alert.data.workflowId;
-        stepId = alert.data.stepId;
-        console.log('✅ Found workflow/step IDs in data field');
-      } else if (alert.workflowId && alert.stepId) {
-        workflowId = alert.workflowId;
-        stepId = alert.stepId;
-        console.log('✅ Found workflow/step IDs directly on alert');
+      // Try multiple possible field locations for lineItemId
+      if (alert.metadata?.lineItemId) {
+        lineItemId = alert.metadata.lineItemId;
+        console.log('✅ Found lineItemId in metadata');
+      } else if (alert.stepId) {
+        // Use stepId as lineItemId if that's what the alert contains
+        lineItemId = alert.stepId;
+        console.log('✅ Using stepId as lineItemId');
+      } else if (alert.id) {
+        // Last resort - try using alert ID (might work for some alert types)
+        lineItemId = alert.id;
+        console.log('⚠️ Using alert ID as lineItemId (fallback)');
       } else {
-        console.error('❌ Could not find workflow or step information in alert:', {
+        console.error('❌ Could not find line item information in alert:', {
           hasMetadata: !!alert.metadata,
           metadataKeys: alert.metadata ? Object.keys(alert.metadata) : [],
-          hasData: !!alert.data,
-          dataKeys: alert.data ? Object.keys(alert.data) : [],
+          hasStepId: !!alert.stepId,
           alertKeys: Object.keys(alert)
         });
         
         // Fallback: just mark alert as read if we can't complete the workflow step
-        console.log('🔄 Marking alert as read since workflow info is missing');
+        console.log('🔄 Marking alert as read since line item info is missing');
         setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
         return;
       }
 
-      console.log(`🚀 Attempting to complete workflow step: workflowId=${workflowId}, stepId=${stepId}`);
+      console.log(`🚀 Attempting to complete line item: projectId=${projectId}, lineItemId=${lineItemId}`);
 
-      // Step 1: Complete the workflow step via API (use centralized axios instance)
-      const response = await api.post(`/workflows/${workflowId}/steps/${stepId}/complete`, {
+      // Step 1: Complete the line item via the comprehensive workflow completion API
+      const response = await api.post('/workflows/complete-item', {
+        projectId: projectId,
+        lineItemId: lineItemId,
         notes: `Completed via dashboard alert by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
-        alertId
+        alertId: alertId
       });
 
       if (response.status >= 200 && response.status < 300) {
         const result = response.data;
-        console.log('✅ Workflow step completed successfully:', result);
+        console.log('✅ Line item completed successfully:', result);
         
         // Show success feedback with toast notification
         console.log(`✅ SUCCESS: Line item '${stepName}' has been completed for project ${projectName}`);
@@ -1240,7 +1239,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         const globalEvent = new CustomEvent('workflowStepCompleted', {
           detail: {
             projectId: projectId,
-            stepId: stepId,
+            lineItemId: lineItemId,
             stepName: stepName,
             projectName: projectName,
             source: 'Dashboard Alert Completion',
@@ -1250,203 +1249,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         window.dispatchEvent(globalEvent);
         console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event for Project Workflow tab');
         
-        // Step 2: Also update the project checklist to ensure synchronization
-        if (projectId && stepName) {
-          try {
-            console.log('🔄 CHECKLIST: Updating project checklist for consistency...');
-            
-            // Get current workflow data to find the right checklist item
-            const workflowResponse = await fetch(`/api/workflows/project/${projectId}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-              }
-            });
-            
-            if (workflowResponse.ok) {
-              const workflowData = await workflowResponse.json();
-              console.log('✅ CHECKLIST: Retrieved workflow data for checklist mapping');
-              
-              // Find the completed step in the workflow data
-              const completedStep = workflowData.data?.steps?.find(step => 
-                step.id === stepId || 
-                step.stepId === stepId || 
-                step._id === stepId ||
-                step.stepName === stepName ||
-                (step.stepName && stepName && typeof step.stepName === 'string' && typeof stepName === 'string' && 
-                 step.stepName.toLowerCase().includes(stepName.toLowerCase()))
-              );
-              
-              if (completedStep) {
-                console.log('✅ CHECKLIST: Found matching workflow step for checklist update:', completedStep.stepName);
-                
-                // Update the specific workflow step to be marked as completed
-                const updateResponse = await fetch(`/api/workflows/project/${projectId}/workflow/${stepId}`, {
-                  method: 'PUT',
-                  headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                  },
-                  body: JSON.stringify({ completed: true })
-                });
-                
-                if (updateResponse.ok) {
-                  console.log('✅ CHECKLIST: Successfully updated project checklist');
-                } else {
-                  console.log('⚠️ CHECKLIST: Checklist update not needed (step already completed via workflow API)');
-                }
-              } else {
-                console.log('⚠️ CHECKLIST: No matching checklist item found, workflow completion should be sufficient');
-              }
-            }
-          } catch (checklistError) {
-            console.log('⚠️ CHECKLIST: Checklist update failed, but workflow completion succeeded:', checklistError.message);
-            // Don't fail the whole operation if checklist update fails
-          }
-        }
+        // The comprehensive endpoint handles all workflow progression, alert dismissal, and alert generation
+        // No need for manual phase/section completion or socket events - they're handled server-side
+        console.log('✅ Comprehensive workflow completion handled by server');
         
-        // Step 3: Check for section and phase completion
-        try {
-          console.log('🔄 COMPLETION: Checking section and phase completion...');
-          
-          // Get the complete workflow data to analyze completion status
-          const fullWorkflowResponse = await fetch(`/api/workflows/project/${projectId}`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-            }
-          });
-          
-          if (fullWorkflowResponse.ok) {
-            const workflowData = await fullWorkflowResponse.json();
-            const workflow = workflowData.data;
-            
-            console.log('✅ COMPLETION: Retrieved full workflow data for completion analysis');
-            
-            // Find the completed step to get its phase and section info
-            const completedStep = workflow.steps?.find(step => 
-              step.id === stepId || step.stepId === stepId || step._id === stepId
-            );
-            
-            if (completedStep && completedStep.phase && completedStep.section) {
-              const currentPhase = completedStep.phase;
-              const currentSection = completedStep.section;
-              
-              console.log(`🎯 COMPLETION: Analyzing completion for Phase: ${currentPhase}, Section: ${currentSection}`);
-              
-              // Check if all line items in the current section are now completed
-              const sectionSteps = workflow.steps?.filter(step => 
-                step.phase === currentPhase && step.section === currentSection
-              ) || [];
-              
-              const completedSectionSteps = sectionSteps.filter(step => step.isCompleted || step.completed || step.id === stepId);
-              
-              console.log(`📊 SECTION: ${completedSectionSteps.length}/${sectionSteps.length} steps completed in section '${currentSection}'`);
-              
-              // If this was the last step in the section, mark section as completed
-              if (completedSectionSteps.length === sectionSteps.length && sectionSteps.length > 0) {
-                console.log(`✅ SECTION: Section '${currentSection}' is now complete!`);
-                
-                // Make API call to mark section as completed
-                try {
-                  const sectionCompleteResponse = await fetch(`/api/workflows/project/${projectId}/section/${encodeURIComponent(currentSection)}/complete`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                      phase: currentPhase,
-                      completedBy: currentUser?.firstName || 'User',
-                      timestamp: new Date().toISOString()
-                    })
-                  });
-                  
-                  if (sectionCompleteResponse.ok) {
-                    console.log('✅ SECTION: Successfully marked section as completed');
-                  }
-                } catch (sectionError) {
-                  console.log('⚠️ SECTION: Section completion API call failed:', sectionError.message);
-                }
-                
-                // Check if all sections in the current phase are now completed
-                const phaseSteps = workflow.steps?.filter(step => step.phase === currentPhase) || [];
-                const completedPhaseSteps = phaseSteps.filter(step => step.isCompleted || step.completed || step.id === stepId);
-                
-                // Get unique sections in this phase
-                const phaseSections = [...new Set(phaseSteps.map(step => step.section))];
-                const completedSections = phaseSections.filter(section => {
-                  const sectionSteps = phaseSteps.filter(step => step.section === section);
-                  const completedInThisSection = sectionSteps.filter(step => step.isCompleted || step.completed || step.id === stepId);
-                  return completedInThisSection.length === sectionSteps.length && sectionSteps.length > 0;
-                });
-                
-                console.log(`📊 PHASE: ${completedSections.length}/${phaseSections.length} sections completed in phase '${currentPhase}'`);
-                
-                // If all sections in the phase are completed, mark phase as completed
-                if (completedSections.length === phaseSections.length && phaseSections.length > 0) {
-                  console.log(`✅ PHASE: Phase '${currentPhase}' is now complete!`);
-                  
-                  // Make API call to mark phase as completed
-                  try {
-                    const phaseCompleteResponse = await fetch(`/api/workflows/project/${projectId}/phase/${encodeURIComponent(currentPhase)}/complete`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                      },
-                      body: JSON.stringify({
-                        completedBy: currentUser?.firstName || 'User',
-                        timestamp: new Date().toISOString()
-                      })
-                    });
-                    
-                    if (phaseCompleteResponse.ok) {
-                      console.log('✅ PHASE: Successfully marked phase as completed');
-                    }
-                  } catch (phaseError) {
-                    console.log('⚠️ PHASE: Phase completion API call failed:', phaseError.message);
-                  }
-                }
-              }
-            }
-          }
-        } catch (completionError) {
-          console.log('⚠️ COMPLETION: Section/phase completion check failed:', completionError.message);
-          // Don't fail the whole operation if completion check fails
-        }
-        
-        // Step 4: Emit enhanced socket events for real-time updates across the application
-        if (window.io && window.io.connected) {
-          // Emit the main workflow step completion event
-          window.io.emit('workflow_step_completed', {
-            workflowId,
-            stepId,
-            projectId,
-            stepName,
-            completedBy: currentUser?.firstName || 'User',
-            timestamp: new Date().toISOString()
-          });
-          
-          // Emit project workflow update event to refresh all workflow-related components
-          window.io.emit('project_workflow_updated', {
-            projectId,
-            workflowId,
-            updateType: 'step_completed',
-            stepId,
-            stepName,
-            timestamp: new Date().toISOString()
-          });
-          
-          // Emit general project update event to refresh dashboards and project lists
-          window.io.emit('project_updated', {
-            projectId,
-            updateType: 'workflow_progress',
-            timestamp: new Date().toISOString()
-          });
-          
-          console.log('📡 SOCKET: Emitted comprehensive workflow completion events');
-        }
-        
-        // Step 5: Refresh dashboard data to reflect changes immediately
+        // Refresh dashboard data to reflect changes immediately
         try {
           // Invalidate and refetch workflow alerts to remove completed alert
           queryClient.invalidateQueries(['workflowAlerts']);
@@ -3231,12 +3038,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               lineItem: lineItemName,
                                               stepName: lineItemName,
                                               alertId: alertId,
-                                              stepId: actionData.stepId || actionData.lineItemId || alert.stepId,
+                                              lineItemId: actionData.stepId || actionData.lineItemId || alert.stepId,
                                               workflowId: actionData.workflowId || alert.workflowId,
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
                                               // Prefer DB id if available
-                                              targetElementId: `lineitem-${actionData.stepId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                              targetElementId: `lineitem-${actionData.stepId || actionData.lineItemId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                               highlightColor: '#0066CC',
                                               highlightDuration: 3000
                                             }
@@ -3269,7 +3076,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               lineItem: lineItemName,
                                               stepName: lineItemName,
                                               alertId: alertId,
-                                              stepId: actionData.stepId,
+                                              lineItemId: actionData.stepId || actionData.lineItemId,
                                               workflowId: actionData.workflowId,
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
@@ -3298,7 +3105,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             lineItem: lineItemName,
                                             stepName: lineItemName,
                                             alertId: alertId,
-                                            stepId: actionData.stepId,
+                                            lineItemId: actionData.stepId || actionData.lineItemId,
                                             workflowId: actionData.workflowId,
                                             highlightMode: 'line-item',
                                             scrollBehavior: 'smooth',
@@ -3327,7 +3134,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           lineItem: lineItemName,
                                           stepName: lineItemName,
                                           alertId: alertId,
-                                          stepId: actionData.stepId,
+                                          lineItemId: actionData.stepId || actionData.lineItemId,
                                           workflowId: actionData.workflowId,
                                           highlightMode: 'line-item',
                                           scrollBehavior: 'smooth',
