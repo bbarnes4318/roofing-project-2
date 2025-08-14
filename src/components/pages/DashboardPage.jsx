@@ -3899,6 +3899,25 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               />
             </div>
 
+            {/* Address */}
+            <div>
+              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                Project Address
+              </label>
+              <input
+                type="text"
+                name="address"
+                value={newProject.address}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  colorMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+                placeholder="Enter project/job site address"
+              />
+            </div>
+
             {/* Job Type */}
             <div>
               <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
