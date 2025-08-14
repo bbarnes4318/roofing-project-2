@@ -76,41 +76,37 @@ export default function App() {
 
     // Check authentication status on component mount
     useEffect(() => {
-        const checkAuth = async () => {
+        // Simple synchronous auth check - no async needed for mock auth
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        if (!token || !storedUser) {
+            // Create default user for mock auth (frontend bypasses login per CLAUDE.md)
+            const defaultUser = {
+                _id: 'cme0ia6t00006umy4950saarf',
+                firstName: 'David',
+                lastName: 'Chen',
+                email: 'david.chen@kenstruction.com',
+                role: 'MANAGER',
+                avatar: 'DC',
+                company: 'Kenstruction',
+                position: 'Manager',
+                department: 'Office',
+                isVerified: true
+            };
+            
+            // Set default user and bypass authentication
+            localStorage.setItem('user', JSON.stringify(defaultUser));
+            localStorage.setItem('authToken', 'mock-token-bypass');
+            localStorage.setItem('token', 'mock-token-bypass');
+            
+            setCurrentUser(defaultUser);
+        } else {
+            // Use existing user
             try {
-                // Check both possible token keys (authToken is what login sets)
-                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                const user = authService.getStoredUser();
-                
-                if (token && user) {
-                    setCurrentUser(user);
-                    setIsAuthenticated(true);
-                } else {
-                    // Create default user for mock auth (frontend bypasses login per CLAUDE.md)
-                    const defaultUser = {
-                        _id: 'cme0ia6t00006umy4950saarf',
-                        firstName: 'David',
-                        lastName: 'Chen',
-                        email: 'david.chen@kenstruction.com',
-                        role: 'MANAGER',
-                        avatar: 'DC',
-                        company: 'Kenstruction',
-                        position: 'Manager',
-                        department: 'Office',
-                        isVerified: true
-                    };
-                    
-                    // Set default user and bypass authentication
-                    localStorage.setItem('user', JSON.stringify(defaultUser));
-                    localStorage.setItem('authToken', 'mock-token-bypass');
-                    localStorage.setItem('token', 'mock-token-bypass');
-                    
-                    setCurrentUser(defaultUser);
-                    setIsAuthenticated(true);
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                // Don't clear tokens on error - just set default auth
+                setCurrentUser(JSON.parse(storedUser));
+            } catch (e) {
+                // If parse fails, set default user
                 const defaultUser = {
                     _id: 'cme0ia6t00006umy4950saarf',
                     firstName: 'David',
@@ -123,19 +119,14 @@ export default function App() {
                     department: 'Office',
                     isVerified: true
                 };
-                
                 localStorage.setItem('user', JSON.stringify(defaultUser));
-                localStorage.setItem('authToken', 'mock-token-bypass');
-                localStorage.setItem('token', 'mock-token-bypass');
-                
                 setCurrentUser(defaultUser);
-                setIsAuthenticated(true);
-            } finally {
-                setIsLoading(false);
             }
-        };
+        }
         
-        checkAuth();
+        // Always authenticated in mock mode
+        setIsAuthenticated(true);
+        setIsLoading(false);
     }, []);
 
     // Handle successful login
@@ -399,16 +390,16 @@ export default function App() {
         );
     }
 
-    // Show login page if not authenticated
-    if (!isAuthenticated) {
-        return (
-            <QueryClientProvider client={queryClient}>
-                <BlueprintLoginPage onLoginSuccess={handleLoginSuccess} />
-                {/* <HolographicLoginPage onLoginSuccess={handleLoginSuccess} /> */}
-                <ReactQueryDevtools initialIsOpen={false} />
-            </QueryClientProvider>
-        );
-    }
+    // Skip login page entirely in mock auth mode - we're always authenticated
+    // if (!isAuthenticated) {
+    //     return (
+    //         <QueryClientProvider client={queryClient}>
+    //             <BlueprintLoginPage onLoginSuccess={handleLoginSuccess} />
+    //             {/* <HolographicLoginPage onLoginSuccess={handleLoginSuccess} /> */}
+    //             <ReactQueryDevtools initialIsOpen={false} />
+    //         </QueryClientProvider>
+    //     );
+    // }
 
     const navigate = (page) => { 
         setNavigationState(prev => ({
