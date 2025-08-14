@@ -49,8 +49,8 @@ api.interceptors.request.use(
     
     // If no token or it's just our mock placeholder, create a proper demo token
     if (!token || token === 'mock-token-bypass') {
-      // Create a JWT-like token that backend might accept
-      const demoToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiJjbWUwaWE2dDAwMDA2dW15NDk1MHNhYXJmIiwiZW1haWwiOiJkYXZpZC5jaGVuQGtlbnN0cnVjdGlvbi5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.demo';
+      // Use the demo token format that the backend expects
+      const demoToken = 'demo-david-chen-token-' + Date.now();
       localStorage.setItem('authToken', demoToken);
       localStorage.setItem('token', demoToken);
       token = demoToken;
