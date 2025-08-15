@@ -150,7 +150,7 @@ export default function App() {
         // Update current user with new role/data
         const updatedUser = {
             ...currentUser,
-            role: data.mappedRole || data.role,
+            role: data?.mappedRole || data?.role || currentUser?.role,
             hasCompletedOnboarding: true,
             onboardingData: data
         };
