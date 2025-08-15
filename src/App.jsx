@@ -22,6 +22,7 @@ import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
 import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 
 // Removed mock data import
 import { projectsService, activitiesService } from './services/api';
@@ -90,6 +91,10 @@ export default function App() {
     const [projectsError, setProjectsError] = useState(null);
     const profileDropdownRef = useRef(null);
     
+    // Onboarding state
+    const [needsOnboarding, setNeedsOnboarding] = useState(false);
+    const [onboardingChecked, setOnboardingChecked] = useState(false);
+    
     // Navigation state must be declared before conditional returns
     const [navigationState, setNavigationState] = useState({
         selectedProject: null,
@@ -113,6 +118,47 @@ export default function App() {
             localStorage.setItem('user', JSON.stringify(currentUser));
         }
     }, []); // Empty deps - only run once on mount
+
+    // Check if user needs onboarding
+    useEffect(() => {
+        const checkOnboardingStatus = async () => {
+            if (!isAuthenticated || !currentUser) return;
+            
+            try {
+                // For now, check if user needs onboarding based on local logic
+                // In production, you'd call onboardingService.getOnboardingStatus()
+                const needsOnboarding = 
+                    currentUser.role === 'WORKER' || // Default role
+                    currentUser.hasCompletedOnboarding === false ||
+                    (!currentUser.hasCompletedOnboarding && !currentUser.onboardingData);
+                
+                setNeedsOnboarding(needsOnboarding);
+                setOnboardingChecked(true);
+            } catch (error) {
+                console.error('Error checking onboarding status:', error);
+                setOnboardingChecked(true);
+            }
+        };
+
+        checkOnboardingStatus();
+    }, [isAuthenticated, currentUser]);
+
+    // Handle onboarding completion
+    const handleOnboardingComplete = (data) => {
+        console.log('Onboarding completed:', data);
+        
+        // Update current user with new role/data
+        const updatedUser = {
+            ...currentUser,
+            role: data.mappedRole || data.role,
+            hasCompletedOnboarding: true,
+            onboardingData: data
+        };
+        
+        setCurrentUser(updatedUser);
+        setNeedsOnboarding(false);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
 
     // Handle successful login
     const handleLoginSuccess = (user, token) => {
@@ -800,6 +846,35 @@ export default function App() {
             );
         }
     };
+
+    // Show onboarding if user needs it
+    if (needsOnboarding && onboardingChecked) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <OnboardingFlow 
+                    currentUser={currentUser}
+                    onComplete={handleOnboardingComplete}
+                />
+                <Toaster />
+            </QueryClientProvider>
+        );
+    }
+
+    // Show loading state while checking onboarding
+    if (!onboardingChecked) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
+                        <p className="text-gray-600">Please wait while we prepare everything for you.</p>
+                    </div>
+                </div>
+                <Toaster />
+            </QueryClientProvider>
+        );
+    }
 
     return (
         <QueryClientProvider client={queryClient}>

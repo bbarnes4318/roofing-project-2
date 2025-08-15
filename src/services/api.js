@@ -198,6 +198,57 @@ export const authService = {
       department: 'Operations',
       isVerified: true
     };
+  },
+
+  // Update user profile (including onboarding data)
+  updateUserProfile: async (profileData) => {
+    const response = await api.put('/auth/profile', profileData);
+    if (response.data.data && response.data.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    return response.data;
+  }
+};
+
+// Onboarding Service
+export const onboardingService = {
+  // Get onboarding status
+  getOnboardingStatus: async () => {
+    const response = await api.get('/onboarding/status');
+    return response.data;
+  },
+
+  // Update user role during onboarding
+  updateRole: async (roleData) => {
+    const response = await api.put('/onboarding/role', roleData);
+    if (response.data.data && response.data.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    return response.data;
+  },
+
+  // Complete onboarding
+  completeOnboarding: async (onboardingData) => {
+    const response = await api.post('/onboarding/complete', { onboardingData });
+    if (response.data.data && response.data.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    return response.data;
+  },
+
+  // Get available roles
+  getAvailableRoles: async () => {
+    const response = await api.get('/onboarding/roles');
+    return response.data;
+  },
+
+  // Reset onboarding (for testing)
+  resetOnboarding: async () => {
+    const response = await api.post('/onboarding/reset');
+    if (response.data.data && response.data.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    return response.data;
   }
 };
 

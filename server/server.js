@@ -57,6 +57,7 @@ const alertRoutes = require('./routes/alerts').router;
 // const workflowUpdateRoutes = require('./routes/workflowUpdates'); // REMOVED - legacy route deleted
 const phaseOverrideRoutes = require('./routes/phaseOverride');
 const roleRoutes = require('./routes/roles');
+const onboardingRoutes = require('./routes/onboarding');
 
 // Try to load workflow import routes (requires xlsx, csv-parse, multer)
 let workflowImportRoutes;
@@ -606,6 +607,7 @@ app.set('io', io);
 app.use('/api/health', healthRoutes);
 app.use('/api/debug', debugRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/customers', customerRoutes);
