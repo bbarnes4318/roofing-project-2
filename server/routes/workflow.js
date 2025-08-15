@@ -210,7 +210,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
   }
 }));
 
-// @desc    Complete a workflow line item (COMPREHENSIVE HANDLER)
+// @desc    Complete a workflow line item (MODERNIZED)
 // @route   POST /api/workflows/complete-item
 // @access  Private
 router.post('/complete-item', 
@@ -229,31 +229,43 @@ router.post('/complete-item',
       });
     }
 
-    const { projectId, lineItemId, notes, alertId } = req.body;
+    const { projectId, lineItemId, notes } = req.body;
     const userId = req.user?.id || null;
 
-    console.log(`📝 Processing comprehensive line item completion: ${lineItemId} for project ${projectId}`);
+    console.log(`📝 Processing line item completion: ${lineItemId} for project ${projectId}`);
 
     try {
-      // Use comprehensive completion handler
-      const result = await WorkflowCompletionHandler.handleLineItemCompletion(
+      // Use new workflow completion service
+      const WorkflowCompletionService = require('../services/WorkflowCompletionService');
+      const result = await WorkflowCompletionService.completeLineItem(
         projectId,
         lineItemId,
         userId,
-        notes,
-        alertId
+        notes
       );
+
+      // Generate alert for next item if workflow continues
+      let nextAlert = null;
+      if (result.nextItem) {
+        nextAlert = await WorkflowCompletionService.generateAlertForCurrentItem(projectId);
+      }
 
       res.status(200).json({
         success: true,
-        data: result.result,
-        updatedData: result.updatedData,
-        message: 'Line item completed and all systems updated successfully'
+        data: {
+          completed: result.completedItem,
+          next: result.nextItem,
+          progress: result.progress,
+          alert: nextAlert
+        },
+        message: result.nextItem 
+          ? `Line item completed. Next: ${result.nextItem.lineItemName}`
+          : 'Workflow completed successfully!'
       });
 
     } catch (error) {
-      console.error('❌ Error in comprehensive line item completion:', error);
-      throw new AppError('Failed to complete line item', 500);
+      console.error('❌ Error completing line item:', error);
+      throw new AppError(error.message || 'Failed to complete line item', 500);
     }
 }));
 

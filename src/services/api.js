@@ -700,12 +700,13 @@ export const workflowService = {
     return response.data;
   },
 
-  // Complete workflow step (NEW: requires projectId and lineItemId)
+  // Complete workflow line item (MODERNIZED: uses new workflow system)
   completeStep: async (projectId, lineItemId, notes = '') => {
+    console.log(`🚀 Frontend: Completing line item ${lineItemId} for project ${projectId}`);
     const response = await api.post('/workflows/complete-item', {
       projectId,
       lineItemId,
-      notes
+      notes: notes || ''
     });
     return response.data;
   },

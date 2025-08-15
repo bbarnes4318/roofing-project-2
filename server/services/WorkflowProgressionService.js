@@ -5,27 +5,11 @@ const { prisma } = require('../config/prisma');
 
 class WorkflowProgressionService {
   /**
-   * OPTIMIZED: Initialize workflow with template-instance integration
+   * MODERNIZED: Initialize workflow using only template system (no WorkflowStep creation)
    */
   async initializeProjectWorkflow(projectId, workflowType = 'ROOFING') {
     try {
       return await prisma.$transaction(async (tx) => {
-        // Create project workflow instance
-        const projectWorkflow = await tx.projectWorkflow.create({
-          data: {
-            projectId,
-            workflowType,
-            status: 'IN_PROGRESS',
-            currentStepIndex: 0,
-            overallProgress: 0,
-            workflowStartDate: new Date(),
-            enableAlerts: true,
-            alertMethods: ['IN_APP', 'EMAIL'],
-            escalationEnabled: true,
-            escalationDelayDays: 2
-          }
-        });
-
         // Get the first phase from template system
         const firstPhase = await tx.workflowPhase.findFirst({
           where: { isActive: true, isCurrent: true },
@@ -48,74 +32,57 @@ class WorkflowProgressionService {
           throw new Error('No active workflow template found');
         }
 
-        // Create workflow steps from template
-        let stepOrder = 1;
-        const createdSteps = [];
-
-        for (const section of firstPhase.sections) {
-          for (const lineItem of section.lineItems) {
-            const step = await tx.workflowStep.create({
-              data: {
-                stepId: `${section.sectionNumber}${lineItem.itemLetter}`,
-                stepName: lineItem.itemName,
-                description: lineItem.description || '',
-                phase: firstPhase.phaseType,
-                defaultResponsible: lineItem.responsibleRole,
-                estimatedDuration: lineItem.estimatedMinutes,
-                stepOrder,
-                alertPriority: 'MEDIUM',
-                alertDays: lineItem.alertDays,
-                workflowId: projectWorkflow.id,
-                // OPTIMIZED: Link to template system
-                templatePhaseId: firstPhase.id,
-                templateSectionId: section.id,
-                templateLineItemId: lineItem.id,
-                state: stepOrder === 1 ? 'ACTIVE' : 'PENDING'
-              }
-            });
-            createdSteps.push(step);
-            stepOrder++;
-          }
-        }
-
-        // Create project workflow tracker with template and instance references
         const firstSection = firstPhase.sections[0];
         const firstLineItem = firstSection?.lineItems[0];
-        const firstStep = createdSteps[0];
 
+        if (!firstLineItem) {
+          throw new Error('No line items found in first workflow section');
+        }
+
+        // Create project workflow tracker using template references only
         const tracker = await tx.projectWorkflowTracker.create({
           data: {
             projectId,
             currentPhaseId: firstPhase.id,
-            currentSectionId: firstSection?.id,
-            currentLineItemId: firstLineItem?.id,
-            // OPTIMIZED: Add instance references
-            currentStepId: firstStep?.id,
-            workflowInstanceId: projectWorkflow.id,
+            currentSectionId: firstSection.id,
+            currentLineItemId: firstLineItem.id,
             phaseStartedAt: new Date(),
             sectionStartedAt: new Date(),
             lineItemStartedAt: new Date()
+          },
+          include: {
+            currentPhase: true,
+            currentSection: true,
+            currentLineItem: true
           }
         });
 
-        // Generate initial alert for first step
-        if (firstStep) {
-          await this.generateAlertForStep(tx, firstStep, projectId);
-        }
-
-        console.log(`✅ Initialized optimized workflow for project ${projectId} with ${createdSteps.length} steps`);
+        console.log(`✅ Initialized workflow for project ${projectId} starting with: ${firstLineItem.itemName}`);
         
         return {
-          projectWorkflow,
           tracker,
-          steps: createdSteps,
-          totalSteps: createdSteps.length
+          firstPhase,
+          firstSection,
+          firstLineItem,
+          totalSteps: await this.getTotalLineItemCount(tx)
         };
       });
     } catch (error) {
       console.error('Error initializing project workflow:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get total count of active line items
+   */
+  async getTotalLineItemCount(tx) {
+    return await tx.workflowLineItem.count({
+      where: {
+        isActive: true,
+        isCurrent: true
+      }
+    });
   }
 
   /**

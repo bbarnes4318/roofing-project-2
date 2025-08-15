@@ -274,39 +274,47 @@ model WorkflowStepAttachment {
 }
 
 model WorkflowAlert {
-  id              String          @id @default(cuid())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  type            String          @default("Work Flow Line Item") @db.VarChar(100)
-  priority        AlertPriority   @default(MEDIUM)
-  status          AlertStatus     @default(ACTIVE)
-  title           String          @db.VarChar(255)
-  message         String          @db.VarChar(2000)
-  stepName        String          @db.VarChar(255)
-  isRead          Boolean         @default(false)
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  type            String            @default("Work Flow Line Item") @db.VarChar(100)
+  priority        AlertPriority     @default(MEDIUM)
+  status          AlertStatus       @default(ACTIVE)
+  title           String            @db.VarChar(255)
+  message         String            @db.VarChar(2000)
+  stepName        String            @db.VarChar(255)
+  isRead          Boolean           @default(false)
   readAt          DateTime?
-  acknowledged    Boolean         @default(false)
+  acknowledged    Boolean           @default(false)
   acknowledgedAt  DateTime?
   dueDate         DateTime?
-  projectId       String          @map("project_id")
-  workflowId      String          @map("workflow_id")
-  stepId          String          @map("step_id")
-  assignedToId    String?         @map("assigned_to_id")
-  createdById     String?         @map("created_by_id")
+  projectId       String            @map("project_id")
+  lineItemId      String?           @map("line_item_id")
+  sectionId       String?           @map("section_id")
+  phaseId         String?           @map("phase_id")
+  assignedToId    String?           @map("assigned_to_id")
+  createdById     String?           @map("created_by_id")
   metadata        Json?
-  responsibleRole ResponsibleRole @default(OFFICE)
-  assignedTo      User?           @relation("AlertAssignedTo", fields: [assignedToId], references: [id])
-  createdBy       User?           @relation("AlertCreatedBy", fields: [createdById], references: [id])
-  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workflow        ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  step            WorkflowStep    @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  responsibleRole ResponsibleRole   @default(OFFICE)
+  // DEPRECATED: Legacy fields for backward compatibility
+  workflowId      String?           @map("workflow_id")
+  stepId          String?           @map("step_id")
+  assignedTo      User?             @relation("AlertAssignedTo", fields: [assignedToId], references: [id])
+  createdBy       User?             @relation("AlertCreatedBy", fields: [createdById], references: [id])
+  project         Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  lineItem        WorkflowLineItem? @relation(fields: [lineItemId], references: [id])
+  section         WorkflowSection?  @relation(fields: [sectionId], references: [id])
+  phase           WorkflowPhase?    @relation(fields: [phaseId], references: [id])
+  // DEPRECATED: Legacy relations
+  workflow        ProjectWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  step            WorkflowStep?     @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, stepId, status], map: "unique_active_alert")
+  @@unique([projectId, lineItemId, status], map: "unique_active_alert_new")
   @@index([projectId, status])
   @@index([assignedToId, status])
-  @@index([workflowId, stepId])
+  @@index([lineItemId, status])
   @@index([createdAt(sort: Desc), projectId])
-  @@index([stepId, status])
+  @@index([phaseId, sectionId])
   @@map("workflow_alerts")
 }
 
@@ -631,6 +639,7 @@ model WorkflowPhase {
   version         Int                      @default(1)
   projectTrackers ProjectWorkflowTracker[]
   sections        WorkflowSection[]
+  alerts          WorkflowAlert[]
   stepReferences  WorkflowStep[]           @relation("StepTemplatePhase")
 
   @@map("workflow_phases")
@@ -651,6 +660,7 @@ model WorkflowSection {
   version         Int                      @default(1)
   projectTrackers ProjectWorkflowTracker[]
   lineItems       WorkflowLineItem[]
+  alerts          WorkflowAlert[]
   phase           WorkflowPhase            @relation(fields: [phaseId], references: [id], onDelete: Cascade)
   stepReferences  WorkflowStep[]           @relation("StepTemplateSection")
 
@@ -676,6 +686,7 @@ model WorkflowLineItem {
   searchVector     String?
   version          Int                      @default(1)
   progressTrackers ProjectWorkflowTracker[]
+  alerts           WorkflowAlert[]
   section          WorkflowSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   stepReferences   WorkflowStep[]           @relation("StepTemplateLineItem")
 

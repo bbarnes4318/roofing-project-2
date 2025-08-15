@@ -2,13 +2,13 @@ const { prisma } = require('../config/prisma');
 
 class AlertGenerationService {
   /**
-   * Batch generate alerts for multiple projects (OPTIMIZED)
+   * Generate alerts for active line items (MODERNIZED for new workflow system)
    * @param {string[]} projectIds - Array of project IDs
    * @returns {Promise<Object[]>} Array of created alerts
    */
   static async generateBatchAlerts(projectIds) {
     try {
-      // Query to generate alerts with proper step references
+      // Query to get current active line items for projects
       const activeItems = await prisma.$queryRaw`
         SELECT 
           pwt.project_id,
@@ -17,26 +17,27 @@ class AlertGenerationService {
           wli."itemName" as item_name,
           wli."responsibleRole" as responsible_role,
           wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
           ws."displayName" as section_name,
+          wp.id as phase_id,
           wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
           p."projectNumber" as project_number,
           p."projectName" as project_name,
           p."project_manager_id" as project_manager_id,
           c."primaryName" as customer_name,
-          c.address as customer_address,
-          pw.id as project_workflow_id,
-          wst.id as workflow_step_id
+          c.address as customer_address
         FROM project_workflow_trackers pwt
         INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
         INNER JOIN workflow_sections ws ON ws.id = wli.section_id
         INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
         INNER JOIN projects p ON p.id = pwt.project_id
         LEFT JOIN customers c ON c.id = p.customer_id
-        LEFT JOIN project_workflows pw ON pw.project_id = p.id
-        LEFT JOIN workflow_steps wst ON wst."stepName" = wli."itemName" AND wst.workflow_id = pw.id
         WHERE pwt.project_id = ANY(${projectIds}::text[])
           AND wli."isActive" = true
           AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
       `;
 
       if (!activeItems || activeItems.length === 0) {
@@ -44,7 +45,7 @@ class AlertGenerationService {
         return [];
       }
 
-      // Get all responsible users in batch
+      // Get responsible users for each role
       const roles = [...new Set(activeItems.map(item => item.responsible_role))];
       const roleAssignments = await prisma.roleAssignment.findMany({
         where: {
@@ -58,15 +59,36 @@ class AlertGenerationService {
           }[r] || 'OFFICE_STAFF')) },
           isActive: true
         },
-        select: {
-          roleType: true,
-          userId: true
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
         }
       });
 
       const roleMap = new Map();
       roleAssignments.forEach(ra => {
-        roleMap.set(ra.roleType, ra.userId);
+        const roleKey = Object.keys({
+          OFFICE: 'OFFICE_STAFF',
+          ADMINISTRATION: 'ADMINISTRATION',
+          PROJECT_MANAGER: 'PROJECT_MANAGER',
+          FIELD_DIRECTOR: 'FIELD_DIRECTOR',
+          ROOF_SUPERVISOR: 'FIELD_DIRECTOR'
+        }).find(k => ({
+          OFFICE: 'OFFICE_STAFF',
+          ADMINISTRATION: 'ADMINISTRATION',
+          PROJECT_MANAGER: 'PROJECT_MANAGER',
+          FIELD_DIRECTOR: 'FIELD_DIRECTOR',
+          ROOF_SUPERVISOR: 'FIELD_DIRECTOR'
+        }[k] === ra.roleType));
+        if (roleKey) {
+          roleMap.set(roleKey, ra.user);
+        }
       });
 
       // Check for existing active alerts to avoid duplicates
@@ -77,12 +99,12 @@ class AlertGenerationService {
         },
         select: {
           projectId: true,
-          stepId: true
+          lineItemId: true
         }
       });
 
       const existingSet = new Set(
-        existingAlerts.map(a => `${a.projectId}-${a.stepId}`)
+        existingAlerts.map(a => `${a.projectId}-${a.lineItemId}`)
       );
 
       // Prepare batch alert data
@@ -90,53 +112,44 @@ class AlertGenerationService {
       const now = new Date();
 
       for (const item of activeItems) {
-        // Skip if no workflow step exists for this line item
-        if (!item.workflow_step_id) {
-          console.log(`⚠️ Skipping alert for ${item.item_name} - no corresponding workflow step found`);
-          continue;
-        }
-
-        // Skip if alert already exists (use workflow_step_id for proper FK reference)
-        const key = `${item.project_id}-${item.workflow_step_id}`;
+        // Skip if alert already exists for this line item
+        const key = `${item.project_id}-${item.line_item_id}`;
         if (existingSet.has(key)) {
-          continue;
-        }
-        
-        // Skip if workflowId is missing (project doesn't have workflow setup)
-        if (!item.project_workflow_id) {
-          console.log(`⚠️ Skipping project ${item.project_number} - no project workflow found`);
+          console.log(`⚠️ Skipping duplicate alert for ${item.item_name} on project ${item.project_number}`);
           continue;
         }
 
-        const mappedRoleType = ({
-          OFFICE: 'OFFICE_STAFF',
-          ADMINISTRATION: 'ADMINISTRATION',
-          PROJECT_MANAGER: 'PROJECT_MANAGER',
-          FIELD_DIRECTOR: 'FIELD_DIRECTOR',
-          ROOF_SUPERVISOR: 'FIELD_DIRECTOR'
-        })[item.responsible_role] || 'OFFICE_STAFF';
-        const assignedUserId = roleMap.get(mappedRoleType) || item.project_manager_id;
+        // Get assigned user for this responsibility role
+        const assignedUser = roleMap.get(item.responsible_role);
+        const assignedUserId = assignedUser?.id || item.project_manager_id;
         
         alertData.push({
           type: 'Work Flow Line Item',
           priority: 'MEDIUM',
           status: 'ACTIVE',
           title: `${item.item_name} - ${item.customer_name}`,
-          message: `${item.item_name} is now ready to be completed for project at ${item.project_name}`,
+          message: `${item.item_name} is now ready to be completed for project: ${item.project_name}`,
           stepName: item.item_name,
           responsibleRole: item.responsible_role,
           dueDate: new Date(now.getTime() + (item.alert_days || 1) * 24 * 60 * 60 * 1000),
           projectId: item.project_id,
-          workflowId: item.project_workflow_id,
-          // Use the actual workflow step ID for proper foreign key reference
-          stepId: item.workflow_step_id,
+          // NEW: Use line item references instead of WorkflowStep
+          lineItemId: item.line_item_id,
+          sectionId: item.section_id,
+          phaseId: item.phase_id,
           assignedToId: assignedUserId,
           metadata: {
             phase: item.phase_type,
+            phaseName: item.phase_name,
             section: item.section_name,
+            lineItem: item.item_name,
+            lineItemId: item.line_item_id,
+            sectionId: item.section_id,
+            phaseId: item.phase_id,
             projectNumber: item.project_number,
             customerName: item.customer_name,
-            address: item.customer_address
+            address: item.customer_address,
+            estimatedMinutes: item.estimated_minutes
           }
         });
       }
