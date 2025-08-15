@@ -7,9 +7,6 @@ async function main() {
   
   // Clear existing data (in correct order to avoid foreign key constraints)
   await prisma.roleAssignment.deleteMany();
-  await prisma.workflowStepAttachment.deleteMany();
-  await prisma.workflowSubTask.deleteMany();
-  await prisma.workflowStep.deleteMany();
   await prisma.projectWorkflow.deleteMany();
   await prisma.taskDependency.deleteMany();
   await prisma.task.deleteMany();

@@ -1,6 +1,0 @@
-id,createdAt,updatedAt,primaryName,primaryEmail,primaryPhone,secondaryName,secondaryEmail,secondaryPhone,primaryContact,address,notes
-cme1im8sf0000umt0e1825rk3,2025-08-07T14:51:39.902Z,2025-08-07T14:51:39.902Z,John Doe,john.doe@example.com,555-1234,,,,PRIMARY,"123 Main St, Anytown, USA",
-cme1zf4v70001umecoj38f6pp,2025-08-07T22:42:01.700Z,2025-08-07T22:42:01.700Z,Demo Customer,demo.customer.1754606521697@example.com,555-0199,,,,PRIMARY,"789 demo ave, sample city, USA",
-cme203lvu0001umbo10h7f40n,2025-08-07T23:01:03.498Z,2025-08-07T23:01:03.498Z,Demo Customer,demo.customer.1754607663497@example.com,555-0199,,,,PRIMARY,"789 demo ave, sample city, USA",
-cme20bktp0001um70ljqsd4gx,2025-08-07T23:07:15.374Z,2025-08-07T23:07:15.374Z,Demo Customer,demo.customer.1754608035369@example.com,555-0199,,,,PRIMARY,"789 demo ave, sample city, USA",
-cme22677c0001umjom5tsl66u,2025-08-07T23:59:03.673Z,2025-08-07T23:59:03.673Z,Demo Customer,demo.customer.1754611143665@example.com,555-0199,,,,PRIMARY,"789 demo ave, sample city, USA",

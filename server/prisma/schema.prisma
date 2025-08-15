@@ -72,8 +72,6 @@ model User {
   webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
   assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
-  workflowStepsAssigned    WorkflowStep[]            @relation("AssignedTo")
-  workflowStepsCompleted   WorkflowStep[]            @relation("CompletedBy")
 
   @@map("users")
 }
@@ -195,83 +193,10 @@ model ProjectWorkflow {
   createdBy               User?                  @relation("CreatedBy", fields: [createdById], references: [id])
   lastModifiedBy          User?                  @relation("LastModifiedBy", fields: [lastModifiedById], references: [id])
   project                 Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workflowAlerts          WorkflowAlert[]
-  steps                   WorkflowStep[]
 
   @@map("project_workflows")
 }
 
-model WorkflowStep {
-  id                 String                   @id @default(cuid())
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
-  stepId             String                   @db.VarChar(50)
-  stepName           String                   @db.VarChar(255)
-  description        String                   @db.VarChar(2000)
-  phase              ProjectPhase
-  defaultResponsible ResponsibleRole
-  assignedToId       String?                  @map("assigned_to_id")
-  estimatedDuration  Int
-  scheduledStartDate DateTime?
-  scheduledEndDate   DateTime?
-  actualStartDate    DateTime?
-  actualEndDate      DateTime?
-  isCompleted        Boolean                  @default(false)
-  completedAt        DateTime?
-  completedById      String?                  @map("completed_by_id")
-  alertPriority      AlertPriority            @default(MEDIUM)
-  alertDays          Int                      @default(1)
-  overdueIntervals   Int[]                    @default([1, 3, 7, 14])
-  notes              String?
-  completionNotes    String?
-  dependencies       String[]
-  workflowId         String                   @map("workflow_id")
-  stepOrder          Int
-  state              WorkflowState?           @default(PENDING)
-  templateLineItemId String?                  @map("template_line_item_id")
-  templatePhaseId    String?                  @map("template_phase_id")
-  templateSectionId  String?                  @map("template_section_id")
-  attachments        WorkflowStepAttachment[]
-  assignedTo         User?                    @relation("AssignedTo", fields: [assignedToId], references: [id])
-  completedBy        User?                    @relation("CompletedBy", fields: [completedById], references: [id])
-  templateLineItem   WorkflowLineItem?        @relation("StepTemplateLineItem", fields: [templateLineItemId], references: [id])
-  templatePhase      WorkflowPhase?           @relation("StepTemplatePhase", fields: [templatePhaseId], references: [id])
-  templateSection    WorkflowSection?         @relation("StepTemplateSection", fields: [templateSectionId], references: [id])
-  workflow           ProjectWorkflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  subTasks           WorkflowSubTask[]
-  alerts             WorkflowAlert[]
-
-  @@map("workflow_steps")
-}
-
-model WorkflowSubTask {
-  id            String       @id @default(cuid())
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  subTaskId     String       @db.VarChar(50)
-  subTaskName   String       @db.VarChar(500)
-  description   String?      @db.VarChar(2000)
-  isCompleted   Boolean      @default(false)
-  completedAt   DateTime?
-  completedById String?      @map("completed_by_id")
-  notes         String?
-  stepId        String       @map("step_id")
-  step          WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-  @@map("workflow_subtasks")
-}
-
-model WorkflowStepAttachment {
-  id         String       @id @default(cuid())
-  createdAt  DateTime     @default(now())
-  stepId     String       @map("step_id")
-  documentId String       @map("document_id")
-  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  step       WorkflowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-  @@unique([stepId, documentId])
-  @@map("workflow_step_attachments")
-}
 
 model WorkflowAlert {
   id              String            @id @default(cuid())
@@ -289,25 +214,19 @@ model WorkflowAlert {
   acknowledgedAt  DateTime?
   dueDate         DateTime?
   projectId       String            @map("project_id")
-  lineItemId      String?           @map("line_item_id")
-  sectionId       String?           @map("section_id")
-  phaseId         String?           @map("phase_id")
   assignedToId    String?           @map("assigned_to_id")
   createdById     String?           @map("created_by_id")
   metadata        Json?
   responsibleRole ResponsibleRole   @default(OFFICE)
-  // DEPRECATED: Legacy fields for backward compatibility
-  workflowId      String?           @map("workflow_id")
-  stepId          String?           @map("step_id")
+  lineItemId      String?           @map("line_item_id")
+  phaseId         String?           @map("phase_id")
+  sectionId       String?           @map("section_id")
   assignedTo      User?             @relation("AlertAssignedTo", fields: [assignedToId], references: [id])
   createdBy       User?             @relation("AlertCreatedBy", fields: [createdById], references: [id])
-  project         Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   lineItem        WorkflowLineItem? @relation(fields: [lineItemId], references: [id])
-  section         WorkflowSection?  @relation(fields: [sectionId], references: [id])
   phase           WorkflowPhase?    @relation(fields: [phaseId], references: [id])
-  // DEPRECATED: Legacy relations
-  workflow        ProjectWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  step            WorkflowStep?     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  project         Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  section         WorkflowSection?  @relation(fields: [sectionId], references: [id])
 
   @@unique([projectId, lineItemId, status], map: "unique_active_alert_new")
   @@index([projectId, status])
@@ -381,7 +300,6 @@ model Document {
   downloads           DocumentDownload[]
   project             Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy          User                     @relation("UploadedBy", fields: [uploadedById], references: [id])
-  workflowAttachments WorkflowStepAttachment[]
 
   @@map("documents")
 }
@@ -638,9 +556,8 @@ model WorkflowPhase {
   isCurrent       Boolean                  @default(true)
   version         Int                      @default(1)
   projectTrackers ProjectWorkflowTracker[]
-  sections        WorkflowSection[]
   alerts          WorkflowAlert[]
-  stepReferences  WorkflowStep[]           @relation("StepTemplatePhase")
+  sections        WorkflowSection[]
 
   @@map("workflow_phases")
 }
@@ -659,10 +576,9 @@ model WorkflowSection {
   isCurrent       Boolean                  @default(true)
   version         Int                      @default(1)
   projectTrackers ProjectWorkflowTracker[]
-  lineItems       WorkflowLineItem[]
   alerts          WorkflowAlert[]
+  lineItems       WorkflowLineItem[]
   phase           WorkflowPhase            @relation(fields: [phaseId], references: [id], onDelete: Cascade)
-  stepReferences  WorkflowStep[]           @relation("StepTemplateSection")
 
   @@unique([phaseId, sectionNumber])
   @@index([phaseId])
@@ -688,7 +604,6 @@ model WorkflowLineItem {
   progressTrackers ProjectWorkflowTracker[]
   alerts           WorkflowAlert[]
   section          WorkflowSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  stepReferences   WorkflowStep[]           @relation("StepTemplateLineItem")
 
   @@unique([sectionId, itemLetter])
   @@index([sectionId])
@@ -709,8 +624,6 @@ model ProjectWorkflowTracker {
   phaseStartedAt      DateTime?
   sectionStartedAt    DateTime?
   lineItemStartedAt   DateTime?
-  currentStepId       String?                 @map("current_step_id")
-  workflowInstanceId  String?                 @map("workflow_instance_id")
   completedItems      CompletedWorkflowItem[]
   currentLineItem     WorkflowLineItem?       @relation(fields: [currentLineItemId], references: [id])
   currentPhase        WorkflowPhase?          @relation(fields: [currentPhaseId], references: [id])

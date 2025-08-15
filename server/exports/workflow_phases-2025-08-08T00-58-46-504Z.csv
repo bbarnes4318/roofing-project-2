@@ -1,7 +1,0 @@
-id,createdAt,updatedAt,phaseName,phaseType,displayOrder,description,isActive
-cmdz32fob0000umpc9m2kyph2,2025-08-05T22:00:49.115Z,2025-08-05T22:52:23.111Z,Lead,LEAD,0,,true
-cmdz32gyl0011umpcfry7utim,2025-08-05T22:00:50.781Z,2025-08-05T22:52:24.063Z,Prospect,PROSPECT,2,,true
-cmdz32ing0033umpc4ixpym7z,2025-08-05T22:00:52.973Z,2025-08-05T22:52:25.905Z,Approved,APPROVED,6,,true
-cmdz32jzp004aumpcxxcspp8d,2025-08-05T22:00:54.709Z,2025-08-05T22:52:26.848Z,Execution,EXECUTION,8,,true
-cmdz32qpc006eumpc31hcjco7,2025-08-05T22:01:03.408Z,2025-08-05T22:52:28.500Z,Completion,COMPLETION,12,,true
-cme1pk1r90000umz4tmheyw7g,2025-08-07T18:05:54.789Z,2025-08-07T18:05:54.789Z,2nd Supplement,SECOND_SUPPLEMENT,10,Second supplement phase for additional work,true
