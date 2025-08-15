@@ -10,7 +10,7 @@ import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { teamMembers } from '../../data/mockData';
-import { usersService } from '../../services/api';
+import { usersService, projectMessagesService } from '../../services/api';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -488,6 +488,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     const [newMessageTo, setNewMessageTo] = useState('');
     const [newMessageSendAsTask, setNewMessageSendAsTask] = useState('');
     const [messagesData, setMessagesData] = useState([]);
+    const [projectMessages, setProjectMessages] = useState([]);
+    const [messagesLoading, setMessagesLoading] = useState(false);
     const [feed, setFeed] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [users, setUsers] = useState([]);
@@ -559,11 +561,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     
     // Calculate current activities for Project Messages (moved after state declarations)
     const calculateCurrentActivities = () => {
-        // Filter activities (use activities prop or messagesData)
-        const allActivities = activities || messagesData || [];
+        // Filter activities (use real project messages when in Messages tab, otherwise fallback to activities prop or mock data)
+        const allActivities = activeView === 'Messages' ? projectMessages : (activities || messagesData || []);
         
         let filteredActivities = allActivities.filter(activity => {
-            // CRITICAL: Always filter by current project when in project detail view
+            // For project messages from API, they're already filtered by project
+            if (activeView === 'Messages') {
+                return true; // Project messages API already filters by projectId
+            }
+            
+            // CRITICAL: For other activities, always filter by current project when in project detail view
             // Convert both to strings for comparison to handle type mismatches
             const activityProjectId = String(activity.projectId);
             const currentProjectId = String(project.id || project._id);
@@ -671,6 +678,32 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     useEffect(() => {
         console.log('🔍 PROJECT_DETAIL: activeView changed to:', activeView);
     }, [activeView]);
+
+    // Fetch project messages when Messages tab is active
+    useEffect(() => {
+        const fetchProjectMessages = async () => {
+            if (activeView === 'Messages' && project?.id) {
+                setMessagesLoading(true);
+                try {
+                    console.log(`🔍 MESSAGES: Fetching project messages for project ${project.id}`);
+                    const response = await projectMessagesService.getByProject(project.id, {
+                        page: 1,
+                        limit: 50,
+                        includeReplies: true
+                    });
+                    console.log(`✅ MESSAGES: Fetched ${response.data?.length || 0} messages for project`);
+                    setProjectMessages(response.data || []);
+                } catch (error) {
+                    console.error('❌ MESSAGES: Error fetching project messages:', error);
+                    setProjectMessages([]);
+                } finally {
+                    setMessagesLoading(false);
+                }
+            }
+        };
+
+        fetchProjectMessages();
+    }, [activeView, project?.id]);
 
     useLayoutEffect(() => {
         if (scrollRef.current) {
@@ -878,72 +911,52 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 {/* Add Message Dropdown Form */}
                                 {showMessageDropdown && (
                                     <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                                        <form onSubmit={(e) => {
+                                        <form onSubmit={async (e) => {
                                             e.preventDefault();
-                                            if (newMessageProject && newMessageSubject && newMessageText.trim() && newMessageTo) {
-                                                // Create new message activity
-                                                const selectedProject = projects?.find(p => p.id === parseInt(newMessageProject));
-                                                const targetedUser = users.find(u => u.id === parseInt(newMessageTo));
-                                                const taskAssignee = newMessageSendAsTask ? users.find(u => u.id === parseInt(newMessageSendAsTask)) : null;
-                                                
-                                                const newActivity = {
-                                                    id: `msg_${Date.now()}`,
-                                                    projectId: parseInt(newMessageProject),
-                                                    projectName: selectedProject?.name || 'Unknown Project',
-                                                    projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
-                                                    subject: newMessageSubject,
-                                                    description: newMessageText,
-                                                    user: currentUser.name,
-                                                    userId: currentUser.id,
-                                                    targetedTo: parseInt(newMessageTo),
-                                                    targetedToName: targetedUser?.name || 'Unknown User',
-                                                    isTask: !!newMessageSendAsTask,
-                                                    taskAssigneeId: taskAssignee?.id || null,
-                                                    taskAssigneeName: taskAssignee?.name || null,
-                                                    timestamp: new Date().toISOString(),
-                                                    type: newMessageSendAsTask ? 'task' : 'message',
-                                                    priority: newMessageSendAsTask ? 'high' : 'medium'
-                                                };
-                                                
-                                                // Add to messages data
-                                                setMessagesData(prev => [newActivity, ...prev]);
-                                                setFeed(prev => [newActivity, ...prev]);
-                                                
-                                                // Close dropdown and reset form
-                                                setShowMessageDropdown(false);
-                                                setNewMessageProject('');
-                                                setNewMessageSubject('');
-                                                setNewMessageText('');
-                                                setNewMessageTo('');
-                                                setNewMessageSendAsTask('');
+                                            if (newMessageSubject && newMessageText.trim()) {
+                                                try {
+                                                    console.log(`🔍 MESSAGES: Creating new message for project ${project.id}`);
+                                                    
+                                                    // Use the real API to create project message
+                                                    const newMessage = await projectMessagesService.create(project.id, {
+                                                        subject: newMessageSubject,
+                                                        content: newMessageText,
+                                                        priority: newMessageSendAsTask ? 'HIGH' : 'MEDIUM'
+                                                    });
+                                                    
+                                                    console.log('✅ MESSAGES: Created new message:', newMessage);
+                                                    
+                                                    // Refresh the messages list
+                                                    const response = await projectMessagesService.getByProject(project.id, {
+                                                        page: 1,
+                                                        limit: 50,
+                                                        includeReplies: true
+                                                    });
+                                                    setProjectMessages(response.data || []);
+                                                    
+                                                    // Close dropdown and reset form
+                                                    setShowMessageDropdown(false);
+                                                    setNewMessageSubject('');
+                                                    setNewMessageText('');
+                                                    setNewMessageTo('');
+                                                    setNewMessageSendAsTask('');
+                                                    
+                                                    toast.success('Message created successfully');
+                                                } catch (error) {
+                                                    console.error('❌ MESSAGES: Error creating message:', error);
+                                                    toast.error('Failed to create message');
+                                                }
                                             }
                                         }} className="space-y-3">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className={`block text-xs font-medium mb-1 ${
-                                                        colorMode ? 'text-gray-300' : 'text-gray-700'
-                                                    }`}>
-                                                        Project <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        value={newMessageProject}
-                                                        onChange={(e) => setNewMessageProject(e.target.value)}
-                                                        required
-                                                        className={`w-full p-2 border rounded text-xs ${
-                                                            colorMode 
-                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
-                                                                : 'bg-white border-gray-300 text-gray-800'
-                                                        }`}
-                                                    >
-                                                        <option value="">Select Project</option>
-                                                        {(projects || []).map(projectOption => (
-                                                            <option key={projectOption.id} value={projectOption.id}>
-                                                                #{String(projectOption.projectNumber || projectOption.id).padStart(5, '0')} - {projectOption.name || projectOption.address}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                
+                                            {/* Project info display */}
+                                            <div className={`mb-3 p-2 rounded text-xs ${
+                                                colorMode ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-700'
+                                            }`}>
+                                                <span className="font-medium">Creating message for: </span>
+                                                #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.projectName}
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-1 gap-3">
                                                 <div>
                                                     <label className={`block text-xs font-medium mb-1 ${
                                                         colorMode ? 'text-gray-300' : 'text-gray-700'
@@ -1076,9 +1089,13 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                             </div>
                             
                             <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
-                                {currentActivities.length === 0 ? (
+                                {messagesLoading ? (
                                     <div className="text-gray-400 text-center py-3 text-[9px]">
-                                        No messages found.
+                                        Loading project messages...
+                                    </div>
+                                ) : currentActivities.length === 0 ? (
+                                    <div className="text-gray-400 text-center py-3 text-[9px]">
+                                        No messages found for this project.
                                     </div>
                                 ) : (
                                     currentActivities.map(activity => {

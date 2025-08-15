@@ -53,9 +53,17 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   const limitNum = parseInt(limit);
   const skip = (pageNum - 1) * limitNum;
 
-  // Build filter object
+  // Build filter object - CRITICAL: Only show messages where user is a participant
   const where = {
-    isDeleted: false // Only show non-deleted messages
+    isDeleted: false, // Only show non-deleted messages
+    conversation: {
+      participants: {
+        some: {
+          userId: req.user.id, // Only messages in conversations where current user is a participant
+          leftAt: null // User hasn't left the conversation
+        }
+      }
+    }
   };
   
   if (conversationId) {
