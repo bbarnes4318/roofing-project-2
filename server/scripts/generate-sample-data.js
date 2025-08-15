@@ -446,9 +446,22 @@ async function generateSampleData() {
         }
       });
 
-      // Get the first phase and its first section and line item
-      const firstPhase = await prisma.workflowPhase.findFirst({
-        where: { phaseType: 'LEAD' },
+      // Define phase types for distribution
+      const phaseTypes = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
+      
+      // Distribute projects evenly across phases based on their status
+      let targetPhaseType;
+      if (status === 'PENDING') {
+        targetPhaseType = ['LEAD', 'PROSPECT'][i % 2]; // Alternate between LEAD and PROSPECT
+      } else if (status === 'IN_PROGRESS') {
+        targetPhaseType = ['APPROVED', 'EXECUTION'][i % 2]; // Alternate between APPROVED and EXECUTION
+      } else { // COMPLETED
+        targetPhaseType = ['SECOND_SUPPLEMENT', 'COMPLETION'][i % 2]; // Alternate between final phases
+      }
+
+      // Get the target phase and its first section and line item
+      const targetPhase = await prisma.workflowPhase.findFirst({
+        where: { phaseType: targetPhaseType },
         include: {
           sections: {
             include: {
@@ -464,14 +477,14 @@ async function generateSampleData() {
         }
       });
 
-      if (firstPhase && firstPhase.sections[0] && firstPhase.sections[0].lineItems[0]) {
-        // Create tracker for the project
+      if (targetPhase && targetPhase.sections[0] && targetPhase.sections[0].lineItems[0]) {
+        // Create tracker for the project positioned at the appropriate phase
         await prisma.projectWorkflowTracker.create({
           data: {
             projectId: createdProject.id,
-            currentLineItemId: firstPhase.sections[0].lineItems[0].id,
-            currentSectionId: firstPhase.sections[0].id,
-            currentPhaseId: firstPhase.id,
+            currentLineItemId: targetPhase.sections[0].lineItems[0].id,
+            currentSectionId: targetPhase.sections[0].id,
+            currentPhaseId: targetPhase.id,
             phaseStartedAt: startDate,
             sectionStartedAt: startDate,
             lineItemStartedAt: startDate
