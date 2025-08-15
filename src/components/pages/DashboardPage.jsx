@@ -338,14 +338,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         } else {
           // Fallback to mock users if API fails
           console.log('⚠️ Using fallback users for assignment');
-          setAvailableUsers([
+          const fallbackUsers = [
             { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
             { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
             { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
-          ]);
+          ];
+          setAvailableUsers(fallbackUsers);
+          console.log('✅ Set fallback users:', fallbackUsers);
         }
       } catch (error) {
         console.error('❌ Failed to fetch users:', error);
+        // Use fallback users on error too
+        const fallbackUsers = [
+          { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+          { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+          { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+        ];
+        setAvailableUsers(fallbackUsers);
+        console.log('✅ Set fallback users after error:', fallbackUsers);
       } finally {
         setUsersLoading(false);
       }
