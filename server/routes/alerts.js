@@ -254,7 +254,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
             }
           }
         },
-        step: false, // Disabled - many alerts don't have valid step_id
+        // NOTE: step field removed - using lineItem references in new system
         assignedTo: {
           select: {
             id: true,

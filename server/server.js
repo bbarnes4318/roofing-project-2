@@ -54,7 +54,7 @@ try {
 }
 
 const alertRoutes = require('./routes/alerts').router;
-const workflowUpdateRoutes = require('./routes/workflowUpdates');
+// const workflowUpdateRoutes = require('./routes/workflowUpdates'); // REMOVED - legacy route deleted
 const phaseOverrideRoutes = require('./routes/phaseOverride');
 const roleRoutes = require('./routes/roles');
 
@@ -624,7 +624,7 @@ if (workflowRoutes) {
 }
 app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/workflow-updates', workflowUpdateRoutes);
+// app.use('/api/workflow-updates', workflowUpdateRoutes); // REMOVED - legacy route deleted
 app.use('/api/phase-override', phaseOverrideRoutes);
 if (workflowImportRoutes) {
   app.use('/api/workflow-import', workflowImportRoutes);

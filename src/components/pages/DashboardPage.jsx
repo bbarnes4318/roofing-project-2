@@ -1596,6 +1596,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
       // Step 2: Create project with customerId
       const projectData = {
+        projectNumber: parseInt(newProject.projectNumber), // ADD: Send user-entered project number
         projectName: newProject.customerName,
         projectType: newProject.jobType,
         customerId: customerId,

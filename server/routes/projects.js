@@ -395,28 +395,7 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
             },
             take: 10 // Limit team members for performance
           },
-          workflow: {
-            select: {
-              id: true,
-              currentStepIndex: true,
-              overallProgress: true,
-              status: true,
-              steps: {
-                select: {
-                  id: true,
-                  stepId: true,
-                  stepName: true,
-                  phase: true,
-                  isCompleted: true,
-                  completedAt: true,
-                  actualStartDate: true
-                },
-                orderBy: {
-                  stepId: 'asc'
-                }
-              }
-            }
-          },
+          // NOTE: workflow field removed - using new workflowTracker system instead
           phaseOverrides: {
             where: { isActive: true },
             select: {
@@ -670,15 +649,20 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       }
     }
 
-    // Generate unique project number
-    const lastProject = await prisma.project.findFirst({
-      orderBy: { projectNumber: 'desc' }
-    });
-    const nextProjectNumber = (lastProject?.projectNumber || 10000) + 1;
+    // Use user-provided project number or auto-generate if not provided
+    let projectNumber;
+    if (req.body.projectNumber) {
+      projectNumber = parseInt(req.body.projectNumber);
+    } else {
+      const lastProject = await prisma.project.findFirst({
+        orderBy: { projectNumber: 'desc' }
+      });
+      projectNumber = (lastProject?.projectNumber || 10000) + 1;
+    }
 
     // Create project data
     const projectData = {
-      projectNumber: nextProjectNumber,
+      projectNumber: projectNumber,
       projectName: req.body.projectName || customer.address, // Use customer address as project name
       projectType: req.body.projectType,
       status: req.body.status || 'PENDING',
@@ -721,8 +705,19 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       );
       
       if (workflowResult?.tracker?.currentLineItemId) {
-        // Alert is automatically generated in optimized workflow
         console.log(`✅ Optimized workflow initialized with ${workflowResult.totalSteps} steps`);
+        
+        // CRITICAL: Generate first alert immediately for the new project
+        try {
+          const alerts = await AlertGenerationService.generateBatchAlerts([project.id]);
+          if (alerts && alerts.length > 0) {
+            console.log(`✅ First alert generated for new project ${project.id}: "${alerts[0].title}"`);
+          } else {
+            console.warn(`⚠️ No alert generated for new project ${project.id} - may need role assignments`);
+          }
+        } catch (alertErr) {
+          console.error(`❌ Failed to generate first alert for project ${project.id}:`, alertErr?.message);
+        }
       }
     } catch (werr) {
       console.warn('⚠️ Optimized workflow init failed (project still created):', werr?.message);
