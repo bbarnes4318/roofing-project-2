@@ -16,8 +16,8 @@ const PHASES = {
 class WorkflowProgressService {
     
     /**
-     * Calculate project completion percentage using currentWorkflowItem
-     * @param {Object} project - Project object with currentWorkflowItem
+     * Calculate project completion percentage using completed line items
+     * @param {Object} project - Project object with currentWorkflowItem containing completedItems
      * @returns {Object} Progress data with overall percentage and breakdown
      */
     static calculateProjectProgress(project) {
@@ -43,44 +43,107 @@ class WorkflowProgressService {
                 currentLineItem: null,
                 totalPhases: Object.keys(PHASES).length,
                 completedPhases: Object.keys(PHASES).length,
-                hasPhaseOverride: false
+                hasPhaseOverride: false,
+                completedLineItems: currentWorkflow.completedItems?.length || 0,
+                totalLineItems: currentWorkflow.totalLineItems || 0
             };
         }
 
-        // Calculate progress based on current position
+        // Calculate progress based on completed line items
+        const completedItems = currentWorkflow.completedItems || [];
+        const totalLineItems = currentWorkflow.totalLineItems || this.estimateTotalLineItems();
+        
+        // Calculate overall progress from completed line items
+        let overallProgress = 0;
+        if (totalLineItems > 0) {
+            overallProgress = Math.round((completedItems.length / totalLineItems) * 100);
+        } else {
+            // Fallback to phase-based calculation if no line item data
+            const currentPhase = currentWorkflow.phase || 'LEAD';
+            const phaseKeys = Object.keys(PHASES);
+            const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
+            
+            if (currentPhaseIndex >= 0) {
+                const completedPhaseWeight = phaseKeys.slice(0, currentPhaseIndex)
+                    .reduce((sum, key) => sum + PHASES[key].weight, 0);
+                const currentPhaseWeight = PHASES[currentPhase].weight * 0.5;
+                const totalWeight = Object.values(PHASES).reduce((sum, phase) => sum + phase.weight, 0);
+                overallProgress = Math.round(((completedPhaseWeight + currentPhaseWeight) / totalWeight) * 100);
+            }
+        }
+
         const currentPhase = currentWorkflow.phase || 'LEAD';
         const phaseKeys = Object.keys(PHASES);
         const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
-        
-        // Calculate overall progress
-        let overallProgress = 0;
-        if (currentPhaseIndex >= 0) {
-            // Previous phases are 100% complete
-            const completedPhaseWeight = phaseKeys.slice(0, currentPhaseIndex)
-                .reduce((sum, key) => sum + PHASES[key].weight, 0);
-            
-            // Current phase is partially complete (assume 50% if active)
-            const currentPhaseWeight = PHASES[currentPhase].weight * 0.5;
-            
-            const totalWeight = Object.values(PHASES).reduce((sum, phase) => sum + phase.weight, 0);
-            overallProgress = Math.round(((completedPhaseWeight + currentPhaseWeight) / totalWeight) * 100);
-        }
 
         return {
-            overall: Math.min(overallProgress, 95), // Cap at 95% until truly complete
-            phaseBreakdown: this.calculatePhaseBreakdown(currentPhase, currentPhaseIndex),
+            overall: Math.min(overallProgress, 100),
+            phaseBreakdown: this.calculatePhaseBreakdownFromLineItems(completedItems, currentPhase, currentPhaseIndex),
             currentPhase: currentPhase,
             currentPhaseDisplay: currentWorkflow.phaseDisplay || this.formatPhase(currentPhase),
             currentSection: currentWorkflow.section,
             currentLineItem: currentWorkflow.lineItem,
             totalPhases: phaseKeys.length,
             completedPhases: currentPhaseIndex,
-            hasPhaseOverride: false
+            hasPhaseOverride: false,
+            completedLineItems: completedItems.length,
+            totalLineItems: totalLineItems
         };
     }
 
     /**
-     * Calculate phase breakdown for progress display
+     * Estimate total line items (fallback when not provided)
+     */
+    static estimateTotalLineItems() {
+        // Conservative estimate: roughly 20-30 line items per typical roofing workflow
+        return 25;
+    }
+
+    /**
+     * Calculate phase breakdown based on completed line items
+     */
+    static calculatePhaseBreakdownFromLineItems(completedItems, currentPhase, currentPhaseIndex) {
+        const breakdown = {};
+        const phaseKeys = Object.keys(PHASES);
+        
+        // Group completed items by phase
+        const completedByPhase = {};
+        completedItems.forEach(item => {
+            if (item.phaseId) {
+                completedByPhase[item.phaseId] = (completedByPhase[item.phaseId] || 0) + 1;
+            }
+        });
+        
+        phaseKeys.forEach((phaseKey, index) => {
+            let progress = 0;
+            const completedCount = completedByPhase[phaseKey] || 0;
+            
+            if (index < currentPhaseIndex) {
+                progress = 100; // Completed phases
+            } else if (index === currentPhaseIndex) {
+                // Current phase progress based on completed items
+                // Estimate 5-6 items per phase
+                const estimatedItemsPerPhase = Math.ceil(this.estimateTotalLineItems() / phaseKeys.length);
+                progress = Math.min(Math.round((completedCount / estimatedItemsPerPhase) * 100), 95);
+            }
+            // Future phases remain at 0
+            
+            breakdown[phaseKey] = {
+                name: PHASES[phaseKey].name,
+                progress: progress,
+                weight: PHASES[phaseKey].weight,
+                isCompleted: progress === 100,
+                isCurrent: index === currentPhaseIndex,
+                isPending: index > currentPhaseIndex,
+                completedItems: completedCount
+            };
+        });
+        
+        return breakdown;
+    }
+
+    /**
+     * Calculate phase breakdown for progress display (legacy method)
      */
     static calculatePhaseBreakdown(currentPhase, currentPhaseIndex) {
         const breakdown = {};

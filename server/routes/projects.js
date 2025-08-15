@@ -115,9 +115,33 @@ const getProjectPhaseDisplay = (phaseKey) => {
   return displayMap[phaseKey] || phaseKey;
 };
 
+// Helper function to get total line items count for a workflow
+const getTotalLineItemsCount = async (workflowType = 'ROOFING') => {
+  try {
+    const count = await prisma.workflowLineItem.count({
+      where: {
+        isActive: true,
+        section: {
+          isActive: true,
+          phase: {
+            isActive: true
+          }
+        }
+      }
+    });
+    return count || 25; // Default estimate
+  } catch (error) {
+    console.error('Error counting total line items:', error);
+    return 25; // Default estimate
+  }
+};
+
 // **CRITICAL: Data transformation layer for frontend compatibility**
-const transformProjectForFrontend = (project) => {
+const transformProjectForFrontend = async (project) => {
   if (!project) return null;
+  
+  // Get total line items count for progress calculation
+  const totalLineItems = await getTotalLineItemsCount();
   
   return {
     // Keep both ID formats for compatibility
@@ -226,7 +250,9 @@ const transformProjectForFrontend = (project) => {
       lineItemId: project.workflowTracker.currentLineItem?.id || null,
       sectionId: project.workflowTracker.currentSectionId || null,
       phaseId: project.workflowTracker.currentPhaseId || null,
-      isComplete: !project.workflowTracker.currentPhaseId && !project.workflowTracker.currentSectionId && !project.workflowTracker.currentLineItemId
+      isComplete: !project.workflowTracker.currentPhaseId && !project.workflowTracker.currentSectionId && !project.workflowTracker.currentLineItemId,
+      completedItems: project.workflowTracker.completedItems || [],
+      totalLineItems: totalLineItems
     } : null,
     
     // Additional fields for compatibility
@@ -449,6 +475,16 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
                     }
                   }
                 }
+              },
+              completedItems: {
+                select: {
+                  id: true,
+                  lineItemId: true,
+                  phaseId: true,
+                  sectionId: true,
+                  completedAt: true,
+                  completedById: true
+                }
               }
             }
           }
@@ -458,7 +494,7 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
     ]);
 
     // Transform projects for frontend compatibility
-    const transformedProjects = projects.map(transformProjectForFrontend);
+    const transformedProjects = await Promise.all(projects.map(transformProjectForFrontend));
     
     // Enhance projects with calculated progress data
     const enhancedProjects = await enhanceProjectsWithProgress(transformedProjects);
@@ -596,10 +632,19 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
                   }
                 }
               }
+            },
+            completedItems: {
+              select: {
+                id: true,
+                lineItemId: true,
+                phaseId: true,
+                sectionId: true,
+                completedAt: true,
+                completedById: true
+              }
             }
           }
         }
-      }
     });
 
     if (!project) {
@@ -607,7 +652,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
     }
 
     // Transform project for frontend compatibility
-    const transformedProject = transformProjectForFrontend(project);
+    const transformedProject = await transformProjectForFrontend(project);
     
     sendSuccess(res, 200, transformedProject, 'Project retrieved successfully');
   } catch (error) {
@@ -724,7 +769,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     }
 
     // Transform project for frontend compatibility
-    const transformedProject = transformProjectForFrontend(project);
+    const transformedProject = await transformProjectForFrontend(project);
 
     // Invalidate caches so the new project and related lists show up immediately
     try {
@@ -828,7 +873,7 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     });
 
     // Transform project for frontend compatibility
-    const transformedProject = transformProjectForFrontend(updatedProject);
+    const transformedProject = await transformProjectForFrontend(updatedProject);
 
     // Invalidate cache for projects
     await cacheService.invalidateRelated('project', req.params.id);
@@ -904,7 +949,7 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
     });
 
     // Transform project for frontend compatibility
-    const transformedProject = transformProjectForFrontend(updatedProject);
+    const transformedProject = await transformProjectForFrontend(updatedProject);
 
     // Invalidate cache for projects
     await cacheService.invalidateRelated('project', req.params.id);
