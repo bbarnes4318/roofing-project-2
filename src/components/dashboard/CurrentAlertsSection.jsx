@@ -780,7 +780,7 @@ const CurrentAlertsSection = ({
                             // Complete the workflow line item
                             const response = await api.post('/workflows/complete-item', {
                               projectId: alert.projectId,
-                              lineItemId: alert.stepId || alert.metadata?.stepId,
+                              lineItemId: alert.lineItemId || alert.metadata?.lineItemId || alert.stepId || alert.metadata?.stepId,
                               notes: `Completed via Current Alerts Section at ${new Date().toLocaleString()}`,
                               alertId: alert.id
                             });

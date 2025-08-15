@@ -345,6 +345,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
         dueDate: alert.dueDate,
         workflowId: alert.workflowId,
         stepId: alert.stepId,
+        lineItemId: alert.lineItemId, // Add lineItemId for workflow completion
         // CRITICAL: Use metadata values for section and lineItem
         section: metadata.section || 'General Workflow',
         lineItem: metadata.lineItem || alert.stepName,
@@ -368,6 +369,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
           lineItem: metadata.lineItem || alert.stepName,
           workflowId: alert.workflowId,
           stepId: alert.stepId,
+          lineItemId: alert.lineItemId, // Add lineItemId for workflow completion
           responsibleRole: metadata.responsibleRole,
           trackerId: metadata.trackerId
         }

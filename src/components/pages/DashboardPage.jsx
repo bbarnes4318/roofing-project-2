@@ -1175,7 +1175,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       let lineItemId = null;
       
       // Try multiple possible field locations for lineItemId
-      if (alert.metadata?.lineItemId) {
+      if (alert.lineItemId) {
+        lineItemId = alert.lineItemId;
+        console.log('✅ Found lineItemId in alert');
+      } else if (alert.metadata?.lineItemId) {
         lineItemId = alert.metadata.lineItemId;
         console.log('✅ Found lineItemId in metadata');
       } else if (alert.stepId) {
