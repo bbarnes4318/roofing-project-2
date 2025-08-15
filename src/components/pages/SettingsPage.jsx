@@ -37,9 +37,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
   const [taskReminders, setTaskReminders] = useState(true);
   const [systemAlerts, setSystemAlerts] = useState(true);
 
-  // Security settings
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
-  const [sessionTimeout, setSessionTimeout] = useState(30);
+  // Security settings (simplified)
+  // Note: 2FA and Session Timeout removed per requirements
 
   // Excel Data Manager state
   const [uploadFile, setUploadFile] = useState(null);
@@ -432,19 +431,31 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     fetchWorkflowTemplates();
   }, []);
 
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: '👤' },
-    { id: 'preferences', label: 'Preferences', icon: '⚙️' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔' },
-    { id: 'security', label: 'Security', icon: '🔒' },
-    { id: 'roles', label: 'Roles', icon: '👥' },
-    { id: 'excel-data', label: 'Excel Data', icon: '📊' },
-    { id: 'complete-excel', label: 'Complete DB Manager', icon: '🗄️' },
-    { id: 'company', label: 'Company', icon: '🏢' },
-    { id: 'project-import', label: 'Project Import', icon: '🏗️' },
-    { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
-    { id: 'subjects', label: 'Subjects', icon: '📝' }
-  ];
+  // Get visible tabs based on user permissions
+  const getVisibleTabs = () => {
+    const baseTabs = [
+      { id: 'profile', label: 'Profile', icon: '👤' },
+      // Note: Preferences section removed per requirements
+      // Note: Notifications section hidden per requirements
+      { id: 'security', label: 'Security', icon: '🔒' },
+      { id: 'roles', label: 'Roles', icon: '👥' },
+      // Note: Excel Data section hidden per requirements
+      { id: 'subjects', label: 'Subjects', icon: '📝' }
+    ];
+
+    // Add admin-only tabs for authorized users
+    if (mockUser.role === 'Owner' || mockUser.email === 'sarah.owner@kenstruction.com') {
+      baseTabs.push(
+        { id: 'project-import', label: 'Project Import', icon: '🏗️' },
+        { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
+        { id: 'complete-excel', label: 'Complete DB Manager', icon: '🗄️' }
+      );
+    }
+
+    return baseTabs;
+  };
+
+  const tabs = getVisibleTabs();
 
   const renderProfileTab = () => (
     <div className="space-y-3">
@@ -496,15 +507,7 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
           />
         </div>
-        <div>
-          <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Company</label>
-          <input
-            type="text"
-            value={company}
-            onChange={e => setCompany(e.target.value)}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
-          />
-        </div>
+        {/* Note: Company field removed per requirements */}
       </div>
     </div>
   );
@@ -658,39 +661,8 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
 
   const renderSecurityTab = () => (
     <div className="space-y-3">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between p-2 rounded border border-gray-200">
-          <div>
-            <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Two-Factor Authentication</div>
-            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Add an extra layer of security</div>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={twoFactorAuth}
-              onChange={e => setTwoFactorAuth(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${twoFactorAuth ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-          </label>
-        </div>
-
-        <div>
-          <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Session Timeout (minutes)</label>
-          <select
-            value={sessionTimeout}
-            onChange={e => setSessionTimeout(Number(e.target.value))}
-            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
-          >
-            <option value={15}>15 minutes</option>
-            <option value={30}>30 minutes</option>
-            <option value={60}>1 hour</option>
-            <option value={120}>2 hours</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="border-t border-gray-200 pt-3">
+      {/* Note: 2FA and Session Timeout removed per requirements */}
+      <div className="">
         <h3 className={`text-sm font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>Change Password</h3>
         <div className="space-y-2">
           <div>
@@ -1324,8 +1296,11 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
         <div className={`text-xs space-y-1 ${
           colorMode ? 'text-blue-200' : 'text-blue-600'
         }`}>
-          <p><strong>Required Columns:</strong> projectNumber, projectName, primaryName, primaryEmail, address</p>
-          <p><strong>Optional Columns:</strong> primaryPhone, secondaryName, secondaryEmail, secondaryPhone, primaryContact, customerNotes, projectType, status, priority, budget, estimatedCost, startDate, endDate, description, notes, pmPhone, pmEmail</p>
+          <p><strong>Required Columns:</strong> projectNumber, projectName, primaryName, primaryEmail, primaryPhone, address, projectType, budget, startDate, endDate</p>
+          <p><strong>Optional Columns:</strong> secondaryName, secondaryEmail, secondaryPhone, primaryContact, notes (customer notes), status, priority, estimatedCost, actualCost, description (project description), pmPhone, pmEmail, progress</p>
+          <p><strong>Valid Project Types:</strong> ROOF_REPLACEMENT, KITCHEN_REMODEL, BATHROOM_RENOVATION, SIDING_INSTALLATION, WINDOW_REPLACEMENT, FLOORING, PAINTING, ELECTRICAL_WORK, PLUMBING, HVAC, DECK_CONSTRUCTION, LANDSCAPING, OTHER</p>
+          <p><strong>Valid Statuses:</strong> PENDING, IN_PROGRESS, COMPLETED, ON_HOLD</p>
+          <p><strong>Valid Priorities:</strong> LOW, MEDIUM, HIGH</p>
         </div>
       </div>
 
@@ -1964,20 +1939,16 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     switch (activeTab) {
       case 'profile':
         return renderProfileTab();
-      case 'preferences':
-        return renderPreferencesTab();
-      case 'notifications':
-        return renderNotificationsTab();
+      // Note: Preferences section removed per requirements
+      // Note: Notifications section hidden per requirements
       case 'security':
         return renderSecurityTab();
       case 'roles':
         return renderRolesTab();
-      case 'excel-data':
-        return renderExcelDataTab();
+      // Note: Excel Data section hidden per requirements
       case 'complete-excel':
         return <CompleteExcelDataManager colorMode={colorMode} />;
-      case 'company':
-        return renderCompanyTab();
+      // Note: Company section removed per requirements
       case 'project-import':
         return renderProjectImportTab();
       case 'workflow-import':
@@ -2016,14 +1987,24 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
             <form onSubmit={handleSave}>
               {renderTabContent()}
               
-              <div className="flex justify-end pt-3 border-t border-gray-200 mt-4">
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white font-semibold py-2 px-4 rounded text-sm hover:bg-blue-700 transition-colors duration-200 shadow-sm"
-                >
-                  Save Changes
-                </button>
-              </div>
+              {/* Note: Most settings auto-save. Save button primarily for Profile and Security changes */}
+              {(activeTab === 'profile' || activeTab === 'security') && (
+                <div className="flex justify-end pt-3 border-t border-gray-200 mt-4">
+                  <button
+                    type="submit"
+                    className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm ${
+                      colorMode 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/20' 
+                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+                    } hover:shadow-md transform hover:scale-105`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>💾</span>
+                      Save Changes
+                    </span>
+                  </button>
+                </div>
+              )}
             </form>
 
             {success && (

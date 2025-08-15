@@ -804,4 +804,254 @@ router.get('/project/:projectId/progress', asyncHandler(async (req, res) => {
   }
 }));
 
+// @desc    Get all workflow line items (ADMIN ONLY)
+// @route   GET /api/workflows/line-items
+// @access  Private (Admin)
+router.get('/line-items', asyncHandler(async (req, res) => {
+  console.log('🔍 WORKFLOW: Fetching all line items for admin management');
+  
+  try {
+    const lineItems = await prisma.workflowLineItem.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' },
+      include: {
+        section: {
+          include: {
+            phase: {
+              select: {
+                id: true,
+                phaseType: true,
+                phaseName: true
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    const formattedItems = lineItems.map(item => ({
+      id: item.id,
+      itemLetter: item.itemLetter,
+      itemName: item.itemName,
+      responsibleRole: item.responsibleRole,
+      displayOrder: item.displayOrder,
+      description: item.description,
+      estimatedMinutes: item.estimatedMinutes,
+      alertDays: item.alertDays,
+      section: {
+        id: item.section.id,
+        displayName: item.section.displayName,
+        sectionNumber: item.section.sectionNumber
+      },
+      phase: {
+        id: item.section.phase.id,
+        phaseType: item.section.phase.phaseType,
+        phaseName: item.section.phase.phaseName
+      }
+    }));
+    
+    console.log(`✅ WORKFLOW: Retrieved ${formattedItems.length} line items`);
+    
+    res.status(200).json({
+      success: true,
+      data: formattedItems,
+      message: 'Line items retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error fetching line items:', error);
+    throw new AppError('Failed to fetch line items', 500);
+  }
+}));
+
+// @desc    Update workflow line item name (ADMIN ONLY)
+// @route   PUT /api/workflows/line-items/:id
+// @access  Private (Admin)
+router.put('/line-items/:id', 
+  [
+    body('itemName').isString().isLength({ min: 1, max: 500 }).withMessage('Item name must be between 1 and 500 characters')
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: formatValidationErrors(errors)
+      });
+    }
+
+    const { id } = req.params;
+    const { itemName } = req.body;
+    
+    console.log(`📝 WORKFLOW: Updating line item ${id} name to: "${itemName}"`);
+    
+    try {
+      // Check if line item exists
+      const existingItem = await prisma.workflowLineItem.findUnique({
+        where: { id },
+        include: {
+          section: {
+            include: { phase: true }
+          }
+        }
+      });
+      
+      if (!existingItem) {
+        return res.status(404).json({
+          success: false,
+          message: 'Line item not found'
+        });
+      }
+      
+      // Update the line item name
+      const updatedItem = await prisma.workflowLineItem.update({
+        where: { id },
+        data: { 
+          itemName,
+          updatedAt: new Date()
+        },
+        include: {
+          section: {
+            include: { phase: true }
+          }
+        }
+      });
+      
+      console.log(`✅ WORKFLOW: Successfully updated line item ${id} name`);
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          id: updatedItem.id,
+          itemLetter: updatedItem.itemLetter,
+          itemName: updatedItem.itemName,
+          oldName: existingItem.itemName,
+          section: updatedItem.section.displayName,
+          phase: updatedItem.section.phase.phaseName
+        },
+        message: 'Line item updated successfully'
+      });
+      
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error updating line item:', error);
+      throw new AppError('Failed to update line item', 500);
+    }
+}));
+
+// @desc    Bulk update workflow line items (ADMIN ONLY)
+// @route   PUT /api/workflows/line-items/bulk
+// @access  Private (Admin)
+router.put('/line-items/bulk', 
+  [
+    body('updates').isArray({ min: 1 }).withMessage('Updates array is required')
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: formatValidationErrors(errors)
+      });
+    }
+
+    const { updates } = req.body;
+    
+    // Manual validation for nested array items
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Updates array is required and must not be empty'
+      });
+    }
+    
+    // Validate each update item
+    for (let i = 0; i < updates.length; i++) {
+      const update = updates[i];
+      if (!update.id || typeof update.id !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: `Update item ${i + 1}: ID is required and must be a string`
+        });
+      }
+      if (!update.itemName || typeof update.itemName !== 'string' || update.itemName.length === 0 || update.itemName.length > 500) {
+        return res.status(400).json({
+          success: false,
+          message: `Update item ${i + 1}: itemName must be a string between 1 and 500 characters`
+        });
+      }
+    }
+    
+    console.log(`📝 WORKFLOW: Bulk updating ${updates.length} line items`);
+    
+    try {
+      const results = [];
+      const errors = [];
+      
+      // Process each update in a transaction for safety
+      await prisma.$transaction(async (tx) => {
+        for (const update of updates) {
+          try {
+            // Check if line item exists
+            const existingItem = await tx.workflowLineItem.findUnique({
+              where: { id: update.id },
+              select: { id: true, itemName: true }
+            });
+            
+            if (!existingItem) {
+              errors.push({ id: update.id, error: 'Line item not found' });
+              continue;
+            }
+            
+            // Update the line item
+            const updatedItem = await tx.workflowLineItem.update({
+              where: { id: update.id },
+              data: { 
+                itemName: update.itemName,
+                updatedAt: new Date()
+              },
+              select: {
+                id: true,
+                itemName: true,
+                itemLetter: true
+              }
+            });
+            
+            results.push({
+              id: updatedItem.id,
+              itemLetter: updatedItem.itemLetter,
+              oldName: existingItem.itemName,
+              newName: updatedItem.itemName
+            });
+            
+          } catch (itemError) {
+            console.error(`❌ Error updating item ${update.id}:`, itemError);
+            errors.push({ id: update.id, error: itemError.message });
+          }
+        }
+      });
+      
+      console.log(`✅ WORKFLOW: Bulk update completed - ${results.length} successful, ${errors.length} errors`);
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          updated: results,
+          errors: errors,
+          summary: {
+            total: updates.length,
+            successful: results.length,
+            failed: errors.length
+          }
+        },
+        message: `Bulk update completed - ${results.length} items updated successfully`
+      });
+      
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error in bulk update:', error);
+      throw new AppError('Failed to perform bulk update', 500);
+    }
+}));
+
 module.exports = router; 
