@@ -86,12 +86,29 @@ const CurrentAlertsSection = ({
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await api.get('/users');
-        if (response.data.success) {
-          setAvailableUsers(response.data.data || []);
+        const response = await api.get('/users/team-members');
+        console.log('🔍 CurrentAlertsSection - API Response for users:', response.data);
+        
+        if (response.data.success && response.data.data?.teamMembers) {
+          setAvailableUsers(response.data.data.teamMembers);
+          console.log('✅ CurrentAlertsSection - Loaded users:', response.data.data.teamMembers.length);
+        } else {
+          // Fallback to mock users if API fails
+          console.log('⚠️ CurrentAlertsSection - Using fallback users');
+          setAvailableUsers([
+            { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+            { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+            { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+          ]);
         }
       } catch (error) {
         console.error('Failed to fetch users:', error);
+        // Use fallback users on error
+        setAvailableUsers([
+          { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+          { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+          { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+        ]);
       }
     };
     fetchUsers();

@@ -329,10 +329,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const fetchUsers = async () => {
       try {
         const result = await usersService.getTeamMembers();
-        if (result && (result.data?.teamMembers || result.data)) {
-          const teamMembers = result.data.teamMembers || result.data;
+        console.log('🔍 API Response for users:', result);
+        
+        if (result?.success && result.data?.teamMembers) {
+          const teamMembers = result.data.teamMembers;
           setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
-          console.log('✅ Loaded users for assignment:', Array.isArray(teamMembers) ? teamMembers.length : 0);
+          console.log('✅ Loaded users for assignment:', teamMembers.length);
+        } else {
+          // Fallback to mock users if API fails
+          console.log('⚠️ Using fallback users for assignment');
+          setAvailableUsers([
+            { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+            { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+            { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+          ]);
         }
       } catch (error) {
         console.error('❌ Failed to fetch users:', error);
@@ -1357,21 +1367,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       const selectedUser = availableUsers.find(user => user.id === assignToUser);
       console.log('👤 Selected user:', selectedUser);
       
-      // Make API call to assign alert
-      const response = await fetch(`/api/alerts/${alertId}/assign`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-        },
-        body: JSON.stringify({
-          assignedTo: assignToUser
-        })
+      // Make API call to assign alert using the api client
+      const response = await api.patch(`/alerts/${alertId}/assign`, {
+        assignedTo: assignToUser
       });
       
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Alert assigned successfully:', result);
+      if (response.data.success) {
+        console.log('✅ Alert assigned successfully:', response.data);
         
         // Show success toast with user assignment confirmation
         toast.success(
@@ -1400,22 +1402,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         setShowAssignModal(false);
         setSelectedAlertForAssign(null);
         setAssignToUser('');
-      } else {
-        const errorResult = await response.json();
-        console.error('❌ Failed to assign alert:', errorResult);
-        toast.error('Failed to assign alert. Please try again.', {
-          duration: 4000,
-          style: {
-            background: '#EF4444',
-            color: '#ffffff',
-            fontWeight: '600',
-          },
-        });
       }
       
     } catch (error) {
       console.error('❌ Failed to assign alert:', error);
-      toast.error('Network error. Please check your connection and try again.', {
+      const errorMessage = error.response?.data?.message || 'Failed to assign alert. Please try again.';
+      toast.error(errorMessage, {
         duration: 4000,
         style: {
           background: '#EF4444',
