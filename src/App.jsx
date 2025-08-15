@@ -103,19 +103,24 @@ export default function App() {
         previousPage: 'Overview'
     });
 
-    // Ensure localStorage has proper auth data on mount
+    // Ensure localStorage has proper auth data on mount (only if not explicitly logged out)
     useEffect(() => {
         // Use a JWT-like token that backend might accept
         const demoToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiJjbWUwaWE2dDAwMDA2dW15NDk1MHNhYXJmIiwiZW1haWwiOiJkYXZpZC5jaGVuQGtlbnN0cnVjdGlvbi5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.demo';
         
-        // Only update if missing or using old mock token
-        const currentToken = localStorage.getItem('authToken');
-        if (!currentToken || currentToken === 'mock-token-bypass') {
-            localStorage.setItem('authToken', demoToken);
-            localStorage.setItem('token', demoToken);
-        }
-        if (!localStorage.getItem('user')) {
-            localStorage.setItem('user', JSON.stringify(currentUser));
+        // Check if user has explicitly logged out by looking for a logout flag
+        const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
+        
+        // Only restore demo data if user hasn't explicitly logged out
+        if (!hasLoggedOut) {
+            const currentToken = localStorage.getItem('authToken');
+            if (!currentToken || currentToken === 'mock-token-bypass') {
+                localStorage.setItem('authToken', demoToken);
+                localStorage.setItem('token', demoToken);
+            }
+            if (!localStorage.getItem('user')) {
+                localStorage.setItem('user', JSON.stringify(currentUser));
+            }
         }
     }, []); // Empty deps - only run once on mount
 
@@ -169,6 +174,9 @@ export default function App() {
         setCurrentUser(storedUser);
         setIsAuthenticated(true);
         
+        // Clear logout flag since user is now logged in
+        localStorage.removeItem('has_logged_out');
+        
         // Ensure both token keys are set for compatibility
         if (storedToken) {
             localStorage.setItem('token', storedToken);
@@ -183,6 +191,8 @@ export default function App() {
         localStorage.removeItem('token');
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
+        // Set logout flag to prevent automatic token restoration
+        localStorage.setItem('has_logged_out', 'true');
         authService.logout();
     };
 
