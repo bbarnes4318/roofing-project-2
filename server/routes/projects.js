@@ -645,6 +645,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
             }
           }
         }
+      }
     });
 
     if (!project) {
