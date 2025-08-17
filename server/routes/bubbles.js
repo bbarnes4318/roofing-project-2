@@ -8,6 +8,7 @@ const {
 } = require('../middleware/errorHandler');
 const { PrismaClient } = require('@prisma/client');
 const openAIService = require('../services/OpenAIService');
+const bubblesInsightsService = require('../services/BubblesInsightsService');
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -413,6 +414,87 @@ router.get('/status', asyncHandler(async (req, res) => {
     version: '1.0.0',
     status: 'operational'
   }, 'Bubbles status retrieved');
+}));
+
+// @desc    Get AI-powered project insights
+// @route   GET /api/bubbles/insights/project/:projectId
+// @access  Private
+router.get('/insights/project/:projectId', asyncHandler(async (req, res) => {
+  const projectId = parseInt(req.params.projectId);
+  const userId = req.user.id;
+
+  const insights = await bubblesInsightsService.generateProjectInsights(projectId, userId);
+
+  sendSuccess(res, 200, {
+    projectId,
+    insights,
+    generatedAt: new Date()
+  }, 'Project insights generated successfully');
+}));
+
+// @desc    Get portfolio-level insights
+// @route   GET /api/bubbles/insights/portfolio
+// @access  Private
+router.get('/insights/portfolio', asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  const insights = await bubblesInsightsService.generatePortfolioInsights(userId);
+
+  sendSuccess(res, 200, {
+    userId,
+    ...insights,
+    generatedAt: new Date()
+  }, 'Portfolio insights generated successfully');
+}));
+
+// @desc    Get project completion prediction
+// @route   GET /api/bubbles/insights/prediction/:projectId
+// @access  Private
+router.get('/insights/prediction/:projectId', asyncHandler(async (req, res) => {
+  const projectId = parseInt(req.params.projectId);
+
+  const prediction = await bubblesInsightsService.predictProjectCompletion(projectId);
+
+  if (!prediction) {
+    return res.status(404).json({
+      success: false,
+      message: 'Project not found or prediction unavailable'
+    });
+  }
+
+  sendSuccess(res, 200, prediction, 'Project completion prediction generated');
+}));
+
+// @desc    Get project risk analysis
+// @route   GET /api/bubbles/insights/risks/:projectId
+// @access  Private
+router.get('/insights/risks/:projectId', asyncHandler(async (req, res) => {
+  const projectId = parseInt(req.params.projectId);
+
+  const risks = await bubblesInsightsService.identifyRisks(projectId);
+
+  sendSuccess(res, 200, {
+    projectId,
+    risks,
+    riskLevel: risks.length > 2 ? 'high' : risks.length > 0 ? 'medium' : 'low',
+    generatedAt: new Date()
+  }, 'Risk analysis completed');
+}));
+
+// @desc    Get optimization recommendations
+// @route   GET /api/bubbles/insights/optimization/:projectId
+// @access  Private
+router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) => {
+  const projectId = parseInt(req.params.projectId);
+
+  const recommendations = await bubblesInsightsService.generateOptimizationRecommendations(projectId);
+
+  sendSuccess(res, 200, {
+    projectId,
+    recommendations,
+    totalRecommendations: recommendations.length,
+    generatedAt: new Date()
+  }, 'Optimization recommendations generated');
 }));
 
 module.exports = router;

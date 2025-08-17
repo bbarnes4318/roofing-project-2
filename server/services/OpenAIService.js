@@ -1,4 +1,4 @@
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 
 class OpenAIService {
   constructor() {
@@ -7,17 +7,16 @@ class OpenAIService {
     
     if (this.isEnabled) {
       try {
-        const configuration = new Configuration({
+        this.client = new OpenAI({
           apiKey: process.env.OPENAI_API_KEY,
         });
-        this.client = new OpenAIApi(configuration);
-        console.log('✅ OpenAI service initialized successfully');
+        console.log('✅ OpenAI service initialized successfully with GPT-5');
       } catch (error) {
         console.error('❌ Failed to initialize OpenAI service:', error.message);
         this.isEnabled = false;
       }
     } else {
-      console.log('⚠️ OpenAI API key not provided, using mock responses');
+      console.log('⚠️ OpenAI API key not provided, using enhanced mock responses');
     }
   }
 
@@ -30,8 +29,8 @@ class OpenAIService {
       const systemPrompt = this.buildSystemPrompt(context);
       const userPrompt = this.buildUserPrompt(prompt, context);
 
-      const response = await this.client.createChatCompletion({
-        model: 'gpt-4',
+      const response = await this.client.chat.completions.create({
+        model: 'gpt-5', // Using GPT-5 (latest model)
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -42,17 +41,17 @@ class OpenAIService {
         frequency_penalty: 0.3
       });
 
-      const aiResponse = response.data.choices[0].message.content;
+      const aiResponse = response.choices[0].message.content;
       
       return {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
-        source: 'openai-gpt4',
+        source: 'openai-gpt5',
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
-          model: 'gpt-4',
-          tokens: response.data.usage.total_tokens,
+          model: 'gpt-5',
+          tokens: response.usage.total_tokens,
           timestamp: new Date()
         }
       };

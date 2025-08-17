@@ -700,6 +700,39 @@ export const bubblesService = {
     checkAlerts: async () => {
       return await bubblesService.executeAction('check_alerts');
     }
+  },
+
+  // AI Insights
+  insights: {
+    // Get project insights
+    getProjectInsights: async (projectId) => {
+      const response = await api.get(`/bubbles/insights/project/${projectId}`);
+      return response.data;
+    },
+
+    // Get portfolio insights
+    getPortfolioInsights: async () => {
+      const response = await api.get('/bubbles/insights/portfolio');
+      return response.data;
+    },
+
+    // Get project completion prediction
+    getProjectPrediction: async (projectId) => {
+      const response = await api.get(`/bubbles/insights/prediction/${projectId}`);
+      return response.data;
+    },
+
+    // Get project risk analysis
+    getProjectRisks: async (projectId) => {
+      const response = await api.get(`/bubbles/insights/risks/${projectId}`);
+      return response.data;
+    },
+
+    // Get optimization recommendations
+    getOptimizationRecommendations: async (projectId) => {
+      const response = await api.get(`/bubbles/insights/optimization/${projectId}`);
+      return response.data;
+    }
   }
 };
 
