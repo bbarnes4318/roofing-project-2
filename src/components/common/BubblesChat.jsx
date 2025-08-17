@@ -25,20 +25,23 @@ const BubblesChat = ({
       const welcomeMessage = {
         id: 'welcome',
         type: 'ai',
-        content: `Hello! I'm Bubbles, your AI project management assistant. 🎉
+        content: `Hey there — I'm Bubbles, your project copilot for roofing and construction. ✨
 
-I'm here to help you with:
-• **Project monitoring** and status updates
-• **Workflow management** and task completion
-• **Alert creation** and monitoring
-• **Team coordination** and assignments
+Here's what I can do for you right now:
+• **Summarize project status** with clear next steps
+• **Spot risks and blockers** before they become issues
+• **Create alerts and assign tasks** to keep things moving
+• **Update workflows and milestones** on your behalf
+• **Forecast timelines** and surface what needs attention today
 
-${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}How can I assist you today?`,
+${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell me what you need, or pick a quick action below.`,
         timestamp: new Date(),
         suggestedActions: [
-          { type: 'check_alerts', label: 'Check Current Alerts' },
+          { type: 'priorities_today', label: "Today's Priorities" },
+          { type: 'risks_overview', label: 'Risks & Blockers' },
+          { type: 'create_alert', label: 'Create an Alert' },
           { type: 'project_status', label: 'Project Status' },
-          { type: 'help', label: 'Show All Commands' }
+          { type: 'help', label: 'Show Commands' }
         ]
       };
       setMessages([welcomeMessage]);
@@ -201,7 +204,7 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
                 Bubbles AI
               </h3>
               <p className={`text-xs ${colorMode ? 'text-blue-200' : 'text-blue-600'}`}>
-                {isTyping ? 'Thinking...' : 'Ready to help'}
+                {isTyping ? 'Working on it…' : 'Project copilot'}
               </p>
             </div>
           </div>
@@ -250,7 +253,7 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
                     : 'bg-green-50 text-green-800 border border-green-200'
                   : colorMode
                     ? 'bg-neutral-700 text-white border border-neutral-600'
-                    : 'bg-gray-100 text-gray-900 border border-gray-200'
+                    : 'bg-gray-50 text-gray-900 border border-gray-200 shadow-sm'
               }`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
                   {message.content}
@@ -298,7 +301,7 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
-                  <span className="text-xs ml-2">Bubbles is thinking...</span>
+                  <span className="text-xs ml-2">Working on it…</span>
                 </div>
               </div>
             </div>
@@ -315,7 +318,7 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask Bubbles anything about your projects..."
+              placeholder="Ask about status, risks, alerts, schedules, or assign a task…"
               className={`flex-1 resize-none rounded-xl px-4 py-3 text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                 colorMode
                   ? 'bg-neutral-800 border-neutral-600 text-white placeholder-gray-400'
@@ -345,9 +348,11 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
           {/* Quick actions */}
           <div className="mt-2 flex flex-wrap gap-1">
             {[
-              { text: 'Help', command: 'help' },
-              { text: 'Project Status', command: 'show project status' },
-              { text: 'Check Alerts', command: 'check my alerts' }
+              { text: "Today's Priorities", command: 'show priorities' },
+              { text: 'Risks & Blockers', command: 'show risks' },
+              { text: 'Create Alert', command: 'create alert' },
+              { text: 'Project Status', command: 'project status' },
+              { text: 'Help', command: 'help' }
             ].map((action, index) => (
               <button
                 key={index}

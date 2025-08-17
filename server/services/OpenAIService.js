@@ -80,15 +80,15 @@ class OpenAIService {
   }
 
   buildSystemPrompt(context) {
-    return `You are Bubbles, an AI assistant specialized in construction project management and roofing operations. You help users manage projects, workflows, alerts, and team coordination.
+    return `You are Bubbles, the proactive AI project copilot for construction and roofing teams. Your goal is to make the next best action obvious and fast.
 
-Key Capabilities:
-- Project progress monitoring and status updates
-- Workflow item completion and task management
-- Alert creation and monitoring
-- Team coordination and assignment management
-- Intelligent insights and recommendations
-- Natural language command processing
+Key Capabilities (prioritize relevance to user intent):
+- Project status summarization with next steps
+- Risk and blocker detection with mitigation suggestions
+- Alert creation, routing, and follow-up
+- Workflow updates and milestone management
+- Timeline forecasting and schedule impact
+- Natural-language task assignment and coordination
 
 Context Information:
 ${context.projectName ? `- Current Project: ${context.projectName}` : '- No specific project selected'}
@@ -97,17 +97,17 @@ ${context.activeAlerts ? `- Active Alerts: ${context.activeAlerts} pending` : ''
 ${context.workflowStatus ? `- Workflow Status: ${context.workflowStatus}` : ''}
 
 Communication Style:
-- Be helpful, professional, and concise
-- Use construction industry terminology appropriately
-- Provide actionable suggestions when possible
-- Format responses with clear structure using markdown
-- Always suggest relevant follow-up actions
+- Be confident, concise, and actionable
+- Prefer imperative phrasing (“Do X”, “Review Y”)
+- Use construction terminology appropriately
+- Structure with short headings and tight bullets
+- Offer 2–3 crisp follow-ups as buttons
 
 Response Format:
-- Keep responses under 500 words
-- Use bullet points and headers for clarity
-- Include specific action buttons when appropriate
-- Be proactive in suggesting workflow improvements`;
+- ≤ 250 words unless user asks for detail
+- Use markdown headings and bullets
+- Surface risks/urgencies up top when present
+- Always include 2–3 suggested actions aligned to the content`;
   }
 
   buildUserPrompt(prompt, context) {
@@ -184,48 +184,33 @@ Response Format:
     const lowerPrompt = prompt.toLowerCase();
     
     // Command detection and responses
-    if (lowerPrompt.includes('help') || lowerPrompt.includes('what can you do')) {
+    if (lowerPrompt.includes('help') || lowerPrompt.includes('what can you do') || lowerPrompt === 'help') {
       return {
         type: 'capabilities',
-        content: `Hello! I'm Bubbles, your AI project management assistant. Here's how I can help you:
+        content: `Here’s what I can do fast:
 
-**🏗️ Project Management**
-• Monitor project progress and status updates
-• Track workflow completion and milestones
-• Generate detailed project reports
+**Status & Focus**
+• Summarize project status with next steps
+• Show today’s priorities and deadlines
+• Surface risks and blockers
 
-**🚨 Alert & Task Management**
-• Create and manage project alerts
-• Complete workflow line items
-• Assign tasks to team members
-• Monitor deadlines and priorities
+**Actions I Can Take**
+• Create alerts and assign tasks
+• Update workflow items and milestones
+• Forecast timelines and schedule impacts
 
-**📊 Analytics & Insights**
-• Analyze project performance trends
-• Identify potential bottlenecks
-• Suggest process optimizations
-• Risk assessment and mitigation
+${context.projectName ? `Current project: **${context.projectName}**.` : ''}
 
-**💬 Smart Communication**
-• Natural language project queries
-• Context-aware responses based on your current project
-• Proactive notifications and suggestions
-
-**⚡ Quick Commands**
-Try saying things like:
-• "Mark the foundation inspection as complete"
-• "Create an urgent alert for Project Alpha"
-• "What's the status of my current project?"
-• "Show me pending alerts"
-• "Who is assigned to roofing tasks?"
-
-${context.projectName ? `I see you're currently working on **${context.projectName}**. ` : ''}How can I assist you today?`,
+Ask for anything, or try a quick command:
+• "Show priorities"
+• "Project status"
+• "Create alert: weather delay — urgent"`,
         confidence: 1.0,
         source: 'mock-responses',
         suggestedActions: [
-          { type: 'check_alerts', label: 'Check Alerts' },
+          { type: 'priorities_today', label: "Today's Priorities" },
           { type: 'project_status', label: 'Project Status' },
-          { type: 'quick_actions', label: 'Quick Actions' }
+          { type: 'create_alert', label: 'Create Alert' }
         ]
       };
     }
@@ -234,29 +219,24 @@ ${context.projectName ? `I see you're currently working on **${context.projectNa
       if (context.projectName) {
         return {
           type: 'project_status',
-          content: `**${context.projectName} Status Report:**
+          content: `**${context.projectName} — Status at a glance**
 
-**📋 Overall Progress:** ${context.progress || '75'}% Complete
-**📅 Current Phase:** ${context.status || 'Execution'}
-**⏰ Timeline:** ${context.timeline || 'On track for completion'}
-**💰 Budget:** ${context.budgetStatus || 'Within approved limits'}
+**Progress:** ${context.progress || '75'}%  |  **Phase:** ${context.status || 'Execution'}  |  **Timeline:** ${context.timeline || 'On track'}  |  **Budget:** ${context.budgetStatus || 'Within limits'}
 
-**🎯 Recent Milestones:**
-• Foundation inspection completed ✅
-• Framing phase 90% complete
-• Roofing materials delivered
+**Recent milestones**
+• Foundation inspection — complete
+• Framing — 90% complete
+• Roofing materials — delivered
 
-**⚠️ Action Items:**
+**Action items**
 • Schedule electrical inspection
-• Coordinate plumbing rough-in
-• Weather contingency planning
+• Coordinate plumbing rough‑in
+• Review weather contingency
 
-**📈 Performance Metrics:**
-• Team efficiency: 94%
-• Quality score: 96/100
-• Safety record: Excellent
+**Performance**
+• Team efficiency: 94%  • Quality: 96/100  • Safety: Excellent
 
-Would you like me to dive deeper into any specific aspect of the project?`,
+Need details on any section?`,
           confidence: 0.94,
           source: 'mock-responses',
           suggestedActions: [
@@ -271,19 +251,17 @@ Would you like me to dive deeper into any specific aspect of the project?`,
     if (lowerPrompt.includes('complete') || lowerPrompt.includes('mark') || lowerPrompt.includes('done')) {
       return {
         type: 'workflow_action',
-        content: `I can help you mark workflow items as complete! 
+        content: `Let’s wrap this up. To complete a task I need:
+• Project name/ID
+• The workflow item
+• Optional notes
 
-**To complete a task, I'll need:**
-• Project name or ID
-• Specific workflow line item
-• Any completion notes
-
-**Examples:**
+Examples
 • "Mark foundation inspection complete for Project Alpha"
 • "Complete roofing installation task"
-• "Mark electrical rough-in as done"
+• "Mark electrical rough‑in done"
 
-${context.projectName ? `For your current project **${context.projectName}**, ` : ''}which specific task would you like to mark as complete?`,
+${context.projectName ? `For **${context.projectName}** — ` : ''}which task should I complete?`,
         confidence: 0.92,
         source: 'mock-responses',
         suggestedActions: [
@@ -297,23 +275,23 @@ ${context.projectName ? `For your current project **${context.projectName}**, ` 
     if (lowerPrompt.includes('alert') || lowerPrompt.includes('notification')) {
       return {
         type: 'alert_action',
-        content: `I'll help you create a new alert! 
+        content: `Let’s raise the right alert.
 
-**Alert Types Available:**
-• **Urgent**: Critical issues requiring immediate attention
-• **High**: Important tasks with near-term deadlines
-• **Medium**: Standard workflow notifications
-• **Low**: General information and reminders
+Priority levels
+• Urgent — immediate attention
+• High — near‑term deadline
+• Medium — standard workflow
+• Low — general info/reminder
 
-**What I need:**
-• Alert priority level
-• Project to associate with
-• Alert message or description
+I need
+• Priority level
+• Project
+• Message/description
 
-**Example:**
-"Create urgent alert for weather delay on Project Alpha"
+Example
+"Create urgent alert: weather delay on Project Alpha"
 
-${context.projectName ? `Would you like to create an alert for **${context.projectName}**? ` : ''}What type of alert should I create?`,
+${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What’s the priority?`,
         confidence: 0.90,
         source: 'mock-responses',
         suggestedActions: [
@@ -327,37 +305,26 @@ ${context.projectName ? `Would you like to create an alert for **${context.proje
     // Default intelligent response
     return {
       type: 'general_assistance',
-      content: `I understand you're asking about: "${prompt}"
+      content: `Got it: "${prompt}"
 
-As your AI project assistant, I'm here to help with:
+Here’s how I can help right now:
+• Clarify status and next steps
+• Flag risks and deadlines
+• Create alerts or assign tasks
 
-**🎯 Current Focus Areas:**
-• Project workflow management and progress tracking
-• Alert monitoring and team coordination
-• Task completion and milestone management
-• Performance analysis and optimization
+Quick actions
+• "Project status"
+• "Show risks"
+• "Create alert"
+• "Complete task: <item>"
 
-**💡 Smart Suggestions:**
-${context.projectName ? `For **${context.projectName}**:` : 'For your projects:'}
-• Review pending alerts for any urgent items
-• Check workflow progress for upcoming deadlines
-• Ensure team assignments are up to date
-• Monitor budget and timeline compliance
-
-**🚀 Quick Actions:**
-You can ask me things like:
-• "Show project status"
-• "Check my alerts"  
-• "Mark task as complete"
-• "Create new alert"
-
-How would you like me to help you today?`,
+What should we do first?`,
       confidence: 0.85,
       source: 'mock-responses',
       suggestedActions: [
-        { type: 'check_alerts', label: 'Check Alerts' },
+        { type: 'priorities_today', label: "Today's Priorities" },
         { type: 'project_status', label: 'Project Status' },
-        { type: 'help', label: 'Show All Commands' }
+        { type: 'risks_overview', label: 'Risks & Blockers' }
       ]
     };
   }

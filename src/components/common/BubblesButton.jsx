@@ -113,10 +113,10 @@ const BubblesButton = ({
               : 'bg-gray-900 text-white'
           }`}>
             {isMinimized 
-              ? "Restore Bubbles chat" 
+              ? "Restore your project copilot" 
               : hasNewSuggestion 
-                ? "New AI suggestions available!" 
-                : "Chat with Bubbles AI"
+                ? "Bubbles has a recommendation" 
+                : "Open Bubbles — your project copilot"
             }
             <div className={`absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${
               colorMode ? 'border-t-neutral-800' : 'border-t-gray-900'
