@@ -355,7 +355,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       className="ml-2 w-24 h-6 px-2 py-1 rounded-md text-[8px] font-semibold shadow-sm flex items-center justify-center"
                       style={{ 
                         backgroundColor: WorkflowProgressService.getPhaseColor(getProjectPhase(project)),
-                        color: '#ffffff'
+                        color: WorkflowProgressService.getContrastTextColor(WorkflowProgressService.getPhaseColor(getProjectPhase(project)))
                       }}
                     >
                       {getPhaseText(project)}

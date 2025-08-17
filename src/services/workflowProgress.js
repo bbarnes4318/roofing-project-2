@@ -255,7 +255,12 @@ class WorkflowProgressService {
      */
     static getContrastTextColor(backgroundColor) {
         // Remove # if present
-        const hex = backgroundColor.replace('#', '');
+        const hex = backgroundColor.replace('#', '').toUpperCase();
+        
+        // Prospect override: ensure text uses #111827 on Prospect background
+        if (hex === 'F59E0B') {
+            return '#111827';
+        }
         
         // Convert to RGB
         const r = parseInt(hex.substr(0, 2), 16);
@@ -279,7 +284,7 @@ class WorkflowProgressService {
         const phaseName = this.getPhaseName(normalizedPhase);
         const phaseColor = this.getPhaseColor(normalizedPhase);
         const initials = this.getPhaseInitials(normalizedPhase);
-        const textColor = this.getContrastTextColor(phaseColor);
+        let textColor = this.getContrastTextColor(phaseColor);
         
         // Convert hex colors to Tailwind background classes
         const colorToBg = {
@@ -291,7 +296,10 @@ class WorkflowProgressService {
             '#0EA5E9': 'bg-sky-500'        // Completion - Bright Cyan-Teal
         };
         
-        const tailwindTextColor = textColor === 'white' ? 'text-white' : 'text-black';
+        // Prospect override for Tailwind text class to match #111827
+        const tailwindTextColor = normalizedPhase === 'PROSPECT'
+            ? 'text-gray-900'
+            : (textColor === 'white' ? 'text-white' : 'text-black');
         
         return {
             initials,

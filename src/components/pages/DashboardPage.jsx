@@ -319,6 +319,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Get current user on component mount
   useEffect(() => {
     const user = authService.getStoredUser();
+    console.log('🔍 INITIAL USER FROM STORAGE:', user);
     if (user) {
       setCurrentUser(user);
     }
@@ -328,12 +329,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
+        console.log('🔍 FETCHING CURRENT USER FROM SERVER...');
         const resp = await authService.getCurrentUser();
+        console.log('🔍 SERVER RESPONSE:', resp);
         const serverUser = resp?.data?.user || resp?.data || resp?.user;
+        console.log('🔍 EXTRACTED USER:', serverUser);
         if (serverUser && serverUser.id) {
-          setCurrentUser(prev => (prev?.id === serverUser.id ? prev : serverUser));
+          setCurrentUser(serverUser);
+          console.log('✅ CURRENT USER SET TO:', serverUser.firstName, serverUser.lastName, 'ID:', serverUser.id);
+        } else {
+          console.log('❌ NO VALID USER FROM SERVER');
         }
       } catch (e) {
+        console.error('❌ ERROR LOADING CURRENT USER:', e);
         // ignore; fall back to stored user
       }
     };
@@ -662,6 +670,16 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     let recipientMatch = false;
     const loggedInUserId = currentUser?.id || currentUser?._id || null;
     
+    // DEBUG: Log what we're checking
+    if (activity.subject && activity.recipients) {
+      console.log('🔍 MESSAGE FILTERING:', {
+        subject: activity.subject,
+        recipients: activity.recipients,
+        loggedInUserId: loggedInUserId,
+        currentUser: currentUser
+      });
+    }
+    
     if (loggedInUserId && Array.isArray(activity.recipients) && activity.recipients.length > 0) {
       // Show message if:
       // 1. Recipients includes 'all' (message to everyone)
@@ -669,6 +687,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       recipientMatch = activity.recipients.includes('all') ||
                        activity.recipients.includes('ALL') ||
                        activity.recipients.some(r => String(r) === String(loggedInUserId));
+      
+      if (activity.subject) {
+        console.log('✅ Recipient match result:', recipientMatch);
+      }
     } else if (!Array.isArray(activity.recipients) || activity.recipients.length === 0) {
       // If no recipients specified, hide the message (don't show to anyone)
       recipientMatch = false;

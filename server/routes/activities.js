@@ -19,22 +19,25 @@ const transformMessageToActivity = (message) => {
   return {
     id: message.id,
     _id: message.id,
-    subject: `Message in conversation`, // Default subject
-    content: message.text,
-    author: message.sender ? `${message.sender.firstName} ${message.sender.lastName}` : 'Unknown User',
+    subject: message.subject || 'Project Message',
+    content: message.content,
+    author: message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User',
     timestamp: message.createdAt,
-    projectId: null, // Messages aren't directly tied to projects in current schema
-    project_id: null,
-    type: 'message',
+    projectId: message.projectId,
+    project_id: message.projectId,
+    type: 'project_message',
     messageType: message.messageType,
-    conversationId: message.conversationId,
-    isEdited: message.isEdited,
-    isDeleted: message.isDeleted,
+    priority: message.priority,
+    phase: message.phase,
+    section: message.section,
+    lineItem: message.lineItem,
+    recipients: ['all'], // For now, treat all project messages as visible to all (will be filtered on frontend)
     metadata: {
-      conversationId: message.conversationId,
+      projectId: message.projectId,
       messageType: message.messageType,
-      isEdited: message.isEdited,
-      replyTo: message.replyToId
+      priority: message.priority,
+      phase: message.phase,
+      isSystemGenerated: message.isSystemGenerated
     }
   };
 };
@@ -57,7 +60,7 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   const limitNum = parseInt(limit);
   const skip = (pageNum - 1) * limitNum;
 
-  // Build filter object - CRITICAL: Only show messages where user is a participant
+  // Build filter object - Show ALL project messages (will be filtered on frontend)
   console.log('🔍 ACTIVITIES: User from request:', req.user);
   
   if (!req.user || !req.user.id) {
@@ -65,20 +68,12 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
     throw new AppError('Authentication required', 401);
   }
   
-  const where = {
-    isDeleted: false, // Only show non-deleted messages
-    conversation: {
-      participants: {
-        some: {
-          userId: req.user.id, // Only messages in conversations where current user is a participant
-          leftAt: null // User hasn't left the conversation
-        }
-      }
-    }
-  };
+  // For activities, we return ALL project messages
+  // The frontend will handle recipient filtering
+  const where = {};
   
-  if (conversationId) {
-    where.conversationId = conversationId;
+  if (projectId) {
+    where.projectId = projectId;
   }
 
   // Build sort object
@@ -88,15 +83,15 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   try {
     console.log('🔍 ACTIVITIES: Fetching messages as activities...');
     
-    // Get messages with sender information
+    // Get project messages with author information
     const [messages, total] = await Promise.all([
-      prisma.message.findMany({
+      prisma.projectMessage.findMany({
         where,
         orderBy,
         skip,
         take: limitNum,
         include: {
-          sender: {
+          author: {
             select: {
               id: true,
               firstName: true,
@@ -113,7 +108,7 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
           }
         }
       }),
-      prisma.message.count({ where })
+      prisma.projectMessage.count({ where })
     ]);
 
     console.log(`✅ ACTIVITIES: Found ${messages.length} messages`);
