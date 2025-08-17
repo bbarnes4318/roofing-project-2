@@ -125,7 +125,7 @@ const convertProjectToTableFormat = (project) => {
     priority: project.priority || 'Low',
     clientName: project.client?.name || 'Unknown',
     clientEmail: project.client?.email || '',
-    projectManager: project.projectManager || 'Sarah Johnson', // Default value
+    projectManager: project.projectManager || 'David Chen', // Default fallback user
     // Use canonical phase key from API (server provides uppercase key)
     phase: project.phase || 'LEAD'
   };
