@@ -166,28 +166,22 @@ const ProjectsByPhaseSection = ({
 
   // Handle project navigation with context
   const handleProjectNavigation = (project, targetPage, phaseId, phaseName) => {
-    const contextData = {
-      section: 'Current Projects by Phase',
-      type: 'project',
-      returnPath: '/dashboard',
-      selectedPhase: phaseName,
-      selectedPhaseId: phaseId,
-      projectId: project.id,
-      projectName: project.projectName || project.name,
-      projectNumber: project.projectNumber,
-      selectedData: project,
-      filters: {
-        selectedPhase: selectedPhaseFilter,
-        searchTerm: searchFilter,
-        sortConfig: localSortConfig
-      },
-      expandedState: expandedPhases,
-      scrollPosition: window.scrollY
+    // Build a lightweight dashboard state for restoration when coming back
+    const expandedPhaseKeys = Object.keys(expandedPhases || {}).filter(key => expandedPhases[key]);
+    const dashboardState = {
+      selectedPhase: phaseId || null,
+      expandedPhases: expandedPhaseKeys.length ? expandedPhaseKeys : null,
+      scrollToProject: { id: project.id || project._id }
     };
 
-    // Use the section navigation to track context
+    const projectWithState = {
+      ...project,
+      dashboardState
+    };
+
     if (onProjectSelect) {
-      onProjectSelect(project, targetPage, contextData, 'Current Projects by Phase');
+      // Pass canonical source label expected by back handler
+      onProjectSelect(projectWithState, targetPage, phaseId, 'Project Phases');
     }
   };
 
@@ -333,6 +327,7 @@ const ProjectsByPhaseSection = ({
                       {phaseProjects.map(project => (
                         <div
                           key={project.id}
+                          data-project-id={project.id || project._id}
                           className="group bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition-all duration-200 overflow-visible"
                         >
                           {/* Project Header */}
@@ -350,7 +345,7 @@ const ProjectsByPhaseSection = ({
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        onProjectSelect(project, 'Project Profile', null, 'Current Projects by Phase');
+                                        handleProjectNavigation(project, 'Project Profile', phase.id, phase.name);
                                       }}
                                       className="hover:underline transition-colors text-blue-600 hover:text-blue-800"
                                     >

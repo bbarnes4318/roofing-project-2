@@ -492,7 +492,13 @@ export default function App() {
                     projectSourceSection: sourceSection,
                     previousPage: activePage,
                     scrollToProject: project, // Pass the project data for scrolling
-                    dashboardState: project.dashboardState // Preserve the dashboard state for back navigation
+                    // Capture dashboard state for precise restoration on back
+                    dashboardState: {
+                        ...(prev.dashboardState || {}),
+                        selectedPhase: phase || (prev.dashboardState && prev.dashboardState.selectedPhase) || null,
+                        expandedPhases: (prev.dashboardState && prev.dashboardState.expandedPhases) || null,
+                        scrollToProject: project
+                    }
                 };
                 console.log('🔍 APP: New navigationState:', newState);
                 console.log('🔍 APP: Preserved dashboard state:', project.dashboardState);
@@ -522,7 +528,8 @@ export default function App() {
             projectInitialView: view,
             projectSourceSection: sourceSection,
             previousPage: navigationState.selectedProject ? navigationState.previousPage : activePage,
-            dashboardState: project.dashboardState, // Preserve the dashboard state for back navigation
+            // Preserve the dashboard state for back navigation if provided
+            dashboardState: project.dashboardState || navigationState.dashboardState,
             targetLineItemId: targetLineItemId, // For direct line item navigation
             targetSectionId: targetSectionId // For direct section navigation
         };
