@@ -663,8 +663,15 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                         limit: 50,
                         includeReplies: true
                     });
-                    console.log(`✅ MESSAGES: Fetched ${response.data?.length || 0} messages for project`);
-                    setProjectMessages(response.data || []);
+                    const messages = Array.isArray(response?.data)
+                      ? response.data
+                      : Array.isArray(response?.data?.data)
+                        ? response.data.data
+                        : Array.isArray(response)
+                          ? response
+                          : [];
+                    console.log(`✅ MESSAGES: Fetched ${messages.length} messages for project`);
+                    setProjectMessages(messages);
                 } catch (error) {
                     console.error('❌ MESSAGES: Error fetching project messages:', error);
                     setProjectMessages([]);
