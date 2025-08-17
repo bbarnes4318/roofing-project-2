@@ -617,9 +617,10 @@ export default function App() {
         if (navigationState.projectSourceSection === 'Project Messages') {
             setActivePage('Overview');
             setTimeout(() => {
-                const projectMessagesSection = document.querySelector('[data-section="project-messages"]');
-                if (projectMessagesSection) projectMessagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const section = document.querySelector('[data-section="project-messages"]');
+                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
+            return;
         } else if (navigationState.projectSourceSection === 'Current Alerts') {
             setActivePage('Overview');
             setTimeout(() => {

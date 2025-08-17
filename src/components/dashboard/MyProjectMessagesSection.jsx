@@ -493,6 +493,7 @@ const MyProjectMessagesSection = ({
                       isExpanded={expandedMessages[message.id]}
                       onToggleExpansion={() => toggleMessageExpansion(message.id)}
                       useRealData={useRealData}
+                      sourceSection={'Project Messages'}
                     />
                   </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
 
-const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false }) => {
+const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false, sourceSection = 'Project Messages' }) => {
     // Use external expansion state if provided, otherwise use internal state
     const [internalExpanded, setInternalExpanded] = useState(false);
     const expanded = isExpanded !== undefined ? isExpanded : internalExpanded;
@@ -221,7 +221,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (onProjectSelect && project) {
-                                        onProjectSelect(project, 'Project Profile', null, 'Project Messages');
+                                        onProjectSelect(project, 'Project Profile', null, sourceSection);
                                     }
                                 }}
                             >
