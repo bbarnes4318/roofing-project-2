@@ -631,6 +631,78 @@ export const aiService = {
   }
 };
 
+// Bubbles AI Assistant Service
+export const bubblesService = {
+  // Chat with Bubbles AI Assistant
+  chat: async (message, projectId = null, context = {}) => {
+    const response = await api.post('/bubbles/chat', {
+      message,
+      projectId,
+      context
+    });
+    return response.data;
+  },
+
+  // Execute Bubbles action
+  executeAction: async (actionType, parameters = {}) => {
+    const response = await api.post('/bubbles/action', {
+      actionType,
+      parameters
+    });
+    return response.data;
+  },
+
+  // Get conversation history
+  getHistory: async (limit = 20) => {
+    const response = await api.get('/bubbles/history', {
+      params: { limit }
+    });
+    return response.data;
+  },
+
+  // Reset conversation context
+  resetContext: async () => {
+    const response = await api.post('/bubbles/reset');
+    return response.data;
+  },
+
+  // Get Bubbles status and capabilities
+  getStatus: async () => {
+    const response = await api.get('/bubbles/status');
+    return response.data;
+  },
+
+  // Quick actions
+  quickActions: {
+    // Mark workflow item as complete
+    completeTask: async (projectId, lineItemId) => {
+      return await bubblesService.executeAction('complete_task', {
+        projectId,
+        lineItemId
+      });
+    },
+
+    // Create new alert
+    createAlert: async (projectId, message, priority = 'MEDIUM') => {
+      return await bubblesService.executeAction('create_alert', {
+        projectId,
+        message,
+        priority
+      });
+    },
+
+    // List active projects
+    listProjects: async () => {
+      return await bubblesService.executeAction('list_projects');
+    },
+
+    // Check current alerts
+    checkAlerts: async () => {
+      return await bubblesService.executeAction('check_alerts');
+    }
+  }
+};
+
 // Workflow Alerts Service
 export const workflowAlertsService = {
   // Get all alerts for current user

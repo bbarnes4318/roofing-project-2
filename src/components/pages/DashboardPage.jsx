@@ -324,6 +324,22 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     }
   }, []);
 
+  // Also load server-authenticated user to ensure we have the real ID (e.g., David Chen)
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const resp = await authService.getCurrentUser();
+        const serverUser = resp?.data?.user || resp?.data || resp?.user;
+        if (serverUser && serverUser.id) {
+          setCurrentUser(prev => (prev?.id === serverUser.id ? prev : serverUser));
+        }
+      } catch (e) {
+        // ignore; fall back to stored user
+      }
+    };
+    loadCurrentUser();
+  }, []);
+
   // Fetch available users for assignment dropdown
   useEffect(() => {
     const fetchUsers = async () => {
@@ -401,6 +417,21 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 
                 // Use canonical phase from project to ensure consistency
                 const canonicalPhase = (project.phase || 'LEAD');
+                const messageRecipients = [];
+                // Prefer explicit recipientId
+                if (message.recipientId) {
+                  messageRecipients.push(message.recipientId);
+                }
+                // If participants includes current user or 'all', include those
+                if (Array.isArray(conversation.participants)) {
+                  conversation.participants.forEach(p => {
+                    if (!messageRecipients.includes(p)) messageRecipients.push(p);
+                  });
+                }
+                // Treat announcements as 'all'
+                if (message.type === 'ANNOUNCEMENT' || conversation.type === 'ANNOUNCEMENT') {
+                  messageRecipients.push('all');
+                }
                 allMessages.push({
                   id: message.id,
                   author: message.sender ? `${message.sender.firstName} ${message.sender.lastName}` : 'Unknown User',
@@ -411,6 +442,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   projectId: project.id,
                   projectNumber: project.projectNumber,
                   subject: subject,
+                  // Attach recipient identifiers for strict filtering in My Project Messages
+                  recipientId: message.recipientId || null,
+                  recipients: messageRecipients,
                   priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
                   metadata: {
                     projectPhase: canonicalPhase,
@@ -618,21 +652,21 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const _recentTasks = tasks.slice(0, 3);
 
   // Pagination logic with subject filtering, sorting, and recipient filtering
+  // STRICT: Only show messages addressed to the logged-in user in "My Project Messages"
   const filteredActivities = feed.filter(activity => {
     const projectMatch = !activityProjectFilter || activity.projectId === parseInt(activityProjectFilter);
     const subjectMatch = !activitySubjectFilter || activity.subject === activitySubjectFilter;
     
-    // Check if user should see this message
+    // Include if the logged-in user is a recipient OR recipients contain 'all'
     let recipientMatch = true;
-    if (activity.recipients && activity.recipients.length > 0) {
-      // Only show messages where current user is a recipient or "all" was selected
-      // Using the existing currentUser state variable or default to sarah-owner
-      const userIdentifier = currentUser?.email === 'sarah@example.com' ? 'sarah-owner' : 
-                           currentUser?.email === 'mike@company.com' ? 'mike-rodriguez' : 
-                           'sarah-owner'; // Default fallback
-      recipientMatch = activity.recipients.includes('all') || 
-                      activity.recipients.includes(userIdentifier) ||
-                      activity.user === 'You'; // Show messages sent by current user
+    const loggedInUserId = currentUser?.id || currentUser?._id || null;
+    if (Array.isArray(activity.recipients) && activity.recipients.length > 0 && loggedInUserId) {
+      recipientMatch = activity.recipients.includes('all') ||
+                       activity.recipients.some(r => String(r) === String(loggedInUserId));
+    }
+    // If recipients not present on the activity, exclude it from My Project Messages
+    if (!Array.isArray(activity.recipients) || activity.recipients.length === 0) {
+      recipientMatch = false;
     }
     
     return projectMatch && subjectMatch && recipientMatch;

@@ -28,6 +28,7 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
+import BubblesButton from './components/common/BubblesButton';
 import { SubjectsProvider } from './contexts/SubjectsContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import './App.css';
@@ -1205,6 +1206,13 @@ export default function App() {
                 </div>
             </main>
         </div>
+        
+        {/* Bubbles AI Assistant */}
+        <BubblesButton 
+          currentProject={navigationState.selectedProject} 
+          colorMode={colorMode}
+        />
+        
         </SubjectsProvider>
         </NavigationProvider>
         <ReactQueryDevtools initialIsOpen={false} />
