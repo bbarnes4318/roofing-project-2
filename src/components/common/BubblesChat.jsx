@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SparklesIcon, PaperAirplaneIcon, XMarkIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, PaperAirplaneIcon, XMarkIcon, ChatBubbleLeftRightIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { bubblesService } from '../../services/api';
 import { useSocket } from '../../hooks/useSocket';
 
 const BubblesChat = ({ 
   isOpen, 
   onClose, 
+  onMinimize = null,
   currentProject = null, 
   colorMode = false,
   className = ""
@@ -177,14 +178,14 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
-      <div className={`w-96 h-[600px] rounded-2xl shadow-2xl border flex flex-col transition-all duration-300 ${
+    <div className={`fixed bottom-4 right-4 z-50 ${className}`} style={{ paddingRight: 'env(safe-area-inset-right)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className={`rounded-2xl shadow-2xl border flex flex-col transition-all duration-300 ${
         colorMode 
           ? 'bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-blue-500/50 text-white' 
           : 'bg-white border-gray-200'
-      }`}>
+      }`} style={{ width: 'min(94vw, 420px)', height: 'min(86vh, 640px)' }}>
         {/* Header */}
-        <div className={`flex items-center justify-between p-4 border-b rounded-t-2xl ${
+        <div className={`flex items-center justify-between p-4 border-b rounded-t-2xl sticky top-0 z-10 ${
           colorMode 
             ? 'border-blue-500/30 bg-gradient-to-r from-blue-900/50 to-purple-900/50' 
             : 'border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50'
@@ -204,16 +205,32 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${
-              colorMode 
-                ? 'hover:bg-white/10 text-white' 
-                : 'hover:bg-gray-100 text-gray-500'
-            }`}
-          >
-            <XMarkIcon className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            {onMinimize && (
+              <button
+                onClick={onMinimize}
+                className={`p-2 rounded-lg transition-colors ${
+                  colorMode 
+                    ? 'hover:bg-white/10 text-white' 
+                    : 'hover:bg-gray-100 text-gray-500'
+                }`}
+                title="Minimize"
+              >
+                <MinusIcon className="w-5 h-5" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-lg transition-colors ${
+                colorMode 
+                  ? 'hover:bg-white/10 text-white' 
+                  : 'hover:bg-gray-100 text-gray-500'
+              }`}
+              title="Close"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
