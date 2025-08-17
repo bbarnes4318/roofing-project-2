@@ -202,7 +202,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 {(() => {
                     const phaseProps = getPhaseButton(projectPhase);
                     return (
-                        <div className={`w-5 h-5 ${phaseProps.bgColor} rounded-full flex items-center justify-center text-white font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
+                        <div className={`w-5 h-5 ${phaseProps.bgColor} ${phaseProps.textColor} rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
                             {phaseProps.initials || 'N'}
                         </div>
                     );

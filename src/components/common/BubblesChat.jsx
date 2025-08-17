@@ -178,6 +178,124 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     }
   };
 
+  // Lightweight markdown renderer for chat messages
+  const renderMessageContent = (content) => {
+    if (!content || typeof content !== 'string') return content;
+
+    const parseInline = (text) => {
+      const nodes = [];
+      let remaining = text;
+      // Matches **bold**, *italic* or _italic_, `code`
+      const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|`[^`]+`)/;
+      while (remaining.length > 0) {
+        const match = remaining.match(regex);
+        if (!match) {
+          nodes.push(remaining);
+          break;
+        }
+        const [full] = match;
+        const idx = match.index || 0;
+        if (idx > 0) nodes.push(remaining.slice(0, idx));
+        if (full.startsWith('**')) {
+          nodes.push(
+            <strong key={`b-${nodes.length}`}>{full.slice(2, -2)}</strong>
+          );
+        } else if (full.startsWith('`')) {
+          nodes.push(
+            <code
+              key={`c-${nodes.length}`}
+              className={`${colorMode ? 'bg-neutral-800 text-gray-200' : 'bg-gray-100 text-gray-800'} px-1 rounded`}
+            >
+              {full.slice(1, -1)}
+            </code>
+          );
+        } else if (full.startsWith('*') || full.startsWith('_')) {
+          nodes.push(
+            <em key={`i-${nodes.length}`}>{full.slice(1, -1)}</em>
+          );
+        }
+        remaining = remaining.slice(idx + full.length);
+      }
+      return nodes;
+    };
+
+    const lines = content.split(/\r?\n/);
+    const elements = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const raw = lines[i];
+      const line = raw.trim();
+
+      // Blank line → vertical space
+      if (line.length === 0) {
+        elements.push(<div key={`sp-${i}`} className="h-2" />);
+        i += 1;
+        continue;
+      }
+
+      // Heading (#{1,6} Title)
+      const h = line.match(/^#{1,6}\s+(.*)$/);
+      if (h) {
+        elements.push(
+          <div key={`h-${i}`} className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} mt-1`}>
+            {parseInline(h[1])}
+          </div>
+        );
+        i += 1;
+        continue;
+      }
+
+      // Unordered list block
+      if (/^[-*]\s+/.test(line)) {
+        const items = [];
+        while (i < lines.length && lines[i].trim().match(/^[-*]\s+/)) {
+          items.push(lines[i].trim().replace(/^[-*]\s+/, ''));
+          i += 1;
+        }
+        elements.push(
+          <div key={`ul-${i}`} className="space-y-1">
+            {items.map((item, idx) => (
+              <div key={`uli-${idx}`} className="flex items-start gap-2">
+                <span className={`${colorMode ? 'text-blue-300' : 'text-blue-500'}`}>•</span>
+                <span className="flex-1">{parseInline(item)}</span>
+              </div>
+            ))}
+          </div>
+        );
+        continue;
+      }
+
+      // Ordered list block
+      if (/^\d+\.\s+/.test(line)) {
+        const items = [];
+        while (i < lines.length && lines[i].trim().match(/^\d+\.\s+/)) {
+          items.push(lines[i].trim().replace(/^\d+\.\s+/, ''));
+          i += 1;
+        }
+        elements.push(
+          <div key={`ol-${i}`} className="space-y-1">
+            {items.map((item, idx) => (
+              <div key={`oli-${idx}`} className="flex items-start gap-2">
+                <span className={`${colorMode ? 'text-blue-300' : 'text-blue-500'}`}>{idx + 1}.</span>
+                <span className="flex-1">{parseInline(item)}</span>
+              </div>
+            ))}
+          </div>
+        );
+        continue;
+      }
+
+      // Paragraph line
+      elements.push(
+        <div key={`p-${i}`}>{parseInline(line)}</div>
+      );
+      i += 1;
+    }
+
+    return <div className="space-y-1">{elements}</div>;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -256,7 +374,7 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
                     : 'bg-gray-50 text-gray-900 border border-gray-200 shadow-sm'
               }`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {message.content}
+                  {renderMessageContent(message.content)}
                 </div>
                 
                 {/* Suggested Actions */}
