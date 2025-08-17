@@ -46,7 +46,7 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
 
   // Listen for real-time Bubbles responses
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !socket.socketService) return;
 
     const handleBubblesResponse = (data) => {
       setIsLoading(false);
@@ -76,12 +76,12 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
       setMessages(prev => [...prev, actionMessage]);
     };
 
-    socket.on('bubbles_response', handleBubblesResponse);
-    socket.on('bubbles_action_complete', handleActionComplete);
+    socket.socketService.on('bubbles_response', handleBubblesResponse);
+    socket.socketService.on('bubbles_action_complete', handleActionComplete);
 
     return () => {
-      socket.off('bubbles_response', handleBubblesResponse);
-      socket.off('bubbles_action_complete', handleActionComplete);
+      socket.socketService.off('bubbles_response', handleBubblesResponse);
+      socket.socketService.off('bubbles_action_complete', handleActionComplete);
     };
   }, [socket]);
 
@@ -126,7 +126,24 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
         }
       );
       
-      // Response handled by socket listener
+      // If Socket.io is not working, handle response directly
+      if (response && response.data && response.data.response) {
+        setIsLoading(false);
+        setIsTyping(false);
+        
+        const aiMessage = {
+          id: response.data.sessionContext?.sessionId || Date.now(),
+          type: 'ai',
+          content: response.data.response.content,
+          suggestedActions: response.data.response.suggestedActions || [],
+          timestamp: new Date(response.data.response.timestamp),
+          responseType: response.data.response.type
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+      }
+      
+      // Response also handled by socket listener if available
     } catch (error) {
       setIsLoading(false);
       setIsTyping(false);
@@ -134,12 +151,14 @@ ${currentProject ? `I see you're working on **${currentProject.name}**. ` : ''}H
       const errorMessage = {
         id: `error_${Date.now()}`,
         type: 'error',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: error.message?.includes('500') 
+          ? 'Bubbles is starting up. Please try again in a moment.' 
+          : 'Sorry, I encountered an error. Please try again.',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, errorMessage]);
-      console.error('Bubbles chat error:', error);
+      console.warn('Bubbles chat error:', error.message);
     }
   };
 

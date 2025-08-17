@@ -17,18 +17,20 @@ const BubblesButton = ({
     const checkForSuggestions = async () => {
       try {
         const status = await bubblesService.getStatus();
+        setIsOnline(true);
         // Logic to determine if there are new suggestions
         // This could be based on new alerts, project updates, etc.
         setHasNewSuggestion(false); // Reset for now
       } catch (error) {
         setIsOnline(false);
-        console.error('Bubbles status check failed:', error);
+        console.warn('Bubbles status check failed - service may be initializing:', error.message);
+        // Don't spam console with errors during initialization
       }
     };
 
-    // Check every 5 minutes for new suggestions
+    // Check immediately, then every 5 minutes
+    checkForSuggestions();
     const interval = setInterval(checkForSuggestions, 5 * 60 * 1000);
-    checkForSuggestions(); // Initial check
 
     return () => clearInterval(interval);
   }, []);

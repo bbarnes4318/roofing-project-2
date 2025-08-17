@@ -1,18 +1,20 @@
-const OpenAI = require('openai');
-
 class OpenAIService {
   constructor() {
-    this.isEnabled = !!process.env.OPENAI_API_KEY;
+    this.isEnabled = false;
     this.client = null;
     
-    if (this.isEnabled) {
+    // Try to initialize OpenAI if available
+    if (process.env.OPENAI_API_KEY) {
       try {
+        const OpenAI = require('openai');
         this.client = new OpenAI({
           apiKey: process.env.OPENAI_API_KEY,
         });
+        this.isEnabled = true;
         console.log('✅ OpenAI service initialized successfully with GPT-5');
       } catch (error) {
-        console.error('❌ Failed to initialize OpenAI service:', error.message);
+        console.error('❌ OpenAI package not found or failed to initialize:', error.message);
+        console.log('⚠️ Using enhanced mock responses instead');
         this.isEnabled = false;
       }
     } else {
