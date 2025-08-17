@@ -2840,10 +2840,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           
                           {/* Left Section: Project# | Customer | PM - Fixed positioning */}
                           <div className="flex items-center text-[9px] flex-1">
-                              {/* Project Number */}
-                              <span 
-                                className={`font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'}`}
-                                style={{width: '50px'}}
+                              {/* Project Number as blue clickable link */}
+                              <button 
+                                className={`font-bold flex-shrink-0 hover:underline ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-700 hover:text-blue-900'}`}
+                                style={{ width: '50px', textAlign: 'left' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (project && onProjectSelect) {
@@ -2854,9 +2854,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Current Alerts');
                                   }
                                 }}
+                                title={`Go to project #${project?.projectNumber || actionData.projectNumber || 'N/A'}`}
                               >
                                 {project?.projectNumber || actionData.projectNumber || '12345'}
-                              </span>
+                              </button>
                               
                               {/* Customer with dropdown arrow - Made smaller */}
                               <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '2px'}}>
@@ -2898,8 +2899,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 </button>
                               </div>
                               
-                              {/* PM with dropdown arrow - Moved to the right for better alignment */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '10px'}}>
+                              {/* PM with dropdown arrow - align baseline with Line Item label */}
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '10px' }}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
                                   ref={(el) => alertPmButtonRefs.current[alertId] = el}
@@ -2942,9 +2943,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             
                             {/* Right Section: User Group & Arrow */}
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <div className="w-8 h-3 px-0.5 py-0 border border-gray-300 rounded-full flex items-center justify-center text-black font-medium text-[7px] bg-white">
-                                {correctUserGroup}
-                              </div>
+                              <div className={`px-2 py-0.5 rounded-full border bg-white ${colorMode ? 'border-gray-400' : 'border-gray-300'} text-black text-[8px] font-semibold`}>{correctUserGroup}</div>
                               <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                                 <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
