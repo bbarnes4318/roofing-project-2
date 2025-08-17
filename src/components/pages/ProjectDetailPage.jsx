@@ -8,7 +8,7 @@ import ProjectProfileTab from './ProjectProfileTab';
 import ProjectTimeline from '../../dashboard/ProjectTimeline';
 import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useWorkflowAlerts } from '../../hooks/useQueryApi';
+import { useWorkflowAlerts, useWorkflowAlertsByProject } from '../../hooks/useQueryApi';
 import { teamMembers } from '../../data/mockData';
 import { usersService, projectMessagesService } from '../../services/api';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
@@ -161,36 +161,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             return projectId === project.id || String(projectId) === String(project.id) || projectId === project._id || String(projectId) === String(project._id);
         });
         
-        // USER-SPECIFIC FILTERING: Only show alerts for the current user
-        filteredAlerts = filteredAlerts.filter(alert => {
-            // Check if alert is assigned to current user
-            const assignedToId = alert.assignedTo || alert.assignedToId || alert.metadata?.assignedTo;
-            const targetUserId = alert.targetedTo || alert.targetUserId || alert.metadata?.targetedTo;
-            const resolveAlertRole = () => {
-                const role = alert.metadata?.responsibleRole
-                    || alert.actionData?.responsibleRole
-                    || alert.metadata?.defaultResponsible
-                    || alert.actionData?.defaultResponsible
-                    || alert.user?.role
-                    || 'OFFICE';
-                return formatUserRole(String(role));
-            };
-
-            // If alert has specific user assignment, only show to that user
-            if (assignedToId) {
-                return assignedToId === currentUser.id || String(assignedToId) === String(currentUser.id);
-            }
-            
-            // If alert is targeted to specific user, only show to that user
-            if (targetUserId) {
-                return targetUserId === currentUser.id || String(targetUserId) === String(currentUser.id);
-            }
-            
-            // If alert is for a specific role, check if current user has that role
-            const normalizedUserRole = formatUserRole(currentUser.role);
-            const normalizedAlertRole = resolveAlertRole();
-            return normalizedUserRole === normalizedAlertRole;
-        });
+        // Show all alerts for this project on the Project Profile page (no user-specific filtering here)
         
         // Note: Project filter is always locked to current project in project detail view
         
@@ -501,6 +472,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     
     // Call useWorkflowAlerts at the top level to comply with React hooks rules
     const { workflowAlerts, isLoading: alertsLoading, error: alertsError } = useWorkflowAlerts({ status: 'active' });
+    const { data: alertsByProject = [] } = useWorkflowAlertsByProject(project?.id);
     
     // Load users for dropdown
     useEffect(() => {
@@ -729,15 +701,19 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         console.log('New task added:', newTask);
     };
 
-    // Custom back button handler to handle Project Workflow Alerts navigation
+    // Custom back button handler to handle navigation back to dashboard sections
     const handleBackButton = () => {
         console.log('🔍 BACK BUTTON: handleBackButton called');
         console.log('🔍 BACK BUTTON: projectSourceSection:', projectSourceSection);
         
-        // If we came from Project Workflow Alerts, navigate back to Alerts tab
-        if (projectSourceSection === 'Project Workflow Alerts') {
-            console.log('🔍 BACK BUTTON: Navigating back to Alerts tab');
-            setActiveView('Alerts');
+        // If we came from dashboard sections, navigate back to Dashboard and restore that section
+        if (projectSourceSection === 'Project Messages') {
+            // Navigate back to Dashboard with My Project Messages context
+            onProjectSelect && onProjectSelect(null, 'Overview');
+            return;
+        }
+        if (projectSourceSection === 'Current Alerts') {
+            onProjectSelect && onProjectSelect(null, 'Overview');
             return;
         }
         
