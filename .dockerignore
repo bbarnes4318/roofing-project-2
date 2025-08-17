@@ -1,0 +1,17 @@
+﻿# Prevent local env files and secrets from being sent to the build context
+.env
+**/.env
+server/.env
+
+# Node modules and caches
+node_modules
+**/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+build
+server/build
+server/public
+coverage

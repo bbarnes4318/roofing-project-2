@@ -11,7 +11,18 @@ const compression = require('compression');
 const morgan = require('morgan');
 
 const xss = require('xss-clean');
-require('dotenv').config();
+// Load .env only in local development, never inside Docker/production
+try {
+  const isDocker = require('fs').existsSync('/.dockerenv');
+  if (!isDocker && process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+    console.log('🧪 Loaded .env for development');
+  } else {
+    console.log('🔒 Production/Docker mode: ignoring .env; using platform environment variables');
+  }
+} catch (e) {
+  // Safe fallback: do nothing if fs check fails
+}
 
 console.log('✅ Required modules loaded successfully');
 
