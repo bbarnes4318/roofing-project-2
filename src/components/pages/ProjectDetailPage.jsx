@@ -539,9 +539,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         let filteredActivities = allActivities.filter(activity => {
             // For project messages from API, they're already filtered by project
             if (activeView === 'Messages') {
+                // CRITICAL: Project Messages view should show ALL messages for this specific project
+                // No user-based filtering - everyone can see all project messages
                 return true; // Project messages API already filters by projectId
             }
             
+            // For other views (non-Messages), apply user-specific filtering
             // CRITICAL: For other activities, always filter by current project when in project detail view
             // Convert both to strings for comparison to handle type mismatches
             const activityProjectId = String(activity.projectId);
@@ -552,6 +555,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             }
             
             // Filter by targeted user - only show messages targeted to current user or sent by current user
+            // This only applies to NON-Messages views
             if (activity.targetedTo && activity.targetedTo !== currentUser.id && activity.userId !== currentUser.id) {
                 return false;
             }

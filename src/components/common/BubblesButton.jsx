@@ -9,6 +9,7 @@ const BubblesButton = ({
   className = "" 
 }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [hasNewSuggestion, setHasNewSuggestion] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
@@ -36,10 +37,27 @@ const BubblesButton = ({
   }, []);
 
   const handleToggleChat = () => {
-    setIsChatOpen(!isChatOpen);
+    if (isMinimized) {
+      // If minimized, restore chat
+      setIsMinimized(false);
+      setIsChatOpen(true);
+    } else {
+      // Normal toggle behavior
+      setIsChatOpen(!isChatOpen);
+    }
     if (hasNewSuggestion) {
       setHasNewSuggestion(false);
     }
+  };
+
+  const handleMinimize = () => {
+    setIsMinimized(true);
+    setIsChatOpen(false);
+  };
+
+  const handleClose = () => {
+    setIsChatOpen(false);
+    setIsMinimized(false);
   };
 
   return (
@@ -52,7 +70,7 @@ const BubblesButton = ({
             colorMode
               ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
               : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
-          } ${isChatOpen ? 'rotate-12' : ''}`}
+          } ${isChatOpen ? 'rotate-12' : ''} ${isMinimized ? 'ring-4 ring-yellow-400 ring-opacity-50' : ''}`}
         >
           {/* Main Icon */}
           <div className="flex items-center justify-center w-full h-full">
@@ -94,7 +112,12 @@ const BubblesButton = ({
               ? 'bg-neutral-800 text-white border border-neutral-600'
               : 'bg-gray-900 text-white'
           }`}>
-            {hasNewSuggestion ? "New AI suggestions available!" : "Chat with Bubbles AI"}
+            {isMinimized 
+              ? "Restore Bubbles chat" 
+              : hasNewSuggestion 
+                ? "New AI suggestions available!" 
+                : "Chat with Bubbles AI"
+            }
             <div className={`absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${
               colorMode ? 'border-t-neutral-800' : 'border-t-gray-900'
             }`}></div>
@@ -105,7 +128,8 @@ const BubblesButton = ({
       {/* Bubbles Chat Component */}
       <BubblesChat
         isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
+        onClose={handleClose}
+        onMinimize={handleMinimize}
         currentProject={currentProject}
         colorMode={colorMode}
       />
@@ -114,7 +138,7 @@ const BubblesButton = ({
       {isChatOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-          onClick={() => setIsChatOpen(false)}
+          onClick={handleClose}
         />
       )}
     </>

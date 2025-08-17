@@ -652,26 +652,26 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const _recentTasks = tasks.slice(0, 3);
 
   // Pagination logic with subject filtering, sorting, and recipient filtering
-  // STRICT: Only show messages addressed to the logged-in user in "My Project Messages"
+  // STRICT: Only show messages addressed to the logged-in user OR messages to 'ALL' - NO EXCEPTIONS FOR ANY ROLE
   const filteredActivities = feed.filter(activity => {
     const projectMatch = !activityProjectFilter || activity.projectId === parseInt(activityProjectFilter);
     const subjectMatch = !activitySubjectFilter || activity.subject === activitySubjectFilter;
     
-    // Include if the logged-in user is a recipient OR recipients contain 'all'
-    // MANAGERS and ADMINS should see all messages regardless of recipients
-    let recipientMatch = true;
+    // CRITICAL: ONLY show messages where the logged-in user is a recipient OR the message is to 'ALL'
+    // This applies to ALL users regardless of role (including Managers and Admins)
+    let recipientMatch = false;
     const loggedInUserId = currentUser?.id || currentUser?._id || null;
-    const userRole = currentUser?.role;
     
-    // Managers and Admins see all project messages
-    if (userRole === 'MANAGER' || userRole === 'ADMIN') {
-      recipientMatch = true;
-    } else if (Array.isArray(activity.recipients) && activity.recipients.length > 0 && loggedInUserId) {
+    if (loggedInUserId && Array.isArray(activity.recipients) && activity.recipients.length > 0) {
+      // Show message if:
+      // 1. Recipients includes 'all' (message to everyone)
+      // 2. Recipients includes the current user's ID
       recipientMatch = activity.recipients.includes('all') ||
+                       activity.recipients.includes('ALL') ||
                        activity.recipients.some(r => String(r) === String(loggedInUserId));
     } else if (!Array.isArray(activity.recipients) || activity.recipients.length === 0) {
-      // If no recipients specified, show to managers/admins only
-      recipientMatch = userRole === 'MANAGER' || userRole === 'ADMIN';
+      // If no recipients specified, hide the message (don't show to anyone)
+      recipientMatch = false;
     }
     
     return projectMatch && subjectMatch && recipientMatch;

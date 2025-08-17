@@ -59,7 +59,7 @@ const logError = (err, req) => {
     url: req.originalUrl,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
-    userId: req.user ? req.user.id : 'Anonymous',
+    userId: req.user?.id || 'Anonymous',
     error: {
       name: err.name,
       message: err.message,

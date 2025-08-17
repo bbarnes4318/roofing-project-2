@@ -4,16 +4,25 @@ class OpenAIService {
     this.client = null;
     
     // Try to initialize OpenAI if available
+    console.log('🔍 OpenAI Initialization: Checking for API key...');
+    console.log('🔍 API Key present:', !!process.env.OPENAI_API_KEY);
+    console.log('🔍 API Key length:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0);
+    console.log('🔍 API Key first 20 chars:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'NONE');
+    console.log('🔍 API Key last 4 chars:', process.env.OPENAI_API_KEY ? '...' + process.env.OPENAI_API_KEY.slice(-4) : 'NONE');
+    
     if (process.env.OPENAI_API_KEY) {
       try {
+        console.log('🔍 OpenAI: Loading OpenAI package...');
         const OpenAI = require('openai');
+        console.log('🔍 OpenAI: Creating client...');
         this.client = new OpenAI({
           apiKey: process.env.OPENAI_API_KEY,
         });
         this.isEnabled = true;
-        console.log('✅ OpenAI service initialized successfully with GPT-5');
+        console.log('✅ OpenAI service initialized successfully with GPT-4 Turbo');
       } catch (error) {
         console.error('❌ OpenAI package not found or failed to initialize:', error.message);
+        console.error('❌ Full error:', error);
         console.log('⚠️ Using enhanced mock responses instead');
         this.isEnabled = false;
       }
@@ -31,8 +40,9 @@ class OpenAIService {
       const systemPrompt = this.buildSystemPrompt(context);
       const userPrompt = this.buildUserPrompt(prompt, context);
 
+      console.log('🔍 Making OpenAI API call...');
       const response = await this.client.chat.completions.create({
-        model: 'gpt-5', // Using GPT-5 (latest model)
+        model: 'gpt-4-turbo-preview', // Using GPT-4 Turbo (latest available model)
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -42,6 +52,7 @@ class OpenAIService {
         presence_penalty: 0.6,
         frequency_penalty: 0.3
       });
+      console.log('✅ OpenAI API call successful');
 
       const aiResponse = response.choices[0].message.content;
       
@@ -49,17 +60,20 @@ class OpenAIService {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
-        source: 'openai-gpt5',
+        source: 'openai-gpt4-turbo',
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
-          model: 'gpt-5',
+          model: 'gpt-4-turbo-preview',
           tokens: response.usage.total_tokens,
           timestamp: new Date()
         }
       };
 
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error('❌ OpenAI API error:', error.message);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error type:', error.type);
+      console.error('❌ Full error object:', error);
       // Fallback to mock response on error
       return this.generateMockResponse(prompt, context);
     }
@@ -357,7 +371,7 @@ How would you like me to help you today?`,
   getStatus() {
     return {
       enabled: this.isEnabled,
-      model: this.isEnabled ? 'gpt-4' : 'mock-responses',
+      model: this.isEnabled ? 'gpt-4-turbo-preview' : 'mock-responses',
       status: this.isEnabled ? 'active' : 'fallback'
     };
   }

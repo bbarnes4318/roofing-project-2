@@ -7,8 +7,12 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { cacheService } = require('../config/redis');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Apply authentication to all routes
+router.use(authenticateToken);
 
 // Transform message data to activity format for frontend compatibility
 const transformMessageToActivity = (message) => {
@@ -37,7 +41,7 @@ const transformMessageToActivity = (message) => {
 
 // @desc    Get all activities (messages from conversations)
 // @route   GET /api/activities
-// @access  Private
+// @access  Private  
 router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -54,6 +58,13 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   const skip = (pageNum - 1) * limitNum;
 
   // Build filter object - CRITICAL: Only show messages where user is a participant
+  console.log('🔍 ACTIVITIES: User from request:', req.user);
+  
+  if (!req.user || !req.user.id) {
+    console.error('❌ ACTIVITIES: No user found in request');
+    throw new AppError('Authentication required', 401);
+  }
+  
   const where = {
     isDeleted: false, // Only show non-deleted messages
     conversation: {
