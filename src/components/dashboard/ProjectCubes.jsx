@@ -416,8 +416,8 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                           </div>
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={`text-[8px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Name:</span>
-                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'David Chen'}>
-                              {project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'David Chen'}
+                            <span className={`text-[8px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'} truncate max-w-20`} title={project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'Not Assigned'}>
+                              {project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'Not Assigned'}
                             </span>
                           </div>
                           

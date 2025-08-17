@@ -620,6 +620,15 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       }
     }
 
+    // Determine default project manager if none provided
+    let resolvedProjectManagerId = req.body.projectManagerId || null;
+    if (!resolvedProjectManagerId && process.env.DEFAULT_PM_USER_ID) {
+      const envUser = await prisma.user.findUnique({ where: { id: process.env.DEFAULT_PM_USER_ID } });
+      if (envUser && envUser.isActive) {
+        resolvedProjectManagerId = envUser.id;
+      }
+    }
+
     // Use user-provided project number or auto-generate if not provided
     let projectNumber;
     if (req.body.projectNumber) {
@@ -644,7 +653,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       startDate: new Date(req.body.startDate),
       endDate: new Date(req.body.endDate),
       customerId: req.body.customerId,
-      projectManagerId: req.body.projectManagerId || null,
+      projectManagerId: resolvedProjectManagerId,
       pmPhone: req.body.pmPhone || null,
       pmEmail: req.body.pmEmail || null,
       notes: req.body.notes || null
