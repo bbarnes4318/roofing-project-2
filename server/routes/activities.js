@@ -96,14 +96,15 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
               id: true,
               firstName: true,
               lastName: true,
-              email: true
+              email: true,
+              role: true
             }
           },
-          conversation: {
+          project: {
             select: {
               id: true,
-              title: true,
-              isGroup: true
+              projectName: true,
+              projectNumber: true
             }
           }
         }

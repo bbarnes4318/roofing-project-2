@@ -363,7 +363,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           // Fallback to mock users if API fails
           console.log('⚠️ Using fallback users for assignment');
           const fallbackUsers = [
-            { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+            { id: 'cmeceqna60007qdkdllcz0jf5', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
             { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
             { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
           ];

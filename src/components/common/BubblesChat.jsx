@@ -16,6 +16,7 @@ const BubblesChat = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const socket = useSocket();
 
@@ -89,8 +90,13 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     };
   }, [socket]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll behavior: keep top on initial welcome; scroll bottom for subsequent messages
   useEffect(() => {
+    if (messages.length === 1 && messages[0]?.id === 'welcome') {
+      // Ensure view starts at top for the initial long welcome content
+      messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
     scrollToBottom();
   }, [messages]);
 
@@ -355,7 +361,7 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] rounded-2xl p-3 ${
