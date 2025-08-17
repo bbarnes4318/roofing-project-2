@@ -28,9 +28,9 @@ const defaultNewProject = {
     priority: 'Low',
     description: '',
     contacts: [
-        { name: '', phone: '', email: '', isPrimary: false },
-        { name: '', phone: '', email: '', isPrimary: false },
-        { name: '', phone: '', email: '', isPrimary: false }
+        { name: '', phone: '', email: '', role: '', isPrimary: false },
+        { name: '', phone: '', email: '', role: '', isPrimary: false },
+        { name: '', phone: '', email: '', role: '', isPrimary: false }
     ]
 };
 
@@ -287,7 +287,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         if (newProject.contacts.length < 10) { // Limit to 10 contacts
             setNewProject({
                 ...newProject,
-                contacts: [...newProject.contacts, { name: '', phone: '', email: '', isPrimary: false }]
+                contacts: [...newProject.contacts, { name: '', phone: '', email: '', role: '', isPrimary: false }]
             });
         }
     };
@@ -344,29 +344,23 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 !contact.isPrimary && contact.name.trim() && contact !== primaryContact
             );
 
-            // Step 1: Create customer with proper contact structure
+            // Step 1: Create customer with contact information directly in Customer table
             const customerData = {
-                primaryName: newProject.customerName,
+                primaryName: primaryContact?.name?.trim() || newProject.customerName,
                 // Use a unique placeholder email if missing to avoid unique constraint collisions
                 primaryEmail: (primaryContact?.email && primaryContact.email.trim()) || `no-reply+${Date.now()}@kenstruction.com`,
                 // Normalize phone to satisfy regex; fallback to a valid default starting with 1
                 primaryPhone: normalizePhone(primaryContact?.phone) || '1111111111',
+                primaryRole: primaryContact?.role || null,
                 // Add secondary contact if available
-                secondaryName: secondaryContact?.name || null,
-                secondaryEmail: secondaryContact?.email || null,
+                secondaryName: secondaryContact?.name?.trim() || null,
+                secondaryEmail: secondaryContact?.email?.trim() || null,
                 secondaryPhone: normalizePhone(secondaryContact?.phone) || null,
+                secondaryRole: secondaryContact?.role || null,
                 primaryContact: 'PRIMARY', // Always set primary as the main contact
-                address: `${newProject.customerName} Project`, // Better default address
+                address: newProject.customerAddress || `${newProject.customerName} Project`, // Better default address
                 notes: `Project created from Add Project form`,
-                // Send all contacts to be created in the new Contact table
-                contacts: newProject.contacts
-                    .filter(contact => contact.name && contact.name.trim()) // Only send contacts with names
-                    .map(contact => ({
-                        name: contact.name.trim(),
-                        phone: normalizePhone(contact.phone) || null,
-                        email: contact.email || null,
-                        isPrimary: contact.isPrimary || false
-                    }))
+                isActive: true
             };
 
             // Check if customer already exists or create new one
@@ -1348,6 +1342,24 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                                                     }`}
                                                     placeholder="Enter email address"
+                                                />
+                                            </div>
+                                            
+                                            {/* Role */}
+                                            <div>
+                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                                                    Role/Title
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={contact.role || ''}
+                                                    onChange={(e) => handleContactChange(index, 'role', e.target.value)}
+                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                                        colorMode
+                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                                    }`}
+                                                    placeholder="e.g., Homeowner, Property Manager"
                                                 />
                                             </div>
                                         </div>

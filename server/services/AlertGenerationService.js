@@ -17,6 +17,7 @@ class AlertGenerationService {
           wli."itemName" as item_name,
           wli."responsibleRole" as responsible_role,
           wli."alertDays" as alert_days,
+          wli."daysToComplete" as days_to_complete,
           wli."estimatedMinutes" as estimated_minutes,
           ws.id as section_id,
           ws."displayName" as section_name,
@@ -131,7 +132,7 @@ class AlertGenerationService {
           message: `${item.item_name} is now ready to be completed for project: ${item.project_name}`,
           stepName: item.item_name,
           responsibleRole: item.responsible_role,
-          dueDate: new Date(now.getTime() + (item.alert_days || 1) * 24 * 60 * 60 * 1000),
+          dueDate: new Date(now.getTime() + (item.days_to_complete || 1) * 24 * 60 * 60 * 1000),
           projectId: item.project_id,
           // NEW: Use line item references instead of WorkflowStep
           lineItemId: item.line_item_id,
@@ -200,6 +201,7 @@ class AlertGenerationService {
             itemName: true,
             responsibleRole: true,
             alertDays: true,
+            daysToComplete: true,
             section: {
               select: {
                 displayName: true,
@@ -245,7 +247,7 @@ class AlertGenerationService {
           message: `${lineItemData.itemName} is now ready to be completed for project at ${projectData.projectName}`,
           stepName: lineItemData.itemName,
           responsibleRole: lineItemData.responsibleRole,
-          dueDate: new Date(Date.now() + (lineItemData.alertDays || 1) * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() + (lineItemData.daysToComplete || 1) * 24 * 60 * 60 * 1000),
           projectId: projectId,
           workflowId: workflowId,
           stepId: lineItemId,

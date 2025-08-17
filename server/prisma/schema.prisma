@@ -54,10 +54,7 @@ model User {
   sentMessages             Message[]                 @relation("Sender")
   notifications            Notification[]            @relation("Recipient")
   authoredMessages         ProjectMessage[]          @relation("MessageAuthor")
-  performedOverrides       ProjectPhaseOverride[]    @relation("OverridePerformedBy")
   projectsAsTeamMember     ProjectTeamMember[]
-  createdWorkflows         ProjectWorkflow[]         @relation("CreatedBy")
-  modifiedWorkflows        ProjectWorkflow[]         @relation("LastModifiedBy")
   createdProjects          Project[]                 @relation("CreatedBy")
   projectsAsManager        Project[]                 @relation("ProjectManager")
   assignedRoles            RoleAssignment[]          @relation("AssignedRoles")
@@ -83,36 +80,20 @@ model Customer {
   primaryName    String      @db.VarChar(100)
   primaryEmail   String      @unique @db.VarChar(320)
   primaryPhone   String      @db.VarChar(20)
+  primaryRole    String?     @db.VarChar(50)
   secondaryName  String?     @db.VarChar(100)
   secondaryEmail String?     @db.VarChar(320)
   secondaryPhone String?     @db.VarChar(20)
+  secondaryRole  String?     @db.VarChar(50)
   primaryContact ContactType @default(PRIMARY)
   address        String      @db.VarChar(500)
   notes          String?
-  contacts       Contact[]
+  isActive       Boolean     @default(true)
   projects       Project[]
 
   @@map("customers")
 }
 
-model Contact {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  name       String   @db.VarChar(100)
-  phone      String?  @db.VarChar(20)
-  email      String?  @db.VarChar(320)
-  role       String?  @db.VarChar(50)
-  isPrimary  Boolean  @default(false)
-  isActive   Boolean  @default(true)
-  notes      String?
-  customerId String   @map("customer_id")
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  @@unique([customerId, isPrimary])
-  @@index([customerId])
-  @@map("contacts")
-}
 
 model Project {
   id               String                  @id @default(cuid())
@@ -143,10 +124,8 @@ model Project {
   calendarEvents   CalendarEvent[]
   documents        Document[]
   projectMessages  ProjectMessage[]
-  phaseOverrides   ProjectPhaseOverride[]
   teamMembers      ProjectTeamMember[]
   workflowTracker  ProjectWorkflowTracker?
-  workflow         ProjectWorkflow?
   createdBy        User?                   @relation("CreatedBy", fields: [createdById], references: [id])
   customer         Customer                @relation(fields: [customerId], references: [id], onDelete: Cascade)
   projectManager   User?                   @relation("ProjectManager", fields: [projectManagerId], references: [id])
@@ -167,34 +146,6 @@ model ProjectTeamMember {
 
   @@unique([projectId, userId])
   @@map("project_team_members")
-}
-
-model ProjectWorkflow {
-  id                      String                 @id @default(cuid())
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  projectId               String                 @unique @map("project_id")
-  workflowType            WorkflowType           @default(ROOFING)
-  status                  WorkflowStatus         @default(IN_PROGRESS)
-  currentStepIndex        Int                    @default(0)
-  overallProgress         Int                    @default(0)
-  workflowStartDate       DateTime?
-  workflowEndDate         DateTime?
-  estimatedCompletionDate DateTime?
-  actualCompletionDate    DateTime?
-  enableAlerts            Boolean                @default(true)
-  alertMethods            AlertMethod[]
-  escalationEnabled       Boolean                @default(true)
-  escalationDelayDays     Int                    @default(2)
-  teamAssignments         Json?
-  createdById             String?                @map("created_by_id")
-  lastModifiedById        String?                @map("last_modified_by_id")
-  phaseOverrides          ProjectPhaseOverride[]
-  createdBy               User?                  @relation("CreatedBy", fields: [createdById], references: [id])
-  lastModifiedBy          User?                  @relation("LastModifiedBy", fields: [lastModifiedById], references: [id])
-  project                 Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@map("project_workflows")
 }
 
 
@@ -277,29 +228,29 @@ model TaskDependency {
 }
 
 model Document {
-  id                  String                   @id @default(cuid())
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
-  fileName            String                   @db.VarChar(255)
-  originalName        String                   @db.VarChar(255)
-  fileUrl             String                   @db.VarChar(2000)
-  mimeType            String                   @db.VarChar(100)
-  fileSize            Int
-  fileType            DocumentType
-  description         String?                  @db.VarChar(500)
-  tags                String[]
-  version             Int                      @default(1)
-  isActive            Boolean                  @default(true)
-  downloadCount       Int                      @default(0)
-  lastDownloadedAt    DateTime?
-  checksum            String?                  @db.VarChar(255)
-  isPublic            Boolean                  @default(false)
-  projectId           String                   @map("project_id")
-  uploadedById        String                   @map("uploaded_by_id")
-  searchVector        String?
-  downloads           DocumentDownload[]
-  project             Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy          User                     @relation("UploadedBy", fields: [uploadedById], references: [id])
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  fileName         String             @db.VarChar(255)
+  originalName     String             @db.VarChar(255)
+  fileUrl          String             @db.VarChar(2000)
+  mimeType         String             @db.VarChar(100)
+  fileSize         Int
+  fileType         DocumentType
+  description      String?            @db.VarChar(500)
+  tags             String[]
+  version          Int                @default(1)
+  isActive         Boolean            @default(true)
+  downloadCount    Int                @default(0)
+  lastDownloadedAt DateTime?
+  checksum         String?            @db.VarChar(255)
+  isPublic         Boolean            @default(false)
+  projectId        String             @map("project_id")
+  uploadedById     String             @map("uploaded_by_id")
+  searchVector     String?
+  downloads        DocumentDownload[]
+  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy       User               @relation("UploadedBy", fields: [uploadedById], references: [id])
 
   @@map("documents")
 }
@@ -479,51 +430,7 @@ model Notification {
   @@map("notifications")
 }
 
-model ProjectPhaseOverride {
-  id                  String                    @id @default(cuid())
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
-  projectId           String                    @map("project_id")
-  workflowId          String                    @map("workflow_id")
-  fromPhase           ProjectPhase              @map("from_phase")
-  toPhase             ProjectPhase              @map("to_phase")
-  overriddenById      String                    @map("overridden_by_id")
-  reason              String?                   @db.VarChar(500)
-  suppressAlertsFor   ProjectPhase[]
-  autoLogMessage      String                    @db.VarChar(2000)
-  isActive            Boolean                   @default(true)
-  conversationMessage String?                   @map("conversation_message_id")
-  overriddenBy        User                      @relation("OverridePerformedBy", fields: [overriddenById], references: [id])
-  project             Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workflow            ProjectWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  suppressedAlerts    SuppressedWorkflowAlert[]
 
-  @@index([projectId])
-  @@index([workflowId])
-  @@index([overriddenById])
-  @@index([createdAt])
-  @@map("project_phase_overrides")
-}
-
-model SuppressedWorkflowAlert {
-  id                 String               @id @default(cuid())
-  createdAt          DateTime             @default(now())
-  originalAlertId    String               @unique @map("original_alert_id")
-  overrideId         String               @map("override_id")
-  suppressedPhase    ProjectPhase         @map("suppressed_phase")
-  suppressedStepId   String               @map("suppressed_step_id")
-  suppressedStepName String               @map("suppressed_step_name") @db.VarChar(255)
-  originalTitle      String               @map("original_title") @db.VarChar(255)
-  originalMessage    String               @map("original_message") @db.VarChar(2000)
-  originalPriority   AlertPriority        @map("original_priority")
-  suppressionReason  String               @map("suppression_reason") @db.VarChar(500)
-  override           ProjectPhaseOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
-
-  @@index([overrideId])
-  @@index([suppressedPhase])
-  @@index([createdAt])
-  @@map("suppressed_workflow_alerts")
-}
 
 model RoleAssignment {
   id           String   @id @default(cuid())
@@ -597,6 +504,7 @@ model WorkflowLineItem {
   isActive         Boolean                  @default(true)
   estimatedMinutes Int                      @default(30)
   alertDays        Int                      @default(1)
+  daysToComplete   Int                      @default(1) @map("days_to_complete")
   sectionId        String                   @map("section_id")
   isCurrent        Boolean                  @default(true)
   searchVector     String?

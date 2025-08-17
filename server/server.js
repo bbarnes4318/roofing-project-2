@@ -782,6 +782,10 @@ process.on('uncaughtException', (err) => {
   }
 });
 
+// Start overdue alert scheduler
+const OverdueAlertService = require('./services/OverdueAlertService');
+OverdueAlertService.startOverdueAlertScheduler(30); // Check every 30 minutes
+
 // Start server with comprehensive logging
 const PORT = process.env.PORT || 8080;
 console.log(`🔧 Debug: PORT from env = ${process.env.PORT}, final PORT = ${PORT}`);

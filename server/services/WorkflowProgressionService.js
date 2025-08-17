@@ -1,4 +1,5 @@
 const { prisma } = require('../config/prisma');
+const ProjectStatusService = require('./ProjectStatusService');
 
 // OPTIMIZED: Import the optimized workflow functions
 // These provide template-instance integration and performance improvements
@@ -225,13 +226,33 @@ class WorkflowProgressionService {
         // Complete old alerts WITHIN TRANSACTION
         // Get the line item data to find the step name
         const lineItemData = await tx.workflowLineItem.findUnique({
-          where: { id: lineItemId }
+          where: { id: lineItemId },
+          include: {
+            section: {
+              include: {
+                phase: true
+              }
+            }
+          }
         });
         
         let completedAlerts = { count: 0 };
         if (lineItemData) {
-          // Complete alerts by project and step name
+          // Complete all alerts for this line item
           completedAlerts = await tx.workflowAlert.updateMany({
+            where: { 
+              projectId: projectId,
+              lineItemId: lineItemId,
+              status: 'ACTIVE' 
+            },
+            data: { 
+              status: 'COMPLETED',
+              acknowledgedAt: new Date()
+            }
+          });
+          
+          // Also complete alerts by step name for backward compatibility
+          await tx.workflowAlert.updateMany({
             where: { 
               projectId: projectId,
               stepName: lineItemData.itemName,
@@ -243,6 +264,15 @@ class WorkflowProgressionService {
             }
           });
         }
+        
+        // Update project status based on workflow progression
+        const isCompletedPhase = lineItemData?.section?.phase?.phaseType === 'COMPLETED';
+        const isFinalItem = await ProjectStatusService.isCompletedPhaseFinalItem(lineItemId);
+        await ProjectStatusService.updateProjectStatus(
+          projectId,
+          lineItemData?.section?.phase?.phaseType,
+          isCompletedPhase && isFinalItem
+        );
 
         // Generate new alert AFTER transaction
         // Find next uncompleted line item that needs an alert

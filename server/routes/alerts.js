@@ -14,6 +14,7 @@ const AlertCacheService = require('../services/AlertCacheService');
 const WorkflowProgressionService = require('../services/WorkflowProgressionService');
 
 const router = express.Router();
+const OverdueAlertService = require('../services/OverdueAlertService');
 
 // **CRITICAL: Generate real-time alerts with batch optimization**
 const generateRealTimeAlerts = async (limit = 10) => {
@@ -792,5 +793,101 @@ router.get('/test/alerts', async (req, res) => {
     });
   }
 });
+
+// @desc    Complete an alert
+// @route   PUT /api/alerts/:id/complete
+// @access  Private
+router.put('/:id/complete', asyncHandler(async (req, res, next) => {
+  const alertId = req.params.id;
+  const { notes } = req.body;
+
+  // Find the alert
+  const alert = await prisma.workflowAlert.findUnique({
+    where: { id: alertId },
+    include: {
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true
+        }
+      }
+    }
+  });
+
+  if (!alert) {
+    return next(new AppError('Alert not found', 404));
+  }
+
+  // Update alert status to COMPLETED
+  const updatedAlert = await prisma.workflowAlert.update({
+    where: { id: alertId },
+    data: {
+      status: 'COMPLETED',
+      acknowledgedAt: new Date(),
+      metadata: {
+        ...alert.metadata,
+        completionNotes: notes,
+        completedBy: req.user?.id,
+        completedAt: new Date()
+      }
+    }
+  });
+
+  // If alert has a lineItemId, also complete that line item
+  if (alert.lineItemId) {
+    try {
+      const WorkflowProgressionService = require('../services/WorkflowProgressionService');
+      const progressionService = new WorkflowProgressionService();
+      await progressionService.completeLineItem(
+        alert.projectId,
+        alert.lineItemId,
+        req.user?.id,
+        notes
+      );
+      console.log(`✅ Completed line item ${alert.lineItemId} via alert completion`);
+    } catch (error) {
+      console.error('Error completing line item from alert:', error);
+    }
+  }
+
+  res.json({
+    success: true,
+    message: 'Alert completed successfully',
+    data: { alert: updatedAlert }
+  });
+}));
+
+// @desc    Get overdue alerts
+// @route   GET /api/alerts/overdue
+// @access  Private
+router.get('/overdue', asyncHandler(async (req, res) => {
+  const { projectId } = req.query;
+  
+  const overdueAlerts = await OverdueAlertService.getOverdueAlerts(projectId);
+  
+  res.json({
+    success: true,
+    data: {
+      alerts: overdueAlerts,
+      count: overdueAlerts.length
+    }
+  });
+}));
+
+// @desc    Manually trigger overdue alert check
+// @route   POST /api/alerts/check-overdue
+// @access  Private (Admin only)
+router.post('/check-overdue', asyncHandler(async (req, res) => {
+  const escalatedAlerts = await OverdueAlertService.checkAndEscalateOverdueAlerts();
+  
+  res.json({
+    success: true,
+    message: `Checked and escalated ${escalatedAlerts.length} overdue alerts`,
+    data: {
+      escalatedCount: escalatedAlerts.length
+    }
+  });
+}));
 
 module.exports = { router, generateMockAlerts }; 
