@@ -6,12 +6,16 @@ const {
   formatValidationErrors,
   AppError 
 } = require('../middleware/errorHandler');
+const { authenticateToken } = require('../middleware/auth');
 const { PrismaClient } = require('@prisma/client');
 const openAIService = require('../services/OpenAIService');
 const bubblesInsightsService = require('../services/BubblesInsightsService');
 
 const prisma = new PrismaClient();
 const router = express.Router();
+
+// Apply authentication to all routes
+router.use(authenticateToken);
 
 // Bubbles AI Context Manager
 class BubblesContextManager {
@@ -90,8 +94,12 @@ const chatValidation = [
     .isLength({ min: 1, max: 5000 })
     .withMessage('Message must be between 1 and 5000 characters'),
   body('projectId')
-    .optional()
-    .isInt({ min: 1 })
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === undefined || value === '') return true;
+      const num = Number(value);
+      return Number.isInteger(num) && num > 0;
+    })
     .withMessage('Project ID must be a positive integer'),
   body('context')
     .optional()
@@ -377,6 +385,10 @@ router.post('/reset', asyncHandler(async (req, res) => {
 // @route   GET /api/bubbles/status
 // @access  Private
 router.get('/status', asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new AppError('Authentication required', 401);
+  }
+  
   const userId = req.user.id;
   const session = contextManager.getUserSession(userId);
   
@@ -495,6 +507,23 @@ router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) =>
     totalRecommendations: recommendations.length,
     generatedAt: new Date()
   }, 'Optimization recommendations generated');
+}));
+
+// @desc    Debug OpenAI service status
+// @route   GET /api/bubbles/debug/openai
+// @access  Private
+router.get('/debug/openai', asyncHandler(async (req, res) => {
+  const status = openAIService.getStatus();
+  const isAvailable = openAIService.isAvailable();
+  
+  sendSuccess(res, 200, {
+    status,
+    isAvailable,
+    apiKeyPresent: !!process.env.OPENAI_API_KEY,
+    apiKeyLength: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0,
+    apiKeyPrefix: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'NONE',
+    serviceEnabled: openAIService.isEnabled
+  }, 'OpenAI debug info retrieved');
 }));
 
 module.exports = router;
