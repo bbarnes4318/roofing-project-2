@@ -295,8 +295,8 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 <div className={`p-2 border-b ${colorMode ? 'border-slate-600/50 bg-slate-700/50' : 'border-gray-100 bg-gray-50/50'}`}>
                   <div className="flex items-start justify-between mb-1">
                     <div className="flex-1 min-w-0">
-                      {/* Project Number and Primary Contact at top left */}
-                      <div className="flex items-center gap-2 mb-1">
+                      {/* Project Number above customer name */}
+                      <div className="mb-1">
                         <button
                           onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Cubes')}
                           className={`text-[10px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
@@ -304,44 +304,44 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         >
                           {project.projectNumber || `PRJ-${project.id}`}
                         </button>
-                        
-                        {/* Primary Contact with dropdown arrow */}
-                        <div className="flex flex-col">
-                          <button
-                            onClick={() => toggleCustomerInfo(project.id || project._id)}
-                            className={`flex items-center gap-1 text-[9px] font-semibold hover:underline transition-all duration-200 ${colorMode ? 'text-gray-300 hover:text-gray-200' : 'text-gray-700 hover:text-gray-800'}`}
-                          >
-                            <span>{project.customer?.primaryName || project.client?.name || 'Unknown Client'}</span>
-                            <svg 
-                              className={`w-2.5 h-2.5 transition-transform duration-200 ${expandedCustomers[project.id || project._id] ? 'rotate-180' : ''}`} 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          
-                          {/* Customer Address below customer name - Formatted as requested */}
-                          {(project.customer?.address || project.client?.address) && (
-                            <div className="text-[9px] mt-0.5 font-normal text-black" style={{fontFamily: 'inherit', lineHeight: '1.3'}}>
-                              <div className="font-medium">{(project.customer?.address || project.client?.address).split(',')[0]?.trim() || ''}</div>
-                              <div className="opacity-90">
-                                {(() => {
-                                  const address = project.customer?.address || project.client?.address;
-                                  const parts = address.split(',').slice(1);
-                                  if (parts.length >= 2) {
-                                    return `${parts[0].trim()}, ${parts[1].trim()}`;
-                                  } else if (parts.length === 1) {
-                                    return parts[0].trim();
-                                  }
-                                  return 'City, State 00000';
-                                })()}
-                              </div>
-                            </div>
-                          )}
-                        </div>
                       </div>
+
+                      {/* Customer name (larger) with dropdown */}
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <button
+                          onClick={() => toggleCustomerInfo(project.id || project._id)}
+                          className={`text-[12px] font-semibold hover:underline transition-all duration-200 ${colorMode ? 'text-gray-200 hover:text-gray-100' : 'text-gray-800 hover:text-gray-900'}`}
+                        >
+                          {project.customer?.primaryName || project.client?.name || 'Unknown Client'}
+                        </button>
+                        <svg 
+                          className={`w-2.5 h-2.5 transition-transform duration-200 ${expandedCustomers[project.id || project._id] ? 'rotate-180' : ''}`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+
+                      {/* Customer Address (larger) */}
+                      {(project.customer?.address || project.client?.address) && (
+                        <div className="text-[11px] mt-0.5 font-normal" style={{fontFamily: 'inherit', lineHeight: '1.3'}}>
+                          <div className={`${colorMode ? 'text-white' : 'text-black'}`}>{(project.customer?.address || project.client?.address).split(',')[0]?.trim() || ''}</div>
+                          <div className={`${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {(() => {
+                              const address = project.customer?.address || project.client?.address;
+                              const parts = address.split(',').slice(1);
+                              if (parts.length >= 2) {
+                                return `${parts[0].trim()}, ${parts[1].trim()}`;
+                              } else if (parts.length === 1) {
+                                return parts[0].trim();
+                              }
+                              return 'City, State 00000';
+                            })()}
+                          </div>
+                        </div>
+                      )}
                       
                       <button
                         onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Cubes')}
