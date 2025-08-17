@@ -302,7 +302,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                           className={`text-[10px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
                           title={`View project profile for ${project.projectNumber || project.id}`}
                         >
-                          #{project.projectNumber || `PRJ-${project.id}`}
+                          {project.projectNumber || `PRJ-${project.id}`}
                         </button>
                         
                         {/* Primary Contact with dropdown arrow */}
@@ -352,10 +352,10 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       </button>
                     </div>
                     <div 
-                      className="ml-2 px-2 py-1 rounded-md text-[8px] font-semibold shadow-sm"
+                      className="ml-2 w-24 h-6 px-2 py-1 rounded-md text-[8px] font-semibold shadow-sm flex items-center justify-center"
                       style={{ 
                         backgroundColor: WorkflowProgressService.getPhaseColor(getProjectPhase(project)),
-                        color: WorkflowProgressService.getContrastTextColor(WorkflowProgressService.getPhaseColor(getProjectPhase(project)))
+                        color: '#ffffff'
                       }}
                     >
                       {getPhaseText(project)}

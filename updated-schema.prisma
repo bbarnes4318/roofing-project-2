@@ -1,0 +1,546 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkflowState {
+  PENDING
+  ACTIVE
+  IN_PROGRESS
+  BLOCKED
+  COMPLETED
+  SKIPPED
+
+  @@map("workflow_states")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  PROJECT_MANAGER
+  FOREMAN
+  WORKER
+  CLIENT
+
+  @@map("user_roles")
+}
+
+enum Permission {
+  CREATE_PROJECTS
+  EDIT_PROJECTS
+  DELETE_PROJECTS
+  MANAGE_USERS
+  VIEW_REPORTS
+  MANAGE_FINANCES
+  MANAGE_DOCUMENTS
+  MANAGE_CALENDAR
+  USE_AI_FEATURES
+
+  @@map("permissions")
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  AUTO
+
+  @@map("themes")
+}
+
+enum ContactType {
+  PRIMARY
+  SECONDARY
+
+  @@map("contact_types")
+}
+
+enum ProjectType {
+  ROOF_REPLACEMENT
+  KITCHEN_REMODEL
+  BATHROOM_RENOVATION
+  SIDING_INSTALLATION
+  WINDOW_REPLACEMENT
+  FLOORING
+  PAINTING
+  ELECTRICAL_WORK
+  PLUMBING
+  HVAC
+  DECK_CONSTRUCTION
+  LANDSCAPING
+  OTHER
+
+  @@map("project_types")
+}
+
+enum ProjectStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+
+  @@map("project_statuses")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@map("priorities")
+}
+
+enum ProjectPhase {
+  LEAD
+  PROSPECT
+  APPROVED
+  EXECUTION
+  SECOND_SUPPLEMENT
+  COMPLETION
+
+  @@map("project_phases")
+}
+
+enum WorkflowType {
+  ROOFING
+  KITCHEN_REMODEL
+  BATHROOM_RENOVATION
+  SIDING
+  WINDOWS
+  GENERAL
+
+  @@map("workflow_types")
+}
+
+enum WorkflowStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+
+  @@map("workflow_statuses")
+}
+
+enum ResponsibleRole {
+  OFFICE
+  ADMINISTRATION
+  PROJECT_MANAGER
+  FIELD_DIRECTOR
+  ROOF_SUPERVISOR
+
+  @@map("responsible_roles")
+}
+
+enum AlertPriority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@map("alert_priorities")
+}
+
+enum AlertMethod {
+  IN_APP
+  EMAIL
+  SMS
+
+  @@map("alert_methods")
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  DISMISSED
+  COMPLETED
+
+  @@map("alert_status")
+}
+
+enum TaskStatus {
+  TO_DO
+  IN_PROGRESS
+  DONE
+
+  @@map("task_statuses")
+}
+
+enum TaskCategory {
+  PLANNING
+  DESIGN
+  CONSTRUCTION
+  INSPECTION
+  DOCUMENTATION
+  COMMUNICATION
+  OTHER
+
+  @@map("task_categories")
+}
+
+enum DocumentType {
+  BLUEPRINT
+  PERMIT
+  INVOICE
+  PHOTO
+  CONTRACT
+  REPORT
+  SPECIFICATION
+  CORRESPONDENCE
+  OTHER
+
+  @@map("document_types")
+}
+
+enum ProjectMessageType {
+  WORKFLOW_UPDATE
+  PHASE_COMPLETION
+  STEP_COMPLETION
+  USER_MESSAGE
+  SYSTEM_NOTIFICATION
+  ALERT_DISCUSSION
+  PROJECT_MILESTONE
+
+  @@map("project_message_types")
+}
+
+enum MessagePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@map("message_priorities")
+}
+
+enum ConversationRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+
+  @@map("conversation_roles")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+  NOTIFICATION
+
+  @@map("message_types")
+}
+
+enum EventType {
+  MEETING
+  INSPECTION
+  INSTALLATION
+  DEADLINE
+  REMINDER
+  OTHER
+
+  @@map("event_types")
+}
+
+enum EventStatus {
+  CONFIRMED
+  TENTATIVE
+  CANCELLED
+
+  @@map("event_statuses")
+}
+
+enum AttendeeStatus {
+  REQUIRED
+  OPTIONAL
+  ORGANIZER
+
+  @@map("attendee_statuses")
+}
+
+enum AttendeeResponse {
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+  NO_RESPONSE
+
+  @@map("attendee_responses")
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  PROJECT_UPDATE
+  WORKFLOW_ALERT
+  SYSTEM_MESSAGE
+  REMINDER
+
+  @@map("notification_types")
+}
+
+enum RoleType {
+  PROJECT_MANAGER
+  FIELD_DIRECTOR
+  OFFICE_STAFF
+  ADMINISTRATION
+
+  @@map("role_types")
+}
+
+enum MFAMethod {
+  TOTP
+  SMS
+  WEBAUTHN
+  BACKUP
+  EMAIL
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  LOGIN_BLOCKED
+  MFA_SUCCESS
+  MFA_FAILURE
+  DEVICE_NEW
+  DEVICE_SUSPICIOUS
+  LOCATION_NEW
+  LOCATION_SUSPICIOUS
+  BEHAVIOR_ANOMALY
+  ACCOUNT_LOCKED
+  ACCOUNT_UNLOCKED
+  PASSWORD_CHANGED
+  MFA_ENABLED
+  MFA_DISABLED
+  DEVICE_TRUSTED
+  DEVICE_REMOVED
+  SECURITY_QUESTION_FAILED
+  BRUTE_FORCE_DETECTED
+  CREDENTIAL_CREATED
+  CREDENTIAL_DELETED
+}
+
+model User {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  firstName                      String?
+  lastName                       String?
+  email                          String @unique
+  password                       String?
+  avatar                         DateTime?
+  phone                          String?
+  position                       String?
+  department                     String?
+  bio                            String?
+  role                           String?
+  permissions                    Boolean @default(false)
+  isActive                       Boolean @default(false)
+  isVerified                     Boolean @default(false)
+  emailVerificationToken         DateTime?
+  emailVerificationExpires       DateTime?
+  passwordResetToken             String?
+  passwordResetExpires           String?
+  passwordChangedAt              DateTime?
+  loginAttempts                  DateTime?
+  lockUntil                      String?
+  lastLogin                      String?
+  lastLoginIP                    String?
+  twoFactorSecret                String?
+  twoFactorEnabled               Boolean @default(false)
+  theme                          String?
+  notificationPreferences        DateTime?
+  language                       String?
+  timezone                       String?
+  skills                         String?
+  certifications                 DateTime?
+  experience                     String?
+  emergencyContact               String?
+  address                        String?
+
+  // Relations from existing schema
+  eventAttendees           CalendarEventAttendee[]
+  calendarEvents           CalendarEvent[]           @relation("Organizer")
+  completedWorkflowItems   CompletedWorkflowItem[]
+  conversationParticipants ConversationParticipant[]
+  downloadedDocuments      DocumentDownload[]
+  uploadedDocuments        Document[]                @relation("UploadedBy")
+  readMessages             MessageRead[]
+  sentMessages             Message[]                 @relation("Sender")
+  notifications            Notification[]            @relation("Recipient")
+  authoredMessages         ProjectMessage[]          @relation("MessageAuthor")
+  projectsAsTeamMember     ProjectTeamMember[]
+  createdProjects          Project[]                 @relation("CreatedBy")
+  projectsAsManager        Project[]                 @relation("ProjectManager")
+  assignedRoles            RoleAssignment[]          @relation("AssignedRoles")
+  resolvedSecurityEvents   SecurityEvent[]           @relation("SecurityEventResolver")
+  securityEvents           SecurityEvent[]           @relation("SecurityEvents")
+  assignedTasks            Task[]                    @relation("AssignedUser")
+  createdTasks             Task[]                    @relation("CreatedByUser")
+  behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
+  devices                  UserDevice[]              @relation("UserDevices")
+  mfaSettings              UserMFA[]                 @relation("UserMFA")
+  webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
+  assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
+  createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
+}
+
+model Customer {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  primaryName                    String?
+  primaryEmail                   String @unique
+  primaryPhone                   String?
+  secondaryName                  String?
+  secondaryEmail                 String @unique
+  secondaryPhone                 String?
+  primaryContact                 String?
+  address                        String?
+  notes                          String?
+
+  // Relations from existing schema
+  projects       Project[]
+}
+
+model RoleAssignment {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  roleType                       String?
+  userId                         String
+  assignedAt                     DateTime?
+  assignedById                   String
+  isActive                       Boolean @default(false)
+
+  // Relations from existing schema
+}
+
+model WorkflowPhase {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  phaseName                      Boolean @default(false)
+  phaseType                      Boolean @default(false)
+  displayOrder                   Boolean @default(false)
+  description                    String?
+  isActive                       Boolean @default(false)
+  isCurrent                      Boolean @default(false)
+  version                        Int
+
+  // Relations from existing schema
+  projectTrackers ProjectWorkflowTracker[]
+  alerts          WorkflowAlert[]
+  sections        WorkflowSection[]
+}
+
+model WorkflowSection {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  sectionNumber                  Int
+  sectionName                    String?
+  displayName                    Boolean @default(false)
+  displayOrder                   Boolean @default(false)
+  description                    String?
+  isActive                       Boolean @default(false)
+  phaseId                        String
+  isCurrent                      Boolean @default(false)
+  version                        Int
+
+  // Relations from existing schema
+  projectTrackers ProjectWorkflowTracker[]
+  alerts          WorkflowAlert[]
+  lineItems       WorkflowLineItem[]
+}
+
+model WorkflowLineItem {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  itemLetter                     String?
+  itemName                       String?
+  responsibleRole                String?
+  displayOrder                   Boolean @default(false)
+  description                    String?
+  isActive                       Boolean @default(false)
+  estimatedMinutes               DateTime?
+  alertDays                      Int
+  sectionId                      String
+  isCurrent                      Boolean @default(false)
+  searchVector                   String?
+  version                        Int
+
+  // Relations from existing schema
+  progressTrackers ProjectWorkflowTracker[]
+  alerts           WorkflowAlert[]
+}
+
+model Project {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  projectNumber                  Int
+  projectName                    String?
+  projectType                    String?
+  status                         DateTime?
+  archived                       Boolean @default(false)
+  archivedAt                     DateTime?
+  progress                       Int
+  description                    String?
+  priority                       String?
+  budget                         Decimal?
+  estimatedCost                  DateTime?
+  actualCost                     Decimal?
+  startDate                      DateTime?
+  endDate                        DateTime?
+  notes                          String?
+  pmPhone                        String?
+  pmEmail                        String @unique
+  customerId                     String
+  projectManagerId               String
+  createdById                    String
+  phase                          Boolean @default(false)
+  searchVector                   String?
+
+  // Relations from existing schema
+  calendarEvents   CalendarEvent[]
+  documents        Document[]
+  projectMessages  ProjectMessage[]
+  teamMembers      ProjectTeamMember[]
+  tasks            Task[]
+  workflowAlerts   WorkflowAlert[]
+}
+
+model ProjectWorkflowTracker {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  projectId                      String
+  currentPhaseId                 String
+  currentSectionId               String
+  currentLineItemId              String
+  lastCompletedItemId            String
+  phaseStartedAt                 DateTime?
+  sectionStartedAt               DateTime?
+  lineItemStartedAt              DateTime?
+
+  // Relations from existing schema
+  completedItems      CompletedWorkflowItem[]
+}
+
+model CompletedWorkflowItem {
+  id                             String @id @default(cuid())
+  createdAt                      DateTime @default(now())
+  trackerId                      String
+  phaseId                        String
+  sectionId                      String
+  lineItemId                     String
+  completedAt                    DateTime?
+  completedById                  String
+  notes                          String?
+
+  // Relations from existing schema
+}
+

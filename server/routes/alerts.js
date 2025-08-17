@@ -340,6 +340,8 @@ router.get('/', asyncHandler(async (req, res, next) => {
         message: alert.message,
         stepName: alert.stepName,
         priority: alert.priority.charAt(0) + alert.priority.slice(1).toLowerCase(),
+        status: alert.status,
+        projectId: alert.projectId,
         isRead: alert.isRead,
         read: alert.isRead,
         createdAt: alert.createdAt,

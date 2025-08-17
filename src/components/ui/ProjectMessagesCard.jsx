@@ -158,7 +158,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             return WorkflowProgressService.getPhaseButtonProps(phase || 'LEAD');
         } catch (err) {
             console.warn('Phase data unavailable for phase:', phase, err);
-            return { initials: 'N', bgColor: 'bg-gray-400', textColor: 'text-black' };
+            return { initials: 'N', bgColor: 'bg-gray-400', textColor: 'text-white' };
         }
     };
 
@@ -202,7 +202,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 {(() => {
                     const phaseProps = getPhaseButton(projectPhase);
                     return (
-                        <div className={`w-5 h-5 ${phaseProps.bgColor} rounded-full flex items-center justify-center ${phaseProps.textColor} font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
+                        <div className={`w-5 h-5 ${phaseProps.bgColor} rounded-full flex items-center justify-center text-white font-bold text-[9px] shadow-sm flex-shrink-0 self-start`}>
                             {phaseProps.initials || 'N'}
                         </div>
                     );

@@ -1229,7 +1229,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     <div className="flex items-center justify-between gap-6">
                                                         {/* Phase Circle - Smaller */}
                                                         <div className="relative flex-shrink-0">
-                                                            <div className={`w-5 h-5 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center ${getPhaseCircleColors(phase).text} font-bold text-[9px] shadow-sm`}>
+                                                            <div className={`w-5 h-5 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center text-white font-bold text-[9px] shadow-sm`}>
                                                                 {phase.charAt(0).toUpperCase()}
                                                             </div>
                                                             {priority === 'high' && (

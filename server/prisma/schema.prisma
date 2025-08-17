@@ -124,6 +124,7 @@ model Project {
   calendarEvents   CalendarEvent[]
   documents        Document[]
   projectMessages  ProjectMessage[]
+  phaseOverrides   ProjectPhaseOverride[]
   teamMembers      ProjectTeamMember[]
   workflowTracker  ProjectWorkflowTracker?
   createdBy        User?                   @relation("CreatedBy", fields: [createdById], references: [id])
@@ -146,6 +147,23 @@ model ProjectTeamMember {
 
   @@unique([projectId, userId])
   @@map("project_team_members")
+}
+
+// Phase override model to support skipping/moving phases and suppressing alerts
+model ProjectPhaseOverride {
+  id                String        @id @default(cuid())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  projectId         String        @map("project_id")
+  fromPhase         ProjectPhase  @map("from_phase")
+  toPhase           ProjectPhase  @map("to_phase")
+  suppressAlertsFor ProjectPhase[]
+  isActive          Boolean       @default(true)
+
+  project           Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_phase_overrides")
 }
 
 

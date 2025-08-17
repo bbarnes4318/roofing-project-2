@@ -1,0 +1,90 @@
+{
+  "name": "customers",
+  "headers": [
+    "id",
+    "createdAt",
+    "updatedAt",
+    "primaryName",
+    "primaryEmail",
+    "primaryPhone",
+    "secondaryName",
+    "secondaryEmail",
+    "secondaryPhone",
+    "primaryContact",
+    "address",
+    "notes"
+  ],
+  "rowCount": 26,
+  "sampleRows": [
+    [
+      "id",
+      "createdAt",
+      "updatedAt",
+      "primaryName",
+      "primaryEmail",
+      "primaryPhone",
+      "secondaryName",
+      "secondaryEmail",
+      "secondaryPhone",
+      "primaryContact",
+      "address",
+      "notes"
+    ],
+    [
+      "cmecsskyp0000pwp48jhi6hbt",
+      45797.589849537035,
+      45884.51526620371,
+      "Michael Johnson",
+      "michael.johnson_0@gmail.com",
+      "(720) 555-3421",
+      "Sarah Johnson",
+      "sarah.johnson_0@gmail.com",
+      "(720) 555-3422",
+      "PRIMARY",
+      "1245 Pearl Street, Boulder, CO 80302",
+      "Preferred morning appointments. Source: Referral. City: Boulder, CO 80302"
+    ],
+    [
+      "cmecsslf70007pwp4fm0on4qo",
+      45855.98738425926,
+      45884.51527777778,
+      "Robert Williams",
+      "robert.williams_1@yahoo.com",
+      "(303) 555-8765",
+      "Jennifer Williams",
+      "jen.williams_1@yahoo.com",
+      "(303) 555-8766",
+      "PRIMARY",
+      "3890 S Broadway, Englewood, CO 80113",
+      "Has two properties - this is primary residence. Source: Website. City: Englewood, CO 80113"
+    ],
+    [
+      "cmecsslnl000epwp48u65trxi",
+      45861.91747685185,
+      45884.51527777778,
+      "David Anderson",
+      "david.anderson_2@outlook.com",
+      "(970) 555-2341",
+      null,
+      null,
+      null,
+      "PRIMARY",
+      "567 Mountain View Drive, Fort Collins, CO 80521",
+      "Commercial property owner. Source: Cold Call. City: Fort Collins, CO 80521"
+    ],
+    [
+      "cmecsslw2000lpwp4xht2x69l",
+      45857.6975,
+      45884.51527777778,
+      "Lisa Martinez",
+      "lisa.martinez_3@gmail.com",
+      "(719) 555-4567",
+      "Carlos Martinez",
+      "carlos.martinez_3@gmail.com",
+      "(719) 555-4568",
+      "PRIMARY",
+      "2134 Cascade Avenue, Colorado Springs, CO 80903",
+      "Spanish-speaking household. Source: Advertisement. City: Colorado Springs, CO 80903"
+    ]
+  ]
+}

@@ -1,2 +1,0 @@
-id,projectId,workflowId,fromPhase,toPhase,overriddenById,reason,suppressAlertsFor,autoLogMessage,isActive,conversationMessage
-Sample id,Sample projectId,Sample workflowId,LEAD,LEAD,Sample overriddenById,Sample reason,Sample suppressAlertsFor,Sample autoLogMessage,true,Sample conversationMessage

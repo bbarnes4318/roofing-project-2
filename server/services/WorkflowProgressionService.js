@@ -607,16 +607,9 @@ class WorkflowProgressionService {
     try {
       const tracker = await this.getCurrentPosition(projectId);
       
-      // Get the project with phase overrides
+      // Phase overrides not available in current schema
       const project = await prisma.project.findUnique({
-        where: { id: projectId },
-        include: {
-          phaseOverrides: {
-            where: { isActive: true },
-            orderBy: { createdAt: 'desc' },
-            take: 1
-          }
-        }
+        where: { id: projectId }
       });
 
       // Count completed items
@@ -631,9 +624,8 @@ class WorkflowProgressionService {
 
       // If there's an active phase override, we need to count skipped phase items as completed
       let adjustedCompletedCount = completedCount;
-      if (project?.phaseOverrides?.length > 0) {
-        const override = project.phaseOverrides[0];
-        const skippedPhases = override.suppressAlertsFor || [];
+      if (false) {
+        const skippedPhases = [];
         
         // Count items in skipped phases
         if (skippedPhases.length > 0) {
@@ -733,16 +725,9 @@ class WorkflowProgressionService {
 
       const projectStatus = status[0];
 
-      // Get the project with phase overrides
+      // Phase overrides not available in current schema
       const project = await prisma.project.findUnique({
-        where: { id: projectId },
-        include: {
-          phaseOverrides: {
-            where: { isActive: true },
-            orderBy: { createdAt: 'desc' },
-            take: 1
-          }
-        }
+        where: { id: projectId }
       });
 
       // Get completed items for progress tracking
@@ -775,9 +760,8 @@ class WorkflowProgressionService {
 
       // Adjust progress if there are phase overrides
       let adjustedProgress = projectStatus.overall_progress || 0;
-      if (project?.phaseOverrides?.length > 0) {
-        const override = project.phaseOverrides[0];
-        const skippedPhases = override.suppressAlertsFor || [];
+      if (false) {
+        const skippedPhases = [];
         
         if (skippedPhases.length > 0) {
           // Get total items and items in skipped phases
@@ -812,7 +796,7 @@ class WorkflowProgressionService {
         activeAlerts,
         alertCount: activeAlerts.length,
         overall_progress: adjustedProgress,
-        hasPhaseOverride: project?.phaseOverrides?.length > 0
+        hasPhaseOverride: false
       };
     } catch (error) {
       console.error('❌ Error getting optimized workflow status:', error);

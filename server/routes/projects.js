@@ -51,37 +51,8 @@ const getProjectPhaseKey = (project) => {
     }
   }
 
-  // FIXED: If project has workflow steps, find current phase based on WORKFLOW ORDER not alphabetical
-  if (project.workflow && project.workflow.steps && project.workflow.steps.length > 0) {
-    // Define proper phase order for workflow progression
-    const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
-    
-    console.log(`🔍 Calculating phase for project ${project.id}, total steps: ${project.workflow.steps.length}`);
-    
-    // Find first incomplete step in phase order
-    let currentPhase = 'COMPLETION'; // Default if all complete
-    
-    for (const phase of phaseOrder) {
-      const phaseSteps = project.workflow.steps.filter(step => 
-        step.phase?.toUpperCase() === phase
-      );
-      const incompleteSteps = phaseSteps.filter(step => !step.isCompleted);
-      
-      console.log(`📊 Phase ${phase}: ${phaseSteps.length} total steps, ${incompleteSteps.length} incomplete`);
-      
-      if (incompleteSteps.length > 0) {
-        currentPhase = phase;
-        console.log(`📍 Using phase: ${phase} for project ${project.id} (found incomplete step: ${incompleteSteps[0].stepId})`);
-        break;
-      }
-    }
-    
-    if (currentPhase === 'COMPLETION') {
-      console.log(`📍 All workflow phases complete for project ${project.id}`);
-    }
-    
-    return currentPhase;
-  }
+  // Use workflow tracker to determine the current phase
+  // This block is now deprecated since we don't have a workflow field anymore
 
   // Fallback to status-based mapping if no workflow data
   if (project.status) {
@@ -230,13 +201,8 @@ const transformProjectForFrontend = async (project) => {
       role: member.role || member.user?.role || ''
     })) : [],
     
-    // DEPRECATED: Legacy workflow field - use currentWorkflowItem instead
-    workflow: project.workflow ? {
-      id: project.workflow.id,
-      status: project.workflow.status || 'IN_PROGRESS',
-      // Remove steps array - use currentWorkflowItem for workflow data
-      steps: []
-    } : null,
+    // DEPRECATED: Legacy workflow field - removed, use currentWorkflowItem instead
+    workflow: null,
     // Provide both canonical key and display value for the phase
     phase: getProjectPhaseKey(project),
     phaseDisplay: getProjectPhaseDisplay(getProjectPhaseKey(project)),
@@ -311,7 +277,8 @@ const projectValidation = [
 // @desc    Get all projects with filtering and pagination
 // @route   GET /api/projects
 // @access  Private
-router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
+  // Temporarily disabled cache: cacheService.middleware('projects', 60)
   const { 
     status, 
     projectType, 
@@ -420,22 +387,6 @@ router.get('/', cacheService.middleware('projects', 60), asyncHandler(async (req
               }
             },
             take: 10 // Limit team members for performance
-          },
-          // NOTE: workflow field removed - using new workflowTracker system instead
-          phaseOverrides: {
-            where: { isActive: true },
-            select: {
-              id: true,
-              fromPhase: true,
-              toPhase: true,
-              suppressAlertsFor: true,
-              isActive: true,
-              createdAt: true
-            },
-            orderBy: {
-              createdAt: 'desc'
-            },
-            take: 1
           },
           _count: {
             select: {
@@ -552,33 +503,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
             }
           }
         },
-        workflow: {
-          select: {
-            id: true,
-            currentStepIndex: true,
-            overallProgress: true,
-            status: true,
-            steps: {
-              select: {
-                id: true,
-                stepId: true,
-                stepName: true,
-                phase: true,
-                isCompleted: true,
-                completedAt: true,
-                actualStartDate: true
-              },
-              orderBy: {
-                stepId: 'asc'
-              }
-            }
-          }
-        },
-        phaseOverrides: {
-          where: { isActive: true },
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        },
+        // workflow and phaseOverrides not present in active schema
         tasks: {
           include: {
             assignedTo: {

@@ -5,7 +5,6 @@ import workflowService from '../../services/workflowService';
 import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
-import PhaseOverrideButton from '../ui/PhaseOverrideButton';
 import WorkflowProgressService from '../../services/workflowProgress';
 
 // =================================================================

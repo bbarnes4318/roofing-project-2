@@ -2830,7 +2830,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <div className="flex items-center justify-between gap-3">
                           {/* Phase Circle - Smaller */}
                           <div className="relative flex-shrink-0">
-                            <div className={`w-5 h-5 ${getPhaseProps(phase).bgColor} rounded-full flex items-center justify-center ${getPhaseProps(phase).textColor} font-bold text-[9px] shadow-sm`}>
+                            <div className={`w-5 h-5 ${getPhaseProps(phase).bgColor} rounded-full flex items-center justify-center text-white font-bold text-[9px] shadow-sm`}>
                               {getPhaseProps(phase).initials}
                             </div>
                             {priority === 'high' && (
