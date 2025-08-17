@@ -70,12 +70,12 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
     }
 
     const phases = [
-        { key: 'LEAD', name: 'Lead', color: '#6B7280' },
-        { key: 'PROSPECT', name: 'Prospect', color: '#3B82F6' },
-        { key: 'APPROVED', name: 'Approved', color: '#10B981' },
-        { key: 'EXECUTION', name: 'Execution', color: '#F59E0B' },
-        { key: 'SECOND_SUPPLEMENT', name: '2nd Supplement', color: '#8B5CF6' },
-        { key: 'COMPLETION', name: 'Completion', color: '#059669' }
+        { key: 'LEAD', name: 'Lead', color: '#3B82F6' },          // Blue
+        { key: 'PROSPECT', name: 'Prospect', color: '#F59E0B' },  // Amber/Yellow
+        { key: 'APPROVED', name: 'Approved', color: '#10B981' },  // Emerald Green
+        { key: 'EXECUTION', name: 'Execution', color: '#EF4444' }, // Red
+        { key: 'SECOND_SUPPLEMENT', name: '2nd Supplement', color: '#8B5CF6' }, // Vivid Violet
+        { key: 'COMPLETION', name: 'Completion', color: '#0EA5E9' } // Bright Cyan-Teal
     ];
 
     return (

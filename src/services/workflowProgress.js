@@ -220,14 +220,14 @@ class WorkflowProgressService {
     static getPhaseColor(phase) {
         const normalizedPhase = this.normalizePhase(phase);
         const colors = {
-            LEAD: '#6B7280',
-            PROSPECT: '#3B82F6',
-            APPROVED: '#10B981',
-            EXECUTION: '#F59E0B',
-            SECOND_SUPPLEMENT: '#8B5CF6',
-            COMPLETION: '#059669'
+            LEAD: '#3B82F6',           // Blue
+            PROSPECT: '#F59E0B',       // Amber/Yellow
+            APPROVED: '#10B981',       // Emerald Green
+            EXECUTION: '#EF4444',      // Red
+            SECOND_SUPPLEMENT: '#8B5CF6', // Vivid Violet
+            COMPLETION: '#0EA5E9'      // Bright Cyan-Teal
         };
-        return colors[normalizedPhase] || '#6B7280';
+        return colors[normalizedPhase] || '#3B82F6';
     }
 
     /**
@@ -283,19 +283,19 @@ class WorkflowProgressService {
         
         // Convert hex colors to Tailwind background classes
         const colorToBg = {
-            '#6B7280': 'bg-gray-500',
-            '#3B82F6': 'bg-blue-500', 
-            '#10B981': 'bg-emerald-500',
-            '#F59E0B': 'bg-orange-500',
-            '#8B5CF6': 'bg-purple-500',
-            '#059669': 'bg-emerald-600'
+            '#3B82F6': 'bg-blue-500',      // Lead - Blue
+            '#F59E0B': 'bg-amber-500',     // Prospect - Amber/Yellow
+            '#10B981': 'bg-emerald-500',   // Approved - Emerald Green
+            '#EF4444': 'bg-red-500',       // Execution - Red
+            '#8B5CF6': 'bg-violet-500',    // Second Supplement - Vivid Violet
+            '#0EA5E9': 'bg-sky-500'        // Completion - Bright Cyan-Teal
         };
         
         const tailwindTextColor = textColor === 'white' ? 'text-white' : 'text-black';
         
         return {
             initials,
-            bgColor: colorToBg[phaseColor] || 'bg-gray-500',
+            bgColor: colorToBg[phaseColor] || 'bg-blue-500',
             textColor: tailwindTextColor,
             fullName: phaseName,
             hexColor: phaseColor,

@@ -24,12 +24,12 @@ const NewProjectsPage = ({
   }, [pushNavigation, projectSourceSection]);
   // Group projects by phase for the ProjectsByPhaseSection
   const PROJECT_PHASES = [
-    { id: 'lead', name: 'Lead', color: 'bg-blue-500', bgColor: 'bg-blue-50', textColor: 'text-blue-800' },
-    { id: 'prospect', name: 'Prospect', color: 'bg-yellow-500', bgColor: 'bg-yellow-50', textColor: 'text-yellow-800' },
-    { id: 'approved', name: 'Approved', color: 'bg-green-500', bgColor: 'bg-green-50', textColor: 'text-green-800' },
-    { id: 'execution', name: 'Execution', color: 'bg-purple-500', bgColor: 'bg-purple-50', textColor: 'text-purple-800' },
-    { id: 'completion', name: 'Completion', color: 'bg-gray-500', bgColor: 'bg-gray-50', textColor: 'text-gray-800' },
-    { id: 'archived', name: 'Archived', color: 'bg-red-500', bgColor: 'bg-red-50', textColor: 'text-red-800' }
+    { id: 'lead', name: 'Lead', color: 'bg-blue-500', bgColor: 'bg-blue-50', textColor: 'text-blue-800' },           // Blue
+    { id: 'prospect', name: 'Prospect', color: 'bg-amber-500', bgColor: 'bg-amber-50', textColor: 'text-amber-800' }, // Amber/Yellow
+    { id: 'approved', name: 'Approved', color: 'bg-emerald-500', bgColor: 'bg-emerald-50', textColor: 'text-emerald-800' }, // Emerald Green
+    { id: 'execution', name: 'Execution', color: 'bg-red-500', bgColor: 'bg-red-50', textColor: 'text-red-800' },     // Red
+    { id: 'completion', name: 'Completion', color: 'bg-sky-500', bgColor: 'bg-sky-50', textColor: 'text-sky-800' },   // Bright Cyan-Teal
+    { id: 'archived', name: 'Archived', color: 'bg-gray-500', bgColor: 'bg-gray-50', textColor: 'text-gray-800' }
   ];
 
   // Group projects by phase
