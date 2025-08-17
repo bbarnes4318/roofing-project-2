@@ -624,11 +624,33 @@ class WorkflowProgressionService {
 
       // If there's an active phase override, we need to count skipped phase items as completed
       let adjustedCompletedCount = completedCount;
-      if (false) {
-        const skippedPhases = [];
+      
+      // Check for active phase overrides for this project
+      const phaseOverrides = await prisma.projectPhaseOverride.findMany({
+        where: {
+          projectId: projectId,
+          isActive: true
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (phaseOverrides.length > 0) {
+        const currentOverride = phaseOverrides[0];
+        const currentPhase = currentOverride.toPhase;
         
-        // Count items in skipped phases
-        if (skippedPhases.length > 0) {
+        console.log(`📊 Project ${projectId} has active phase override to: ${currentPhase}`);
+        
+        // Define phase order for determining which phases were skipped
+        const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'SECOND_SUPPLEMENT', 'EXECUTION', 'COMPLETION'];
+        const currentPhaseIndex = phaseOrder.indexOf(currentPhase);
+        
+        if (currentPhaseIndex > 0) {
+          // All phases before the current phase should have their line items marked as completed
+          const skippedPhases = phaseOrder.slice(0, currentPhaseIndex);
+          
+          console.log(`📊 Skipped phases for project ${projectId}:`, skippedPhases);
+          
+          // Count items in skipped phases that should be marked as completed
           const skippedItemsCount = await prisma.workflowLineItem.count({
             where: {
               isActive: true,
@@ -644,7 +666,38 @@ class WorkflowProgressionService {
           
           // Add skipped items to completed count for progress calculation
           adjustedCompletedCount += skippedItemsCount;
-          console.log(`📊 Added ${skippedItemsCount} skipped items to progress calculation for project ${projectId}`);
+          console.log(`📊 Added ${skippedItemsCount} skipped line items to progress calculation for project ${projectId}`);
+          
+          // Actually mark the skipped line items as completed in the database
+          if (skippedItemsCount > 0) {
+            console.log(`📝 Marking ${skippedItemsCount} skipped line items as completed for project ${projectId}`);
+            
+            await prisma.completedWorkflowItem.createMany({
+              data: await prisma.workflowLineItem.findMany({
+                where: {
+                  isActive: true,
+                  section: {
+                    phase: {
+                      phaseType: {
+                        in: skippedPhases
+                      }
+                    }
+                  }
+                },
+                select: { id: true }
+              }).then(items => items.map(item => ({
+                projectId: projectId,
+                lineItemId: item.id,
+                completedAt: new Date(),
+                completedBy: 'system',
+                notes: `Automatically completed due to phase override to ${currentPhase}`,
+                isSkipped: true
+              }))),
+              skipDuplicates: true
+            });
+            
+            console.log(`✅ Successfully marked skipped line items as completed for project ${projectId}`);
+          }
         }
       }
 

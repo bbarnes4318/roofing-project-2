@@ -658,15 +658,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const subjectMatch = !activitySubjectFilter || activity.subject === activitySubjectFilter;
     
     // Include if the logged-in user is a recipient OR recipients contain 'all'
+    // MANAGERS and ADMINS should see all messages regardless of recipients
     let recipientMatch = true;
     const loggedInUserId = currentUser?.id || currentUser?._id || null;
-    if (Array.isArray(activity.recipients) && activity.recipients.length > 0 && loggedInUserId) {
+    const userRole = currentUser?.role;
+    
+    // Managers and Admins see all project messages
+    if (userRole === 'MANAGER' || userRole === 'ADMIN') {
+      recipientMatch = true;
+    } else if (Array.isArray(activity.recipients) && activity.recipients.length > 0 && loggedInUserId) {
       recipientMatch = activity.recipients.includes('all') ||
                        activity.recipients.some(r => String(r) === String(loggedInUserId));
-    }
-    // If recipients not present on the activity, exclude it from My Project Messages
-    if (!Array.isArray(activity.recipients) || activity.recipients.length === 0) {
-      recipientMatch = false;
+    } else if (!Array.isArray(activity.recipients) || activity.recipients.length === 0) {
+      // If no recipients specified, show to managers/admins only
+      recipientMatch = userRole === 'MANAGER' || userRole === 'ADMIN';
     }
     
     return projectMatch && subjectMatch && recipientMatch;
