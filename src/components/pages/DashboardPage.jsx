@@ -12,7 +12,7 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import api, { authService, messagesService, customersService, usersService } from '../../services/api';
+import api, { authService, messagesService, customersService, usersService, projectMessagesService } from '../../services/api';
 import toast from 'react-hot-toast';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ALERT_SUBJECTS } from '../../data/constants';
@@ -395,11 +395,49 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const fetchMessages = async () => {
       try {
         setMessagesLoading(true);
-        // Fetch all conversations using authenticated service
+        const allMessages = [];
+        
+        // Fetch project messages for each project
+        for (const project of projects) {
+          try {
+            const projectMessagesResponse = await projectMessagesService.getByProject(project.id);
+            
+            if (projectMessagesResponse.success && projectMessagesResponse.data && projectMessagesResponse.data.length > 0) {
+              projectMessagesResponse.data.forEach(message => {
+                allMessages.push({
+                  id: message.id,
+                  author: message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User',
+                  avatar: message.author ? message.author.firstName.charAt(0) : (message.authorName ? message.authorName.charAt(0) : 'U'),
+                  content: message.content,
+                  timestamp: message.createdAt,
+                  project: project.projectName,
+                  projectId: project.id,
+                  projectNumber: project.projectNumber,
+                  subject: message.subject || 'Project Update',
+                  // Use readBy as recipients for filtering
+                  recipients: message.readBy || [],
+                  priority: message.priority?.toLowerCase() || 'medium',
+                  metadata: {
+                    projectPhase: project.phase || 'LEAD',
+                    projectValue: project.budget || project.estimatedCost,
+                    assignedTo: project.projectManager || 'Unknown',
+                    customerName: project.customer?.primaryName || 'Unknown Customer',
+                    messageType: message.messageType,
+                    isWorkflowMessage: message.isWorkflowMessage,
+                    isSystemGenerated: message.isSystemGenerated
+                  }
+                });
+              });
+            }
+          } catch (projectError) {
+            console.warn(`Failed to fetch messages for project ${project.projectNumber}:`, projectError);
+          }
+        }
+        
+        // Also try to fetch conversations using authenticated service (for backward compatibility)
         const response = await messagesService.getConversations();
         
         if (response.success && response.data && response.data.length > 0) {
-          const allMessages = [];
           
           // Convert messages to activity format
           for (const conversation of response.data) {
@@ -461,7 +499,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               });
             }
           }
-          
+        }
+        
+        // Process all collected messages (from both project messages and conversations)
+        if (allMessages.length > 0) {
           // Sort by timestamp (newest first)
           allMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
           
