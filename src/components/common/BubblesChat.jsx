@@ -173,25 +173,7 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     fetchChips();
   }, [isOpen, currentProject]);
 
-  // Auto-run Daily Brief once per day on first open
-  useEffect(() => {
-    if (!isOpen) return;
-    try {
-      const user = authService.getStoredUser?.() || {};
-      const userKey = user.id || user._id || user.userId || 'anon';
-      const storageKey = `bubbles_daily_brief_last_${userKey}`;
-      const last = localStorage.getItem(storageKey);
-      const today = new Date().toDateString();
-      if (last !== today) {
-        // Run brief and mark as shown for today
-        handleDailyBrief();
-        localStorage.setItem(storageKey, today);
-      }
-    } catch (e) {
-      // Non-fatal; just skip auto brief
-      console.warn('Daily Brief auto-run skipped:', e?.message || e);
-    }
-  }, [isOpen]);
+  // Daily Brief is manual only (user-triggered)
 
   // Auto-scroll behavior: keep top on initial welcome; scroll bottom for subsequent messages
   useEffect(() => {
@@ -299,6 +281,18 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     { label: 'Help / Commands', command: 'help', group: 'Help' }
   ];
   const filteredCommands = availableCommands.filter(c => c.label.toLowerCase().includes(commandQuery.toLowerCase()));
+
+  // Keyboard shortcut: Ctrl/Cmd + K opens command palette
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   // Build a rich Daily Brief
   const handleDailyBrief = async () => {
@@ -522,6 +516,18 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* Power Playbooks button */}
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className={`p-2 rounded-lg transition-colors ${
+                colorMode 
+                  ? 'hover:bg-white/10 text-white' 
+                  : 'hover:bg-gray-100 text-gray-500'
+              }`}
+              title="Open Command Palette (Ctrl/Cmd+K)"
+            >
+              <BoltIcon className="w-5 h-5" />
+            </button>
             {onMinimize && (
               <button
                 onClick={onMinimize}
@@ -819,7 +825,7 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
                   filteredCommands.map((cmd, idx) => (
                     <button
                       key={`${cmd.group}-${cmd.label}-${idx}`}
-                      onClick={() => { setShowCommandPalette(false); handleSendMessage(cmd.command); }}
+                      onClick={() => { setShowCommandPalette(false); cmd.command === 'daily brief' ? handleDailyBrief() : handleSendMessage(cmd.command); }}
                       className={`w-full text-left px-3 py-2 rounded-md text-sm mb-1 ${colorMode ? 'hover:bg-neutral-800 text-gray-200' : 'hover:bg-gray-100 text-gray-800'}`}
                     >
                       <div className="flex items-center justify-between">
