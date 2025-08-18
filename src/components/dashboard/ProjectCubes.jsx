@@ -71,12 +71,16 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
       return project.trades;
     }
     
+    // Calculate real progress based on completed workflow line items
+    const progressData = WorkflowProgressService.calculateProjectProgress(project);
+    const realProgress = progressData.overall || 0;
+    
     // Default to single trade based on project type if no trades data
     const tradeName = project.projectType || project.type || 'General';
     return [
       { 
         name: tradeName, 
-        laborProgress: project.progress || 0, 
+        laborProgress: realProgress, 
         materialsDelivered: project.materialsDelivered || false
       }
     ];
