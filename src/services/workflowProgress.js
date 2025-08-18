@@ -17,6 +17,7 @@ class WorkflowProgressService {
     
     /**
      * Calculate project completion percentage using completed line items
+     * Includes logic to mark skipped items as completed if project has advanced beyond them
      * @param {Object} project - Project object with currentWorkflowItem containing completedItems
      * @returns {Object} Progress data with overall percentage and breakdown
      */
@@ -49,45 +50,197 @@ class WorkflowProgressService {
             };
         }
 
-        // Calculate progress based on completed line items
-        const completedItems = currentWorkflow.completedItems || [];
-        const totalLineItems = currentWorkflow.totalLineItems || this.estimateTotalLineItems();
-        
-        // Calculate overall progress from completed line items
-        let overallProgress = 0;
-        if (totalLineItems > 0) {
-            overallProgress = Math.round((completedItems.length / totalLineItems) * 100);
-        } else {
-            // Fallback to phase-based calculation if no line item data
-            const currentPhase = currentWorkflow.phase || 'LEAD';
-            const phaseKeys = Object.keys(PHASES);
-            const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
-            
-            if (currentPhaseIndex >= 0) {
-                const completedPhaseWeight = phaseKeys.slice(0, currentPhaseIndex)
-                    .reduce((sum, key) => sum + PHASES[key].weight, 0);
-                const currentPhaseWeight = PHASES[currentPhase].weight * 0.5;
-                const totalWeight = Object.values(PHASES).reduce((sum, phase) => sum + phase.weight, 0);
-                overallProgress = Math.round(((completedPhaseWeight + currentPhaseWeight) / totalWeight) * 100);
-            }
-        }
-
+        // Get current position in workflow
         const currentPhase = currentWorkflow.phase || 'LEAD';
+        const currentSection = currentWorkflow.section;
+        const currentLineItem = currentWorkflow.lineItem;
+        
+        // Calculate progress including skipped items
+        const progressData = this.calculateProgressWithSkippedItems(
+            currentWorkflow.completedItems || [],
+            currentPhase,
+            currentSection,
+            currentLineItem,
+            currentWorkflow.totalLineItems || this.estimateTotalLineItems(),
+            currentWorkflow.workflowStructure || null
+        );
+
         const phaseKeys = Object.keys(PHASES);
         const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
 
         return {
-            overall: Math.min(overallProgress, 100),
-            phaseBreakdown: this.calculatePhaseBreakdownFromLineItems(completedItems, currentPhase, currentPhaseIndex),
+            overall: Math.min(progressData.overallProgress, 100),
+            phaseBreakdown: this.calculatePhaseBreakdownFromLineItems(
+                progressData.adjustedCompletedItems, 
+                currentPhase, 
+                currentPhaseIndex
+            ),
             currentPhase: currentPhase,
             currentPhaseDisplay: currentWorkflow.phaseDisplay || this.formatPhase(currentPhase),
-            currentSection: currentWorkflow.section,
-            currentLineItem: currentWorkflow.lineItem,
+            currentSection: currentSection,
+            currentLineItem: currentLineItem,
             totalPhases: phaseKeys.length,
             completedPhases: currentPhaseIndex,
             hasPhaseOverride: false,
-            completedLineItems: completedItems.length,
-            totalLineItems: totalLineItems
+            completedLineItems: progressData.adjustedCompletedItems.length,
+            totalLineItems: progressData.totalLineItems,
+            skippedItemsCount: progressData.skippedItemsCount
+        };
+    }
+
+    /**
+     * Calculate progress accounting for skipped workflow items
+     * If project is in a later phase/section/line item, mark all previous items as completed
+     */
+    static calculateProgressWithSkippedItems(completedItems, currentPhase, currentSection, currentLineItem, totalLineItems, workflowStructure) {
+        const phaseKeys = Object.keys(PHASES);
+        const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
+        
+        // Start with explicitly completed items
+        let adjustedCompletedItems = [...completedItems];
+        let skippedItemsCount = 0;
+        
+        // If we have workflow structure, use it to determine skipped items
+        if (workflowStructure && currentPhaseIndex > 0) {
+            // Mark all items in previous phases as completed (they were skipped)
+            for (let phaseIdx = 0; phaseIdx < currentPhaseIndex; phaseIdx++) {
+                const phaseKey = phaseKeys[phaseIdx];
+                const phaseData = workflowStructure[phaseKey];
+                
+                if (phaseData && phaseData.sections) {
+                    Object.values(phaseData.sections).forEach(section => {
+                        if (section.lineItems) {
+                            Object.values(section.lineItems).forEach(lineItem => {
+                                // Check if this item is not already in completed items
+                                const isAlreadyCompleted = adjustedCompletedItems.some(item => 
+                                    item.lineItemId === lineItem.id || 
+                                    item.id === lineItem.id
+                                );
+                                
+                                if (!isAlreadyCompleted) {
+                                    // Add as skipped/completed item
+                                    adjustedCompletedItems.push({
+                                        id: lineItem.id,
+                                        lineItemId: lineItem.id,
+                                        phaseId: phaseKey,
+                                        sectionId: section.id,
+                                        name: lineItem.name,
+                                        isSkipped: true,
+                                        completedAt: new Date().toISOString()
+                                    });
+                                    skippedItemsCount++;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            
+            // In current phase, mark items in previous sections as completed
+            if (currentSection && workflowStructure[currentPhase]) {
+                const currentPhaseData = workflowStructure[currentPhase];
+                const sections = Object.values(currentPhaseData.sections || {});
+                const currentSectionIndex = sections.findIndex(section => 
+                    section.name === currentSection || section.id === currentSection
+                );
+                
+                if (currentSectionIndex > 0) {
+                    // Mark all items in previous sections of current phase as completed
+                    for (let secIdx = 0; secIdx < currentSectionIndex; secIdx++) {
+                        const section = sections[secIdx];
+                        if (section.lineItems) {
+                            Object.values(section.lineItems).forEach(lineItem => {
+                                const isAlreadyCompleted = adjustedCompletedItems.some(item => 
+                                    item.lineItemId === lineItem.id || 
+                                    item.id === lineItem.id
+                                );
+                                
+                                if (!isAlreadyCompleted) {
+                                    adjustedCompletedItems.push({
+                                        id: lineItem.id,
+                                        lineItemId: lineItem.id,
+                                        phaseId: currentPhase,
+                                        sectionId: section.id,
+                                        name: lineItem.name,
+                                        isSkipped: true,
+                                        completedAt: new Date().toISOString()
+                                    });
+                                    skippedItemsCount++;
+                                }
+                            });
+                        }
+                    }
+                }
+                
+                // In current section, mark items before current line item as completed
+                if (currentLineItem && currentSectionIndex >= 0) {
+                    const currentSectionData = sections[currentSectionIndex];
+                    if (currentSectionData && currentSectionData.lineItems) {
+                        const lineItems = Object.values(currentSectionData.lineItems);
+                        const currentLineItemIndex = lineItems.findIndex(item => 
+                            item.name === currentLineItem || item.id === currentLineItem
+                        );
+                        
+                        if (currentLineItemIndex > 0) {
+                            for (let itemIdx = 0; itemIdx < currentLineItemIndex; itemIdx++) {
+                                const lineItem = lineItems[itemIdx];
+                                const isAlreadyCompleted = adjustedCompletedItems.some(item => 
+                                    item.lineItemId === lineItem.id || 
+                                    item.id === lineItem.id
+                                );
+                                
+                                if (!isAlreadyCompleted) {
+                                    adjustedCompletedItems.push({
+                                        id: lineItem.id,
+                                        lineItemId: lineItem.id,
+                                        phaseId: currentPhase,
+                                        sectionId: currentSectionData.id,
+                                        name: lineItem.name,
+                                        isSkipped: true,
+                                        completedAt: new Date().toISOString()
+                                    });
+                                    skippedItemsCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fallback: estimate skipped items based on phase progression
+            if (currentPhaseIndex > 0) {
+                // Estimate items per phase
+                const estimatedItemsPerPhase = Math.ceil(totalLineItems / phaseKeys.length);
+                const estimatedSkippedItems = currentPhaseIndex * estimatedItemsPerPhase;
+                
+                // Add placeholder skipped items
+                for (let i = 0; i < estimatedSkippedItems; i++) {
+                    const phaseIndex = Math.floor(i / estimatedItemsPerPhase);
+                    const phaseKey = phaseKeys[phaseIndex];
+                    
+                    adjustedCompletedItems.push({
+                        id: `skipped_${phaseKey}_${i}`,
+                        lineItemId: `skipped_${phaseKey}_${i}`,
+                        phaseId: phaseKey,
+                        name: `Skipped Item ${i + 1}`,
+                        isSkipped: true,
+                        completedAt: new Date().toISOString()
+                    });
+                    skippedItemsCount++;
+                }
+            }
+        }
+        
+        // Calculate overall progress
+        const overallProgress = totalLineItems > 0 
+            ? Math.round((adjustedCompletedItems.length / totalLineItems) * 100)
+            : 0;
+        
+        return {
+            overallProgress,
+            adjustedCompletedItems,
+            totalLineItems,
+            skippedItemsCount
         };
     }
 
