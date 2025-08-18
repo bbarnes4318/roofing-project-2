@@ -43,9 +43,10 @@ const NewProjectsPage = ({
     return acc;
   }, {});
 
-  // Get project progress
+  // Get project progress based on completed workflow line items
   const getProjectProgress = (project) => {
-    return project.progress || project.calculatedProgress?.overallProgress || 0;
+    const progressData = WorkflowProgressService.calculateProjectProgress(project);
+    return progressData.overall || 0;
   };
 
   // Sort projects within phases

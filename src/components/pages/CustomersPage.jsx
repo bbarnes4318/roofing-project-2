@@ -16,6 +16,7 @@ import {
 import { useCustomers, useCreateCustomer } from '../../hooks/useQueryApi';
 import { customersService } from '../../services/api';
 import Modal from '../common/Modal';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const CustomersPage = ({ colorMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -310,19 +311,23 @@ const CustomersPage = ({ colorMode }) => {
                               )}
                             </div>
                           </div>
-                          {project.progress && (
-                            <div className="text-right">
-                              <div className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {project.progress}%
+                          {(() => {
+                            const progressData = WorkflowProgressService.calculateProjectProgress(project);
+                            const progress = progressData.overall || 0;
+                            return progress > 0 ? (
+                              <div className="text-right">
+                                <div className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  {Math.round(progress)}%
+                                </div>
+                                <div className={`w-16 h-1 rounded-full mt-0.5 ${colorMode ? 'bg-slate-500' : 'bg-gray-200'}`}>
+                                  <div 
+                                    className="h-1 bg-blue-500 rounded-full transition-all duration-300"
+                                    style={{ width: `${Math.round(progress)}%` }}
+                                  />
+                                </div>
                               </div>
-                              <div className={`w-16 h-1 rounded-full mt-0.5 ${colorMode ? 'bg-slate-500' : 'bg-gray-200'}`}>
-                                <div 
-                                  className="h-1 bg-blue-500 rounded-full transition-all duration-300"
-                                  style={{ width: `${project.progress}%` }}
-                                />
-                              </div>
-                            </div>
-                          )}
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                     ))}

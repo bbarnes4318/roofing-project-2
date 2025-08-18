@@ -13,6 +13,7 @@ import {
   CalendarIcon,
   SignalIcon
 } from '@heroicons/react/24/outline';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const QuantumProjectCard = ({
   project,
@@ -65,7 +66,8 @@ const QuantumProjectCard = ({
     score -= Math.min(alertCount * 5, 30);
 
     // Progress factors
-    const progress = project.progress || 0;
+    const progressData = WorkflowProgressService.calculateProjectProgress(project);
+    const progress = progressData.overall || 0;
     if (progress > 0) score += Math.min(progress * 0.2, 20);
 
     return Math.max(0, Math.min(100, score));
@@ -78,7 +80,7 @@ const QuantumProjectCard = ({
     
     setMetricsData({
       healthScore,
-      progress: project.progress || 0,
+      progress: WorkflowProgressService.calculateProjectProgress(project).overall || 0,
       timeline: project.timeline || { onTrack: true, daysRemaining: 30 },
       budget: project.budget || { spent: 0, total: 100000, utilization: 0.65 },
       alerts: project.alerts || [],

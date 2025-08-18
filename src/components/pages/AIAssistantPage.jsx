@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon } from '../common/Icons';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const AIAssistantPage = ({ projects = [] }) => {
     const [messages, setMessages] = useState([
@@ -102,7 +103,7 @@ const AIAssistantPage = ({ projects = [] }) => {
             const activeProjects = (projects || []).filter(p => p.status === 'active' || p.status === 'in-progress').slice(0, 3);
             const projectStatusItems = activeProjects.map(project => ({
                 type: 'text',
-                text: `${project.name}: ${project.progress || 0}% complete`
+                text: `${project.name}: ${Math.round(WorkflowProgressService.calculateProjectProgress(project).overall || 0)}% complete`
             }));
             
             return {
@@ -129,7 +130,10 @@ const AIAssistantPage = ({ projects = [] }) => {
             const activeProjects = (projects || []).filter(p => p.status === 'active' || p.status === 'in-progress').slice(0, 3);
             const analysisItems = activeProjects.map(project => ({
                 type: 'text',
-                text: `${project.name}: ${project.progress || 0}% complete - ${project.progress < 50 ? '⚠️ Behind schedule' : project.progress > 80 ? '✅ On track' : '🔄 In progress'}`
+                text: (() => {
+                    const progress = Math.round(WorkflowProgressService.calculateProjectProgress(project).overall || 0);
+                    return `${project.name}: ${progress}% complete - ${progress < 50 ? '⚠️ Behind schedule' : progress > 80 ? '✅ On track' : '🔄 In progress'}`;
+                })()
             }));
             
             return {

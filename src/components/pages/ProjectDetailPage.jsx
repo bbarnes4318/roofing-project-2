@@ -64,8 +64,9 @@ const getProjectTrades = (project) => {
     } else {
         // Single trade based on project type - consistent delivery status
         const tradeName = project.projectType || project.type || 'General';
-        // Use calculated progress if available, otherwise fallback
-        const laborProgress = project.calculatedProgress ? project.calculatedProgress.overall : (project.progress || 0);
+        // Use calculated progress based on completed workflow line items
+        const progressData = WorkflowProgressService.calculateProjectProgress(project);
+        const laborProgress = progressData.overall || 0;
         const isDelivered = project.materialsDeliveryStart ? true : (project.id % 3 === 0);
         
         return [

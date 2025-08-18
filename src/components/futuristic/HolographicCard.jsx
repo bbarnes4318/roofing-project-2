@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const HolographicCard = ({ 
   children, 
@@ -208,7 +209,7 @@ export const HolographicProjectCard = ({ project, ...props }) => {
         </div>
         
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>Progress: {project.progress || 0}%</span>
+          <span>Progress: {Math.round(WorkflowProgressService.calculateProjectProgress(project).overall || 0)}%</span>
           <span>{project.phase || 'Unknown Phase'}</span>
         </div>
 
@@ -217,7 +218,7 @@ export const HolographicProjectCard = ({ project, ...props }) => {
           <motion.div
             className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-600"
             initial={{ width: 0 }}
-            animate={{ width: `${project.progress || 0}%` }}
+            animate={{ width: `${Math.round(WorkflowProgressService.calculateProjectProgress(project).overall || 0)}%` }}
             transition={{ duration: 1, ease: 'easeOut' }}
             style={{
               boxShadow: '0 0 10px rgba(0, 245, 255, 0.6)',

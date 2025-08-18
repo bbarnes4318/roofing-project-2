@@ -80,14 +80,11 @@ const generateActivitiesFromProjects = (projects) => {
 // Use centralized phase configuration from WorkflowProgressService
 const PROJECT_PHASES = WorkflowProgressService.getAllPhases();
 
-// DEPRECATED: Use centralized workflow progress instead
-// This function is kept for backward compatibility but should use centralized data
+// Calculate progress based on completed workflow line items
 const getProjectProgress = (project) => {
-  // This will be replaced by centralized workflow data in component
-  if (project.calculatedProgress?.completedSteps && project.calculatedProgress?.totalSteps) {
-    return Math.round((project.calculatedProgress.completedSteps / project.calculatedProgress.totalSteps) * 100);
-  }
-  return project.progress || 0;
+  // Use WorkflowProgressService to calculate real progress based on completed line items
+  const progressData = WorkflowProgressService.calculateProjectProgress(project);
+  return progressData.overall || 0;
 };
 
 // Phase should come directly from the API - no mapping needed

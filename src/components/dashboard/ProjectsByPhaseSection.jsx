@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSectionNavigation } from '../../contexts/NavigationContext';
 import BackButton from '../common/BackButton';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const ProjectsByPhaseSection = ({ 
   projectsByPhase, 
@@ -126,7 +127,7 @@ const ProjectsByPhaseSection = ({
     return [
       {
         name: tradeName,
-        laborProgress: project.progress || 0,
+        laborProgress: WorkflowProgressService.calculateProjectProgress(project).overall || 0,
         materialsDelivered: project.materialsDelivered || false
       }
     ];

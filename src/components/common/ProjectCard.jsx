@@ -64,12 +64,18 @@ const ProjectCard = ({ project, className = '' }) => {
         <div className="mb-3">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>Progress</span>
-            <span>{project.progress || 0}%</span>
+            <span>{(() => {
+              const progressData = WorkflowProgressService.calculateProjectProgress(project);
+              return Math.round(progressData.overall || 0);
+            })()}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full" 
-              style={{ width: `${project.progress || 0}%` }}
+              style={{ width: `${(() => {
+                const progressData = WorkflowProgressService.calculateProjectProgress(project);
+                return Math.round(progressData.overall || 0);
+              })()}%` }}
             />
           </div>
         </div>

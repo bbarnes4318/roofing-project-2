@@ -591,9 +591,8 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
             {(() => {
               const phaseKey = (currentProject.phase || currentProject.status || '').toUpperCase() || null;
               const phaseHex = phaseKey ? WorkflowProgressService.getPhaseColor(phaseKey) : '#3B82F6';
-              const progress = Math.max(0, Math.min(100,
-                currentProject.calculatedProgress?.overall || currentProject.progress || 0
-              ));
+              const progressData = WorkflowProgressService.calculateProjectProgress(currentProject);
+              const progress = Math.max(0, Math.min(100, progressData.overall || 0));
               const etaChip = insightChips.find(c => c.key === 'eta');
               const risksChip = insightChips.find(c => c.key === 'risks');
               const alertsChip = insightChips.find(c => c.key === 'alerts');

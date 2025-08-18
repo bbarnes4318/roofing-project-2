@@ -509,10 +509,10 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
     // Removed complex expansion functions - using compact design
     
-    // Get project progress percentage
+    // Get project progress percentage based on completed workflow line items
     const getProjectProgress = (project) => {
-        const progress = getProgressForProject(project?.id) || project.progress || 0;
-        return Math.min(100, Math.max(0, Math.round(progress)));
+        const progressData = WorkflowProgressService.calculateProjectProgress(project);
+        return Math.min(100, Math.max(0, Math.round(progressData.overall || 0)));
     };
 
     // Removed all drag and drop functionality - reverted to original static buttons

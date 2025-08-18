@@ -221,9 +221,10 @@ const ProjectProfilePage = ({
         return Math.ceil(projects.length / projectsPerPage);
     };
     
-    // Get project progress percentage
+    // Get project progress percentage based on completed workflow line items
     const getProjectProgress = (project) => {
-        const progress = getProgressForProject(project?.id) || project.progress || 0;
+        const progressData = WorkflowProgressService.calculateProjectProgress(project);
+        const progress = progressData.overall || 0;
         return Math.min(100, Math.max(0, Math.round(progress)));
     };
     
