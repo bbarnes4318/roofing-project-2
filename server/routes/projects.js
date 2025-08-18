@@ -257,7 +257,7 @@ const projectValidation = [
     .isLength({ min: 2, max: 200 })
     .withMessage('Project name must be between 2 and 200 characters'),
   body('projectType')
-    .isIn(['ROOF_REPLACEMENT', 'KITCHEN_REMODEL', 'BATHROOM_RENOVATION', 'SIDING_INSTALLATION', 'WINDOW_REPLACEMENT', 'FLOORING', 'PAINTING', 'ELECTRICAL_WORK', 'PLUMBING', 'HVAC', 'DECK_CONSTRUCTION', 'LANDSCAPING', 'OTHER'])
+    .isIn(['ROOFING', 'GUTTERS', 'INTERIOR_PAINT'])
     .withMessage('Invalid project type'),
   body('status')
     .optional()
@@ -684,7 +684,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     try {
       const workflowResult = await WorkflowProgressionService.initializeProjectWorkflow(
         project.id, 
-        project.projectType === 'ROOF_REPLACEMENT' ? 'ROOFING' : 'GENERAL'
+        project.projectType || 'ROOFING'
       );
       
       if (workflowResult?.tracker?.currentLineItemId) {

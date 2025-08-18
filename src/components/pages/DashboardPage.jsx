@@ -260,7 +260,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // Add Project state
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
-  const [newProject, setNewProject] = useState({
+  const [newProjects, setNewProjects] = useState([{
     projectNumber: '',
     projectName: '',
     customerName: '',
@@ -284,7 +284,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       { name: '', phone: '', email: '', isPrimary: false },
       { name: '', phone: '', email: '', isPrimary: false }
     ]
-  });
+  }]);
   const [projectError, setProjectError] = useState('');
   const [usersLoading, setUsersLoading] = useState(true);
   const [defaultRoles, setDefaultRoles] = useState({});
@@ -1546,199 +1546,79 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   }, [expandedProgress.size]);
 
   // Add Project form handling functions
-  const handleInputChange = (e) => {
+  const handleInputChange = (e, projectIndex = 0) => {
     const { name, value } = e.target;
-    setNewProject(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setNewProjects(prev => {
+      const updated = [...prev];
+      updated[projectIndex] = {
+        ...updated[projectIndex],
+        [name]: value
+      };
+      return updated;
+    });
   };
 
-  const handleContactChange = (index, field, value) => {
-    const updatedContacts = [...newProject.contacts];
-    updatedContacts[index] = {
-      ...updatedContacts[index],
-      [field]: value
-    };
-    setNewProject(prev => ({
-      ...prev,
-      contacts: updatedContacts
-    }));
-  };
-
-  const handlePrimaryContactChange = (index) => {
-    const updatedContacts = newProject.contacts.map((contact, i) => ({
-      ...contact,
-      isPrimary: i === index
-    }));
-    setNewProject(prev => ({
-      ...prev,
-      contacts: updatedContacts
-    }));
-  };
-
-  const addContact = () => {
-    if (newProject.contacts.length < 10) {
-      setNewProject(prev => ({
-        ...prev,
-        contacts: [...prev.contacts, { name: '', phone: '', email: '', isPrimary: false }]
-      }));
-    }
-  };
-
-  const removeContact = (index) => {
-    if (newProject.contacts.length > 1) {
-      const updatedContacts = newProject.contacts.filter((_, i) => i !== index);
-      setNewProject(prev => ({
-        ...prev,
+  const handleContactChange = (index, field, value, projectIndex = 0) => {
+    setNewProjects(prev => {
+      const updated = [...prev];
+      const updatedContacts = [...updated[projectIndex].contacts];
+      updatedContacts[index] = {
+        ...updatedContacts[index],
+        [field]: value
+      };
+      updated[projectIndex] = {
+        ...updated[projectIndex],
         contacts: updatedContacts
+      };
+      return updated;
+    });
+  };
+
+  const handlePrimaryContactChange = (index, projectIndex = 0) => {
+    setNewProjects(prev => {
+      const updated = [...prev];
+      const updatedContacts = updated[projectIndex].contacts.map((contact, i) => ({
+        ...contact,
+        isPrimary: i === index
       }));
-    }
+      updated[projectIndex] = {
+        ...updated[projectIndex],
+        contacts: updatedContacts
+      };
+      return updated;
+    });
   };
 
-  const handleSubmitProject = async (e) => {
-    e.preventDefault();
-    setProjectError('');
-    
-    // Validate required fields
-    if (!newProject.projectNumber || !newProject.customerName || !newProject.jobType || !newProject.customerEmail) {
-      setProjectError('Please fill in all required fields: Project Number, Customer Name, Customer Email, and Job Type');
-      return;
-    }
-    // Basic email validation for primary customer email (required by backend)
-    if (typeof newProject.customerEmail !== 'string' || !newProject.customerEmail.includes('@')) {
-      setProjectError('Please enter a valid Customer Email');
-      return;
-    }
-
-    // Validate that at least one contact has a name
-    const validContacts = newProject.contacts.filter(contact => contact.name.trim());
-    if (validContacts.length === 0) {
-      setProjectError('Please add at least one contact with a name');
-      return;
-    }
-
-    // Ensure one contact is marked as primary
-    const hasPrimaryContact = validContacts.some(contact => contact.isPrimary);
-    if (!hasPrimaryContact && validContacts.length > 0) {
-      const firstValidIndex = newProject.contacts.findIndex(contact => contact.name.trim());
-      handlePrimaryContactChange(firstValidIndex);
-    }
-
-    try {
-      // Step 1: Create customer first
-      const primaryContact = newProject.contacts.find(contact => contact.isPrimary) || newProject.contacts[0];
-      const secondaryContact = newProject.contacts.find(contact => !contact.isPrimary && contact.name.trim());
-      
-      const customerData = {
-        primaryName: newProject.customerName,
-        primaryEmail: newProject.customerEmail,
-        primaryPhone: primaryContact?.phone || null,
-        secondaryName: secondaryContact?.name || null,
-        secondaryEmail: secondaryContact?.email || null,
-        secondaryPhone: secondaryContact?.phone || null,
-        primaryContact: 'PRIMARY',
-        address: newProject.address || `${newProject.customerName} Project`,
-        notes: `Project created from dashboard: ${newProject.projectNumber}`,
-        contacts: newProject.contacts
-          .filter(contact => contact.name && contact.name.trim())
-          .map(contact => ({
-            name: contact.name.trim(),
-            phone: contact.phone || null,
-            email: contact.email || null,
-            isPrimary: contact.isPrimary || false
-          }))
-      };
-
-      const customerResult = await customersService.create(customerData);
-      const customerId = customerResult.data?.id || customerResult.id;
-
-      if (!customerId) {
-        throw new Error('Customer ID not received from server');
+  const addContact = (projectIndex = 0) => {
+    setNewProjects(prev => {
+      const updated = [...prev];
+      if (updated[projectIndex].contacts.length < 10) {
+        updated[projectIndex] = {
+          ...updated[projectIndex],
+          contacts: [...updated[projectIndex].contacts, { name: '', phone: '', email: '', isPrimary: false }]
+        };
       }
-
-      // Step 2: Create project with customerId
-      const projectData = {
-        projectNumber: parseInt(newProject.projectNumber), // ADD: Send user-entered project number
-        projectName: newProject.customerName,
-        projectType: newProject.jobType,
-        customerId: customerId,
-        status: 'PENDING',
-        budget: 1000, // Default budget for now
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
-        priority: 'MEDIUM',
-        description: `Project #${newProject.projectNumber}`,
-        projectManagerId: newProject.projectManager || null,
-        fieldDirectorId: newProject.fieldDirector || null,
-        salesRepId: newProject.salesRep || null,
-        qualityInspectorId: newProject.qualityInspector || null,
-        adminAssistantId: newProject.adminAssistant || null
-      };
-
-      const response = await createProjectMutation.mutateAsync(projectData);
-      
-      // Close modal and reset form
-      setShowAddProjectModal(false);
-      setNewProject({
-        projectNumber: '',
-        projectName: '',
-        customerName: '',
-        customerEmail: '',
-        jobType: '',
-        projectManager: '',
-        fieldDirector: '',
-        salesRep: '',
-        qualityInspector: '',
-        adminAssistant: '',
-        status: 'Pending',
-        budget: '',
-        startDate: '',
-        endDate: '',
-        customer: '',
-        address: '',
-        priority: 'Low',
-        description: '',
-        contacts: [
-          { name: '', phone: '', email: '', isPrimary: false },
-          { name: '', phone: '', email: '', isPrimary: false },
-          { name: '', phone: '', email: '', isPrimary: false }
-        ]
-      });
-      
-      // Show success toast
-      toast.success(
-        <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Project created successfully!</span>
-        </div>,
-        {
-          duration: 3000,
-          style: {
-            background: '#10B981',
-            color: '#ffffff',
-            fontWeight: '600',
-          },
-        }
-      );
-      
-      // Refresh projects list
-      if (refetchProjects) {
-        refetchProjects();
-      }
-      
-      console.log('Project created successfully:', response.data || response);
-    } catch (err) {
-      console.error('Error creating project:', err);
-      setProjectError(err.message || 'Failed to create project');
-    }
+      return updated;
+    });
   };
 
-  // Reset form when modal closes
-  const resetProjectForm = () => {
-    setNewProject({
+  const removeContact = (index, projectIndex = 0) => {
+    setNewProjects(prev => {
+      const updated = [...prev];
+      if (updated[projectIndex].contacts.length > 1) {
+        const updatedContacts = updated[projectIndex].contacts.filter((_, i) => i !== index);
+        updated[projectIndex] = {
+          ...updated[projectIndex],
+          contacts: updatedContacts
+        };
+      }
+      return updated;
+    });
+  };
+
+  // Functions to handle multiple projects
+  const addProject = () => {
+    const newProject = {
       projectNumber: '',
       projectName: '',
       customerName: '',
@@ -1762,7 +1642,170 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         { name: '', phone: '', email: '', isPrimary: false },
         { name: '', phone: '', email: '', isPrimary: false }
       ]
-    });
+    };
+    setNewProjects(prev => [...prev, newProject]);
+  };
+
+  const removeProject = (projectIndex) => {
+    if (newProjects.length > 1) {
+      setNewProjects(prev => prev.filter((_, i) => i !== projectIndex));
+    }
+  };
+
+  const handleSubmitProject = async (e) => {
+    e.preventDefault();
+    setProjectError('');
+    
+    // Validate all projects
+    for (let i = 0; i < newProjects.length; i++) {
+      const project = newProjects[i];
+      
+      // Validate required fields for each project
+      if (!project.projectNumber || !project.customerName || !project.jobType || !project.customerEmail || !project.address) {
+        setProjectError(`Project ${i + 1}: Please fill in all required fields (Project Number, Customer Name, Customer Email, Trade Type, and Address)`);
+        return;
+      }
+      
+      // Basic email validation for primary customer email (required by backend)
+      if (typeof project.customerEmail !== 'string' || !project.customerEmail.includes('@')) {
+        setProjectError(`Project ${i + 1}: Please enter a valid Customer Email`);
+        return;
+      }
+
+      // Validate that at least one contact has a name
+      const validContacts = project.contacts.filter(contact => contact.name.trim());
+      if (validContacts.length === 0) {
+        setProjectError(`Project ${i + 1}: Please add at least one contact with a name`);
+        return;
+      }
+
+      // Ensure one contact is marked as primary
+      const hasPrimaryContact = validContacts.some(contact => contact.isPrimary);
+      if (!hasPrimaryContact && validContacts.length > 0) {
+        const firstValidIndex = project.contacts.findIndex(contact => contact.name.trim());
+        handlePrimaryContactChange(firstValidIndex, i);
+      }
+    }
+
+    try {
+      const createdProjects = [];
+      
+      // Process each project sequentially 
+      for (let i = 0; i < newProjects.length; i++) {
+        const project = newProjects[i];
+        
+        // Step 1: Create customer first
+        const primaryContact = project.contacts.find(contact => contact.isPrimary) || project.contacts[0];
+        const secondaryContact = project.contacts.find(contact => !contact.isPrimary && contact.name.trim());
+        
+        const customerData = {
+          primaryName: project.customerName,
+          primaryEmail: project.customerEmail,
+          primaryPhone: primaryContact?.phone || null,
+          secondaryName: secondaryContact?.name || null,
+          secondaryEmail: secondaryContact?.email || null,
+          secondaryPhone: secondaryContact?.phone || null,
+          primaryContact: 'PRIMARY',
+          address: project.address,
+          notes: `Project created from dashboard: ${project.projectNumber}`,
+          contacts: project.contacts
+            .filter(contact => contact.name && contact.name.trim())
+            .map(contact => ({
+              name: contact.name.trim(),
+              phone: contact.phone || null,
+              email: contact.email || null,
+              isPrimary: contact.isPrimary || false
+            }))
+        };
+
+        const customerResult = await customersService.create(customerData);
+        const customerId = customerResult.data?.id || customerResult.id;
+
+        if (!customerId) {
+          throw new Error(`Customer ID not received from server for project ${i + 1}`);
+        }
+
+        // Step 2: Create project with customerId - Use address as project name
+        const projectData = {
+          projectNumber: parseInt(project.projectNumber),
+          projectName: project.address, // Use address as project name per schema
+          projectType: project.jobType,
+          customerId: customerId,
+          status: 'PENDING',
+          budget: 1000, // Default budget for now
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
+          priority: 'MEDIUM',
+          description: `${project.jobType} project for ${project.customerName}`,
+          projectManagerId: project.projectManager || null
+        };
+
+        const response = await createProjectMutation.mutateAsync(projectData);
+        createdProjects.push(response);
+      }
+      
+      // Close modal and reset form
+      setShowAddProjectModal(false);
+      resetProjectForm();
+      
+      // Show success toast
+      const projectCount = createdProjects.length;
+      toast.success(
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{projectCount === 1 ? 'Project' : `${projectCount} Projects`} created successfully!</span>
+        </div>,
+        {
+          duration: 3000,
+          style: {
+            background: '#10B981',
+            color: '#ffffff',
+            fontWeight: '600',
+          },
+        }
+      );
+      
+      // Refresh projects list
+      if (refetchProjects) {
+        refetchProjects();
+      }
+      
+      console.log(`✅ Successfully created ${projectCount} project${projectCount > 1 ? 's' : ''}:`, createdProjects);
+    } catch (err) {
+      console.error('Error creating project:', err);
+      setProjectError(err.message || 'Failed to create project');
+    }
+  };
+
+  // Reset form when modal closes
+  const resetProjectForm = () => {
+    setNewProjects([{
+      projectNumber: '',
+      projectName: '',
+      customerName: '',
+      customerEmail: '',
+      jobType: '',
+      projectManager: '',
+      fieldDirector: '',
+      salesRep: '',
+      qualityInspector: '',
+      adminAssistant: '',
+      status: 'Pending',
+      budget: '',
+      startDate: '',
+      endDate: '',
+      customer: '',
+      address: '',
+      priority: 'Low',
+      description: '',
+      contacts: [
+        { name: '', phone: '', email: '', isPrimary: false },
+        { name: '', phone: '', email: '', isPrimary: false },
+        { name: '', phone: '', email: '', isPrimary: false }
+      ]
+    }]);
     setProjectError('');
   };
 
@@ -3908,264 +3951,289 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         setShowAddProjectModal(false);
         resetProjectForm();
       }}>
-        <div className="p-6">
-          <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-4`}>
-            Add New Project
-          </h3>
-          <form onSubmit={handleSubmitProject} className="space-y-6">
-            {/* Project Number */}
-            <div>
-              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                Project Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="projectNumber"
-                value={newProject.projectNumber}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  colorMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
-                placeholder="Enter project number (e.g., 12345)"
-                required
-              />
-            </div>
+        <div className="p-6 max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              Add New Project{newProjects.length > 1 ? 's' : ''}
+            </h3>
+            <button
+              type="button"
+              onClick={addProject}
+              className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+                colorMode
+                  ? 'border-slate-600 text-gray-300 hover:bg-slate-700'
+                  : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              + Add Another Project
+            </button>
+          </div>
+          <form onSubmit={handleSubmitProject} className="space-y-8">
+            {newProjects.map((project, projectIndex) => (
+              <div key={projectIndex} className={`border rounded-lg p-6 space-y-6 ${
+                colorMode ? 'border-slate-600 bg-slate-800/30' : 'border-gray-200 bg-gray-50/50'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <h4 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                    Project {projectIndex + 1}
+                  </h4>
+                  {newProjects.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeProject(projectIndex)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remove Project
+                    </button>
+                  )}
+                </div>
 
-            {/* Customer Name */}
-            <div>
-              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                Customer Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="customerName"
-                value={newProject.customerName}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  colorMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
-                placeholder="Enter customer name"
-                required
-              />
-            </div>
+                {/* Project Number */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Project Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="projectNumber"
+                    value={project.projectNumber}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                    placeholder="Enter project number (e.g., 12345)"
+                    required
+                  />
+                </div>
 
-            {/* Customer Email */}
-            <div>
-              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                Customer Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="customerEmail"
-                value={newProject.customerEmail}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  colorMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
-                placeholder="Enter primary customer email"
-                required
-              />
-            </div>
+                {/* Customer Name */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Customer Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="customerName"
+                    value={project.customerName}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                    placeholder="Enter customer name"
+                    required
+                  />
+                </div>
 
-            {/* Address */}
-            <div>
-              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                Project Address
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={newProject.address}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  colorMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
-                placeholder="Enter project/job site address"
-              />
-            </div>
+                {/* Customer Email */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Customer Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="customerEmail"
+                    value={project.customerEmail}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                    placeholder="Enter primary customer email"
+                    required
+                  />
+                </div>
 
-            {/* Job Type */}
-            <div>
-              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                Job Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="jobType"
-                value={newProject.jobType}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  colorMode
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-                required
-              >
-                <option value="">Select job type</option>
-                <option value="ROOF_REPLACEMENT">Roof Replacement</option>
-                <option value="KITCHEN_REMODEL">Kitchen Remodel</option>
-                <option value="BATHROOM_RENOVATION">Bathroom Renovation</option>
-                <option value="SIDING_INSTALLATION">Siding Installation</option>
-                <option value="WINDOW_REPLACEMENT">Window Replacement</option>
-                <option value="FLOORING">Flooring</option>
-                <option value="PAINTING">Painting</option>
-                <option value="ELECTRICAL_WORK">Electrical Work</option>
-                <option value="PLUMBING">Plumbing</option>
-                <option value="HVAC">HVAC</option>
-                <option value="DECK_CONSTRUCTION">Deck Construction</option>
-                <option value="LANDSCAPING">Landscaping</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
+                {/* Address */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Project Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={project.address}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                    placeholder="Enter project/job site address"
+                    required
+                  />
+                </div>
 
-            {/* Project Manager */}
-            <div>
-              <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                Project Manager
-              </label>
-              <select
-                name="projectManager"
-                value={newProject.projectManager}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  colorMode
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-                disabled={usersLoading}
-              >
-                <option value="">
-                  {usersLoading ? 'Loading project managers...' : 'Select Project Manager (Optional)'}
-                </option>
-                {availableUsers.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.firstName} {user.lastName} - {user.role || 'User'}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* Job Type */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Trade Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="jobType"
+                    value={project.jobType}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                    required
+                  >
+                    <option value="">Select trade type</option>
+                    <option value="ROOFING">Roofing</option>
+                    <option value="GUTTERS">Gutters</option>
+                    <option value="INTERIOR_PAINT">Interior Paint</option>
+                  </select>
+                </div>
 
-            {/* Project Contacts Section */}
-            <div className={`border-t pt-6 ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
-              <div className="flex items-center justify-between mb-4">
-                <h4 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                  Project Contacts
-                </h4>
-                <button
-                  type="button"
-                  onClick={addContact}
-                  className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
-                    colorMode
-                      ? 'border-slate-600 text-gray-300 hover:bg-slate-700'
-                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  + Add Contact
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {newProject.contacts.map((contact, index) => (
-                  <div key={index} className={`p-4 border rounded-lg ${
-                    colorMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-200 bg-gray-50'
-                  }`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`font-medium ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Contact {index + 1}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {/* Set as Primary Radio */}
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="primaryContact"
-                            checked={contact.isPrimary}
-                            onChange={() => handlePrimaryContactChange(index)}
-                            className="text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                            Set as Primary
-                          </span>
-                        </label>
-                        {/* Remove Contact Button */}
-                        {newProject.contacts.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeContact(index)}
-                            className={`text-sm text-red-500 hover:text-red-700 ml-3`}
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {/* Name */}
-                      <div>
-                        <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          value={contact.name}
-                          onChange={(e) => handleContactChange(index, 'name', e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                            colorMode
-                              ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                          }`}
-                          placeholder="Enter contact name"
-                        />
-                      </div>
-                      
-                      {/* Phone */}
-                      <div>
-                        <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                          Phone
-                        </label>
-                        <input
-                          type="tel"
-                          value={contact.phone}
-                          onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                            colorMode
-                              ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                          }`}
-                          placeholder="Enter phone number"
-                        />
-                      </div>
-                      
-                      {/* Email */}
-                      <div>
-                        <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          value={contact.email}
-                          onChange={(e) => handleContactChange(index, 'email', e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                            colorMode
-                              ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                          }`}
-                          placeholder="Enter email address"
-                        />
-                      </div>
-                    </div>
+                {/* Project Manager */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Project Manager
+                  </label>
+                  <select
+                    name="projectManager"
+                    value={project.projectManager}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                    disabled={usersLoading}
+                  >
+                    <option value="">
+                      {usersLoading ? 'Loading project managers...' : 'Select Project Manager (Optional)'}
+                    </option>
+                    {availableUsers.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName} - {user.role || 'User'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Project Contacts Section */}
+                <div className={`border-t pt-6 ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                      Project Contacts
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => addContact(projectIndex)}
+                      className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+                        colorMode
+                          ? 'border-slate-600 text-gray-300 hover:bg-slate-700'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      + Add Contact
+                    </button>
                   </div>
-                ))}
+                  
+                  <div className="space-y-4">
+                    {project.contacts.map((contact, index) => (
+                      <div key={index} className={`p-4 border rounded-lg ${
+                        colorMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-200 bg-gray-50'
+                      }`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`font-medium ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                            Contact {index + 1}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {/* Set as Primary Radio */}
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`primaryContact_${projectIndex}`}
+                                checked={contact.isPrimary}
+                                onChange={() => handlePrimaryContactChange(index, projectIndex)}
+                                className="text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Set as Primary
+                              </span>
+                            </label>
+                            {/* Remove Contact Button */}
+                            {project.contacts.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeContact(index, projectIndex)}
+                                className={`text-sm text-red-500 hover:text-red-700 ml-3`}
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {/* Name */}
+                          <div>
+                            <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                              Name
+                            </label>
+                            <input
+                              type="text"
+                              value={contact.name}
+                              onChange={(e) => handleContactChange(index, 'name', e.target.value, projectIndex)}
+                              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                colorMode
+                                  ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                              }`}
+                              placeholder="Enter contact name"
+                            />
+                          </div>
+                          
+                          {/* Phone */}
+                          <div>
+                            <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                              Phone
+                            </label>
+                            <input
+                              type="tel"
+                              value={contact.phone}
+                              onChange={(e) => handleContactChange(index, 'phone', e.target.value, projectIndex)}
+                              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                colorMode
+                                  ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                              }`}
+                              placeholder="Enter phone number"
+                            />
+                          </div>
+                          
+                          {/* Email */}
+                          <div>
+                            <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              value={contact.email}
+                              onChange={(e) => handleContactChange(index, 'email', e.target.value, projectIndex)}
+                              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                                colorMode
+                                  ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
+                                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                              }`}
+                              placeholder="Enter email address"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
 
             {/* Error Display */}
             {(projectError || createProjectMutation.error) && (
@@ -4198,7 +4266,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 {createProjectMutation.isLoading && (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 )}
-                {createProjectMutation.isLoading ? 'Creating...' : 'Create Project'}
+                {createProjectMutation.isLoading ? 'Creating...' : `Create Project${newProjects.length > 1 ? 's' : ''}`}
               </button>
             </div>
           </form>
