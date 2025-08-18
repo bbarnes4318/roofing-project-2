@@ -489,20 +489,20 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
 
   return (
     <div className={`fixed bottom-4 right-4 z-50 ${className}`} style={{ paddingRight: 'env(safe-area-inset-right)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className={`rounded-2xl shadow-2xl border flex flex-col transition-all duration-300 ${
+      <div className={`rounded-3xl shadow-2xl border flex flex-col transition-all duration-300 backdrop-blur-xl ${
         colorMode 
-          ? 'bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-blue-500/50 text-white' 
-          : 'bg-white border-gray-200'
+          ? 'bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-purple-900/95 border-blue-400/30 text-white shadow-blue-500/20' 
+          : 'bg-gradient-to-br from-white/95 via-blue-50/90 to-indigo-50/95 border-blue-200/50 shadow-blue-200/20'
       }`} style={{ width: 'min(94vw, 420px)', height: 'min(86vh, 640px)' }}>
         {/* Header */}
-        <div className={`flex items-center justify-between p-4 border-b rounded-t-2xl sticky top-0 z-10 ${
+        <div className={`flex items-center justify-between p-5 border-b rounded-t-3xl sticky top-0 z-10 backdrop-blur-sm ${
           colorMode 
-            ? 'border-blue-500/30 bg-gradient-to-r from-blue-900/50 to-purple-900/50' 
-            : 'border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50'
+            ? 'border-blue-400/20 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-indigo-900/80' 
+            : 'border-blue-200/30 bg-gradient-to-r from-blue-100/80 via-indigo-100/70 to-purple-100/80'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              colorMode ? 'bg-blue-600' : 'bg-blue-500'
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+              colorMode ? 'bg-gradient-to-br from-blue-500 to-purple-600 shadow-blue-500/30' : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-400/30'
             }`}>
               <SparklesIcon className="w-6 h-6 text-white" />
             </div>
@@ -651,23 +651,23 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
         )}
 
         {/* Messages */}
-        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-3 pr-2">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl p-3 ${
+              <div className={`max-w-[85%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
                 message.type === 'user'
                   ? colorMode
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-500 text-white'
+                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-blue-500/30'
+                    : 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-400/30'
                   : message.type === 'error'
-                  ? 'bg-red-100 text-red-800 border border-red-200'
+                  ? 'bg-gradient-to-br from-red-50 to-red-100 text-red-800 border border-red-200/50 shadow-red-200/30'
                   : message.type === 'system'
                   ? colorMode
-                    ? 'bg-green-900/30 text-green-200 border border-green-500/30'
-                    : 'bg-green-50 text-green-800 border border-green-200'
+                    ? 'bg-gradient-to-br from-emerald-900/40 to-green-900/40 text-emerald-200 border border-emerald-500/30 shadow-emerald-500/20'
+                    : 'bg-gradient-to-br from-emerald-50 to-green-50 text-emerald-800 border border-emerald-200/50 shadow-emerald-200/30'
                   : colorMode
-                    ? 'bg-neutral-700 text-white border border-neutral-600'
-                    : 'bg-gray-50 text-gray-900 border border-gray-200 shadow-sm'
+                    ? 'bg-gradient-to-br from-slate-700/90 to-slate-800/90 text-white border border-slate-600/50 shadow-slate-700/30'
+                    : 'bg-gradient-to-br from-white to-gray-50/80 text-gray-900 border border-gray-200/50 shadow-gray-200/40 backdrop-blur-sm'
               }`}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
                   {renderMessageContent(message.content)}
@@ -725,7 +725,7 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
         </div>
 
         {/* Input */}
-        <div className={`p-3 border-t ${colorMode ? 'border-neutral-600' : 'border-gray-200'}`}>
+        <div className={`p-4 border-t backdrop-blur-sm ${colorMode ? 'border-blue-400/20 bg-slate-900/30' : 'border-blue-200/30 bg-white/50'}`}>
           <div className="flex items-end gap-2">
             <textarea
               ref={inputRef}
@@ -733,10 +733,10 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask about status, risks, alerts, schedules, or assign a task…"
-              className={`flex-1 resize-y rounded-xl px-4 py-3 text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+              className={`flex-1 resize-y rounded-2xl px-4 py-3 text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner ${
                 colorMode
-                  ? 'bg-neutral-800 border-neutral-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-slate-800/70 border-slate-600/50 text-white placeholder-gray-400 backdrop-blur-sm'
+                  : 'bg-white/80 border-gray-300/50 text-gray-900 placeholder-gray-500 backdrop-blur-sm'
               }`}
               rows={2}
               style={{ minHeight: '48px', maxHeight: '200px' }}
@@ -752,10 +752,10 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
                 }
               }}
               disabled={isLoading}
-              className={`p-3 rounded-xl transition-all ${
+              className={`p-3 rounded-2xl transition-all transform hover:scale-105 shadow-lg ${
                 colorMode
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-blue-500/30'
+                  : 'bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-blue-400/30'
               }`}
             >
               <PaperAirplaneIcon className="w-5 h-5" />

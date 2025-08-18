@@ -93,8 +93,8 @@ const BubblesButton = ({
             isOnline ? 'bg-green-500' : 'bg-red-500'
           }`}></div>
 
-          {/* Ripple Effect */}
-          {!isChatOpen && (
+          {/* Ripple Effect - Only show when there's a new suggestion */}
+          {!isChatOpen && hasNewSuggestion && (
             <div className="absolute inset-0 rounded-full">
               <div className={`absolute inset-0 rounded-full animate-ping opacity-75 ${
                 colorMode
