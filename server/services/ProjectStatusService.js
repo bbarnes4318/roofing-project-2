@@ -2,18 +2,19 @@ const { prisma } = require('../config/prisma');
 
 class ProjectStatusService {
   /**
-   * Update project status based on workflow phase
+   * Update project status based on workflow phases
+   * Now handles multiple workflows (main + trades)
    * @param {string} projectId - Project ID
    * @param {string} phaseType - Current phase type
    * @param {boolean} isCompleted - Whether the workflow is completed
    */
   static async updateProjectStatus(projectId, phaseType = null, isCompleted = false) {
     try {
-      // Get current project and workflow state
+      // Get current project and all workflow states
       const project = await prisma.project.findUnique({
         where: { id: projectId },
         include: {
-          workflowTracker: {
+          workflowTrackers: {
             include: {
               currentPhase: true
             }
@@ -26,16 +27,19 @@ class ProjectStatusService {
         return null;
       }
 
+      // Get the main workflow (isMainWorkflow = true)
+      const mainWorkflow = project.workflowTrackers?.find(tracker => tracker.isMainWorkflow);
+      
       // Determine the current phase if not provided
-      const currentPhase = phaseType || project.workflowTracker?.currentPhase?.phaseType;
+      const currentPhase = phaseType || mainWorkflow?.currentPhase?.phaseType;
       
       let newStatus = project.status;
       
-      // Apply status automation rules
-      if (isCompleted) {
-        // If workflow is completed (final line item in COMPLETED phase done)
+      // Apply status automation rules based on main workflow
+      if (isCompleted || this.areAllWorkflowsCompleted(project.workflowTrackers)) {
+        // If all workflows are completed
         newStatus = 'COMPLETED';
-        console.log(`✅ Project ${projectId} workflow completed - setting status to COMPLETED`);
+        console.log(`✅ Project ${projectId} all workflows completed - setting status to COMPLETED`);
       } else if (currentPhase === 'LEAD') {
         // During LEAD phase, status should be PENDING
         newStatus = 'PENDING';
@@ -66,6 +70,21 @@ class ProjectStatusService {
       console.error('Error updating project status:', error);
       throw error;
     }
+  }
+
+  /**
+   * Check if all workflows for a project are completed
+   * @param {Array} workflowTrackers - Array of workflow trackers
+   */
+  static areAllWorkflowsCompleted(workflowTrackers) {
+    if (!workflowTrackers || workflowTrackers.length === 0) {
+      return false;
+    }
+
+    // For now, consider project complete when main workflow is complete
+    // TODO: Implement logic to check if all workflows are actually complete
+    const mainWorkflow = workflowTrackers.find(tracker => tracker.isMainWorkflow);
+    return mainWorkflow?.currentPhase?.phaseType === 'COMPLETION';
   }
 
   /**
@@ -154,7 +173,7 @@ class ProjectStatusService {
               email: true
             }
           },
-          workflowTracker: {
+          workflowTrackers: {
             include: {
               currentPhase: true,
               currentSection: true,
@@ -190,7 +209,7 @@ class ProjectStatusService {
           }
         },
         include: {
-          workflowTracker: {
+          workflowTrackers: {
             include: {
               currentPhase: true,
               currentLineItem: true
@@ -202,18 +221,19 @@ class ProjectStatusService {
       let updatedCount = 0;
       
       for (const project of projects) {
-        // Check if workflow is completed
+        // Check if main workflow is completed
         let isCompleted = false;
-        if (project.workflowTracker?.currentLineItemId) {
+        const mainWorkflow = project.workflowTrackers?.find(tracker => tracker.isMainWorkflow);
+        if (mainWorkflow?.currentLineItemId) {
           isCompleted = await this.isCompletedPhaseFinalItem(
-            project.workflowTracker.currentLineItemId
+            mainWorkflow.currentLineItemId
           );
         }
 
         // Update status based on current phase
         const result = await this.updateProjectStatus(
           project.id,
-          project.workflowTracker?.currentPhase?.phaseType,
+          mainWorkflow?.currentPhase?.phaseType,
           isCompleted
         );
         

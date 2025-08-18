@@ -120,17 +120,36 @@ const ProjectsByPhaseSection = ({
   };
 
   const getProjectTrades = (project) => {
-    if (project.trades && project.trades.length > 0) {
+    // Use existing trades if already calculated properly
+    if (project.trades && project.trades.length > 0 && project.trades[0].completedItems !== undefined) {
       return project.trades;
     }
-    const tradeName = project.projectType || project.type || 'General';
-    return [
-      {
-        name: tradeName,
-        laborProgress: WorkflowProgressService.calculateProjectProgress(project).overall || 0,
-        materialsDelivered: project.materialsDelivered || false
-      }
-    ];
+    
+    // Calculate trades using WorkflowProgressService
+    const progressData = WorkflowProgressService.calculateProjectProgress(project);
+    const currentWorkflow = project.currentWorkflowItem;
+    
+    // First calculate progress with skipped items included
+    const progressWithSkipped = WorkflowProgressService.calculateProgressWithSkippedItems(
+      currentWorkflow?.completedItems || [],
+      currentWorkflow?.phase || 'LEAD',
+      currentWorkflow?.section,
+      currentWorkflow?.lineItem,
+      currentWorkflow?.totalLineItems || WorkflowProgressService.estimateTotalLineItems(),
+      currentWorkflow?.workflowStructure || null
+    );
+    
+    // Use the adjusted completed items which includes skipped items
+    const completedItems = progressWithSkipped.adjustedCompletedItems || 
+                           progressData.completedLineItems || 
+                           (currentWorkflow?.completedItems || []);
+    
+    return WorkflowProgressService.calculateTradeBreakdown(
+      project,
+      Array.isArray(completedItems) ? completedItems : [],
+      progressData.totalLineItems || currentWorkflow?.totalLineItems || 25,
+      currentWorkflow?.workflowStructure || null
+    );
   };
 
   // Save expanded state whenever it changes
@@ -373,9 +392,10 @@ const ProjectsByPhaseSection = ({
                           <div className="p-4 relative">
                             {(() => {
                               const trades = getProjectTrades(project);
-                              const overall = Math.round(
-                                trades.reduce((sum, t) => sum + (t.laborProgress || 0), 0) / (trades.length || 1)
-                              );
+                              // Calculate overall progress correctly: total completed items / total items across all trades
+                              const totalCompletedItems = trades.reduce((sum, t) => sum + (t.completedItems || 0), 0);
+                              const totalItems = trades.reduce((sum, t) => sum + (t.totalItems || 0), 0);
+                              const overall = totalItems > 0 ? Math.round((totalCompletedItems / totalItems) * 100) : 0;
                               const expandedKey = `${project.id || project._id}-materials-labor`;
                               const isExpanded = expandedProgress[expandedKey];
                               

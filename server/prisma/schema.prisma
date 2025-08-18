@@ -126,7 +126,7 @@ model Project {
   projectMessages  ProjectMessage[]
   phaseOverrides   ProjectPhaseOverride[]
   teamMembers      ProjectTeamMember[]
-  workflowTracker  ProjectWorkflowTracker?
+  workflowTrackers ProjectWorkflowTracker[]
   createdBy        User?                   @relation("CreatedBy", fields: [createdById], references: [id])
   customer         Customer                @relation(fields: [customerId], references: [id], onDelete: Cascade)
   projectManager   User?                   @relation("ProjectManager", fields: [projectManagerId], references: [id])
@@ -474,7 +474,8 @@ model WorkflowPhase {
   createdAt       DateTime                 @default(now())
   updatedAt       DateTime                 @updatedAt
   phaseName       String                   @db.VarChar(255)
-  phaseType       ProjectPhase             @unique
+  phaseType       ProjectPhase
+  workflowType    WorkflowType             @default(ROOFING)
   displayOrder    Int
   description     String?                  @db.VarChar(500)
   isActive        Boolean                  @default(true)
@@ -484,6 +485,8 @@ model WorkflowPhase {
   alerts          WorkflowAlert[]
   sections        WorkflowSection[]
 
+  @@unique([phaseType, workflowType])
+  @@index([workflowType])
   @@map("workflow_phases")
 }
 
@@ -498,6 +501,7 @@ model WorkflowSection {
   description     String?                  @db.VarChar(500)
   isActive        Boolean                  @default(true)
   phaseId         String                   @map("phase_id")
+  workflowType    WorkflowType             @default(ROOFING)
   isCurrent       Boolean                  @default(true)
   version         Int                      @default(1)
   projectTrackers ProjectWorkflowTracker[]
@@ -507,6 +511,7 @@ model WorkflowSection {
 
   @@unique([phaseId, sectionNumber])
   @@index([phaseId])
+  @@index([workflowType])
   @@map("workflow_sections")
 }
 
@@ -524,6 +529,7 @@ model WorkflowLineItem {
   alertDays        Int                      @default(1)
   daysToComplete   Int                      @default(1) @map("days_to_complete")
   sectionId        String                   @map("section_id")
+  workflowType     WorkflowType             @default(ROOFING)
   isCurrent        Boolean                  @default(true)
   searchVector     String?
   version          Int                      @default(1)
@@ -535,6 +541,7 @@ model WorkflowLineItem {
   @@index([sectionId])
   @@index([sectionId, displayOrder])
   @@index([isActive, displayOrder])
+  @@index([workflowType])
   @@map("workflow_line_items")
 }
 
@@ -542,7 +549,10 @@ model ProjectWorkflowTracker {
   id                  String                  @id @default(cuid())
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @updatedAt
-  projectId           String                  @unique @map("project_id")
+  projectId           String                  @map("project_id")
+  workflowType        WorkflowType            @default(ROOFING)
+  tradeName           String?                 @map("trade_name") @db.VarChar(100)
+  isMainWorkflow      Boolean                 @default(true) @map("is_main_workflow")
   currentPhaseId      String?                 @map("current_phase_id")
   currentSectionId    String?                 @map("current_section_id")
   currentLineItemId   String?                 @map("current_line_item_id")
@@ -556,8 +566,10 @@ model ProjectWorkflowTracker {
   currentSection      WorkflowSection?        @relation(fields: [currentSectionId], references: [id])
   project             Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@unique([projectId, workflowType])
   @@index([currentLineItemId])
   @@index([projectId, currentPhaseId])
+  @@index([projectId, isMainWorkflow])
   @@map("project_workflow_trackers")
 }
 
@@ -789,6 +801,8 @@ enum ProjectPhase {
 
 enum WorkflowType {
   ROOFING
+  GUTTERS
+  INTERIOR_PAINT
   KITCHEN_REMODEL
   BATHROOM_RENOVATION
   SIDING
@@ -810,6 +824,7 @@ enum WorkflowStatus {
 
 enum ResponsibleRole {
   OFFICE
+  OFFICE_STAFF
   ADMINISTRATION
   PROJECT_MANAGER
   FIELD_DIRECTOR

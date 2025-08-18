@@ -64,8 +64,11 @@ class BubblesInsightsService {
   // Predictive analytics for project completion
   async predictProjectCompletion(projectId) {
     try {
-      const project = await prisma.project.findUnique({
-        where: { id: projectId },
+      // Accept string IDs; also try numeric projectNumber if applicable
+      const idAsString = String(projectId);
+      const maybeProjectNumber = /^\d{5}$/.test(idAsString) ? parseInt(idAsString, 10) : null;
+      let project = await prisma.project.findUnique({
+        where: { id: idAsString },
         include: {
           workflow: {
             include: {
@@ -84,6 +87,29 @@ class BubblesInsightsService {
           tasks: true
         }
       });
+
+      if (!project && Number.isFinite(maybeProjectNumber)) {
+        project = await prisma.project.findUnique({
+          where: { projectNumber: maybeProjectNumber },
+          include: {
+            workflow: {
+              include: {
+                phases: {
+                  include: {
+                    sections: {
+                      include: {
+                        lineItems: true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            alerts: true,
+            tasks: true
+          }
+        });
+      }
 
       if (!project) return null;
 
@@ -107,7 +133,7 @@ class BubblesInsightsService {
   // Identify project risks and bottlenecks
   async identifyRisks(projectId) {
     try {
-      const projectData = await this.fetchProjectAnalysisData(projectId);
+      const projectData = await this.fetchProjectAnalysisData(String(projectId));
       
       const risks = [];
       
@@ -171,7 +197,7 @@ class BubblesInsightsService {
   // Generate optimization recommendations
   async generateOptimizationRecommendations(projectId) {
     try {
-      const projectData = await this.fetchProjectAnalysisData(projectId);
+      const projectData = await this.fetchProjectAnalysisData(String(projectId));
       const recommendations = [];
 
       // Workflow optimization
@@ -226,9 +252,34 @@ class BubblesInsightsService {
 
   // Private helper methods
   async fetchProjectAnalysisData(projectId) {
-    const [project, tasks, alerts, activities] = await Promise.all([
-      prisma.project.findUnique({
-        where: { id: projectId },
+    const idAsString = String(projectId);
+    const maybeProjectNumber = /^\d{5}$/.test(idAsString) ? parseInt(idAsString, 10) : null;
+
+    // Fetch the project first (by ID, then by projectNumber fallback)
+    let project = await prisma.project.findUnique({
+      where: { id: idAsString },
+      include: {
+        projectManager: true,
+        customer: true,
+        workflow: {
+          include: {
+            phases: {
+              include: {
+                sections: {
+                  include: {
+                    lineItems: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!project && Number.isFinite(maybeProjectNumber)) {
+      project = await prisma.project.findUnique({
+        where: { projectNumber: maybeProjectNumber },
         include: {
           projectManager: true,
           customer: true,
@@ -246,11 +297,16 @@ class BubblesInsightsService {
             }
           }
         }
-      }),
-      prisma.task.findMany({ where: { projectId } }),
-      prisma.workflowAlert.findMany({ where: { projectId } }),
-      prisma.activity.findMany({ 
-        where: { projectId },
+      });
+    }
+
+    const effectiveProjectId = project?.id || idAsString;
+
+    const [tasks, alerts, activities] = await Promise.all([
+      prisma.task.findMany({ where: { projectId: effectiveProjectId } }),
+      prisma.workflowAlert.findMany({ where: { projectId: effectiveProjectId } }),
+      prisma.activity.findMany({
+        where: { projectId: effectiveProjectId },
         orderBy: { createdAt: 'desc' },
         take: 50
       })

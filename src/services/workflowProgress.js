@@ -73,7 +73,8 @@ class WorkflowProgressService {
             phaseBreakdown: this.calculatePhaseBreakdownFromLineItems(
                 progressData.adjustedCompletedItems, 
                 currentPhase, 
-                currentPhaseIndex
+                currentPhaseIndex,
+                currentWorkflow.workflowStructure || null
             ),
             currentPhase: currentPhase,
             currentPhaseDisplay: currentWorkflow.phaseDisplay || this.formatPhase(currentPhase),
@@ -253,31 +254,60 @@ class WorkflowProgressService {
     }
 
     /**
-     * Calculate phase breakdown based on completed line items
+     * Calculate phase breakdown based on actual completed line items
+     * Uses real line item counts per phase, not estimates
      */
-    static calculatePhaseBreakdownFromLineItems(completedItems, currentPhase, currentPhaseIndex) {
+    static calculatePhaseBreakdownFromLineItems(completedItems, currentPhase, currentPhaseIndex, workflowStructure) {
         const breakdown = {};
         const phaseKeys = Object.keys(PHASES);
         
         // Group completed items by phase
         const completedByPhase = {};
+        const totalItemsByPhase = {};
+        
+        // Count completed items by phase
         completedItems.forEach(item => {
             if (item.phaseId) {
                 completedByPhase[item.phaseId] = (completedByPhase[item.phaseId] || 0) + 1;
             }
         });
         
+        // If we have workflow structure, get actual totals per phase
+        if (workflowStructure) {
+            phaseKeys.forEach(phaseKey => {
+                let phaseTotal = 0;
+                const phaseData = workflowStructure[phaseKey];
+                
+                if (phaseData && phaseData.sections) {
+                    Object.values(phaseData.sections).forEach(section => {
+                        if (section.lineItems) {
+                            phaseTotal += Object.keys(section.lineItems).length;
+                        }
+                    });
+                }
+                
+                totalItemsByPhase[phaseKey] = phaseTotal;
+            });
+        } else {
+            // Fallback: distribute total items evenly across phases
+            const estimatedItemsPerPhase = Math.ceil(this.estimateTotalLineItems() / phaseKeys.length);
+            phaseKeys.forEach(phaseKey => {
+                totalItemsByPhase[phaseKey] = estimatedItemsPerPhase;
+            });
+        }
+        
         phaseKeys.forEach((phaseKey, index) => {
-            let progress = 0;
             const completedCount = completedByPhase[phaseKey] || 0;
+            const totalCount = totalItemsByPhase[phaseKey] || 1;
+            
+            let progress = 0;
             
             if (index < currentPhaseIndex) {
-                progress = 100; // Completed phases
+                // Previous phases are considered 100% complete
+                progress = 100;
             } else if (index === currentPhaseIndex) {
-                // Current phase progress based on completed items
-                // Estimate 5-6 items per phase
-                const estimatedItemsPerPhase = Math.ceil(this.estimateTotalLineItems() / phaseKeys.length);
-                progress = Math.min(Math.round((completedCount / estimatedItemsPerPhase) * 100), 95);
+                // Current phase: calculate based on actual completed/total ratio
+                progress = Math.min(Math.round((completedCount / totalCount) * 100), 100);
             }
             // Future phases remain at 0
             
@@ -288,7 +318,8 @@ class WorkflowProgressService {
                 isCompleted: progress === 100,
                 isCurrent: index === currentPhaseIndex,
                 isPending: index > currentPhaseIndex,
-                completedItems: completedCount
+                completedItems: completedCount,
+                totalItems: totalCount
             };
         });
         
@@ -615,6 +646,144 @@ class WorkflowProgressService {
                 }));
             }
         }
+    }
+
+    /**
+     * Calculate trade/labor breakdown based on project type and line items
+     * Single trade = matches project type with same progress as overall
+     * Multiple trades = calculated based on line items grouped by trade type
+     */
+    static calculateTradeBreakdown(project, completedItems, totalLineItems, workflowStructure) {
+        if (!project) return [];
+        
+        // Determine if single or multiple trades
+        const projectTypes = this.getProjectTypes(project);
+        const hasSingleTrade = projectTypes.length === 1;
+        
+        if (hasSingleTrade) {
+            // Single trade: matches project type and overall progress
+            const overallProgress = totalLineItems > 0 
+                ? Math.round((completedItems.length / totalLineItems) * 100)
+                : 0;
+                
+            return [{
+                name: projectTypes[0],
+                laborProgress: overallProgress,
+                materialsDelivered: this.estimateMaterialsDelivered(project, overallProgress),
+                completedItems: completedItems.length,
+                totalItems: totalLineItems,
+                isMainTrade: true
+            }];
+        } else {
+            // Multiple trades: calculate based on line items grouped by trade
+            return this.calculateMultipleTradeBreakdown(
+                projectTypes, 
+                completedItems, 
+                totalLineItems, 
+                workflowStructure,
+                project
+            );
+        }
+    }
+    
+    /**
+     * Get project types from project object
+     */
+    static getProjectTypes(project) {
+        const types = [];
+        
+        // Primary project type
+        if (project.projectType) {
+            types.push(project.projectType);
+        } else if (project.type) {
+            types.push(project.type);
+        }
+        
+        // Additional trades if specified
+        if (project.trades && Array.isArray(project.trades)) {
+            project.trades.forEach(trade => {
+                if (trade.name && !types.includes(trade.name)) {
+                    types.push(trade.name);
+                }
+            });
+        }
+        
+        // Default to 'General' if no types found
+        if (types.length === 0) {
+            types.push('General');
+        }
+        
+        return types;
+    }
+    
+    /**
+     * Calculate breakdown for multiple trades
+     */
+    static calculateMultipleTradeBreakdown(projectTypes, completedItems, totalLineItems, workflowStructure, project) {
+        const trades = [];
+        const itemsPerTrade = Math.ceil(totalLineItems / projectTypes.length);
+        
+        projectTypes.forEach((tradeType, index) => {
+            // Assign line items to trades - evenly distribute across all trades
+            const tradeStartIndex = index * itemsPerTrade;
+            const tradeEndIndex = Math.min((index + 1) * itemsPerTrade, totalLineItems);
+            const tradeTotal = tradeEndIndex - tradeStartIndex;
+            
+            // Count how many completed items would belong to this trade's range
+            // Since we're distributing evenly, we need to map completed items to trade ranges
+            let tradeCompletedCount = 0;
+            
+            // If we have actual completed items (including skipped), distribute them proportionally
+            if (completedItems && completedItems.length > 0) {
+                // Calculate what portion of total completed items this trade should have
+                const tradePercentage = tradeTotal / totalLineItems;
+                tradeCompletedCount = Math.round(completedItems.length * tradePercentage);
+                
+                // Ensure we don't exceed the trade's total items
+                tradeCompletedCount = Math.min(tradeCompletedCount, tradeTotal);
+            }
+            
+            const tradeProgress = tradeTotal > 0 
+                ? Math.round((tradeCompletedCount / tradeTotal) * 100)
+                : 0;
+            
+            trades.push({
+                name: tradeType,
+                laborProgress: tradeProgress,
+                materialsDelivered: this.estimateMaterialsDelivered(project, tradeProgress),
+                completedItems: tradeCompletedCount,
+                totalItems: tradeTotal,
+                isMainTrade: index === 0
+            });
+        });
+        
+        // Adjust completed items to ensure total matches
+        const totalAssignedCompleted = trades.reduce((sum, t) => sum + t.completedItems, 0);
+        const actualCompletedCount = completedItems ? completedItems.length : 0;
+        
+        // If there's a discrepancy, adjust the main trade
+        if (totalAssignedCompleted !== actualCompletedCount && trades.length > 0) {
+            const difference = actualCompletedCount - totalAssignedCompleted;
+            trades[0].completedItems = Math.max(0, trades[0].completedItems + difference);
+            trades[0].laborProgress = trades[0].totalItems > 0 
+                ? Math.round((trades[0].completedItems / trades[0].totalItems) * 100)
+                : 0;
+        }
+        
+        return trades;
+    }
+    
+    /**
+     * Estimate materials delivery status based on progress
+     */
+    static estimateMaterialsDelivered(project, progress) {
+        // Check if project has explicit materials delivery data
+        if (project.materialsDeliveryStart || project.materialsDelivered !== undefined) {
+            return project.materialsDelivered || Boolean(project.materialsDeliveryStart);
+        }
+        
+        // Estimate based on progress - materials typically delivered when work is 20%+ complete
+        return progress >= 20;
     }
 
     /**

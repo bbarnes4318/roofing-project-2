@@ -97,10 +97,12 @@ const chatValidation = [
     .optional({ nullable: true })
     .custom((value) => {
       if (value === null || value === undefined || value === '') return true;
-      const num = Number(value);
-      return Number.isInteger(num) && num > 0;
+      // Allow either numeric IDs or string IDs (e.g., Prisma CUIDs)
+      if (typeof value === 'number') return Number.isInteger(value) && value > 0;
+      if (typeof value === 'string') return value.length > 0;
+      return false;
     })
-    .withMessage('Project ID must be a positive integer'),
+    .withMessage('Project ID must be a non-empty string or positive integer'),
   body('context')
     .optional()
     .isObject()
@@ -126,8 +128,10 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
   // Get project context if projectId provided
   let projectContext = {};
   if (projectId) {
+    // Normalize projectId to string to support non-numeric IDs
+    const normalizedProjectId = typeof projectId === 'number' ? String(projectId) : String(projectId);
     const project = await prisma.project.findUnique({
-      where: { id: projectId },
+      where: { id: normalizedProjectId },
       include: {
         projectManager: {
           select: { firstName: true, lastName: true }
@@ -432,7 +436,7 @@ router.get('/status', asyncHandler(async (req, res) => {
 // @route   GET /api/bubbles/insights/project/:projectId
 // @access  Private
 router.get('/insights/project/:projectId', asyncHandler(async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = String(req.params.projectId);
   const userId = req.user.id;
 
   const insights = await bubblesInsightsService.generateProjectInsights(projectId, userId);
@@ -463,7 +467,8 @@ router.get('/insights/portfolio', asyncHandler(async (req, res) => {
 // @route   GET /api/bubbles/insights/prediction/:projectId
 // @access  Private
 router.get('/insights/prediction/:projectId', asyncHandler(async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
+  // Accept non-numeric IDs; keep as string
+  const projectId = String(req.params.projectId);
 
   const prediction = await bubblesInsightsService.predictProjectCompletion(projectId);
 
@@ -481,7 +486,7 @@ router.get('/insights/prediction/:projectId', asyncHandler(async (req, res) => {
 // @route   GET /api/bubbles/insights/risks/:projectId
 // @access  Private
 router.get('/insights/risks/:projectId', asyncHandler(async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = String(req.params.projectId);
 
   const risks = await bubblesInsightsService.identifyRisks(projectId);
 
@@ -497,7 +502,7 @@ router.get('/insights/risks/:projectId', asyncHandler(async (req, res) => {
 // @route   GET /api/bubbles/insights/optimization/:projectId
 // @access  Private
 router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = String(req.params.projectId);
 
   const recommendations = await bubblesInsightsService.generateOptimizationRecommendations(projectId);
 

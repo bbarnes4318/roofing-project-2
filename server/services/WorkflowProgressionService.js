@@ -6,22 +6,34 @@ const ProjectStatusService = require('./ProjectStatusService');
 
 class WorkflowProgressionService {
   /**
-   * MODERNIZED: Initialize workflow using only template system (no WorkflowStep creation)
+   * MODERNIZED: Initialize workflow using only template system (supports multiple workflow types)
    */
-  async initializeProjectWorkflow(projectId, workflowType = 'ROOFING') {
+  async initializeProjectWorkflow(projectId, workflowType = 'ROOFING', isMainWorkflow = true) {
     try {
       return await prisma.$transaction(async (tx) => {
-        // Get the first phase from template system
+        // Get the first phase from template system for specific workflow type
         const firstPhase = await tx.workflowPhase.findFirst({
-          where: { isActive: true, isCurrent: true },
+          where: { 
+            isActive: true, 
+            isCurrent: true, 
+            workflowType: workflowType 
+          },
           orderBy: { displayOrder: 'asc' },
           include: {
             sections: {
-              where: { isActive: true, isCurrent: true },
+              where: { 
+                isActive: true, 
+                isCurrent: true, 
+                workflowType: workflowType 
+              },
               orderBy: { displayOrder: 'asc' },
               include: {
                 lineItems: {
-                  where: { isActive: true, isCurrent: true },
+                  where: { 
+                    isActive: true, 
+                    isCurrent: true, 
+                    workflowType: workflowType 
+                  },
                   orderBy: { displayOrder: 'asc' }
                 }
               }
@@ -30,20 +42,23 @@ class WorkflowProgressionService {
         });
 
         if (!firstPhase) {
-          throw new Error('No active workflow template found');
+          throw new Error(`No active workflow template found for type: ${workflowType}`);
         }
 
         const firstSection = firstPhase.sections[0];
         const firstLineItem = firstSection?.lineItems[0];
 
         if (!firstLineItem) {
-          throw new Error('No line items found in first workflow section');
+          throw new Error(`No line items found in first workflow section for type: ${workflowType}`);
         }
 
         // Create project workflow tracker using template references only
         const tracker = await tx.projectWorkflowTracker.create({
           data: {
             projectId,
+            workflowType,
+            tradeName: workflowType !== 'ROOFING' ? workflowType.toLowerCase().replace('_', ' ') : null,
+            isMainWorkflow,
             currentPhaseId: firstPhase.id,
             currentSectionId: firstSection.id,
             currentLineItemId: firstLineItem.id,
@@ -58,41 +73,69 @@ class WorkflowProgressionService {
           }
         });
 
-        console.log(`✅ Initialized workflow for project ${projectId} starting with: ${firstLineItem.itemName}`);
+        console.log(`✅ Initialized ${workflowType} workflow for project ${projectId} starting with: ${firstLineItem.itemName}`);
         
         return {
           tracker,
           firstPhase,
           firstSection,
           firstLineItem,
-          totalSteps: await this.getTotalLineItemCount(tx)
+          totalSteps: await this.getTotalLineItemCount(tx, workflowType)
         };
       });
     } catch (error) {
-      console.error('Error initializing project workflow:', error);
+      console.error(`Error initializing ${workflowType} project workflow:`, error);
       throw error;
     }
   }
 
   /**
-   * Get total count of active line items
+   * Initialize multiple workflows for a project (main + trades)
    */
-  async getTotalLineItemCount(tx) {
+  async initializeMultipleWorkflows(projectId, workflowTypes = ['ROOFING']) {
+    try {
+      const trackers = [];
+      
+      for (let i = 0; i < workflowTypes.length; i++) {
+        const workflowType = workflowTypes[i];
+        const isMainWorkflow = i === 0; // First workflow is the main one
+        
+        const result = await this.initializeProjectWorkflow(projectId, workflowType, isMainWorkflow);
+        trackers.push(result.tracker);
+      }
+      
+      console.log(`✅ Initialized ${workflowTypes.length} workflows for project ${projectId}: ${workflowTypes.join(', ')}`);
+      return trackers;
+    } catch (error) {
+      console.error('Error initializing multiple workflows:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get total count of active line items for a specific workflow type
+   */
+  async getTotalLineItemCount(tx, workflowType = 'ROOFING') {
     return await tx.workflowLineItem.count({
       where: {
         isActive: true,
-        isCurrent: true
+        isCurrent: true,
+        workflowType: workflowType
       }
     });
   }
 
   /**
-   * Get current workflow position for a project
+   * Get current workflow positions for a project (supports multiple workflows)
    */
-  async getCurrentPosition(projectId) {
+  async getCurrentPosition(projectId, workflowType = null) {
     try {
-      const tracker = await prisma.projectWorkflowTracker.findUnique({
-        where: { projectId },
+      const whereClause = workflowType 
+        ? { projectId, workflowType }
+        : { projectId };
+      
+      const trackers = await prisma.projectWorkflowTracker.findMany({
+        where: whereClause,
         include: {
           currentPhase: true,
           currentSection: true,
@@ -108,14 +151,50 @@ class WorkflowProgressionService {
         }
       });
 
+      if (!trackers || trackers.length === 0) {
+        // Initialize if not exists (default to ROOFING)
+        const result = await this.initializeProjectWorkflow(projectId, 'ROOFING');
+        return workflowType ? result.tracker : [result.tracker];
+      }
+
+      // Return single tracker if specific workflow type requested
+      if (workflowType) {
+        return trackers.find(t => t.workflowType === workflowType) || trackers[0];
+      }
+
+      return trackers;
+    } catch (error) {
+      console.error('Error getting current position:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get the main workflow tracker for a project
+   */
+  async getMainWorkflowTracker(projectId) {
+    try {
+      const tracker = await prisma.projectWorkflowTracker.findFirst({
+        where: { 
+          projectId, 
+          isMainWorkflow: true 
+        },
+        include: {
+          currentPhase: true,
+          currentSection: true,
+          currentLineItem: true
+        }
+      });
+
       if (!tracker) {
-        // Initialize if not exists
-        return await this.initializeProjectWorkflow(projectId);
+        // Initialize main workflow if not exists
+        const result = await this.initializeProjectWorkflow(projectId, 'ROOFING', true);
+        return result.tracker;
       }
 
       return tracker;
     } catch (error) {
-      console.error('Error getting current position:', error);
+      console.error('Error getting main workflow tracker:', error);
       throw error;
     }
   }

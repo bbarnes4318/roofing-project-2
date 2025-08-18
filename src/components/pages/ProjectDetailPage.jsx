@@ -35,48 +35,31 @@ const getProjectTrades = (project) => {
         return project.calculatedProgress.trades;
     }
     
-    // Fallback to previous logic if no calculated data available
-    if (shouldHaveMultipleTrades(project.id)) {
-        // Multiple trades for selected projects - different numbers for each
-        if (project.id === 1) {
-            // Project 1: Add 2 trades
-            return [
-                { name: 'Roofing', laborProgress: 75, materialsDelivered: true },
-                { name: 'Siding', laborProgress: 45, materialsDelivered: true },
-                { name: 'Windows', laborProgress: 20, materialsDelivered: false }
-            ];
-        } else if (project.id === 3) {
-            // Project 3: Add 3 trades
-            return [
-                { name: 'Roofing', laborProgress: 60, materialsDelivered: true },
-                { name: 'Siding', laborProgress: 30, materialsDelivered: false },
-                { name: 'Windows', laborProgress: 15, materialsDelivered: true },
-                { name: 'Decking', laborProgress: 0, materialsDelivered: false }
-            ];
-        } else if (project.id === 5) {
-            // Project 5: Add 2 trades
-            return [
-                { name: 'Roofing', laborProgress: 85, materialsDelivered: true },
-                { name: 'Siding', laborProgress: 55, materialsDelivered: true },
-                { name: 'Windows', laborProgress: 25, materialsDelivered: false }
-            ];
-        }
-    } else {
-        // Single trade based on project type - consistent delivery status
-        const tradeName = project.projectType || project.type || 'General';
-        // Use calculated progress based on completed workflow line items
-        const progressData = WorkflowProgressService.calculateProjectProgress(project);
-        const laborProgress = progressData.overall || 0;
-        const isDelivered = project.materialsDeliveryStart ? true : (project.id % 3 === 0);
-        
-        return [
-            { 
-                name: tradeName, 
-                laborProgress: laborProgress, 
-                materialsDelivered: isDelivered
-            }
-        ];
-    }
+    // Calculate trades using WorkflowProgressService
+    const progressData = WorkflowProgressService.calculateProjectProgress(project);
+    const currentWorkflow = project.currentWorkflowItem;
+    
+    // First calculate progress with skipped items included
+    const progressWithSkipped = WorkflowProgressService.calculateProgressWithSkippedItems(
+        currentWorkflow?.completedItems || [],
+        currentWorkflow?.phase || 'LEAD',
+        currentWorkflow?.section,
+        currentWorkflow?.lineItem,
+        currentWorkflow?.totalLineItems || WorkflowProgressService.estimateTotalLineItems(),
+        currentWorkflow?.workflowStructure || null
+    );
+    
+    // Use the adjusted completed items which includes skipped items
+    const completedItems = progressWithSkipped.adjustedCompletedItems || 
+                           progressData.completedLineItems || 
+                           (currentWorkflow?.completedItems || []);
+    
+    return WorkflowProgressService.calculateTradeBreakdown(
+        project,
+        Array.isArray(completedItems) ? completedItems : [],
+        progressData.totalLineItems || currentWorkflow?.totalLineItems || 25,
+        currentWorkflow?.workflowStructure || null
+    );
 };
 
 const getPhaseStyles = (phase) => {

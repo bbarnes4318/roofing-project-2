@@ -679,7 +679,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
       alert.metadata?.projectId === projectId
     );
     
-    sendSuccess(res, projectAlerts, 'Project alerts retrieved successfully');
+    sendSuccess(res, 200, projectAlerts, 'Project alerts retrieved successfully');
   } catch (error) {
     console.error('Error fetching project alerts:', error);
     throw new AppError('Failed to fetch project alerts', 500);
