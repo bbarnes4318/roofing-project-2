@@ -15,9 +15,12 @@ class WorkflowCompletionService {
     
     try {
       return await prisma.$transaction(async (tx) => {
-        // 1. Get current project workflow tracker
-        const tracker = await tx.projectWorkflowTracker.findUnique({
-          where: { projectId },
+        // 1. Get current project workflow tracker - use findFirst instead of findUnique
+        const tracker = await tx.projectWorkflowTracker.findFirst({
+          where: { 
+            projectId,
+            isMainWorkflow: true // Get the main workflow tracker
+          },
           include: {
             currentLineItem: {
               include: {
