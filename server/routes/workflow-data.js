@@ -3,21 +3,24 @@ const { prisma } = require('../config/prisma');
 const router = express.Router();
 
 /**
- * Get full workflow structure from database
+ * Get full workflow structure from database (legacy - single workflow)
+ * @deprecated Use /project-workflows/:projectId for projects with multiple workflows
  */
 router.get('/full-structure', async (req, res) => {
   try {
-    console.log('🔥 API: Loading full workflow structure...');
+    console.log('🔥 API: Loading full workflow structure (ROOFING only)...');
     
     const phases = await prisma.workflowPhase.findMany({
+      where: { workflowType: 'ROOFING' },
       orderBy: { displayOrder: 'asc' },
       include: {
         sections: {
+          where: { workflowType: 'ROOFING' },
           orderBy: { displayOrder: 'asc' },
           include: {
             lineItems: {
-              orderBy: { displayOrder: 'asc' },
-              where: { isActive: true }
+              where: { isActive: true, workflowType: 'ROOFING' },
+              orderBy: { displayOrder: 'asc' }
             }
           }
         }
@@ -36,7 +39,7 @@ router.get('/full-structure', async (req, res) => {
       }))
     }));
     
-    console.log(`📊 API: Loaded ${phases.length} phases, ${phases.reduce((acc, p) => acc + p.sections.length, 0)} sections, ${phases.reduce((acc, p) => acc + p.sections.reduce((acc2, s) => acc2 + s.lineItems.length, 0), 0)} line items`);
+    console.log(`📊 API: Loaded ${phases.length} ROOFING phases, ${phases.reduce((acc, p) => acc + p.sections.length, 0)} sections, ${phases.reduce((acc, p) => acc + p.sections.reduce((acc2, s) => acc2 + s.lineItems.length, 0), 0)} line items`);
     
     res.json({
       success: true,
@@ -52,6 +55,128 @@ router.get('/full-structure', async (req, res) => {
     });
   }
 });
+
+/**
+ * Get all workflows for a specific project (NEW - supports multiple workflows)
+ */
+router.get('/project-workflows/:projectId', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    console.log('🚀 API: Loading all workflows for project:', projectId);
+    
+    // Get all workflow trackers for this project
+    const trackers = await prisma.projectWorkflowTracker.findMany({
+      where: { projectId },
+      include: {
+        currentPhase: true,
+        currentSection: true,
+        currentLineItem: true,
+        completedItems: {
+          include: {
+            completedBy: {
+              select: { firstName: true, lastName: true }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { isMainWorkflow: 'desc' }, // Main workflow first
+        { workflowType: 'asc' }
+      ]
+    });
+
+    if (trackers.length === 0) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+
+    // Get workflow structures for each type
+    const workflowTypes = [...new Set(trackers.map(t => t.workflowType))];
+    const workflows = [];
+
+    for (const workflowType of workflowTypes) {
+      const phases = await prisma.workflowPhase.findMany({
+        where: { workflowType },
+        orderBy: { displayOrder: 'asc' },
+        include: {
+          sections: {
+            where: { workflowType },
+            orderBy: { displayOrder: 'asc' },
+            include: {
+              lineItems: {
+                where: { isActive: true, workflowType },
+                orderBy: { displayOrder: 'asc' }
+              }
+            }
+          }
+        }
+      });
+
+      const tracker = trackers.find(t => t.workflowType === workflowType);
+      const completedItemIds = new Set(tracker.completedItems.map(item => item.lineItemId));
+
+      // Convert to React format
+      const reactFormat = phases.map(phase => ({
+        id: phase.phaseType,
+        label: phase.phaseName,
+        items: phase.sections.map(section => ({
+          id: section.id,
+          label: section.displayName || section.sectionName,
+          subtasks: section.lineItems.map(item => ({
+            id: item.id,
+            label: item.itemName,
+            isCompleted: completedItemIds.has(item.id)
+          }))
+        }))
+      }));
+
+      workflows.push({
+        workflowType,
+        tradeName: tracker.tradeName || getWorkflowDisplayName(workflowType),
+        isMainWorkflow: tracker.isMainWorkflow,
+        trackerId: tracker.id,
+        currentPhase: tracker.currentPhase?.phaseType,
+        currentSection: tracker.currentSection?.id,
+        currentLineItem: tracker.currentLineItem?.id,
+        phases: reactFormat,
+        completedCount: tracker.completedItems.length,
+        totalCount: phases.reduce((acc, p) => acc + p.sections.reduce((acc2, s) => acc2 + s.lineItems.length, 0), 0)
+      });
+    }
+
+    console.log(`📊 API: Loaded ${workflows.length} workflows for project ${projectId}`);
+    workflows.forEach(w => console.log(`  - ${w.workflowType}: ${w.completedCount}/${w.totalCount} completed`));
+    
+    res.json({
+      success: true,
+      data: workflows
+    });
+    
+  } catch (error) {
+    console.error('❌ API: Error loading project workflows:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load project workflows',
+      error: error.message
+    });
+  }
+});
+
+function getWorkflowDisplayName(workflowType) {
+  const displayNames = {
+    'ROOFING': 'Roofing',
+    'GUTTERS': 'Gutters',
+    'INTERIOR_PAINT': 'Interior Paint',
+    'KITCHEN_REMODEL': 'Kitchen Remodel',
+    'BATHROOM_RENOVATION': 'Bathroom Renovation',
+    'SIDING': 'Siding',
+    'WINDOWS': 'Windows',
+    'GENERAL': 'General'
+  };
+  return displayNames[workflowType] || workflowType;
+}
 
 /**
  * Get current project position for auto-navigation

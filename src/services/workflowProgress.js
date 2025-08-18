@@ -649,14 +649,36 @@ class WorkflowProgressService {
     }
 
     /**
-     * Calculate trade/labor breakdown based on project type and line items
-     * Single trade = matches project type with same progress as overall
-     * Multiple trades = calculated based on line items grouped by trade type
+     * Calculate trade/labor breakdown based on multiple workflow trackers
+     * NEW: Now supports actual multiple workflows instead of simulated trades
+     * Each workflow tracker represents a real trade with its own line items
      */
     static calculateTradeBreakdown(project, completedItems, totalLineItems, workflowStructure) {
         if (!project) return [];
         
-        // Determine if single or multiple trades
+        // Check if project has multiple workflow trackers (real multiple workflows)
+        if (project.workflowTrackers && project.workflowTrackers.length > 0) {
+            return this.calculateRealMultipleWorkflowBreakdown(project.workflowTrackers);
+        }
+        
+        // Fallback to legacy method for backward compatibility
+        if (project.currentWorkflowItem) {
+            // Single workflow: use existing logic
+            const overallProgress = totalLineItems > 0 
+                ? Math.round((completedItems.length / totalLineItems) * 100)
+                : 0;
+                
+            return [{
+                name: project.projectType || project.type || 'Roofing',
+                laborProgress: overallProgress,
+                materialsDelivered: this.estimateMaterialsDelivered(project, overallProgress),
+                completedItems: completedItems.length,
+                totalItems: totalLineItems,
+                isMainTrade: true
+            }];
+        }
+        
+        // Final fallback: determine if single or multiple trades
         const projectTypes = this.getProjectTypes(project);
         const hasSingleTrade = projectTypes.length === 1;
         
@@ -684,6 +706,61 @@ class WorkflowProgressService {
                 project
             );
         }
+    }
+
+    /**
+     * Calculate breakdown for projects with actual multiple workflow trackers
+     * NEW: This handles real multiple workflows from the database
+     */
+    static calculateRealMultipleWorkflowBreakdown(workflowTrackers) {
+        const trades = [];
+        
+        workflowTrackers.forEach((tracker, index) => {
+            // Get workflow type name for display
+            const workflowTypeName = this.getWorkflowTypeDisplayName(tracker.workflowType);
+            
+            // Calculate completed items for this workflow
+            const completedItems = tracker.completedItems || [];
+            const totalItems = tracker.totalLineItems || this.estimateTotalLineItems();
+            
+            const progress = totalItems > 0 
+                ? Math.round((completedItems.length / totalItems) * 100)
+                : 0;
+            
+            trades.push({
+                name: tracker.tradeName || workflowTypeName,
+                laborProgress: progress,
+                materialsDelivered: this.estimateMaterialsDelivered(
+                    { workflowType: tracker.workflowType }, 
+                    progress
+                ),
+                completedItems: completedItems.length,
+                totalItems: totalItems,
+                isMainTrade: tracker.isMainWorkflow || index === 0,
+                workflowType: tracker.workflowType,
+                trackerId: tracker.id
+            });
+        });
+        
+        return trades;
+    }
+
+    /**
+     * Get display name for workflow type
+     */
+    static getWorkflowTypeDisplayName(workflowType) {
+        const displayNames = {
+            'ROOFING': 'Roofing',
+            'GUTTERS': 'Gutters',
+            'INTERIOR_PAINT': 'Interior Paint',
+            'KITCHEN_REMODEL': 'Kitchen Remodel',
+            'BATHROOM_RENOVATION': 'Bathroom Renovation',
+            'SIDING': 'Siding',
+            'WINDOWS': 'Windows',
+            'GENERAL': 'General'
+        };
+        
+        return displayNames[workflowType] || workflowType;
     }
     
     /**

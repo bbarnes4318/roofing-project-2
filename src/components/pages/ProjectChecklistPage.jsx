@@ -173,6 +173,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [loadingError, setLoadingError] = useState(null);
   const [navigationSuccess, setNavigationSuccess] = useState(null);
   
+  // Multiple workflow states
+  const [activeWorkflowIndex, setActiveWorkflowIndex] = useState(0);
+  const [workflowTabs, setWorkflowTabs] = useState([]);
+  
   // Navigation and highlighting states (support URL param ?highlight_item=PHASE-SECTION-INDEX)
   const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const urlHighlight = urlParams.get('highlight_item');
@@ -362,36 +366,58 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       setLoadingError(null);
       
       try {
-        // Load both workflow structure and project position in parallel
-        const [workflowResponse, positionResponse] = await Promise.all([
-          api.get('/workflow-data/full-structure'),
-          api.get(`/workflow-data/project-position/${projectId}`)
-        ]);
+        // Load multiple workflows for this specific project
+        const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
         
         const workflowResult = workflowResponse.data;
-        const positionResult = positionResponse.data;
         
         if (workflowResult.success) {
           setWorkflowData(workflowResult.data);
-          console.log(`Loaded ${workflowResult.data.length} phases from database`);
-          console.log(`Phase names:`, workflowResult.data.map(p => p.id + ' (' + p.items.length + ' items)'));
+          
+          // Set up workflow tabs
+          const tabs = workflowResult.data.map((workflow, index) => ({
+            id: workflow.workflowType,
+            name: workflow.tradeName,
+            isMainWorkflow: workflow.isMainWorkflow,
+            completedCount: workflow.completedCount,
+            totalCount: workflow.totalCount,
+            progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
+          }));
+          setWorkflowTabs(tabs);
+          
+          console.log(`Loaded ${workflowResult.data.length} workflows from database`);
+          workflowResult.data.forEach(workflow => {
+            console.log(`  - ${workflow.workflowType}: ${workflow.completedCount}/${workflow.totalCount} completed`);
+          });
           console.log(`Full workflow data:`, workflowResult.data);
         } else {
           throw new Error('Failed to load workflow structure');
         }
         
-        if (positionResult.success && positionResult.data) {
-          setProjectPosition(positionResult.data);
-          console.log(`Loaded project position:`, positionResult.data);
+        // Set the main workflow position for navigation
+        const mainWorkflow = workflowResult.data.find(w => w.isMainWorkflow);
+        if (mainWorkflow) {
+          const positionData = {
+            projectId: projectId,
+            currentPhase: mainWorkflow.currentPhase,
+            currentSection: mainWorkflow.currentSection,
+            currentLineItem: mainWorkflow.currentLineItem,
+            trackerId: mainWorkflow.trackerId
+          };
+          setProjectPosition(positionData);
+          console.log(`Loaded main workflow position:`, positionData);
           
           // Handle navigation targets - expand phase/section if navigating to specific item
           let expanded = false;
           if (targetLineItemId || targetSectionId || urlHighlight) {
             const effectiveTargetLineItem = targetLineItemId || urlHighlight;
 
-            if (effectiveTargetLineItem) {
+            if (effectiveTargetLineItem && mainWorkflow) {
+              // Search within the main workflow for navigation
+              const mainWorkflowPhases = mainWorkflow.phases || [];
+              
               // Case 1: Composite format PHASE-SECTION-INDEX
-              const knownPhaseIds = new Set((workflowResult.data || []).map(p => p.id));
+              const knownPhaseIds = new Set(mainWorkflowPhases.map(p => p.id));
               const parts = effectiveTargetLineItem.split('-');
               if (parts.length >= 3 && knownPhaseIds.has(parts[0])) {
                 const phaseId = parts[0];
@@ -402,7 +428,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 expanded = true;
               } else {
                 // Case 2: DB line item id - find its phase/section in workflow data
-                outer: for (const phase of workflowResult.data || []) {
+                outer: for (const phase of mainWorkflowPhases) {
                   for (const item of phase.items || []) {
                     const match = (item.subtasks || []).some(st => typeof st === 'object' && st.id === effectiveTargetLineItem);
                     if (match) {
@@ -432,10 +458,10 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           }
 
           // Default: if nothing targeted, open the current phase and section from project position
-          if (!expanded && positionResult?.data?.currentPhase && positionResult?.data?.currentSection) {
-            console.log(`🎯 NAVIGATION: Default expand to current position: phase=${positionResult.data.currentPhase}, section=${positionResult.data.currentSection}`);
-            setOpenPhase(positionResult.data.currentPhase);
-            setOpenItem(prev => ({ ...prev, [positionResult.data.currentSection]: true }));
+          if (!expanded && mainWorkflow?.currentPhase && mainWorkflow?.currentSection) {
+            console.log(`🎯 NAVIGATION: Default expand to current position: phase=${mainWorkflow.currentPhase}, section=${mainWorkflow.currentSection}`);
+            setOpenPhase(mainWorkflow.currentPhase);
+            setOpenItem(prev => ({ ...prev, [mainWorkflow.currentSection]: true }));
             expanded = true;
           }
 
@@ -476,9 +502,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               scrollReason = `target section: ${targetSectionId}`;
             }
             // Priority 3: Navigate to current project position
-            else {
-              targetElement = document.getElementById(`item-${positionResult.data.currentSection}`);
-              scrollReason = `current section: ${positionResult.data.sectionDisplayName}`;
+            else if (mainWorkflow?.currentSection) {
+              targetElement = document.getElementById(`item-${mainWorkflow.currentSection}`);
+              scrollReason = `current section: ${mainWorkflow.currentSection}`;
             }
             
             if (targetElement) {
@@ -625,12 +651,69 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     );
   }
 
+  // Get current workflow data based on active tab
+  const currentWorkflow = workflowData[activeWorkflowIndex];
+  const currentWorkflowPhases = currentWorkflow?.phases || [];
+
   return (
     <div className="max-w-4xl mx-auto p-0 space-y-0">
+      
+      {/* Workflow Tabs */}
+      {workflowTabs.length > 1 && (
+        <div className="bg-white border-b border-gray-200 mb-6">
+          <div className="flex space-x-1 overflow-x-auto">
+            {workflowTabs.map((tab, index) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveWorkflowIndex(index)}
+                className={`flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                  index === activeWorkflowIndex
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>{tab.name}</span>
+                  {tab.isMainWorkflow && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                      Main
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-400">
+                    {tab.completedCount}/{tab.totalCount}
+                  </span>
+                  <div className="w-12 bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-300" 
+                      style={{ width: `${tab.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Current Workflow Title */}
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">
+          {currentWorkflow?.tradeName || 'Workflow'} Checklist
+          {currentWorkflow?.isMainWorkflow && (
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+              Main Workflow
+            </span>
+          )}
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          {currentWorkflow?.completedCount || 0} of {currentWorkflow?.totalCount || 0} items completed 
+          ({currentWorkflow?.totalCount > 0 ? Math.round((currentWorkflow.completedCount / currentWorkflow.totalCount) * 100) : 0}%)
+        </p>
+      </div>
 
       {/* Checklist */}
       <div className="space-y-4">
-        {workflowData.map((phase) => {
+        {currentWorkflowPhases.map((phase) => {
           console.log(`Rendering phase: ${phase.id} with ${phase.items.length} items`);
           return (
           <div key={phase.id} className="bg-white rounded-lg shadow-md overflow-hidden">

@@ -18,8 +18,8 @@ const router = express.Router();
 // Helper: return canonical phase key used across the app (e.g., 'LEAD','PROSPECT',...)
 const getProjectPhaseKey = (project) => {
   // FIXED: Use ProjectWorkflowTracker for accurate phase determination
-  if (project.workflowTracker) {
-    const tracker = project.workflowTracker;
+  if (project.workflowTrackers && project.workflowTrackers.length > 0) {
+    const tracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
     
     // Check for phase overrides first
     if (project.phaseOverrides && project.phaseOverrides.length > 0) {
@@ -208,18 +208,21 @@ const transformProjectForFrontend = async (project) => {
     phaseDisplay: getProjectPhaseDisplay(getProjectPhaseKey(project)),
     
     // ENABLED: currentWorkflowItem now that ProjectWorkflowTracker is properly populated
-    currentWorkflowItem: project.workflowTracker ? {
-      phase: project.workflowTracker.currentPhase?.phaseType || null,
-      phaseDisplay: project.workflowTracker.currentPhase?.phaseName || null,
-      section: project.workflowTracker.currentSection?.displayName || null,
-      lineItem: project.workflowTracker.currentLineItem?.itemName || null,
-      lineItemId: project.workflowTracker.currentLineItem?.id || null,
-      sectionId: project.workflowTracker.currentSectionId || null,
-      phaseId: project.workflowTracker.currentPhaseId || null,
-      isComplete: !project.workflowTracker.currentPhaseId && !project.workflowTracker.currentSectionId && !project.workflowTracker.currentLineItemId,
-      completedItems: project.workflowTracker.completedItems || [],
-      totalLineItems: totalLineItems
-    } : null,
+    currentWorkflowItem: (project.workflowTrackers && project.workflowTrackers.length > 0) ? (() => {
+      const mainTracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
+      return {
+        phase: mainTracker.currentPhase?.phaseType || null,
+        phaseDisplay: mainTracker.currentPhase?.phaseName || null,
+        section: mainTracker.currentSection?.displayName || null,
+        lineItem: mainTracker.currentLineItem?.itemName || null,
+        lineItemId: mainTracker.currentLineItem?.id || null,
+        sectionId: mainTracker.currentSectionId || null,
+        phaseId: mainTracker.currentPhaseId || null,
+        isComplete: !mainTracker.currentPhaseId && !mainTracker.currentSectionId && !mainTracker.currentLineItemId,
+        completedItems: mainTracker.completedItems || [],
+        totalLineItems: totalLineItems
+      };
+    })() : null,
     
     // Additional fields for compatibility
     archived: project.archived || false,
@@ -395,7 +398,7 @@ router.get('/', asyncHandler(async (req, res) => {
               workflowAlerts: true
             }
           },
-          workflowTracker: {
+          workflowTrackers: {
             include: {
               currentPhase: {
                 select: {
@@ -526,7 +529,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
             }
           }
         },
-        workflowTracker: {
+        workflowTrackers: {
           include: {
             currentPhase: {
               select: {
