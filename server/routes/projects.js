@@ -613,18 +613,21 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       return next(new AppError('Customer not found', 404));
     }
 
-    // Verify project manager exists if provided
+    // Verify project manager exists if provided - if not found, continue without one
+    let validatedProjectManagerId = null;
     if (req.body.projectManagerId) {
       const projectManager = await prisma.user.findUnique({
         where: { id: req.body.projectManagerId }
       });
-      if (!projectManager) {
-        return next(new AppError('Project manager not found', 404));
+      if (projectManager) {
+        validatedProjectManagerId = req.body.projectManagerId;
+      } else {
+        console.warn(`Project manager ${req.body.projectManagerId} not found, continuing without project manager`);
       }
     }
 
     // Determine default project manager if none provided
-    let resolvedProjectManagerId = req.body.projectManagerId || null;
+    let resolvedProjectManagerId = validatedProjectManagerId;
     if (!resolvedProjectManagerId && process.env.DEFAULT_PM_USER_ID) {
       const envUser = await prisma.user.findUnique({ where: { id: process.env.DEFAULT_PM_USER_ID } });
       if (envUser && envUser.isActive) {
