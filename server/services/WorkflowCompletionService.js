@@ -148,16 +148,13 @@ class WorkflowCompletionService {
           }
         });
 
-        // 8. Deactivate any existing alerts for the completed item
-        await tx.workflowAlert.updateMany({
+        // 8. Delete existing active alerts for the completed item
+        // We delete instead of updating to COMPLETED to avoid unique constraint violations
+        await tx.workflowAlert.deleteMany({
           where: {
             projectId: projectId,
             lineItemId: lineItemId,
             status: 'ACTIVE'
-          },
-          data: {
-            status: 'COMPLETED',
-            acknowledgedAt: new Date()
           }
         });
 
