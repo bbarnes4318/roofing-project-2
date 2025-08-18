@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SparklesIcon, PaperAirplaneIcon, XMarkIcon, ChatBubbleLeftRightIcon, MinusIcon, ExclamationTriangleIcon, CalendarIcon, BoltIcon, ShieldExclamationIcon, BellAlertIcon } from '@heroicons/react/24/outline';
 import { bubblesService, workflowAlertsService } from '../../services/api';
+import WorkflowProgressService from '../../services/workflowProgress';
 import { useSocket } from '../../hooks/useSocket';
 
 const BubblesChat = ({ 
@@ -17,6 +18,8 @@ const BubblesChat = ({
   const [isTyping, setIsTyping] = useState(false);
   const [chipsLoading, setChipsLoading] = useState(false);
   const [insightChips, setInsightChips] = useState([]);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -263,6 +266,18 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     }
   };
 
+  // Command palette: curated, high-value commands
+  const availableCommands = [
+    { label: "Today's Priorities", command: 'show priorities', group: 'Focus' },
+    { label: 'Risks & Blockers', command: 'show risks', group: 'Focus' },
+    { label: 'Project Status', command: 'project status', group: 'Status' },
+    { label: 'Create Urgent Alert', command: 'create alert urgent', group: 'Actions' },
+    { label: 'Assign Task', command: 'assign task', group: 'Actions' },
+    { label: 'List My Projects', command: 'list projects', group: 'Navigation' },
+    { label: 'Help / Commands', command: 'help', group: 'Help' }
+  ];
+  const filteredCommands = availableCommands.filter(c => c.label.toLowerCase().includes(commandQuery.toLowerCase()));
+
   // Lightweight markdown renderer for chat messages
   const renderMessageContent = (content) => {
     if (!content || typeof content !== 'string') return content;
@@ -469,6 +484,71 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
           </div>
         </div>
 
+        {/* Status Snapshot (project-aware) */}
+        {currentProject && (
+          <div className={`px-4 pt-3 ${colorMode ? 'border-b border-neutral-700/60' : 'border-b border-gray-100'}`}>
+            {(() => {
+              const phaseKey = (currentProject.phase || currentProject.status || '').toUpperCase() || null;
+              const phaseHex = phaseKey ? WorkflowProgressService.getPhaseColor(phaseKey) : '#3B82F6';
+              const progress = Math.max(0, Math.min(100,
+                currentProject.calculatedProgress?.overall || currentProject.progress || 0
+              ));
+              const etaChip = insightChips.find(c => c.key === 'eta');
+              const risksChip = insightChips.find(c => c.key === 'risks');
+              const alertsChip = insightChips.find(c => c.key === 'alerts');
+              return (
+                <div className={`rounded-xl ${colorMode ? 'bg-neutral-800/60' : 'bg-gray-50'} border ${colorMode ? 'border-neutral-700' : 'border-gray-200'} p-3 flex items-center gap-3`}
+                  style={{
+                    backgroundImage: `radial-gradient(600px 80px at 20% -10%, ${phaseHex}20, transparent)`
+                  }}
+                >
+                  {/* Progress Ring */}
+                  <div className="relative w-10 h-10 flex items-center justify-center">
+                    <div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: `conic-gradient(${phaseHex} ${progress * 3.6}deg, ${colorMode ? '#2d2d2d' : '#e5e7eb'} 0deg)`
+                      }}
+                    />
+                    <div className={`relative w-7 h-7 rounded-full ${colorMode ? 'bg-neutral-900' : 'bg-white'} flex items-center justify-center text-[10px] font-bold`}>
+                      {progress}%
+                    </div>
+                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold truncate">{currentProject.name || currentProject.projectName || 'Current Project'}</span>
+                      {phaseKey && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full border"
+                          style={{ backgroundColor: `${phaseHex}22`, borderColor: `${phaseHex}55`, color: colorMode ? '#e5e7eb' : '#111827' }}
+                        >
+                          {WorkflowProgressService.getPhaseName(phaseKey)}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-600'} mt-0.5`}>ETA {etaChip?.value || '—'} • {risksChip?.value || 0} risks • {alertsChip?.value || 0} alerts</div>
+                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleSendMessage('project status')}
+                      className={`px-2 py-1 rounded-md text-[10px] border ${colorMode ? 'bg-neutral-900 border-neutral-700 text-gray-200 hover:bg-neutral-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Status
+                    </button>
+                    <button
+                      onClick={() => handleSendMessage('create alert')}
+                      className={`${colorMode ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'} px-2 py-1 rounded-md text-[10px]`}
+                    >
+                      New Alert
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         {/* Messages */}
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
@@ -601,6 +681,48 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
             ))}
           </div>
         </div>
+
+        {/* Command Palette Overlay */}
+        {showCommandPalette && (
+          <div className="absolute inset-0 z-[60] flex items-start justify-center pt-16 px-4">
+            <div className={`w-full max-w-md rounded-2xl shadow-2xl border ${colorMode ? 'bg-neutral-900/95 border-neutral-700' : 'bg-white/95 border-gray-200'}`}>
+              <div className="p-3 border-b border-gray-700/20 flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={commandQuery}
+                  onChange={(e) => setCommandQuery(e.target.value)}
+                  placeholder="Type a command…"
+                  className={`w-full px-3 py-2 rounded-md text-sm outline-none ${colorMode ? 'bg-neutral-800 text-white placeholder-gray-400' : 'bg-gray-50 text-gray-900 placeholder-gray-500'}`}
+                />
+                <button
+                  onClick={() => setShowCommandPalette(false)}
+                  className={`px-2 py-2 rounded-md ${colorMode ? 'hover:bg-neutral-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                  title="Close"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="max-h-64 overflow-y-auto p-2">
+                {filteredCommands.length === 0 ? (
+                  <div className={`text-sm px-3 py-6 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>No matching commands</div>
+                ) : (
+                  filteredCommands.map((cmd, idx) => (
+                    <button
+                      key={`${cmd.group}-${cmd.label}-${idx}`}
+                      onClick={() => { setShowCommandPalette(false); handleSendMessage(cmd.command); }}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm mb-1 ${colorMode ? 'hover:bg-neutral-800 text-gray-200' : 'hover:bg-gray-100 text-gray-800'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{cmd.label}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${colorMode ? 'border-neutral-700 text-gray-400' : 'border-gray-200 text-gray-500'}`}>{cmd.group}</span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
