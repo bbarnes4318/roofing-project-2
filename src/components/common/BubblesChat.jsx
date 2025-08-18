@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SparklesIcon, PaperAirplaneIcon, XMarkIcon, ChatBubbleLeftRightIcon, MinusIcon, ExclamationTriangleIcon, CalendarIcon, BoltIcon, ShieldExclamationIcon, BellAlertIcon } from '@heroicons/react/24/outline';
-import { bubblesService, workflowAlertsService } from '../../services/api';
+import { bubblesService, workflowAlertsService, tasksService, calendarService, projectsService, authService } from '../../services/api';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useSocket } from '../../hooks/useSocket';
 
@@ -20,6 +20,7 @@ const BubblesChat = ({
   const [insightChips, setInsightChips] = useState([]);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
+  const [isDailyBriefLoading, setIsDailyBriefLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -172,6 +173,26 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     fetchChips();
   }, [isOpen, currentProject]);
 
+  // Auto-run Daily Brief once per day on first open
+  useEffect(() => {
+    if (!isOpen) return;
+    try {
+      const user = authService.getStoredUser?.() || {};
+      const userKey = user.id || user._id || user.userId || 'anon';
+      const storageKey = `bubbles_daily_brief_last_${userKey}`;
+      const last = localStorage.getItem(storageKey);
+      const today = new Date().toDateString();
+      if (last !== today) {
+        // Run brief and mark as shown for today
+        handleDailyBrief();
+        localStorage.setItem(storageKey, today);
+      }
+    } catch (e) {
+      // Non-fatal; just skip auto brief
+      console.warn('Daily Brief auto-run skipped:', e?.message || e);
+    }
+  }, [isOpen]);
+
   // Auto-scroll behavior: keep top on initial welcome; scroll bottom for subsequent messages
   useEffect(() => {
     if (messages.length === 1 && messages[0]?.id === 'welcome') {
@@ -274,9 +295,83 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
     { label: 'Create Urgent Alert', command: 'create alert urgent', group: 'Actions' },
     { label: 'Assign Task', command: 'assign task', group: 'Actions' },
     { label: 'List My Projects', command: 'list projects', group: 'Navigation' },
+    { label: 'Daily Brief', command: 'daily brief', group: 'Focus' },
     { label: 'Help / Commands', command: 'help', group: 'Help' }
   ];
   const filteredCommands = availableCommands.filter(c => c.label.toLowerCase().includes(commandQuery.toLowerCase()));
+
+  // Build a rich Daily Brief
+  const handleDailyBrief = async () => {
+    try {
+      setIsDailyBriefLoading(true);
+      const user = authService.getStoredUser();
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+      const [alertsSummary, assignedTasks, calendar, projStats, portfolio] = await Promise.allSettled([
+        workflowAlertsService.getSummary(),
+        tasksService.getAssignedToUser(user.id || user._id || user.userId || 'me'),
+        calendarService.getAll({ from: start.toISOString(), to: end.toISOString() }),
+        projectsService.getStats(),
+        bubblesService.insights.getPortfolioInsights()
+      ]);
+
+      const alertsCount = alertsSummary.status === 'fulfilled' ? (alertsSummary.value?.data?.active || alertsSummary.value?.data?.count || 0) : 0;
+      const myTasks = assignedTasks.status === 'fulfilled' ? (assignedTasks.value?.data || []) : [];
+      const events = calendar.status === 'fulfilled' ? (calendar.value?.data || []) : [];
+      const stats = projStats.status === 'fulfilled' ? (projStats.value?.data || {}) : {};
+      const insights = portfolio.status === 'fulfilled' ? (portfolio.value?.data || {}) : {};
+
+      const topTask = myTasks[0]?.title || myTasks[0]?.name;
+      const nextEvent = events[0]?.title || events[0]?.name;
+      const totalProjects = stats.totalProjects || stats.projectsTotal || 0;
+      const inProgress = stats.inProgress || stats.projectsInProgress || 0;
+      const completionRate = stats.completionRate || stats.averageProgress || 0;
+
+      const content = [
+        `### Daily Brief — ${today.toLocaleDateString()}`,
+        '',
+        `- **Active Alerts:** ${alertsCount}`,
+        `- **My Tasks Today:** ${myTasks.length}`,
+        `- **Schedule Today:** ${events.length} event${events.length === 1 ? '' : 's'}`,
+        `- **Projects In Progress:** ${inProgress}/${totalProjects}`,
+        `- **Avg Completion:** ${Math.round(completionRate)}%`,
+        '',
+        '### Highlights',
+        `- **Next Event:** ${nextEvent || 'None scheduled'}`,
+        `- **Top Task:** ${topTask || 'No assigned tasks'}`,
+        '',
+        '### Recommended Actions',
+        '- Review active alerts and assign owners',
+        `- Confirm today’s schedule${nextEvent ? `: ${nextEvent}` : ''}`,
+        `- Triage tasks (${myTasks.length}) and set priorities`
+      ].join('\n');
+
+      const briefMessage = {
+        id: `brief_${Date.now()}`,
+        type: 'ai',
+        content,
+        timestamp: new Date(),
+        suggestedActions: [
+          { type: 'check_alerts', label: 'Open Alerts' },
+          { type: 'show_tasks', label: 'My Tasks' },
+          { type: 'open_schedule', label: 'Today’s Schedule' }
+        ]
+      };
+      setMessages(prev => [...prev, briefMessage]);
+    } catch (e) {
+      const err = {
+        id: `brief_err_${Date.now()}`,
+        type: 'error',
+        content: 'Could not generate Daily Brief. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, err]);
+    } finally {
+      setIsDailyBriefLoading(false);
+    }
+  };
 
   // Lightweight markdown renderer for chat messages
   const renderMessageContent = (content) => {
@@ -642,7 +737,14 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
               disabled={isLoading}
             />
             <button
-              onClick={() => handleSendMessage()}
+              onClick={() => {
+                if (inputMessage.trim().toLowerCase() === 'daily brief') {
+                  handleDailyBrief();
+                  setInputMessage('');
+                } else {
+                  handleSendMessage();
+                }
+              }}
               disabled={isLoading || !inputMessage.trim()}
               className={`p-3 rounded-xl transition-all ${
                 isLoading || !inputMessage.trim()
@@ -655,6 +757,14 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
               }`}
             >
               <PaperAirplaneIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => handleDailyBrief()}
+              disabled={isDailyBriefLoading}
+              className={`p-3 rounded-xl transition-all ${colorMode ? 'bg-neutral-800 hover:bg-neutral-700 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} ${isDailyBriefLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Generate Daily Brief"
+            >
+              🗓️
             </button>
           </div>
           
