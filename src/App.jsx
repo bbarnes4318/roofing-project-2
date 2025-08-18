@@ -195,6 +195,8 @@ export default function App() {
         // Set logout flag to prevent automatic token restoration
         localStorage.setItem('has_logged_out', 'true');
         authService.logout();
+        // Redirect to login page
+        window.location.href = '/login';
     };
 
     // Fetch projects from API - must be declared before conditional returns

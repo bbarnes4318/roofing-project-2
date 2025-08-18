@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SparklesIcon, PaperAirplaneIcon, XMarkIcon, ChatBubbleLeftRightIcon, MinusIcon } from '@heroicons/react/24/outline';
-import { bubblesService } from '../../services/api';
+import { SparklesIcon, PaperAirplaneIcon, XMarkIcon, ChatBubbleLeftRightIcon, MinusIcon, ExclamationTriangleIcon, CalendarIcon, BoltIcon, ShieldExclamationIcon, BellAlertIcon } from '@heroicons/react/24/outline';
+import { bubblesService, workflowAlertsService } from '../../services/api';
 import { useSocket } from '../../hooks/useSocket';
 
 const BubblesChat = ({ 
@@ -15,6 +15,8 @@ const BubblesChat = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [chipsLoading, setChipsLoading] = useState(false);
+  const [insightChips, setInsightChips] = useState([]);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -89,6 +91,83 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
       socket.socketService.off('bubbles_action_complete', handleActionComplete);
     };
   }, [socket]);
+
+  // Fetch dynamic insight chips on open and when project changes
+  useEffect(() => {
+    const fetchChips = async () => {
+      if (!isOpen) return;
+      setChipsLoading(true);
+      try {
+        const chips = [];
+        if (currentProject?.id) {
+          // Fetch in parallel: prediction, risks, alerts
+          const [predictionRes, risksRes, alertsRes] = await Promise.allSettled([
+            bubblesService.insights.getProjectPrediction(currentProject.id),
+            bubblesService.insights.getProjectRisks(currentProject.id),
+            workflowAlertsService.getByProject(currentProject.id)
+          ]);
+
+          // Prediction ETA chip
+          if (predictionRes.status === 'fulfilled' && predictionRes.value?.data) {
+            const p = predictionRes.value.data;
+            const eta = p?.eta || p?.estimatedCompletion || p?.expectedDate;
+            if (eta) {
+              const etaDate = new Date(eta);
+              chips.push({
+                key: 'eta',
+                icon: 'calendar',
+                label: 'ETA',
+                value: etaDate.toLocaleDateString(),
+                action: 'project status'
+              });
+            }
+          }
+
+          // Risks chip
+          if (risksRes.status === 'fulfilled' && risksRes.value?.data) {
+            const list = risksRes.value.data?.risks || risksRes.value.data?.items || [];
+            const riskCount = Array.isArray(list) ? list.length : 0;
+            chips.push({
+              key: 'risks',
+              icon: 'shield',
+              label: 'Risks',
+              value: String(riskCount),
+              tone: riskCount > 0 ? 'warn' : 'ok',
+              action: 'show risks'
+            });
+          }
+
+          // Alerts chip
+          if (alertsRes.status === 'fulfilled' && alertsRes.value?.data) {
+            const alerts = alertsRes.value.data?.data || alertsRes.value.data || [];
+            const activeAlerts = Array.isArray(alerts)
+              ? alerts.filter(a => (a.status || a.metadata?.status || 'ACTIVE').toUpperCase() === 'ACTIVE').length
+              : 0;
+            chips.push({
+              key: 'alerts',
+              icon: 'bell',
+              label: 'Alerts',
+              value: String(activeAlerts),
+              tone: activeAlerts > 0 ? 'warn' : 'ok',
+              action: 'check alerts'
+            });
+          }
+        } else {
+          // No project selected → show capabilities teaser chip
+          chips.push({ key: 'tip', icon: 'bolt', label: 'Tip', value: 'Select a project for live insights', action: 'list projects' });
+        }
+
+        setInsightChips(chips);
+      } catch (e) {
+        console.warn('Bubbles chips fetch failed:', e?.message || e);
+        setInsightChips([]);
+      } finally {
+        setChipsLoading(false);
+      }
+    };
+
+    fetchChips();
+  }, [isOpen, currentProject]);
 
   // Auto-scroll behavior: keep top on initial welcome; scroll bottom for subsequent messages
   useEffect(() => {
@@ -357,6 +436,36 @@ ${currentProject ? `You're currently on **${currentProject.name}**. ` : ''}Tell 
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+
+        {/* Insight Chips */}
+        <div className={`px-4 pt-3 ${colorMode ? 'border-b border-neutral-700/60' : 'border-b border-gray-100'}`}>
+          <div className="flex gap-2 overflow-x-auto pb-3 -mb-2 no-scrollbar">
+            {(chipsLoading && insightChips.length === 0) && (
+              <div className={`px-3 py-1.5 rounded-full text-xs ${colorMode ? 'bg-neutral-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                Loading insights…
+              </div>
+            )}
+            {insightChips.map((chip) => {
+              const base = colorMode ? 'bg-neutral-800 border-neutral-700 text-gray-200' : 'bg-gray-50 border-gray-200 text-gray-700';
+              const warn = colorMode ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-700';
+              const ok = colorMode ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700';
+              const toneClass = chip.tone === 'warn' ? warn : chip.tone === 'ok' ? ok : base;
+              const Icon = chip.icon === 'calendar' ? CalendarIcon : chip.icon === 'shield' ? ShieldExclamationIcon : chip.icon === 'bell' ? BellAlertIcon : BoltIcon;
+              return (
+                <button
+                  key={chip.key}
+                  onClick={() => handleSendMessage(chip.action)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs border shadow-sm hover:opacity-90 transition ${toneClass}`}
+                  title={`Ask Bubbles: ${chip.action}`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="font-semibold">{chip.label}:</span>
+                  <span>{chip.value}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
