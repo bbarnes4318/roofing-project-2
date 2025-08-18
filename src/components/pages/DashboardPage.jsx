@@ -265,7 +265,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     projectName: '',
     customerName: '',
     customerEmail: '',
-    jobType: '',
+    jobType: [], // Changed to array for multiple trades
     projectManager: '',
     fieldDirector: '',
     salesRep: '',
@@ -1599,6 +1599,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     });
   };
 
+  // Handle multiple trade type selection
+  const handleTradeTypeToggle = (tradeType, projectIndex = 0) => {
+    setNewProjects(prev => {
+      const updated = [...prev];
+      const currentTrades = updated[projectIndex].jobType || [];
+      
+      if (currentTrades.includes(tradeType)) {
+        // Remove trade type
+        updated[projectIndex].jobType = currentTrades.filter(type => type !== tradeType);
+      } else {
+        // Add trade type
+        updated[projectIndex].jobType = [...currentTrades, tradeType];
+      }
+      
+      return updated;
+    });
+  };
+
   const handleContactChange = (index, field, value, projectIndex = 0) => {
     setNewProjects(prev => {
       const updated = [...prev];
@@ -1664,7 +1682,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       projectName: '',
       customerName: '',
       customerEmail: '',
-      jobType: '',
+      jobType: [], // Changed to array for multiple trades
       projectManager: '',
       fieldDirector: '',
       salesRep: '',
@@ -1702,8 +1720,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       const project = newProjects[i];
       
       // Validate required fields for each project
-      if (!project.projectNumber || !project.customerName || !project.jobType || !project.customerEmail || !project.address) {
-        setProjectError(`Project ${i + 1}: Please fill in all required fields (Project Number, Customer Name, Customer Email, Trade Type, and Address)`);
+      if (!project.projectNumber || !project.customerName || !project.jobType || project.jobType.length === 0 || !project.customerEmail || !project.address) {
+        setProjectError(`Project ${i + 1}: Please fill in all required fields (Project Number, Customer Name, Customer Email, Trade Type(s), and Address)`);
         return;
       }
       
@@ -1770,14 +1788,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         const projectData = {
           projectNumber: parseInt(project.projectNumber),
           projectName: project.address, // Use address as project name per schema
-          projectType: project.jobType,
+          projectType: project.jobType[0], // Primary trade type
+          tradeTypes: project.jobType, // All trade types for multiple workflows
           customerId: customerId,
           status: 'PENDING',
           budget: 1000, // Default budget for now
           startDate: new Date().toISOString(),
           endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
           priority: 'MEDIUM',
-          description: `${project.jobType} project for ${project.customerName}`,
+          description: `${project.jobType.join(', ')} project for ${project.customerName}`,
           projectManagerId: project.projectManager || null
         };
 
@@ -1827,7 +1846,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       projectName: '',
       customerName: '',
       customerEmail: '',
-      jobType: '',
+      jobType: [], // Changed to array for multiple trades
       projectManager: '',
       fieldDirector: '',
       salesRep: '',
@@ -4109,27 +4128,42 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   />
                 </div>
 
-                {/* Job Type */}
+                {/* Trade Types - Multiple Selection */}
                 <div>
-                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                    Trade Type <span className="text-red-500">*</span>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                    Trade Types <span className="text-red-500">*</span> (Select multiple)
                   </label>
-                  <select
-                    name="jobType"
-                    value={project.jobType}
-                    onChange={(e) => handleInputChange(e, projectIndex)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      colorMode
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    required
-                  >
-                    <option value="">Select trade type</option>
-                    <option value="ROOFING">Roofing</option>
-                    <option value="GUTTERS">Gutters</option>
-                    <option value="INTERIOR_PAINT">Interior Paint</option>
-                  </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: 'ROOFING', label: 'Roofing' },
+                      { value: 'GUTTERS', label: 'Gutters' },
+                      { value: 'INTERIOR_PAINT', label: 'Interior Paint' }
+                    ].map(trade => (
+                      <label
+                        key={trade.value}
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          (project.jobType || []).includes(trade.value)
+                            ? 'border-blue-500 bg-blue-50' + (colorMode ? ' bg-blue-900/20' : '')
+                            : 'border-gray-200 hover:border-gray-300' + (colorMode ? ' border-slate-600 hover:border-slate-500' : '')
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(project.jobType || []).includes(trade.value)}
+                          onChange={() => handleTradeTypeToggle(trade.value, projectIndex)}
+                          className="mr-3 h-4 w-4 text-blue-600"
+                        />
+                        <span className={`font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                          {trade.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {(project.jobType || []).length > 0 && (
+                    <p className={`mt-2 text-sm ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                      Selected: {(project.jobType || []).join(', ')}
+                    </p>
+                  )}
                 </div>
 
                 {/* Project Manager */}

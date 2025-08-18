@@ -680,12 +680,26 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       }
     });
 
-    // OPTIMIZED: Initialize workflow with template-instance integration
+    // OPTIMIZED: Initialize workflow(s) with template-instance integration
     try {
-      const workflowResult = await WorkflowProgressionService.initializeProjectWorkflow(
-        project.id, 
-        project.projectType || 'ROOFING'
-      );
+      // Check if multiple trade types are provided for multiple workflows
+      const tradeTypes = req.body.tradeTypes;
+      
+      if (tradeTypes && Array.isArray(tradeTypes) && tradeTypes.length > 1) {
+        // Initialize multiple workflows for multiple trade types
+        console.log(`🔧 Initializing multiple workflows for project ${project.id}:`, tradeTypes);
+        const workflowResult = await WorkflowProgressionService.initializeMultipleWorkflows(
+          project.id,
+          tradeTypes
+        );
+        console.log(`✅ Successfully initialized ${tradeTypes.length} workflows for project ${project.id}`);
+      } else {
+        // Initialize single workflow (existing behavior)
+        const workflowResult = await WorkflowProgressionService.initializeProjectWorkflow(
+          project.id, 
+          project.projectType || 'ROOFING'
+        );
+      }
       
       if (workflowResult?.tracker?.currentLineItemId) {
         console.log(`✅ Optimized workflow initialized with ${workflowResult.totalSteps} steps`);
