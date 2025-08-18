@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Project Creation</title>
+</head>
+<body>
+    <h1>Debug Project Creation</h1>
+    <button id="testCreate">Test Project Creation</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('testCreate').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Get the current API base URL
+                const apiBaseUrl = `${window.location.protocol}//${window.location.host}/api`;
+                console.log('API Base URL:', apiBaseUrl);
+                
+                // First test: Simple GET request to see if API is reachable
+                console.log('Testing API connectivity...');
+                const pingResponse = await fetch(`${apiBaseUrl}/projects`);
+                console.log('Ping response status:', pingResponse.status);
+                
+                if (!pingResponse.ok) {
+                    throw new Error(`API not reachable: ${pingResponse.status} ${pingResponse.statusText}`);
+                }
+                
+                // Create test customer first
+                const customerData = {
+                    primaryName: 'Debug Test Customer',
+                    primaryEmail: 'debug@test.com',
+                    primaryPhone: '(555) 999-8888',
+                    address: 'Debug Test Address, Test City, CO 80123'
+                };
+                
+                console.log('Creating test customer...');
+                const customerResponse = await fetch(`${apiBaseUrl}/customers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer demo-debug-token'
+                    },
+                    body: JSON.stringify(customerData)
+                });
+                
+                console.log('Customer response status:', customerResponse.status);
+                const customerResult = await customerResponse.json();
+                console.log('Customer result:', customerResult);
+                
+                if (!customerResponse.ok || !customerResult.success) {
+                    throw new Error(`Customer creation failed: ${customerResult.message || 'Unknown error'}`);
+                }
+                
+                // Now test project creation with multiple trades
+                const projectData = {
+                    projectNumber: 88887,
+                    projectName: 'Debug Multi-Trade Project',
+                    projectType: 'ROOFING',
+                    tradeTypes: ['ROOFING', 'GUTTERS'],
+                    customerId: customerResult.data.id,
+                    status: 'PENDING',
+                    budget: 5000,
+                    startDate: new Date().toISOString(),
+                    endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+                    priority: 'MEDIUM',
+                    description: 'Debug test project with multiple trades'
+                };
+                
+                console.log('Creating test project...');
+                console.log('Project data:', projectData);
+                
+                const projectResponse = await fetch(`${apiBaseUrl}/projects`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer demo-debug-token'
+                    },
+                    body: JSON.stringify(projectData)
+                });
+                
+                console.log('Project response status:', projectResponse.status);
+                const projectResult = await projectResponse.json();
+                console.log('Project result:', projectResult);
+                
+                if (projectResponse.ok && projectResult.success) {
+                    resultDiv.innerHTML = `
+                        <div style="color: green;">
+                            <h3>✅ SUCCESS!</h3>
+                            <p>Project created successfully: ${projectResult.data.projectName}</p>
+                            <p>Project ID: ${projectResult.data.id}</p>
+                            <p>Project Number: ${projectResult.data.projectNumber}</p>
+                            <p>Customer: ${customerResult.data.primaryName}</p>
+                            <pre>${JSON.stringify(projectResult.data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`Project creation failed: ${projectResult.message || 'Unknown error'}`);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div style="color: red;">
+                        <h3>❌ ERROR</h3>
+                        <p>${error.message}</p>
+                        <p>Check browser console for full details</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

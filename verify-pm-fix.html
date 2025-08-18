@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify PM Fix</title>
+</head>
+<body>
+    <h1>Verify David Chen PM Assignment Fix</h1>
+    <button id="testFix">Test PM Assignment After Fix</button>
+    <div id="result" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; background: #f9f9f9;"></div>
+
+    <script>
+        document.getElementById('testFix').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing PM assignment after role fix...';
+            
+            try {
+                const apiBaseUrl = `${window.location.protocol}//${window.location.host}/api`;
+                
+                // Get David Chen from team members
+                const usersResponse = await fetch(`${apiBaseUrl}/users/team-members`, {
+                    headers: { 'Authorization': 'Bearer demo-debug-token' }
+                });
+                
+                const usersResult = await usersResponse.json();
+                const davidChen = usersResult.data.teamMembers.find(u => 
+                    u.firstName === 'David' && u.lastName === 'Chen'
+                );
+                
+                if (!davidChen) {
+                    throw new Error('David Chen not found in team members');
+                }
+                
+                // Create test customer
+                const customerResponse = await fetch(`${apiBaseUrl}/customers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer demo-debug-token'
+                    },
+                    body: JSON.stringify({
+                        primaryName: 'PM Fix Test Customer',
+                        primaryEmail: 'pmfixtest@test.com',
+                        primaryPhone: '(555) 999-6666',
+                        address: 'PM Fix Test Address, Test City, CO 80123'
+                    })
+                });
+                
+                const customerResult = await customerResponse.json();
+                
+                // Create project with David Chen as PM
+                const projectResponse = await fetch(`${apiBaseUrl}/projects`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer demo-debug-token'
+                    },
+                    body: JSON.stringify({
+                        projectNumber: 99999,
+                        projectName: 'PM Fix Verification Project',
+                        projectType: 'ROOFING',
+                        customerId: customerResult.data.id,
+                        projectManagerId: davidChen.id,
+                        status: 'PENDING',
+                        budget: 10000,
+                        startDate: new Date().toISOString(),
+                        endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+                        priority: 'MEDIUM',
+                        description: 'Verification project for PM assignment fix'
+                    })
+                });
+                
+                const projectResult = await projectResponse.json();
+                
+                if (projectResponse.ok && projectResult.success) {
+                    const project = projectResult.data;
+                    const assignedPM = project.projectManager;
+                    
+                    resultDiv.innerHTML = `
+                        <h3>✅ PM Assignment Fix Verification</h3>
+                        <p><strong>David Chen Role:</strong> ${davidChen.role}</p>
+                        <p><strong>David Chen ID:</strong> ${davidChen.id}</p>
+                        <p><strong>Project Created:</strong> ${project.projectName} (#${project.projectNumber})</p>
+                        <p><strong>Assigned PM:</strong> ${assignedPM ? `${assignedPM.firstName} ${assignedPM.lastName}` : 'None'}</p>
+                        <p><strong>PM ID Match:</strong> ${assignedPM && assignedPM.id === davidChen.id ? '✅ SUCCESS' : '❌ FAILED'}</p>
+                        
+                        ${assignedPM && assignedPM.id === davidChen.id ? `
+                            <div style="color: green; font-weight: bold; margin-top: 15px;">
+                                🎉 SUCCESS! David Chen is now properly assigned as Project Manager
+                            </div>
+                        ` : `
+                            <div style="color: red; font-weight: bold; margin-top: 15px;">
+                                ❌ FAILED! David Chen still not being assigned properly
+                            </div>
+                        `}
+                        
+                        <details style="margin-top: 15px;">
+                            <summary>Full Project Data</summary>
+                            <pre>${JSON.stringify(project, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    throw new Error(`Project creation failed: ${projectResult.message || 'Unknown error'}`);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <h3>❌ ERROR</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

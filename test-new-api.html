@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Multiple Workflows API</title>
+</head>
+<body>
+    <h1>Testing Multiple Workflows API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            try {
+                // Get the project with multiple workflows that we created
+                const projectId = 'cmecssl140002pwp4i047tc4t'; // Full Roof Replacement - Johnson
+                
+                const response = await fetch(`http://localhost:5000/api/workflow-data/project-workflows/${projectId}`);
+                const data = await response.json();
+                
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '<h2>Results:</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.success && data.data.length > 0) {
+                    resultsDiv.innerHTML += '<h3>Summary:</h3>';
+                    data.data.forEach(workflow => {
+                        resultsDiv.innerHTML += `<p><strong>${workflow.tradeName}</strong>: ${workflow.completedCount}/${workflow.totalCount} completed (${Math.round((workflow.completedCount/workflow.totalCount)*100)}%)</p>`;
+                    });
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
