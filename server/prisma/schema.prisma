@@ -557,6 +557,7 @@ model ProjectWorkflowTracker {
   currentSectionId    String?                 @map("current_section_id")
   currentLineItemId   String?                 @map("current_line_item_id")
   lastCompletedItemId String?                 @map("last_completed_item_id")
+  totalLineItems      Int?                    @default(0) // Total number of line items for this workflow type
   phaseStartedAt      DateTime?
   sectionStartedAt    DateTime?
   lineItemStartedAt   DateTime?

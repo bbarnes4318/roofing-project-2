@@ -52,6 +52,9 @@ class WorkflowProgressionService {
           throw new Error(`No line items found in first workflow section for type: ${workflowType}`);
         }
 
+        // Get total line items count for this workflow type
+        const totalLineItems = await this.getTotalLineItemCount(tx, workflowType);
+
         // Create project workflow tracker using template references only
         const tracker = await tx.projectWorkflowTracker.create({
           data: {
@@ -62,6 +65,7 @@ class WorkflowProgressionService {
             currentPhaseId: firstPhase.id,
             currentSectionId: firstSection.id,
             currentLineItemId: firstLineItem.id,
+            totalLineItems: totalLineItems, // CRITICAL: Save total line items to tracker
             phaseStartedAt: new Date(),
             sectionStartedAt: new Date(),
             lineItemStartedAt: new Date()
@@ -80,7 +84,7 @@ class WorkflowProgressionService {
           firstPhase,
           firstSection,
           firstLineItem,
-          totalSteps: await this.getTotalLineItemCount(tx, workflowType)
+          totalSteps: totalLineItems // Use the already calculated value
         };
       });
     } catch (error) {
