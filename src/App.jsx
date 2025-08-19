@@ -187,6 +187,7 @@ export default function App() {
 
     // Handle logout
     const handleLogout = () => {
+        console.log('Logout initiated');
         setCurrentUser(null);
         setIsAuthenticated(false);
         localStorage.removeItem('token');
@@ -195,8 +196,9 @@ export default function App() {
         // Set logout flag to prevent automatic token restoration
         localStorage.setItem('has_logged_out', 'true');
         authService.logout();
-        // Redirect to login page
-        window.location.href = '/login';
+        console.log('Auth cleared, redirecting to login...');
+        // Force a complete page reload to /login
+        window.location.replace('/login');
     };
 
     // Fetch projects from API - must be declared before conditional returns
@@ -1146,7 +1148,10 @@ export default function App() {
                                         </button>
                                         <div className="border-t border-gray-200 my-1"></div>
                                         <button 
-                                            onClick={() => { 
+                                            onClick={(e) => { 
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                console.log('Sign Out button clicked');
                                                 setProfileDropdownOpen(false);
                                                 handleLogout();
                                             }}
