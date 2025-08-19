@@ -778,8 +778,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 console.log('🏗️ DETAIL: Project has highlightStep:', !!projectData?.highlightStep);
                 console.log('🏗️ DETAIL: highlightStep value:', projectData?.highlightStep);
                 return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={targetLineItemId} targetSectionId={targetSectionId} />;
-            case 'Profile':
-                return <ProjectProfileTab project={projectData} colorMode={colorMode} />;
+            case 'Project Profile':
+                return <ProjectProfileTab project={projectData} colorMode={colorMode} onProjectSelect={onProjectSelect} />;
             case 'Project Schedule':
                 return (
                     <div className="space-y-6">
@@ -1939,7 +1939,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         }
     };
 
-    const navItems = ['Profile', 'Project Workflow', 'Alerts', 'Messages', 'Project Schedule', 'Project Documents', 'Work Order'];
+    const navItems = ['Project Profile', 'Project Workflow', 'Alerts', 'Messages', 'Project Schedule', 'Project Documents', 'Work Order'];
 
     if (!project) {
         return <div className="text-red-600 font-bold p-8">No project selected or project data is missing.</div>;
