@@ -313,13 +313,13 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 // Show success toast with clear confirmation
                 toast.success(
                     <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Task marked as completed and saved successfully</span>
+                        <span>✅ Task completed successfully!</span>
                     </div>,
                     {
-                        duration: 3000,
+                        duration: 4000,
                         style: {
                             background: '#10B981',
                             color: '#ffffff',
@@ -327,6 +327,44 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                         },
                     }
                 );
+                
+                // Show next step notification if available
+                const nextItem = result?.data?.next;
+                if (nextItem) {
+                    setTimeout(() => {
+                        toast.success(
+                            <div className="flex items-center gap-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                                <span>📋 Next task: {nextItem.lineItemName}</span>
+                            </div>,
+                            { 
+                                duration: 6000,
+                                style: {
+                                    background: '#0F172A',
+                                    color: '#ffffff',
+                                    fontWeight: '600',
+                                },
+                            }
+                        );
+                    }, 1500);
+                }
+                
+                // Show workflow progress if available
+                const progress = result?.data?.progress;
+                if (progress) {
+                    setTimeout(() => {
+                        toast.success(`📊 Workflow progress: ${Math.round(progress.completionPercentage)}%`, { 
+                            duration: 4000,
+                            style: {
+                                background: '#7C3AED',
+                                color: '#ffffff',
+                                fontWeight: '600',
+                            },
+                        });
+                    }, 3000);
+                }
                 
                 // ENHANCED: Dispatch global event to notify Project Workflow tab
                 const globalEvent = new CustomEvent('workflowStepCompleted', {

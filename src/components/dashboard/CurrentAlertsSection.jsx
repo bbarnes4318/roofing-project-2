@@ -791,8 +791,14 @@ const CurrentAlertsSection = ({
                       <button
                         onClick={async () => {
                           try {
-                            // Show loading state
-                            const loadingToast = toast.loading('Processing completion...');
+                            // Show loading state with custom styling
+                            const loadingToast = toast.loading('🔄 Completing task and generating next alert...', {
+                              style: {
+                                background: '#3B82F6',
+                                color: '#ffffff',
+                                fontWeight: '600',
+                              },
+                            });
                             
                             // Complete the workflow line item
                             const response = await api.post('/workflows/complete-item', {
@@ -805,32 +811,110 @@ const CurrentAlertsSection = ({
                             toast.dismiss(loadingToast);
                             
                             if (response.data.success) {
-                              toast.success('Task completed successfully! Moving to next step.', {
-                                duration: 4000,
-                                icon: '✅'
-                              });
+                              // Show completion notification
+                              toast.success(
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>✅ Task completed successfully!</span>
+                                </div>,
+                                {
+                                  duration: 4000,
+                                  style: {
+                                    background: '#10B981',
+                                    color: '#ffffff',
+                                    fontWeight: '600',
+                                  },
+                                }
+                              );
                               
-                              // Update UI with completion feedback
-                              const nextStep = response.data.updatedData?.nextLineItem;
-                              if (nextStep) {
-                                toast.success(`Next task: ${nextStep.itemName}`, { 
-                                  duration: 6000,
-                                  icon: '📋'
-                                });
+                              // Show next step notification if available
+                              const nextItem = response.data?.data?.next;
+                              if (nextItem) {
+                                setTimeout(() => {
+                                  toast.success(
+                                    <div className="flex items-center gap-2">
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                      <span>📋 Next task: {nextItem.lineItemName}</span>
+                                    </div>,
+                                    { 
+                                      duration: 6000,
+                                      style: {
+                                        background: '#0F172A',
+                                        color: '#ffffff',
+                                        fontWeight: '600',
+                                      },
+                                    }
+                                  );
+                                }, 1500);
                               }
                               
-                              // Refresh alerts after successful completion
+                              // Show workflow progress if available
+                              const progress = response.data?.data?.progress;
+                              if (progress) {
+                                setTimeout(() => {
+                                  toast.success(`📊 Workflow progress: ${Math.round(progress.completionPercentage)}%`, { 
+                                    duration: 4000,
+                                    style: {
+                                      background: '#7C3AED',
+                                      color: '#ffffff',
+                                      fontWeight: '600',
+                                    },
+                                  });
+                                }, 3000);
+                              }
+                              
+                              // Mark alert as completed and remove from UI immediately
+                              try {
+                                await api.patch(`/alerts/${alert.id}/complete`);
+                              } catch (alertError) {
+                                console.warn('Failed to mark alert as completed:', alertError);
+                              }
+                              
+                              // Dispatch global event to notify Project Workflow page
+                              const globalEvent = new CustomEvent('workflowStepCompleted', {
+                                detail: {
+                                  projectId: alert.projectId,
+                                  lineItemId: alert.lineItemId || alert.metadata?.lineItemId || alert.stepId || alert.metadata?.stepId,
+                                  stepName: alert.stepName || alert.title,
+                                  projectName: alert.projectName,
+                                  source: 'Current Alerts Section',
+                                  timestamp: new Date().toISOString()
+                                }
+                              });
+                              window.dispatchEvent(globalEvent);
+                              console.log('📡 GLOBAL EVENT: Dispatched workflowStepCompleted event from Current Alerts Section');
+                              
+                              // Clear this alert from expanded view
+                              setSelectedAlertFilter(null);
+                              
+                              // Force refresh of alerts by calling dismiss callback and reloading
                               if (onAlertDismiss) {
                                 onAlertDismiss(alert.id);
                               }
                               
-                              // Clear this alert from expanded view
-                              setSelectedAlertFilter(null);
+                              // Force a page refresh to show updated alerts
+                              setTimeout(() => {
+                                window.location.reload();
+                              }, 2000);
+                              
+                            } else {
+                              toast.error('Failed to complete task. Please try again.');
                             }
                           } catch (error) {
                             console.error('Failed to complete line item:', error);
                             const errorMessage = error.response?.data?.message || 'Failed to complete task. Please try again.';
-                            toast.error(errorMessage);
+                            toast.error(errorMessage, {
+                              duration: 5000,
+                              style: {
+                                background: '#EF4444',
+                                color: '#ffffff',
+                                fontWeight: '600',
+                              },
+                            });
                           }
                         }}
                         disabled={alert.status === 'COMPLETED'}

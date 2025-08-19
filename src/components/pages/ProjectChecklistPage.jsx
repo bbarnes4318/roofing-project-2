@@ -586,6 +586,81 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     
   }, [projectId]);
   
+  // =================================================================
+  // GLOBAL EVENT LISTENER FOR ALERT COMPLETIONS
+  // =================================================================
+  useEffect(() => {
+    const handleWorkflowStepCompleted = (event) => {
+      const { projectId: eventProjectId, lineItemId, stepName, source } = event.detail;
+      
+      // Only process events for this project
+      if (eventProjectId !== projectId) return;
+      
+      console.log(`🔔 ProjectChecklistPage: Received workflowStepCompleted event for project ${eventProjectId}`, {
+        lineItemId,
+        stepName,
+        source
+      });
+      
+      // Mark the line item as checked
+      if (lineItemId) {
+        // Try different possible step ID formats that might match
+        const possibleStepIds = [
+          lineItemId,
+          `DB_${lineItemId}`,
+          `${lineItemId}-0`,
+          `DB_${lineItemId}-0`
+        ];
+        
+        let stepIdToCheck = null;
+        
+        // Find which step ID format exists in our current state
+        for (const testId of possibleStepIds) {
+          // Check if this step ID would be in our workflow data
+          if (testId.includes('DB_') || testId === lineItemId) {
+            stepIdToCheck = testId;
+            break;
+          }
+        }
+        
+        if (stepIdToCheck) {
+          console.log(`🔄 ProjectChecklistPage: Marking line item ${stepIdToCheck} as checked from ${source}`);
+          
+          // Update all checkbox states to include this item
+          const newImmediate = new Set(immediateState);
+          const newPersistent = new Set(persistentState);
+          const newBackup = new Set(backupState);
+          
+          newImmediate.add(stepIdToCheck);
+          newPersistent.add(stepIdToCheck);
+          newBackup.add(stepIdToCheck);
+          
+          setImmediateState(newImmediate);
+          setPersistentState(newPersistent);
+          setBackupState(newBackup);
+          
+          // Save to storage
+          saveCheckboxState(projectId, newPersistent);
+          
+          // Force a render to show the updated checkbox
+          setRenderCounter(prev => prev + 1);
+          
+          console.log(`✅ ProjectChecklistPage: Successfully marked ${stepIdToCheck} as completed`);
+        } else {
+          console.warn(`⚠️ ProjectChecklistPage: Could not determine step ID format for line item ${lineItemId}`);
+        }
+      }
+    };
+    
+    // Add event listener
+    window.addEventListener('workflowStepCompleted', handleWorkflowStepCompleted);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('workflowStepCompleted', handleWorkflowStepCompleted);
+    };
+  }, [projectId, immediateState, persistentState, backupState]);
+
   // Phase click handler - modified to handle ALL phases state
   const handlePhaseClick = (phaseId) => {
     if (openPhase === 'ALL') {

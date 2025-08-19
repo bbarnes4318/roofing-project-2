@@ -503,6 +503,33 @@ router.patch('/:id/acknowledge', asyncHandler(async (req, res) => {
   sendSuccess(res, alert, 'Alert acknowledged successfully');
 }));
 
+// @desc    Mark alert as completed
+// @route   PATCH /api/alerts/:id/complete
+// @access  Private
+router.patch('/:id/complete', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const alert = await prisma.workflowAlert.update({
+    where: { id },
+    data: { 
+      status: 'COMPLETED',
+      acknowledgedAt: new Date()
+    }
+  });
+  
+  // Invalidate cache for the user
+  if (req.user?.id) {
+    AlertCacheService.invalidateUserAlerts(req.user.id);
+  }
+  
+  // Also invalidate project alerts cache
+  if (alert.projectId) {
+    AlertCacheService.invalidateProjectAlerts(alert.projectId);
+  }
+  
+  sendSuccess(res, alert, 'Alert marked as completed successfully');
+}));
+
 // @desc    Mark all alerts as read
 // @route   PATCH /api/alerts/read-all
 // @access  Private
