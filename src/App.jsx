@@ -742,9 +742,24 @@ export default function App() {
 
     // Handle navigation from search results
     const handleSearchNavigation = (result) => {
-        const target = result.navigationTarget;
-        console.log('🔍 Search navigation:', result);
+        console.log('🔍 Search navigation called with result:', result);
         
+        if (!result || !result.navigationTarget) {
+            console.error('❌ Invalid search result - missing navigationTarget');
+            return;
+        }
+        
+        const target = result.navigationTarget;
+        console.log('🔍 Navigation target:', target);
+        
+        // For project results, always navigate to Projects page showing the project
+        if (result.type === 'project' && result.data) {
+            console.log('🔍 Navigating to project:', result.data.projectNumber);
+            handleProjectSelect(result.data, 'Projects', null, 'Global Search');
+            return;
+        }
+        
+        // Handle other navigation targets
         switch (target.page) {
             case 'project-detail':
                 if (target.project) {
@@ -774,7 +789,8 @@ export default function App() {
                 }
                 break;
             default:
-                console.log('Unhandled search navigation:', target);
+                console.log('Unhandled search navigation - defaulting to Projects page');
+                setActivePage('Projects');
         }
     };
 
