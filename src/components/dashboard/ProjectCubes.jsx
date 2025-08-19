@@ -356,13 +356,15 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       </button>
                     </div>
                     <div 
-                      className="ml-2 w-24 h-6 px-2 py-1 rounded-md text-[8px] font-semibold shadow-sm flex items-center justify-center"
+                      className="ml-2 min-w-16 max-w-24 h-6 px-2 py-1 rounded-md text-[8px] font-semibold shadow-sm flex items-center justify-center flex-shrink-0"
                       style={{ 
                         backgroundColor: WorkflowProgressService.getPhaseColor(getProjectPhase(project)),
                         color: WorkflowProgressService.getContrastTextColor(WorkflowProgressService.getPhaseColor(getProjectPhase(project)))
                       }}
                     >
-                      {getPhaseText(project)}
+                      <span className="truncate text-center leading-tight">
+                        {getPhaseText(project)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -853,7 +855,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span 
-                          className="px-2 py-1 rounded-md text-[10px] font-semibold shadow-sm transition-all duration-200"
+                          className="px-2 py-1 rounded-md text-[10px] font-semibold shadow-sm transition-all duration-200 max-w-20 truncate"
                           style={{ 
                             backgroundColor: WorkflowProgressService.getPhaseColor(getProjectPhase(project)),
                             color: WorkflowProgressService.getContrastTextColor(WorkflowProgressService.getPhaseColor(getProjectPhase(project)))
