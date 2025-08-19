@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "project_phases" ADD VALUE 'PROSPECT_NON_INSURANCE';
