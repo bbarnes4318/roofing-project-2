@@ -273,6 +273,25 @@ export default function GlobalSearch({
     setQuery('');
     
     if (onNavigateToResult) {
+      // Ensure proper navigationTarget structure
+      if (!result.navigationTarget) {
+        // Default navigation based on result type
+        if (result.category === 'Projects') {
+          result.navigationTarget = {
+            page: 'projects',
+            project: result.data
+          };
+        } else if (result.category === 'Customers') {
+          result.navigationTarget = {
+            page: 'Profile',
+            project: result.data
+          };
+        } else {
+          result.navigationTarget = {
+            page: 'projects'
+          };
+        }
+      }
       onNavigateToResult(result);
     }
   };
@@ -442,7 +461,13 @@ export default function GlobalSearch({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (onNavigateToResult) {
-                                  onNavigateToResult({ ...result, page: 'Profile' });
+                                  onNavigateToResult({ 
+                                    ...result, 
+                                    navigationTarget: {
+                                      page: 'Profile',
+                                      project: result.data
+                                    }
+                                  });
                                 }
                               }}
                               title="View Project Profile"
@@ -530,22 +555,43 @@ export default function GlobalSearch({
                                           
                                           onNavigateToResult({ 
                                             ...result, 
-                                            page: 'Project Workflow',
-                                            targetLineItemId,
-                                            targetSectionId
+                                            navigationTarget: {
+                                              page: 'Project Workflow',
+                                              project: result.data,
+                                              targetLineItemId,
+                                              targetSectionId
+                                            }
                                           });
                                         } else {
                                           // Fallback navigation
-                                          onNavigateToResult({ ...result, page: 'Project Workflow' });
+                                          onNavigateToResult({ 
+                                            ...result, 
+                                            navigationTarget: {
+                                              page: 'Project Workflow',
+                                              project: result.data
+                                            }
+                                          });
                                         }
                                       } else {
                                         // Fallback navigation
-                                        onNavigateToResult({ ...result, page: 'Project Workflow' });
+                                        onNavigateToResult({ 
+                                          ...result, 
+                                          navigationTarget: {
+                                            page: 'Project Workflow',
+                                            project: result.data
+                                          }
+                                        });
                                       }
                                     } catch (error) {
                                       console.warn('Could not get workflow position:', error);
                                       // Fallback navigation
-                                      onNavigateToResult({ ...result, page: 'Project Workflow' });
+                                      onNavigateToResult({ 
+                                        ...result, 
+                                        navigationTarget: {
+                                          page: 'Project Workflow',
+                                          project: result.data
+                                        }
+                                      });
                                     }
                                   }
                                 }}
@@ -594,7 +640,13 @@ export default function GlobalSearch({
                             onClick={(e) => {
                               e.stopPropagation();
                               if (onNavigateToResult) {
-                                onNavigateToResult({ ...result, page: 'Profile', id: result.data.projectId });
+                                onNavigateToResult({ 
+                                  ...result, 
+                                  navigationTarget: {
+                                    page: 'Profile',
+                                    project: { id: result.data.projectId }
+                                  }
+                                });
                               }
                             }}
                             title="View Customer's Project"
