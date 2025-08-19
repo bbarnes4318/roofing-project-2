@@ -86,8 +86,8 @@ export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         // Check if user has explicitly logged out
         const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
-        // Only start authenticated if there's a token and user hasn't logged out
-        return !hasLoggedOut && (localStorage.getItem('authToken') || localStorage.getItem('token'));
+        // Start authenticated unless user has explicitly logged out (demo mode)
+        return !hasLoggedOut;
     });
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
