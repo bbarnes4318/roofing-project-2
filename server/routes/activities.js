@@ -213,7 +213,7 @@ router.get('/recent', asyncHandler(async (req, res) => {
     // Transform messages to activity format
     const activities = messages.map(message => transformMessageToActivity(message, req.user.id));
 
-    sendSuccess(res, activities, 'Recent activities retrieved successfully');
+    sendSuccess(res, 200, activities, 'Recent activities retrieved successfully');
   } catch (error) {
     console.error('❌ ACTIVITIES: Error fetching recent activities:', error);
     throw new AppError('Failed to fetch recent activities', 500);
