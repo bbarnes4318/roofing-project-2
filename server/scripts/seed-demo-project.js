@@ -53,7 +53,7 @@ async function main() {
     data: {
       projectNumber,
       projectName: 'Demo Roof Replacement – 789 Demo Ave',
-      projectType: 'ROOF_REPLACEMENT',
+      projectType: 'ROOFING',
       status: 'IN_PROGRESS',
       priority: 'MEDIUM',
       budget: '18000.00',
