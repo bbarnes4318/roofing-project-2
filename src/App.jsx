@@ -743,6 +743,7 @@ export default function App() {
     // Handle navigation from search results
     const handleSearchNavigation = (result) => {
         const target = result.navigationTarget;
+        console.log('🔍 Search navigation:', result);
         
         switch (target.page) {
             case 'project-detail':
@@ -759,7 +760,17 @@ export default function App() {
                 if (target.project) {
                     handleProjectSelect(target.project, 'Projects', null, 'Global Search');
                 } else {
-                    navigate('Projects');
+                    setActivePage('Projects');
+                }
+                break;
+            case 'Profile':
+                if (target.project) {
+                    handleProjectSelect(target.project, 'Projects', null, 'Global Search');
+                }
+                break;
+            case 'Project Workflow':
+                if (target.project) {
+                    handleProjectSelect(target.project, 'Project Workflow', null, 'Global Search', target.targetLineItemId, target.targetSectionId);
                 }
                 break;
             default:
