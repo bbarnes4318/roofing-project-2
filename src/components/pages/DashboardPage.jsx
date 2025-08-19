@@ -2692,12 +2692,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           style={{ minHeight: '40px' }}
                         >
                           <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
-                          <option value="sarah-owner">Sarah Owner</option>
-                          <option value="mike-rodriguez">Mike Rodriguez (PM)</option>
-                          <option value="john-smith">John Smith</option>
-                          <option value="jane-doe">Jane Doe</option>
-                          <option value="bob-wilson">Bob Wilson</option>
-                          <option value="alice-johnson">Alice Johnson</option>
+                          {availableUsers.map(user => (
+                            <option key={user.id} value={user.id}>
+                              {user.firstName} {user.lastName} ({user.role || 'User'})
+                            </option>
+                          ))}
                         </select>
                         <p className={`text-[10px] mt-1 ${
                           colorMode ? 'text-gray-400' : 'text-gray-500'
@@ -2755,12 +2754,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             }`}
                           >
                             <option value="">Assign Task To...</option>
-                            <option value="sarah-owner">Sarah Owner</option>
-                            <option value="mike-rodriguez">Mike Rodriguez (PM)</option>
-                            <option value="john-smith">John Smith</option>
-                            <option value="jane-doe">Jane Doe</option>
-                            <option value="bob-wilson">Bob Wilson</option>
-                            <option value="alice-johnson">Alice Johnson</option>
+                            {availableUsers.map(user => (
+                              <option key={user.id} value={user.id}>
+                                {user.firstName} {user.lastName} ({user.role || 'User'})
+                              </option>
+                            ))}
                           </select>
                         )}
                       </div>
