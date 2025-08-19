@@ -260,6 +260,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // Add Project state
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [workflowPhases, setWorkflowPhases] = useState([]);
   const [newProjects, setNewProjects] = useState([{
     projectNumber: '',
     projectName: '',
@@ -279,6 +280,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     address: '',
     priority: 'Low',
     description: '',
+    startingPhase: 'LEAD', // Default to first phase
     contacts: [
       { name: '', phone: '', email: '', isPrimary: false },
       { name: '', phone: '', email: '', isPrimary: false },
@@ -383,6 +385,54 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     };
     
     fetchUsers();
+  }, []);
+
+  // Fetch workflow phases for project creation
+  useEffect(() => {
+    const fetchWorkflowPhases = async () => {
+      try {
+        const response = await fetch('/api/workflow-data/full-structure', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const phases = result.data.map(phase => ({
+              id: phase.id,
+              name: phase.name,
+              displayName: phase.displayName || phase.name
+            }));
+            setWorkflowPhases(phases);
+            console.log('✅ Loaded workflow phases:', phases);
+          }
+        } else {
+          // Fallback phases if API fails
+          const fallbackPhases = [
+            { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
+            { id: 'APPROVED', name: 'APPROVED', displayName: 'Approved' },
+            { id: 'EXECUTION', name: 'EXECUTION', displayName: 'Execution' },
+            { id: 'COMPLETION', name: 'COMPLETION', displayName: 'Completion' }
+          ];
+          setWorkflowPhases(fallbackPhases);
+          console.log('⚠️ Using fallback workflow phases');
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch workflow phases:', error);
+        // Use fallback phases
+        const fallbackPhases = [
+          { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
+          { id: 'APPROVED', name: 'APPROVED', displayName: 'Approved' },
+          { id: 'EXECUTION', name: 'EXECUTION', displayName: 'Execution' },
+          { id: 'COMPLETION', name: 'COMPLETION', displayName: 'Completion' }
+        ];
+        setWorkflowPhases(fallbackPhases);
+      }
+    };
+
+    fetchWorkflowPhases();
   }, []);
 
   // Removed automatic popup closing - popups now require manual close only
@@ -1696,6 +1746,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       address: '',
       priority: 'Low',
       description: '',
+      startingPhase: 'LEAD', // Default to first phase
       contacts: [
         { name: '', phone: '', email: '', isPrimary: false },
         { name: '', phone: '', email: '', isPrimary: false },
@@ -1708,6 +1759,105 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const removeProject = (projectIndex) => {
     if (newProjects.length > 1) {
       setNewProjects(prev => prev.filter((_, i) => i !== projectIndex));
+    }
+  };
+
+  // Function to initialize workflow from a specific starting phase
+  const initializeWorkflowFromPhase = async (projectId, startingPhase) => {
+    try {
+      console.log(`🚀 Initializing workflow for project ${projectId} from phase ${startingPhase}`);
+      
+      // Get the complete workflow structure
+      const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        }
+      });
+      
+      if (!workflowResponse.ok) {
+        throw new Error('Failed to fetch workflow structure');
+      }
+      
+      const workflowResult = await workflowResponse.json();
+      if (!workflowResult.success || !workflowResult.data) {
+        throw new Error('Invalid workflow structure response');
+      }
+      
+      const phases = workflowResult.data;
+      const startingPhaseIndex = phases.findIndex(phase => phase.id === startingPhase);
+      
+      if (startingPhaseIndex === -1) {
+        throw new Error(`Starting phase ${startingPhase} not found in workflow structure`);
+      }
+      
+      // Mark all phases before the starting phase as completed
+      const completedItems = [];
+      
+      for (let phaseIdx = 0; phaseIdx < startingPhaseIndex; phaseIdx++) {
+        const phase = phases[phaseIdx];
+        console.log(`📋 Marking phase ${phase.id} as completed`);
+        
+        // Mark all sections and line items in this phase as completed
+        for (const section of phase.items || []) {
+          for (let lineItemIdx = 0; lineItemIdx < (section.subtasks || []).length; lineItemIdx++) {
+            const lineItemId = `${phase.id}-${section.id}-${lineItemIdx}`;
+            completedItems.push({
+              projectId: projectId,
+              phaseId: phase.id,
+              sectionId: section.id,
+              lineItemId: lineItemId,
+              subtaskIndex: lineItemIdx,
+              completedAt: new Date().toISOString(),
+              completedBy: 'system', // Marked as system completion for phase skipping
+              notes: `Auto-completed: Project started from ${startingPhase} phase`
+            });
+          }
+        }
+      }
+      
+      // Batch create all completed workflow items
+      if (completedItems.length > 0) {
+        const batchResponse = await fetch('/api/workflow/batch-complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          },
+          body: JSON.stringify({
+            items: completedItems
+          })
+        });
+        
+        if (batchResponse.ok) {
+          console.log(`✅ Successfully marked ${completedItems.length} items as completed`);
+        } else {
+          console.warn('⚠️ Failed to batch complete workflow items, but project was created');
+        }
+      }
+      
+      // Set the current project position to the starting phase
+      const startingPhaseData = phases[startingPhaseIndex];
+      if (startingPhaseData.items && startingPhaseData.items.length > 0) {
+        const firstSection = startingPhaseData.items[0];
+        await fetch('/api/workflow/set-position', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          },
+          body: JSON.stringify({
+            projectId: projectId,
+            currentPhase: startingPhase,
+            currentSection: firstSection.id,
+            currentLineItem: `${startingPhase}-${firstSection.id}-0`
+          })
+        });
+        console.log(`📍 Set current position to first item in ${startingPhase} phase`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize workflow from starting phase:', error);
+      // Don't throw error - project creation should still succeed even if workflow initialization fails
     }
   };
 
@@ -1797,11 +1947,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
           priority: 'MEDIUM',
           description: `${project.jobType.join(', ')} project for ${project.customerName}`,
-          projectManagerId: project.projectManager || null
+          projectManagerId: project.projectManager || null,
+          startingPhase: project.startingPhase || 'LEAD' // Starting phase for workflow initialization
         };
 
         const response = await createProjectMutation.mutateAsync(projectData);
         createdProjects.push(response);
+        
+        // Step 3: Initialize workflow from selected starting phase if not LEAD
+        if (project.startingPhase && project.startingPhase !== 'LEAD') {
+          await initializeWorkflowFromPhase(response.data?.id || response.id, project.startingPhase);
+        }
       }
       
       // Close modal and reset form
@@ -4189,6 +4345,33 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Starting Phase */}
+                <div>
+                  <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                    Starting Phase <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="startingPhase"
+                    value={project.startingPhase}
+                    onChange={(e) => handleInputChange(e, projectIndex)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      colorMode
+                        ? 'bg-slate-700 border-slate-600 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                    required
+                  >
+                    {workflowPhases.map(phase => (
+                      <option key={phase.id} value={phase.id}>
+                        {phase.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <p className={`mt-1 text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Select the phase where this project should start. All previous phases will be marked as completed automatically.
+                  </p>
                 </div>
 
                 {/* Project Contacts Section */}
