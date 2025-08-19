@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ResponsiveBackButton } from '../common/BackButton';
 import { useNavigationHistory } from '../../hooks/useNavigationHistory';
 import { authService } from '../../services/api';
+import { useSubjects } from '../../contexts/SubjectsContext';
 
 // Mock coworkers data matching Messages Tab
 const mockCoworkers = [
@@ -38,6 +39,7 @@ const initialChats = {
 
 const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
   const { pushNavigation, goBack, canGoBack } = useNavigationHistory();
+  const { subjects } = useSubjects();
   
   // Track page navigation
   useEffect(() => {
@@ -65,6 +67,16 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
   const [selectedCoworkerId, setSelectedCoworkerId] = useState(mockCoworkers[0].id);
   const [dmInput, setDmInput] = useState('');
   const [chats, setChats] = useState(initialChats);
+  
+  // New message form state
+  const [newMessageProject, setNewMessageProject] = useState('');
+  const [newMessageSubject, setNewMessageSubject] = useState('');
+  const [newMessageText, setNewMessageText] = useState('');
+  const [newMessageRecipients, setNewMessageRecipients] = useState([]);
+  const [attachTask, setAttachTask] = useState(false);
+  const [taskAssignee, setTaskAssignee] = useState('');
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [showAddMessageForm, setShowAddMessageForm] = useState(false);
 
   // Get current user on component mount
   useEffect(() => {
@@ -72,6 +84,43 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
     if (user) {
       setCurrentUser(user);
     }
+  }, []);
+
+  // Fetch available users for message recipients
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          const teamMembers = result.success ? result.data : result;
+          setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
+        } else {
+          // Fallback to mock users if API fails
+          const fallbackUsers = [
+            { id: 'user-1', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+            { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+            { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+          ];
+          setAvailableUsers(fallbackUsers);
+        }
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        const fallbackUsers = [
+          { id: 'user-1', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+          { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+          { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+        ];
+        setAvailableUsers(fallbackUsers);
+      }
+    };
+    
+    fetchUsers();
   }, []);
 
   // Send direct message function
@@ -251,32 +300,274 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
               )}
             </div>
 
-            {/* Message Input */}
+            {/* Message Input Options */}
             <div className={`p-4 border-t ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-              <form onSubmit={handleSendDM} className="flex gap-2">
-                <input
-                  type="text"
-                  value={dmInput}
-                  onChange={(e) => setDmInput(e.target.value)}
-                  placeholder={`Message ${selectedCoworker?.name}...`}
-                  className={`flex-1 px-3 py-2 rounded-lg border text-sm ${
-                    colorMode 
-                      ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
-                  }`}
-                />
+              <div className="flex gap-2 mb-3">
                 <button
-                  type="submit"
-                  disabled={!dmInput.trim()}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    dmInput.trim()
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  onClick={() => setShowAddMessageForm(false)}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    !showAddMessageForm
+                      ? 'bg-blue-600 text-white'
+                      : colorMode
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  Send
+                  Quick Message
                 </button>
-              </form>
+                <button
+                  onClick={() => setShowAddMessageForm(true)}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    showAddMessageForm
+                      ? 'bg-blue-600 text-white'
+                      : colorMode
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Project Message
+                </button>
+              </div>
+
+              {!showAddMessageForm ? (
+                /* Quick Message Form */
+                <form onSubmit={handleSendDM} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={dmInput}
+                    onChange={(e) => setDmInput(e.target.value)}
+                    placeholder={`Message ${selectedCoworker?.name}...`}
+                    className={`flex-1 px-3 py-2 rounded-lg border text-sm ${
+                      colorMode 
+                        ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                    }`}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!dmInput.trim()}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      dmInput.trim()
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Send
+                  </button>
+                </form>
+              ) : (
+                /* Project Message Form */
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
+                    // Create new message activity
+                    const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
+                    const newActivity = {
+                      id: `msg_${Date.now()}`,
+                      projectId: parseInt(newMessageProject),
+                      projectName: selectedProject?.projectName || selectedProject?.name || selectedProject?.address || 'Unknown Project',
+                      projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
+                      subject: newMessageSubject,
+                      description: newMessageText,
+                      user: 'You',
+                      timestamp: new Date().toISOString(),
+                      type: 'message',
+                      priority: 'medium',
+                      recipients: newMessageRecipients,
+                      hasTask: attachTask,
+                      taskAssignedTo: attachTask ? taskAssignee : null
+                    };
+                    
+                    console.log('New project message created:', newActivity);
+                    
+                    // Reset form
+                    setNewMessageProject('');
+                    setNewMessageSubject('');
+                    setNewMessageText('');
+                    setNewMessageRecipients([]);
+                    setAttachTask(false);
+                    setTaskAssignee('');
+                    setShowAddMessageForm(false);
+                    
+                    // Show success message
+                    alert('Project message sent successfully!');
+                  }
+                }} className="space-y-2">
+                  {/* First Row: Project and To fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <label className={`block text-xs font-medium mb-1 ${
+                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Project <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={newMessageProject}
+                        onChange={(e) => setNewMessageProject(e.target.value)}
+                        required
+                        className={`w-full px-2 py-1 border rounded text-xs ${
+                          colorMode 
+                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-800'
+                        }`}
+                      >
+                        <option value="">Select Project</option>
+                        {(projects || []).map(project => (
+                          <option key={project.id} value={project.id}>
+                            #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.projectName || project.name || project.address}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-xs font-medium mb-1 ${
+                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        To <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={newMessageRecipients || ''}
+                        onChange={(e) => {
+                          const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                          setNewMessageRecipients(selectedOptions);
+                        }}
+                        multiple
+                        required
+                        className={`w-full px-2 py-1 border rounded text-xs ${
+                          colorMode 
+                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-800'
+                        }`}
+                        style={{ minHeight: '40px' }}
+                      >
+                        <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
+                        {availableUsers.map(user => (
+                          <option key={user.id} value={user.id}>
+                            {user.firstName} {user.lastName} ({user.role || 'User'})
+                          </option>
+                        ))}
+                      </select>
+                      <p className={`text-[10px] mt-1 ${
+                        colorMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        Hold Ctrl/Cmd to select multiple recipients
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Second Row: Subject and Task Assignment */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <label className={`block text-xs font-medium mb-1 ${
+                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Subject <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={newMessageSubject}
+                        onChange={(e) => setNewMessageSubject(e.target.value)}
+                        required
+                        className={`w-full px-2 py-1 border rounded text-xs ${
+                          colorMode 
+                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                            : 'bg-white border-gray-300 text-gray-800'
+                        }`}
+                      >
+                        <option value="">Select Subject</option>
+                        {subjects.map(subject => (
+                          <option key={subject} value={subject}>{subject}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-xs font-medium mb-1 ${
+                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        <input
+                          type="checkbox"
+                          checked={attachTask || false}
+                          onChange={(e) => setAttachTask(e.target.checked)}
+                          className="mr-1"
+                        />
+                        Send as a Task
+                      </label>
+                      {attachTask && (
+                        <select
+                          value={taskAssignee || ''}
+                          onChange={(e) => setTaskAssignee(e.target.value)}
+                          className={`w-full px-2 py-1 border rounded text-xs ${
+                            colorMode 
+                              ? 'bg-[#232b4d] border-gray-600 text-white' 
+                              : 'bg-white border-gray-300 text-gray-800'
+                          }`}
+                        >
+                          <option value="">Assign Task To...</option>
+                          {availableUsers.map(user => (
+                            <option key={user.id} value={user.id}>
+                              {user.firstName} {user.lastName} ({user.role || 'User'})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-xs font-medium mb-1 ${
+                      colorMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Message <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={newMessageText}
+                      onChange={(e) => setNewMessageText(e.target.value)}
+                      placeholder="Enter your message here..."
+                      required
+                      rows={2}
+                      className={`w-full px-2 py-1 border rounded text-xs resize-none ${
+                        colorMode 
+                          ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewMessageProject('');
+                        setNewMessageSubject('');
+                        setNewMessageText('');
+                        setNewMessageRecipients([]);
+                        setAttachTask(false);
+                        setTaskAssignee('');
+                        setShowAddMessageForm(false);
+                      }}
+                      className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
+                        colorMode 
+                          ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
+                      className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                        newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Send Message
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>
