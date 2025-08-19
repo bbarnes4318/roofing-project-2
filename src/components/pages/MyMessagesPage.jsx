@@ -37,7 +37,7 @@ const initialChats = {
 };
 
 const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
-  const { pushNavigation } = useNavigationHistory();
+  const { pushNavigation, goBack, canGoBack } = useNavigationHistory();
   
   // Track page navigation
   useEffect(() => {
@@ -45,6 +45,21 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
       projects
     });
   }, [pushNavigation]);
+  
+  // Custom back button handler that always works
+  const handleBackNavigation = () => {
+    if (canGoBack()) {
+      // Use navigation history if available
+      goBack();
+    } else {
+      // Fallback to browser history or dashboard
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/'; // Fallback to dashboard
+      }
+    }
+  };
 
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedCoworkerId, setSelectedCoworkerId] = useState(mockCoworkers[0].id);
@@ -107,6 +122,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
             colorMode={colorMode}
             variant="secondary"
             preservePosition={true}
+            onClick={handleBackNavigation}
           />
         </div>
 
