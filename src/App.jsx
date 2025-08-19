@@ -83,7 +83,12 @@ export default function App() {
         }
         return defaultUser;
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // Always true in mock mode
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        // Check if user has explicitly logged out
+        const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
+        // Only start authenticated if there's a token and user hasn't logged out
+        return !hasLoggedOut && (localStorage.getItem('authToken') || localStorage.getItem('token'));
+    });
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
     const [tasks, setTasks] = useState([]);
@@ -112,8 +117,8 @@ export default function App() {
         // Check if user has explicitly logged out by looking for a logout flag
         const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
         
-        // Only restore demo data if user hasn't explicitly logged out
-        if (!hasLoggedOut) {
+        // Only restore demo data if user hasn't explicitly logged out AND is authenticated
+        if (!hasLoggedOut && isAuthenticated) {
             const currentToken = localStorage.getItem('authToken');
             if (!currentToken || currentToken === 'mock-token-bypass') {
                 localStorage.setItem('authToken', demoToken);
@@ -123,7 +128,7 @@ export default function App() {
                 localStorage.setItem('user', JSON.stringify(currentUser));
             }
         }
-    }, []); // Empty deps - only run once on mount
+    }, [isAuthenticated]); // Now depends on auth state
 
     // Check if user needs onboarding
     useEffect(() => {
