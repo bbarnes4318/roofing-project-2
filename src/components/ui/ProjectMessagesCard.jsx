@@ -188,16 +188,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     return (
         <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
             {/* Main message header - Compact 2-row layout */}
-            <div 
-                className="flex items-center gap-1.5 p-1.5 cursor-pointer hover:bg-opacity-80 transition-colors"
-                onClick={() => {
-                    if (onToggleExpansion) {
-                        onToggleExpansion(activity.id);
-                    } else {
-                        setInternalExpanded(!internalExpanded);
-                    }
-                }}
-            >
+            <div className="flex items-center gap-1.5 p-1.5">
                 {/* Phase Circle - Align to top */}
                 {(() => {
                     const phaseProps = getPhaseButton(projectPhase);
@@ -312,12 +303,27 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </svg>
                             </button>
                             
-                            {/* Dropdown arrow */}
-                            <div className={`transform transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+                            {/* Dropdown arrow - now clickable */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onToggleExpansion) {
+                                        onToggleExpansion(activity.id);
+                                    } else {
+                                        setInternalExpanded(!internalExpanded);
+                                    }
+                                }}
+                                className={`p-1 rounded transition-colors transform duration-200 ${expanded ? 'rotate-180' : ''} ${
+                                    colorMode 
+                                        ? 'hover:bg-gray-700 text-gray-300' 
+                                        : 'hover:bg-gray-200 text-gray-600'
+                                }`}
+                                title={expanded ? "Collapse message" : "Expand message"}
+                            >
                                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
-                            </div>
+                            </button>
                         </div>
                     </div>
                     
