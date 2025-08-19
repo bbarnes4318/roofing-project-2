@@ -117,8 +117,8 @@ export default function App() {
         // Check if user has explicitly logged out by looking for a logout flag
         const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
         
-        // Only restore demo data if user hasn't explicitly logged out AND is authenticated
-        if (!hasLoggedOut && isAuthenticated) {
+        // Always restore demo data if user hasn't explicitly logged out (regardless of auth state)
+        if (!hasLoggedOut) {
             const currentToken = localStorage.getItem('authToken');
             if (!currentToken || currentToken === 'mock-token-bypass') {
                 localStorage.setItem('authToken', demoToken);
@@ -128,7 +128,7 @@ export default function App() {
                 localStorage.setItem('user', JSON.stringify(currentUser));
             }
         }
-    }, [isAuthenticated]); // Now depends on auth state
+    }, []); // Back to empty deps - run once on mount
 
     // Check if user needs onboarding
     useEffect(() => {
