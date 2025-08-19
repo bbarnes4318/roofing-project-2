@@ -126,32 +126,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             });
         }
         
-        // Project events
+        // Project work events (materials delivery and labor start only)
         projects.forEach(project => {
-            if (project.startDate && new Date(project.startDate).toDateString() === dateString) {
-                events.push({
-                    id: `project-start-${project.id}`,
-                    title: `🚀 ${project.projectName || project.name} - Start`,
-                    type: 'project-start',
-                    project: project,
-                    time: '9:00 AM',
-                    priority: 'high',
-                    color: 'bg-green-500'
-                });
-            }
-            
-            if (project.endDate && new Date(project.endDate).toDateString() === dateString) {
-                events.push({
-                    id: `project-end-${project.id}`,
-                    title: `🏁 ${project.projectName || project.name} - Completion`,
-                    type: 'project-end',
-                    project: project,
-                    time: '5:00 PM',
-                    priority: 'high',
-                    color: 'bg-emerald-500'
-                });
-            }
-            
             if (project.materialsDeliveryStart && new Date(project.materialsDeliveryStart).toDateString() === dateString) {
                 events.push({
                     id: `delivery-${project.id}`,
