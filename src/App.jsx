@@ -596,24 +596,42 @@ export default function App() {
         setNavigationState(prev => ({ ...prev, selectedProject: null }));
         if (navigationState.previousPage === 'Projects') {
             setActivePage('Projects');
-                    } else if (navigationState.previousPage === 'Overview') {
+        } else if (navigationState.previousPage === 'Overview') {
             // Use the preserved dashboard state from navigationState
             const dashboardState = navigationState.dashboardState;
             console.log('🔍 BACK_TO_PROJECTS: Dashboard state for restoration:', dashboardState);
         
-        if (navigationState.projectSourceSection === 'Project Messages') {
+        if (navigationState.projectSourceSection === 'Project Messages' || navigationState.projectSourceSection === 'My Project Messages') {
             setActivePage('Overview');
+            // Multiple attempts with increasing delays to ensure DOM is ready
             setTimeout(() => {
                 const section = document.querySelector('[data-section="project-messages"]');
-                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    // Fallback: try again with a longer delay
+                    setTimeout(() => {
+                        const section = document.querySelector('[data-section="project-messages"]');
+                        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
+                }
+            }, 150);
             return;
         } else if (navigationState.projectSourceSection === 'Current Alerts') {
             setActivePage('Overview');
+            // Multiple attempts with increasing delays to ensure DOM is ready
             setTimeout(() => {
                 const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
-                if (currentAlertsSection) currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+                if (currentAlertsSection) {
+                    currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    // Fallback: try again with a longer delay
+                    setTimeout(() => {
+                        const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
+                        if (currentAlertsSection) currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
+                }
+            }, 150);
         } else if (navigationState.projectSourceSection === 'Project Cubes') {
             setActivePage('Overview');
             setTimeout(() => {
