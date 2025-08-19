@@ -406,7 +406,8 @@ export default function GlobalSearch({
               {results.map((result, index) => (
                 <div 
                   key={`${category}-${index}`} 
-                  className={`search-result-item-simplified border-b border-gray-100 p-4 ${colorMode ? 'border-gray-600 hover:bg-gray-700/50' : 'hover:bg-gray-50'}`}
+                  className={`search-result-item-simplified border-b border-gray-100 p-4 cursor-pointer ${colorMode ? 'border-gray-600 hover:bg-gray-700/50' : 'hover:bg-gray-50'}`}
+                  onClick={() => handleResultClick(result)}
                 >
                   {category === 'Projects' && (
                     <div className="space-y-3">
