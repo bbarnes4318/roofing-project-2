@@ -58,9 +58,10 @@ export default function App() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-    // Initialize with default user for mock auth to avoid re-renders
+    // Initialize with default user for mock auth to avoid re-renders  
     const defaultUser = {
-        _id: 'cme0ia6t00006umy4950saarf',
+        _id: 'cmei0o5k50000um0867bwnhzu',
+        id: 'cmei0o5k50000um0867bwnhzu',
         firstName: 'David',
         lastName: 'Chen',
         email: 'david.chen@kenstruction.com',
@@ -83,12 +84,7 @@ export default function App() {
         }
         return defaultUser;
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        // Check if user has explicitly logged out
-        const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
-        // Start authenticated unless user has explicitly logged out (demo mode)
-        return !hasLoggedOut;
-    });
+    const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
     const [tasks, setTasks] = useState([]);
@@ -111,24 +107,18 @@ export default function App() {
 
     // Ensure localStorage has proper auth data on mount (only if not explicitly logged out)
     useEffect(() => {
-        // Use a JWT-like token that backend might accept
-        const demoToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiJjbWUwaWE2dDAwMDA2dW15NDk1MHNhYXJmIiwiZW1haWwiOiJkYXZpZC5jaGVuQGtlbnN0cnVjdGlvbi5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.demo';
+        // Use a JWT-like token that backend might accept with David Chen's real ID
+        const demoToken = 'demo-david-chen-token-' + Date.now();
         
-        // Check if user has explicitly logged out by looking for a logout flag
-        const hasLoggedOut = localStorage.getItem('has_logged_out') === 'true';
-        
-        // Always restore demo data if user hasn't explicitly logged out (regardless of auth state)
-        if (!hasLoggedOut) {
-            const currentToken = localStorage.getItem('authToken');
-            if (!currentToken || currentToken === 'mock-token-bypass') {
-                localStorage.setItem('authToken', demoToken);
-                localStorage.setItem('token', demoToken);
-            }
-            if (!localStorage.getItem('user')) {
-                localStorage.setItem('user', JSON.stringify(currentUser));
-            }
+        const currentToken = localStorage.getItem('authToken');
+        if (!currentToken || currentToken === 'mock-token-bypass') {
+            localStorage.setItem('authToken', demoToken);
+            localStorage.setItem('token', demoToken);
         }
-    }, []); // Back to empty deps - run once on mount
+        if (!localStorage.getItem('user')) {
+            localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+    }, [currentUser]);
 
     // Check if user needs onboarding
     useEffect(() => {
@@ -180,9 +170,6 @@ export default function App() {
         setCurrentUser(storedUser);
         setIsAuthenticated(true);
         
-        // Clear logout flag since user is now logged in
-        localStorage.removeItem('has_logged_out');
-        
         // Ensure both token keys are set for compatibility
         if (storedToken) {
             localStorage.setItem('token', storedToken);
@@ -190,20 +177,11 @@ export default function App() {
         }
     };
 
-    // Handle logout
+    // Handle logout - simplified for demo
     const handleLogout = () => {
-        console.log('Logout initiated');
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('token');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        // Set logout flag to prevent automatic token restoration
-        localStorage.setItem('has_logged_out', 'true');
-        authService.logout();
-        console.log('Auth cleared, redirecting to login...');
-        // Force a complete page reload to /login
-        window.location.replace('/login');
+        console.log('Logout clicked - demo mode');
+        // For demo, just show alert
+        alert('Logout functionality - demo mode');
     };
 
     // Fetch projects from API - must be declared before conditional returns

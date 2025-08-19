@@ -445,15 +445,15 @@ export const activitiesService = {
     return response.data;
   },
 
-  // Get activities by project
-  getByProject: async (projectId) => {
-    const response = await api.get(`/activities/project/${projectId}`);
+  // Get recent activities (for dashboard)
+  getRecent: async (limit = 10) => {
+    const response = await api.get('/activities/recent', { params: { limit } });
     return response.data;
   },
 
-  // Get recent activities
-  getRecent: async (limit = 10) => {
-    const response = await api.get(`/activities/recent?limit=${limit}`);
+  // Get activities by project
+  getByProject: async (projectId) => {
+    const response = await api.get(`/activities/project/${projectId}`);
     return response.data;
   },
 

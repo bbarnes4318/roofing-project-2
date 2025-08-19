@@ -18,7 +18,7 @@ const authenticateToken = async (req, res, next) => {
     // Check if it's a demo token first (no DB lookup to avoid startup races)
     if (token.startsWith('demo-david-chen-token-')) {
       req.user = {
-        id: 'cmeceqna60007qdkdllcz0jf5',
+        id: 'cmei0o5k50000um0867bwnhzu',
         firstName: 'David',
         lastName: 'Chen',
         email: 'david.chen@kenstruction.com',

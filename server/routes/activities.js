@@ -15,29 +15,41 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Transform message data to activity format for frontend compatibility
-const transformMessageToActivity = (message) => {
+const transformMessageToActivity = (message, currentUserId) => {
+  const authorName = message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User';
+  const projectName = message.project ? message.project.projectName : 'Unknown Project';
+  const isOwnMessage = message.authorId === currentUserId;
+  
   return {
     id: message.id,
     _id: message.id,
     subject: message.subject || 'Project Message',
+    description: message.content,
     content: message.content,
-    author: message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User',
+    user: authorName,
+    author: authorName,
     timestamp: message.createdAt,
     projectId: message.projectId,
+    projectName: projectName,
+    projectNumber: message.projectNumber,
     project_id: message.projectId,
     type: 'project_message',
     messageType: message.messageType,
-    priority: message.priority,
+    priority: message.priority?.toLowerCase() || 'medium',
     phase: message.phase,
     section: message.section,
     lineItem: message.lineItem,
-    recipients: ['all'], // For now, treat all project messages as visible to all (will be filtered on frontend)
+    isOwnMessage: isOwnMessage,
+    recipients: ['all'], // Project messages are visible to all project team members
     metadata: {
       projectId: message.projectId,
+      projectName: projectName,
       messageType: message.messageType,
       priority: message.priority,
       phase: message.phase,
-      isSystemGenerated: message.isSystemGenerated
+      isSystemGenerated: message.isSystemGenerated,
+      authorId: message.authorId,
+      isOwnMessage: isOwnMessage
     }
   };
 };
@@ -68,12 +80,28 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
     throw new AppError('Authentication required', 401);
   }
   
-  // For activities, we return ALL project messages
-  // The frontend will handle recipient filtering
-  const where = {};
+  // Build where clause to show messages user has access to:
+  // 1. Messages the user authored (sent messages)
+  // 2. Messages in projects where user is manager or team member (received messages)
+  const where = {
+    OR: [
+      // Messages authored by current user (sent messages)
+      { authorId: req.user.id },
+      // Messages in projects where user is project manager or team member (received messages)
+      {
+        project: {
+          OR: [
+            { projectManagerId: req.user.id },
+            { teamMembers: { some: { userId: req.user.id } } }
+          ]
+        }
+      }
+    ]
+  };
   
   if (projectId) {
-    where.projectId = projectId;
+    // If specific project requested, filter to that project only
+    where.AND = [{ projectId }];
   }
 
   // Build sort object
@@ -115,12 +143,80 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
     console.log(`✅ ACTIVITIES: Found ${messages.length} messages`);
 
     // Transform messages to activity format
-    const activities = messages.map(transformMessageToActivity);
+    const activities = messages.map(message => transformMessageToActivity(message, req.user.id));
 
     sendPaginatedResponse(res, activities, pageNum, limitNum, total, 'Activities retrieved successfully');
   } catch (error) {
     console.error('❌ ACTIVITIES: Error fetching activities:', error);
     throw new AppError('Failed to fetch activities', 500);
+  }
+}));
+
+// @desc    Get recent activities for dashboard
+// @route   GET /api/activities/recent
+// @access  Private
+router.get('/recent', asyncHandler(async (req, res) => {
+  const { limit = 10 } = req.query;
+  const limitNum = Math.min(parseInt(limit), 50); // Cap at 50
+
+  if (!req.user || !req.user.id) {
+    throw new AppError('Authentication required', 401);
+  }
+
+  try {
+    console.log(`🔍 ACTIVITIES: Fetching ${limitNum} recent activities for user ${req.user.id}...`);
+    
+    // Build where clause to show messages user has access to
+    const where = {
+      OR: [
+        // Messages authored by current user (sent messages)
+        { authorId: req.user.id },
+        // Messages in projects where user is project manager or team member (received messages)
+        {
+          project: {
+            OR: [
+              { projectManagerId: req.user.id },
+              { teamMembers: { some: { userId: req.user.id } } }
+            ]
+          }
+        }
+      ]
+    };
+
+    // Get recent project messages with author and project information
+    const messages = await prisma.projectMessage.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limitNum,
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        },
+        project: {
+          select: {
+            id: true,
+            projectName: true,
+            projectNumber: true
+          }
+        }
+      }
+    });
+
+    console.log(`✅ ACTIVITIES: Found ${messages.length} recent messages`);
+
+    // Transform messages to activity format
+    const activities = messages.map(message => transformMessageToActivity(message, req.user.id));
+
+    sendSuccess(res, activities, 'Recent activities retrieved successfully');
+  } catch (error) {
+    console.error('❌ ACTIVITIES: Error fetching recent activities:', error);
+    throw new AppError('Failed to fetch recent activities', 500);
   }
 }));
 
@@ -197,7 +293,7 @@ router.post('/', asyncHandler(async (req, res) => {
     console.log('✅ ACTIVITIES: Created message activity:', newMessage.id);
 
     // Transform to activity format
-    const activity = transformMessageToActivity(newMessage);
+    const activity = transformMessageToActivity(newMessage, req.user?.id);
 
     // Emit real-time notification via Socket.IO if available
     const io = req.app.get('io');
