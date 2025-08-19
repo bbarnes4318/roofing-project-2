@@ -212,10 +212,34 @@ const CurrentAlertsSection = ({
   };
 
   // Handle project selection through alert - matches DashboardPage pattern
-  const handleProjectSelectFromAlert = (project, targetPage, phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null) => {
+  const handleProjectSelectFromAlert = (project, targetPage, phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null, alertId = null) => {
     if (onProjectSelect) {
+      // Enhanced project with dashboard state for alert restoration
+      const projectWithDashboardState = {
+        ...project,
+        dashboardState: {
+          ...project.dashboardState,
+          // Alert-specific restoration state
+          currentAlertsState: {
+            selectedAlertFilter: alertId || selectedAlertFilter,
+            expandedAlerts: { ...expandedAlerts, [alertId]: true },
+            scrollToAlert: alertId,
+            filters: {
+              selectedAlert: selectedAlertFilter,
+              selectedProject: selectedProjectFilter,
+              selectedPriority: selectedPriorityFilter,
+              selectedStatus: selectedStatusFilter,
+              selectedRole: selectedRoleFilter,
+              searchTerm: searchFilter,
+              sortBy: sortBy,
+              sortOrder: sortOrder
+            }
+          }
+        }
+      };
+      
       // Pass parameters in the same order as DashboardPage
-      onProjectSelect(project, targetPage, phase, sourceSection, targetLineItemId, targetSectionId);
+      onProjectSelect(projectWithDashboardState, targetPage, phase, sourceSection, targetLineItemId, targetSectionId);
     }
   };
 
@@ -685,7 +709,8 @@ const CurrentAlertsSection = ({
                                     null,
                                     'Current Alerts',
                                     targetLineItemId,
-                                    targetSectionId
+                                    targetSectionId,
+                                    alert.id
                                   );
                                 } else {
                                   // Fallback navigation

@@ -166,6 +166,13 @@ export class SearchService {
             const customer = project.client || project.customer;
             const customerName = customer?.name || customer?.primaryName || 'Unknown Customer';
             
+            // Enhance project with current workflow information
+            const enhancedProject = {
+                ...project,
+                // Add current workflow item information
+                currentWorkflowItem: this.getProjectWorkflowInfo(project)
+            };
+            
             return {
                 id: project.id,
                 type: 'project',
@@ -175,17 +182,40 @@ export class SearchService {
                 description: project.address || project.projectName || project.name || 'No address',
                 fuseScore: result.score,
                 matches: result.matches,
-                data: project,
+                data: enhancedProject,
                 navigationTarget: {
                     page: 'projects',
                     projectId: project.id,
                     project: {
-                        ...project,
+                        ...enhancedProject,
                         scrollToProjectId: String(project.id)
                     }
                 }
             };
         });
+    }
+
+    // Helper method to get current workflow information for a project
+    getProjectWorkflowInfo(project) {
+        // If we already have workflowState, use it
+        if (project.workflowState) {
+            return {
+                section: project.workflowState.currentSectionName || project.workflowState.sectionDisplayName,
+                lineItem: project.workflowState.currentLineItemName || project.workflowState.stepName,
+                phase: project.workflowState.currentPhase || project.workflowState.phaseName,
+                stepId: project.workflowState.currentLineItem || project.workflowState.stepId,
+                sectionId: project.workflowState.currentSection || project.workflowState.sectionId
+            };
+        }
+        
+        // Fallback: try to derive from project data
+        return {
+            section: project.currentSection || project.section || 'Current Section',
+            lineItem: project.currentLineItem || project.stepName || 'Current Task',
+            phase: project.phase || project.currentPhase || 'LEAD',
+            stepId: project.currentLineItemId || project.stepId,
+            sectionId: project.currentSectionId || project.sectionId
+        };
     }
 
     formatCustomerResults(fuseResults) {

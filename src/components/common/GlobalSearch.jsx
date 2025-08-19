@@ -482,8 +482,50 @@ export default function GlobalSearch({
                                         const responseData = await response.json();
                                         if (responseData.success && responseData.data) {
                                           const position = responseData.data;
-                                          const targetLineItemId = position.currentLineItem;
+                                          
+                                          // Generate the correct line item ID format that ProjectChecklistPage expects
+                                          // Format: ${phase.id}-${item.id}-${subIdx}
+                                          const getSubtaskIndex = async () => {
+                                            try {
+                                              const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                                                headers: {
+                                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-david-chen-token-fixed-12345'}`
+                                                }
+                                              });
+                                              
+                                              if (workflowResponse.ok) {
+                                                const workflowResult = await workflowResponse.json();
+                                                if (workflowResult.success && workflowResult.data) {
+                                                  // Find the current phase
+                                                  const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                                                  if (currentPhaseData) {
+                                                    // Find the current section
+                                                    const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                                                    if (currentSectionData) {
+                                                      // Find the subtask index by matching the current DB id or name
+                                                      const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                                        if (typeof subtask === 'object') {
+                                                          return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                                        }
+                                                        return subtask === position.currentLineItemName;
+                                                      });
+                                                      return subtaskIndex >= 0 ? subtaskIndex : 0;
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            } catch (error) {
+                                              console.warn('Could not determine subtask index:', error);
+                                            }
+                                            return 0; // Default fallback
+                                          };
+                                          
+                                          const subtaskIndex = await getSubtaskIndex();
+                                          const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
                                           const targetSectionId = position.currentSection;
+                                          
+                                          console.log('🎯 SEARCH LINE ITEM: Generated targetLineItemId:', targetLineItemId);
+                                          console.log('🎯 SEARCH LINE ITEM: Generated targetSectionId:', targetSectionId);
                                           
                                           onNavigateToResult({ 
                                             ...result, 
