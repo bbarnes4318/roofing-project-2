@@ -701,14 +701,37 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         console.log('🔍 BACK BUTTON: handleBackButton called');
         console.log('🔍 BACK BUTTON: projectSourceSection:', projectSourceSection);
         
+        // Check for returnTo URL in project's dashboard state first
+        const returnTo = project?.dashboardState?.returnTo;
+        console.log('🔍 BACK BUTTON: returnTo URL:', returnTo);
+        
+        if (returnTo) {
+            console.log('🔍 BACK BUTTON: Using returnTo URL navigation');
+            window.location.assign(returnTo);
+            return;
+        }
+        
         // If we came from dashboard sections, navigate back to Dashboard and restore that section
-        if (projectSourceSection === 'Project Messages') {
-            // Navigate back to Dashboard with My Project Messages context
+        if (projectSourceSection === 'Project Messages' || projectSourceSection === 'My Project Messages') {
+            // Navigate back to Dashboard with My Project Messages context and scroll
             onProjectSelect && onProjectSelect(null, 'Overview');
+            setTimeout(() => {
+                const messagesSection = document.querySelector('[data-section="project-messages"]');
+                if (messagesSection) messagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
             return;
         }
         if (projectSourceSection === 'Current Alerts') {
             onProjectSelect && onProjectSelect(null, 'Overview');
+            return;
+        }
+        if (projectSourceSection === 'Project Phases') {
+            // Navigate back to Dashboard and rely on preserved dashboardState for restoration
+            onProjectSelect && onProjectSelect(null, 'Overview');
+            setTimeout(() => {
+                const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
+                if (projectPhasesSection) projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
             return;
         }
         
@@ -2010,6 +2033,12 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             console.log('🔍 PROJECT_DETAIL: Current activeView:', activeView);
                                             setActiveView(item);
                                             console.log('🔍 PROJECT_DETAIL: Setting activeView to:', item);
+                                            
+                                            // Update URL with replaceState to avoid history pollution
+                                            const currentUrl = new URL(window.location.href);
+                                            currentUrl.searchParams.set('tab', item.toLowerCase().replace(/\s+/g, '-'));
+                                            window.history.replaceState(window.history.state, '', currentUrl.toString());
+                                            
                                             // Force scroll to top when switching tabs
                                             setTimeout(() => {
                                                 if (scrollRef.current) {

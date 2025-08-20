@@ -48,16 +48,17 @@ const CustomersPage = ({ colorMode }) => {
     loadCustomers();
   }, []);
 
-  // Filter customers based on search
+  // Filter customers based on search (null-safe)
   useEffect(() => {
-    if (!searchTerm) {
+    const safeSearch = (searchTerm || '').toLowerCase();
+    if (!safeSearch) {
       setFilteredCustomers(customers);
     } else {
-      const filtered = customers.filter(customer =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.address.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = (customers || []).filter(customer =>
+        (customer.name || '').toLowerCase().includes(safeSearch) ||
+        (customer.email || '').toLowerCase().includes(safeSearch) ||
+        (customer.phone || '').toLowerCase().includes(safeSearch) ||
+        (customer.address || '').toLowerCase().includes(safeSearch)
       );
       setFilteredCustomers(filtered);
     }

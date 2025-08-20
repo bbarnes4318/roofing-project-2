@@ -2,6 +2,7 @@ class OpenAIService {
   constructor() {
     this.isEnabled = false;
     this.client = null;
+    this.model = process.env.OPENAI_MODEL || 'gpt-5';
     
     // Try to initialize OpenAI if available
     console.log('🔍 OpenAI Initialization: Checking for API key...');
@@ -19,7 +20,7 @@ class OpenAIService {
           apiKey: process.env.OPENAI_API_KEY,
         });
         this.isEnabled = true;
-        console.log('✅ OpenAI service initialized successfully with GPT-4 Turbo');
+        console.log(`✅ OpenAI service initialized successfully (model: ${this.model})`);
       } catch (error) {
         console.error('❌ OpenAI package not found or failed to initialize:', error.message);
         console.error('❌ Full error:', error);
@@ -41,30 +42,56 @@ class OpenAIService {
       const userPrompt = this.buildUserPrompt(prompt, context);
 
       console.log('🔍 Making OpenAI API call...');
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-4-turbo-preview', // Using GPT-4 Turbo (latest available model)
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.3
-      });
-      console.log('✅ OpenAI API call successful');
-
-      const aiResponse = response.choices[0].message.content;
+      // Prefer Responses API when available (needed for GPT‑5), fallback to Chat Completions
+      let aiResponse = '';
+      let usedApi = 'responses';
+      let usageTokens = undefined;
+      try {
+        if (this.client.responses && typeof this.client.responses.create === 'function') {
+          const r = await this.client.responses.create({
+            model: this.model,
+            input: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.7,
+            max_output_tokens: 1000,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.3
+          });
+          aiResponse = r.output_text || r.content?.[0]?.text || r.choices?.[0]?.message?.content || '';
+          usageTokens = r.usage?.total_tokens || r.usage?.output_tokens;
+        } else {
+          throw new Error('Responses API not available in SDK');
+        }
+      } catch (responsesError) {
+        usedApi = 'chat.completions';
+        // Fallback to Chat Completions API (compatible with many models)
+        const c = await this.client.chat.completions.create({
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+          presence_penalty: 0.6,
+          frequency_penalty: 0.3
+        });
+        aiResponse = c.choices?.[0]?.message?.content || '';
+        usageTokens = c.usage?.total_tokens;
+      }
+      console.log(`✅ OpenAI API call successful via ${usedApi}`);
       
       return {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
-        source: 'openai-gpt4-turbo',
+        source: `openai-${this.model}`,
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
-          model: 'gpt-4-turbo-preview',
-          tokens: response.usage.total_tokens,
+          model: this.model,
+          tokens: usageTokens,
           timestamp: new Date()
         }
       };
@@ -74,6 +101,17 @@ class OpenAIService {
       console.error('❌ Error code:', error.code);
       console.error('❌ Error type:', error.type);
       console.error('❌ Full error object:', error);
+      // Attempt one graceful fallback if model is unavailable
+      if (String(error?.message || '').toLowerCase().includes('model') && !this.model.startsWith('gpt-4')) {
+        try {
+          const previousModel = this.model;
+          this.model = process.env.OPENAI_FALLBACK_MODEL || 'gpt-4o';
+          console.warn(`⚠️ Falling back from ${previousModel} to ${this.model}`);
+          return await this.generateResponse(prompt, context);
+        } catch (fallbackErr) {
+          console.error('❌ Fallback model also failed:', fallbackErr?.message || fallbackErr);
+        }
+      }
       // Fallback to mock response on error
       return this.generateMockResponse(prompt, context);
     }
@@ -338,7 +376,7 @@ What should we do first?`,
   getStatus() {
     return {
       enabled: this.isEnabled,
-      model: this.isEnabled ? 'gpt-4-turbo-preview' : 'mock-responses',
+      model: this.isEnabled ? this.model : 'mock-responses',
       status: this.isEnabled ? 'active' : 'fallback'
     };
   }

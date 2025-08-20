@@ -7,6 +7,10 @@ class OverdueAlertService {
    */
   static async checkAndEscalateOverdueAlerts() {
     try {
+      if (!process.env.DATABASE_URL) {
+        // No database configured; skip silently
+        return [];
+      }
       const now = new Date();
       
       // Find all active alerts that are overdue
@@ -113,6 +117,9 @@ class OverdueAlertService {
    */
   static async getOverdueAlerts(projectId = null) {
     try {
+      if (!process.env.DATABASE_URL) {
+        return [];
+      }
       const where = {
         status: 'ACTIVE',
         dueDate: {
@@ -167,11 +174,13 @@ class OverdueAlertService {
    * This should be called from a cron job or scheduler
    */
   static startOverdueAlertScheduler(intervalMinutes = 60) {
+    if (!process.env.DATABASE_URL) {
+      console.warn('⚠️ Overdue alert scheduler disabled: DATABASE_URL not set');
+      return;
+    }
     console.log(`📅 Starting overdue alert scheduler (checking every ${intervalMinutes} minutes)`);
-    
     // Run immediately on startup
     this.checkAndEscalateOverdueAlerts();
-    
     // Then run periodically
     setInterval(async () => {
       console.log('🔄 Running scheduled overdue alert check...');

@@ -248,10 +248,11 @@ export default function ProjectSchedulesPage() {
   // Filter projects based on search and filters
   const filteredProjects = useMemo(() => {
     return (projects || []).filter(project => {
-      const matchesSearch = !searchTerm || 
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.location.toLowerCase().includes(searchTerm.toLowerCase());
+      const safeSearch = (searchTerm || '').toLowerCase();
+      const matchesSearch = !safeSearch || 
+        (project.name || '').toLowerCase().includes(safeSearch) ||
+        (project.client?.name || '').toLowerCase().includes(safeSearch) ||
+        (project.location || '').toLowerCase().includes(safeSearch);
       
       const matchesTrade = !filterTrade || project.type === filterTrade;
       const matchesStatus = !filterStatus || project.status === filterStatus;

@@ -8,7 +8,7 @@ console.log('getStatus():', openAIService.getStatus());
 async function testAPICall() {
   try {
     console.log('🔍 Testing API call...');
-    const response = await openAIService.generateResponse('Hello, test message', {});
+    const response = await openAIService.generateResponse('Say "ready" if you can respond.', {});
     console.log('✅ API Response:', response);
   } catch (error) {
     console.error('❌ API Error:', error);

@@ -1,0 +1,1067 @@
+  WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established.
+doClose @ bundle.js:27841
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: Object
+ 🔍 DASHBOARD: Projects array length: 25
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: Array(19)
+ 🔍 DASHBOARD: Alerts array length: 19
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ 🔍 MESSAGE FILTERING: Object
+ ✅ Recipient match result: true
+ Selected Phase: COMPLETION Filtered Projects Count: 3
+ Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+ 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:148 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects array length: 25
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(19)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 19
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:2209 Selected Phase: COMPLETION Filtered Projects Count: 3
+DashboardPage.jsx:2375 Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+DashboardPage.jsx:132 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:148 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects array length: 25
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(19)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 19
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: Object
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:2209 Selected Phase: COMPLETION Filtered Projects Count: 3
+DashboardPage.jsx:2375 Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+DashboardPage.jsx:132 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:148 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects data: {data: Array(25), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects array length: 25
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (19) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 19
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Workflow: Materials Approved', recipients: Array(0), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Workflow: Installation Started', recipients: Array(0), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Workflow: Lead Phase Completed', recipients: Array(0), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Safety Reminder', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Insurance Documentation', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Customer Communication Update', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Project Timeline Update', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Weather Delay Notification', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Quality Control Checkpoint', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Material Coordination', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Project Completion Prep', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:2209 Selected Phase: COMPLETION Filtered Projects Count: 3
+DashboardPage.jsx:2375 Card View - Selected Phase: COMPLETION Filtered Projects Count: 3
+DashboardPage.jsx:132 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:148 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects data: {data: Array(25), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects array length: 25
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (19) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 19
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Workflow: Materials Approved', recipients: Array(0), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}currentUser: {id: 'cmei0o5k50000um0867bwnhzu', firstName: 'David', lastName: 'Chen', email: 'david.chen@kenstruction.com', role: 'MANAGER', …}loggedInUserId: "cmei0o5k50000um0867bwnhzu"recipients: []subject: "Workflow: Materials Approved"[[Prototype]]: Object
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Workflow: Installation Started', recipients: Array(0), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Workflow: Lead Phase Completed', recipients: Array(0), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Safety Reminder', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Insurance Documentation', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Customer Communication Update', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Project Timeline Update', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Weather Delay Notification', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Quality Control Checkpoint', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Material Coordination', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:833 🔍 MESSAGE FILTERING: {subject: 'Project Completion Prep', recipients: Array(1), loggedInUserId: 'cmei0o5k50000um0867bwnhzu', currentUser: {…}}
+DashboardPage.jsx:850 ✅ Recipient match result: true
+DashboardPage.jsx:2209 Selected Phase: COMPLETION Filtered Projects Count: 3
+DashboardPage.jsx:2375 Card View - Selected Phase: COMPLETION Filtered Projects Count: 3

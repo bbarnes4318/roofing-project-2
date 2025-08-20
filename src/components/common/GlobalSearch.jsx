@@ -6,32 +6,34 @@ import "./GlobalSearch.css";
 
 // Helper component for highlighting matched text using Fuse.js matches
 const Highlight = ({ text, matches = [], query = "" }) => {
-  if (!matches || matches.length === 0 || !text) {
-    return <span>{text}</span>;
+  const safeText = typeof text === 'string' ? text : (text == null ? '' : String(text));
+
+  if (!matches || matches.length === 0 || !safeText) {
+    return <span>{safeText}</span>;
   }
 
   // Find matches for this specific text
   const textMatches = matches.filter(match => 
-    match.value === text || 
-    (typeof match.value === 'string' && match.value.includes(text))
+    match.value === safeText || 
+    (typeof match.value === 'string' && match.value.includes(safeText))
   );
   
   if (textMatches.length === 0) {
     // Fallback to simple string matching if no Fuse matches
-    if (!query.trim()) return <span>{text}</span>;
+    if (!query.trim()) return <span>{safeText}</span>;
     
     const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    const parts = text.split(regex);
-    const matches = text.match(regex) || [];
+    const parts = safeText.split(regex);
+    const foundMatches = safeText.match(regex) || [];
     
     return (
       <span>
         {parts.map((part, i) => (
           <React.Fragment key={i}>
             {part}
-            {matches[i] && (
+            {foundMatches[i] && (
               <strong className="search-highlight">
-                {matches[i]}
+                {foundMatches[i]}
               </strong>
             )}
           </React.Fragment>
@@ -49,20 +51,20 @@ const Highlight = ({ text, matches = [], query = "" }) => {
   indices.forEach(([start, end], i) => {
     // Add the text before the highlight
     if (start > lastIndex) {
-      result.push(<span key={`unmatched-${i}-pre`}>{text.substring(lastIndex, start)}</span>);
+      result.push(<span key={`unmatched-${i}-pre`}>{safeText.substring(lastIndex, start)}</span>);
     }
     // Add the highlighted text
     result.push(
       <strong key={`matched-${i}`} className="search-highlight">
-        {text.substring(start, end + 1)}
+        {safeText.substring(start, end + 1)}
       </strong>
     );
     lastIndex = end + 1;
   });
 
   // Add the remaining text after the last highlight
-  if (lastIndex < text.length) {
-    result.push(<span key="unmatched-post">{text.substring(lastIndex)}</span>);
+  if (lastIndex < safeText.length) {
+    result.push(<span key="unmatched-post">{safeText.substring(lastIndex)}</span>);
   }
 
   return <span>{result}</span>;
@@ -155,9 +157,17 @@ export default function GlobalSearch({
       setLoading(true);
       
       try {
-        // Determine if this looks like a natural language query
-        const isNaturalLanguage = nlSearchService.nlpManager.isNaturalLanguageQuery(query);
-        
+        // Determine if this looks like a natural language query (defensively)
+        let isNaturalLanguage = false;
+        try {
+          isNaturalLanguage = typeof nlSearchService?.nlpManager?.isNaturalLanguageQuery === 'function'
+            ? nlSearchService.nlpManager.isNaturalLanguageQuery(query)
+            : false;
+        } catch (nlErr) {
+          console.warn('NL detection failed, falling back to conventional search:', nlErr);
+          isNaturalLanguage = false;
+        }
+
         let results;
         if (isNaturalLanguage) {
           console.log('🤖 Using NL search for:', query);
@@ -189,7 +199,22 @@ export default function GlobalSearch({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // Add quick-open shortcut: Ctrl/Cmd+K to focus search
+    const handleGlobalShortcut = (event) => {
+      const isCmdK = (event.ctrlKey || event.metaKey) && (event.key === 'k' || event.key === 'K');
+      if (isCmdK) {
+        event.preventDefault();
+        if (inputRef.current) {
+          inputRef.current.focus();
+          setIsFocused(true);
+        }
+      }
+    };
+    document.addEventListener('keydown', handleGlobalShortcut);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('keydown', handleGlobalShortcut);
+    };
   }, []);
 
   // Phase button styling - uses centralized WorkflowProgressService
@@ -214,11 +239,10 @@ export default function GlobalSearch({
 
   const getMatchesForField = (result, fieldName) => {
     if (!result.matches) return [];
-    return result.matches.filter(match => 
-      match.key === fieldName || 
-      match.key.endsWith(fieldName) ||
-      match.key.includes(fieldName)
-    );
+    return result.matches.filter(match => {
+      const key = typeof match.key === 'string' ? match.key : '';
+      return key === fieldName || key.endsWith(fieldName) || key.includes(fieldName);
+    });
   };
 
   // Address helpers for concise, consistent display in results
@@ -360,6 +384,18 @@ export default function GlobalSearch({
         placeholder="Search projects, customers, or alerts..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setIsFocused(false);
+            return;
+          }
+          if (e.key === 'Enter') {
+            if (searchResults && searchResults.length > 0) {
+              // Prefer the top overall result
+              handleResultClick(searchResults[0]);
+            }
+          }
+        }}
         onFocus={handleInputFocus}
       />
       
@@ -464,7 +500,7 @@ export default function GlobalSearch({
                                   onNavigateToResult({ 
                                     ...result, 
                                     navigationTarget: {
-                                      page: 'Profile',
+                                      page: 'Project Profile',
                                       project: result.data
                                     }
                                   });
@@ -496,103 +532,25 @@ export default function GlobalSearch({
                                   e.stopPropagation();
                                   if (onNavigateToResult && result.data.currentWorkflowItem) {
                                     // Navigate to workflow with specific line item highlighting
-                                    try {
-                                      // Get current project position from the API
-                                      const response = await fetch(`/api/workflow-data/project-position/${result.data.id}`, {
-                                        headers: {
-                                          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                        }
-                                      });
-                                      
-                                      if (response.ok) {
-                                        const responseData = await response.json();
-                                        if (responseData.success && responseData.data) {
-                                          const position = responseData.data;
-                                          
-                                          // Generate the correct line item ID format that ProjectChecklistPage expects
-                                          // Format: ${phase.id}-${item.id}-${subIdx}
-                                          const getSubtaskIndex = async () => {
-                                            try {
-                                              const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-                                                headers: {
-                                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-david-chen-token-fixed-12345'}`
-                                                }
-                                              });
-                                              
-                                              if (workflowResponse.ok) {
-                                                const workflowResult = await workflowResponse.json();
-                                                if (workflowResult.success && workflowResult.data) {
-                                                  // Find the current phase
-                                                  const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
-                                                  if (currentPhaseData) {
-                                                    // Find the current section
-                                                    const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
-                                                    if (currentSectionData) {
-                                                      // Find the subtask index by matching the current DB id or name
-                                                      const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
-                                                        if (typeof subtask === 'object') {
-                                                          return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
-                                                        }
-                                                        return subtask === position.currentLineItemName;
-                                                      });
-                                                      return subtaskIndex >= 0 ? subtaskIndex : 0;
-                                                    }
-                                                  }
-                                                }
-                                              }
-                                            } catch (error) {
-                                              console.warn('Could not determine subtask index:', error);
-                                            }
-                                            return 0; // Default fallback
-                                          };
-                                          
-                                          const subtaskIndex = await getSubtaskIndex();
-                                          const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-                                          const targetSectionId = position.currentSection;
-                                          
-                                          console.log('🎯 SEARCH LINE ITEM: Generated targetLineItemId:', targetLineItemId);
-                                          console.log('🎯 SEARCH LINE ITEM: Generated targetSectionId:', targetSectionId);
-                                          
-                                          onNavigateToResult({ 
-                                            ...result, 
-                                            navigationTarget: {
-                                              page: 'Project Workflow',
-                                              project: result.data,
-                                              targetLineItemId,
-                                              targetSectionId
-                                            }
-                                          });
-                                        } else {
-                                          // Fallback navigation
-                                          onNavigateToResult({ 
-                                            ...result, 
-                                            navigationTarget: {
-                                              page: 'Project Workflow',
-                                              project: result.data
-                                            }
-                                          });
-                                        }
-                                      } else {
-                                        // Fallback navigation
-                                        onNavigateToResult({ 
-                                          ...result, 
-                                          navigationTarget: {
-                                            page: 'Project Workflow',
-                                            project: result.data
-                                          }
-                                        });
+                                    const wf = result.data.currentWorkflowItem;
+                                    const wfState = result.data.workflowState || {};
+                                    const phaseId = wf?.phase || wfState.currentPhase || result.data.phase || 'LEAD';
+                                    const sectionId = wf?.sectionId || wfState.currentSection || result.data.currentSectionId || wf?.section;
+                                    const stepId = wf?.stepId || wfState.currentLineItem || result.data.currentLineItemId;
+                                    const targetLineItemId = stepId || (phaseId && sectionId ? `${phaseId}-${sectionId}-0` : null);
+                                    const targetSectionId = sectionId || null;
+
+                                    console.log('🎯 SEARCH LINE ITEM: Using targets:', { targetLineItemId, targetSectionId });
+
+                                    onNavigateToResult({ 
+                                      ...result, 
+                                      navigationTarget: {
+                                        page: 'Project Workflow',
+                                        project: result.data,
+                                        targetLineItemId,
+                                        targetSectionId
                                       }
-                                    } catch (error) {
-                                      console.warn('Could not get workflow position:', error);
-                                      // Fallback navigation
-                                      onNavigateToResult({ 
-                                        ...result, 
-                                        navigationTarget: {
-                                          page: 'Project Workflow',
-                                          project: result.data
-                                        }
-                                      });
-                                    }
+                                    });
                                   }
                                 }}
                                 title="Navigate to Line Item in Workflow"

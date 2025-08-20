@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
+const hasDatabaseUrl = !!process.env.DATABASE_URL;
 
 class AlertSchedulerService {
   constructor() {
@@ -13,6 +14,11 @@ class AlertSchedulerService {
   start() {
     if (this.isRunning) {
       console.log('⚠️ Alert scheduler is already running');
+      return;
+    }
+
+    if (!hasDatabaseUrl) {
+      console.warn('⚠️ Alert scheduler disabled: DATABASE_URL not set');
       return;
     }
 
@@ -47,6 +53,9 @@ class AlertSchedulerService {
   // Main method to check all workflow alerts
   async checkWorkflowAlerts() {
     try {
+      if (!hasDatabaseUrl) {
+        return;
+      }
       console.log('🔍 Checking workflow alerts...');
       
       // MODERNIZED: Use the new workflow tracker system instead of legacy ProjectWorkflow

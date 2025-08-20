@@ -11,17 +11,31 @@ const compression = require('compression');
 const morgan = require('morgan');
 
 const xss = require('xss-clean');
-// Load .env only in local development, never inside Docker/production
+// Load environment variables with robust fallbacks
 try {
-  const isDocker = require('fs').existsSync('/.dockerenv');
-  if (!isDocker && process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-    console.log('🧪 Loaded .env for development');
+  const fs = require('fs');
+  const path = require('path');
+  const dotenv = require('dotenv');
+  // Always try to load local .env files if present to support dev and containerized environments
+  const tried = [];
+  const tryConfig = (p) => {
+    if (p && fs.existsSync(p)) {
+      dotenv.config({ path: p });
+      tried.push(p);
+    }
+  };
+  // Default resolution (nearest .env)
+  dotenv.config();
+  // Explicit server/.env and repo root .env
+  tryConfig(path.resolve(__dirname, '.env'));
+  tryConfig(path.resolve(__dirname, '..', '.env'));
+  if (tried.length > 0) {
+    console.log(`🧪 Loaded environment from: ${tried.join(', ')}`);
   } else {
-    console.log('🔒 Production/Docker mode: ignoring .env; using platform environment variables');
+    console.log('🔒 Using platform environment variables');
   }
 } catch (e) {
-  // Safe fallback: do nothing if fs check fails
+  // Safe fallback: do nothing if load fails
 }
 
 console.log('✅ Required modules loaded successfully');
@@ -134,8 +148,12 @@ connectDatabase()
         
         // Start the Alert Scheduler for workflow alerts
         console.log('⏰ Alert Scheduler ENABLED - PostgreSQL migration complete');
-        const alertScheduler = require('./services/AlertSchedulerService');
-        alertScheduler.start();
+        try {
+          const alertScheduler = require('./services/AlertSchedulerService');
+          alertScheduler.start();
+        } catch (schedErr) {
+          console.warn('⚠️ Alert Scheduler not started:', schedErr?.message || schedErr);
+        }
       } catch (error) {
         console.error('❌ Failed to initialize alert services:', error.message);
         // Don't exit - continue without alert services if needed
@@ -222,14 +240,24 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Data sanitization against XSS
 app.use(xss());
 
-// Socket.IO authentication middleware
+// Socket.IO authentication middleware (accept demo tokens for dev)
 io.use(async (socket, next) => {
   try {
     const token = socket.handshake.auth.token;
     if (!token) {
       return next(new Error('Authentication error: No token provided'));
     }
-    
+    // Demo token bypass (matches HTTP middleware behavior)
+    if (token.startsWith('demo-david-chen-token-')) {
+      socket.userId = 'cmei0o5k50000um0867bwnhzu';
+      socket.userRole = 'MANAGER';
+      return next();
+    }
+    if (token.startsWith('demo-sarah-owner-token-')) {
+      socket.userId = 'demo-sarah-owner-id';
+      socket.userRole = 'ADMIN';
+      return next();
+    }
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = decoded.id;

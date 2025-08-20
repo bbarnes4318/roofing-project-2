@@ -128,6 +128,18 @@ const MyProjectMessagesSection = ({
 
   // Handle project selection through message
   const handleProjectSelectFromMessage = (project, targetPage, additionalContext) => {
+    // Build current dashboard URL with all context for returnTo
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('section', 'myProjectMessages');
+    currentUrl.searchParams.set('highlight', project.id || project._id);
+    currentUrl.searchParams.set('search', searchFilter || '');
+    if (selectedProjectFilter) {
+      currentUrl.searchParams.set('projectFilter', selectedProjectFilter);
+    }
+    if (selectedPriorityFilter) {
+      currentUrl.searchParams.set('priorityFilter', selectedPriorityFilter);
+    }
+    
     const contextData = {
       section: 'My Project Messages',
       type: 'project',
@@ -146,11 +158,21 @@ const MyProjectMessagesSection = ({
       },
       expandedState: expandedMessages,
       scrollPosition: window.scrollY,
+      returnTo: currentUrl.toString(),
       ...additionalContext
     };
 
+    const projectWithState = {
+      ...project,
+      dashboardState: {
+        returnTo: currentUrl.toString(),
+        section: 'My Project Messages',
+        filters: contextData.filters
+      }
+    };
+
     if (onProjectSelect) {
-      onProjectSelect(project, targetPage, contextData, 'My Project Messages');
+      onProjectSelect(projectWithState, targetPage, contextData, 'My Project Messages');
     }
   };
 

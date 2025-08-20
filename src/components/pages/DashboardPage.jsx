@@ -656,6 +656,76 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     }
   }, [dashboardState]);
 
+  // URL parameter restoration for returnTo context
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+    const phase = urlParams.get('phase');
+    const highlight = urlParams.get('highlight');
+    const search = urlParams.get('search');
+    const phaseFilter = urlParams.get('phaseFilter');
+    const projectFilter = urlParams.get('projectFilter');
+    const priorityFilter = urlParams.get('priorityFilter');
+    const expandedPhases = urlParams.get('expandedPhases');
+
+    console.log('🔍 DASHBOARD: URL params restoration:', { section, phase, highlight, search, expandedPhases });
+
+    if (section === 'projectsByPhase') {
+      // Restore Projects by Phase section state
+      if (phaseFilter) {
+        setSelectedPhase(phaseFilter);
+      }
+      if (expandedPhases) {
+        const phaseIds = expandedPhases.split(',');
+        setExpandedPhases(prev => {
+          const newSet = new Set(prev);
+          phaseIds.forEach(id => newSet.add(id));
+          return newSet;
+        });
+      } else if (phase) {
+        setExpandedPhases(prev => new Set([...prev, phase]));
+      }
+
+      // Wait for render, then scroll and highlight
+      setTimeout(() => {
+        const projectPhasesSection = document.querySelector('[data-section="project-phases"]');
+        if (projectPhasesSection) {
+          projectPhasesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          if (highlight) {
+            setTimeout(() => {
+              const projectElement = document.getElementById(`project-${highlight}`);
+              if (projectElement) {
+                projectElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                projectElement.classList.add('bg-yellow-100', 'border-2', 'border-yellow-400', 'ring-2', 'ring-yellow-300');
+                setTimeout(() => {
+                  projectElement.classList.remove('bg-yellow-100', 'border-2', 'border-yellow-400', 'ring-2', 'ring-yellow-300');
+                }, 3000);
+              }
+            }, 300);
+          }
+        }
+      }, 200);
+    }
+
+    if (section === 'myProjectMessages') {
+      // Wait for render, then scroll to My Project Messages section
+      setTimeout(() => {
+        const messagesSection = document.querySelector('[data-section="project-messages"]');
+        if (messagesSection) {
+          messagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 200);
+    }
+
+    // Clean up URL after restoration to avoid cluttering browser history
+    if (section || phase || highlight) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.search = '';
+      window.history.replaceState(window.history.state, '', cleanUrl.toString());
+    }
+  }, []);
+
   // Remove DDD entries on component mount
   useEffect(() => {
     removeLatestDDD();
@@ -1653,16 +1723,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const handleTradeTypeToggle = (tradeType, projectIndex = 0) => {
     setNewProjects(prev => {
       const updated = [...prev];
-      const currentTrades = updated[projectIndex].jobType || [];
-      
-      if (currentTrades.includes(tradeType)) {
-        // Remove trade type
-        updated[projectIndex].jobType = currentTrades.filter(type => type !== tradeType);
-      } else {
-        // Add trade type
-        updated[projectIndex].jobType = [...currentTrades, tradeType];
-      }
-      
+      const currentProject = updated[projectIndex] || {};
+      const currentTrades = Array.isArray(currentProject.jobType) ? currentProject.jobType : [];
+      const nextTrades = currentTrades.includes(tradeType)
+        ? currentTrades.filter(type => type !== tradeType)
+        : [...currentTrades, tradeType];
+
+      updated[projectIndex] = {
+        ...currentProject,
+        jobType: nextTrades
+      };
+
       return updated;
     });
   };
@@ -2384,13 +2455,16 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <td className="py-2 px-2 whitespace-nowrap">
                           <button 
                             onClick={() => {
-                              if (onProjectSelect) {
-                                const projectWithScrollId = {
-                                  ...project,
-                                  scrollToProjectId: String(project.id)
-                                };
-                                onProjectSelect(projectWithScrollId, 'Profile', null, 'Project Phases');
-                              }
+                              const projectWithDashboardState = {
+                                ...project,
+                                dashboardState: {
+                                  selectedPhase: phaseConfig.id,
+                                  expandedPhases: Array.from(expandedPhases),
+                                  scrollToProject: project,
+                                  projectSourceSection: 'Project Phases'
+                                }
+                              };
+                              handleProjectSelectWithScroll(projectWithDashboardState, 'Profile', null, 'Project Phases');
                             }}
                             className="text-sm font-bold hover:underline cursor-pointer transition-colors text-blue-600 hover:text-blue-800"
                           >
@@ -4300,12 +4374,17 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             ? 'border-blue-500 bg-blue-50' + (colorMode ? ' bg-blue-900/20' : '')
                             : 'border-gray-200 hover:border-gray-300' + (colorMode ? ' border-slate-600 hover:border-slate-500' : '')
                         }`}
+                        onClick={(e) => {
+                          if (e.target && e.target.tagName !== 'INPUT') {
+                            handleTradeTypeToggle(trade.value, projectIndex);
+                          }
+                        }}
                       >
                         <input
                           type="checkbox"
                           checked={(project.jobType || []).includes(trade.value)}
                           onChange={() => handleTradeTypeToggle(trade.value, projectIndex)}
-                          className="mr-3 h-4 w-4 text-blue-600"
+                          className="mr-3 h-4 w-4 text-blue-600 accent-blue-600"
                         />
                         <span className={`font-medium ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
                           {trade.label}

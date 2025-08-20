@@ -197,20 +197,21 @@ export class SearchService {
 
     // Helper method to get current workflow information for a project
     getProjectWorkflowInfo(project) {
-        console.log('🔍 Getting workflow info for project:', project.id, project.projectName);
-        console.log('🔍 Project workflowState:', project.workflowState);
-        
-        // If we already have workflowState, use it
-        if (project.workflowState) {
-            const workflowInfo = {
-                section: project.workflowState.currentSectionName || project.workflowState.sectionDisplayName || project.workflowState.sectionName,
-                lineItem: project.workflowState.currentLineItemName || project.workflowState.stepName || project.workflowState.lineItemName,
-                phase: project.workflowState.currentPhase || project.workflowState.phaseName || project.workflowState.phase,
-                stepId: project.workflowState.currentLineItem || project.workflowState.stepId,
-                sectionId: project.workflowState.currentSection || project.workflowState.sectionId
-            };
-            console.log('🔍 Using workflowState info:', workflowInfo);
-            return workflowInfo;
+        try {
+            // Avoid noisy logs in production and prevent crashes from undefined access
+            // If we already have workflowState, use it
+            if (project && project.workflowState) {
+                const workflowInfo = {
+                    section: project.workflowState.currentSectionName || project.workflowState.sectionDisplayName || project.workflowState.sectionName,
+                    lineItem: project.workflowState.currentLineItemName || project.workflowState.stepName || project.workflowState.lineItemName,
+                    phase: project.workflowState.currentPhase || project.workflowState.phaseName || project.workflowState.phase,
+                    stepId: project.workflowState.currentLineItem || project.workflowState.stepId,
+                    sectionId: project.workflowState.currentSection || project.workflowState.sectionId
+                };
+                return workflowInfo;
+            }
+        } catch (err) {
+            // Ignore and fallback
         }
         
         // Fallback: try to derive from project data
@@ -221,7 +222,6 @@ export class SearchService {
             stepId: project.currentLineItemId || project.stepId,
             sectionId: project.currentSectionId || project.sectionId
         };
-        console.log('🔍 Using fallback info:', fallbackInfo);
         return fallbackInfo;
     }
 

@@ -178,20 +178,45 @@ const ProjectsByPhaseSection = ({
 
   // Toggle phase expansion
   const togglePhaseExpansion = (phaseId) => {
-    setExpandedPhases(prev => ({
-      ...prev,
-      [phaseId]: !prev[phaseId]
-    }));
+    setExpandedPhases(prev => {
+      const newExpanded = {
+        ...prev,
+        [phaseId]: !prev[phaseId]
+      };
+      
+      // Update URL with replaceState to maintain context
+      const currentUrl = new URL(window.location.href);
+      const expandedPhaseIds = Object.keys(newExpanded).filter(id => newExpanded[id]);
+      if (expandedPhaseIds.length > 0) {
+        currentUrl.searchParams.set('expandedPhases', expandedPhaseIds.join(','));
+      } else {
+        currentUrl.searchParams.delete('expandedPhases');
+      }
+      window.history.replaceState(window.history.state, '', currentUrl.toString());
+      
+      return newExpanded;
+    });
   };
 
   // Handle project navigation with context
   const handleProjectNavigation = (project, targetPage, phaseId, phaseName) => {
+    // Build current dashboard URL with all context for returnTo
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('section', 'projectsByPhase');
+    currentUrl.searchParams.set('phase', phaseId || selectedPhaseFilter || 'all');
+    currentUrl.searchParams.set('highlight', project.id || project._id);
+    currentUrl.searchParams.set('search', searchFilter || '');
+    if (selectedPhaseFilter) {
+      currentUrl.searchParams.set('phaseFilter', selectedPhaseFilter);
+    }
+    
     // Build a lightweight dashboard state for restoration when coming back
     const expandedPhaseKeys = Object.keys(expandedPhases || {}).filter(key => expandedPhases[key]);
     const dashboardState = {
       selectedPhase: phaseId || null,
       expandedPhases: expandedPhaseKeys.length ? expandedPhaseKeys : null,
-      scrollToProject: { id: project.id || project._id }
+      scrollToProject: { id: project.id || project._id },
+      returnTo: currentUrl.toString()
     };
 
     const projectWithState = {
@@ -258,7 +283,17 @@ const ProjectsByPhaseSection = ({
               type="text"
               placeholder="Search projects..."
               value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
+              onChange={(e) => {
+                setSearchFilter(e.target.value);
+                // Update URL with replaceState to maintain context
+                const currentUrl = new URL(window.location.href);
+                if (e.target.value) {
+                  currentUrl.searchParams.set('search', e.target.value);
+                } else {
+                  currentUrl.searchParams.delete('search');
+                }
+                window.history.replaceState(window.history.state, '', currentUrl.toString());
+              }}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
             <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +304,17 @@ const ProjectsByPhaseSection = ({
           {/* Phase Filter */}
           <select
             value={selectedPhaseFilter || ''}
-            onChange={(e) => setSelectedPhaseFilter(e.target.value || null)}
+            onChange={(e) => {
+              setSelectedPhaseFilter(e.target.value || null);
+              // Update URL with replaceState to maintain context
+              const currentUrl = new URL(window.location.href);
+              if (e.target.value) {
+                currentUrl.searchParams.set('phaseFilter', e.target.value);
+              } else {
+                currentUrl.searchParams.delete('phaseFilter');
+              }
+              window.history.replaceState(window.history.state, '', currentUrl.toString());
+            }}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           >
             <option value="">All Phases</option>
@@ -347,6 +392,7 @@ const ProjectsByPhaseSection = ({
                       {phaseProjects.map(project => (
                         <div
                           key={project.id}
+                          id={`project-${project.id || project._id}`}
                           data-project-id={project.id || project._id}
                           className="group bg-white border border-gray-200 rounded-lg hover:shadow-lg hover:border-blue-300 transition-all duration-200 overflow-visible"
                         >

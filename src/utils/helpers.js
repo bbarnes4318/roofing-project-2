@@ -2,7 +2,9 @@ export const getOverdueTasks = (tasks) => {
   const today = new Date();
   return tasks.filter(task => {
     const dueDate = new Date(task.alertDate || task.dueDate);
-    return dueDate < today && task.status !== 'completed';
+    const normalizedStatus = String(task.status || '').toLowerCase();
+    const isCompleted = normalizedStatus === 'completed' || normalizedStatus === 'done' || normalizedStatus === 'closed';
+    return dueDate < today && !isCompleted;
   });
 };
 
@@ -13,7 +15,7 @@ export const formatDate = (dateString) => {
 
 export const calculateProgress = (tasks) => {
   if (!tasks.length) return 0;
-  const completed = tasks.filter(task => task.status === 'Completed').length;
+  const completed = tasks.filter(task => String(task.status || '').toLowerCase() === 'completed' || String(task.status || '').toLowerCase() === 'done').length;
   return Math.round((completed / tasks.length) * 100);
 };
 

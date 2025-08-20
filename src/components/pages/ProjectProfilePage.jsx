@@ -18,6 +18,7 @@ const defaultNewProject = {
     projectName: '',
     customerName: '',
     jobType: '',
+    tradeTypes: [],
     projectManager: '',
     fieldDirector: '',
     salesRep: '',
@@ -59,6 +60,13 @@ const ProjectProfilePage = ({
     const [searchFilter, setSearchFilter] = useState('');
     const [sortBy, setSortBy] = useState('projectNumber');
     const [sortOrder, setSortOrder] = useState('desc');
+    
+    // Available trade types for multi-trade projects
+    const TRADE_TYPES = [
+        { value: 'ROOFING', label: 'Roofing' },
+        { value: 'GUTTERS', label: 'Gutters' },
+        { value: 'INTERIOR_PAINT', label: 'Interior Paint' }
+    ];
     
     // API hooks
     const createProjectMutation = useCreateProject();
@@ -107,12 +115,19 @@ const ProjectProfilePage = ({
         const fetchUsers = async () => {
             try {
                 const response = await usersService.getTeamMembers();
-                setAvailableUsers(response.data || response || []);
-                
-                // Set default roles
+                // Response shape: { success, data: { teamMembers }, message }
+                const teamMembers = Array.isArray(response?.data?.teamMembers)
+                    ? response.data.teamMembers
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : Array.isArray(response)
+                            ? response
+                            : [];
+                setAvailableUsers(teamMembers);
+
+                // Set default roles from teamMembers
                 const roles = {};
-                const users = response.data || [];
-                users.forEach(user => {
+                teamMembers.forEach(user => {
                     if (user.role && user.role.permissions && user.role.permissions.includes('project_manager')) {
                         if (!roles.projectManager) roles.projectManager = user.id;
                     }
@@ -126,11 +141,12 @@ const ProjectProfilePage = ({
                 setDefaultRoles(roles);
             } catch (error) {
                 console.error('Error fetching users:', error);
+                setAvailableUsers([]);
             } finally {
                 setUsersLoading(false);
             }
         };
-        
+
         fetchUsers();
     }, []);
     
@@ -312,7 +328,10 @@ const ProjectProfilePage = ({
                 endDate: newProject.endDate ? new Date(newProject.endDate).toISOString() : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
                 priority: (newProject.priority || 'Medium').toUpperCase(),
                 description: newProject.description || `Project #${newProject.projectNumber}`,
-                projectManagerId: newProject.projectManager || null
+                projectManagerId: newProject.projectManager || null,
+                // Optional multi-trade metadata
+                additionalTrades: (newProject.tradeTypes || []).filter(t => t !== mapJobTypeToEnum(newProject.jobType)),
+                tradeTypes: newProject.tradeTypes || []
             };
 
             // Create project
@@ -365,6 +384,16 @@ const ProjectProfilePage = ({
         setNewProject(prev => ({
             ...prev,
             contacts: updatedContacts
+        }));
+    };
+
+    // Toggle trade type selection
+    const toggleTradeType = (tradeValue) => {
+        setNewProject(prev => ({
+            ...prev,
+            tradeTypes: (prev.tradeTypes || []).includes(tradeValue)
+                ? (prev.tradeTypes || []).filter(t => t !== tradeValue)
+                : [ ...(prev.tradeTypes || []), tradeValue ]
         }));
     };
     
@@ -860,6 +889,38 @@ const ProjectProfilePage = ({
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 required
                             />
+                        </div>
+                        
+                        {/* Trade Types - Multiple Selection */}
+                        <div>
+                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                                Trade Types (Select multiple)
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {TRADE_TYPES.map(trade => (
+                                    <label
+                                        key={trade.value}
+                                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                                            (newProject.tradeTypes || []).includes(trade.value)
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={(newProject.tradeTypes || []).includes(trade.value)}
+                                            onChange={() => toggleTradeType(trade.value)}
+                                            className="mr-3 h-4 w-4 text-blue-600"
+                                        />
+                                        <span className="font-medium">{trade.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {(newProject.tradeTypes || []).length > 0 && (
+                                <p className="mt-2 text-sm text-blue-600">
+                                    Selected: {(newProject.tradeTypes || []).join(', ')}
+                                </p>
+                            )}
                         </div>
                         
                         {/* Project Name */}

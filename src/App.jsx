@@ -448,6 +448,17 @@ export default function App() {
         if (navigationState.selectedProject) {
             console.log('🔍 APP: Going back from project detail');
             setNavigationState(prev => ({ ...prev, selectedProject: null }));
+            // If user came from My Project Messages, always go back to Overview and scroll to messages section
+            if (navigationState.projectSourceSection === 'Project Messages' || navigationState.projectSourceSection === 'My Project Messages') {
+                setActivePage('Overview');
+                setTimeout(() => {
+                    const messagesSection = document.querySelector('[data-section="project-messages"]');
+                    if (messagesSection) {
+                        messagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 150);
+                return;
+            }
             setActivePage(navigationState.previousPage || 'Overview');
         } else {
             console.log('🔍 APP: No project selected, staying on current page');
@@ -535,21 +546,7 @@ export default function App() {
         console.log('🔍 BACK_TO_PROJECTS: selectedProject:', navigationState.selectedProject);
         console.log('🔍 BACK_TO_PROJECTS: specificProject passed:', specificProject);
         
-        // Handle specific case: coming from Activity Feed tab in Project Messages
-        if (navigationState.projectSourceSection === 'Project Messages') {
-            console.log('🔍 BACK_TO_PROJECTS: Navigating back to ProjectDetailPage with Messages tab');
-            // Find the project that was being viewed
-            const currentProject = navigationState.selectedProject || navigationState.scrollToProject;
-            if (currentProject) {
-                setNavigationState(prev => ({
-                    ...prev,
-                    selectedProject: currentProject,
-                    projectInitialView: 'Messages',
-                    projectSourceSection: 'Project Messages'
-                }));
-                return;
-            }
-        }
+        // Remove legacy behavior that returned to the project's Messages tab
         
         // Handle specific case: coming from Project Alerts tab in Project Workflow Alerts
         if (navigationState.projectSourceSection === 'Project Workflow Alerts') {
@@ -751,11 +748,25 @@ export default function App() {
         
         const target = result.navigationTarget;
         console.log('🔍 Navigation target:', target);
+
+        // PRIORITIZE explicit workflow navigation with deep-link targets from search
+        if (target.page === 'Project Workflow' && target.project) {
+            console.log('🔍 Navigating directly to Project Workflow from search with targeting');
+            handleProjectSelect(
+                target.project,
+                'Project Workflow',
+                null,
+                'Global Search',
+                target.targetLineItemId,
+                target.targetSectionId
+            );
+            return;
+        }
         
-        // For project results, always navigate to Projects page showing the project
+        // For project results, always navigate to the unified Project Detail page
         if (result.type === 'project' && result.data) {
-            console.log('🔍 Navigating to project:', result.data.projectNumber);
-            handleProjectSelect(result.data, 'Projects', null, 'Global Search');
+            console.log('🔍 Navigating to project detail:', result.data.projectNumber || result.data.id);
+            handleProjectSelect(result.data, 'Project Profile', null, 'Global Search');
             return;
         }
         
@@ -772,15 +783,17 @@ export default function App() {
                 }
                 break;
             case 'projects':
+                // Normalize to Project Detail page for project clicks from search
                 if (target.project) {
-                    handleProjectSelect(target.project, 'Projects', null, 'Global Search');
+                    handleProjectSelect(target.project, 'Project Profile', null, 'Global Search');
                 } else {
                     setActivePage('Projects');
                 }
                 break;
             case 'Profile':
+            case 'Project Profile':
                 if (target.project) {
-                    handleProjectSelect(target.project, 'Projects', null, 'Global Search');
+                    handleProjectSelect(target.project, 'Project Profile', null, 'Global Search');
                 }
                 break;
             case 'Project Workflow':

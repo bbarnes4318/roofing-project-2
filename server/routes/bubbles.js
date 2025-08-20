@@ -128,41 +128,45 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
   // Get project context if projectId provided
   let projectContext = {};
   if (projectId) {
-    // Normalize projectId to string to support non-numeric IDs
-    const normalizedProjectId = typeof projectId === 'number' ? String(projectId) : String(projectId);
-    const project = await prisma.project.findUnique({
-      where: { id: normalizedProjectId },
-      include: {
-        projectManager: {
-          select: { firstName: true, lastName: true }
-        },
-        workflow: {
-          include: {
-            phases: {
-              include: {
-                sections: {
-                  include: {
-                    lineItems: true
+    try {
+      // Normalize projectId to string to support non-numeric IDs
+      const normalizedProjectId = typeof projectId === 'number' ? String(projectId) : String(projectId);
+      const project = await prisma.project.findUnique({
+        where: { id: normalizedProjectId },
+        include: {
+          projectManager: {
+            select: { firstName: true, lastName: true }
+          },
+          workflow: {
+            include: {
+              phases: {
+                include: {
+                  sections: {
+                    include: {
+                      lineItems: true
+                    }
                   }
                 }
               }
             }
           }
         }
-      }
-    });
+      });
 
-    if (project) {
-      projectContext = {
-        projectName: project.projectName,
-        progress: project.progress,
-        status: project.status,
-        estimateValue: project.estimateValue,
-        timeline: `${project.startDate} to ${project.endDate}`,
-        projectManager: project.projectManager ? 
-          `${project.projectManager.firstName} ${project.projectManager.lastName}` : null,
-        workflowStatus: project.workflow ? 'Active' : 'Not configured'
-      };
+      if (project) {
+        projectContext = {
+          projectName: project.projectName,
+          progress: project.progress,
+          status: project.status,
+          estimateValue: project.estimateValue,
+          timeline: `${project.startDate} to ${project.endDate}`,
+          projectManager: project.projectManager ? 
+            `${project.projectManager.firstName} ${project.projectManager.lastName}` : null,
+          workflowStatus: project.workflow ? 'Active' : 'Not configured'
+        };
+      }
+    } catch (dbErr) {
+      console.warn('⚠️ Bubbles: Database unavailable during project context fetch. Continuing without DB context.');
     }
   }
 
@@ -209,7 +213,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
     chatLog,
     sessionContext: {
       conversationLength: contextManager.getUserSession(userId).conversationHistory.length,
-      activeProject: projectContext.projectName || null
+      activeProject: projectContext.projectName || null,
+      ai: openAIService.getStatus()
     }
   }, 'Bubbles response generated successfully');
 }));
