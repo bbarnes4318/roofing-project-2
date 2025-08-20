@@ -514,19 +514,19 @@ router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) =>
   }, 'Optimization recommendations generated');
 }));
 
-// @desc    Debug OpenAI service status
-// @route   GET /api/bubbles/debug/openai
-// @access  Private
+// Debug endpoint
 router.get('/debug/openai', asyncHandler(async (req, res) => {
   const status = openAIService.getStatus();
   const isAvailable = openAIService.isAvailable();
+  const rawKey = process.env.OPENAI_API_KEY;
+  const sanitizedKey = typeof rawKey === 'string' ? rawKey.trim().replace(/^['\"]|['\"]$/g, '') : null;
   
   sendSuccess(res, 200, {
     status,
     isAvailable,
-    apiKeyPresent: !!process.env.OPENAI_API_KEY,
-    apiKeyLength: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0,
-    apiKeyPrefix: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'NONE',
+    apiKeyPresent: !!sanitizedKey,
+    apiKeyLength: sanitizedKey ? sanitizedKey.length : 0,
+    apiKeyPrefix: sanitizedKey ? sanitizedKey.substring(0, 20) + '...' : 'NONE',
     serviceEnabled: openAIService.isEnabled
   }, 'OpenAI debug info retrieved');
 }));

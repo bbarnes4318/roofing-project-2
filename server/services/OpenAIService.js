@@ -2,21 +2,28 @@ class OpenAIService {
   constructor() {
     this.isEnabled = false;
     this.client = null;
+    this.apiKey = null;
     
     // Try to initialize OpenAI if available
     console.log('🔍 OpenAI Initialization: Checking for API key...');
-    console.log('🔍 API Key present:', !!process.env.OPENAI_API_KEY);
-    console.log('🔍 API Key length:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0);
-    console.log('🔍 API Key first 20 chars:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'NONE');
-    console.log('🔍 API Key last 4 chars:', process.env.OPENAI_API_KEY ? '...' + process.env.OPENAI_API_KEY.slice(-4) : 'NONE');
+    // Sanitize key to avoid invisible whitespace/quotes issues
+    const rawKey = process.env.OPENAI_API_KEY;
+    const sanitizedKey = typeof rawKey === 'string' 
+      ? rawKey.trim().replace(/^['\"]|['\"]$/g, '')
+      : null;
+    this.apiKey = sanitizedKey || null;
+    console.log('🔍 API Key present:', !!this.apiKey);
+    console.log('🔍 API Key length:', this.apiKey ? this.apiKey.length : 0);
+    console.log('🔍 API Key first 20 chars:', this.apiKey ? this.apiKey.substring(0, 20) + '...' : 'NONE');
+    console.log('🔍 API Key last 4 chars:', this.apiKey ? '...' + this.apiKey.slice(-4) : 'NONE');
     
-    if (process.env.OPENAI_API_KEY) {
+    if (this.apiKey) {
       try {
         console.log('🔍 OpenAI: Loading OpenAI package...');
         const OpenAI = require('openai');
         console.log('🔍 OpenAI: Creating client...');
         this.client = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY,
+          apiKey: this.apiKey,
         });
         this.isEnabled = true;
         console.log('✅ OpenAI service initialized successfully with GPT-4 Turbo');
@@ -64,7 +71,7 @@ class OpenAIService {
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
           model: 'gpt-4-turbo-preview',
-          tokens: response.usage.total_tokens,
+          tokens: response.usage?.total_tokens,
           timestamp: new Date()
         }
       };
@@ -122,7 +129,15 @@ Response Format:
     if (context.conversationHistory && context.conversationHistory.length > 0) {
       contextualPrompt += '\n\nRecent conversation context:\n';
       context.conversationHistory.slice(-3).forEach(item => {
-        contextualPrompt += `User: ${item.message}\nBubbles: ${item.response.substring(0, 200)}...\n`;
+        const priorResponseText = typeof item.response === 'string'
+          ? item.response
+          : (item.response && typeof item.response.content === 'string'
+              ? item.response.content
+              : '');
+        const snippet = priorResponseText
+          ? priorResponseText.substring(0, 200)
+          : '[no prior response]';
+        contextualPrompt += `User: ${item.message}\nBubbles: ${snippet}...\n`;
       });
     }
 
