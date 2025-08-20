@@ -781,6 +781,7 @@ process.on('unhandledRejection', (err, promise) => {
   console.error('🔍 Stack:', err.stack);
   // Log but don't exit in production - let the container restart if needed
   if (process.env.NODE_ENV !== 'production') {
+    OverdueAlertService.stopOverdueAlertScheduler(); // Clean up interval
     server.close(() => {
       process.exit(1);
     });
@@ -792,8 +793,28 @@ process.on('uncaughtException', (err) => {
   console.error('🔍 Stack:', err.stack);
   // Log but don't exit in production - let the container restart if needed
   if (process.env.NODE_ENV !== 'production') {
+    OverdueAlertService.stopOverdueAlertScheduler(); // Clean up interval
     process.exit(1);
   }
+});
+
+// Graceful shutdown handlers
+process.on('SIGTERM', () => {
+  console.log('📛 SIGTERM received, shutting down gracefully...');
+  OverdueAlertService.stopOverdueAlertScheduler();
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('📛 SIGINT received, shutting down gracefully...');
+  OverdueAlertService.stopOverdueAlertScheduler();
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
 });
 
 // Start overdue alert scheduler
