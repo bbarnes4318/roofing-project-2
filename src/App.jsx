@@ -22,6 +22,7 @@ import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import HolographicLoginPage from './components/pages/HolographicLoginPage';
 import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
+import RegisterPage from './components/pages/RegisterPage';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 
 // Removed mock data import
@@ -75,6 +76,8 @@ export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(() => authService.isAuthenticated());
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
+    // unauthenticated view state: 'login' | 'register'
+    const [authView, setAuthView] = useState('login');
     const [tasks, setTasks] = useState([]);
     const [projects, setProjects] = useState([]);
     const [projectsLoading, setProjectsLoading] = useState(false);
@@ -403,7 +406,17 @@ export default function App() {
     if (!isAuthenticated) {
         return (
             <QueryClientProvider client={queryClient}>
-                <BlueprintLoginPage onLoginSuccess={handleLoginSuccess} />
+                {authView === 'login' ? (
+                    <BlueprintLoginPage 
+                        onLoginSuccess={handleLoginSuccess} 
+                        onSwitchToRegister={() => setAuthView('register')} 
+                    />
+                ) : (
+                    <RegisterPage 
+                        onRegisterSuccess={handleLoginSuccess}
+                        onSwitchToLogin={() => setAuthView('login')}
+                    />
+                )}
                 <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         );

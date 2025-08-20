@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/api';
 
-const BlueprintLoginPage = ({ onLoginSuccess }) => {
+const BlueprintLoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
   // State for form data, password visibility, loading, and errors
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -230,7 +230,10 @@ const BlueprintLoginPage = ({ onLoginSuccess }) => {
               </button>
               {/* Registration helper (optional) */}
               <div className="text-center text-xs text-text-light/60">
-                Don’t have an account? Contact your admin to be invited.
+                Don’t have an account?{' '}
+                <button type="button" onClick={onSwitchToRegister} className="text-brand-primary hover:text-brand-primary/80 font-medium">
+                  Create one
+                </button>
               </div>
             </form>
           </div>
