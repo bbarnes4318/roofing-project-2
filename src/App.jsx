@@ -300,60 +300,42 @@ export default function App() {
 
     // Scroll to top whenever activePage changes
     useEffect(() => {
-        // IMMEDIATE scroll to top - multiple methods
-        window.scrollTo({ top: 0, behavior: 'auto' });
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        document.documentElement.scrollLeft = 0;
-        document.body.scrollLeft = 0;
+        // Store timeout IDs for cleanup
+        const timeoutIds = [];
         
-        // Force scroll on all possible containers
-        const containers = [
-            document.querySelector('main'),
-            document.querySelector('#root'),
-            document.querySelector('.overflow-y-auto'),
-            document.querySelector('.flex-1'),
-            document.querySelector('[data-section]'),
-            document.querySelector('.h-full'),
-            document.querySelector('[class*="overflow"]'),
-            document.querySelector('.scroll-container'),
-            document.querySelector('.content-area'),
-            document.querySelector('.flex-1.overflow-y-auto')
-        ];
-        
-        containers.forEach(container => {
-            if (container) {
-                container.scrollTop = 0;
-                container.scrollLeft = 0;
-            }
-        });
-        
-        // Multiple aggressive attempts
-        const forceScroll = () => {
-            window.scrollTo({ top: 0, behavior: 'auto' });
-            document.body.scrollTop = 0;
+        // Efficient scroll to top function
+        const scrollToTop = () => {
+            // Primary scroll methods
+            window.scrollTo(0, 0);
             document.documentElement.scrollTop = 0;
-            containers.forEach(container => {
-                if (container) {
-                    container.scrollTop = 0;
-                }
-            });
+            document.body.scrollTop = 0;
+            
+            // Scroll specific containers if they exist
+            const mainContainer = document.querySelector('main');
+            const overflowContainer = document.querySelector('.overflow-y-auto');
+            
+            if (mainContainer) mainContainer.scrollTop = 0;
+            if (overflowContainer) overflowContainer.scrollTop = 0;
         };
         
-        // Execute immediately and multiple times
-        forceScroll();
-        setTimeout(forceScroll, 5);
-        setTimeout(forceScroll, 15);
-        setTimeout(forceScroll, 30);
-        setTimeout(forceScroll, 60);
-        setTimeout(forceScroll, 120);
-        setTimeout(forceScroll, 250);
-        setTimeout(forceScroll, 500);
+        // Execute immediately
+        scrollToTop();
         
-        // Final smooth scroll
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 600);
+        // Single delayed execution to handle dynamic content
+        // Use requestAnimationFrame for better performance
+        const rafId = requestAnimationFrame(() => {
+            scrollToTop();
+            
+            // One final check after potential render
+            const timeoutId = setTimeout(scrollToTop, 100);
+            timeoutIds.push(timeoutId);
+        });
+        
+        // Cleanup function to clear timeouts
+        return () => {
+            cancelAnimationFrame(rafId);
+            timeoutIds.forEach(id => clearTimeout(id));
+        };
     }, [activePage]);
 
     // Additional useEffect specifically for when selectedProject changes

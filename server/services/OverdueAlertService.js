@@ -1,6 +1,8 @@
 const { prisma } = require('../config/prisma');
 
 class OverdueAlertService {
+  static intervalId = null; // Store interval reference for cleanup
+  
   /**
    * Check for overdue alerts and escalate them to HIGH priority
    * Also notify project managers
@@ -169,14 +171,31 @@ class OverdueAlertService {
   static startOverdueAlertScheduler(intervalMinutes = 60) {
     console.log(`📅 Starting overdue alert scheduler (checking every ${intervalMinutes} minutes)`);
     
+    // Clear any existing interval to prevent duplicates
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      console.log('🧹 Cleared existing overdue alert scheduler');
+    }
+    
     // Run immediately on startup
     this.checkAndEscalateOverdueAlerts();
     
-    // Then run periodically
-    setInterval(async () => {
+    // Then run periodically and store the interval reference
+    this.intervalId = setInterval(async () => {
       console.log('🔄 Running scheduled overdue alert check...');
       await this.checkAndEscalateOverdueAlerts();
     }, intervalMinutes * 60 * 1000);
+  }
+  
+  /**
+   * Stop the overdue alert scheduler
+   */
+  static stopOverdueAlertScheduler() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+      console.log('🛑 Stopped overdue alert scheduler');
+    }
   }
 }
 
