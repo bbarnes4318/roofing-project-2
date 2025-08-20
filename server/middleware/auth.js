@@ -109,8 +109,9 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Role-based authorization middleware
+// Role-based authorization middleware (case-insensitive)
 const authorize = (...roles) => {
+  const allowedRolesLower = roles.map(r => String(r).toLowerCase());
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -119,7 +120,8 @@ const authorize = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    const userRoleLower = String(req.user.role || '').toLowerCase();
+    if (!allowedRolesLower.includes(userRoleLower)) {
       return res.status(403).json({
         success: false,
         message: `Access denied. Required role: ${roles.join(' or ')}`

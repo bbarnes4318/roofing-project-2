@@ -229,7 +229,23 @@ io.use(async (socket, next) => {
     if (!token) {
       return next(new Error('Authentication error: No token provided'));
     }
-    
+
+    // Allow demo tokens used across the app without requiring JWT secret
+    if (typeof token === 'string' && token.startsWith('demo-')) {
+      // Map known demo tokens to stable identities
+      if (token.startsWith('demo-david-chen-token-')) {
+        socket.userId = 'cmei0o5k50000um0867bwnhzu';
+        socket.userRole = 'MANAGER';
+        return next();
+      }
+      if (token.startsWith('demo-sarah-owner-token-')) {
+        socket.userId = 'demo-sarah-owner-id';
+        socket.userRole = 'ADMIN';
+        return next();
+      }
+      return next(new Error('Authentication error: Invalid token'));
+    }
+
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = decoded.id;

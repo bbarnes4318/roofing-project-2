@@ -108,11 +108,14 @@ const getTotalLineItemsCount = async (workflowType = 'ROOFING') => {
 };
 
 // **CRITICAL: Data transformation layer for frontend compatibility**
-const transformProjectForFrontend = async (project) => {
+// Accept optional precomputed totalLineItems to avoid repeated DB counts in list endpoints
+const transformProjectForFrontend = async (project, precomputedTotalLineItems) => {
   if (!project) return null;
   
   // Get total line items count for progress calculation
-  const totalLineItems = await getTotalLineItemsCount();
+  const totalLineItems = typeof precomputedTotalLineItems === 'number'
+    ? precomputedTotalLineItems
+    : await getTotalLineItemsCount();
   
   return {
     // Keep both ID formats for compatibility
@@ -447,8 +450,13 @@ router.get('/', asyncHandler(async (req, res) => {
       prisma.project.count({ where })
     ]);
 
-    // Transform projects for frontend compatibility
-    const transformedProjects = await Promise.all(projects.map(transformProjectForFrontend));
+    // Compute shared values once for the page of results
+    const totalLineItems = await getTotalLineItemsCount();
+
+    // Transform projects for frontend compatibility using shared totalLineItems
+    const transformedProjects = await Promise.all(
+      projects.map(project => transformProjectForFrontend(project, totalLineItems))
+    );
     
     // Enhance projects with calculated progress data
     const enhancedProjects = await enhanceProjectsWithProgress(transformedProjects);
