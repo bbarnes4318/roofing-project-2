@@ -20,10 +20,13 @@ class SocketService {
       this.disconnect();
     }
 
-    const token = localStorage.getItem('authToken');
+    let token = localStorage.getItem('authToken') || localStorage.getItem('token');
     if (!token) {
-      console.warn('⚠️ No auth token found, cannot connect to Socket.IO');
-      return;
+      // Align with API mock auth behavior: generate a demo token so sockets can connect in dev/demo
+      token = 'demo-david-chen-token-' + Date.now();
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('token', token);
+      console.warn('⚠️ No auth token found. Generated demo token for Socket.IO connection.');
     }
 
     this.socket = io(this.serverUrl, {
@@ -102,14 +105,16 @@ class SocketService {
       this.emit('newAlert', data);
       
       // Show browser notification if permitted
-      if (Notification.permission === 'granted') {
-        new Notification(data.title || 'New Alert', {
-          body: data.message,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: `alert-${data.id}`,
-          requireInteraction: data.priority === 'HIGH'
-        });
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification(data.title || 'New Alert', {
+            body: data.message,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: `alert-${data.id}`,
+            requireInteraction: data.priority === 'HIGH'
+          });
+        }
       }
     });
     
