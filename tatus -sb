@@ -1,0 +1,28 @@
+[33m79e58a1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m Dashboard: restore Projects by Phase and My Project Messages back navigation; Global Search: open Project Detail from top search; Add Project: fix trade checkbox selection
+ errors.txt                                         | 1067 [32m++++++++++++++++++++[m
+ server/middleware/auth.js                          |    6 [32m+[m[31m-[m
+ server/routes/bubbles.js                           |   63 [32m+[m[31m-[m
+ server/routes/projects.js                          |   16 [32m+[m[31m-[m
+ server/server.js                                   |   50 [32m+[m[31m-[m
+ server/services/AlertSchedulerService.js           |    9 [32m+[m
+ server/services/OpenAIService.js                   |   76 [32m+[m[31m-[m
+ server/services/OverdueAlertService.js             |   13 [32m+[m[31m-[m
+ server/services/WeatherService.js                  |  101 [32m++[m
+ server/test-openai.js                              |    2 [32m+[m[31m-[m
+ src/App.jsx                                        |   53 [32m+[m[31m-[m
+ src/components/common/GlobalSearch.jsx             |  196 [32m++[m[31m--[m
+ .../dashboard/MyProjectMessagesSection.jsx         |   24 [32m+[m[31m-[m
+ .../dashboard/ProjectsByPhaseSection.jsx           |   60 [32m+[m[31m-[m
+ src/components/pages/CustomersPage.jsx             |   15 [32m+[m[31m-[m
+ src/components/pages/DashboardPage.jsx             |  115 [32m++[m[31m-[m
+ src/components/pages/ProjectDetailPage.jsx         |   33 [32m+[m[31m-[m
+ src/components/pages/ProjectProfilePage.jsx        |   75 [32m+[m[31m-[m
+ src/components/pages/ProjectSchedulesPage.jsx      |    9 [32m+[m[31m-[m
+ src/services/api.js                                |    5 [32m+[m[31m-[m
+ src/services/searchService.js                      |   30 [32m+[m[31m-[m
+ src/services/socket.js                             |   27 [32m+[m[31m-[m
+ src/utils/back-navigation.js                       |   97 [32m++[m
+ src/utils/helpers.js                               |    6 [32m+[m[31m-[m
+ src/utils/url-state.js                             |   14 [32m+[m
+ src/utils/useBackNavigation.js                     |   30 [32m+[m
+ 26 files changed, 1910 insertions(+), 282 deletions(-)
