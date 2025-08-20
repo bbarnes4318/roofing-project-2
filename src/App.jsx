@@ -58,33 +58,21 @@ export default function App() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-    // Initialize with default user for mock auth to avoid re-renders  
-    const defaultUser = {
-        _id: 'cmei0o5k50000um0867bwnhzu',
-        id: 'cmei0o5k50000um0867bwnhzu',
-        firstName: 'David',
-        lastName: 'Chen',
-        email: 'david.chen@kenstruction.com',
-        role: 'MANAGER',
-        avatar: 'DC',
-        company: 'Kenstruction',
-        position: 'Manager',
-        department: 'Office',
-        isVerified: true
-    };
+    // No default demo user in production auth
+    const defaultUser = null;
     
     const [currentUser, setCurrentUser] = useState(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                return defaultUser;
-            }
-        }
+        try {
+            const storedLocal = localStorage.getItem('user');
+            if (storedLocal) return JSON.parse(storedLocal);
+        } catch (_) {}
+        try {
+            const storedSession = sessionStorage.getItem('user');
+            if (storedSession) return JSON.parse(storedSession);
+        } catch (_) {}
         return defaultUser;
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(() => authService.isAuthenticated());
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
     const [tasks, setTasks] = useState([]);
@@ -105,20 +93,15 @@ export default function App() {
         previousPage: 'Overview'
     });
 
-    // Ensure localStorage has proper auth data on mount (only if not explicitly logged out)
+    // On mount, sync auth state
     useEffect(() => {
-        // Use a JWT-like token that backend might accept with David Chen's real ID
-        const demoToken = 'demo-david-chen-token-' + Date.now();
-        
-        const currentToken = localStorage.getItem('authToken');
-        if (!currentToken || currentToken === 'mock-token-bypass') {
-            localStorage.setItem('authToken', demoToken);
-            localStorage.setItem('token', demoToken);
+        const authed = authService.isAuthenticated();
+        setIsAuthenticated(authed);
+        if (authed && !currentUser) {
+            const stored = authService.getStoredUser();
+            if (stored) setCurrentUser(stored);
         }
-        if (!localStorage.getItem('user')) {
-            localStorage.setItem('user', JSON.stringify(currentUser));
-        }
-    }, [currentUser]);
+    }, []);
 
     // Check if user needs onboarding
     useEffect(() => {
@@ -163,25 +146,22 @@ export default function App() {
 
     // Handle successful login
     const handleLoginSuccess = (user, token) => {
-        // Get user and token from localStorage (set by login page)
-        const storedUser = authService.getStoredUser();
-        const storedToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-        
-        setCurrentUser(storedUser);
-        setIsAuthenticated(true);
-        
-        // Ensure both token keys are set for compatibility
+        const storedUser = user || authService.getStoredUser();
+        const storedToken = token || sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || localStorage.getItem('token');
+        setCurrentUser(storedUser || null);
+        setIsAuthenticated(Boolean(storedToken));
         if (storedToken) {
-            localStorage.setItem('token', storedToken);
-            localStorage.setItem('authToken', storedToken);
+            // Normalize keys in both storages for downstream consumers
+            try { localStorage.setItem('token', storedToken); localStorage.setItem('authToken', storedToken); } catch (_) {}
+            try { sessionStorage.setItem('token', storedToken); sessionStorage.setItem('authToken', storedToken); } catch (_) {}
         }
     };
 
-    // Handle logout - simplified for demo
+    // Handle logout
     const handleLogout = () => {
-        console.log('Logout clicked - demo mode');
-        // For demo, just show alert
-        alert('Logout functionality - demo mode');
+        try { authService.logout(); } catch (_) {}
+        setIsAuthenticated(false);
+        setCurrentUser(null);
     };
 
     // Fetch projects from API - must be declared before conditional returns
@@ -419,16 +399,15 @@ export default function App() {
     //     );
     // }
 
-    // Skip login page entirely in mock auth mode - we're always authenticated
-    // if (!isAuthenticated) {
-    //     return (
-    //         <QueryClientProvider client={queryClient}>
-    //             <BlueprintLoginPage onLoginSuccess={handleLoginSuccess} />
-    //             {/* <HolographicLoginPage onLoginSuccess={handleLoginSuccess} /> */}
-    //             <ReactQueryDevtools initialIsOpen={false} />
-    //         </QueryClientProvider>
-    //     );
-    // }
+    // Gate the app behind login when unauthenticated
+    if (!isAuthenticated) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <BlueprintLoginPage onLoginSuccess={handleLoginSuccess} />
+                <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+        );
+    }
 
     const navigate = (page) => { 
         setNavigationState(prev => ({

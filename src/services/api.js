@@ -45,16 +45,12 @@ api.interceptors.request.use(
         });
       }
     }
-    let token = localStorage.getItem('authToken') || localStorage.getItem('token');
-    
-    // If no token or it's just our mock placeholder, create a proper demo token
-    if (!token || token === 'mock-token-bypass') {
-      // Use the demo token format that the backend expects
-      const demoToken = 'demo-david-chen-token-' + Date.now();
-      localStorage.setItem('authToken', demoToken);
-      localStorage.setItem('token', demoToken);
-      token = demoToken;
-    }
+    // Prefer sessionStorage when present (for non-remembered sessions)
+    let token =
+      sessionStorage.getItem('authToken') ||
+      localStorage.getItem('authToken') ||
+      sessionStorage.getItem('token') ||
+      localStorage.getItem('token');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -161,9 +157,17 @@ export const authService = {
 
   // Logout user
   logout: () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    // Clear both storages to ensure full logout
+    try {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch (_) {}
+    try {
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+    } catch (_) {}
     // Don't reload - let the app handle the logout state change
   },
 
@@ -173,31 +177,27 @@ export const authService = {
     return response.data;
   },
 
-  // Check if user is authenticated (always true since login is disabled)
+  // Check if user is authenticated
   isAuthenticated: () => {
-    return true; // Authentication disabled - always allow access
+    const token =
+      sessionStorage.getItem('authToken') ||
+      localStorage.getItem('authToken') ||
+      sessionStorage.getItem('token') ||
+      localStorage.getItem('token');
+    return Boolean(token);
   },
 
   // Get stored user data
   getStoredUser: () => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      return JSON.parse(user);
+    const userLocal = localStorage.getItem('user');
+    if (userLocal) {
+      try { return JSON.parse(userLocal); } catch (_) { /* ignore */ }
     }
-    
-    // Return mock user data when no authentication is present
-    return {
-      _id: 'mock-user-123',
-      firstName: 'Demo',
-      lastName: 'User',
-      email: 'demo@kenstruction.com',
-      role: 'admin',
-      avatar: 'DU',
-      company: 'Kenstruction',
-      position: 'Demo User',
-      department: 'Operations',
-      isVerified: true
-    };
+    const userSession = sessionStorage.getItem('user');
+    if (userSession) {
+      try { return JSON.parse(userSession); } catch (_) { /* ignore */ }
+    }
+    return null;
   },
 
   // Update user profile (including onboarding data)

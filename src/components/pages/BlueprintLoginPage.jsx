@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authService } from '../../services/api';
 
 const BlueprintLoginPage = ({ onLoginSuccess }) => {
   // State for form data, password visibility, loading, and errors
@@ -18,51 +19,31 @@ const BlueprintLoginPage = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Simulate a successful login after a short delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await authService.login({
+        email: formData.email,
+        password: formData.password
+      });
 
-      // Check email to determine which user to log in
-      let userData;
-      let token;
-
-      if (formData.email.toLowerCase().includes('david') || formData.email.toLowerCase().includes('chen')) {
-        token = 'demo-david-chen-token-fixed-12345';
-        userData = {
-          _id: 'demo-david-chen-id',
-          firstName: 'David',
-          lastName: 'Chen',
-          email: 'david.chen@upfrontrnr.com',
-          role: 'project_manager',
-          avatar: 'DC',
-          company: 'UpFront Restoration & Roofing',
-          position: 'Project Manager',
-          department: 'Operations',
-          isVerified: true
-        };
-      } else {
-        token = 'demo-sarah-owner-token-fixed-12345';
-        userData = {
-          _id: 'demo-sarah-owner-id',
-          firstName: 'Sarah',
-          lastName: 'Owner',
-          email: 'sarah@upfrontrnr.com',
-          role: 'admin',
-          avatar: 'SO',
-          company: 'UpFront Restoration & Roofing',
-          position: 'Owner',
-          department: 'Management',
-          isVerified: true
-        };
+      if (!response?.success || !response?.data?.token || !response?.data?.user) {
+        throw new Error(response?.message || 'Login failed');
       }
 
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(userData));
+      // Persist session based on rememberMe
+      if (rememberMe) {
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      } else {
+        sessionStorage.setItem('authToken', response.data.token);
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem('user', JSON.stringify(response.data.user));
+      }
 
-      onLoginSuccess();
+      onLoginSuccess(response.data.user, response.data.token);
 
     } catch (err) {
       console.error('Login error:', err);
-      setError('Invalid email or password. Please try again.');
+      setError(err?.response?.data?.message || err?.message || 'Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -221,7 +202,7 @@ const BlueprintLoginPage = ({ onLoginSuccess }) => {
                     Remember Me
                   </label>
                 </div>
-                <a href="#" className="text-sm text-brand-primary hover:text-brand-primary/80 transition-colors font-medium">
+                <a href="/forgot-password" className="text-sm text-brand-primary hover:text-brand-primary/80 transition-colors font-medium">
                   Forgot password?
                 </a>
               </div>
@@ -247,6 +228,10 @@ const BlueprintLoginPage = ({ onLoginSuccess }) => {
                   'Access Account'
                 )}
               </button>
+              {/* Registration helper (optional) */}
+              <div className="text-center text-xs text-text-light/60">
+                Don’t have an account? Contact your admin to be invited.
+              </div>
             </form>
           </div>
         </div>
