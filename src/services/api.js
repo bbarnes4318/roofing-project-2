@@ -123,7 +123,10 @@ api.interceptors.response.use(
     }
     
     // Add more specific error messages for common issues
-    if (error.code === 'NETWORK_ERROR' || !error.response) {
+    // Normalize network/timeout errors across environments
+    const isNetworkError = !error.response || error.message === 'Network Error' || error.code === 'ERR_NETWORK';
+    const isTimeout = error.code === 'ECONNABORTED' || /timeout/i.test(error.message || '');
+    if (isNetworkError || isTimeout) {
       error.message = 'Network error: Unable to connect to server. Please check your connection and try again.';
     } else if (error.response?.status >= 500) {
       error.message = 'Server error: The server is experiencing issues. Please try again later.';
