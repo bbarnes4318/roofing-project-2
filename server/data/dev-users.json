@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "id": "dev_mell37cn_9y0oz7",
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test@example.com",
+      "password": "$2a$12$F8rgXKhinkWSSjSAyyER5Okjij2CJHbD67PkhFR3XFxtX.7.p39nK",
+      "role": "WORKER",
+      "phone": null,
+      "position": null,
+      "isVerified": true,
+      "isActive": true,
+      "createdAt": "2025-08-21T15:56:14.279Z",
+      "updatedAt": "2025-08-21T15:56:14.279Z"
+    }
+  ]
+}
