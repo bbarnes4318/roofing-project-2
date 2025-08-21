@@ -105,7 +105,7 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
       }
 
       setUploadResults(data.data);
-      setSuccess(`Upload completed: ${data.data.overall.totalSuccessful}/${data.data.overall.totalRecords} records processed`);
+      setSuccess(`Upload completed: ${data.data.overall.totalSuccessful}/${data.data.overall.totalRecords} records processed. Note: Existing records with duplicate unique fields (project numbers, emails) will be updated.`);
       setUploadFile(null);
       
       // Reset file input

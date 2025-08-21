@@ -160,7 +160,7 @@ const detectTableFromSheet = (sheetName, data) => {
 };
 
 /**
- * Create records in database using Prisma
+ * Create records in database using Prisma with upsert support for unique constraints
  */
 const createRecordsInDatabase = async (tableName, transformedData) => {
   try {
@@ -184,6 +184,15 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
       throw new Error(`Prisma model '${modelName}' not found for table '${tableName}'`);
     }
 
+    // Define unique field mappings for upsert operations
+    const uniqueFieldMappings = {
+      'Project': 'projectNumber',
+      'Customer': 'primaryEmail',
+      'User': 'email'
+    };
+
+    const uniqueField = uniqueFieldMappings[modelName];
+
     // Process each record
     for (let i = 0; i < transformedData.length; i++) {
       try {
@@ -197,13 +206,26 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
           }
         });
 
-        // Create record
-        await prisma[modelName].create({
-          data: cleanRecord
-        });
+        // Use upsert if we have a unique field mapping, otherwise use create
+        if (uniqueField && cleanRecord[uniqueField]) {
+          // Upsert operation - create if not exists, update if exists
+          await prisma[modelName].upsert({
+            where: {
+              [uniqueField]: cleanRecord[uniqueField]
+            },
+            update: cleanRecord,
+            create: cleanRecord
+          });
+          console.log(`✅ Row ${i + 1}: Upserted record successfully (${uniqueField}: ${cleanRecord[uniqueField]})`);
+        } else {
+          // Regular create operation
+          await prisma[modelName].create({
+            data: cleanRecord
+          });
+          console.log(`✅ Row ${i + 1}: Created record successfully`);
+        }
 
         results.successful++;
-        console.log(`✅ Row ${i + 1}: Created record successfully`);
       } catch (error) {
         results.failed++;
         results.errors.push({
