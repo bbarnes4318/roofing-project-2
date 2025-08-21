@@ -561,42 +561,103 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       if (['workflow_phases', 'workflow_sections', 'workflow_line_items'].includes(targetTable)) {
         const perSheetResults = { successful: 0, failed: 0, errors: [] };
         const modelName = TABLE_TO_MODEL_MAPPING[targetTable];
+        // Track uploaded composite keys for sections to allow cleanup of extras
+        const uploadedSectionKeys = new Set();
         for (let r = 0; r < transformedData.length; r++) {
           const row = transformedData[r];
           const source = sheetData[r] || {};
           try {
             let created;
             if (targetTable === 'workflow_phases') {
-              // Prefer unique phaseType, fall back to id
-              created = await prisma[modelName].upsert({
-                where: row.phaseType ? { phaseType: row.phaseType } : { id: row.id || '___nonexistent___' },
-                update: row,
-                create: row
-              });
+              // Defensive: prefer provided id from source if present
+              const providedId = row.id ?? source.id;
+              if (providedId) {
+                const existing = await prisma[modelName].findUnique({ where: { id: providedId } });
+                const updateData = { ...row };
+                delete updateData.id;
+                if (existing) {
+                  created = await prisma[modelName].update({ where: { id: providedId }, data: updateData });
+                } else {
+                  created = await prisma[modelName].create({ data: { ...row, id: providedId } });
+                }
+              } else {
+                const updateData = { ...row };
+                delete updateData.id;
+                const existingByType = row.phaseType
+                  ? await prisma[modelName].findUnique({ where: { phaseType: row.phaseType } })
+                  : null;
+                if (existingByType) {
+                  created = await prisma[modelName].update({ where: { id: existingByType.id }, data: updateData });
+                } else {
+                  const createData = { ...row };
+                  delete createData.id;
+                  created = await prisma[modelName].create({ data: createData });
+                }
+              }
               const oldId = source.id || row.id;
               if (oldId && created.id && oldId !== created.id) {
                 idRemap.workflow_phases.set(oldId, created.id);
               }
             } else if (targetTable === 'workflow_sections') {
-              created = await prisma[modelName].upsert({
-                where: (row.phaseId !== undefined && row.sectionNumber !== undefined)
-                  ? { phaseId_sectionNumber: { phaseId: row.phaseId, sectionNumber: row.sectionNumber } }
-                  : { id: row.id || '___nonexistent___' },
-                update: row,
-                create: row
-              });
+              // Defensive: prefer provided id from source if present
+              const providedId = row.id ?? source.id;
+              if (providedId) {
+                const existing = await prisma[modelName].findUnique({ where: { id: providedId } });
+                const updateData = { ...row };
+                delete updateData.id;
+                if (existing) {
+                  created = await prisma[modelName].update({ where: { id: providedId }, data: updateData });
+                } else {
+                  created = await prisma[modelName].create({ data: { ...row, id: providedId } });
+                }
+              } else {
+                const updateData = { ...row };
+                delete updateData.id;
+                const existingByComposite = (row.phaseId !== undefined && row.sectionNumber !== undefined)
+                  ? await prisma[modelName].findFirst({ where: { phaseId: row.phaseId, sectionNumber: row.sectionNumber } })
+                  : null;
+                if (existingByComposite) {
+                  created = await prisma[modelName].update({ where: { id: existingByComposite.id }, data: updateData });
+                } else {
+                  const createData = { ...row };
+                  delete createData.id;
+                  created = await prisma[modelName].create({ data: createData });
+                }
+              }
+              // Track key for later cleanup
+              if (row.phaseId !== undefined && row.sectionNumber !== undefined) {
+                uploadedSectionKeys.add(`${row.phaseId}::${row.sectionNumber}`);
+              }
               const oldId = source.id || row.id;
               if (oldId && created.id && oldId !== created.id) {
                 idRemap.workflow_sections.set(oldId, created.id);
               }
             } else if (targetTable === 'workflow_line_items') {
-              created = await prisma[modelName].upsert({
-                where: (row.sectionId && row.itemLetter)
-                  ? { sectionId_itemLetter: { sectionId: row.sectionId, itemLetter: row.itemLetter } }
-                  : { id: row.id || '___nonexistent___' },
-                update: row,
-                create: row
-              });
+              // Defensive: prefer provided id from source if present
+              const providedId = row.id ?? source.id;
+              if (providedId) {
+                const existing = await prisma[modelName].findUnique({ where: { id: providedId } });
+                const updateData = { ...row };
+                delete updateData.id;
+                if (existing) {
+                  created = await prisma[modelName].update({ where: { id: providedId }, data: updateData });
+                } else {
+                  created = await prisma[modelName].create({ data: { ...row, id: providedId } });
+                }
+              } else {
+                const updateData = { ...row };
+                delete updateData.id;
+                const existingByComposite = (row.sectionId && row.itemLetter)
+                  ? await prisma[modelName].findFirst({ where: { sectionId: row.sectionId, itemLetter: row.itemLetter } })
+                  : null;
+                if (existingByComposite) {
+                  created = await prisma[modelName].update({ where: { id: existingByComposite.id }, data: updateData });
+                } else {
+                  const createData = { ...row };
+                  delete createData.id;
+                  created = await prisma[modelName].create({ data: createData });
+                }
+              }
               const oldId = source.id || row.id;
               if (oldId && created.id && oldId !== created.id) {
                 idRemap.workflow_line_items.set(oldId, created.id);
@@ -607,6 +668,35 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
             perSheetResults.failed++;
             perSheetResults.errors.push({ row: r + 1, data: source, error: e.message });
             console.log(`❌ Row ${r + 1}: ${e.message}`);
+          }
+        }
+        // Optional cleanup: remove extra sections not present in this upload IF they are unreferenced
+        if (targetTable === 'workflow_sections' && uploadedSectionKeys.size > 0) {
+          try {
+            const existingSections = await prisma.workflowSection.findMany({ select: { id: true, phaseId: true, sectionNumber: true } });
+            const extras = existingSections.filter(s => !uploadedSectionKeys.has(`${s.phaseId}::${s.sectionNumber}`));
+            let deleted = 0;
+            const blocked = [];
+            for (const s of extras) {
+              const refs = await prisma.$transaction([
+                prisma.workflowLineItem.count({ where: { sectionId: s.id } }),
+                prisma.projectWorkflowTracker.count({ where: { currentSectionId: s.id } }),
+                prisma.workflowAlert.count({ where: { sectionId: s.id } }),
+                prisma.completedWorkflowItem.count({ where: { sectionId: s.id } })
+              ]);
+              const totalRefs = refs.reduce((a, b) => a + b, 0);
+              if (totalRefs === 0) {
+                await prisma.workflowSection.delete({ where: { id: s.id } });
+                deleted++;
+              } else {
+                blocked.push({ id: s.id, refs: totalRefs });
+              }
+            }
+            if (deleted > 0 || blocked.length > 0) {
+              perSheetResults.info = `Section cleanup: deleted ${deleted} extras, ${blocked.length} blocked by references`;
+            }
+          } catch (e) {
+            perSheetResults.errors.push({ row: null, data: null, error: `Cleanup failed: ${e.message}` });
           }
         }
         insertResults = perSheetResults;

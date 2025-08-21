@@ -217,62 +217,94 @@ router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, r
 
   const { email, password } = req.body;
 
-  // Find user
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    return next(new AppError('Invalid credentials', 401));
-  }
+  try {
+    // Find user
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return next(new AppError('Invalid credentials', 401));
+    }
 
-  // Check if account is locked
-  if (user.lockUntil && user.lockUntil > new Date()) {
-    return next(new AppError('Account is temporarily locked. Please try again later.', 423));
-  }
+    // Check if account is locked
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      return next(new AppError('Account is temporarily locked. Please try again later.', 423));
+    }
 
-  // Check password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    // Increment login attempts
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      // Increment login attempts
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          loginAttempts: user.loginAttempts + 1,
+          lockUntil: user.loginAttempts >= 4 ? new Date(Date.now() + 15 * 60 * 1000) : null // Lock for 15 minutes after 5 failed attempts
+        }
+      });
+
+      return next(new AppError('Invalid credentials', 401));
+    }
+
+    // Reset login attempts on successful login
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        loginAttempts: user.loginAttempts + 1,
-        lockUntil: user.loginAttempts >= 4 ? new Date(Date.now() + 15 * 60 * 1000) : null // Lock for 15 minutes after 5 failed attempts
+        loginAttempts: 0,
+        lockUntil: null,
+        lastLogin: new Date(),
+        lastLoginIP: req.ip
       }
     });
 
-    return next(new AppError('Invalid credentials', 401));
+    // Generate token
+    const token = generateToken(user.id);
+
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified,
+          avatar: user.avatar
+        },
+        token
+      }
+    });
+  } catch (dbError) {
+    console.error('Auth login DB error:', dbError?.message || dbError);
+    // Fallback to dev store if available
+    if (DevUserStore) {
+      try {
+        const user = await DevUserStore.findUserByEmail(email);
+        if (!user) return next(new AppError('Invalid credentials', 401));
+        const ok = await DevUserStore.verifyPassword(user, password);
+        if (!ok) return next(new AppError('Invalid credentials', 401));
+        const token = generateToken(user.id, user.role);
+        return res.json({
+          success: true,
+          message: 'Login successful (fallback dev store)',
+          data: {
+            user: {
+              id: user.id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              role: user.role,
+              isVerified: user.isVerified
+            },
+            token
+          }
+        });
+      } catch (fallbackErr) {
+        console.error('Auth login fallback error:', fallbackErr?.message || fallbackErr);
+      }
+    }
+    return next(new AppError('Login service temporarily unavailable', 503));
   }
-
-  // Reset login attempts on successful login
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      loginAttempts: 0,
-      lockUntil: null,
-      lastLogin: new Date(),
-      lastLoginIP: req.ip
-    }
-  });
-
-  // Generate token
-  const token = generateToken(user.id);
-
-  res.json({
-    success: true,
-    message: 'Login successful',
-    data: {
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
-        avatar: user.avatar
-      },
-      token
-    }
-  });
 }));
 
 // @desc    Get current user
