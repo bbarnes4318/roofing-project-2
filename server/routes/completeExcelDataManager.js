@@ -390,16 +390,9 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
 
       console.log(`🎯 Target table: ${targetTable}`);
 
-      // Validate data
-      console.log('✅ Validating data...');
-      const validationErrors = DataProcessor.validateData(targetTable, sheetData);
-      console.log(`🔍 Validation errors found: ${validationErrors.length}`);
-      if (validationErrors.length > 0) {
-        console.log('❌ First 10 validation errors:', validationErrors.slice(0, 10));
-        const error = `Validation failed for sheet '${sheetName}': ${validationErrors.slice(0, 5).join('; ')}${validationErrors.length > 5 ? ` (and ${validationErrors.length - 5} more)` : ''}`;
-        overallResults.errors.push({ sheet: sheetName, error });
-        continue;
-      }
+      // Minimal validation: skip strict validation to allow best-effort inserts
+      // Previously: DataProcessor.validateData(targetTable, sheetData)
+      console.log('✅ Skipping strict validation (minimal validation mode)');
 
       // Transform data
       console.log('🔄 Transforming data...');
@@ -408,19 +401,39 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
 
       for (let i = 0; i < sheetData.length; i++) {
         const { transformed, errors } = DataProcessor.transformData(targetTable, sheetData[i]);
+        // In minimal validation mode, proceed with best-effort transformed record even if there are transform errors
         if (errors.length > 0) {
           console.log(`❌ Row ${i + 1} transform errors:`, errors);
           transformErrors.push(`Row ${i + 1}: ${errors.join(', ')}`);
-        } else {
-          transformedData.push(transformed);
         }
+        transformedData.push(transformed);
       }
 
       console.log(`🔍 Transform errors found: ${transformErrors.length}`);
       if (transformErrors.length > 0) {
-        console.log('❌ First 10 transform errors:', transformErrors.slice(0, 10));
-        const error = `Transform errors for sheet '${sheetName}': ${transformErrors.slice(0, 5).join('; ')}${transformErrors.length > 5 ? ` (and ${transformErrors.length - 5} more)` : ''}`;
-        overallResults.errors.push({ sheet: sheetName, error });
+        console.log('⚠️ Proceeding despite transform warnings. First 10 warnings:', transformErrors.slice(0, 10));
+        // Do not stop processing; include transform warnings in sheet results
+      }
+
+      // Ensure Prisma model mapping exists before attempting insert
+      const modelNameCheck = TABLE_TO_MODEL_MAPPING[targetTable];
+      if (!modelNameCheck || !prisma[modelNameCheck]) {
+        const mappingError = !modelNameCheck
+          ? `No model mapping found for table '${targetTable}'`
+          : `Prisma model '${modelNameCheck}' not found for table '${targetTable}'`;
+        console.log(`⚠️ Skipping insert for sheet '${sheetName}': ${mappingError}`);
+        processResults[sheetName] = {
+          targetTable,
+          totalRecords: sheetData.length,
+          successful: 0,
+          failed: sheetData.length,
+          errors: [{ row: null, data: null, error: mappingError }],
+          transformWarnings: transformErrors
+        };
+        overallResults.totalSheets++;
+        overallResults.totalRecords += sheetData.length;
+        overallResults.totalFailed += sheetData.length;
+        overallResults.errors.push({ sheet: sheetName, error: mappingError });
         continue;
       }
 
@@ -434,7 +447,8 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
         totalRecords: sheetData.length,
         successful: insertResults.successful,
         failed: insertResults.failed,
-        errors: insertResults.errors
+        errors: insertResults.errors,
+        transformWarnings: transformErrors
       };
 
       overallResults.totalSheets++;

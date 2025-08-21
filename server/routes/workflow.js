@@ -1054,4 +1054,228 @@ router.put('/line-items/bulk',
     }
 }));
 
+// @desc    Create a new workflow section
+// @route   POST /api/workflows/sections
+// @access  Private (Admin)
+router.post('/sections', 
+  [
+    body('phaseId').isString().withMessage('Phase ID is required'),
+    body('sectionName').isString().isLength({ min: 1, max: 200 }).withMessage('Section name must be between 1 and 200 characters'),
+    body('displayName').optional().isString().isLength({ min: 1, max: 255 }).withMessage('Display name must be between 1 and 255 characters'),
+    body('description').optional().isString().isLength({ max: 500 }).withMessage('Description must be less than 500 characters'),
+    body('displayOrder').optional().isInt({ min: 0 }).withMessage('Display order must be a positive integer')
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: formatValidationErrors(errors)
+      });
+    }
+
+    const { phaseId, sectionName, displayName, description, displayOrder } = req.body;
+    
+    console.log(`📝 WORKFLOW: Creating new section "${sectionName}" for phase ${phaseId}`);
+    
+    try {
+      // Check if phase exists
+      const phase = await prisma.workflowPhase.findUnique({
+        where: { id: phaseId }
+      });
+      
+      if (!phase) {
+        return res.status(404).json({
+          success: false,
+          message: 'Phase not found'
+        });
+      }
+      
+      // Get the next section number for this phase
+      const lastSection = await prisma.workflowSection.findFirst({
+        where: { phaseId },
+        orderBy: { sectionNumber: 'desc' }
+      });
+      
+      const nextSectionNumber = lastSection ? lastSection.sectionNumber + 1 : 1;
+      
+      // Get the next display order if not provided
+      const nextDisplayOrder = displayOrder || (lastSection ? lastSection.displayOrder + 1 : 1);
+      
+      // Create the section
+      const newSection = await prisma.workflowSection.create({
+        data: {
+          phaseId,
+          sectionNumber: nextSectionNumber,
+          sectionName,
+          displayName: displayName || sectionName,
+          displayOrder: nextDisplayOrder,
+          description,
+          isActive: true,
+          isCurrent: true,
+          version: 1
+        },
+        include: {
+          phase: {
+            select: {
+              id: true,
+              phaseType: true,
+              phaseName: true
+            }
+          }
+        }
+      });
+      
+      console.log(`✅ WORKFLOW: Successfully created section ${newSection.id}`);
+      
+      res.status(201).json({
+        success: true,
+        data: {
+          id: newSection.id,
+          sectionNumber: newSection.sectionNumber,
+          sectionName: newSection.sectionName,
+          displayName: newSection.displayName,
+          displayOrder: newSection.displayOrder,
+          description: newSection.description,
+          phase: {
+            id: newSection.phase.id,
+            phaseType: newSection.phase.phaseType,
+            phaseName: newSection.phase.phaseName
+          }
+        },
+        message: 'Section created successfully'
+      });
+      
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error creating section:', error);
+      throw new AppError('Failed to create section', 500);
+    }
+}));
+
+// @desc    Create a new workflow line item
+// @route   POST /api/workflows/line-items
+// @access  Private (Admin)
+router.post('/line-items', 
+  [
+    body('sectionId').isString().withMessage('Section ID is required'),
+    body('itemName').isString().isLength({ min: 1, max: 500 }).withMessage('Item name must be between 1 and 500 characters'),
+    body('responsibleRole').isIn(['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT']).withMessage('Valid responsible role is required'),
+    body('description').optional().isString().isLength({ max: 2000 }).withMessage('Description must be less than 2000 characters'),
+    body('displayOrder').optional().isInt({ min: 0 }).withMessage('Display order must be a positive integer'),
+    body('estimatedMinutes').optional().isInt({ min: 1 }).withMessage('Estimated minutes must be a positive integer'),
+    body('alertDays').optional().isInt({ min: 1 }).withMessage('Alert days must be a positive integer')
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: formatValidationErrors(errors)
+      });
+    }
+
+    const { sectionId, itemName, responsibleRole, description, displayOrder, estimatedMinutes, alertDays } = req.body;
+    
+    console.log(`📝 WORKFLOW: Creating new line item "${itemName}" for section ${sectionId}`);
+    
+    try {
+      // Check if section exists
+      const section = await prisma.workflowSection.findUnique({
+        where: { id: sectionId },
+        include: {
+          phase: {
+            select: {
+              id: true,
+              phaseType: true,
+              phaseName: true
+            }
+          }
+        }
+      });
+      
+      if (!section) {
+        return res.status(404).json({
+          success: false,
+          message: 'Section not found'
+        });
+      }
+      
+      // Get the next item letter for this section
+      const lastItem = await prisma.workflowLineItem.findFirst({
+        where: { sectionId },
+        orderBy: { itemLetter: 'desc' }
+      });
+      
+      // Generate next letter (a, b, c, etc.)
+      const nextLetter = lastItem ? 
+        String.fromCharCode(lastItem.itemLetter.charCodeAt(0) + 1) : 'a';
+      
+      // Get the next display order if not provided
+      const nextDisplayOrder = displayOrder || (lastItem ? lastItem.displayOrder + 1 : 1);
+      
+      // Create the line item
+      const newLineItem = await prisma.workflowLineItem.create({
+        data: {
+          sectionId,
+          itemLetter: nextLetter,
+          itemName,
+          responsibleRole,
+          displayOrder: nextDisplayOrder,
+          description,
+          estimatedMinutes: estimatedMinutes || 30,
+          alertDays: alertDays || 1,
+          isActive: true,
+          isCurrent: true,
+          version: 1
+        },
+        include: {
+          section: {
+            include: {
+              phase: {
+                select: {
+                  id: true,
+                  phaseType: true,
+                  phaseName: true
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      console.log(`✅ WORKFLOW: Successfully created line item ${newLineItem.id}`);
+      
+      res.status(201).json({
+        success: true,
+        data: {
+          id: newLineItem.id,
+          itemLetter: newLineItem.itemLetter,
+          itemName: newLineItem.itemName,
+          responsibleRole: newLineItem.responsibleRole,
+          displayOrder: newLineItem.displayOrder,
+          description: newLineItem.description,
+          estimatedMinutes: newLineItem.estimatedMinutes,
+          alertDays: newLineItem.alertDays,
+          section: {
+            id: newLineItem.section.id,
+            displayName: newLineItem.section.displayName,
+            sectionNumber: newLineItem.section.sectionNumber
+          },
+          phase: {
+            id: newLineItem.section.phase.id,
+            phaseType: newLineItem.section.phase.phaseType,
+            phaseName: newLineItem.section.phase.phaseName
+          }
+        },
+        message: 'Line item created successfully'
+      });
+      
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error creating line item:', error);
+      throw new AppError('Failed to create line item', 500);
+    }
+}));
+
 module.exports = router; 

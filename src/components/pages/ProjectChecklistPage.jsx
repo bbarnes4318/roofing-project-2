@@ -184,6 +184,32 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [highlightedSectionId, setHighlightedSectionId] = useState(targetSectionId);
   
   // =================================================================
+  // CREATE SECTION AND LINE ITEM STATES
+  // =================================================================
+  
+  // Section creation states
+  const [showCreateSectionModal, setShowCreateSectionModal] = useState(false);
+  const [createSectionData, setCreateSectionData] = useState({
+    sectionName: '',
+    displayName: '',
+    description: ''
+  });
+  const [selectedPhaseForSection, setSelectedPhaseForSection] = useState(null);
+  const [creatingSection, setCreatingSection] = useState(false);
+  
+  // Line item creation states
+  const [showCreateLineItemModal, setShowCreateLineItemModal] = useState(false);
+  const [createLineItemData, setCreateLineItemData] = useState({
+    itemName: '',
+    responsibleRole: 'WORKER',
+    description: '',
+    estimatedMinutes: 30,
+    alertDays: 1
+  });
+  const [selectedSectionForLineItem, setSelectedSectionForLineItem] = useState(null);
+  const [creatingLineItem, setCreatingLineItem] = useState(false);
+  
+  // =================================================================
   // CHECKBOX HANDLERS
   // =================================================================
   
@@ -335,6 +361,88 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   // =================================================================
   // CHECKBOX STATE CHECKER
   // =================================================================
+  
+  // =================================================================
+  // CREATE SECTION AND LINE ITEM HANDLERS
+  // =================================================================
+  
+  const handleCreateSection = async (e) => {
+    e.preventDefault();
+    if (!selectedPhaseForSection || !createSectionData.sectionName.trim()) return;
+    
+    setCreatingSection(true);
+    try {
+      const response = await api.post('/workflows/sections', {
+        phaseId: selectedPhaseForSection.id,
+        sectionName: createSectionData.sectionName.trim(),
+        displayName: createSectionData.displayName.trim() || createSectionData.sectionName.trim(),
+        description: createSectionData.description.trim() || null
+      });
+      
+      if (response.data.success) {
+        // Refresh workflow data to show new section
+        const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+        if (workflowResponse.data.success) {
+          setWorkflowData(workflowResponse.data.data);
+        }
+        
+        // Reset form
+        setCreateSectionData({ sectionName: '', displayName: '', description: '' });
+        setSelectedPhaseForSection(null);
+        setShowCreateSectionModal(false);
+        
+        console.log('✅ Section created successfully:', response.data.data);
+      }
+    } catch (error) {
+      console.error('❌ Error creating section:', error);
+      alert('Failed to create section. Please try again.');
+    } finally {
+      setCreatingSection(false);
+    }
+  };
+  
+  const handleCreateLineItem = async (e) => {
+    e.preventDefault();
+    if (!selectedSectionForLineItem || !createLineItemData.itemName.trim()) return;
+    
+    setCreatingLineItem(true);
+    try {
+      const response = await api.post('/workflows/line-items', {
+        sectionId: selectedSectionForLineItem.id,
+        itemName: createLineItemData.itemName.trim(),
+        responsibleRole: createLineItemData.responsibleRole,
+        description: createLineItemData.description.trim() || null,
+        estimatedMinutes: parseInt(createLineItemData.estimatedMinutes) || 30,
+        alertDays: parseInt(createLineItemData.alertDays) || 1
+      });
+      
+      if (response.data.success) {
+        // Refresh workflow data to show new line item
+        const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+        if (workflowResponse.data.success) {
+          setWorkflowData(workflowResponse.data.data);
+        }
+        
+        // Reset form
+        setCreateLineItemData({
+          itemName: '',
+          responsibleRole: 'WORKER',
+          description: '',
+          estimatedMinutes: 30,
+          alertDays: 1
+        });
+        setSelectedSectionForLineItem(null);
+        setShowCreateLineItemModal(false);
+        
+        console.log('✅ Line item created successfully:', response.data.data);
+      }
+    } catch (error) {
+      console.error('❌ Error creating line item:', error);
+      alert('Failed to create line item. Please try again.');
+    } finally {
+      setCreatingLineItem(false);
+    }
+  };
   
   const isItemChecked = (stepId) => {
     // Check immediate state first (highest priority)
@@ -772,18 +880,40 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
 
       {/* Current Workflow Title */}
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {currentWorkflow?.tradeName || 'Workflow'} Checklist
-          {currentWorkflow?.isMainWorkflow && (
-            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-              Main Workflow
-            </span>
-          )}
-        </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          {currentWorkflow?.completedCount || 0} of {currentWorkflow?.totalCount || 0} items completed 
-          ({currentWorkflow?.totalCount > 0 ? Math.round((currentWorkflow.completedCount / currentWorkflow.totalCount) * 100) : 0}%)
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {currentWorkflow?.tradeName || 'Workflow'} Checklist
+              {currentWorkflow?.isMainWorkflow && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  Main Workflow
+                </span>
+              )}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {currentWorkflow?.completedCount || 0} of {currentWorkflow?.totalCount || 0} items completed 
+              ({currentWorkflow?.totalCount > 0 ? Math.round((currentWorkflow.completedCount / currentWorkflow.totalCount) * 100) : 0}%)
+            </p>
+          </div>
+          
+          {/* Create Buttons */}
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowCreateSectionModal(true)}
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <PlusCircleIcon className="w-4 h-4 mr-1" />
+              Add Section
+            </button>
+            <button
+              onClick={() => setShowCreateLineItemModal(true)}
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <PlusCircleIcon className="w-4 h-4 mr-1" />
+              Add Line Item
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Checklist */}
@@ -978,6 +1108,249 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           <div className="mt-2 text-xs">
             Checked IDs: {Array.from(immediateState).slice(0, 5).join(', ')}
             {immediateState.size > 5 && '...'}
+          </div>
+        </div>
+      )}
+      
+      {/* Create Section Modal */}
+      {showCreateSectionModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Section</h3>
+              <form onSubmit={handleCreateSection}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phase
+                  </label>
+                  <select
+                    value={selectedPhaseForSection?.id || ''}
+                    onChange={(e) => {
+                      const phase = currentWorkflowPhases.find(p => p.id === e.target.value);
+                      setSelectedPhaseForSection(phase);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select a phase</option>
+                    {currentWorkflowPhases.map((phase) => (
+                      <option key={phase.id} value={phase.id}>
+                        {phase.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Section Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={createSectionData.sectionName}
+                    onChange={(e) => setCreateSectionData({...createSectionData, sectionName: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter section name"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    value={createSectionData.displayName}
+                    onChange={(e) => setCreateSectionData({...createSectionData, displayName: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter display name (optional)"
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={createSectionData.description}
+                    onChange={(e) => setCreateSectionData({...createSectionData, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter description (optional)"
+                    rows="3"
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateSectionModal(false);
+                      setCreateSectionData({ sectionName: '', displayName: '', description: '' });
+                      setSelectedPhaseForSection(null);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creatingSection || !selectedPhaseForSection || !createSectionData.sectionName.trim()}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {creatingSection ? 'Creating...' : 'Create Section'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Create Line Item Modal */}
+      {showCreateLineItemModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Line Item</h3>
+              <form onSubmit={handleCreateLineItem}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Section
+                  </label>
+                  <select
+                    value={selectedSectionForLineItem?.id || ''}
+                    onChange={(e) => {
+                      // Find the section across all phases
+                      let foundSection = null;
+                      for (const phase of currentWorkflowPhases) {
+                        const section = phase.items.find(s => s.id === e.target.value);
+                        if (section) {
+                          foundSection = section;
+                          break;
+                        }
+                      }
+                      setSelectedSectionForLineItem(foundSection);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select a section</option>
+                    {currentWorkflowPhases.map((phase) => (
+                      <optgroup key={phase.id} label={phase.label}>
+                        {phase.items.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Item Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={createLineItemData.itemName}
+                    onChange={(e) => setCreateLineItemData({...createLineItemData, itemName: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter item name"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Responsible Role *
+                  </label>
+                  <select
+                    value={createLineItemData.responsibleRole}
+                    onChange={(e) => setCreateLineItemData({...createLineItemData, responsibleRole: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="WORKER">Worker</option>
+                    <option value="FOREMAN">Foreman</option>
+                    <option value="PROJECT_MANAGER">Project Manager</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="CLIENT">Client</option>
+                  </select>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={createLineItemData.description}
+                    onChange={(e) => setCreateLineItemData({...createLineItemData, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter description (optional)"
+                    rows="3"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Estimated Minutes
+                    </label>
+                    <input
+                      type="number"
+                      value={createLineItemData.estimatedMinutes}
+                      onChange={(e) => setCreateLineItemData({...createLineItemData, estimatedMinutes: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="30"
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Alert Days
+                    </label>
+                    <input
+                      type="number"
+                      value={createLineItemData.alertDays}
+                      onChange={(e) => setCreateLineItemData({...createLineItemData, alertDays: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="1"
+                      min="1"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateLineItemModal(false);
+                      setCreateLineItemData({
+                        itemName: '',
+                        responsibleRole: 'WORKER',
+                        description: '',
+                        estimatedMinutes: 30,
+                        alertDays: 1
+                      });
+                      setSelectedSectionForLineItem(null);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creatingLineItem || !selectedSectionForLineItem || !createLineItemData.itemName.trim()}
+                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {creatingLineItem ? 'Creating...' : 'Create Line Item'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
