@@ -769,16 +769,18 @@ app.post('/api/demo/add-alerts', async (req, res) => {
   }
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: '🏗️ Kenstruction API Server',
-    version: '1.0.0',
-    status: 'active',
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
+// Root endpoint (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/', (req, res) => {
+    res.json({
+      message: '🏗️ Kenstruction API Server',
+      version: '1.0.0',
+      status: 'active',
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString()
+    });
   });
-});
+}
 
 // API status endpoint
 app.get('/api', (req, res) => {
