@@ -484,10 +484,21 @@ export default function App() {
             // Check if we're on My Messages page and need special handling
             if (activePage === 'Project Messages') {
                 console.log('🔍 APP: On My Messages page, using navigation context');
+                console.log('🔍 APP: navigationContext:', navigationState.navigationContext);
+                
+                // Check if this was a menu navigation (from left sidebar)
+                const isMenuNavigation = navigationState.navigationContext?.isMenuNavigation;
+                console.log('🔍 APP: isMenuNavigation:', isMenuNavigation);
                 
                 // Use the navigation context to determine where to go back to
                 const fromPage = navigationState.navigationContext?.fromPage;
-                if (fromPage && fromPage !== 'Project Messages') {
+                console.log('🔍 APP: fromPage:', fromPage);
+                
+                // If this was a menu navigation, always go back to the previous page
+                if (isMenuNavigation && fromPage && fromPage !== 'Project Messages') {
+                    console.log('🔍 APP: Menu navigation detected, going back to:', fromPage);
+                    setActivePage(fromPage);
+                } else if (fromPage && fromPage !== 'Project Messages') {
                     console.log('🔍 APP: Navigating back to:', fromPage);
                     setActivePage(fromPage);
                 } else {

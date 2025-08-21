@@ -596,8 +596,19 @@ const CurrentAlertsSection = ({
                         {alert.title}
                       </h3>
                       
-                      {/* Project Name */}
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                      {/* Project Name - Clickable to navigate to Project Profile */}
+                      <span 
+                        className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium cursor-pointer hover:bg-blue-200 transition-colors"
+                        title={`Click to view ${alert.projectName} profile`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const project = projects?.find(p => p.id === alert.projectId);
+                          if (project && onProjectSelect) {
+                            console.log('🎯 CURRENT_ALERTS CLICK: Navigating to project profile:', project.name);
+                            handleProjectSelectFromAlert(project, 'Profile', null, 'Current Alerts');
+                          }
+                        }}
+                      >
                         {alert.projectName}
                       </span>
                     </div>
@@ -920,7 +931,7 @@ const CurrentAlertsSection = ({
                         onClick={() => {
                           const project = projects?.find(p => p.id === alert.projectId);
                           if (project) {
-                            handleProjectSelectFromAlert(project, 'Projects', null, 'Current Alerts');
+                            handleProjectSelectFromAlert(project, 'Profile', null, 'Current Alerts');
                           }
                         }}
                         className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"

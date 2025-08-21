@@ -426,13 +426,22 @@ const ProjectProfilePage = ({
             {/* Header Section */}
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-                            Project Profile
-                        </h1>
-                        <p className="text-gray-600">
-                            Comprehensive project management and customer information
-                        </p>
+                    <div className="flex items-center gap-4">
+                        {onNavigateBack && (
+                            <ResponsiveBackButton
+                                onClick={onNavigateBack}
+                                colorMode={colorMode}
+                                className="mr-2"
+                            />
+                        )}
+                        <div>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                                Project Profile
+                            </h1>
+                            <p className="text-gray-600">
+                                Comprehensive project management and customer information
+                            </p>
+                        </div>
                     </div>
                     <button
                         onClick={() => {

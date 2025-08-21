@@ -233,10 +233,29 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
           console.log(`✅ Row ${i + 1}: Upserted record successfully (${uniqueField}: ${cleanRecord[uniqueField]})`);
         } else if (compositeUniqueFields && compositeUniqueFields.every(field => cleanRecord[field])) {
           // Composite field upsert operation - create if not exists, update if exists
-          const whereClause = {};
-          compositeUniqueFields.forEach(field => {
-            whereClause[field] = cleanRecord[field];
-          });
+          // For models with compound unique constraints, use the specific format
+          let whereClause;
+          if (modelName === 'WorkflowSection') {
+            whereClause = {
+              phaseId_sectionNumber: {
+                phaseId: cleanRecord.phaseId,
+                sectionNumber: cleanRecord.sectionNumber
+              }
+            };
+          } else if (modelName === 'WorkflowLineItem') {
+            whereClause = {
+              sectionId_itemLetter: {
+                sectionId: cleanRecord.sectionId,
+                itemLetter: cleanRecord.itemLetter
+              }
+            };
+          } else {
+            // For other composite unique constraints, use the standard format
+            whereClause = {};
+            compositeUniqueFields.forEach(field => {
+              whereClause[field] = cleanRecord[field];
+            });
+          }
           
           await prisma[modelName].upsert({
             where: whereClause,

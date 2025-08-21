@@ -79,6 +79,24 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
     console.log('🔍 MY MESSAGES: navigationContext:', navigationContext);
     console.log('🔍 MY MESSAGES: previousPage:', previousPage);
     
+    // Check if this was a menu navigation (from left sidebar) - prioritize this
+    const isMenuNavigation = navigationContext?.isMenuNavigation;
+    console.log('🔍 MY MESSAGES: isMenuNavigation:', isMenuNavigation);
+    
+    // If this was a menu navigation, use the navigation context directly
+    if (isMenuNavigation) {
+      const fromPage = navigationContext?.fromPage;
+      console.log('🔍 MY MESSAGES: Menu navigation detected, going back to:', fromPage);
+      if (fromPage && fromPage !== 'Project Messages') {
+        if (onProjectSelect) {
+          onProjectSelect(null, fromPage);
+        } else {
+          window.location.href = '/';
+        }
+        return;
+      }
+    }
+    
     if (canGoBack()) {
       console.log('🔍 MY MESSAGES: Using navigation history for back navigation');
       
@@ -111,6 +129,25 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
   // Handle manual back navigation when navigation history doesn't suffice
   const handleManualBackNavigation = (previousEntry) => {
     console.log('🔍 MY MESSAGES: Handling manual back navigation to:', previousEntry.pageName);
+    console.log('🔍 MY MESSAGES: navigationContext:', navigationContext);
+    
+    // Check if this was a menu navigation (from left sidebar)
+    const isMenuNavigation = navigationContext?.isMenuNavigation;
+    console.log('🔍 MY MESSAGES: isMenuNavigation:', isMenuNavigation);
+    
+    // If this was a menu navigation, use the navigation context to go back
+    if (isMenuNavigation) {
+      const fromPage = navigationContext?.fromPage;
+      console.log('🔍 MY MESSAGES: Menu navigation detected, going back to:', fromPage);
+      if (fromPage && fromPage !== 'Project Messages') {
+        if (onProjectSelect) {
+          onProjectSelect(null, fromPage);
+        } else {
+          window.location.href = '/';
+        }
+        return;
+      }
+    }
     
     // Check if we need to navigate to a specific page or section
     if (previousEntry.pageName === 'Dashboard' || previousEntry.pageName === 'Overview') {
@@ -152,11 +189,28 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
   // Handle fallback navigation when no history is available
   const handleFallbackNavigation = () => {
     console.log('🔍 MY MESSAGES: Handling fallback navigation');
+    console.log('🔍 MY MESSAGES: navigationContext:', navigationContext);
+    
+    // Check if this was a menu navigation (from left sidebar)
+    const isMenuNavigation = navigationContext?.isMenuNavigation;
+    console.log('🔍 MY MESSAGES: isMenuNavigation:', isMenuNavigation);
     
     // Use the navigation context from App.jsx if available
     const fromPage = navigationContext?.fromPage || previousPage;
     console.log('🔍 MY MESSAGES: From page from context:', fromPage);
     
+    // If this was a menu navigation, always go back to the previous page
+    if (isMenuNavigation && fromPage && fromPage !== 'Project Messages') {
+      console.log('🔍 MY MESSAGES: Menu navigation detected, going back to:', fromPage);
+      if (onProjectSelect) {
+        onProjectSelect(null, fromPage);
+      } else {
+        window.location.href = '/';
+      }
+      return;
+    }
+    
+    // For non-menu navigation, use the existing logic
     if (fromPage && fromPage !== 'Project Messages') {
       console.log('🔍 MY MESSAGES: Navigating back to:', fromPage);
       if (onProjectSelect) {
