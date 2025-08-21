@@ -497,7 +497,19 @@ export default function App() {
                 // If this was a menu navigation, always go back to the previous page
                 if (isMenuNavigation && fromPage && fromPage !== 'Project Messages') {
                     console.log('🔍 APP: Menu navigation detected, going back to:', fromPage);
-                    setActivePage(fromPage);
+                    
+                    // Special handling: if coming from Overview, go back to Overview and scroll to My Project Messages section
+                    if (fromPage === 'Overview') {
+                        setActivePage('Overview');
+                        setTimeout(() => {
+                            const messagesSection = document.querySelector('[data-section="project-messages"]');
+                            if (messagesSection) {
+                                messagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 150);
+                    } else {
+                        setActivePage(fromPage);
+                    }
                 } else if (fromPage && fromPage !== 'Project Messages') {
                     console.log('🔍 APP: Navigating back to:', fromPage);
                     setActivePage(fromPage);
@@ -524,6 +536,14 @@ export default function App() {
         console.log('🔍 APP: sourceSection:', sourceSection);
         console.log('🔍 APP: targetLineItemId:', targetLineItemId);
         console.log('🔍 APP: targetSectionId:', targetSectionId);
+        
+        // Special case: if project is null and view is a page name, just navigate to that page
+        if (!project && (view === 'Overview' || view === 'Projects' || view === 'Project Messages' || view === 'AI Assistant' || view === 'AI Tools' || view === 'Company Calendar' || view === 'Archived Projects' || view === 'Settings' || view === 'Estimator')) {
+            console.log('🔍 APP: Null project with page navigation, going to:', view);
+            setActivePage(view);
+            setSidebarOpen(false);
+            return;
+        }
         
         // If view is 'Projects', navigate to Projects page instead of ProjectDetailPage
         if (view === 'Projects') {
