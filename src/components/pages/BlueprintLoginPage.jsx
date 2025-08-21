@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { authService } from '../../services/api';
+import React, { useState, useEffect } from 'react';
+import { authService, API_BASE_URL } from '../../services/api';
 
 const BlueprintLoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
   // State for form data, password visibility, loading, and errors
@@ -8,9 +8,30 @@ const BlueprintLoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [apiInfo, setApiInfo] = useState({ url: '', healthy: null, message: '' });
 
   // Check if both fields have values to enable/disable button
   const isFormValid = formData.email.trim() !== '' && formData.password.trim() !== '';
+
+  // On mount, probe API health and show exact URL being used
+  useEffect(() => {
+    const url = API_BASE_URL || '';
+    setApiInfo(prev => ({ ...prev, url }));
+    const healthUrl = (url || '').replace(/\/$/, '') + '/health';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    fetch(healthUrl, { signal: controller.signal })
+      .then(async (res) => {
+        clearTimeout(timeout);
+        const ok = res.ok;
+        setApiInfo({ url, healthy: ok, message: ok ? 'OK' : `HTTP ${res.status}` });
+      })
+      .catch((err) => {
+        clearTimeout(timeout);
+        setApiInfo({ url, healthy: false, message: err?.message || 'Network error' });
+      });
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Handles the login process
   const handleLogin = async (e) => {
@@ -85,6 +106,13 @@ const BlueprintLoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
       {/* Login form container */}
       <div className="w-full max-w-md mx-auto px-4 sm:px-6 animate-slideUp">
         <div className="relative">
+          {/* Connectivity banner */}
+          <div className="mb-3">
+            <div className={`text-[11px] rounded-lg border px-3 py-2 ${apiInfo.healthy === true ? 'border-green-400 text-green-300 bg-green-900/20' : apiInfo.healthy === false ? 'border-red-400 text-red-300 bg-red-900/20' : 'border-yellow-400 text-yellow-300 bg-yellow-900/20'}`}>
+              <div><span className="font-semibold">API:</span> {apiInfo.url || '(resolving...)'}</div>
+              <div><span className="font-semibold">Health:</span> {apiInfo.healthy === null ? 'Checking…' : apiInfo.healthy ? 'OK' : `Down (${apiInfo.message})`}</div>
+            </div>
+          </div>
           {/* Main login card */}
           <div className="login-card relative bg-gradient-to-br from-neutral-800/90 to-neutral-900/95 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-8 sm:p-12">
             
