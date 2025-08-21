@@ -609,7 +609,173 @@ const CurrentAlertsSection = ({
                     
                     {/* Meta Info */}
                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>Step: {alert.stepName}</span>
+                      {/* Line Item - Clickable to navigate to Project Workflow */}
+                      <div className="flex items-center gap-1">
+                        <span>Line Item:</span>
+                        <span 
+                          className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
+                            colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                          }`}
+                          title={alert.stepName}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const project = projects?.find(p => p.id === alert.projectId);
+                            if (project && onProjectSelect) {
+                              console.log('🎯 CURRENT_ALERTS CLICK: Starting alert line item navigation');
+                              console.log('🎯 CURRENT_ALERTS CLICK: Project:', project.name);
+                              console.log('🎯 CURRENT_ALERTS CLICK: Line Item:', alert.stepName);
+                              
+                              try {
+                                // Use the same logic as DashboardPage for navigation
+                                const metadata = alert.metadata || {};
+                                const phase = metadata.phase || alert.phase || 'LEAD';
+                                const sectionName = metadata.section || alert.section || 'Unknown Section';
+                                const lineItemName = alert.stepName || alert.title || 'Unknown Item';
+                                
+                                // Get project position data for proper targeting
+                                const positionResponse = await api.get(`/workflow-data/project-position/${project.id}`);
+                                
+                                if (positionResponse.data) {
+                                  const positionResult = positionResponse.data;
+                                  if (positionResult.success && positionResult.data) {
+                                    const position = positionResult.data;
+                                    
+                                    // Generate targetLineItemId and targetSectionId like Dashboard
+                                    const targetLineItemId = alert.stepId || metadata.stepId || `${position.currentPhase}-${position.currentSection}-0`;
+                                    const targetSectionId = metadata.sectionId || position.currentSection;
+                                    
+                                    const projectWithNavigation = {
+                                      ...project,
+                                      highlightStep: lineItemName,
+                                      highlightLineItem: lineItemName,
+                                      targetPhase: phase,
+                                      targetSection: sectionName,
+                                      targetLineItem: lineItemName,
+                                      scrollToCurrentLineItem: true,
+                                      alertPhase: phase,
+                                      navigationTarget: {
+                                        phase: phase,
+                                        section: sectionName,
+                                        lineItem: lineItemName,
+                                        stepName: lineItemName,
+                                        alertId: alert.id,
+                                        lineItemId: alert.stepId || metadata.stepId || alert.stepId,
+                                        workflowId: alert.workflowId || metadata.workflowId,
+                                        highlightMode: 'line-item',
+                                        scrollBehavior: 'smooth',
+                                        targetElementId: `lineitem-${alert.stepId || metadata.stepId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                        highlightColor: '#0066CC',
+                                        highlightDuration: 3000
+                                      }
+                                    };
+                                    
+                                    handleProjectSelectFromAlert(
+                                      projectWithNavigation,
+                                      'Project Workflow',
+                                      null,
+                                      'Current Alerts',
+                                      targetLineItemId,
+                                      targetSectionId,
+                                      alert.id
+                                    );
+                                  } else {
+                                    // Fallback navigation
+                                    const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                    const targetSectionId = metadata.sectionId || sectionName;
+                                    const projectWithStepInfo = {
+                                      ...project,
+                                      highlightStep: lineItemName,
+                                      highlightLineItem: lineItemName,
+                                      targetPhase: phase,
+                                      targetSection: sectionName,
+                                      targetLineItem: lineItemName,
+                                      scrollToCurrentLineItem: true,
+                                      alertPhase: phase,
+                                      navigationTarget: {
+                                        phase: phase,
+                                        section: sectionName,
+                                        lineItem: lineItemName,
+                                        stepName: lineItemName,
+                                        alertId: alert.id,
+                                        lineItemId: alert.stepId || metadata.stepId,
+                                        workflowId: alert.workflowId,
+                                        highlightMode: 'line-item',
+                                        scrollBehavior: 'smooth',
+                                        targetElementId: `lineitem-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                        highlightColor: '#0066CC',
+                                        highlightDuration: 3000
+                                      }
+                                    };
+                                    handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
+                                  }
+                                } else {
+                                  console.error('🎯 CURRENT_ALERTS CLICK: Failed to get project position, using fallback navigation');
+                                  // Fallback to basic navigation
+                                  const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                  const targetSectionId = metadata.sectionId || sectionName;
+                                  const projectWithStepInfo = {
+                                    ...project,
+                                    highlightStep: lineItemName,
+                                    highlightLineItem: lineItemName,
+                                    targetPhase: phase,
+                                    targetSection: sectionName,
+                                    targetLineItem: lineItemName,
+                                    scrollToCurrentLineItem: true,
+                                    alertPhase: phase,
+                                    navigationTarget: {
+                                      phase: phase,
+                                      section: sectionName,
+                                      lineItem: lineItemName,
+                                      stepName: lineItemName,
+                                      alertId: alert.id,
+                                      lineItemId: alert.stepId || metadata.stepId,
+                                      workflowId: alert.workflowId,
+                                      highlightMode: 'line-item',
+                                      scrollBehavior: 'smooth',
+                                      targetElementId: `lineitem-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                      highlightColor: '#0066CC',
+                                      highlightDuration: 3000
+                                    }
+                                  };
+                                  handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
+                                }
+                              } catch (error) {
+                                console.error('🎯 CURRENT_ALERTS CLICK: Error navigating to workflow step:', error);
+                                // Final fallback
+                                const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                const targetSectionId = metadata.sectionId || sectionName;
+                                const projectWithStepInfo = {
+                                  ...project,
+                                  highlightStep: lineItemName,
+                                  highlightLineItem: lineItemName,
+                                  targetPhase: phase,
+                                  targetSection: sectionName,
+                                  targetLineItem: lineItemName,
+                                  scrollToCurrentLineItem: true,
+                                  alertPhase: phase,
+                                  navigationTarget: {
+                                    phase: phase,
+                                    section: sectionName,
+                                    lineItem: lineItemName,
+                                    stepName: lineItemName,
+                                    alertId: alert.id,
+                                    lineItemId: alert.stepId || metadata.stepId,
+                                    workflowId: alert.workflowId,
+                                    highlightMode: 'line-item',
+                                    scrollBehavior: 'smooth',
+                                    targetElementId: `lineitem-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                    highlightColor: '#0066CC',
+                                    highlightDuration: 3000
+                                  }
+                                };
+                                handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
+                              }
+                            }
+                          }}
+                        >
+                          {alert.stepName}
+                        </span>
+                      </div>
                       <span>Role: {alert.responsibleRole}</span>
                       <span>Created: {new Date(alert.createdAt).toLocaleDateString()}</span>
                       {alert.dueDate && (
@@ -714,22 +880,22 @@ const CurrentAlertsSection = ({
                                   );
                                 } else {
                                   // Fallback navigation
-                                  handleProjectSelectFromAlert(project, 'Project Workflow', {
-                                    targetStepId: alert.stepId,
-                                    targetSectionId: alert.sectionId || metadata.sectionId
-                                  });
+                                  const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                  const targetSectionId = metadata.sectionId || sectionName;
+                                  handleProjectSelectFromAlert(project, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
                                 }
                               } else {
                                 // Fallback navigation
-                                handleProjectSelectFromAlert(project, 'Project Workflow', {
-                                  targetStepId: alert.stepId,
-                                  targetSectionId: alert.sectionId || metadata.sectionId
-                                });
+                                const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                const targetSectionId = metadata.sectionId || sectionName;
+                                handleProjectSelectFromAlert(project, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
                               }
                             } catch (error) {
                               console.error('Error navigating to workflow step:', error);
                               // Final fallback
-                              handleProjectSelectFromAlert(project, 'Project Workflow');
+                              const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                              const targetSectionId = metadata.sectionId || sectionName;
+                              handleProjectSelectFromAlert(project, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
                             }
                           }
                         }}

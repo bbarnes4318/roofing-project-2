@@ -111,6 +111,7 @@ try {
 const AlertCacheService = require('./services/AlertCacheService');
 
 // Initialize Express app
+global.__DB_CONNECTED__ = false;
 const app = express();
 const server = http.createServer(app);
 
@@ -130,6 +131,7 @@ app.set('io', io);
 // Connect to PostgreSQL with better error handling
 connectDatabase()
   .then(() => {
+    global.__DB_CONNECTED__ = true;
     console.log('✅ Database connection established, initializing services...');
     
     // Initialize services after database connection
@@ -163,6 +165,7 @@ connectDatabase()
   .catch(error => {
     console.error('❌ Database connection failed:', error.message);
     console.error('🔍 Error details:', error);
+    global.__DB_CONNECTED__ = false;
     // Continue startup without database for debugging
     console.log('⚠️  Continuing startup without database connection...');
   });

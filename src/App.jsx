@@ -431,12 +431,16 @@ export default function App() {
             ...prev,
             previousPage: activePage,
             selectedProject: null,
+            // Clear dashboard state when navigating to Overview via menu button
+            // This ensures no phases are auto-selected
+            dashboardState: page === 'Overview' ? null : prev.dashboardState,
             // Preserve any existing navigation context
             navigationContext: {
                 ...prev.navigationContext,
                 fromPage: activePage,
                 toPage: page,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                isMenuNavigation: true // Flag to indicate this is menu navigation, not back navigation
             }
         }));
         setActivePage(page); 
@@ -458,6 +462,17 @@ export default function App() {
                     const messagesSection = document.querySelector('[data-section="project-messages"]');
                     if (messagesSection) {
                         messagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 150);
+                return;
+            }
+            // If user came from Current Alerts, go back to Overview and scroll to alerts section
+            if (navigationState.projectSourceSection === 'Current Alerts') {
+                setActivePage('Overview');
+                setTimeout(() => {
+                    const alertsSection = document.querySelector('[data-section="current-alerts"]');
+                    if (alertsSection) {
+                        alertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 }, 150);
                 return;
