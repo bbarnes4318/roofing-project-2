@@ -548,7 +548,7 @@ export default function App() {
                     }
                 };
                 console.log('🔍 APP: New navigationState:', newState);
-                console.log('🔍 APP: Preserved dashboard state:', project.dashboardState);
+                console.log('🔍 APP: Preserved dashboard state:', project?.dashboardState);
                 return newState;
             });
             setSidebarOpen(false);
@@ -576,13 +576,13 @@ export default function App() {
             projectSourceSection: sourceSection,
             previousPage: navigationState.selectedProject ? navigationState.previousPage : activePage,
             // Preserve the dashboard state for back navigation if provided
-            dashboardState: project.dashboardState || navigationState.dashboardState,
+            dashboardState: project?.dashboardState || navigationState.dashboardState,
             targetLineItemId: targetLineItemId, // For direct line item navigation
             targetSectionId: targetSectionId // For direct section navigation
         };
         
         console.log('🔍 APP: Setting navigationState:', newNavigationState);
-        console.log('🔍 APP: Dashboard state being preserved:', project.dashboardState);
+        console.log('🔍 APP: Dashboard state being preserved:', project?.dashboardState);
         setNavigationState(newNavigationState);
         setSidebarOpen(false);
     };
