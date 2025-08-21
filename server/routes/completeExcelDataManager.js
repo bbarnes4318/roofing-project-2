@@ -191,7 +191,21 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
       'User': 'email'
     };
 
+    // Define composite unique field mappings for upsert operations
+    const compositeUniqueFieldMappings = {
+      'WorkflowSection': ['phaseId', 'sectionNumber'],
+      'WorkflowLineItem': ['sectionId', 'itemLetter'],
+      'ProjectTeamMember': ['projectId', 'userId'],
+      'WorkflowStepAttachment': ['stepId', 'documentId'],
+      'TaskDependency': ['parentTaskId', 'dependentTaskId'],
+      'ConversationParticipant': ['conversationId', 'userId'],
+      'MessageRead': ['messageId', 'userId'],
+      'CalendarEventAttendee': ['eventId', 'userId'],
+      'ProjectWorkflowTracker': ['projectId', 'workflowType']
+    };
+
     const uniqueField = uniqueFieldMappings[modelName];
+    const compositeUniqueFields = compositeUniqueFieldMappings[modelName];
 
     // Process each record
     for (let i = 0; i < transformedData.length; i++) {
@@ -208,7 +222,7 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
 
         // Use upsert if we have a unique field mapping, otherwise use create
         if (uniqueField && cleanRecord[uniqueField]) {
-          // Upsert operation - create if not exists, update if exists
+          // Single field upsert operation - create if not exists, update if exists
           await prisma[modelName].upsert({
             where: {
               [uniqueField]: cleanRecord[uniqueField]
@@ -217,6 +231,19 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
             create: cleanRecord
           });
           console.log(`✅ Row ${i + 1}: Upserted record successfully (${uniqueField}: ${cleanRecord[uniqueField]})`);
+        } else if (compositeUniqueFields && compositeUniqueFields.every(field => cleanRecord[field])) {
+          // Composite field upsert operation - create if not exists, update if exists
+          const whereClause = {};
+          compositeUniqueFields.forEach(field => {
+            whereClause[field] = cleanRecord[field];
+          });
+          
+          await prisma[modelName].upsert({
+            where: whereClause,
+            update: cleanRecord,
+            create: cleanRecord
+          });
+          console.log(`✅ Row ${i + 1}: Composite upserted record successfully (${compositeUniqueFields.join(', ')}: ${compositeUniqueFields.map(field => cleanRecord[field]).join(', ')})`);
         } else {
           // Regular create operation
           await prisma[modelName].create({
