@@ -696,8 +696,8 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   const fs = require('fs');
   
-  // Dockerfile copies React build to /app/public
-  const buildPath = '/app/public';
+  // React build is copied to server/public during build process
+  const buildPath = path.join(__dirname, 'public');
   
   console.log('🏗️ Server directory:', __dirname);
   console.log('🏗️ Build path:', buildPath);
