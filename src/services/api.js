@@ -25,6 +25,16 @@ const getApiBaseUrl = () => {
 };
 
 export const API_BASE_URL = getApiBaseUrl();
+// Compute a safe same-origin fallback for production deployments
+const getSameOriginApi = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      return `${window.location.protocol}//${window.location.host}/api`;
+    }
+  } catch (_) {}
+  return null;
+};
+const SAME_ORIGIN_API = getSameOriginApi();
 
 // Request throttling to prevent excessive calls
 const requestCache = new Map();
@@ -94,6 +104,18 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Automatic fallback: if network error and a same-origin API is available, retry once
+    const isNetworkError = !error.response || error.message === 'Network Error' || error.code === 'ERR_NETWORK';
+    const isTimeout = error.code === 'ECONNABORTED' || /timeout/i.test(error.message || '');
+    if ((isNetworkError || isTimeout) && !error.config?.__triedSameOrigin && SAME_ORIGIN_API && api.defaults.baseURL !== SAME_ORIGIN_API) {
+      try {
+        const retryConfig = { ...error.config, baseURL: SAME_ORIGIN_API, __triedSameOrigin: true };
+        return api.request(retryConfig);
+      } catch (_) {
+        // fall through to normal handling
+      }
+    }
+
     // Treat 5xx as cacheable no-op for a short period to avoid refetch storms
     if (error.response?.status >= 500 && error.config?.method === 'get') {
       const cacheKey = `${error.config.url}${JSON.stringify(error.config.params || {})}`;
@@ -124,8 +146,6 @@ api.interceptors.response.use(
     
     // Add more specific error messages for common issues
     // Normalize network/timeout errors across environments
-    const isNetworkError = !error.response || error.message === 'Network Error' || error.code === 'ERR_NETWORK';
-    const isTimeout = error.code === 'ECONNABORTED' || /timeout/i.test(error.message || '');
     if (isNetworkError || isTimeout) {
       const base = API_BASE_URL || 'server';
       error.message = `Network error: Cannot reach ${base}. Please ensure the backend is running.`;
