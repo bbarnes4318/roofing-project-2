@@ -3,8 +3,42 @@
  * This provides validation, transformation, and upload support for every single field
  */
 
-// Import the complete schema from the export script
-const { DATABASE_SCHEMA } = require('../scripts/export-complete-database-schema');
+// Define a simplified field mapping for common tables
+const DATABASE_SCHEMA = {
+  users: {
+    fields: [
+      { name: 'id', type: 'String', constraint: 'Primary Key (CUID)' },
+      { name: 'firstName', type: 'String', constraint: 'VarChar(50), Required' },
+      { name: 'lastName', type: 'String', constraint: 'VarChar(50), Required' },
+      { name: 'email', type: 'String', constraint: 'Unique, VarChar(255)' },
+      { name: 'phone', type: 'String?', constraint: 'Optional, VarChar(20)' },
+      { name: 'role', type: 'UserRole', constraint: 'Enum, Default: WORKER', enumValues: ['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT'] },
+      { name: 'isActive', type: 'Boolean', constraint: 'Default: true' }
+    ]
+  },
+  projects: {
+    fields: [
+      { name: 'id', type: 'String', constraint: 'Primary Key (CUID)' },
+      { name: 'projectName', type: 'String', constraint: 'VarChar(200), Required' },
+      { name: 'projectType', type: 'ProjectType', constraint: 'Enum, Required', enumValues: ['ROOF_REPLACEMENT', 'KITCHEN_REMODEL', 'BATHROOM_RENOVATION', 'SIDING_INSTALLATION', 'WINDOW_REPLACEMENT', 'FLOORING', 'PAINTING', 'ELECTRICAL_WORK', 'PLUMBING', 'HVAC', 'DECK_CONSTRUCTION', 'LANDSCAPING', 'OTHER'] },
+      { name: 'status', type: 'ProjectStatus', constraint: 'Enum, Default: PLANNING', enumValues: ['PLANNING', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'] },
+      { name: 'startDate', type: 'DateTime?', constraint: 'Optional' },
+      { name: 'endDate', type: 'DateTime?', constraint: 'Optional' },
+      { name: 'budget', type: 'Decimal?', constraint: 'Optional' },
+      { name: 'description', type: 'String?', constraint: 'Optional, VarChar(2000)' }
+    ]
+  },
+  customers: {
+    fields: [
+      { name: 'id', type: 'String', constraint: 'Primary Key (CUID)' },
+      { name: 'primaryName', type: 'String', constraint: 'VarChar(100), Required' },
+      { name: 'primaryEmail', type: 'String', constraint: 'Unique, VarChar(255)' },
+      { name: 'primaryPhone', type: 'String', constraint: 'VarChar(20), Required' },
+      { name: 'address', type: 'String', constraint: 'VarChar(500), Required' },
+      { name: 'notes', type: 'String?', constraint: 'Optional, VarChar(2000)' }
+    ]
+  }
+};
 
 /**
  * Field transformation functions
@@ -101,6 +135,23 @@ const FieldValidators = {
   enum: (value, fieldName, enumValues) => {
     if (value && !enumValues.includes(value)) {
       return `${fieldName} must be one of: ${enumValues.join(', ')}`;
+    }
+    return null;
+  },
+  
+  maxLength: (value, fieldName, maxLength) => {
+    if (value && value.length > maxLength) {
+      return `${fieldName} must be ${maxLength} characters or less`;
+    }
+    return null;
+  },
+  
+  range: (value, fieldName, min, max) => {
+    if (value !== null && value !== undefined) {
+      const num = parseFloat(value);
+      if (isNaN(num) || num < min || num > max) {
+        return `${fieldName} must be between ${min} and ${max}`;
+      }
     }
     return null;
   },
