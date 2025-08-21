@@ -15,42 +15,11 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Check if it's a demo token first (no DB lookup to avoid startup races)
-    if (token.startsWith('demo-david-chen-token-')) {
-      req.user = {
-        id: 'cmei0o5k50000um0867bwnhzu',
-        firstName: 'David',
-        lastName: 'Chen',
-        email: 'david.chen@kenstruction.com',
-        role: 'MANAGER',
-        isActive: true,
-        company: 'Kenstruction',
-        position: 'Manager',
-        department: 'Office',
-        isVerified: true
-      };
-      return next();
-    }
-    
-    // Legacy Sarah Owner token support
-    if (token.startsWith('demo-sarah-owner-token-')) {
-      req.user = {
-        id: 'demo-sarah-owner-id',
-        firstName: 'Sarah',
-        lastName: 'Owner',
-        email: 'sarah@example.com',
-        role: 'ADMIN',
-        isActive: true,
-        company: 'Kenstruction',
-        position: 'Owner',
-        department: 'Management',
-        isVerified: true
-      };
-      return next();
-    }
+    // Strict auth: no demo token bypasses
 
-    // Verify JWT token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify JWT token (use same fallback as generator)
+    const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
+    const decoded = jwt.verify(token, secret);
     
     // Get user from database
     const user = await prisma.user.findUnique({
@@ -148,7 +117,8 @@ const optionalAuth = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1];
 
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
+      const decoded = jwt.verify(token, secret);
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
         select: {
@@ -203,7 +173,8 @@ const generateToken = (userId, role = 'user') => {
 // Verify token without middleware (for Socket.IO, etc.)
 const verifyToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
+    return jwt.verify(token, secret);
   } catch (error) {
     return null;
   }

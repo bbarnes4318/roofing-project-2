@@ -57,12 +57,8 @@ api.interceptors.request.use(
         });
       }
     }
-    // Prefer sessionStorage when present (for non-remembered sessions)
-    let token =
-      sessionStorage.getItem('authToken') ||
-      localStorage.getItem('authToken') ||
-      sessionStorage.getItem('token') ||
-      localStorage.getItem('token');
+    // Single-source token
+    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -124,11 +120,7 @@ api.interceptors.response.use(
       message: error.message
     });
     
-    if (error.response?.status === 401) {
-      console.warn('🔐 UNAUTHORIZED: Ignoring 401 error (mock auth mode)');
-      // Don't clear tokens since we're using mock authentication
-      // Just log the error for debugging
-    }
+    // 401s are handled by login screen transitions in app
     
     // Add more specific error messages for common issues
     // Normalize network/timeout errors across environments

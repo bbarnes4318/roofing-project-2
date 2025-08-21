@@ -39,16 +39,13 @@ const RegisterPage = ({ onRegisterSuccess, onSwitchToLogin }) => {
       // Persist session based on rememberMe
       if (rememberMe) {
         localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
       } else {
         sessionStorage.setItem('authToken', response.data.token);
-        sessionStorage.setItem('token', response.data.token);
         sessionStorage.setItem('user', JSON.stringify(response.data.user));
         // Ensure no leftovers in localStorage
         try {
           localStorage.removeItem('authToken');
-          localStorage.removeItem('token');
           localStorage.removeItem('user');
         } catch (_) {}
       }

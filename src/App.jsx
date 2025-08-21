@@ -150,14 +150,9 @@ export default function App() {
     // Handle successful login
     const handleLoginSuccess = (user, token) => {
         const storedUser = user || authService.getStoredUser();
-        const storedToken = token || sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || localStorage.getItem('token');
+        const storedToken = token || sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
         setCurrentUser(storedUser || null);
         setIsAuthenticated(Boolean(storedToken));
-        if (storedToken) {
-            // Normalize keys in both storages for downstream consumers
-            try { localStorage.setItem('token', storedToken); localStorage.setItem('authToken', storedToken); } catch (_) {}
-            try { sessionStorage.setItem('token', storedToken); sessionStorage.setItem('authToken', storedToken); } catch (_) {}
-        }
     };
 
     // Handle logout

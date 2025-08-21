@@ -205,25 +205,7 @@ router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, r
     });
   }
 
-  // Optional fast-path demo login if explicitly enabled via env
-  if (process.env.DEMO_LOGIN_ENABLED === 'true') {
-    const token = generateToken('demo-user-id');
-    return res.json({
-      success: true,
-      message: 'Login successful (demo mode)',
-      data: {
-        user: {
-          id: 'demo-user-id',
-          firstName: 'Demo',
-          lastName: 'User',
-          email: 'demo@example.com',
-          role: 'ADMIN',
-          isVerified: true
-        },
-        token
-      }
-    });
-  }
+  // No demo login in production
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
