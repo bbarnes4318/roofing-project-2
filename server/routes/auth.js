@@ -128,6 +128,33 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, res, next) => {
+  // Fail-fast if server is not ready to avoid client-side network timeouts
+  if (global.__DB_CONNECTED__ === false) {
+    return res.status(503).json({
+      success: false,
+      message: 'Service temporarily unavailable. Please try again shortly.'
+    });
+  }
+
+  // Optional fast-path demo login if explicitly enabled via env
+  if (process.env.DEMO_LOGIN_ENABLED === 'true') {
+    const token = generateToken('demo-user-id');
+    return res.json({
+      success: true,
+      message: 'Login successful (demo mode)',
+      data: {
+        user: {
+          id: 'demo-user-id',
+          firstName: 'Demo',
+          lastName: 'User',
+          email: 'demo@example.com',
+          role: 'ADMIN',
+          isVerified: true
+        },
+        token
+      }
+    });
+  }
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
