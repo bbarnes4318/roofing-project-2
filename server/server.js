@@ -722,7 +722,12 @@ if (process.env.NODE_ENV === 'production') {
   }));
   
   // Serve React app for all non-API routes
-  app.get('*', (req, res) => {
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
     const indexPath = path.join(buildPath, 'index.html');
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
