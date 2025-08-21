@@ -180,13 +180,18 @@ const optionalAuth = async (req, res, next) => {
 
 // Generate JWT token
 const generateToken = (userId, role = 'user') => {
+  // Provide a safe dev fallback to avoid startup crashes during local testing
+  const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
+  if (!process.env.JWT_SECRET) {
+    console.warn('⚠️ Using DEV JWT secret fallback. Set JWT_SECRET in environment for production.');
+  }
   return jwt.sign(
     { 
       id: userId,
       role: role,
       iat: Math.floor(Date.now() / 1000)
     },
-    process.env.JWT_SECRET,
+    secret,
     { 
       expiresIn: process.env.JWT_EXPIRE || '30d',
       issuer: 'kenstruction-api',

@@ -16,6 +16,13 @@ const {
 } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
+// Dev fallback store when DB is not connected
+let DevUserStore;
+try {
+  DevUserStore = require('../services/DevUserStore');
+} catch (_) {
+  DevUserStore = null;
+}
 const router = express.Router();
 
 // Validation rules
@@ -83,6 +90,39 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
 
   const { firstName, lastName, email, password, role, phone, position } = req.body;
 
+  // If DB unavailable, use dev fallback
+  if (global.__DB_CONNECTED__ === false && DevUserStore) {
+    try {
+      const existingUser = await DevUserStore.findUserByEmail(email);
+      if (existingUser) {
+        return next(new AppError('User already exists with this email', 400));
+      }
+      const user = await DevUserStore.createUser({ firstName, lastName, email, password, role: (role || 'WORKER').toUpperCase(), phone, position });
+      const token = generateToken(user.id, user.role);
+      return res.status(201).json({
+        success: true,
+        message: 'User registered successfully (dev store)',
+        data: {
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            isVerified: user.isVerified
+          },
+          token
+        }
+      });
+    } catch (err) {
+      if (err?.code === 'USER_EXISTS') {
+        return next(new AppError('User already exists with this email', 400));
+      }
+      return next(new AppError('Registration failed (dev store)', 500));
+    }
+  }
+
+  // Normal DB-backed path
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
@@ -128,11 +168,40 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, res, next) => {
-  // Fail-fast if server is not ready to avoid client-side network timeouts
-  if (global.__DB_CONNECTED__ === false) {
-    return res.status(503).json({
-      success: false,
-      message: 'Service temporarily unavailable. Please try again shortly.'
+  // If DB is unavailable, use dev fallback instead of 503
+  if (global.__DB_CONNECTED__ === false && DevUserStore) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: formatValidationErrors(errors)
+      });
+    }
+    const { email, password } = req.body;
+    const user = await DevUserStore.findUserByEmail(email);
+    if (!user) {
+      return next(new AppError('Invalid credentials', 401));
+    }
+    const ok = await DevUserStore.verifyPassword(user, password);
+    if (!ok) {
+      return next(new AppError('Invalid credentials', 401));
+    }
+    const token = generateToken(user.id, user.role);
+    return res.json({
+      success: true,
+      message: 'Login successful (dev store)',
+      data: {
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified
+        },
+        token
+      }
     });
   }
 

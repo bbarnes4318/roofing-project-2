@@ -216,9 +216,9 @@ const authLimiter = rateLimit({
 // app.use('/api/auth', authLimiter);
 // app.use(limiter); // Temporarily disabled for debugging
 
-// CORS configuration (temporarily permissive to stop CORS 500s)
+// CORS configuration (temporarily permissive to stop CORS issues)
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => callback(null, true),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
