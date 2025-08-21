@@ -2,25 +2,25 @@ import axios from 'axios';
 
 // Dynamic API Configuration
 const getApiBaseUrl = () => {
-  // Prefer explicit configuration in development when available
-  const envApiUrl = process.env.REACT_APP_API_URL || process.env.NEXT_PUBLIC_API_URL;
+  // Always prefer explicit configuration from environment variables
+  const envApiUrl = process.env.REACT_APP_API_URL || process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
+  if (envApiUrl && typeof envApiUrl === 'string') {
+    return envApiUrl;
+  }
 
+  // Fallbacks based on runtime location
   try {
     const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-
-    // In production (non-local), use same-origin API path
     if (!isLocalhost && typeof window !== 'undefined') {
+      // Same-origin default in production when no env override provided
       return `${window.location.protocol}//${window.location.host}/api`;
     }
   } catch (_) {
     // Ignore window access errors (e.g., during SSR/build)
   }
 
-  // Development: use env override if provided, otherwise default to server's actual port (8080)
-  if (envApiUrl) {
-    return envApiUrl;
-  }
+  // Local development default when no env override provided
   return 'http://localhost:8080/api';
 };
 
