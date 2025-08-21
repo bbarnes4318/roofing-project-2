@@ -2,14 +2,26 @@ import axios from 'axios';
 
 // Dynamic API Configuration
 const getApiBaseUrl = () => {
-  // Check if we're in production (Digital Ocean)
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    // Use the current domain for production on Digital Ocean
-    return `${window.location.protocol}//${window.location.host}/api`;
+  // Always prefer explicit configuration from environment variables
+  const envApiUrl = process.env.REACT_APP_API_URL || process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
+  if (envApiUrl && typeof envApiUrl === 'string') {
+    return envApiUrl;
   }
-  // Local development
-  // Use the same dev API port as other pages (e.g., calendar) to avoid mixed backends
-  return 'http://localhost:5000/api';
+
+  // Fallbacks based on runtime location
+  try {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (!isLocalhost && typeof window !== 'undefined') {
+      // Same-origin default in production when no env override provided
+      return `${window.location.protocol}//${window.location.host}/api`;
+    }
+  } catch (_) {
+    // Ignore window access errors (e.g., during SSR/build)
+  }
+
+  // Local development default when no env override provided
+  return 'http://localhost:8080/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
