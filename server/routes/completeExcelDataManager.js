@@ -207,6 +207,13 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
     const uniqueField = uniqueFieldMappings[modelName];
     const compositeUniqueFields = compositeUniqueFieldMappings[modelName];
 
+    // Preload FK existence sets for better errors and to avoid FK explosions
+    let existingSectionIds = null;
+    if (modelName === 'WorkflowLineItem') {
+      const sections = await prisma.workflowSection.findMany({ select: { id: true } });
+      existingSectionIds = new Set(sections.map(s => s.id));
+    }
+
     // Process each record
     for (let i = 0; i < transformedData.length; i++) {
       try {
@@ -219,6 +226,17 @@ const createRecordsInDatabase = async (tableName, transformedData) => {
             cleanRecord[key] = value;
           }
         });
+
+        // Validate foreign keys early for clearer messages
+        if (modelName === 'WorkflowLineItem') {
+          const secId = cleanRecord.sectionId;
+          if (!secId) {
+            throw new Error("Missing required field 'sectionId' for workflow_line_items");
+          }
+          if (existingSectionIds && !existingSectionIds.has(secId)) {
+            throw new Error(`Referenced sectionId '${secId}' not found. Upload 'workflow_sections' first or correct the sectionId.`);
+          }
+        }
 
         // Use upsert if we have a unique field mapping, otherwise use create
         if (uniqueField && cleanRecord[uniqueField]) {
@@ -437,29 +455,53 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       errors: []
     };
 
-    // Process each sheet
+    // Prepare sheets with detected tables, then process in dependency-safe order
+    const dependencyRank = (tbl) => {
+      switch (tbl) {
+        case 'workflow_phases': return 0;
+        case 'workflow_sections': return 1;
+        case 'workflow_line_items': return 2;
+        case 'project_workflow_trackers': return 3;
+        case 'completed_workflow_items': return 4;
+        default: return 10;
+      }
+    };
+
+    const sheetsToProcess = [];
     for (const [sheetName, sheetData] of Object.entries(sheetsData)) {
       if (sheetData.length === 0) continue;
 
-      console.log(`\n🔄 Processing sheet: ${sheetName} (${sheetData.length} rows)`);
-      console.log(`📊 Sample data from first row:`, sheetData[0]);
-      
-      // Determine target table
-      let targetTable = tableName;
-      if (!targetTable && autoDetect === 'true') {
-        targetTable = detectTableFromSheet(sheetName, sheetData);
+      let targetTableDetected = tableName;
+      if (!targetTableDetected && autoDetect === 'true') {
+        targetTableDetected = detectTableFromSheet(sheetName, sheetData);
       }
 
-      if (!targetTable || !COMPLETE_FIELD_MAPPING[targetTable]) {
+      if (!targetTableDetected || !COMPLETE_FIELD_MAPPING[targetTableDetected]) {
         const error = `Could not determine target table for sheet '${sheetName}'. Available tables: ${getAllTables().join(', ')}`;
         overallResults.errors.push({ sheet: sheetName, error });
         continue;
       }
 
-      console.log(`🎯 Target table: ${targetTable}`);
+      sheetsToProcess.push({ sheetName, sheetData, targetTable: targetTableDetected });
+    }
+
+    // Sort by dependencies so FK parents are created first
+    sheetsToProcess.sort((a, b) => dependencyRank(a.targetTable) - dependencyRank(b.targetTable));
+
+    // Build a temporary ID remapping across this upload session
+    const idRemap = {
+      workflow_phases: new Map(),
+      workflow_sections: new Map(),
+      workflow_line_items: new Map()
+    };
+
+    // Now process in order
+    for (const entry of sheetsToProcess) {
+      const { sheetName, sheetData, targetTable } = entry;
+      console.log(`\n🔄 Processing sheet: ${sheetName} (${sheetData.length} rows)`);
+      console.log('🎯 Target table:', targetTable);
 
       // Minimal validation: skip strict validation to allow best-effort inserts
-      // Previously: DataProcessor.validateData(targetTable, sheetData)
       console.log('✅ Skipping strict validation (minimal validation mode)');
 
       // Transform data
@@ -468,8 +510,20 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       const transformErrors = [];
 
       for (let i = 0; i < sheetData.length; i++) {
-        const { transformed, errors } = DataProcessor.transformData(targetTable, sheetData[i]);
-        // In minimal validation mode, proceed with best-effort transformed record even if there are transform errors
+        const originalRow = sheetData[i];
+        const { transformed, errors } = DataProcessor.transformData(targetTable, originalRow);
+        // Apply FK remapping if present
+        if (targetTable === 'workflow_sections') {
+          const oldPhaseId = transformed.phaseId || originalRow.phaseId;
+          if (oldPhaseId && idRemap.workflow_phases.has(oldPhaseId)) {
+            transformed.phaseId = idRemap.workflow_phases.get(oldPhaseId);
+          }
+        } else if (targetTable === 'workflow_line_items') {
+          const oldSectionId = transformed.sectionId || originalRow.sectionId;
+          if (oldSectionId && idRemap.workflow_sections.has(oldSectionId)) {
+            transformed.sectionId = idRemap.workflow_sections.get(oldSectionId);
+          }
+        }
         if (errors.length > 0) {
           console.log(`❌ Row ${i + 1} transform errors:`, errors);
           transformErrors.push(`Row ${i + 1}: ${errors.join(', ')}`);
@@ -478,10 +532,6 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       }
 
       console.log(`🔍 Transform errors found: ${transformErrors.length}`);
-      if (transformErrors.length > 0) {
-        console.log('⚠️ Proceeding despite transform warnings. First 10 warnings:', transformErrors.slice(0, 10));
-        // Do not stop processing; include transform warnings in sheet results
-      }
 
       // Ensure Prisma model mapping exists before attempting insert
       const modelNameCheck = TABLE_TO_MODEL_MAPPING[targetTable];
@@ -507,7 +557,62 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
 
       // Insert into database
       console.log('💾 Inserting into database...');
-      const insertResults = await createRecordsInDatabase(targetTable, transformedData);
+      let insertResults;
+      if (['workflow_phases', 'workflow_sections', 'workflow_line_items'].includes(targetTable)) {
+        const perSheetResults = { successful: 0, failed: 0, errors: [] };
+        const modelName = TABLE_TO_MODEL_MAPPING[targetTable];
+        for (let r = 0; r < transformedData.length; r++) {
+          const row = transformedData[r];
+          const source = sheetData[r] || {};
+          try {
+            let created;
+            if (targetTable === 'workflow_phases') {
+              // Prefer unique phaseType, fall back to id
+              created = await prisma[modelName].upsert({
+                where: row.phaseType ? { phaseType: row.phaseType } : { id: row.id || '___nonexistent___' },
+                update: row,
+                create: row
+              });
+              const oldId = source.id || row.id;
+              if (oldId && created.id && oldId !== created.id) {
+                idRemap.workflow_phases.set(oldId, created.id);
+              }
+            } else if (targetTable === 'workflow_sections') {
+              created = await prisma[modelName].upsert({
+                where: (row.phaseId !== undefined && row.sectionNumber !== undefined)
+                  ? { phaseId_sectionNumber: { phaseId: row.phaseId, sectionNumber: row.sectionNumber } }
+                  : { id: row.id || '___nonexistent___' },
+                update: row,
+                create: row
+              });
+              const oldId = source.id || row.id;
+              if (oldId && created.id && oldId !== created.id) {
+                idRemap.workflow_sections.set(oldId, created.id);
+              }
+            } else if (targetTable === 'workflow_line_items') {
+              created = await prisma[modelName].upsert({
+                where: (row.sectionId && row.itemLetter)
+                  ? { sectionId_itemLetter: { sectionId: row.sectionId, itemLetter: row.itemLetter } }
+                  : { id: row.id || '___nonexistent___' },
+                update: row,
+                create: row
+              });
+              const oldId = source.id || row.id;
+              if (oldId && created.id && oldId !== created.id) {
+                idRemap.workflow_line_items.set(oldId, created.id);
+              }
+            }
+            perSheetResults.successful++;
+          } catch (e) {
+            perSheetResults.failed++;
+            perSheetResults.errors.push({ row: r + 1, data: source, error: e.message });
+            console.log(`❌ Row ${r + 1}: ${e.message}`);
+          }
+        }
+        insertResults = perSheetResults;
+      } else {
+        insertResults = await createRecordsInDatabase(targetTable, transformedData);
+      }
 
       // Store results
       processResults[sheetName] = {

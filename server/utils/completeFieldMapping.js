@@ -851,6 +851,14 @@ Object.entries(DATABASE_SCHEMA).forEach(([tableName, tableInfo]) => {
     // Determine if field is uploadable
     fieldConfig.uploadable = !fieldConfig.autoManaged && !fieldConfig.primaryKey && !fieldConfig.name.includes('password') && !fieldConfig.name.includes('secret');
 
+    // Exception: allow explicit IDs for master template tables (not required, but accepted)
+    if (field.name === 'id' && ['workflow_phases', 'workflow_sections', 'workflow_line_items'].includes(tableName)) {
+      fieldConfig.uploadable = true;
+      fieldConfig.required = false; // don't force providing ids
+      fieldConfig.transformer = FieldTransformers.trimString;
+      fieldConfig.validators = [];
+    }
+
     COMPLETE_FIELD_MAPPING[tableName].fields[field.name] = fieldConfig;
   });
 });

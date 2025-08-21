@@ -1,27 +1,15 @@
 import axios from 'axios';
 
-// Dynamic API Configuration
+// Dynamic API Configuration: force same-origin in production
 const getApiBaseUrl = () => {
-  // Always prefer explicit configuration from environment variables
-  const envApiUrl = process.env.REACT_APP_API_URL || process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
-  if (envApiUrl && typeof envApiUrl === 'string') {
-    return envApiUrl;
-  }
-
-  // Fallbacks based on runtime location
   try {
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    if (!isLocalhost && typeof window !== 'undefined') {
-      // Same-origin default in production when no env override provided
+    if (typeof window !== 'undefined') {
+      // Always use same-origin in browsers to avoid stale env baked at build
       return `${window.location.protocol}//${window.location.host}/api`;
     }
-  } catch (_) {
-    // Ignore window access errors (e.g., during SSR/build)
-  }
-
-  // Local development default when no env override provided
-  return 'http://localhost:8080/api';
+  } catch (_) {}
+  // Server-side or build-time fallback
+  return process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -147,7 +135,7 @@ api.interceptors.response.use(
     // Add more specific error messages for common issues
     // Normalize network/timeout errors across environments
     if (isNetworkError || isTimeout) {
-      const base = API_BASE_URL || 'server';
+      const base = (error.config && (error.config.baseURL || api.defaults.baseURL)) || API_BASE_URL || 'server';
       error.message = `Network error: Cannot reach ${base}. Please ensure the backend is running.`;
     } else if (error.response?.status >= 500) {
       error.message = 'Server error: The server is experiencing issues. Please try again later.';
