@@ -423,16 +423,27 @@ export default function App() {
     }
 
     const navigate = (page) => { 
+        console.log('🔍 APP: navigate called with page:', page);
+        console.log('🔍 APP: Current activePage:', activePage);
+        
+        // Enhanced navigation with proper state management
         setNavigationState(prev => ({
             ...prev,
             previousPage: activePage,
-            selectedProject: null
+            selectedProject: null,
+            // Preserve any existing navigation context
+            navigationContext: {
+                ...prev.navigationContext,
+                fromPage: activePage,
+                toPage: page,
+                timestamp: Date.now()
+            }
         }));
         setActivePage(page); 
         setSidebarOpen(false); // Close sidebar on mobile after navigation
     };
     
-    // Handle back button click
+    // Handle back button click with enhanced logic
     const handleBackButton = () => {
         console.log('🔍 APP: handleBackButton called');
         console.log('🔍 APP: navigationState:', navigationState);
@@ -453,7 +464,27 @@ export default function App() {
             }
             setActivePage(navigationState.previousPage || 'Overview');
         } else {
-            console.log('🔍 APP: No project selected, staying on current page');
+            console.log('🔍 APP: No project selected, checking navigation context');
+            
+            // Check if we're on My Messages page and need special handling
+            if (activePage === 'Project Messages') {
+                console.log('🔍 APP: On My Messages page, using navigation context');
+                
+                // Use the navigation context to determine where to go back to
+                const fromPage = navigationState.navigationContext?.fromPage;
+                if (fromPage && fromPage !== 'Project Messages') {
+                    console.log('🔍 APP: Navigating back to:', fromPage);
+                    setActivePage(fromPage);
+                } else {
+                    // Default fallback to Overview
+                    console.log('🔍 APP: No specific from page, going to Overview');
+                    setActivePage('Overview');
+                }
+            } else {
+                console.log('🔍 APP: Regular back navigation');
+                // For other pages, use the previous page from navigation state
+                setActivePage(navigationState.previousPage || 'Overview');
+            }
         }
     };
 
@@ -841,7 +872,15 @@ export default function App() {
                     scrollToProject={navigationState.scrollToProject}
                 />
             );
-            case 'Project Messages': return <MyMessagesPage colorMode={colorMode} projects={projects} onProjectSelect={handleProjectSelect} />;
+            case 'Project Messages': return (
+                <MyMessagesPage 
+                    colorMode={colorMode} 
+                    projects={projects} 
+                    onProjectSelect={handleProjectSelect}
+                    navigationContext={navigationState.navigationContext}
+                    previousPage={navigationState.previousPage}
+                />
+            );
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'Alerts Calendar': return <AlertsCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;

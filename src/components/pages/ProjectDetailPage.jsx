@@ -18,6 +18,7 @@ import workflowService from '../../services/workflowService';
 import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
 import { ResponsiveBackButton, HeaderBackButton } from '../common/BackButton';
 import { useNavigationHistory } from '../../hooks/useNavigationHistory';
+import { useSubjects } from '../../contexts/SubjectsContext';
 import toast from 'react-hot-toast';
 
 // Helper functions for advanced progress bars (moved to top level)
@@ -92,6 +93,7 @@ const getPhaseStyles = (phase) => {
 
 const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect, targetLineItemId, targetSectionId }) => {
     const { pushNavigation } = useNavigationHistory();
+    const { subjects } = useSubjects();
     
     // Track page navigation for back button functionality
     useEffect(() => {
@@ -436,12 +438,19 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     // Project Messages state variables - matching dashboard
     const [activityProjectFilter, setActivityProjectFilter] = useState('');
     const [activitySubjectFilter, setActivitySubjectFilter] = useState('');
+    const [activitySearchFilter, setActivitySearchFilter] = useState('');
+    const [activityPriorityFilter, setActivityPriorityFilter] = useState('');
+    const [activitySortBy, setActivitySortBy] = useState('timestamp');
+    const [activitySortOrder, setActivitySortOrder] = useState('desc');
     const [showMessageDropdown, setShowMessageDropdown] = useState(false);
     const [newMessageProject, setNewMessageProject] = useState('');
     const [newMessageSubject, setNewMessageSubject] = useState('');
     const [newMessageText, setNewMessageText] = useState('');
-    const [newMessageTo, setNewMessageTo] = useState('');
-    const [newMessageSendAsTask, setNewMessageSendAsTask] = useState('');
+    const [newMessageRecipients, setNewMessageRecipients] = useState([]);
+    const [attachTask, setAttachTask] = useState(false);
+    const [taskAssignee, setTaskAssignee] = useState('');
+    const [availableUsers, setAvailableUsers] = useState([]);
+    const [usersLoading, setUsersLoading] = useState(true);
     const [messagesData, setMessagesData] = useState([]);
     const [projectMessages, setProjectMessages] = useState([]);
     const [messagesLoading, setMessagesLoading] = useState(false);
@@ -496,6 +505,47 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             }
         };
         loadUsers();
+    }, []);
+
+    // Fetch available users for Add Message form - EXACT SAME AS DASHBOARD
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setUsersLoading(true);
+            try {
+                const result = await usersService.getTeamMembers();
+                console.log('🔍 API Response for users:', result);
+                
+                if (result?.success && result.data?.teamMembers) {
+                    const teamMembers = result.data.teamMembers;
+                    setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
+                    console.log('✅ Loaded users for assignment:', teamMembers.length);
+                } else {
+                    // Fallback to mock users if API fails
+                    console.log('⚠️ Using fallback users for assignment');
+                    const fallbackUsers = [
+                        { id: 'cmeceqna60007qdkdllcz0jf5', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+                        { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+                        { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+                    ];
+                    setAvailableUsers(fallbackUsers);
+                    console.log('✅ Set fallback users:', fallbackUsers);
+                }
+            } catch (error) {
+                console.error('❌ Failed to fetch users:', error);
+                // Use fallback users on error too
+                const fallbackUsers = [
+                    { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
+                    { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
+                    { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+                ];
+                setAvailableUsers(fallbackUsers);
+                console.log('✅ Set fallback users after error:', fallbackUsers);
+            } finally {
+                setUsersLoading(false);
+            }
+        };
+        
+        fetchUsers();
     }, []);
 
     // Get current user (from auth or mock)
@@ -790,6 +840,71 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         };
     };
 
+    // Filter and sort project messages - matching dashboard implementation
+    const getFilteredAndSortedMessages = () => {
+        let filteredMessages = [...(projectMessages || [])];
+
+        // Apply subject filter
+        if (activitySubjectFilter) {
+            filteredMessages = filteredMessages.filter(msg => msg.subject === activitySubjectFilter);
+        }
+
+        // Apply priority filter
+        if (activityPriorityFilter) {
+            filteredMessages = filteredMessages.filter(msg => msg.priority === activityPriorityFilter);
+        }
+
+        // Apply search filter
+        if (activitySearchFilter.trim()) {
+            const searchTerm = activitySearchFilter.toLowerCase();
+            filteredMessages = filteredMessages.filter(msg => 
+                (msg.subject || '').toLowerCase().includes(searchTerm) ||
+                (msg.content || '').toLowerCase().includes(searchTerm) ||
+                (msg.user || '').toLowerCase().includes(searchTerm) ||
+                (msg.targetedToName || '').toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Sort messages
+        filteredMessages.sort((a, b) => {
+            let aValue, bValue;
+            
+            switch (activitySortBy) {
+                case 'subject':
+                    aValue = a.subject || '';
+                    bValue = b.subject || '';
+                    break;
+                case 'priority':
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    aValue = priorityOrder[a.priority] || 0;
+                    bValue = priorityOrder[b.priority] || 0;
+                    break;
+                case 'user':
+                    aValue = a.user || '';
+                    bValue = b.user || '';
+                    break;
+                case 'timestamp':
+                default:
+                    aValue = new Date(a.createdAt || a.timestamp);
+                    bValue = new Date(b.createdAt || b.timestamp);
+                    break;
+            }
+
+            if (typeof aValue === 'string') {
+                const comparison = aValue.localeCompare(bValue);
+                return activitySortOrder === 'asc' ? comparison : -comparison;
+            } else {
+                const comparison = aValue - bValue;
+                return activitySortOrder === 'asc' ? comparison : -comparison;
+            }
+        });
+
+        return filteredMessages;
+    };
+
+    // Get filtered and sorted activities for display
+    const filteredMessages = getFilteredAndSortedMessages();
+
     const renderProjectView = () => {
         console.log('🔍 PROJECT_DETAIL: renderProjectView called with activeView:', activeView);
         if (!project || (!project.client && !project.customer)) {
@@ -847,31 +962,44 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     </div>
                 );
             case 'Messages':
-                // Complete Project Messages section - FILTERED FOR CURRENT PROJECT
+                // Complete Project Messages section - MATCHING DASHBOARD LAYOUT WITH WORKING ADD MESSAGE FORM
                 return (
                     <div className="w-full" data-section="project-messages">
-                        <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 pb-6 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} relative overflow-visible`}>
-                            <div className="mb-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div>
-                                        <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Messages</h1>
-                                        <p className={`text-[10px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            Showing messages for: #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.projectName}
-                                        </p>
-                                    </div>
+                        <div className={`mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 ${colorMode ? 'bg-[#232b4d]/90 backdrop-blur-sm border-[#3b82f6]/40' : ''}`}>
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className={`text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 ${colorMode ? 'from-white to-gray-300' : ''}`}>
+                                        Project Messages
+                                    </h2>
+                                    <p className={`text-sm text-gray-600 font-medium ${colorMode ? 'text-gray-400' : ''}`}>
+                                        Showing messages for: #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.projectName}
+                                    </p>
                                 </div>
-                                
-                                {/* Subject Filter Only - Project is fixed to current */}
-                                <div className="flex items-center gap-2 mb-2 mt-3">
-                                    <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Filter by subject:</span>
-                                    
-                                    <select 
-                                        value={activitySubjectFilter} 
-                                        onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                                        className={`text-[9px] font-medium px-1 py-0.5 rounded border transition-colors ${
-                                            colorMode 
-                                                ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
-                                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+
+                                {/* Filter Controls - Matching Dashboard Layout */}
+                                <div className="flex items-center gap-4">
+                                    {/* Search Filter */}
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search messages..."
+                                            value={activitySearchFilter || ''}
+                                            onChange={(e) => setActivitySearchFilter(e.target.value)}
+                                            className={`pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-64 ${
+                                                colorMode ? 'bg-[#1e293b] border-gray-600 text-white placeholder-gray-400' : ''
+                                            }`}
+                                        />
+                                        <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+
+                                    {/* Subject Filter */}
+                                    <select
+                                        value={activitySubjectFilter || ''}
+                                        onChange={(e) => setActivitySubjectFilter(e.target.value)}
+                                        className={`px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[200px] ${
+                                            colorMode ? 'bg-[#1e293b] border-gray-600 text-white' : ''
                                         }`}
                                     >
                                         <option value="">All Subjects</option>
@@ -879,35 +1007,100 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             <option key={subject} value={subject}>{subject}</option>
                                         ))}
                                     </select>
+
+                                    {/* Priority Filter */}
+                                    <select
+                                        value={activityPriorityFilter || ''}
+                                        onChange={(e) => setActivityPriorityFilter(e.target.value)}
+                                        className={`px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[150px] ${
+                                            colorMode ? 'bg-[#1e293b] border-gray-600 text-white' : ''
+                                        }`}
+                                    >
+                                        <option value="">All Priorities</option>
+                                        <option value="high">High Priority</option>
+                                        <option value="medium">Medium Priority</option>
+                                        <option value="low">Low Priority</option>
+                                    </select>
+
+                                    {/* Sort Controls */}
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            value={activitySortBy || 'timestamp'}
+                                            onChange={(e) => setActivitySortBy(e.target.value)}
+                                            className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-[120px] ${
+                                                colorMode ? 'bg-[#1e293b] border-gray-600 text-white' : ''
+                                            }`}
+                                        >
+                                            <option value="timestamp">Date</option>
+                                            <option value="subject">Subject</option>
+                                            <option value="priority">Priority</option>
+                                            <option value="user">User</option>
+                                        </select>
+                                        <button
+                                            onClick={() => setActivitySortOrder(activitySortOrder === 'asc' ? 'desc' : 'asc')}
+                                            className={`px-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                                colorMode ? 'bg-[#1e293b] border-gray-600 text-white hover:bg-[#374151]' : ''
+                                            }`}
+                                            title={`Sort ${activitySortOrder === 'asc' ? 'descending' : 'ascending'}`}
+                                        >
+                                            <svg className={`w-4 h-4 transform ${activitySortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {/* Clear Filters */}
+                                    {(activitySubjectFilter || activityPriorityFilter || activitySearchFilter) && (
+                                        <button
+                                            onClick={() => {
+                                                setActivitySubjectFilter('');
+                                                setActivityPriorityFilter('');
+                                                setActivitySearchFilter('');
+                                            }}
+                                            className={`px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors ${
+                                                colorMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : ''
+                                            }`}
+                                        >
+                                            Clear Filters
+                                        </button>
+                                    )}
                                 </div>
-                                
+                            </div>
+
+                            {/* Add Message Section - Matching Dashboard Layout */}
+                            <div className="mb-6">
                                 {/* Add Message Dropdown Trigger */}
                                 <div className="mb-3">
                                     <button
                                         onClick={() => setShowMessageDropdown(!showMessageDropdown)}
-                                        className={`w-full px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center justify-between ${
+                                        className={`w-full px-4 py-3 text-sm font-medium border-2 border-dashed transition-all duration-300 flex items-center justify-between rounded-lg ${
                                             showMessageDropdown
                                                 ? colorMode 
                                                     ? 'border-blue-400 bg-blue-900/20 text-blue-300' 
                                                     : 'border-blue-400 bg-blue-50 text-blue-700'
                                                 : colorMode 
-                                                    ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300' 
-                                                    : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700'
+                                                    ? 'border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-300 hover:bg-gray-700/50' 
+                                                    : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-700 hover:bg-gray-50'
                                         }`}
                                     >
-                                        <span>+ Add Message</span>
-                                        <svg className={`w-4 h-4 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        <span className="flex items-center gap-2">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            Add Message
+                                        </span>
+                                        <svg className={`w-5 h-5 transition-transform ${showMessageDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </button>
                                 </div>
                                 
-                                {/* Add Message Dropdown Form */}
+                                {/* Add Message Dropdown Form - Complete Implementation */}
                                 {showMessageDropdown && (
-                                    <div className={`p-4 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                    <div className={`p-6 border-2 border-dashed rounded-lg ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                                         <form onSubmit={async (e) => {
                                             e.preventDefault();
-                                            if (newMessageSubject && newMessageText.trim()) {
+                                            if (newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
                                                 try {
                                                     console.log(`🔍 MESSAGES: Creating new message for project ${project.id}`);
                                                     
@@ -915,7 +1108,10 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     const newMessage = await projectMessagesService.create(project.id, {
                                                         subject: newMessageSubject,
                                                         content: newMessageText,
-                                                        priority: newMessageSendAsTask ? 'HIGH' : 'MEDIUM'
+                                                                                                        priority: attachTask ? 'HIGH' : 'MEDIUM',
+                                                targetedTo: newMessageRecipients,
+                                                isTask: !!attachTask,
+                                                taskAssignee: attachTask ? taskAssignee : null
                                                     });
                                                     
                                                     console.log('✅ MESSAGES: Created new message:', newMessage);
@@ -932,8 +1128,9 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     setShowMessageDropdown(false);
                                                     setNewMessageSubject('');
                                                     setNewMessageText('');
-                                                    setNewMessageTo('');
-                                                    setNewMessageSendAsTask('');
+                                                    setNewMessageRecipients([]);
+                                                    setAttachTask(false);
+                                                    setTaskAssignee('');
                                                     
                                                     toast.success('Message created successfully');
                                                 } catch (error) {
@@ -941,18 +1138,19 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     toast.error('Failed to create message');
                                                 }
                                             }
-                                        }} className="space-y-3">
+                                        }} className="space-y-4">
                                             {/* Project info display */}
-                                            <div className={`mb-3 p-2 rounded text-xs ${
-                                                colorMode ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-700'
+                                            <div className={`p-3 rounded-lg text-sm ${
+                                                colorMode ? 'bg-blue-900/20 text-blue-300 border border-blue-700/30' : 'bg-blue-50 text-blue-700 border border-blue-200'
                                             }`}>
                                                 <span className="font-medium">Creating message for: </span>
                                                 #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.projectName}
                                             </div>
                                             
-                                            <div className="grid grid-cols-1 gap-3">
+                                            {/* First Row: Subject and To fields */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                    <label className={`block text-sm font-medium mb-2 ${
                                                         colorMode ? 'text-gray-300' : 'text-gray-700'
                                                     }`}>
                                                         Subject <span className="text-red-500">*</span>
@@ -961,7 +1159,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                         value={newMessageSubject}
                                                         onChange={(e) => setNewMessageSubject(e.target.value)}
                                                         required
-                                                        className={`w-full p-2 border rounded text-xs ${
+                                                        className={`w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                                             colorMode 
                                                                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                                                                 : 'bg-white border-gray-300 text-gray-800'
@@ -973,61 +1171,93 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                         ))}
                                                     </select>
                                                 </div>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                
                                                 <div>
-                                                    <label className={`block text-xs font-medium mb-1 ${
+                                                    <label className={`block text-sm font-medium mb-2 ${
                                                         colorMode ? 'text-gray-300' : 'text-gray-700'
                                                     }`}>
                                                         To <span className="text-red-500">*</span>
                                                     </label>
                                                     <select
-                                                        value={newMessageTo}
-                                                        onChange={(e) => setNewMessageTo(e.target.value)}
+                                                        value={newMessageRecipients || ''}
+                                                        onChange={(e) => {
+                                                            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                                                            setNewMessageRecipients(selectedOptions);
+                                                        }}
+                                                        multiple
                                                         required
-                                                        className={`w-full p-2 border rounded text-xs ${
+                                                        className={`w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                                             colorMode 
                                                                 ? 'bg-[#232b4d] border-gray-600 text-white' 
                                                                 : 'bg-white border-gray-300 text-gray-800'
                                                         }`}
+                                                        style={{ minHeight: '40px' }}
                                                     >
-                                                        <option value="">Select User</option>
-                                                        {Array.isArray(users) && users.map(user => (
+                                                        <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
+                                                        {availableUsers.map(user => (
                                                             <option key={user.id} value={user.id}>
-                                                                {user.name} - {user.role}
+                                                                {user.firstName} {user.lastName} ({user.role || 'User'})
                                                             </option>
                                                         ))}
                                                     </select>
-                                                </div>
-                                                
-                                                <div>
-                                                    <label className={`block text-xs font-medium mb-1 ${
-                                                        colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                    <p className={`text-xs mt-1 ${
+                                                        colorMode ? 'text-gray-400' : 'text-gray-500'
                                                     }`}>
-                                                        Send as Task (Optional)
-                                                    </label>
-                                                    <select
-                                                        value={newMessageSendAsTask}
-                                                        onChange={(e) => setNewMessageSendAsTask(e.target.value)}
-                                                        className={`w-full p-2 border rounded text-xs ${
-                                                            colorMode 
-                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
-                                                                : 'bg-white border-gray-300 text-gray-800'
-                                                        }`}
-                                                    >
-                                                        <option value="">No - Send as Message</option>
-                                                        {Array.isArray(users) && users.map(user => (
-                                                            <option key={user.id} value={user.id}>
-                                                                Assign to: {user.name} - {user.role}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                        Hold Ctrl/Cmd to select multiple recipients
+                                                    </p>
                                                 </div>
                                             </div>
                                             
+                                            {/* Second Row: Send as Task */}
                                             <div>
-                                                <label className={`block text-xs font-medium mb-1 ${
+                                                <label className={`flex items-center text-sm font-medium mb-2 ${
+                                                    colorMode ? 'text-gray-300' : 'text-gray-700'
+                                                }`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={attachTask || false}
+                                                        onChange={(e) => setAttachTask(e.target.checked)}
+                                                        className="mr-2"
+                                                    />
+                                                    Send as a Task
+                                                </label>
+                                                {attachTask && (
+                                                    <select
+                                                        value={taskAssignee || ''}
+                                                        onChange={(e) => setTaskAssignee(e.target.value)}
+                                                        disabled={usersLoading}
+                                                        className={`w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                                            colorMode 
+                                                                ? 'bg-[#232b4d] border-gray-600 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-800'
+                                                        } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        <option value="">
+                                                            {usersLoading ? 'Loading users...' : 'Assign Task To...'}
+                                                        </option>
+                                                        {!usersLoading && availableUsers.length > 0 ? (
+                                                            availableUsers.map(user => (
+                                                                <option key={user.id} value={user.id}>
+                                                                    {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                                </option>
+                                                            ))
+                                                        ) : !usersLoading ? (
+                                                            // Fallback options if API fails
+                                                            <>
+                                                                <option value="sarah-owner">Sarah Owner - Owner</option>
+                                                                <option value="mike-rodriguez">Mike Rodriguez - Project Manager</option>
+                                                                <option value="john-smith">John Smith - Field Director</option>
+                                                                <option value="jane-doe">Jane Doe - Administration</option>
+                                                                <option value="bob-wilson">Bob Wilson - Roof Supervisor</option>
+                                                                <option value="alice-johnson">Alice Johnson - Customer Service</option>
+                                                            </>
+                                                        ) : null}
+                                                    </select>
+                                                )}
+                                            </div>
+                                            
+                                            <div>
+                                                <label className={`block text-sm font-medium mb-2 ${
                                                     colorMode ? 'text-gray-300' : 'text-gray-700'
                                                 }`}>
                                                     Message <span className="text-red-500">*</span>
@@ -1037,8 +1267,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     onChange={(e) => setNewMessageText(e.target.value)}
                                                     placeholder="Enter your message here..."
                                                     required
-                                                    rows={3}
-                                                    className={`w-full p-2 border rounded text-xs resize-none ${
+                                                    rows={4}
+                                                    className={`w-full p-3 border rounded-lg text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                                         colorMode 
                                                             ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
                                                             : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
@@ -1046,18 +1276,18 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 />
                                             </div>
                                             
-                                            <div className="flex justify-end gap-2 pt-2">
+                                            <div className="flex justify-end gap-3 pt-2">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         setShowMessageDropdown(false);
-                                                        setNewMessageProject('');
                                                         setNewMessageSubject('');
                                                         setNewMessageText('');
-                                                        setNewMessageTo('');
-                                                        setNewMessageSendAsTask('');
+                                                        setNewMessageRecipients([]);
+                                                        setAttachTask(false);
+                                                        setTaskAssignee('');
                                                     }}
-                                                    className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
+                                                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
                                                         colorMode 
                                                             ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
                                                             : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -1067,9 +1297,9 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 </button>
                                                 <button
                                                     type="submit"
-                                                    disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim() || !newMessageTo}
-                                                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                                                        newMessageProject && newMessageSubject && newMessageText.trim()
+                                                    disabled={!newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
+                                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                                        newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
                                                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -1081,18 +1311,46 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                     </div>
                                 )}
                             </div>
-                            
-                            <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+
+                            {/* Messages List - Matching Dashboard Layout */}
+                            <div className="space-y-4 max-h-96 overflow-y-auto">
                                 {messagesLoading ? (
-                                    <div className="text-gray-400 text-center py-3 text-[9px]">
-                                        Loading project messages...
+                                    <div className="text-center py-12">
+                                        <div className="text-gray-400 text-5xl mb-4">📬</div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            Loading project messages...
+                                        </h3>
                                     </div>
-                                ) : currentActivities.length === 0 ? (
-                                    <div className="text-gray-400 text-center py-3 text-[9px]">
-                                        No messages found for this project.
+                                ) : filteredMessages.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <div className="text-gray-400 text-5xl mb-4">📬</div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            {activitySearchFilter || activitySubjectFilter || activityPriorityFilter 
+                                                ? 'No messages match your filters'
+                                                : 'No messages found for this project'
+                                            }
+                                        </h3>
+                                        <p className="text-gray-600 mb-4">
+                                            {activitySearchFilter || activitySubjectFilter || activityPriorityFilter 
+                                                ? 'Try adjusting your filter settings.'
+                                                : 'Project messages will appear here when available.'
+                                            }
+                                        </p>
+                                        {(activitySearchFilter || activitySubjectFilter || activityPriorityFilter) && (
+                                            <button
+                                                onClick={() => {
+                                                    setActivitySubjectFilter('');
+                                                    setActivityPriorityFilter('');
+                                                    setActivitySearchFilter('');
+                                                }}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                Clear Filters
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
-                                    currentActivities.map(activity => {
+                                    filteredMessages.map(activity => {
                                         // Enhanced activity with To and Task info for display
                                         const enhancedActivity = {
                                             ...activity,
@@ -1100,18 +1358,48 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             displayTask: activity.isTask ? `Task assigned to: ${activity.taskAssigneeName || 'Unassigned'}` : null
                                         };
                                         return (
-                                            <ProjectMessagesCard 
-                                                key={activity.id} 
-                                                activity={enhancedActivity} 
-                                                onProjectSelect={handleProjectSelectWithScroll}
-                                                projects={projects}
-                                                colorMode={colorMode}
-                                                onQuickReply={handleQuickReply}
-                                            />
+                                            <div
+                                                key={activity.id}
+                                                className={`border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:border-gray-300 ${
+                                                    colorMode ? 'border-gray-600 hover:border-gray-500' : ''
+                                                }`}
+                                            >
+                                                <ProjectMessagesCard 
+                                                    activity={enhancedActivity} 
+                                                    onProjectSelect={handleProjectSelectWithScroll}
+                                                    projects={projects}
+                                                    colorMode={colorMode}
+                                                    onQuickReply={handleQuickReply}
+                                                    isExpanded={false}
+                                                    onToggleExpansion={() => {}}
+                                                />
+                                            </div>
                                         );
                                     })
                                 )}
                             </div>
+
+                            {/* Messages Summary - Matching Dashboard Layout */}
+                            {filteredMessages.length > 0 && (
+                                <div className="mt-6 pt-4 border-t border-gray-200">
+                                    <div className="flex items-center justify-between text-sm text-gray-600">
+                                        <span>
+                                            Showing {filteredMessages.length} of {projectMessages?.length || 0} messages
+                                        </span>
+                                        <div className="flex items-center gap-4">
+                                            <span>
+                                                {filteredMessages.filter(m => m.priority === 'high').length} High Priority
+                                            </span>
+                                            <span>
+                                                {filteredMessages.filter(m => m.priority === 'medium').length} Medium Priority
+                                            </span>
+                                            <span>
+                                                {filteredMessages.filter(m => m.priority === 'low').length} Low Priority
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );

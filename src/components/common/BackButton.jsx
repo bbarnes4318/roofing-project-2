@@ -188,16 +188,23 @@ const BackButton = memo(({
 });
 
 // Responsive BackButton that adapts to screen size
-export const ResponsiveBackButton = memo((props) => {
+export const ResponsiveBackButton = memo(({ 
+  className = '', 
+  colorMode = false, 
+  showNavigationInfo = false,
+  navigationContext = null,
+  ...props 
+}) => {
   return (
     <>
-      {/* Mobile: Show only icon */}
+      {/* Mobile: Show icon only */}
       <div className="block sm:hidden">
         <BackButton 
           {...props}
           size="small"
           showLabel={false}
-          className={`${props.className || ''}`}
+          colorMode={colorMode}
+          className={`${className || ''}`}
         />
       </div>
       
@@ -208,18 +215,31 @@ export const ResponsiveBackButton = memo((props) => {
           size="medium"
           showLabel={true}
           customLabel="Back"
-          className={`${props.className || ''}`}
+          colorMode={colorMode}
+          className={`${className || ''}`}
         />
       </div>
       
-      {/* Desktop: Show full text */}
+      {/* Desktop: Show full text with optional navigation info */}
       <div className="hidden lg:block">
-        <BackButton 
-          {...props}
-          size="medium"
-          showLabel={true}
-          className={`${props.className || ''}`}
-        />
+        <div className="flex items-center gap-2">
+          <BackButton 
+            {...props}
+            size="medium"
+            showLabel={true}
+            colorMode={colorMode}
+            className={`${className || ''}`}
+          />
+          {showNavigationInfo && navigationContext && (
+            <div className={`text-xs ${colorMode ? 'text-slate-400' : 'text-gray-500'}`}>
+              {navigationContext.canGoBack ? (
+                <span>← Back to {navigationContext.previousPage}</span>
+              ) : (
+                <span>← Back to Dashboard</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

@@ -116,6 +116,52 @@ export default function ProjectSchedulesPage() {
   const [dragStart, setDragStart] = useState(null);
   const [dragEnd, setDragEnd] = useState(null);
   const [hoveredProjectId, setHoveredProjectId] = useState(null);
+  const [workflowPhases, setWorkflowPhases] = useState([]);
+  
+  // Fetch workflow phases for status filter
+  useEffect(() => {
+    const fetchWorkflowPhases = async () => {
+      try {
+        console.log('🔍 PROJECT SCHEDULES: Fetching workflow phases for status filter...');
+        const response = await fetch('/api/workflow-data/phases', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const phases = result.data.map(phase => ({
+              id: phase.id,
+              name: phase.name,
+              displayName: phase.displayName || phase.name
+            }));
+            setWorkflowPhases(phases);
+            console.log('✅ PROJECT SCHEDULES: Loaded workflow phases from database:', phases);
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.error('❌ PROJECT SCHEDULES: Failed to fetch workflow phases:', error);
+        // Fallback phases if API fails
+        const fallbackPhases = [
+          { id: 'LEAD', name: 'LEAD', displayName: 'Lead Phase' },
+          { id: 'PROSPECT', name: 'PROSPECT', displayName: 'Prospect' },
+          { id: 'APPROVED', name: 'APPROVED', displayName: 'Approved Phase' },
+          { id: 'EXECUTION', name: 'EXECUTION', displayName: 'Execution Phase' },
+          { id: 'COMPLETION', name: 'COMPLETION', displayName: 'Completion Phase' }
+        ];
+        setWorkflowPhases(fallbackPhases);
+        console.log('⚠️ PROJECT SCHEDULES: Using fallback workflow phases due to API error');
+      }
+    };
+
+    fetchWorkflowPhases();
+  }, []);
   
   // Load projects from localStorage or use initial data
   const [projects, setProjects] = useState(() => {
@@ -550,12 +596,9 @@ export default function ProjectSchedulesPage() {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">All Status</option>
-              <option value="lead">Lead Phase</option>
-              <option value="prospect">Prospect</option>
-              <option value="approved">Approved Phase</option>
-              <option value="execution">Execution Phase</option>
-              <option value="supplement">2nd Supplement Phase</option>
-              <option value="completion">Completion Phase</option>
+              {workflowPhases.map(phase => (
+                <option key={phase.id} value={phase.id}>{phase.displayName}</option>
+              ))}
             </select>
           </div>
         </div>

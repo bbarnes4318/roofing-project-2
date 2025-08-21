@@ -391,7 +391,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   useEffect(() => {
     const fetchWorkflowPhases = async () => {
       try {
-        const response = await fetch('/api/workflow-data/full-structure', {
+        console.log('🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...');
+        const response = await fetch('/api/workflow-data/phases', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
           }
@@ -406,29 +407,25 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               displayName: phase.displayName || phase.name
             }));
             setWorkflowPhases(phases);
-            console.log('✅ Loaded workflow phases:', phases);
+            console.log('✅ DASHBOARD: Loaded workflow phases from database:', phases);
+          } else {
+            throw new Error('Invalid response format');
           }
         } else {
-          // Fallback phases if API fails
-          const fallbackPhases = [
-            { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
-            { id: 'APPROVED', name: 'APPROVED', displayName: 'Approved' },
-            { id: 'EXECUTION', name: 'EXECUTION', displayName: 'Execution' },
-            { id: 'COMPLETION', name: 'COMPLETION', displayName: 'Completion' }
-          ];
-          setWorkflowPhases(fallbackPhases);
-          console.log('⚠️ Using fallback workflow phases');
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (error) {
-        console.error('❌ Failed to fetch workflow phases:', error);
-        // Use fallback phases
+        console.error('❌ DASHBOARD: Failed to fetch workflow phases:', error);
+        // Fallback phases if API fails
         const fallbackPhases = [
           { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
+          { id: 'PROSPECT', name: 'PROSPECT', displayName: 'Prospect' },
           { id: 'APPROVED', name: 'APPROVED', displayName: 'Approved' },
           { id: 'EXECUTION', name: 'EXECUTION', displayName: 'Execution' },
           { id: 'COMPLETION', name: 'COMPLETION', displayName: 'Completion' }
         ];
         setWorkflowPhases(fallbackPhases);
+        console.log('⚠️ DASHBOARD: Using fallback workflow phases due to API error');
       }
     };
 

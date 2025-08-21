@@ -3,6 +3,55 @@ const { prisma } = require('../config/prisma');
 const router = express.Router();
 
 /**
+ * Get workflow phases for dropdowns (e.g., Add Project form)
+ * Returns just the phases without the full structure
+ */
+router.get('/phases', async (req, res) => {
+  try {
+    console.log('🔥 API: Loading workflow phases for dropdown...');
+    
+    const phases = await prisma.workflowPhase.findMany({
+      where: { 
+        isActive: true,
+        workflowType: 'ROOFING'
+      },
+      orderBy: { displayOrder: 'asc' },
+      select: {
+        id: true,
+        phaseType: true,
+        phaseName: true,
+        displayOrder: true,
+        description: true
+      }
+    });
+    
+    // Convert to format expected by the frontend
+    const formattedPhases = phases.map(phase => ({
+      id: phase.phaseType,
+      name: phase.phaseName,
+      displayName: phase.phaseName,
+      displayOrder: phase.displayOrder,
+      description: phase.description
+    }));
+    
+    console.log(`📊 API: Loaded ${phases.length} workflow phases for dropdown`);
+    
+    res.json({
+      success: true,
+      data: formattedPhases
+    });
+    
+  } catch (error) {
+    console.error('❌ API: Error loading workflow phases:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load workflow phases',
+      error: error.message
+    });
+  }
+});
+
+/**
  * Get full workflow structure from database (legacy - single workflow)
  * @deprecated Use /project-workflows/:projectId for projects with multiple workflows
  */

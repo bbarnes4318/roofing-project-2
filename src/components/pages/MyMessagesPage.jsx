@@ -37,28 +37,158 @@ const initialChats = {
   6: [],
 };
 
-const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
-  const { pushNavigation, goBack, canGoBack } = useNavigationHistory();
+const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContext, previousPage }) => {
+  const { pushNavigation, goBack, canGoBack, getPrevious } = useNavigationHistory();
   const { subjects } = useSubjects();
   
-  // Track page navigation
+  // Track page navigation with enhanced context
   useEffect(() => {
+    console.log('🔍 MY MESSAGES: Component mounted');
+    console.log('🔍 MY MESSAGES: navigationContext from props:', navigationContext);
+    console.log('🔍 MY MESSAGES: previousPage from props:', previousPage);
+    
+    // Capture the current page state and navigation context
+    const enhancedNavigationContext = {
+      pageName: 'My Messages',
+      sourcePage: window.location.pathname,
+      timestamp: Date.now(),
+      projects,
+      // Use the navigation context from App.jsx if available
+      fromPage: navigationContext?.fromPage || previousPage || 'Dashboard',
+      toPage: 'Project Messages',
+      // Capture any URL parameters or state that might be relevant
+      urlParams: new URLSearchParams(window.location.search),
+      // Store the current scroll position and any active elements
+      scrollPosition: {
+        x: window.scrollX || window.pageXOffset || document.documentElement.scrollLeft,
+        y: window.scrollY || window.pageYOffset || document.documentElement.scrollTop
+      }
+    };
+
+    console.log('🔍 MY MESSAGES: Enhanced navigation context:', enhancedNavigationContext);
+
     pushNavigation('My Messages', {
-      projects
+      projects,
+      navigationContext: enhancedNavigationContext
     });
-  }, [pushNavigation]);
+  }, [pushNavigation, projects, navigationContext, previousPage]);
   
-  // Custom back button handler that always works
+  // Enhanced back button handler with proper navigation restoration
   const handleBackNavigation = () => {
+    console.log('🔍 MY MESSAGES: handleBackNavigation called');
+    console.log('🔍 MY MESSAGES: navigationContext:', navigationContext);
+    console.log('🔍 MY MESSAGES: previousPage:', previousPage);
+    
     if (canGoBack()) {
-      // Use navigation history if available
-      goBack();
+      console.log('🔍 MY MESSAGES: Using navigation history for back navigation');
+      
+      // Get the previous navigation entry to understand where to go back to
+      const previousEntry = getPrevious();
+      console.log('🔍 MY MESSAGES: Previous entry:', previousEntry);
+      
+      if (previousEntry) {
+        // Use the navigation history system
+        const result = goBack();
+        console.log('🔍 MY MESSAGES: Navigation result:', result);
+        
+        // If the navigation history system doesn't handle the navigation,
+        // we'll need to handle it manually based on the previous entry
+        if (!result) {
+          handleManualBackNavigation(previousEntry);
+        }
+      } else {
+        // Fallback to browser history
+        console.log('🔍 MY MESSAGES: No previous entry, using browser back');
+        window.history.back();
+      }
     } else {
-      // Fallback to browser history or dashboard
+      console.log('🔍 MY MESSAGES: No navigation history, using fallback');
+      // Fallback navigation logic
+      handleFallbackNavigation();
+    }
+  };
+
+  // Handle manual back navigation when navigation history doesn't suffice
+  const handleManualBackNavigation = (previousEntry) => {
+    console.log('🔍 MY MESSAGES: Handling manual back navigation to:', previousEntry.pageName);
+    
+    // Check if we need to navigate to a specific page or section
+    if (previousEntry.pageName === 'Dashboard' || previousEntry.pageName === 'Overview') {
+      // Navigate back to dashboard
+      if (onProjectSelect) {
+        onProjectSelect(null, 'Overview');
+      } else {
+        window.location.href = '/';
+      }
+    } else if (previousEntry.pageName === 'Projects') {
+      // Navigate back to projects page
+      if (onProjectSelect) {
+        onProjectSelect(null, 'Projects');
+      } else {
+        window.location.href = '/projects';
+      }
+    } else if (previousEntry.pageName === 'Project Messages') {
+      // Navigate back to project messages (this shouldn't happen, but handle it)
+      if (onProjectSelect) {
+        onProjectSelect(null, 'Overview');
+      } else {
+        window.location.href = '/';
+      }
+    } else {
+      // Generic fallback - try to use browser history
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.href = '/'; // Fallback to dashboard
+        // Ultimate fallback - go to dashboard
+        if (onProjectSelect) {
+          onProjectSelect(null, 'Overview');
+        } else {
+          window.location.href = '/';
+        }
+      }
+    }
+  };
+
+  // Handle fallback navigation when no history is available
+  const handleFallbackNavigation = () => {
+    console.log('🔍 MY MESSAGES: Handling fallback navigation');
+    
+    // Use the navigation context from App.jsx if available
+    const fromPage = navigationContext?.fromPage || previousPage;
+    console.log('🔍 MY MESSAGES: From page from context:', fromPage);
+    
+    if (fromPage && fromPage !== 'Project Messages') {
+      console.log('🔍 MY MESSAGES: Navigating back to:', fromPage);
+      if (onProjectSelect) {
+        onProjectSelect(null, fromPage);
+      } else {
+        window.location.href = '/';
+      }
+      return;
+    }
+    
+    // Check if we have a referrer or can determine where the user came from
+    const referrer = document.referrer;
+    const currentHost = window.location.host;
+    
+    if (referrer && referrer.includes(currentHost)) {
+      // User came from within our app, try to go back
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Navigate to dashboard
+        if (onProjectSelect) {
+          onProjectSelect(null, 'Overview');
+        } else {
+          window.location.href = '/';
+        }
+      }
+    } else {
+      // User came from outside or direct link, go to dashboard
+      if (onProjectSelect) {
+        onProjectSelect(null, 'Overview');
+      } else {
+        window.location.href = '/';
       }
     }
   };
@@ -90,52 +220,38 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/users', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          }
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          const teamMembers = result.success ? result.data : result;
-          setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
-        } else {
-          // Fallback to mock users if API fails
-          const fallbackUsers = [
-            { id: 'user-1', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
-            { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
-            { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
-          ];
-          setAvailableUsers(fallbackUsers);
-        }
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-        const fallbackUsers = [
-          { id: 'user-1', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
-          { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
-          { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
+        // This would be a real API call in production
+        const mockUsers = [
+          { id: 1, name: 'Sarah Owner', role: 'Owner' },
+          { id: 2, name: 'Mike Rodriguez', role: 'Project Manager' },
+          { id: 3, name: 'John Smith', role: 'Field Director' },
+          { id: 4, name: 'Jane Doe', role: 'Administration' },
+          { id: 5, name: 'Bob Wilson', role: 'Roof Supervisor' },
+          { id: 6, name: 'Alice Johnson', role: 'Customer Service' },
         ];
-        setAvailableUsers(fallbackUsers);
+        setAvailableUsers(mockUsers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setAvailableUsers([]);
       }
     };
-    
+
     fetchUsers();
   }, []);
 
-  // Send direct message function
-  const handleSendDM = (e) => {
-    e.preventDefault();
-    if (dmInput.trim() && selectedCoworkerId) {
-      const newMessage = {
-        fromMe: true,
-        text: dmInput.trim(),
-        timestamp: new Date().toLocaleString()
-      };
-      
-      setChats(prevChats => ({
-        ...prevChats,
-        [selectedCoworkerId]: [...(prevChats[selectedCoworkerId] || []), newMessage]
+  const handleSendDM = () => {
+    if (dmInput.trim()) {
+      setChats(prev => ({
+        ...prev,
+        [selectedCoworkerId]: [
+          ...(prev[selectedCoworkerId] || []),
+          {
+            fromMe: true,
+            text: dmInput.trim(),
+            timestamp: new Date().toLocaleString(),
+            read: true
+          }
+        ]
       }));
       
       setDmInput('');
@@ -165,13 +281,20 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect }) => {
   return (
     <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
       <div className="w-full max-w-6xl mx-auto py-6 px-4">
-        {/* Back Button */}
+        {/* Enhanced Back Button with Navigation Context */}
         <div className="mb-6">
           <ResponsiveBackButton
             colorMode={colorMode}
             variant="secondary"
             preservePosition={true}
             onClick={handleBackNavigation}
+            // Add additional props for better navigation context
+            showNavigationInfo={true}
+            navigationContext={{
+              currentPage: 'My Messages',
+              canGoBack: canGoBack(),
+              previousPage: getPrevious()?.pageName || navigationContext?.fromPage || previousPage || 'Dashboard'
+            }}
           />
         </div>
 

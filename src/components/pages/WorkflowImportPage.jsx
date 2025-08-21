@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workflowImportService } from '../../services/api';
 import { ArrowUpTrayIcon, DocumentTextIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-const WorkflowImportPage = ({ projects = [], onImportComplete }) => {
+const WorkflowImportPage = ({ colorMode }) => {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState('upload'); // upload, preview, mapping, confirm
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -17,6 +17,84 @@ const WorkflowImportPage = ({ projects = [], onImportComplete }) => {
     section: 'section',
     lineItem: 'line_item'
   });
+  const [projects, setProjects] = useState([]);
+  const [workflowPhases, setWorkflowPhases] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Fetch projects
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/projects', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setProjects(result.data.projects || result.data);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  // Fetch workflow phases for dropdown
+  useEffect(() => {
+    const fetchWorkflowPhases = async () => {
+      try {
+        console.log('🔍 WORKFLOW IMPORT: Fetching workflow phases for dropdown...');
+        const response = await fetch('/api/workflow-data/phases', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const phases = result.data.map(phase => ({
+              id: phase.id,
+              name: phase.name,
+              displayName: phase.displayName || phase.name
+            }));
+            setWorkflowPhases(phases);
+            // Set the first phase as default if available
+            if (phases.length > 0) {
+              setStartingPhase(phases[0].id);
+            }
+            console.log('✅ WORKFLOW IMPORT: Loaded workflow phases from database:', phases);
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.error('❌ WORKFLOW IMPORT: Failed to fetch workflow phases:', error);
+        // Fallback phases if API fails
+        const fallbackPhases = [
+          { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
+          { id: 'PROSPECT', name: 'PROSPECT', displayName: 'Prospect' },
+          { id: 'APPROVED', name: 'APPROVED', displayName: 'Approved' },
+          { id: 'EXECUTION', name: 'EXECUTION', displayName: 'Execution' },
+          { id: 'COMPLETION', name: 'COMPLETION', displayName: 'Completion' }
+        ];
+        setWorkflowPhases(fallbackPhases);
+        setStartingPhase('LEAD');
+        console.log('⚠️ WORKFLOW IMPORT: Using fallback workflow phases due to API error');
+      }
+    };
+
+    fetchWorkflowPhases();
+  }, []);
 
   // File upload mutation
   const uploadMutation = useMutation({
@@ -48,9 +126,6 @@ const WorkflowImportPage = ({ projects = [], onImportComplete }) => {
       alert('Workflow imported successfully!');
       queryClient.invalidateQueries(['projects']);
       queryClient.invalidateQueries(['workflows']);
-      if (onImportComplete) {
-        onImportComplete(data.data);
-      }
       // Reset state
       setCurrentStep('upload');
       setUploadedFile(null);
@@ -318,12 +393,11 @@ const WorkflowImportPage = ({ projects = [], onImportComplete }) => {
                     onChange={(e) => setStartingPhase(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   >
-                    <option value="LEAD">Lead</option>
-                    <option value="PROSPECT">Prospect</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="EXECUTION">Execution</option>
-                    <option value="SUPPLEMENT">Supplement</option>
-                    <option value="COMPLETION">Completion</option>
+                    {workflowPhases.map(phase => (
+                      <option key={phase.id} value={phase.id}>
+                        {phase.displayName}
+                      </option>
+                    ))}
                   </select>
                   <p className="mt-1 text-sm text-gray-500">
                     Import will begin from this phase and include all subsequent phases
