@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaUpload, FaDownload, FaTable, FaFileExcel, FaDatabase, FaInfoCircle, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
+import { API_BASE_URL } from '../../services/api';
 
 const CompleteExcelDataManager = ({ colorMode = false }) => {
   // State management
@@ -19,12 +20,19 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
     fetchTables();
   }, []);
 
+  const getAuthToken = () =>
+    sessionStorage.getItem('authToken') ||
+    localStorage.getItem('authToken') ||
+    sessionStorage.getItem('token') ||
+    localStorage.getItem('token');
+
   const fetchTables = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/complete-excel-data/tables', {
+      const response = await fetch(`${API_BASE_URL}/complete-excel-data/tables`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${getAuthToken()}`,
+          'Accept': 'application/json'
         }
       });
 
@@ -32,6 +40,11 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
         throw new Error('Failed to fetch tables');
       }
 
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error('Server returned non-JSON response (likely a proxy or auth redirect).');
+      }
       const data = await response.json();
       setTables(data.data.tables);
       console.log('📋 Loaded tables:', data.data.tables.length);
@@ -71,14 +84,19 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
       }
       formData.append('autoDetect', autoDetect.toString());
 
-      const response = await fetch('/api/complete-excel-data/upload', {
+      const response = await fetch(`${API_BASE_URL}/complete-excel-data/upload`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: formData
       });
 
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error('Server returned non-JSON response for upload.');
+      }
       const data = await response.json();
 
       if (!response.ok) {
@@ -104,12 +122,12 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
   const downloadTemplate = async (tableName = null) => {
     try {
       const endpoint = tableName 
-        ? `/api/complete-excel-data/template/${tableName}`
-        : '/api/complete-excel-data/template/all';
+        ? `${API_BASE_URL}/complete-excel-data/template/${tableName}`
+        : `${API_BASE_URL}/complete-excel-data/template/all`;
 
       const response = await fetch(endpoint, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
 
@@ -139,12 +157,12 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
     try {
       setIsLoading(true);
       const endpoint = tableName 
-        ? `/api/complete-excel-data/export/${tableName}`
-        : '/api/complete-excel-data/export/all';
+        ? `${API_BASE_URL}/complete-excel-data/export/${tableName}`
+        : `${API_BASE_URL}/complete-excel-data/export/all`;
 
       const response = await fetch(endpoint, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
 
