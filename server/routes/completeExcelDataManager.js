@@ -374,6 +374,7 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       if (sheetData.length === 0) continue;
 
       console.log(`\n🔄 Processing sheet: ${sheetName} (${sheetData.length} rows)`);
+      console.log(`📊 Sample data from first row:`, sheetData[0]);
       
       // Determine target table
       let targetTable = tableName;
@@ -392,7 +393,9 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       // Validate data
       console.log('✅ Validating data...');
       const validationErrors = DataProcessor.validateData(targetTable, sheetData);
+      console.log(`🔍 Validation errors found: ${validationErrors.length}`);
       if (validationErrors.length > 0) {
+        console.log('❌ First 10 validation errors:', validationErrors.slice(0, 10));
         const error = `Validation failed for sheet '${sheetName}': ${validationErrors.slice(0, 5).join('; ')}${validationErrors.length > 5 ? ` (and ${validationErrors.length - 5} more)` : ''}`;
         overallResults.errors.push({ sheet: sheetName, error });
         continue;
@@ -406,13 +409,16 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
       for (let i = 0; i < sheetData.length; i++) {
         const { transformed, errors } = DataProcessor.transformData(targetTable, sheetData[i]);
         if (errors.length > 0) {
+          console.log(`❌ Row ${i + 1} transform errors:`, errors);
           transformErrors.push(`Row ${i + 1}: ${errors.join(', ')}`);
         } else {
           transformedData.push(transformed);
         }
       }
 
+      console.log(`🔍 Transform errors found: ${transformErrors.length}`);
       if (transformErrors.length > 0) {
+        console.log('❌ First 10 transform errors:', transformErrors.slice(0, 10));
         const error = `Transform errors for sheet '${sheetName}': ${transformErrors.slice(0, 5).join('; ')}${transformErrors.length > 5 ? ` (and ${transformErrors.length - 5} more)` : ''}`;
         overallResults.errors.push({ sheet: sheetName, error });
         continue;
