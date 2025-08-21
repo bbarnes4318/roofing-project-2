@@ -14,6 +14,7 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
   const [autoDetect, setAutoDetect] = useState(true);
   const [showFieldInfo, setShowFieldInfo] = useState(false);
   const [selectedTableInfo, setSelectedTableInfo] = useState(null);
+  const [expandedSheets, setExpandedSheets] = useState({});
 
   // Fetch all tables on component mount
   useEffect(() => {
@@ -195,6 +196,10 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
     setShowFieldInfo(true);
   };
 
+  const toggleSheetExpand = (sheetName) => {
+    setExpandedSheets(prev => ({ ...prev, [sheetName]: !prev[sheetName] }));
+  };
+
   return (
     <div className={`space-y-6 ${colorMode ? 'text-gray-100' : 'text-gray-800'}`}>
       {/* Header */}
@@ -358,13 +363,51 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
                 {Object.entries(uploadResults.sheetResults).map(([sheetName, result]) => (
                   <div key={sheetName} className={`p-3 border rounded ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">{sheetName}</span>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => toggleSheetExpand(sheetName)}
+                          className={`px-2 py-1 text-xs rounded ${colorMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-gray-700'}`}
+                        >
+                          {expandedSheets[sheetName] ? 'Hide Details' : 'View Details'}
+                        </button>
+                        <span className="font-medium">{sheetName}</span>
+                      </div>
                       <span className="text-sm">→ {result.targetTable}</span>
                     </div>
                     <div className="text-sm flex justify-between">
                       <span className="text-green-600">✓ {result.successful} successful</span>
                       <span className="text-red-600">✗ {result.failed} failed</span>
                     </div>
+
+                    {expandedSheets[sheetName] && (
+                      <div className={`mt-3 text-sm ${colorMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        {Array.isArray(result.transformWarnings) && result.transformWarnings.length > 0 && (
+                          <div className="mb-2">
+                            <div className="font-medium mb-1">Transform warnings:</div>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {result.transformWarnings.map((w, idx) => (
+                                <div key={idx} className={`${colorMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-50 text-yellow-700'} p-2 rounded`}>
+                                  {w}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {Array.isArray(result.errors) && result.errors.length > 0 && (
+                          <div>
+                            <div className="font-medium mb-1 text-red-600">Row errors:</div>
+                            <div className="space-y-1 max-h-48 overflow-y-auto">
+                              {result.errors.map((e, idx) => (
+                                <div key={idx} className={`${colorMode ? 'bg-red-900 text-red-200' : 'bg-red-50 text-red-700'} p-2 rounded`}>
+                                  {e.row ? `Row ${e.row}: ` : ''}{e.error}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
