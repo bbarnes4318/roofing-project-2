@@ -154,23 +154,6 @@ const FieldValidators = {
       }
     }
     return null;
-  },
-  
-  range: (value, fieldName, min, max) => {
-    if (value !== null && value !== undefined) {
-      const num = Number(value);
-      if (num < min || num > max) {
-        return `${fieldName} must be between ${min} and ${max}`;
-      }
-    }
-    return null;
-  },
-  
-  maxLength: (value, fieldName, maxLength) => {
-    if (value && value.toString().length > maxLength) {
-      return `${fieldName} cannot exceed ${maxLength} characters`;
-    }
-    return null;
   }
 };
 
@@ -318,7 +301,7 @@ const DataProcessor = {
     const errors = [];
     
     data.forEach((row, index) => {
-      const { errors: rowErrors } = this.transformData(tableName, row);
+      const { errors: rowErrors } = DataProcessor.transformData(tableName, row);
       rowErrors.forEach(error => {
         errors.push(`Row ${index + 1}: ${error}`);
       });
