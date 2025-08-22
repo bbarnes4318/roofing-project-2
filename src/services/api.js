@@ -1,8 +1,18 @@
 import axios from 'axios';
 
-// Dynamic API Configuration: hardcoded for local development
+// Dynamic API Configuration: use production URL for DigitalOcean
 const getApiBaseUrl = () => {
-  // Hardcoded for local development
+  // Check if we're in production (DigitalOcean domain)
+  if (typeof window !== 'undefined' && window.location.host.includes('ondigitalocean.app')) {
+    return `${window.location.protocol}//${window.location.host}/api`;
+  }
+  
+  // Use environment variable if set
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Fallback for local development
   return 'http://localhost:5000/api';
 };
 
