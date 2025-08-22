@@ -311,7 +311,10 @@ const apiUrl = window.location.hostname === 'localhost'
 
     const getUserPosition = () => {
         if (!currentUser) return "User";
-        return currentUser.position || currentUser.role || "User";
+        const roleUpper = String(currentUser.role || "").toUpperCase();
+        if (currentUser.position) return currentUser.position;
+        if (roleUpper === "WORKER") return "User";
+        return currentUser.role || "User";
     };
 
     // Handle clicking outside the profile dropdown to close it

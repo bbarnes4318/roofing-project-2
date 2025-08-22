@@ -444,15 +444,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
       { id: 'subjects', label: 'Subjects', icon: '📝' }
     ];
 
-    // Add admin-only tabs for authorized users based on actual role
-    const roleUpper = String(currentUser?.role || '').toUpperCase();
-    if (roleUpper === 'ADMIN' || roleUpper === 'OWNER' || roleUpper === 'MANAGER') {
-      baseTabs.push(
-        { id: 'project-import', label: 'Project Import', icon: '🏗️' },
-        { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
-        { id: 'complete-excel', label: 'Complete DB Manager', icon: '🗄️' }
-      );
-    }
+    // Admin import tabs are hidden for all users for now
 
     return baseTabs;
   };
@@ -467,7 +459,14 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
         </div>
         <div>
           <div className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'User'}</div>
-          <div className={`text-xs ${colorMode ? 'text-blue-200' : 'text-blue-600'}`}>{currentUser?.position || currentUser?.role || 'User'}</div>
+          <div className={`text-xs ${colorMode ? 'text-blue-200' : 'text-blue-600'}`}>
+            {(() => {
+              const roleUpper = String(currentUser?.role || '').toUpperCase();
+              if (currentUser?.position) return currentUser.position;
+              if (roleUpper === 'WORKER') return 'User';
+              return currentUser?.role || 'User';
+            })()}
+          </div>
           <div className={`text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>{email}</div>
         </div>
       </div>
