@@ -73,7 +73,7 @@ const transformCustomerForFrontend = (customer) => {
   };
 };
 
-// Validation rules
+// Validation rules for creating customers
 const customerValidation = [
   body('primaryName')
     .trim()
@@ -86,7 +86,7 @@ const customerValidation = [
   body('primaryPhone')
     .trim()
     .optional({ checkFalsy: true })
-    .matches(/^[\+]?[\d\s\-\(\)]{6,20}$/)
+    .matches(/^[\+]?[\d\s\-\(\)\.]{6,25}$/)
     .withMessage('Please provide a valid primary phone number'),
   body('secondaryName')
     .optional({ nullable: true, checkFalsy: true })
@@ -101,7 +101,7 @@ const customerValidation = [
   body('secondaryPhone')
     .optional({ nullable: true, checkFalsy: true })
     .trim()
-    .matches(/^[\+]?[\d\s\-\(\)]{6,20}$/)
+    .matches(/^[\+]?[\d\s\-\(\)\.]{6,25}$/)
     .withMessage('Please provide a valid secondary phone number'),
   body('primaryContact')
     .optional()
@@ -110,6 +110,49 @@ const customerValidation = [
   body('address')
     .trim()
     .optional({ checkFalsy: true })
+    .isLength({ min: 5, max: 500 })
+    .withMessage('Address must be between 5 and 500 characters')
+];
+
+// Validation rules for updating customers (more lenient)
+const customerUpdateValidation = [
+  body('primaryName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Primary customer name must be between 2 and 100 characters'),
+  body('primaryEmail')
+    .optional()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid primary email address'),
+  body('primaryPhone')
+    .optional()
+    .trim()
+    .matches(/^[\+]?[\d\s\-\(\)\.]{6,25}$/)
+    .withMessage('Please provide a valid primary phone number'),
+  body('secondaryName')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Secondary customer name must be between 2 and 100 characters'),
+  body('secondaryEmail')
+    .optional({ nullable: true, checkFalsy: true })
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid secondary email address'),
+  body('secondaryPhone')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .matches(/^[\+]?[\d\s\-\(\)\.]{6,25}$/)
+    .withMessage('Please provide a valid secondary phone number'),
+  body('primaryContact')
+    .optional()
+    .isIn(['PRIMARY', 'SECONDARY'])
+    .withMessage('Primary contact must be PRIMARY or SECONDARY'),
+  body('address')
+    .optional()
+    .trim()
     .isLength({ min: 5, max: 500 })
     .withMessage('Address must be between 5 and 500 characters')
 ];
@@ -126,7 +169,7 @@ const legacyCustomerValidation = [
     .withMessage('Please provide a valid email address'),
   body('phone')
     .trim()
-    .matches(/^[\+]?[1-9][\d]{0,15}$/)
+    .matches(/^[\+]?[\d\s\-\(\)\.]{6,25}$/)
     .withMessage('Please provide a valid phone number'),
   body('address')
     .trim()
@@ -371,7 +414,7 @@ router.post('/', asyncHandler(async (req, res, next) => {
 // @desc    Update customer
 // @route   PUT /api/customers/:id
 // @access  Private
-router.put('/:id', customerValidation, asyncHandler(async (req, res, next) => {
+router.put('/:id', customerUpdateValidation, asyncHandler(async (req, res, next) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -425,6 +468,7 @@ router.put('/:id', customerValidation, asyncHandler(async (req, res, next) => {
     }
 
     // Update customer
+    console.log('Updating customer with data:', updateData);
     const updatedCustomer = await prisma.customer.update({
       where: { id: req.params.id },
       data: updateData

@@ -810,6 +810,7 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     if (req.body.archived !== undefined) updateData.archived = req.body.archived;
 
     // Update project
+    console.log('Updating project with data:', updateData);
     const updatedProject = await prisma.project.update({
       where: { id: req.params.id },
       data: updateData,
