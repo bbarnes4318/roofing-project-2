@@ -4,6 +4,12 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
+// Debug logging
+console.log('🔍 Environment variables debug:');
+console.log('REACT_APP_SUPABASE_URL:', supabaseUrl);
+console.log('REACT_APP_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Present' : 'Missing');
+console.log('All env vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
+
 // Validate that environment variables are set
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables!');
