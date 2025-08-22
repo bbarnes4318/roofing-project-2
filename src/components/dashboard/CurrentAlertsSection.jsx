@@ -692,13 +692,17 @@ const CurrentAlertsSection = ({
                                     const position = positionResult.data;
                                     
                                     // CRITICAL FIX: Generate proper target IDs for navigation
-                                    const targetLineItemId = alert.stepId || 
+                                    const targetLineItemId = position.currentLineItemId ||
+                                                           position.currentLineItem ||
+                                                           alert.stepId || 
                                                            metadata.stepId || 
                                                            metadata.lineItemId || 
                                                            `${phase}-${sectionName}-0`;
                                     
-                                    // Use the actual sectionId from database if available
-                                    const targetSectionId = alert.sectionId || 
+                                    // Prefer actual sectionId from project position; then database; then normalized name
+                                    const targetSectionId = position.currentSectionId ||
+                                                          position.currentSection ||
+                                                          alert.sectionId || 
                                                           metadata.sectionId || 
                                                           sectionName.toLowerCase().replace(/\s+/g, '-');
                                     
@@ -748,9 +752,9 @@ const CurrentAlertsSection = ({
                                   } else {
                                     console.error('🎯 CURRENT_ALERTS CLICK: Position response not successful');
                                     // Fallback navigation with proper targeting
-                                    const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                    const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                    
+                                    const targetLineItemId = position?.currentLineItemId || position?.currentLineItem || alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                    const targetSectionId = position?.currentSectionId || position?.currentSection || alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
+                                     
                                     const projectWithStepInfo = {
                                       ...project,
                                       highlightStep: lineItemName,
@@ -783,9 +787,9 @@ const CurrentAlertsSection = ({
                                 } else {
                                   console.error('🎯 CURRENT_ALERTS CLICK: Failed to get project position, using fallback navigation');
                                   // Fallback to basic navigation with proper targeting
-                                  const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                  const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                  
+                                  const targetLineItemId = position?.currentLineItemId || position?.currentLineItem || alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+                                  const targetSectionId = position?.currentSectionId || position?.currentSection || alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
+                                   
                                   const projectWithStepInfo = {
                                     ...project,
                                     highlightStep: lineItemName,
