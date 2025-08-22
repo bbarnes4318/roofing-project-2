@@ -61,6 +61,7 @@ const authenticateToken = async (req, res, next) => {
               email: email,
               firstName: firstName,
               lastName: lastName,
+              password: 'SUPABASE_MANAGED', // Placeholder since Supabase handles authentication
               role: supabaseUser.user.user_metadata?.role || 'WORKER',
               isActive: true,
               theme: 'light',
