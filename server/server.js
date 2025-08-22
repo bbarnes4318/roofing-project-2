@@ -691,6 +691,36 @@ app.use('/api/excel-data', excelDataRoutes);
 app.use('/api/complete-excel-data', completeExcelDataRoutes);
 app.use('/api/roles', roleRoutes);
 
+// Legacy route fallbacks for frontend requests missing /api prefix
+// Redirect to proper /api endpoints
+app.get('/projects*', (req, res) => {
+  res.redirect(301, `/api${req.path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
+});
+
+app.get('/customers*', (req, res) => {
+  res.redirect(301, `/api${req.path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
+});
+
+app.get('/alerts*', (req, res) => {
+  res.redirect(301, `/api${req.path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
+});
+
+app.get('/activities*', (req, res) => {
+  res.redirect(301, `/api${req.path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`);
+});
+
+app.get('/auth/me', (req, res) => {
+  res.redirect(301, `/api${req.path}`);
+});
+
+app.get('/users/team-members', (req, res) => {
+  res.redirect(301, `/api${req.path}`);
+});
+
+app.get('/bubbles/status', (req, res) => {
+  res.redirect(301, `/api${req.path}`);
+});
+
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');

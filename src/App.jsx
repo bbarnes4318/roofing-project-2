@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import {
   ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, FolderIcon, ArchiveBoxIcon
@@ -455,7 +454,6 @@ export default function App() {
         return (
             <QueryClientProvider client={queryClient}>
                 <Login onLoginSuccess={handleLoginSuccess} />
-                <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         );
     }
@@ -1080,7 +1078,6 @@ export default function App() {
         return (
             <QueryClientProvider client={queryClient}>
                 <ResetPassword />
-                <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         );
     }
@@ -1416,7 +1413,6 @@ export default function App() {
         
         </SubjectsProvider>
         </NavigationProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
         <Toaster />
         </QueryClientProvider>
     );
