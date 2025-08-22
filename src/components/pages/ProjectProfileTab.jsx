@@ -311,7 +311,111 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      
+      {/* Phase/Section/Line Item Navigation */}
+      <div className="mb-4">
+        <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Phase</span>
+            <span className="text-sm font-medium text-gray-900">{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
+          </div>
+          <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Section</span>
+            <span className="text-sm font-medium text-gray-900 truncate">
+              {(() => {
+                if (project.currentWorkflowItem?.sectionDisplayName) {
+                  return project.currentWorkflowItem.sectionDisplayName;
+                }
+                if (project.currentWorkflowItem?.sectionName) {
+                  return project.currentWorkflowItem.sectionName;
+                }
+                if (project.currentWorkflowItem?.section) {
+                  return project.currentWorkflowItem.section;
+                }
+                return 'Not Available';
+              })()}
+            </span>
+          </div>
+          <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Line Item</span>
+            <button
+              onClick={async () => {
+                if (!onProjectSelect) return;
+                try {
+                  const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    }
+                  });
+                  if (positionResponse.ok) {
+                    const positionResult = await positionResponse.json();
+                    if (positionResult.success && positionResult.data) {
+                      const position = positionResult.data;
+                      if (position.currentPhase && position.currentSection) {
+                        const getSubtaskIndex = async () => {
+                          try {
+                            const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                              headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                              }
+                            });
+                            if (workflowResponse.ok) {
+                              const workflowResult = await workflowResponse.json();
+                              if (workflowResult.success && workflowResult.data) {
+                                const currentPhaseData = workflowResult.data.find(phase => phase.phaseType === position.currentPhase);
+                                if (currentPhaseData) {
+                                  const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                                  if (currentSectionData) {
+                                    const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                      if (typeof subtask === 'object') {
+                                        return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                      }
+                                      return subtask === position.currentLineItemName;
+                                    });
+                                    return { subtaskIndex: subtaskIndex >= 0 ? subtaskIndex : 0, phaseId: currentPhaseData.id };
+                                  }
+                                }
+                              }
+                            }
+                          } catch (_) {}
+                          return { subtaskIndex: 0, phaseId: null };
+                        };
+                        const { subtaskIndex, phaseId } = await getSubtaskIndex();
+                        const targetLineItemId = phaseId ? `${phaseId}-${position.currentSection}-${subtaskIndex}` : null;
+                        const targetSectionId = position.currentSection;
+                        onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
+                      } else {
+                        onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                      }
+                    } else {
+                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                    }
+                  } else {
+                    onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                  }
+                } catch (_) {
+                  onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                }
+              }}
+              className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium truncate"
+            >
+              {(() => {
+                if (project.currentWorkflowItem?.lineItemName) {
+                  return project.currentWorkflowItem.lineItemName;
+                }
+                if (project.currentWorkflowItem?.lineItem) {
+                  return project.currentWorkflowItem.lineItem;
+                }
+                if (project.currentWorkflowItem?.itemName) {
+                  return project.currentWorkflowItem.itemName;
+                }
+                return 'View Workflow';
+              })()}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Two-column content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -327,110 +431,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               <span className="text-gray-300">|</span>
               <span className="text-sm font-medium text-gray-700">{formatProjectType(project.projectType) || project.jobType || 'Project'}</span>
             </div>
-            <div className="mb-3">
-              <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Phase</span>
-                  <span className="text-sm font-medium text-gray-900">{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
-                </div>
-                <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Section</span>
-                  <span className="text-sm font-medium text-gray-900 truncate">
-                    {(() => {
-                      if (project.currentWorkflowItem?.sectionDisplayName) {
-                        return project.currentWorkflowItem.sectionDisplayName;
-                      }
-                      if (project.currentWorkflowItem?.sectionName) {
-                        return project.currentWorkflowItem.sectionName;
-                      }
-                      if (project.currentWorkflowItem?.section) {
-                        return project.currentWorkflowItem.section;
-                      }
-                      return 'Not Available';
-                    })()}
-                  </span>
-                </div>
-                <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Line Item</span>
-                  <button
-                    onClick={async () => {
-                      if (!onProjectSelect) return;
-                      try {
-                        const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                          headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                          }
-                        });
-                        if (positionResponse.ok) {
-                          const positionResult = await positionResponse.json();
-                          if (positionResult.success && positionResult.data) {
-                            const position = positionResult.data;
-                            if (position.currentPhase && position.currentSection) {
-                              const getSubtaskIndex = async () => {
-                                try {
-                                  const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-                                    headers: {
-                                      'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                                    }
-                                  });
-                                  if (workflowResponse.ok) {
-                                    const workflowResult = await workflowResponse.json();
-                                    if (workflowResult.success && workflowResult.data) {
-                                      const currentPhaseData = workflowResult.data.find(phase => phase.phaseType === position.currentPhase);
-                                      if (currentPhaseData) {
-                                        const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
-                                        if (currentSectionData) {
-                                          const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
-                                            if (typeof subtask === 'object') {
-                                              return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
-                                            }
-                                            return subtask === position.currentLineItemName;
-                                          });
-                                          return { subtaskIndex: subtaskIndex >= 0 ? subtaskIndex : 0, phaseId: currentPhaseData.id };
-                                        }
-                                      }
-                                    }
-                                  }
-                                } catch (_) {}
-                                return { subtaskIndex: 0, phaseId: null };
-                              };
-                              const { subtaskIndex, phaseId } = await getSubtaskIndex();
-                              const targetLineItemId = phaseId ? `${phaseId}-${position.currentSection}-${subtaskIndex}` : null;
-                              const targetSectionId = position.currentSection;
-                              onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
-                            } else {
-                              onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
-                            }
-                          } else {
-                            onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
-                          }
-                        } else {
-                          onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
-                        }
-                      } catch (_) {
-                        onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
-                      }
-                    }}
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium truncate"
-                  >
-                    {(() => {
-                      if (project.currentWorkflowItem?.lineItemName) {
-                        return project.currentWorkflowItem.lineItemName;
-                      }
-                      if (project.currentWorkflowItem?.lineItem) {
-                        return project.currentWorkflowItem.lineItem;
-                      }
-                      if (project.currentWorkflowItem?.itemName) {
-                        return project.currentWorkflowItem.itemName;
-                      }
-                      return 'View Workflow';
-                    })()}
-                  </button>
-                </div>
-              </div>
-            </div>
+
 
 
             
