@@ -26,9 +26,12 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     secondaryEmail: '',
     pmName: '',
     pmPhone: '',
-    pmEmail: ''
+    pmEmail: '',
+    pmId: ''
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const toggleProgressExpansion = (projectId, section) => {
     const expandedKey = `${projectId || 'project'}-${section}`;
@@ -81,6 +84,48 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     ];
   };
 
+  // Load users for dropdown
+  useEffect(() => {
+    const loadUsers = async () => {
+      setUsersLoading(true);
+      try {
+        const response = await api.get('/users');
+        if (response.data && response.data.success) {
+          setUsers(response.data.data || []);
+        } else {
+          // Fallback to mock users if API fails
+          setUsers([
+            { id: 1, firstName: 'Mike', lastName: 'Field', role: 'Project Manager', email: 'mike.field@company.com' },
+            { id: 2, firstName: 'Sarah', lastName: 'Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' },
+            { id: 3, firstName: 'John', lastName: 'Smith', role: 'Field Director', email: 'john.smith@company.com' },
+            { id: 4, firstName: 'Emily', lastName: 'Davis', role: 'Administration', email: 'emily.davis@company.com' },
+            { id: 5, firstName: 'Robert', lastName: 'Wilson', role: 'Roof Supervisor', email: 'robert.wilson@company.com' },
+            { id: 6, firstName: 'Lisa', lastName: 'Anderson', role: 'Customer Service', email: 'lisa.anderson@company.com' },
+            { id: 7, firstName: 'David', lastName: 'Martinez', role: 'Estimator', email: 'david.martinez@company.com' },
+            { id: 8, firstName: 'Jennifer', lastName: 'Brown', role: 'Accounting', email: 'jennifer.brown@company.com' }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        // Fallback to mock users
+        setUsers([
+          { id: 1, firstName: 'Mike', lastName: 'Field', role: 'Project Manager', email: 'mike.field@company.com' },
+          { id: 2, firstName: 'Sarah', lastName: 'Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' },
+          { id: 3, firstName: 'John', lastName: 'Smith', role: 'Field Director', email: 'john.smith@company.com' },
+          { id: 4, firstName: 'Emily', lastName: 'Davis', role: 'Administration', email: 'emily.davis@company.com' },
+          { id: 5, firstName: 'Robert', lastName: 'Wilson', role: 'Roof Supervisor', email: 'robert.wilson@company.com' },
+          { id: 6, firstName: 'Lisa', lastName: 'Anderson', role: 'Customer Service', email: 'lisa.anderson@company.com' },
+          { id: 7, firstName: 'David', lastName: 'Martinez', role: 'Estimator', email: 'david.martinez@company.com' },
+          { id: 8, firstName: 'Jennifer', lastName: 'Brown', role: 'Accounting', email: 'jennifer.brown@company.com' }
+        ]);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, []);
+
   // Initialize edit form data when project changes
   useEffect(() => {
     if (project) {
@@ -96,7 +141,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           ? `${project.projectManager.firstName} ${project.projectManager.lastName}`.trim()
           : project.projectManager?.name || '',
         pmPhone: project.projectManager?.phone || project.pmPhone || '',
-        pmEmail: project.projectManager?.email || project.pmEmail || ''
+        pmEmail: project.projectManager?.email || project.pmEmail || '',
+        pmId: project.projectManager?.id || project.projectManagerId || ''
       });
     }
   }, [project]);
@@ -126,7 +172,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           ? `${project.projectManager.firstName} ${project.projectManager.lastName}`.trim()
           : project.projectManager?.name || '',
         pmPhone: project.projectManager?.phone || project.pmPhone || '',
-        pmEmail: project.projectManager?.email || project.pmEmail || ''
+        pmEmail: project.projectManager?.email || project.pmEmail || '',
+        pmId: project.projectManager?.id || project.projectManagerId || ''
       });
     }
   };
@@ -147,12 +194,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           secondaryPhone: editFormData.secondaryPhone,
           secondaryEmail: editFormData.secondaryEmail
         },
-        projectManager: {
-          ...project.projectManager,
-          name: editFormData.pmName,
-          phone: editFormData.pmPhone,
-          email: editFormData.pmEmail
-        },
+        projectManagerId: editFormData.pmId,
         pmPhone: editFormData.pmPhone,
         pmEmail: editFormData.pmEmail
       };
@@ -263,7 +305,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             </div>
             <div className="mb-2">
               <div className="flex items-center justify-between">
-                <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Address</div>
+              <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Address</div>
                 {!isEditingAddress && (
                   <button
                     onClick={handleEditAddress}
@@ -303,7 +345,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   </div>
                 </div>
               ) : (
-                <div className="mt-1 text-sm text-gray-900">{formatAddress(getProjectAddress(project))}</div>
+              <div className="mt-1 text-sm text-gray-900">{formatAddress(getProjectAddress(project))}</div>
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -394,7 +436,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                             console.log('🎯 PROJECT PROFILE: Generated targetLineItemId:', targetLineItemId);
                             console.log('🎯 PROJECT PROFILE: Generated targetSectionId:', targetSectionId);
 
-                            onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
+                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
                           } else {
                             console.warn('No project position data found, using fallback navigation');
                             // Fallback navigation
@@ -468,33 +510,50 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                     </div>
                   </div>
                   
-                  {/* Project Manager */}
-                  <div className="space-y-3">
-                    <h5 className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Project Manager</h5>
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        value={editFormData.pmName}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, pmName: e.target.value }))}
-                        placeholder="Project Manager Name"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="tel"
-                        value={editFormData.pmPhone}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))}
-                        placeholder="Phone Number"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="email"
-                        value={editFormData.pmEmail}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))}
-                        placeholder="Email Address"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
+                                     {/* Project Manager */}
+                   <div className="space-y-3">
+                     <h5 className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Project Manager</h5>
+                     <div className="space-y-2">
+                       <select
+                         value={editFormData.pmId}
+                         onChange={(e) => {
+                           const selectedUser = users.find(user => user.id.toString() === e.target.value);
+                           setEditFormData(prev => ({
+                             ...prev,
+                             pmId: e.target.value,
+                             pmName: selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : '',
+                             pmEmail: selectedUser?.email || '',
+                             pmPhone: selectedUser?.phone || ''
+                           }));
+                         }}
+                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                         disabled={usersLoading}
+                       >
+                         <option value="">
+                           {usersLoading ? '⏳ Loading users...' : '👤 Select Project Manager'}
+                         </option>
+                         {users.map(user => (
+                           <option key={user.id} value={user.id}>
+                             {user.firstName} {user.lastName} ({user.role || 'No role'})
+                           </option>
+                         ))}
+                       </select>
+                       <input
+                         type="tel"
+                         value={editFormData.pmPhone}
+                         onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))}
+                         placeholder="Phone Number (Optional)"
+                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       />
+                       <input
+                         type="email"
+                         value={editFormData.pmEmail}
+                         onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))}
+                         placeholder="Email Address (Optional)"
+                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       />
+                     </div>
+                   </div>
                 </div>
                 
                 {/* Secondary Contact */}
@@ -540,9 +599,9 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 text-sm font-medium"
                   >
                     Cancel
-                  </button>
-                </div>
+                </button>
               </div>
+            </div>
             )}
           </div>
 
@@ -554,11 +613,11 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   onClick={handleEditContact}
                   className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit
-                </button>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
               )}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

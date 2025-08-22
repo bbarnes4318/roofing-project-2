@@ -591,15 +591,15 @@ export default function GlobalSearch({
                                             console.log('🎯 SEARCH LINE ITEM: Generated targetLineItemId:', targetLineItemId);
                                             console.log('🎯 SEARCH LINE ITEM: Generated targetSectionId:', targetSectionId);
 
-                                            onNavigateToResult({ 
-                                              ...result, 
-                                              navigationTarget: {
-                                                page: 'Project Workflow',
-                                                project: result.data,
-                                                targetLineItemId,
-                                                targetSectionId
-                                              }
-                                            });
+                                    onNavigateToResult({ 
+                                      ...result, 
+                                      navigationTarget: {
+                                        page: 'Project Workflow',
+                                        project: result.data,
+                                        targetLineItemId,
+                                        targetSectionId
+                                      }
+                                    });
                                           } else {
                                             console.warn('No project position data found, using fallback navigation');
                                             // Fallback navigation
