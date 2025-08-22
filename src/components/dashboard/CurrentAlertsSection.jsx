@@ -205,6 +205,15 @@ const CurrentAlertsSection = ({
 
   // Handle project selection through alert - matches DashboardPage pattern
   const handleProjectSelectFromAlert = (project, targetPage, phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null, alertId = null) => {
+    console.log('🎯 CURRENT_ALERTS: handleProjectSelectFromAlert called with:');
+    console.log('🎯 CURRENT_ALERTS: project:', project?.name);
+    console.log('🎯 CURRENT_ALERTS: targetPage:', targetPage);
+    console.log('🎯 CURRENT_ALERTS: phase:', phase);
+    console.log('🎯 CURRENT_ALERTS: sourceSection:', sourceSection);
+    console.log('🎯 CURRENT_ALERTS: targetLineItemId:', targetLineItemId);
+    console.log('🎯 CURRENT_ALERTS: targetSectionId:', targetSectionId);
+    console.log('🎯 CURRENT_ALERTS: alertId:', alertId);
+    
     if (onProjectSelect) {
       // Enhanced project with dashboard state for alert restoration
       const projectWithDashboardState = {
@@ -230,6 +239,7 @@ const CurrentAlertsSection = ({
         }
       };
       
+      console.log('🎯 CURRENT_ALERTS: Calling onProjectSelect with all parameters');
       // Pass parameters in the same order as DashboardPage
       onProjectSelect(projectWithDashboardState, targetPage, phase, sourceSection, targetLineItemId, targetSectionId);
     }
