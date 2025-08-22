@@ -359,26 +359,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
           console.log('✅ Loaded users for assignment:', teamMembers.length);
         } else {
-          // Fallback to mock users if API fails
-          console.log('⚠️ Using fallback users for assignment');
-          const fallbackUsers = [
-            { id: 'cmeceqna60007qdkdllcz0jf5', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
-            { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
-            { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
-          ];
-          setAvailableUsers(fallbackUsers);
-          console.log('✅ Set fallback users:', fallbackUsers);
+          // Don't use fallback users with invalid IDs - just log the issue
+          console.log('⚠️ API returned no team members');
+          setAvailableUsers([]);
         }
       } catch (error) {
         console.error('❌ Failed to fetch users:', error);
-        // Use fallback users on error too
-        const fallbackUsers = [
-          { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
-          { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
-          { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
-        ];
-        setAvailableUsers(fallbackUsers);
-        console.log('✅ Set fallback users after error:', fallbackUsers);
+        // Don't use fallback users with invalid IDs - just set empty array
+        setAvailableUsers([]);
       } finally {
         setUsersLoading(false);
       }
@@ -3285,7 +3273,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </button>
                               
                               {/* Customer with dropdown arrow - Made smaller */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '2px'}}>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '0px'}}>
                                 <button 
                                   ref={(el) => alertContactButtonRefs.current[alertId] = el}
                                   className={`text-[9px] font-semibold cursor-pointer hover:underline ${
@@ -3325,7 +3313,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </div>
                               
                               {/* PM with dropdown arrow - align baseline with Line Item label */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '10px' }}>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '40px' }}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
                                   ref={(el) => alertPmButtonRefs.current[alertId] = el}
@@ -3379,7 +3367,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         </div>
                         
                         {/* Second Row - Section and Line Item */}
-                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '36px' }}>
+                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '20px' }}>
                           {/* Section label aligned under Project Number, Section value aligned under Customer Name */}
                           <div className="flex items-center" style={{ width: '210px' }}>
                             {/* Section label - moved 1 space right closer to its value */}
@@ -3391,7 +3379,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </div>
                           
                           {/* Line Item - moved closer to Section */}
-                          <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '10px' }}>
+                          <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '0px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${

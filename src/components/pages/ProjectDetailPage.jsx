@@ -520,26 +520,14 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     setAvailableUsers(Array.isArray(teamMembers) ? teamMembers : []);
                     console.log('✅ Loaded users for assignment:', teamMembers.length);
                 } else {
-                    // Fallback to mock users if API fails
-                    console.log('⚠️ Using fallback users for assignment');
-                    const fallbackUsers = [
-                        { id: 'cmeceqna60007qdkdllcz0jf5', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
-                        { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
-                        { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
-                    ];
-                    setAvailableUsers(fallbackUsers);
-                    console.log('✅ Set fallback users:', fallbackUsers);
+                    // Don't use fallback users with invalid IDs - just log the issue
+                    console.log('⚠️ API returned no team members');
+                    setAvailableUsers([]);
                 }
             } catch (error) {
                 console.error('❌ Failed to fetch users:', error);
-                // Use fallback users on error too
-                const fallbackUsers = [
-                    { id: 'cme0ia6t00006umy4950saarf', firstName: 'David', lastName: 'Chen', role: 'MANAGER' },
-                    { id: 'user-2', firstName: 'Sarah', lastName: 'Johnson', role: 'OFFICE' },
-                    { id: 'user-3', firstName: 'Mike', lastName: 'Rodriguez', role: 'FIELD' }
-                ];
-                setAvailableUsers(fallbackUsers);
-                console.log('✅ Set fallback users after error:', fallbackUsers);
+                // Don't use fallback users with invalid IDs - just set empty array
+                setAvailableUsers([]);
             } finally {
                 setUsersLoading(false);
             }
@@ -1579,7 +1567,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                             </div>
                                                             
                                                             {/* PM with dropdown arrow - Moved further right */}
-                                                            <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '20px'}}>
+                                                            <div className="flex items-center gap-1 flex-shrink-0" style={{marginLeft: '36px'}}>
                                                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                                                 <button 
                                                                     className={`text-[9px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
@@ -1637,7 +1625,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                 </div>
                                                 
                                                 {/* Second Row - Section and Line Item */}
-                                                <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
+                                                <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '-6px' }}>
                                                     {/* Section - align S with project number (50px width) */}
                                                     <div className="flex items-center gap-1" style={{ width: '210px' }}>
                                                         <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '50px' }}>Section:</span>
