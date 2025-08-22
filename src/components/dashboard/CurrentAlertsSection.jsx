@@ -670,10 +670,14 @@ const CurrentAlertsSection = ({
                                 });
                                 
                                 // Get project position data for proper targeting
-                                const positionResponse = await api.get(`/workflow-data/project-position/${project.id}`);
+                                const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                                  headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                  }
+                                });
                                 
-                                if (positionResponse.data) {
-                                  const positionResult = positionResponse.data;
+                                if (positionResponse.ok) {
+                                  const positionResult = await positionResponse.json();
                                   if (positionResult.success && positionResult.data) {
                                     const position = positionResult.data;
                                     
@@ -917,10 +921,14 @@ const CurrentAlertsSection = ({
                               });
                               
                               // Get project position data for proper targeting
-                              const positionResponse = await api.get(`/workflow-data/project-position/${project.id}`);
+                              const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                                headers: {
+                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                }
+                              });
                               
-                              if (positionResponse.data) {
-                                const positionResult = positionResponse.data;
+                              if (positionResponse.ok) {
+                                const positionResult = await positionResponse.json();
                                 if (positionResult.success && positionResult.data) {
                                   const position = positionResult.data;
                                   

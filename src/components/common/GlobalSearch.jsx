@@ -531,26 +531,95 @@ export default function GlobalSearch({
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   if (onNavigateToResult && result.data.currentWorkflowItem) {
-                                    // Navigate to workflow with specific line item highlighting
-                                    const wf = result.data.currentWorkflowItem;
-                                    const wfState = result.data.workflowState || {};
-                                    const phaseId = wf?.phase || wfState.currentPhase || result.data.phase || 'LEAD';
-                                    const sectionId = wf?.sectionId || wfState.currentSection || result.data.currentSectionId || wf?.section;
-                                    const stepId = wf?.stepId || wfState.currentLineItem || result.data.currentLineItemId;
-                                    const targetLineItemId = stepId || (phaseId && sectionId ? `${phaseId}-${sectionId}-0` : null);
-                                    const targetSectionId = sectionId || null;
+                                    try {
+                                      console.log('🎯 SEARCH LINE ITEM: Getting project position for workflow navigation');
+                                      
+                                      // Get project position data for proper targeting (same as working sections)
+                                      const positionResponse = await fetch(`/api/workflow-data/project-position/${result.data.id}`, {
+                                        headers: {
+                                          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                        }
+                                      });
+                                      
+                                      if (positionResponse.ok) {
+                                        const positionResult = await positionResponse.json();
+                                        if (positionResult.success && positionResult.data) {
+                                          const position = positionResult.data;
+                                          console.log('🎯 SEARCH LINE ITEM: Project position data:', position);
+                                          
+                                          if (position.currentPhase && position.currentSection) {
+                                            // Get subtask index for precise targeting
+                                            const getSubtaskIndex = async () => {
+                                              try {
+                                                const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                                                  headers: {
+                                                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                  }
+                                                });
+                                                
+                                                if (workflowResponse.ok) {
+                                                  const workflowResult = await workflowResponse.json();
+                                                  if (workflowResult.success && workflowResult.data) {
+                                                    // Find the current phase
+                                                    const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                                                    if (currentPhaseData) {
+                                                      // Find the current section
+                                                      const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                                                      if (currentSectionData) {
+                                                        // Find the subtask index by matching the current DB id or name
+                                                        const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                                          if (typeof subtask === 'object') {
+                                                            return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                                          }
+                                                          return subtask === position.currentLineItemName;
+                                                        });
+                                                        return subtaskIndex >= 0 ? subtaskIndex : 0;
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              } catch (error) {
+                                                console.warn('Could not determine subtask index:', error);
+                                              }
+                                              return 0; // Default fallback
+                                            };
+                                            
+                                            const subtaskIndex = await getSubtaskIndex();
+                                            const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                            const targetSectionId = position.currentSection;
+                                            
+                                            console.log('🎯 SEARCH LINE ITEM: Generated targetLineItemId:', targetLineItemId);
+                                            console.log('🎯 SEARCH LINE ITEM: Generated targetSectionId:', targetSectionId);
 
-                                    console.log('🎯 SEARCH LINE ITEM: Using targets:', { targetLineItemId, targetSectionId });
-
-                                    onNavigateToResult({ 
-                                      ...result, 
-                                      navigationTarget: {
-                                        page: 'Project Workflow',
-                                        project: result.data,
-                                        targetLineItemId,
-                                        targetSectionId
+                                            onNavigateToResult({ 
+                                              ...result, 
+                                              navigationTarget: {
+                                                page: 'Project Workflow',
+                                                project: result.data,
+                                                targetLineItemId,
+                                                targetSectionId
+                                              }
+                                            });
+                                          } else {
+                                            console.warn('No project position data found, using fallback navigation');
+                                            // Fallback navigation
+                                            onNavigateToResult({ ...result, page: 'Project Workflow' });
+                                          }
+                                        } else {
+                                          console.error('Failed to get project position, using fallback navigation');
+                                          // Fallback navigation
+                                          onNavigateToResult({ ...result, page: 'Project Workflow' });
+                                        }
+                                      } else {
+                                        console.error('Failed to get project position, using fallback navigation');
+                                        // Fallback navigation
+                                        onNavigateToResult({ ...result, page: 'Project Workflow' });
                                       }
-                                    });
+                                    } catch (error) {
+                                      console.error('Error in Search line item navigation:', error);
+                                      // Fallback navigation
+                                      onNavigateToResult({ ...result, page: 'Project Workflow' });
+                                    }
                                   }
                                 }}
                                 title="Navigate to Line Item in Workflow"
