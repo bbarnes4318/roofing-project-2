@@ -372,16 +372,30 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   
   const handleCreateSection = async (e) => {
     e.preventDefault();
-    if (!selectedPhaseForSection || !createSectionData.sectionName.trim()) return;
+    
+    // Validate form data
+    if (!selectedPhaseForSection) {
+      alert('Please select a phase for the section.');
+      return;
+    }
+    
+    if (!createSectionData.sectionName.trim()) {
+      alert('Please enter a section name.');
+      return;
+    }
     
     setCreatingSection(true);
     try {
-      const response = await api.post('/workflows/sections', {
+      const requestData = {
         phaseId: selectedPhaseForSection.id,
         sectionName: createSectionData.sectionName.trim(),
         displayName: createSectionData.displayName.trim() || createSectionData.sectionName.trim(),
         description: createSectionData.description.trim() || null
-      });
+      };
+      
+      console.log('🔍 CREATE SECTION: Sending request data:', requestData);
+      
+             const response = await api.post('/api/workflows/sections', requestData);
       
       if (response.data.success) {
         // Refresh workflow data to show new section
@@ -407,18 +421,32 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   
   const handleCreateLineItem = async (e) => {
     e.preventDefault();
-    if (!selectedSectionForLineItem || !createLineItemData.itemName.trim()) return;
+    
+    // Validate form data
+    if (!selectedSectionForLineItem) {
+      alert('Please select a section for the line item.');
+      return;
+    }
+    
+    if (!createLineItemData.itemName.trim()) {
+      alert('Please enter an item name.');
+      return;
+    }
     
     setCreatingLineItem(true);
     try {
-      const response = await api.post('/workflows/line-items', {
+      const requestData = {
         sectionId: selectedSectionForLineItem.id,
         itemName: createLineItemData.itemName.trim(),
         responsibleRole: createLineItemData.responsibleRole,
         description: createLineItemData.description.trim() || null,
         estimatedMinutes: parseInt(createLineItemData.estimatedMinutes) || 30,
         alertDays: parseInt(createLineItemData.alertDays) || 1
-      });
+      };
+      
+      console.log('🔍 CREATE LINE ITEM: Sending request data:', requestData);
+      
+             const response = await api.post('/api/workflows/line-items', requestData);
       
       if (response.data.success) {
         // Refresh workflow data to show new line item
