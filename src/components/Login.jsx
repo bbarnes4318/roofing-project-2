@@ -134,8 +134,15 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  // If user is logged in, show user info and logout button
+  // If user is logged in and parent callback exists, call it
   if (user && isUserVerified(user)) {
+    if (onLoginSuccess) {
+      // Call the parent's login success handler
+      onLoginSuccess(user);
+      return null; // Don't render anything, let parent handle the navigation
+    }
+    
+    // Fallback: show user info and logout button (only if no parent callback)
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">

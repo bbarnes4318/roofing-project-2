@@ -40,12 +40,11 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
-      // Enable retries for better reliability
       retry: 3,
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
-      // Enable reconnect refetch for better user experience
-      refetchOnReconnect: true,
+      refetchOnReconnect: false,
+      refetchInterval: false,
     },
     mutations: {
       retry: 1,
@@ -101,7 +100,6 @@ export default function App() {
         const checkAuthState = async () => {
             const user = await getCurrentUser();
             if (user && isUserVerified(user)) {
-                // Call the token exchange to get proper JWT and user data
                 await handleLoginSuccess(user);
             } else {
                 setIsAuthenticated(false);
@@ -113,38 +111,24 @@ export default function App() {
 
     // Check if user needs onboarding
     useEffect(() => {
-        const checkOnboardingStatus = async () => {
-            if (!isAuthenticated || !currentUser) return;
-            
-            try {
-                // For now, check if user needs onboarding based on local logic
-                // In production, you'd call onboardingService.getOnboardingStatus()
-                const needsOnboarding = 
-                    currentUser.role === 'WORKER' || // Default role
-                    currentUser.hasCompletedOnboarding === false ||
-                    (!currentUser.hasCompletedOnboarding && !currentUser.onboardingData);
-                
-                setNeedsOnboarding(needsOnboarding);
-                setOnboardingChecked(true);
-            } catch (error) {
-                console.error('Error checking onboarding status:', error);
-                setOnboardingChecked(true);
-            }
-        };
-
-        checkOnboardingStatus();
+        if (!isAuthenticated || !currentUser) return;
+        
+        const needsOnboarding = 
+            !currentUser.hasCompletedOnboarding && 
+            currentUser.role === 'WORKER';
+        
+        setNeedsOnboarding(needsOnboarding);
+        setOnboardingChecked(true);
     }, [isAuthenticated, currentUser]);
 
     // Handle onboarding completion
     const handleOnboardingComplete = (data) => {
-        console.log('Onboarding completed:', data);
-        
-        // Update current user with new role/data
         const updatedUser = {
             ...currentUser,
             role: data?.mappedRole || data?.role || currentUser?.role,
             hasCompletedOnboarding: true,
-            onboardingData: data
+            onboardingData: data,
+            onboardingRole: data?.role
         };
         
         setCurrentUser(updatedUser);
@@ -156,9 +140,11 @@ export default function App() {
     const handleLoginSuccess = async (supabaseUser) => {
         if (!supabaseUser) return;
         
-        // Create a traditional JWT token for the existing app to use
         try {
-            const response = await fetch('/api/auth/supabase-token-exchange', {
+            const apiUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:5000/api/auth/supabase-token-exchange'
+                : '/api/auth/supabase-token-exchange';
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,21 +160,15 @@ export default function App() {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.token && data.user) {
-                    // Store the traditional JWT token
                     sessionStorage.setItem('authToken', data.token);
                     localStorage.setItem('authToken', data.token);
-                    
-                    // Store user data from server response (not Supabase metadata)
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    
-                    // Set user state using server response data
                     setCurrentUser(data.user);
                     setIsAuthenticated(true);
                 }
             }
         } catch (error) {
             console.error('Failed to exchange Supabase token:', error);
-            // Force rebuild timestamp: 2025-08-22-15:50
         }
     };
 

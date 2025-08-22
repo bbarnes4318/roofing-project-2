@@ -19,8 +19,8 @@ const OnboardingFlow = ({ currentUser, onComplete }) => {
 
   // Check if user needs onboarding
   useEffect(() => {
-    // Skip onboarding if user already has completed it or has a role set properly
-    if (currentUser?.hasCompletedOnboarding || currentUser?.role !== 'WORKER') {
+    // Skip onboarding if user already has completed it
+    if (currentUser?.hasCompletedOnboarding) {
       // User doesn't need onboarding, complete immediately
       onComplete?.();
     }
