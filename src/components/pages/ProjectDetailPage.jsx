@@ -769,7 +769,17 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             return;
         }
         if (projectSourceSection === 'Current Alerts') {
-            onProjectSelect && onProjectSelect(null, 'Overview');
+            // Use the provided onBack handler to ensure proper scroll to Current Alerts
+            if (onBack) {
+                onBack();
+            } else {
+                // Fallback: navigate to Overview and attempt to scroll
+                onProjectSelect && onProjectSelect(null, 'Overview');
+                setTimeout(() => {
+                    const alertsSection = document.querySelector('[data-section="current-alerts"]');
+                    if (alertsSection) alertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+            }
             return;
         }
         if (projectSourceSection === 'Project Phases') {

@@ -245,6 +245,137 @@ const CurrentAlertsSection = ({
     }
   };
 
+  // Use the same targeting logic as Projects by Phase: compute targetLineItemId/targetSectionId
+  const navigateAlertToWorkflow = async (alert) => {
+    const project = projects?.find(p => p.id === alert.projectId);
+    if (!project || !onProjectSelect) return;
+
+    try {
+      const lineItemName = alert.stepName || alert.title || 'Unknown Item';
+      let targetLineItemId = null;
+      let targetSectionId = null;
+
+      // Get current project position (auto-initializes if needed)
+      const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        }
+      });
+
+      if (positionResponse.ok) {
+        const positionResult = await positionResponse.json();
+        if (positionResult.success && positionResult.data) {
+          const position = positionResult.data;
+
+          // Compute subtask index from full-structure
+          let subtaskIndex = 0;
+          try {
+            const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+              }
+            });
+            if (workflowResponse.ok) {
+              const workflowResult = await workflowResponse.json();
+              if (workflowResult.success && workflowResult.data) {
+                const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                if (currentPhaseData) {
+                  const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                  if (currentSectionData) {
+                    const idx = currentSectionData.subtasks.findIndex(subtask => {
+                      if (typeof subtask === 'object') {
+                        return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                      }
+                      return subtask === position.currentLineItemName;
+                    });
+                    subtaskIndex = idx >= 0 ? idx : 0;
+                  }
+                }
+              }
+            }
+          } catch (_) {}
+
+          targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+          targetSectionId = position.currentSection;
+        }
+      }
+
+      // Fallback to alert metadata when needed
+      if (!targetLineItemId || !targetSectionId) {
+        const metadata = alert.metadata || {};
+        const phase = metadata.phase || alert.phase || 'LEAD';
+        const sectionName = alert.section || metadata.section || 'Unknown Section';
+        targetLineItemId = alert.stepId || metadata.stepId || metadata.lineItemId || `${phase}-${sectionName}-0`;
+        targetSectionId = alert.sectionId || metadata.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
+      }
+
+      const projectWithNavigation = {
+        ...project,
+        highlightStep: lineItemName,
+        highlightLineItem: lineItemName,
+        targetLineItem: lineItemName,
+        scrollToCurrentLineItem: true,
+        navigationTarget: {
+          lineItem: lineItemName,
+          stepName: lineItemName,
+          alertId: alert.id,
+          lineItemId: alert.stepId || alert.metadata?.stepId || alert.metadata?.lineItemId,
+          highlightMode: 'line-item',
+          scrollBehavior: 'smooth',
+          targetElementId: `lineitem-${targetLineItemId}`,
+          highlightColor: '#0066CC',
+          highlightDuration: 3000,
+          targetSectionId: targetSectionId,
+          expandPhase: true,
+          expandSection: true
+        }
+      };
+
+      handleProjectSelectFromAlert(
+        projectWithNavigation,
+        'Project Workflow',
+        null,
+        'Current Alerts',
+        targetLineItemId,
+        targetSectionId,
+        alert.id
+      );
+    } catch (error) {
+      console.error('🎯 CURRENT_ALERTS: navigateAlertToWorkflow error:', error);
+      // Final fallback matching pattern
+      const metadata = alert.metadata || {};
+      const phase = metadata.phase || alert.phase || 'LEAD';
+      const sectionName = alert.section || metadata.section || 'Unknown Section';
+      const lineItemName = alert.stepName || alert.title || 'Unknown Item';
+      const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
+      const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
+      const project = projects?.find(p => p.id === alert.projectId);
+      if (!project) return;
+      const projectWithStepInfo = {
+        ...project,
+        highlightStep: lineItemName,
+        highlightLineItem: lineItemName,
+        targetLineItem: lineItemName,
+        scrollToCurrentLineItem: true,
+        navigationTarget: {
+          lineItem: lineItemName,
+          stepName: lineItemName,
+          alertId: alert.id,
+          lineItemId: alert.stepId || metadata.stepId,
+          highlightMode: 'line-item',
+          scrollBehavior: 'smooth',
+          targetElementId: `lineitem-${targetLineItemId}`,
+          highlightColor: '#0066CC',
+          highlightDuration: 3000,
+          targetSectionId: targetSectionId,
+          expandPhase: true,
+          expandSection: true
+        }
+      };
+      handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
+    }
+  };
+
   // Normalize alert data for consistent display and navigation
   const normalizeAlert = (alert) => {
     const metadata = alert.metadata || alert.actionData || {};
@@ -656,205 +787,7 @@ const CurrentAlertsSection = ({
                           title={alert.stepName}
                           onClick={async (e) => {
                             e.stopPropagation();
-                            const project = projects?.find(p => p.id === alert.projectId);
-                            if (project && onProjectSelect) {
-                              console.log('🎯 CURRENT_ALERTS CLICK: Starting alert line item navigation');
-                              console.log('🎯 CURRENT_ALERTS CLICK: Project:', project.name);
-                              console.log('🎯 CURRENT_ALERTS CLICK: Line Item:', alert.stepName);
-                              console.log('🎯 CURRENT_ALERTS CLICK: Section:', alert.section);
-                              console.log('🎯 CURRENT_ALERTS CLICK: Alert metadata:', alert.metadata);
-                              
-                              try {
-                                // CRITICAL FIX: Use the properly normalized alert data
-                                const metadata = alert.metadata || {};
-                                const phase = metadata.phase || alert.phase || 'LEAD';
-                                const sectionName = alert.section || metadata.section || 'Unknown Section';
-                                const lineItemName = alert.stepName || alert.title || 'Unknown Item';
-                                
-                                console.log('🎯 CURRENT_ALERTS CLICK: Navigation data:', {
-                                  phase,
-                                  sectionName,
-                                  lineItemName,
-                                  stepId: alert.stepId,
-                                  sectionId: alert.sectionId
-                                });
-                                
-                                // Get project position data for proper targeting
-                                const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                                  headers: {
-                                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                  }
-                                });
-                                
-                                if (positionResponse.ok) {
-                                  const positionResult = await positionResponse.json();
-                                  if (positionResult.success && positionResult.data) {
-                                    const position = positionResult.data;
-                                    
-                                    // CRITICAL FIX: Generate proper target IDs for navigation
-                                    const targetLineItemId = alert.stepId || 
-                                                           metadata.stepId || 
-                                                           metadata.lineItemId || 
-                                                           `${phase}-${sectionName}-0`;
-                                    
-                                    // Use the actual sectionId from database if available
-                                    const targetSectionId = alert.sectionId || 
-                                                          metadata.sectionId || 
-                                                          sectionName.toLowerCase().replace(/\s+/g, '-');
-                                    
-                                    console.log('🎯 CURRENT_ALERTS CLICK: Target IDs:', {
-                                      targetLineItemId,
-                                      targetSectionId
-                                    });
-                                    
-                                    const projectWithNavigation = {
-                                      ...project,
-                                      highlightStep: lineItemName,
-                                      highlightLineItem: lineItemName,
-                                      targetPhase: phase,
-                                      targetSection: sectionName,
-                                      targetLineItem: lineItemName,
-                                      scrollToCurrentLineItem: true,
-                                      alertPhase: phase,
-                                      navigationTarget: {
-                                        phase: phase,
-                                        section: sectionName,
-                                        lineItem: lineItemName,
-                                        stepName: lineItemName,
-                                        alertId: alert.id,
-                                        lineItemId: alert.stepId || metadata.stepId || metadata.lineItemId,
-                                        workflowId: alert.workflowId || metadata.workflowId,
-                                        highlightMode: 'line-item',
-                                        scrollBehavior: 'smooth',
-                                        targetElementId: `lineitem-${targetLineItemId}`,
-                                        highlightColor: '#0066CC',
-                                        highlightDuration: 3000,
-                                        // CRITICAL FIX: Add section targeting for proper expansion
-                                        targetSectionId: targetSectionId,
-                                        expandPhase: true,
-                                        expandSection: true
-                                      }
-                                    };
-                                    
-                                    handleProjectSelectFromAlert(
-                                      projectWithNavigation,
-                                      'Project Workflow',
-                                      null,
-                                      'Current Alerts',
-                                      targetLineItemId,
-                                      targetSectionId,
-                                      alert.id
-                                    );
-                                  } else {
-                                    console.error('🎯 CURRENT_ALERTS CLICK: Position response not successful');
-                                    // Fallback navigation with proper targeting
-                                    const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                    const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                    
-                                    const projectWithStepInfo = {
-                                      ...project,
-                                      highlightStep: lineItemName,
-                                      highlightLineItem: lineItemName,
-                                      targetPhase: phase,
-                                      targetSection: sectionName,
-                                      targetLineItem: lineItemName,
-                                      scrollToCurrentLineItem: true,
-                                      alertPhase: phase,
-                                      navigationTarget: {
-                                        phase: phase,
-                                        section: sectionName,
-                                        lineItem: lineItemName,
-                                        stepName: lineItemName,
-                                        alertId: alert.id,
-                                        lineItemId: alert.stepId || metadata.stepId,
-                                        workflowId: alert.workflowId,
-                                        highlightMode: 'line-item',
-                                        scrollBehavior: 'smooth',
-                                        targetElementId: `lineitem-${targetLineItemId}`,
-                                        highlightColor: '#0066CC',
-                                        highlightDuration: 3000,
-                                        targetSectionId: targetSectionId,
-                                        expandPhase: true,
-                                        expandSection: true
-                                      }
-                                    };
-                                    handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
-                                  }
-                                } else {
-                                  console.error('🎯 CURRENT_ALERTS CLICK: Failed to get project position, using fallback navigation');
-                                  // Fallback to basic navigation with proper targeting
-                                  const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                  const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                  
-                                  const projectWithStepInfo = {
-                                    ...project,
-                                    highlightStep: lineItemName,
-                                    highlightLineItem: lineItemName,
-                                    targetPhase: phase,
-                                    targetSection: sectionName,
-                                    targetLineItem: lineItemName,
-                                    scrollToCurrentLineItem: true,
-                                    alertPhase: phase,
-                                    navigationTarget: {
-                                      phase: phase,
-                                      section: sectionName,
-                                      lineItem: lineItemName,
-                                      stepName: lineItemName,
-                                      alertId: alert.id,
-                                      lineItemId: alert.stepId || metadata.stepId,
-                                      workflowId: alert.workflowId,
-                                      highlightMode: 'line-item',
-                                      scrollBehavior: 'smooth',
-                                      targetElementId: `lineitem-${targetLineItemId}`,
-                                      highlightColor: '#0066CC',
-                                      highlightDuration: 3000,
-                                      targetSectionId: targetSectionId,
-                                      expandPhase: true,
-                                      expandSection: true
-                                    }
-                                  };
-                                  handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
-                                }
-                              } catch (error) {
-                                console.error('🎯 CURRENT_ALERTS CLICK: Error navigating to workflow step:', error);
-                                // Final fallback with proper targeting
-                                const metadata = alert.metadata || {};
-                                const phase = metadata.phase || alert.phase || 'LEAD';
-                                const sectionName = alert.section || metadata.section || 'Unknown Section';
-                                const lineItemName = alert.stepName || alert.title || 'Unknown Item';
-                                const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                
-                                const projectWithStepInfo = {
-                                  ...project,
-                                  highlightStep: lineItemName,
-                                  highlightLineItem: lineItemName,
-                                  targetPhase: phase,
-                                  targetSection: sectionName,
-                                  targetLineItem: lineItemName,
-                                  scrollToCurrentLineItem: true,
-                                  alertPhase: phase,
-                                  navigationTarget: {
-                                    phase: phase,
-                                    section: sectionName,
-                                    lineItem: lineItemName,
-                                    stepName: lineItemName,
-                                    alertId: alert.id,
-                                    lineItemId: alert.stepId || metadata.stepId,
-                                    workflowId: alert.workflowId,
-                                    highlightMode: 'line-item',
-                                    scrollBehavior: 'smooth',
-                                    targetElementId: `lineitem-${targetLineItemId}`,
-                                    highlightColor: '#0066CC',
-                                    highlightDuration: 3000,
-                                    targetSectionId: targetSectionId,
-                                    expandPhase: true,
-                                    expandSection: true
-                                  }
-                                };
-                                handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
-                              }
-                            }
+                            await navigateAlertToWorkflow(alert);
                           }}
                         >
                           {alert.stepName}
@@ -915,194 +848,7 @@ const CurrentAlertsSection = ({
                         onClick={async () => {
                           const project = projects?.find(p => p.id === alert.projectId);
                           if (project) {
-                            try {
-                              // CRITICAL FIX: Use the same improved navigation logic as line item click
-                              const metadata = alert.metadata || {};
-                              const phase = metadata.phase || alert.phase || 'LEAD';
-                              const sectionName = alert.section || metadata.section || 'Unknown Section';
-                              const lineItemName = alert.stepName || alert.title || 'Unknown Item';
-                              
-                              console.log('🎯 VIEW IN WORKFLOW CLICK: Navigation data:', {
-                                phase,
-                                sectionName,
-                                lineItemName,
-                                stepId: alert.stepId,
-                                sectionId: alert.sectionId
-                              });
-                              
-                              // Get project position data for proper targeting
-                              const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                                headers: {
-                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                }
-                              });
-                              
-                              if (positionResponse.ok) {
-                                const positionResult = await positionResponse.json();
-                                if (positionResult.success && positionResult.data) {
-                                  const position = positionResult.data;
-                                  
-                                  // CRITICAL FIX: Generate proper target IDs for navigation
-                                  const targetLineItemId = alert.stepId || 
-                                                         metadata.stepId || 
-                                                         metadata.lineItemId || 
-                                                         `${phase}-${sectionName}-0`;
-                                  
-                                  const targetSectionId = alert.sectionId || 
-                                                        metadata.sectionId || 
-                                                        sectionName.toLowerCase().replace(/\s+/g, '-');
-                                  
-                                  console.log('🎯 VIEW IN WORKFLOW CLICK: Target IDs:', {
-                                    targetLineItemId,
-                                    targetSectionId
-                                  });
-                                  
-                                  const projectWithNavigation = {
-                                    ...project,
-                                    highlightStep: lineItemName,
-                                    highlightLineItem: lineItemName,
-                                    targetPhase: phase,
-                                    targetSection: sectionName,
-                                    targetLineItem: lineItemName,
-                                    scrollToCurrentLineItem: true,
-                                    alertPhase: phase,
-                                    navigationTarget: {
-                                      phase: phase,
-                                      section: sectionName,
-                                      lineItem: lineItemName,
-                                      stepName: lineItemName,
-                                      alertId: alert.id,
-                                      lineItemId: alert.stepId || metadata.stepId || metadata.lineItemId,
-                                      workflowId: alert.workflowId || metadata.workflowId,
-                                      highlightMode: 'line-item',
-                                      scrollBehavior: 'smooth',
-                                      targetElementId: `lineitem-${targetLineItemId}`,
-                                      highlightColor: '#0066CC',
-                                      highlightDuration: 3000,
-                                      targetSectionId: targetSectionId,
-                                      expandPhase: true,
-                                      expandSection: true
-                                    }
-                                  };
-                                  
-                                  handleProjectSelectFromAlert(
-                                    projectWithNavigation,
-                                    'Project Workflow',
-                                    null,
-                                    'Current Alerts',
-                                    targetLineItemId,
-                                    targetSectionId,
-                                    alert.id
-                                  );
-                                } else {
-                                  console.error('🎯 VIEW IN WORKFLOW CLICK: Position response not successful');
-                                  // Fallback navigation with proper targeting
-                                  const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                  const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                  
-                                  const projectWithStepInfo = {
-                                    ...project,
-                                    highlightStep: lineItemName,
-                                    highlightLineItem: lineItemName,
-                                    targetPhase: phase,
-                                    targetSection: sectionName,
-                                    targetLineItem: lineItemName,
-                                    scrollToCurrentLineItem: true,
-                                    alertPhase: phase,
-                                    navigationTarget: {
-                                      phase: phase,
-                                      section: sectionName,
-                                      lineItem: lineItemName,
-                                      stepName: lineItemName,
-                                      alertId: alert.id,
-                                      lineItemId: alert.stepId || metadata.stepId,
-                                      workflowId: alert.workflowId,
-                                      highlightMode: 'line-item',
-                                      scrollBehavior: 'smooth',
-                                      targetElementId: `lineitem-${targetLineItemId}`,
-                                      highlightColor: '#0066CC',
-                                      highlightDuration: 3000,
-                                      targetSectionId: targetSectionId,
-                                      expandPhase: true,
-                                      expandSection: true
-                                    }
-                                  };
-                                  handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
-                                }
-                              } else {
-                                console.error('🎯 VIEW IN WORKFLOW CLICK: Failed to get project position, using fallback navigation');
-                                // Fallback to basic navigation with proper targeting
-                                const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                                const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                                
-                                const projectWithStepInfo = {
-                                  ...project,
-                                  highlightStep: lineItemName,
-                                  highlightLineItem: lineItemName,
-                                  targetPhase: phase,
-                                  targetSection: sectionName,
-                                  targetLineItem: lineItemName,
-                                  scrollToCurrentLineItem: true,
-                                  alertPhase: phase,
-                                  navigationTarget: {
-                                    phase: phase,
-                                    section: sectionName,
-                                    lineItem: lineItemName,
-                                    stepName: lineItemName,
-                                    alertId: alert.id,
-                                    lineItemId: alert.stepId || metadata.stepId,
-                                    workflowId: alert.workflowId,
-                                    highlightMode: 'line-item',
-                                    scrollBehavior: 'smooth',
-                                    targetElementId: `lineitem-${targetLineItemId}`,
-                                    highlightColor: '#0066CC',
-                                    highlightDuration: 3000,
-                                    targetSectionId: targetSectionId,
-                                    expandPhase: true,
-                                    expandSection: true
-                                  }
-                                };
-                                handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
-                              }
-                            } catch (error) {
-                              console.error('🎯 VIEW IN WORKFLOW CLICK: Error navigating to workflow step:', error);
-                              // Final fallback with proper targeting
-                              const metadata = alert.metadata || {};
-                              const phase = metadata.phase || alert.phase || 'LEAD';
-                              const sectionName = alert.section || metadata.section || 'Unknown Section';
-                              const lineItemName = alert.stepName || alert.title || 'Unknown Item';
-                              const targetLineItemId = alert.stepId || metadata.stepId || `${phase}-${sectionName}-0`;
-                              const targetSectionId = alert.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
-                              
-                              const projectWithStepInfo = {
-                                ...project,
-                                highlightStep: lineItemName,
-                                highlightLineItem: lineItemName,
-                                targetPhase: phase,
-                                targetSection: sectionName,
-                                targetLineItem: lineItemName,
-                                scrollToCurrentLineItem: true,
-                                alertPhase: phase,
-                                navigationTarget: {
-                                  phase: phase,
-                                  section: sectionName,
-                                  lineItem: lineItemName,
-                                  stepName: lineItemName,
-                                  alertId: alert.id,
-                                  lineItemId: alert.stepId || metadata.stepId,
-                                  workflowId: alert.workflowId,
-                                  highlightMode: 'line-item',
-                                  scrollBehavior: 'smooth',
-                                  targetElementId: `lineitem-${targetLineItemId}`,
-                                  highlightColor: '#0066CC',
-                                  highlightDuration: 3000,
-                                  targetSectionId: targetSectionId,
-                                  expandPhase: true,
-                                  expandSection: true
-                                }
-                              };
-                              handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);
-                            }
+                            await navigateAlertToWorkflow(alert);
                           }
                         }}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
