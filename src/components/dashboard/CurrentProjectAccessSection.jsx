@@ -88,7 +88,7 @@ const CurrentProjectAccessSection = ({
   }, [updateScrollPosition]);
 
   // Handle project cube navigation with context
-  const handleProjectCubeNavigation = (project, targetPage, additionalContext, sourceSection) => {
+  const handleProjectCubeNavigation = async (project, targetPage, additionalContext, sourceSection) => {
     const contextData = {
       section: 'Current Project Access',
       type: 'project-cube',
@@ -117,9 +117,109 @@ const CurrentProjectAccessSection = ({
     // Use the navigation system to track context
     navigateToProjectCube(project, getTargetPath(targetPage, project));
     
-    // Also call the original onProjectSelect to maintain existing functionality
-    if (onProjectSelect) {
-      onProjectSelect(project, targetPage, contextData, 'Current Project Access');
+    // Enhanced navigation for Project Workflow with position targeting
+    if (targetPage === 'Project Workflow' && onProjectSelect) {
+      try {
+        console.log('🎯 CURRENT PROJECT ACCESS: Getting project position for workflow navigation');
+        
+        // Get project position data
+        const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (positionResponse.ok) {
+          const positionResult = await positionResponse.json();
+          if (positionResult.success && positionResult.data) {
+            const position = positionResult.data;
+            console.log('🎯 CURRENT PROJECT ACCESS: Project position data:', position);
+            
+            if (position.currentPhase && position.currentSection) {
+              // Get subtask index for precise targeting
+              const getSubtaskIndex = async () => {
+                try {
+                  const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                    }
+                  });
+                  
+                  if (workflowResponse.ok) {
+                    const workflowResult = await workflowResponse.json();
+                    if (workflowResult.success && workflowResult.data) {
+                      // Find the current phase
+                      const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                      if (currentPhaseData) {
+                        // Find the current section
+                        const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                        if (currentSectionData) {
+                          // Find the subtask index by matching the current DB id or name
+                          const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                            if (typeof subtask === 'object') {
+                              return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                            }
+                            return subtask === position.currentLineItemName;
+                          });
+                          return subtaskIndex >= 0 ? subtaskIndex : 0;
+                        }
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.warn('Could not determine subtask index:', error);
+                }
+                return 0; // Default fallback
+              };
+              
+              const subtaskIndex = await getSubtaskIndex();
+              const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+              const targetSectionId = position.currentSection;
+              
+              console.log('🎯 CURRENT PROJECT ACCESS: Generated targetLineItemId:', targetLineItemId);
+              console.log('🎯 CURRENT PROJECT ACCESS: Generated targetSectionId:', targetSectionId);
+              
+              const projectWithNavigation = {
+                ...project,
+                dashboardState: {
+                  scrollToProject: project
+                }
+              };
+              
+              // Use the navigation system with correct targetLineItemId
+              onProjectSelect(
+                projectWithNavigation, 
+                'Project Workflow', 
+                null, 
+                'Current Project Access',
+                targetLineItemId,
+                targetSectionId
+              );
+            } else {
+              console.warn('No project position data found, using fallback navigation');
+              // Fallback to basic navigation
+              onProjectSelect(project, targetPage, contextData, 'Current Project Access');
+            }
+          } else {
+            console.error('Failed to get project position, using fallback navigation');
+            // Fallback to basic navigation
+            onProjectSelect(project, targetPage, contextData, 'Current Project Access');
+          }
+        } else {
+          console.error('Failed to get project position, using fallback navigation');
+          // Fallback to basic navigation
+          onProjectSelect(project, targetPage, contextData, 'Current Project Access');
+        }
+      } catch (error) {
+        console.error('Error in Project Workflow navigation:', error);
+        // Fallback to basic navigation
+        onProjectSelect(project, targetPage, contextData, 'Current Project Access');
+      }
+    } else {
+      // For non-workflow pages, use standard navigation
+      if (onProjectSelect) {
+        onProjectSelect(project, targetPage, contextData, 'Current Project Access');
+      }
     }
   };
 
