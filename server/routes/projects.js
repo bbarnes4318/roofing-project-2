@@ -277,7 +277,11 @@ const projectValidation = [
     .withMessage('End date must be a valid date'),
   body('customerId')
     .isString()
-    .withMessage('Customer ID must be provided')
+    .withMessage('Customer ID must be provided'),
+  body('startingPhase')
+    .optional()
+    .isIn(['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'])
+    .withMessage('Invalid starting phase')
 ];
 
 // @desc    Get all projects with filtering and pagination
@@ -705,10 +709,12 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
         );
         console.log(`✅ Successfully initialized ${tradeTypes.length} workflows for project ${project.id}`);
       } else {
-        // Initialize single workflow (existing behavior)
+        // Initialize single workflow with starting phase
         const workflowResult = await WorkflowProgressionService.initializeProjectWorkflow(
           project.id, 
-          project.projectType || 'ROOFING'
+          project.projectType || 'ROOFING',
+          true, // isMainWorkflow
+          req.body.startingPhase || 'LEAD' // Pass starting phase
         );
       }
       

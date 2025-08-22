@@ -33,7 +33,8 @@
       "Bash(start \"C:\\Users\\Jimbo\\Desktop\\new-roof\\roofing-project-2\\test-auth.html\")",
       "Bash(start http://localhost:3000/test-auth.html)",
       "Bash(start \"C:\\Users\\Jimbo\\Desktop\\new-roof\\roofing-project-2\\fix-production-auth.html\")",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

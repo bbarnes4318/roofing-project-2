@@ -86,22 +86,22 @@ const customerValidation = [
   body('primaryPhone')
     .trim()
     .optional({ checkFalsy: true })
-    .matches(/^[\+]?[\d]{6,20}$/)
+    .matches(/^[\+]?[\d\s\-\(\)]{6,20}$/)
     .withMessage('Please provide a valid primary phone number'),
   body('secondaryName')
-    .optional()
+    .optional({ nullable: true, checkFalsy: true })
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Secondary customer name must be between 2 and 100 characters'),
   body('secondaryEmail')
-    .optional()
+    .optional({ nullable: true, checkFalsy: true })
     .isEmail()
     .normalizeEmail()
     .withMessage('Please provide a valid secondary email address'),
   body('secondaryPhone')
-    .optional()
+    .optional({ nullable: true, checkFalsy: true })
     .trim()
-    .matches(/^[\+]?[\d]{6,20}$/)
+    .matches(/^[\+]?[\d\s\-\(\)]{6,20}$/)
     .withMessage('Please provide a valid secondary phone number'),
   body('primaryContact')
     .optional()
@@ -109,6 +109,7 @@ const customerValidation = [
     .withMessage('Primary contact must be PRIMARY or SECONDARY'),
   body('address')
     .trim()
+    .optional({ checkFalsy: true })
     .isLength({ min: 5, max: 500 })
     .withMessage('Address must be between 5 and 500 characters')
 ];
@@ -269,26 +270,35 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
 // @route   POST /api/customers
 // @access  Private
 router.post('/', asyncHandler(async (req, res, next) => {
+  // Clean null/empty values before validation
+  if (req.body.secondaryName === null || req.body.secondaryName === '') {
+    delete req.body.secondaryName;
+  }
+  if (req.body.secondaryEmail === null || req.body.secondaryEmail === '') {
+    delete req.body.secondaryEmail;
+  }
+  if (req.body.secondaryPhone === null || req.body.secondaryPhone === '') {
+    delete req.body.secondaryPhone;
+  }
+  
+  // Run validation after cleaning
+  await Promise.all(customerValidation.map(validation => validation.run(req)));
+  
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: formatValidationErrors(errors)
+    });
+  }
   try {
     // Handle both new format (primaryName, primaryEmail, etc.) and legacy format (name, email, phone)
     let customerData = {};
     
     if (req.body.primaryName || req.body.primaryEmail) {
-      // Manual validation for primaryName, primaryEmail
-      if (!req.body.primaryName || req.body.primaryName.trim().length < 2) {
-        return res.status(400).json({
-          success: false,
-          message: 'Primary name is required and must be at least 2 characters'
-        });
-      }
-      
-      if (!req.body.primaryEmail || !req.body.primaryEmail.includes('@')) {
-        return res.status(400).json({
-          success: false,
-          message: 'Valid primary email is required'
-        });
-      }
-      
+      // New format - validation already done by express-validator
       customerData = {
         primaryName: req.body.primaryName,
         primaryEmail: req.body.primaryEmail,

@@ -8,10 +8,43 @@ class WorkflowProgressionService {
   /**
    * MODERNIZED: Initialize workflow using only template system (supports multiple workflow types)
    */
-  async initializeProjectWorkflow(projectId, workflowType = 'ROOFING', isMainWorkflow = true) {
+  async initializeProjectWorkflow(projectId, workflowType = 'ROOFING', isMainWorkflow = true, startingPhase = 'LEAD') {
     try {
       return await prisma.$transaction(async (tx) => {
-        // Get the first phase from template system for specific workflow type
+        // Get the starting phase from template system for specific workflow type
+        const targetPhase = await tx.workflowPhase.findFirst({
+          where: { 
+            isActive: true, 
+            isCurrent: true, 
+            workflowType: workflowType,
+            phaseType: startingPhase
+          },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            sections: {
+              where: { 
+                isActive: true, 
+                isCurrent: true, 
+                workflowType: workflowType 
+              },
+              orderBy: { displayOrder: 'asc' },
+              include: {
+                lineItems: {
+                  where: { 
+                    isActive: true, 
+                    isCurrent: true, 
+                    workflowType: workflowType 
+                  },
+                  orderBy: { displayOrder: 'asc' }
+                }
+              }
+            }
+          }
+        });
+
+        if (!targetPhase) {
+          // Fallback to first phase if starting phase not found
+          console.warn(`Starting phase ${startingPhase} not found, falling back to first phase`);
         const firstPhase = await tx.workflowPhase.findFirst({
           where: { 
             isActive: true, 
@@ -45,15 +78,23 @@ class WorkflowProgressionService {
           throw new Error(`No active workflow template found for type: ${workflowType}`);
         }
 
-        const firstSection = firstPhase.sections[0];
+          return await this.initializeProjectWorkflow(projectId, workflowType, isMainWorkflow, 'LEAD');
+        }
+
+        const firstSection = targetPhase.sections[0];
         const firstLineItem = firstSection?.lineItems[0];
 
         if (!firstLineItem) {
-          throw new Error(`No line items found in first workflow section for type: ${workflowType}`);
+          throw new Error(`No line items found in starting workflow section for type: ${workflowType}`);
         }
 
         // Get total line items count for this workflow type
         const totalLineItems = await this.getTotalLineItemCount(tx, workflowType);
+
+        // Mark all previous phases as completed if starting phase is not LEAD
+        if (startingPhase !== 'LEAD') {
+          await this.markPreviousPhasesAsCompleted(tx, projectId, workflowType, startingPhase);
+        }
 
         // Create project workflow tracker using template references only
         const tracker = await tx.projectWorkflowTracker.create({
@@ -62,7 +103,7 @@ class WorkflowProgressionService {
             workflowType,
             tradeName: workflowType !== 'ROOFING' ? workflowType.toLowerCase().replace('_', ' ') : null,
             isMainWorkflow,
-            currentPhaseId: firstPhase.id,
+            currentPhaseId: targetPhase.id,
             currentSectionId: firstSection.id,
             currentLineItemId: firstLineItem.id,
             totalLineItems: totalLineItems, // CRITICAL: Save total line items to tracker
@@ -77,11 +118,11 @@ class WorkflowProgressionService {
           }
         });
 
-        console.log(`✅ Initialized ${workflowType} workflow for project ${projectId} starting with: ${firstLineItem.itemName}`);
+        console.log(`✅ Initialized ${workflowType} workflow for project ${projectId} starting at phase ${startingPhase} with: ${firstLineItem.itemName}`);
         
         return {
           tracker,
-          firstPhase,
+          firstPhase: targetPhase,
           firstSection,
           firstLineItem,
           totalSteps: totalLineItems // Use the already calculated value
@@ -976,7 +1017,96 @@ class WorkflowProgressionService {
 
       return true;
     } catch (error) {
-      console.error('❌ Error validating state transition:', error);
+      console.error('Error validating state transition:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mark all previous phases as completed when starting at an advanced phase
+   */
+  async markPreviousPhasesAsCompleted(tx, projectId, workflowType, startingPhase) {
+    try {
+      // Define phase order
+      const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
+      
+      // Find the index of the starting phase
+      const startingPhaseIndex = phaseOrder.indexOf(startingPhase);
+      if (startingPhaseIndex === -1) {
+        console.warn(`Unknown starting phase: ${startingPhase}`);
+        return;
+      }
+
+      // Get all phases that should be marked as completed (all phases before the starting phase)
+      const phasesToComplete = phaseOrder.slice(0, startingPhaseIndex);
+      
+      if (phasesToComplete.length === 0) {
+        console.log(`No previous phases to mark as completed for starting phase: ${startingPhase}`);
+        return;
+      }
+
+      console.log(`Marking phases as completed for project ${projectId}: ${phasesToComplete.join(', ')}`);
+
+      // Get all line items from previous phases and mark them as completed
+      const previousPhases = await tx.workflowPhase.findMany({
+        where: {
+          isActive: true,
+          isCurrent: true,
+          workflowType: workflowType,
+          phaseType: {
+            in: phasesToComplete
+          }
+        },
+        include: {
+          sections: {
+            where: { 
+              isActive: true, 
+              isCurrent: true, 
+              workflowType: workflowType 
+            },
+            include: {
+              lineItems: {
+                where: { 
+                  isActive: true, 
+                  isCurrent: true, 
+                  workflowType: workflowType 
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Create completed workflow items for all line items in previous phases
+      const completedItems = [];
+      for (const phase of previousPhases) {
+        for (const section of phase.sections) {
+          for (const lineItem of section.lineItems) {
+            completedItems.push({
+              projectId,
+              lineItemId: lineItem.id,
+              lineItemText: lineItem.itemName,
+              sectionName: section.displayName,
+              phaseName: phase.phaseName,
+              completedAt: new Date(),
+              completedById: null, // System completion
+              notes: `Automatically completed when project started at ${startingPhase} phase`
+            });
+          }
+        }
+      }
+
+      // Bulk create completed items
+      if (completedItems.length > 0) {
+        await tx.completedWorkflowItem.createMany({
+          data: completedItems
+        });
+        
+        console.log(`✅ Marked ${completedItems.length} line items as completed for project ${projectId} (phases: ${phasesToComplete.join(', ')})`);
+      }
+
+    } catch (error) {
+      console.error(`Error marking previous phases as completed for project ${projectId}:`, error);
       throw error;
     }
   }
