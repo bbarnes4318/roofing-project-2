@@ -313,15 +313,16 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Phase/Section/Line Item Navigation */}
       <div className="mb-4">
-        <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex flex-nowrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg overflow-x-auto">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Phase</span>
-            <span className="text-sm font-medium text-gray-900">{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 bg-white border border-blue-200 rounded-full px-2 py-0.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
           </div>
           <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Section</span>
-            <span className="text-sm font-medium text-gray-900 truncate">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 bg-white border border-slate-200 rounded-full px-2 py-0.5 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
               {(() => {
                 if (project.currentWorkflowItem?.sectionDisplayName) {
                   return project.currentWorkflowItem.sectionDisplayName;
@@ -363,7 +364,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                             if (workflowResponse.ok) {
                               const workflowResult = await workflowResponse.json();
                               if (workflowResult.success && workflowResult.data) {
-                                const currentPhaseData = workflowResult.data.find(phase => phase.phaseType === position.currentPhase);
+                                const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
                                 if (currentPhaseData) {
                                   const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                   if (currentSectionData) {
@@ -398,8 +399,9 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
                 }
               }}
-              className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium truncate"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 bg-white border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors truncate"
             >
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
               {(() => {
                 if (project.currentWorkflowItem?.lineItemName) {
                   return project.currentWorkflowItem.lineItemName;
