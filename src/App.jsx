@@ -1029,7 +1029,7 @@ const apiUrl = window.location.hostname === 'localhost'
                 );
             case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} />;
-            case 'Settings': return <SettingsPage colorMode={colorMode} />;
+            case 'Settings': return <SettingsPage colorMode={colorMode} currentUser={currentUser} />;
             case 'Estimator': return <EstimateComparisonTool />;
             default: return (
                 <DashboardPage

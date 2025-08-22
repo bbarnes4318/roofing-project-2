@@ -679,7 +679,102 @@ const ProjectProfilePage = ({
                                         <span className={`${colorMode ? 'text-gray-500' : 'text-gray-300'}`}>|</span>
                                         <span className={`${colorMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Line Item:</span>
                                         <button
-                                            onClick={() => onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile')}
+                                            onClick={async () => {
+                                                // Enhanced navigation to specific line item in workflow
+                                                const currentLineItem = WorkflowDataService.getCurrentLineItem(selectedProject);
+                                                const currentSection = WorkflowDataService.getCurrentSection(selectedProject);
+                                                const currentPhase = getPhaseForProject(selectedProject.id);
+                                                
+                                                if (currentLineItem && selectedProject) {
+                                                    console.log('🎯 PROJECT PROFILE: Navigating to line item:', currentLineItem.name);
+                                                    console.log('🎯 PROJECT PROFILE: Section:', currentSection);
+                                                    console.log('🎯 PROJECT PROFILE: Phase:', currentPhase);
+                                                    
+                                                    try {
+                                                        // Get project position data for proper targeting
+                                                        const positionResponse = await fetch(`/api/workflow-data/project-position/${selectedProject.id}`, {
+                                                            headers: {
+                                                                'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                            }
+                                                        });
+                                                        
+                                                        if (positionResponse.ok) {
+                                                            const positionResult = await positionResponse.json();
+                                                            if (positionResult.success && positionResult.data) {
+                                                                const position = positionResult.data;
+                                                                
+                                                                // Generate proper target IDs for navigation
+                                                                const targetLineItemId = currentLineItem.id || 
+                                                                                       position.currentLineItemId || 
+                                                                                       `${currentPhase}-${currentSection}-0`;
+                                                                
+                                                                const targetSectionId = position.currentSectionId || 
+                                                                                      currentSection?.toLowerCase().replace(/\s+/g, '-') || 
+                                                                                      '';
+                                                                
+                                                                console.log('🎯 PROJECT PROFILE: Target IDs:', {
+                                                                    targetLineItemId,
+                                                                    targetSectionId
+                                                                });
+                                                                
+                                                                const projectWithNavigation = {
+                                                                    ...selectedProject,
+                                                                    highlightStep: currentLineItem.name,
+                                                                    highlightLineItem: currentLineItem.name,
+                                                                    targetPhase: currentPhase,
+                                                                    targetSection: currentSection,
+                                                                    targetLineItem: currentLineItem.name,
+                                                                    scrollToCurrentLineItem: true,
+                                                                    navigationTarget: {
+                                                                        phase: currentPhase,
+                                                                        section: currentSection,
+                                                                        lineItem: currentLineItem.name,
+                                                                        stepName: currentLineItem.name,
+                                                                        lineItemId: targetLineItemId,
+                                                                        workflowId: position.workflowId,
+                                                                        highlightMode: 'line-item',
+                                                                        scrollBehavior: 'smooth',
+                                                                        targetElementId: `lineitem-${targetLineItemId}`,
+                                                                        highlightColor: '#0066CC',
+                                                                        highlightDuration: 3000,
+                                                                        targetSectionId: targetSectionId,
+                                                                        expandPhase: true,
+                                                                        expandSection: true
+                                                                    }
+                                                                };
+                                                                
+                                                                onProjectSelect(
+                                                                    projectWithNavigation,
+                                                                    'Project Workflow',
+                                                                    null,
+                                                                    'Project Profile',
+                                                                    targetLineItemId,
+                                                                    targetSectionId
+                                                                );
+                                                            }
+                                                        } else {
+                                                            // Fallback without position data
+                                                            const projectWithNavigation = {
+                                                                ...selectedProject,
+                                                                highlightStep: currentLineItem.name,
+                                                                highlightLineItem: currentLineItem.name,
+                                                                targetPhase: currentPhase,
+                                                                targetSection: currentSection,
+                                                                targetLineItem: currentLineItem.name,
+                                                                scrollToCurrentLineItem: true
+                                                            };
+                                                            onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile');
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('🎯 PROJECT PROFILE: Error navigating to workflow step:', error);
+                                                        // Final fallback
+                                                        onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile');
+                                                    }
+                                                } else {
+                                                    // No current line item, just navigate to workflow
+                                                    onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile');
+                                                }
+                                            }}
                                             className={`text-sm ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} hover:underline`}
                                         >
                                             {WorkflowDataService.getCurrentLineItem(selectedProject)?.name || 'View Workflow'}

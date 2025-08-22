@@ -5,25 +5,16 @@ import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import { API_BASE_URL } from '../../services/api';
 
-const mockUser = {
-  name: 'Sarah Owner',
-  email: 'sarah.owner@kenstruction.com',
-  role: 'Owner',
-  avatar: 'SO',
-  phone: '(555) 123-4567',
-  company: 'Kenstruction LLC',
-  timezone: 'America/New_York',
-  language: 'English'
-};
+// Removed mock user; use real authenticated user via props
 
-const SettingsPage = ({ colorMode, setColorMode }) => {
+const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [name, setName] = useState(mockUser.name);
-  const [email, setEmail] = useState(mockUser.email);
-  const [phone, setPhone] = useState(mockUser.phone);
-  const [company, setCompany] = useState(mockUser.company);
-  const [timezone, setTimezone] = useState(mockUser.timezone);
-  const [language, setLanguage] = useState(mockUser.language);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [timezone, setTimezone] = useState('America/New_York');
+  const [language, setLanguage] = useState('English');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -255,6 +246,17 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     }
   };
 
+  // Keep local fields in sync with currentUser
+  useEffect(() => {
+    const fullName = currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '';
+    setName(fullName);
+    setEmail(currentUser?.email || '');
+    setPhone(currentUser?.phone || '');
+    setCompany(currentUser?.company || '');
+    setTimezone(currentUser?.timezone || 'America/New_York');
+    setLanguage(currentUser?.language || 'English');
+  }, [currentUser]);
+
   // Load users and role assignments from API on mount
   useEffect(() => {
     let isMounted = true; // Prevent updates after unmount
@@ -263,11 +265,10 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       try {
         setUsersLoading(true);
         
-        // Get or create token ONCE (static token)
-        let token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        // Get auth token; do not create demo tokens
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
-          token = 'demo-sarah-owner-token-fixed-12345';
-          localStorage.setItem('authToken', token);
+          console.warn('⚠️ No auth token found');
         }
         
         // Load available users
@@ -443,8 +444,9 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
       { id: 'subjects', label: 'Subjects', icon: '📝' }
     ];
 
-    // Add admin-only tabs for authorized users
-    if (mockUser.role === 'Owner' || mockUser.email === 'sarah.owner@kenstruction.com') {
+    // Add admin-only tabs for authorized users based on actual role
+    const roleUpper = String(currentUser?.role || '').toUpperCase();
+    if (roleUpper === 'ADMIN' || roleUpper === 'OWNER' || roleUpper === 'MANAGER') {
       baseTabs.push(
         { id: 'project-import', label: 'Project Import', icon: '🏗️' },
         { id: 'workflow-import', label: 'Workflow Import', icon: '📊' },
@@ -461,12 +463,12 @@ const SettingsPage = ({ colorMode, setColorMode }) => {
     <div className="space-y-3">
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${colorMode ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'}`}>
-          {mockUser.avatar}
+          {`${(currentUser?.firstName || 'U').charAt(0).toUpperCase()}${(currentUser?.lastName || '').charAt(0).toUpperCase()}`}
         </div>
         <div>
-          <div className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{mockUser.name}</div>
-          <div className={`text-xs ${colorMode ? 'text-blue-200' : 'text-blue-600'}`}>{mockUser.role}</div>
-          <div className={`text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>{mockUser.email}</div>
+          <div className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'User'}</div>
+          <div className={`text-xs ${colorMode ? 'text-blue-200' : 'text-blue-600'}`}>{currentUser?.position || currentUser?.role || 'User'}</div>
+          <div className={`text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>{email}</div>
         </div>
       </div>
 

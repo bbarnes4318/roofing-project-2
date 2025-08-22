@@ -199,7 +199,7 @@ const ProjectsByPhaseSection = ({
   };
 
   // Handle project navigation with context
-  const handleProjectNavigation = (project, targetPage, phaseId, phaseName) => {
+  const handleProjectNavigation = async (project, targetPage, phaseId, phaseName) => {
     // Build current dashboard URL with all context for returnTo
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('section', 'projectsByPhase');
@@ -219,6 +219,92 @@ const ProjectsByPhaseSection = ({
       returnTo: currentUrl.toString()
     };
 
+    // Enhanced navigation for Project Workflow to navigate to current line item
+    if (targetPage === 'Project Workflow') {
+      try {
+        console.log('🎯 PROJECTS BY PHASE: Navigating to workflow for project:', project.projectName || project.name);
+        
+        // Get current workflow state
+        const currentWorkflow = project.currentWorkflowItem || {};
+        const phase = currentWorkflow.phase || phaseId || 'LEAD';
+        const section = currentWorkflow.section || 'Unknown Section';
+        const lineItem = currentWorkflow.lineItem || 'Unknown Item';
+        
+        console.log('🎯 PROJECTS BY PHASE: Current workflow state:', {
+          phase,
+          section,
+          lineItem
+        });
+        
+        // Get project position data for proper targeting
+        const projectId = project.id || project._id;
+        const positionResponse = await fetch(`/api/workflow-data/project-position/${projectId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+          }
+        });
+        
+        if (positionResponse.ok) {
+          const positionResult = await positionResponse.json();
+          if (positionResult.success && positionResult.data) {
+            const position = positionResult.data;
+            console.log('🎯 PROJECTS BY PHASE: Project position data:', position);
+            
+            // Generate proper target IDs for navigation
+            const targetLineItemId = position.currentLineItemId || 
+                                   position.currentLineItem || 
+                                   `${phase}-${section}-0`;
+            
+            const targetSectionId = position.currentSectionId || 
+                                  position.currentSection ||
+                                  section.toLowerCase().replace(/\s+/g, '-');
+            
+            console.log('🎯 PROJECTS BY PHASE: Target IDs:', {
+              targetLineItemId,
+              targetSectionId
+            });
+            
+            const projectWithNavigation = {
+              ...project,
+              dashboardState,
+              highlightStep: lineItem,
+              highlightLineItem: lineItem,
+              targetPhase: phase,
+              targetSection: section,
+              targetLineItem: lineItem,
+              scrollToCurrentLineItem: true,
+              navigationTarget: {
+                phase: phase,
+                section: section,
+                lineItem: lineItem,
+                stepName: lineItem,
+                lineItemId: targetLineItemId,
+                workflowId: position.workflowId,
+                highlightMode: 'line-item',
+                scrollBehavior: 'smooth',
+                targetElementId: `lineitem-${targetLineItemId}`,
+                highlightColor: '#0066CC',
+                highlightDuration: 3000,
+                targetSectionId: targetSectionId,
+                expandPhase: true,
+                expandSection: true
+              }
+            };
+            
+            if (onProjectSelect) {
+              onProjectSelect(projectWithNavigation, targetPage, phaseId, 'Project Phases', targetLineItemId, targetSectionId);
+            }
+            return;
+          }
+        }
+        
+        console.log('🎯 PROJECTS BY PHASE: Could not get position data, using fallback navigation');
+      } catch (error) {
+        console.error('🎯 PROJECTS BY PHASE: Error enhancing workflow navigation:', error);
+      }
+    }
+    
+    // Default navigation for other pages
     const projectWithState = {
       ...project,
       dashboardState
