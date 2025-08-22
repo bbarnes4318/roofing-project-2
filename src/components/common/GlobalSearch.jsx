@@ -560,10 +560,10 @@ export default function GlobalSearch({
                                                 if (workflowResponse.ok) {
                                                   const workflowResult = await workflowResponse.json();
                                                   if (workflowResult.success && workflowResult.data) {
-                                                    // Find the current phase
-                                                    const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                                                    // Find the current phase by phase type (LEAD, PROSPECT, etc.)
+                                                    const currentPhaseData = workflowResult.data.find(phase => phase.phaseType === position.currentPhase);
                                                     if (currentPhaseData) {
-                                                      // Find the current section
+                                                      // Find the current section by ID
                                                       const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
                                                       if (currentSectionData) {
                                                         // Find the subtask index by matching the current DB id or name
@@ -573,7 +573,7 @@ export default function GlobalSearch({
                                                           }
                                                           return subtask === position.currentLineItemName;
                                                         });
-                                                        return subtaskIndex >= 0 ? subtaskIndex : 0;
+                                                        return { subtaskIndex: subtaskIndex >= 0 ? subtaskIndex : 0, phaseId: currentPhaseData.id };
                                                       }
                                                     }
                                                   }
@@ -581,11 +581,11 @@ export default function GlobalSearch({
                                               } catch (error) {
                                                 console.warn('Could not determine subtask index:', error);
                                               }
-                                              return 0; // Default fallback
+                                              return { subtaskIndex: 0, phaseId: null }; // Default fallback
                                             };
                                             
-                                            const subtaskIndex = await getSubtaskIndex();
-                                            const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                            const { subtaskIndex, phaseId } = await getSubtaskIndex();
+                                            const targetLineItemId = phaseId ? `${phaseId}-${position.currentSection}-${subtaskIndex}` : null;
                                             const targetSectionId = position.currentSection;
                                             
                                             console.log('🎯 SEARCH LINE ITEM: Generated targetLineItemId:', targetLineItemId);
