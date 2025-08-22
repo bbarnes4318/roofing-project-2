@@ -179,19 +179,16 @@ export default function App() {
             
             if (response.ok) {
                 const data = await response.json();
-                if (data.success && data.token) {
+                if (data.success && data.token && data.user) {
                     // Store the traditional JWT token
                     sessionStorage.setItem('authToken', data.token);
                     localStorage.setItem('authToken', data.token);
                     
-                    // Set user state
-                    setCurrentUser({
-                        firstName: supabaseUser.user_metadata?.firstName || supabaseUser.email?.split('@')[0] || 'User',
-                        lastName: supabaseUser.user_metadata?.lastName || '',
-                        email: supabaseUser.email,
-                        role: supabaseUser.user_metadata?.role || 'WORKER',
-                        position: supabaseUser.user_metadata?.position || 'User'
-                    });
+                    // Store user data from server response (not Supabase metadata)
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Set user state using server response data
+                    setCurrentUser(data.user);
                     setIsAuthenticated(true);
                 }
             }
@@ -204,6 +201,13 @@ export default function App() {
     const handleLogout = async () => {
         const { supabase } = await import('./lib/supabaseClient');
         await supabase.auth.signOut();
+        
+        // Clear all auth data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('user');
+        
         setIsAuthenticated(false);
         setCurrentUser(null);
     };
