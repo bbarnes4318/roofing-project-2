@@ -4,6 +4,7 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import api from '../../services/api';
 import { formatProjectType } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
+import toast from 'react-hot-toast';
 
 const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const [activeSection] = useState('overview');
@@ -11,6 +12,23 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const progressChartRefs = useRef({});
   const [expandedProgress, setExpandedProgress] = useState({});
   const [progressExpanded, setProgressExpanded] = useState(false);
+  
+  // Edit states
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    address: '',
+    customerName: '',
+    customerPhone: '',
+    customerEmail: '',
+    secondaryName: '',
+    secondaryPhone: '',
+    secondaryEmail: '',
+    pmName: '',
+    pmPhone: '',
+    pmEmail: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
 
   const toggleProgressExpansion = (projectId, section) => {
     const expandedKey = `${projectId || 'project'}-${section}`;
@@ -61,6 +79,104 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         materialsDelivered: proj?.materialsDelivered || false
       }
     ];
+  };
+
+  // Initialize edit form data when project changes
+  useEffect(() => {
+    if (project) {
+      setEditFormData({
+        address: project.customer?.address || '',
+        customerName: project.customer?.primaryName || project.customer?.name || '',
+        customerPhone: project.customer?.primaryPhone || '',
+        customerEmail: project.customer?.primaryEmail || '',
+        secondaryName: project.customer?.secondaryName || '',
+        secondaryPhone: project.customer?.secondaryPhone || '',
+        secondaryEmail: project.customer?.secondaryEmail || '',
+        pmName: project.projectManager?.firstName && project.projectManager?.lastName 
+          ? `${project.projectManager.firstName} ${project.projectManager.lastName}`.trim()
+          : project.projectManager?.name || '',
+        pmPhone: project.projectManager?.phone || project.pmPhone || '',
+        pmEmail: project.projectManager?.email || project.pmEmail || ''
+      });
+    }
+  }, [project]);
+
+  const handleEditAddress = () => {
+    setIsEditingAddress(true);
+  };
+
+  const handleEditContact = () => {
+    setIsEditingContact(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingAddress(false);
+    setIsEditingContact(false);
+    // Reset form data to original values
+    if (project) {
+      setEditFormData({
+        address: project.customer?.address || '',
+        customerName: project.customer?.primaryName || project.customer?.name || '',
+        customerPhone: project.customer?.primaryPhone || '',
+        customerEmail: project.customer?.primaryEmail || '',
+        secondaryName: project.customer?.secondaryName || '',
+        secondaryPhone: project.customer?.secondaryPhone || '',
+        secondaryEmail: project.customer?.secondaryEmail || '',
+        pmName: project.projectManager?.firstName && project.projectManager?.lastName 
+          ? `${project.projectManager.firstName} ${project.projectManager.lastName}`.trim()
+          : project.projectManager?.name || '',
+        pmPhone: project.projectManager?.phone || project.pmPhone || '',
+        pmEmail: project.projectManager?.email || project.pmEmail || ''
+      });
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    try {
+      // Update project data
+      const updateData = {
+        id: project.id,
+        customer: {
+          ...project.customer,
+          address: editFormData.address,
+          primaryName: editFormData.customerName,
+          primaryPhone: editFormData.customerPhone,
+          primaryEmail: editFormData.customerEmail,
+          secondaryName: editFormData.secondaryName,
+          secondaryPhone: editFormData.secondaryPhone,
+          secondaryEmail: editFormData.secondaryEmail
+        },
+        projectManager: {
+          ...project.projectManager,
+          name: editFormData.pmName,
+          phone: editFormData.pmPhone,
+          email: editFormData.pmEmail
+        },
+        pmPhone: editFormData.pmPhone,
+        pmEmail: editFormData.pmEmail
+      };
+
+      // Call API to update project
+      await api.put(`/projects/${project.id}`, updateData);
+      
+      // Close edit modes
+      setIsEditingAddress(false);
+      setIsEditingContact(false);
+      
+      // Show success message
+      toast.success('Project information updated successfully!');
+      
+      // Refresh project data if onUpdate callback is provided
+      if (project.onUpdate) {
+        project.onUpdate();
+      }
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast.error('Failed to update project information. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!project) {
@@ -146,8 +262,49 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               <span className="text-sm font-medium text-gray-700">{formatProjectType(project.projectType) || project.jobType || 'Project'}</span>
             </div>
             <div className="mb-2">
-              <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Address</div>
-              <div className="mt-1 text-sm text-gray-900">{formatAddress(getProjectAddress(project))}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Address</div>
+                {!isEditingAddress && (
+                  <button
+                    onClick={handleEditAddress}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit
+                  </button>
+                )}
+              </div>
+              {isEditingAddress ? (
+                <div className="mt-2 space-y-2">
+                  <textarea
+                    value={editFormData.address}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter full address..."
+                    rows={3}
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSaveChanges}
+                      disabled={isSaving}
+                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      disabled={isSaving}
+                      className="px-3 py-1 text-xs bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1 text-sm text-gray-900">{formatAddress(getProjectAddress(project))}</div>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <div className="flex items-center">
@@ -277,17 +434,132 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 </button>
               </div>
             </div>
+            
+            {/* Edit Contact Information Form */}
+            {isEditingContact && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">Edit Contact Information</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Primary Customer */}
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Primary Customer</h5>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editFormData.customerName}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                        placeholder="Customer Name"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="tel"
+                        value={editFormData.customerPhone}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                        placeholder="Phone Number"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="email"
+                        value={editFormData.customerEmail}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                        placeholder="Email Address"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Project Manager */}
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Project Manager</h5>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editFormData.pmName}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, pmName: e.target.value }))}
+                        placeholder="Project Manager Name"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="tel"
+                        value={editFormData.pmPhone}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))}
+                        placeholder="Phone Number"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="email"
+                        value={editFormData.pmEmail}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))}
+                        placeholder="Email Address"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Secondary Contact */}
+                <div className="mt-6 space-y-3">
+                  <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Secondary Contact (Optional)</h5>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={editFormData.secondaryName}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryName: e.target.value }))}
+                      placeholder="Secondary Contact Name"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="tel"
+                      value={editFormData.secondaryPhone}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryPhone: e.target.value }))}
+                      placeholder="Phone Number"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="email"
+                      value={editFormData.secondaryEmail}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryEmail: e.target.value }))}
+                      placeholder="Email Address"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 mt-6">
+                  <button
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
-              <button className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </button>
+              {!isEditingContact && (
+                <button
+                  onClick={handleEditContact}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit
+                </button>
+              )}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">
