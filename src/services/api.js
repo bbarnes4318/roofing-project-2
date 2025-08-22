@@ -1,15 +1,9 @@
 import axios from 'axios';
 
-// Dynamic API Configuration: force same-origin in production
+// Dynamic API Configuration: hardcoded for local development
 const getApiBaseUrl = () => {
-  try {
-    if (typeof window !== 'undefined') {
-      // Always use same-origin in browsers to avoid stale env baked at build
-      return `${window.location.protocol}//${window.location.host}/api`;
-    }
-  } catch (_) {}
-  // Server-side or build-time fallback
-  return process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api';
+  // Hardcoded for local development
+  return 'http://localhost:5000/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

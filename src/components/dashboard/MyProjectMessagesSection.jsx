@@ -8,7 +8,7 @@ const MyProjectMessagesSection = ({
   projects, 
   onProjectSelect, 
   colorMode,
-  useRealData = false 
+  useRealData = true 
 }) => {
   const { 
     saveFilters, 

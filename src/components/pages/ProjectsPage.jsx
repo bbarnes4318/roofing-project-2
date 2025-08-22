@@ -986,420 +986,457 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
             </div>
         </div>
 
-            {/* Add Project Modal */}
+            {/* Add Project Modal - NUKED AND REBUILT */}
             <Modal isOpen={isModalOpen} onClose={() => {
                 setIsModalOpen(false);
                 setNewProject(defaultNewProject);
                 setError('');
             }}>
-                <div className="p-6">
-                    <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'} mb-4`}>
-                        Add New Project
-                    </h3>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Project Number */}
-                        <div>
-                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Project Number *
-                            </label>
-                            <input
-                                type="text"
-                                name="projectNumber"
-                                value={newProject.projectNumber}
-                                onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                }`}
-                                placeholder="Enter project number (e.g., 12345)"
-                                required
-                            />
-                        </div>
-
-                        {/* Customer Name */}
-                        <div>
-                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Customer Name *
-                            </label>
-                            <input
-                                type="text"
-                                name="customerName"
-                                value={newProject.customerName}
-                                onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                }`}
-                                placeholder="Enter customer name"
-                                required
-                            />
-                        </div>
-
-                        {/* Job Type */}
-                        <div>
-                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Job Type *
-                            </label>
-                            <select
-                                name="jobType"
-                                value={newProject.jobType}
-                                onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-gray-300 text-gray-900'
-                                }`}
-                                required
-                            >
-                                <option value="">Select job type</option>
-                                <option value="ROOF_REPLACEMENT">Roof Replacement</option>
-                                <option value="KITCHEN_REMODEL">Kitchen Remodel</option>
-                                <option value="BATHROOM_RENOVATION">Bathroom Renovation</option>
-                                <option value="SIDING_INSTALLATION">Siding Installation</option>
-                                <option value="WINDOW_REPLACEMENT">Window Replacement</option>
-                                <option value="FLOORING">Flooring</option>
-                                <option value="PAINTING">Painting</option>
-                                <option value="ELECTRICAL_WORK">Electrical Work</option>
-                                <option value="PLUMBING">Plumbing</option>
-                                <option value="HVAC">HVAC</option>
-                                <option value="DECK_CONSTRUCTION">Deck Construction</option>
-                                <option value="LANDSCAPING">Landscaping</option>
-                                <option value="OTHER">Other</option>
-                            </select>
-                        </div>
-
-                        {/* Project Manager - MANDATORY FIELD */}
-                        <div>
-                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                Project Manager *
-                                <span className={`text-xs ml-2 ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
-                                    (Pre-filled from Settings)
-                                </span>
-                            </label>
-                            <select
-                                name="projectManager"
-                                value={newProject.projectManager}
-                                onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    colorMode
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-gray-300 text-gray-900'
-                                }`}
-                                required
-                                disabled={usersLoading}
-                            >
-                                <option value="">
-                                    {usersLoading ? 'Loading project managers...' : 'Select Project Manager'}
-                                </option>
-                                {availableUsers.map(user => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name} ({user.role})
-                                    </option>
-                                ))}
-                            </select>
-                            {defaultRoles.projectManager && (
-                                <div className={`mt-1 text-xs ${colorMode ? 'text-green-400' : 'text-green-600'}`}>
-                                    ✓ Default: {defaultRoles.projectManager.name}
-                                </div>
-                            )}
-                        </div>
-                        
-                        {/* Project Role Assignments Section */}
-                        <div className={`border-t pt-6 ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
-                            <h4 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>Additional Project Roles</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Field Director */}
-                                <div>
-                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                        Field Director
-                                    </label>
-                                    <select
-                                        name="fieldDirector"
-                                        value={newProject.fieldDirector || ''}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                                        }`}
-                                        disabled={usersLoading}
-                                    >
-                                        <option value="">Select Field Director (Optional)</option>
-                                        {availableUsers.filter(user => user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.name} ({user.role})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                
-                                {/* Sales Representative */}
-                                <div>
-                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                        Sales Representative
-                                    </label>
-                                    <select
-                                        name="salesRep"
-                                        value={newProject.salesRep || ''}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                                        }`}
-                                        disabled={usersLoading}
-                                    >
-                                        <option value="">Select Sales Rep (Optional)</option>
-                                        {availableUsers.filter(user => user.role === 'SALES' || user.role === 'PROJECT_MANAGER').map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.name} ({user.role})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                
-                                {/* Quality Inspector */}
-                                <div>
-                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                        Quality Inspector
-                                    </label>
-                                    <select
-                                        name="qualityInspector"
-                                        value={newProject.qualityInspector || ''}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                                        }`}
-                                        disabled={usersLoading}
-                                    >
-                                        <option value="">Select Quality Inspector (Optional)</option>
-                                        {availableUsers.filter(user => user.role === 'QUALITY' || user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.name} ({user.role})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                
-                                {/* Administrative Assistant */}
-                                <div>
-                                    <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
-                                        Administrative Assistant
-                                    </label>
-                                    <select
-                                        name="adminAssistant"
-                                        value={newProject.adminAssistant || ''}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                            colorMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                                        }`}
-                                        disabled={usersLoading}
-                                    >
-                                        <option value="">Select Admin Assistant (Optional)</option>
-                                        {availableUsers.filter(user => user.role === 'ADMINISTRATION' || user.role === 'OFFICE').map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.name} ({user.role})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden">
+                    {/* Clean Header */}
+                    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-3xl font-bold tracking-tight">Create New Project</h2>
+                                <p className="text-slate-300 mt-2 text-lg">Set up your project with essential details</p>
                             </div>
-                            
-                            {/* Default roles display */}
-                            {(defaultRoles.fieldDirector || defaultRoles.salesRep || defaultRoles.qualityInspector || defaultRoles.adminAssistant) && (
-                                <div className={`mt-4 p-3 rounded-lg ${colorMode ? 'bg-slate-800/50 border-slate-600' : 'bg-gray-50 border-gray-200'} border`}>
-                                    <div className={`text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Default Role Assignments:</div>
-                                    <div className="grid grid-cols-2 gap-2 text-xs">
-                                        {defaultRoles.fieldDirector && (
-                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
-                                                Field Director: {defaultRoles.fieldDirector.name}
-                                            </div>
-                                        )}
-                                        {defaultRoles.salesRep && (
-                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
-                                                Sales Rep: {defaultRoles.salesRep.name}
-                                            </div>
-                                        )}
-                                        {defaultRoles.qualityInspector && (
-                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
-                                                Quality Inspector: {defaultRoles.qualityInspector.name}
-                                            </div>
-                                        )}
-                                        {defaultRoles.adminAssistant && (
-                                            <div className={`${colorMode ? 'text-green-400' : 'text-green-600'}`}>
-                                                Admin Assistant: {defaultRoles.adminAssistant.name}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Project Contacts Section */}
-                        <div className={`border-t pt-6 ${
-                            colorMode ? 'border-slate-600' : 'border-gray-200'
-                        }`}>
-                            <div className="flex items-center justify-between mb-4">
-                                <h4 className={`text-lg font-semibold ${
-                                    colorMode ? 'text-white' : 'text-gray-800'
-                                }`}>Project Contacts</h4>
-                                <button
-                                    type="button"
-                                    onClick={addContact}
-                                    className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
-                                        colorMode
-                                            ? 'border-slate-600 text-gray-300 hover:bg-slate-700'
-                                            : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    + Add Contact
-                                </button>
-                            </div>
-                            
-                            <div className="space-y-4">
-                                {newProject.contacts.map((contact, index) => (
-                                    <div key={index} className={`p-4 border rounded-lg ${
-                                        colorMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-200 bg-gray-50'
-                                    }`}>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className={`font-medium ${
-                                                colorMode ? 'text-gray-200' : 'text-gray-700'
-                                            }`}>Contact {index + 1}</span>
-                                            <div className="flex items-center gap-2">
-                                                {/* Set as Primary Radio */}
-                                                <label className="flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="radio"
-                                                        name="primaryContact"
-                                                        checked={contact.isPrimary}
-                                                        onChange={() => handlePrimaryContactChange(index)}
-                                                        className="text-blue-600 focus:ring-blue-500"
-                                                    />
-                                                    <span className={`text-sm ${
-                                                        colorMode ? 'text-gray-300' : 'text-gray-600'
-                                                    }`}>Set as Primary</span>
-                                                </label>
-                                                {/* Remove Contact Button */}
-                                                {newProject.contacts.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeContact(index)}
-                                                        className={`text-sm text-red-500 hover:text-red-700 ml-3`}
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                            {/* Name */}
-                                            <div>
-                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                                                    Name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={contact.name}
-                                                    onChange={(e) => handleContactChange(index, 'name', e.target.value)}
-                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                                                        colorMode
-                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                                    }`}
-                                                    placeholder="Enter contact name"
-                                                />
-                                            </div>
-                                            
-                                            {/* Phone */}
-                                            <div>
-                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                                                    Phone
-                                                </label>
-                                                <input
-                                                    type="tel"
-                                                    value={contact.phone}
-                                                    onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
-                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                                                        colorMode
-                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                                    }`}
-                                                    placeholder="Enter phone number"
-                                                />
-                                            </div>
-                                            
-                                            {/* Email */}
-                                            <div>
-                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                                                    Email
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    value={contact.email}
-                                                    onChange={(e) => handleContactChange(index, 'email', e.target.value)}
-                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                                                        colorMode
-                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                                    }`}
-                                                    placeholder="Enter email address"
-                                                />
-                                            </div>
-                                            
-                                            {/* Role */}
-                                            <div>
-                                                <label className={`block text-xs font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
-                                                    Role/Title
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={contact.role || ''}
-                                                    onChange={(e) => handleContactChange(index, 'role', e.target.value)}
-                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                                                        colorMode
-                                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400'
-                                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                                    }`}
-                                                    placeholder="e.g., Homeowner, Property Manager"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        {(error || createProjectMutation.error) && (
-                            <div className="text-red-500 text-sm">
-                                {error || createProjectMutation.error?.message || 'An error occurred'}
-                            </div>
-                        )}
-                        <div className="flex justify-end space-x-3 pt-4">
                             <button
-                                type="button"
                                 onClick={() => {
                                     setIsModalOpen(false);
                                     setNewProject(defaultNewProject);
                                     setError('');
                                 }}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                                    colorMode
-                                        ? 'bg-slate-600 hover:bg-slate-700 text-white'
-                                        : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
-                                }`}
+                                className="p-3 rounded-xl hover:bg-white/10 transition-all duration-200"
                             >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={createProjectMutation.isLoading}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
-                            >
-                                {createProjectMutation.isLoading && (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                )}
-                                {createProjectMutation.isLoading ? 'Creating...' : 'Create Project'}
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
-                    </form>
+                    </div>
+
+                    {/* Form Content */}
+                    <div className="p-8 max-h-[75vh] overflow-y-auto">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            {/* Essential Project Details */}
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-900">Project Details</h3>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Project Number */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Project Number <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="projectNumber"
+                                            value={newProject.projectNumber}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-lg"
+                                            placeholder="e.g., 2024-001"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Customer Name */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Customer Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="customerName"
+                                            value={newProject.customerName}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-lg"
+                                            placeholder="Enter customer name"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Job Type */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Project Type <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            name="jobType"
+                                            value={newProject.jobType}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-lg bg-white"
+                                            required
+                                        >
+                                            <option value="">Select project type</option>
+                                            <option value="ROOF_REPLACEMENT">🏠 Roof Replacement</option>
+                                            <option value="KITCHEN_REMODEL">🍳 Kitchen Remodel</option>
+                                            <option value="BATHROOM_RENOVATION">🚿 Bathroom Renovation</option>
+                                            <option value="SIDING_INSTALLATION">🏗️ Siding Installation</option>
+                                            <option value="WINDOW_REPLACEMENT">🪟 Window Replacement</option>
+                                            <option value="FLOORING">🪑 Flooring</option>
+                                            <option value="PAINTING">🎨 Painting</option>
+                                            <option value="ELECTRICAL_WORK">⚡ Electrical Work</option>
+                                            <option value="PLUMBING">🔧 Plumbing</option>
+                                            <option value="HVAC">❄️ HVAC</option>
+                                            <option value="DECK_CONSTRUCTION">🌳 Deck Construction</option>
+                                            <option value="LANDSCAPING">🌱 Landscaping</option>
+                                            <option value="OTHER">📋 Other</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Project Manager */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Project Manager <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            name="projectManager"
+                                            value={newProject.projectManager}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-lg bg-white"
+                                            required
+                                            disabled={usersLoading}
+                                        >
+                                            <option value="">
+                                                {usersLoading ? '⏳ Loading project managers...' : '👤 Select Project Manager'}
+                                            </option>
+                                            {availableUsers.map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {defaultRoles.projectManager && (
+                                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                <div className="flex items-center gap-2 text-green-700">
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                    </svg>
+                                                    <span className="text-sm font-medium">Default: {defaultRoles.projectManager.name}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Team Assignment */}
+                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 border border-emerald-100">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-900">Team Assignment</h3>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Field Director */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Field Director
+                                        </label>
+                                        <select
+                                            name="fieldDirector"
+                                            value={newProject.fieldDirector || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all duration-200 text-lg bg-white"
+                                            disabled={usersLoading}
+                                        >
+                                            <option value="">👷 Select Field Director (Optional)</option>
+                                            {availableUsers.filter(user => user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    {/* Sales Representative */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Sales Representative
+                                        </label>
+                                        <select
+                                            name="salesRep"
+                                            value={newProject.salesRep || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all duration-200 text-lg bg-white"
+                                            disabled={usersLoading}
+                                        >
+                                            <option value="">💼 Select Sales Rep (Optional)</option>
+                                            {availableUsers.filter(user => user.role === 'SALES' || user.role === 'PROJECT_MANAGER').map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    {/* Quality Inspector */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Quality Inspector
+                                        </label>
+                                        <select
+                                            name="qualityInspector"
+                                            value={newProject.qualityInspector || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all duration-200 text-lg bg-white"
+                                            disabled={usersLoading}
+                                        >
+                                            <option value="">🔍 Select Quality Inspector (Optional)</option>
+                                            {availableUsers.filter(user => user.role === 'QUALITY' || user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    {/* Administrative Assistant */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                            Administrative Assistant
+                                        </label>
+                                        <select
+                                            name="adminAssistant"
+                                            value={newProject.adminAssistant || ''}
+                                            onChange={handleInputChange}
+                                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all duration-200 text-lg bg-white"
+                                            disabled={usersLoading}
+                                        >
+                                            <option value="">📋 Select Admin Assistant (Optional)</option>
+                                            {availableUsers.filter(user => user.role === 'ADMINISTRATION' || user.role === 'OFFICE').map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                {/* Default roles display */}
+                                {(defaultRoles.fieldDirector || defaultRoles.salesRep || defaultRoles.qualityInspector || defaultRoles.adminAssistant) && (
+                                    <div className="mt-6 p-4 bg-emerald-100 border border-emerald-200 rounded-xl">
+                                        <div className="text-sm font-semibold mb-3 text-emerald-900">Default Role Assignments:</div>
+                                        <div className="grid grid-cols-2 gap-3 text-sm text-emerald-800">
+                                            {defaultRoles.fieldDirector && (
+                                                <div className="flex items-center gap-2">
+                                                    <span>👷</span>
+                                                    <span>Field Director: {defaultRoles.fieldDirector.name}</span>
+                                                </div>
+                                            )}
+                                            {defaultRoles.salesRep && (
+                                                <div className="flex items-center gap-2">
+                                                    <span>💼</span>
+                                                    <span>Sales Rep: {defaultRoles.salesRep.name}</span>
+                                                </div>
+                                            )}
+                                            {defaultRoles.qualityInspector && (
+                                                <div className="flex items-center gap-2">
+                                                    <span>🔍</span>
+                                                    <span>Quality Inspector: {defaultRoles.qualityInspector.name}</span>
+                                                </div>
+                                            )}
+                                            {defaultRoles.adminAssistant && (
+                                                <div className="flex items-center gap-2">
+                                                    <span>📋</span>
+                                                    <span>Admin Assistant: {defaultRoles.adminAssistant.name}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Project Contacts */}
+                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-slate-900">Project Contacts</h3>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={addContact}
+                                        className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all duration-200 font-semibold flex items-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Add Contact
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-6">
+                                    {newProject.contacts.map((contact, index) => (
+                                        <div key={index} className="bg-white p-6 border-2 border-purple-200 rounded-2xl shadow-sm">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                        <span className="text-purple-600 font-bold text-sm">{index + 1}</span>
+                                                    </div>
+                                                    <span className="font-semibold text-slate-900 text-lg">Contact {index + 1}</span>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    {/* Set as Primary Radio */}
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="radio"
+                                                            name="primaryContact"
+                                                            checked={contact.isPrimary}
+                                                            onChange={() => handlePrimaryContactChange(index)}
+                                                            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-purple-300"
+                                                        />
+                                                        <span className="text-sm font-medium text-slate-700">Set as Primary</span>
+                                                    </label>
+                                                    {/* Remove Contact Button */}
+                                                    {newProject.contacts.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeContact(index)}
+                                                            className="text-red-600 hover:text-red-700 font-medium text-sm"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+                                                {/* Name */}
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                        Full Name
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={contact.name}
+                                                        onChange={(e) => handleContactChange(index, 'name', e.target.value)}
+                                                        className="w-full p-3 border-2 border-slate-200 rounded-lg focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200"
+                                                        placeholder="Enter full name"
+                                                    />
+                                                </div>
+                                                
+                                                {/* Phone */}
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                        Phone Number
+                                                    </label>
+                                                    <input
+                                                        type="tel"
+                                                        value={contact.phone}
+                                                        onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                                                        className="w-full p-3 border-2 border-slate-200 rounded-lg focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200"
+                                                        placeholder="(555) 123-4567"
+                                                    />
+                                                </div>
+                                                
+                                                {/* Email */}
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                        Email Address
+                                                    </label>
+                                                    <input
+                                                        type="email"
+                                                        value={contact.email}
+                                                        onChange={(e) => handleContactChange(index, 'email', e.target.value)}
+                                                        className="w-full p-3 border-2 border-slate-200 rounded-lg focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200"
+                                                        placeholder="email@example.com"
+                                                    />
+                                                </div>
+                                                
+                                                {/* Role */}
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                        Role/Title
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={contact.role || ''}
+                                                        onChange={(e) => handleContactChange(index, 'role', e.target.value)}
+                                                        className="w-full p-3 border-2 border-slate-200 rounded-lg focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200"
+                                                        placeholder="e.g., Homeowner, Property Manager"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Error Display */}
+                            {(error || createProjectMutation.error) && (
+                                <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-red-700 font-semibold text-lg">
+                                            {error || createProjectMutation.error?.message || 'An error occurred'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </form>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="bg-gradient-to-r from-slate-50 to-gray-50 px-8 py-6 border-t border-slate-200">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-slate-600">
+                                Fill in the required fields marked with <span className="text-red-500">*</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsModalOpen(false);
+                                        setNewProject(defaultNewProject);
+                                        setError('');
+                                    }}
+                                    className="px-8 py-4 text-slate-700 bg-white border-2 border-slate-300 rounded-xl font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    onClick={handleSubmit}
+                                    disabled={createProjectMutation.isLoading}
+                                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl"
+                                >
+                                    {createProjectMutation.isLoading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                                            <span>Creating Project...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            <span>Create Project</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </Modal>
 

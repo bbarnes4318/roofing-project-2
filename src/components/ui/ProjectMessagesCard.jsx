@@ -105,10 +105,20 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     
     const lastMessage = conversation[0]; // First item is now the most recent
 
-    // Get project data (already defined above)
+    // Get project data with proper fallbacks
     const projectNumber = project?.projectNumber || activity.projectNumber || '12345';
-    const primaryCustomer = project?.client?.name || project?.clientName || activity.projectName || 'Primary Customer';
+    const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || activity.projectName || 'Primary Customer';
     const subject = activity.subject || 'Project Update';
+    
+    // Debug logging
+    console.log('ProjectMessagesCard Debug:', {
+        projectId: activity.projectId,
+        project: project,
+        activity: activity,
+        projectNumber,
+        primaryCustomer,
+        subject
+    });
 
     // Quick reply handlers
     const handleQuickReplySubmit = async (e) => {
@@ -211,8 +221,31 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 style={{ width: '46px' }}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (onProjectSelect && project) {
-                                        onProjectSelect(project, 'Project Profile', null, sourceSection);
+                                    console.log('Project Number Clicked:', { project, activity, projectNumber });
+                                    
+                                    // Create a proper project object for navigation
+                                    let projectForNavigation = project;
+                                    
+                                    // If project is not available, try to find it in the projects array
+                                    if (!projectForNavigation && projects && activity.projectId) {
+                                        projectForNavigation = projects.find(p => p.id === activity.projectId || p.id === parseInt(activity.projectId));
+                                    }
+                                    
+                                    // If still not found, create a fallback object
+                                    if (!projectForNavigation) {
+                                        projectForNavigation = {
+                                            id: activity.projectId,
+                                            projectNumber: projectNumber,
+                                            projectName: primaryCustomer,
+                                            customer: { primaryName: primaryCustomer }
+                                        };
+                                    }
+                                    
+                                    if (onProjectSelect) {
+                                        console.log('Navigating to project:', projectForNavigation);
+                                        onProjectSelect(projectForNavigation, 'Project Profile', null, sourceSection);
+                                    } else {
+                                        console.error('onProjectSelect is not available');
                                     }
                                 }}
                             >
