@@ -2,17 +2,26 @@ import axios from 'axios';
 
 // Dynamic API Configuration: use production URL for DigitalOcean
 const getApiBaseUrl = () => {
-  // Check if we're in production (DigitalOcean domain)
-  if (typeof window !== 'undefined' && window.location.host.includes('ondigitalocean.app')) {
-    return `${window.location.protocol}//${window.location.host}/api`;
+  // FORCE production URL for DigitalOcean to override any caching issues
+  if (typeof window !== 'undefined') {
+    const host = window.location.host;
+    console.log('🔍 API CONFIG: Current host:', host);
+    
+    if (host.includes('ondigitalocean.app')) {
+      const apiUrl = `${window.location.protocol}//${host}/api`;
+      console.log('🔍 API CONFIG: Using production API:', apiUrl);
+      return apiUrl;
+    }
   }
   
   // Use environment variable if set
   if (process.env.REACT_APP_API_URL) {
+    console.log('🔍 API CONFIG: Using env var API:', process.env.REACT_APP_API_URL);
     return process.env.REACT_APP_API_URL;
   }
   
   // Fallback for local development
+  console.log('🔍 API CONFIG: Using localhost fallback');
   return 'http://localhost:5000/api';
 };
 
