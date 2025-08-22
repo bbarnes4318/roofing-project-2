@@ -1,20 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Get Supabase configuration from environment variables
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+// Get Supabase configuration from environment variables with fallbacks
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kqotdxuhptpkmbsrvjga.supabase.co';
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtxb3RkeHVocHRwa21ic3J2amdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Njg2NjMsImV4cCI6MjA3MTQ0NDY2M30.6220K6MLU1-tnI8o9QEwgKNUPd53HZpkHVDuBG2mMI0';
 
-// Debug logging
-console.log('🔍 Environment variables debug:');
-console.log('REACT_APP_SUPABASE_URL:', supabaseUrl);
-console.log('REACT_APP_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Present' : 'Missing');
-console.log('All env vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
-
-// Validate that environment variables are set
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables!');
-  console.error('Please set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY in your .env file');
-}
+// Log what we're using (for debugging)
+console.log('Supabase URL:', supabaseUrl ? 'Set' : 'Missing');
+console.log('Supabase Key:', supabaseAnonKey ? 'Set' : 'Missing');
 
 // Create and export the Supabase client
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
