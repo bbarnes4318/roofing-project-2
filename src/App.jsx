@@ -96,19 +96,13 @@ export default function App() {
         previousPage: 'Overview'
     });
 
-    // On mount, check Supabase auth state
+    // On mount, check Supabase auth state and perform token exchange
     useEffect(() => {
         const checkAuthState = async () => {
             const user = await getCurrentUser();
             if (user && isUserVerified(user)) {
-                setIsAuthenticated(true);
-                setCurrentUser({
-                    firstName: user.user_metadata?.firstName || user.email?.split('@')[0] || 'User',
-                    lastName: user.user_metadata?.lastName || '',
-                    email: user.email,
-                    role: user.user_metadata?.role || 'WORKER',
-                    position: user.user_metadata?.position || 'User'
-                });
+                // Call the token exchange to get proper JWT and user data
+                await handleLoginSuccess(user);
             } else {
                 setIsAuthenticated(false);
                 setCurrentUser(null);
