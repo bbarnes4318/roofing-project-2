@@ -194,6 +194,7 @@ export default function App() {
             }
         } catch (error) {
             console.error('Failed to exchange Supabase token:', error);
+            // Force rebuild timestamp: 2025-08-22-15:50
         }
     };
 
