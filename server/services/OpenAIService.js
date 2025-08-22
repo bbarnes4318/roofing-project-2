@@ -49,7 +49,7 @@ class OpenAIService {
 
       console.log('🔍 Making OpenAI API call...');
       const response = await this.client.chat.completions.create({
-        model: 'gpt-4-turbo-preview', // Using GPT-4 Turbo (latest available model)
+        model: 'gpt-5', // Using GPT-5 (latest and most advanced available model)
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -70,7 +70,7 @@ class OpenAIService {
         source: 'openai-gpt4-turbo',
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
-          model: 'gpt-4-turbo-preview',
+          model: 'gpt-5',
           tokens: response.usage?.total_tokens,
           timestamp: new Date()
         }
@@ -353,7 +353,7 @@ What should we do first?`,
   getStatus() {
     return {
       enabled: this.isEnabled,
-      model: this.isEnabled ? 'gpt-4-turbo-preview' : 'mock-responses',
+              model: this.isEnabled ? 'gpt-5' : 'mock-responses',
       status: this.isEnabled ? 'active' : 'fallback'
     };
   }

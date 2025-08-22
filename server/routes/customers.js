@@ -371,7 +371,16 @@ router.post('/', asyncHandler(async (req, res, next) => {
 // @desc    Update customer
 // @route   PUT /api/customers/:id
 // @access  Private
-router.put('/:id', asyncHandler(async (req, res, next) => {
+router.put('/:id', customerValidation, asyncHandler(async (req, res, next) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: formatValidationErrors(errors)
+    });
+  }
   try {
     // Check if customer exists
     const existingCustomer = await prisma.customer.findUnique({

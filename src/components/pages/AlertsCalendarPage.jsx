@@ -32,7 +32,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
     const fetchCalendarEvents = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:5000/api/calendar-events');
+            const response = await fetch('/api/calendar-events');
             if (response.ok) {
                 const data = await response.json();
                 // Ensure we always have an array, even if API returns different structure
@@ -435,7 +435,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
             };
 
             // Make API call to save event
-            const response = await fetch('http://localhost:5000/api/calendar-events', {
+            const response = await fetch('/api/calendar-events', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

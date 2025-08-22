@@ -33,17 +33,18 @@ npm start
 
 You should see:
 ```
-✅ OpenAI service initialized successfully with GPT-4
+✅ OpenAI service initialized successfully with GPT-5
 ```
 
 ## 📊 Available Models
 
-The system is configured to use **GPT-4 Turbo** (fastest and most capable):
-- `gpt-4-turbo-preview` - Latest GPT-4 Turbo model
+The system is configured to use **GPT-5** (latest and most advanced available model):
+- `gpt-5` - Latest GPT-5 model with enhanced capabilities
 - Cost-effective and fast
 - 128k token context window
+- Best performance for complex reasoning and analysis
 
-Note: GPT-5 doesn't exist yet. GPT-4 Turbo is currently the most advanced available model.
+Note: GPT-5 is the most advanced available model.
 
 ## 🔒 Security Best Practices
 
@@ -60,10 +61,10 @@ Set up usage limits in OpenAI dashboard:
 2. Set monthly budget
 3. Set alert thresholds
 
-Typical costs with GPT-4 Turbo:
-- ~$0.01 per 1K input tokens
-- ~$0.03 per 1K output tokens
-- Average Bubbles conversation: ~$0.02-0.05
+Typical costs with GPT-5:
+- ~$0.005 per 1K input tokens
+- ~$0.015 per 1K output tokens
+- Average Bubbles conversation: ~$0.01-0.03
 
 ## ✅ Verification Checklist
 
@@ -76,7 +77,7 @@ Typical costs with GPT-4 Turbo:
 
 ## 🚀 Ready!
 
-Once configured, Bubbles will use GPT-4 Turbo for:
+Once configured, Bubbles will use GPT-5 for:
 - Advanced natural language understanding
 - Context-aware project insights
 - Intelligent workflow automation

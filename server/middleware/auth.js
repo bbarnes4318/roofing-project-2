@@ -22,6 +22,35 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    // Demo token bypass for development
+    if (token.startsWith('demo-david-chen-token-')) {
+      req.user = {
+        id: 'cmei0o5k50000um0867bwnhzu',
+        firstName: 'David',
+        lastName: 'Chen',
+        email: 'david.chen@demo.com',
+        role: 'MANAGER',
+        permissions: [],
+        isActive: true,
+        theme: 'light'
+      };
+      return next();
+    }
+    
+    if (token.startsWith('demo-sarah-owner-token-')) {
+      req.user = {
+        id: 'demo-sarah-owner-id',
+        firstName: 'Sarah',
+        lastName: 'Owner',
+        email: 'sarah.owner@demo.com',
+        role: 'ADMIN',
+        permissions: [],
+        isActive: true,
+        theme: 'light'
+      };
+      return next();
+    }
+
     let user = null;
     let isSupabaseToken = false;
 

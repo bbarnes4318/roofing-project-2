@@ -181,26 +181,43 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      // Update project data
-      const updateData = {
-        id: project.id,
-        customer: {
-          ...project.customer,
-          address: editFormData.address,
+      // First, update customer information if customer exists
+      if (project.customer?.id) {
+        const customerUpdateData = {
           primaryName: editFormData.customerName,
           primaryPhone: editFormData.customerPhone,
           primaryEmail: editFormData.customerEmail,
           secondaryName: editFormData.secondaryName,
           secondaryPhone: editFormData.secondaryPhone,
-          secondaryEmail: editFormData.secondaryEmail
-        },
-        projectManagerId: editFormData.pmId,
-        pmPhone: editFormData.pmPhone,
-        pmEmail: editFormData.pmEmail
+          secondaryEmail: editFormData.secondaryEmail,
+          address: editFormData.address
+        };
+
+        // Remove empty/null values
+        Object.keys(customerUpdateData).forEach(key => {
+          if (customerUpdateData[key] === '' || customerUpdateData[key] === null) {
+            delete customerUpdateData[key];
+          }
+        });
+
+        await api.put(`/customers/${project.customer.id}`, customerUpdateData);
+      }
+
+      // Then, update project information
+      const projectUpdateData = {
+        projectManagerId: editFormData.pmId || null,
+        pmPhone: editFormData.pmPhone || null,
+        pmEmail: editFormData.pmEmail || null
       };
 
-      // Call API to update project
-      await api.put(`/projects/${project.id}`, updateData);
+      // Remove empty/null values
+      Object.keys(projectUpdateData).forEach(key => {
+        if (projectUpdateData[key] === '' || projectUpdateData[key] === null) {
+          delete projectUpdateData[key];
+        }
+      });
+
+      await api.put(`/projects/${project.id}`, projectUpdateData);
       
       // Close edit modes
       setIsEditingAddress(false);

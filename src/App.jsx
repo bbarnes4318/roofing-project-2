@@ -161,9 +161,9 @@ export default function App() {
         
         // Create a traditional JWT token for the existing app to use
         try {
-            // Use direct URL - localhost for dev, relative for production
-            const apiUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:5000/api/auth/supabase-token-exchange'
+            // Use relative URL for production, localhost for development
+const apiUrl = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api/auth/supabase-token-exchange'
                 : '/api/auth/supabase-token-exchange';
             const response = await fetch(apiUrl, {
                 method: 'POST',

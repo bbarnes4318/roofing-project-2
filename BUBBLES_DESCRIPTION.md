@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**Bubbles** is a state-of-the-art AI-powered project management assistant specifically engineered for the construction and roofing industry. Leveraging OpenAI's GPT-5 model, Bubbles transforms complex project workflows into simple conversational interactions, making sophisticated project management accessible through natural language.
+**Bubbles** is a state-of-the-art AI-powered project management assistant specifically engineered for the construction and roofing industry. Leveraging OpenAI's GPT-5 model (the most advanced available), Bubbles transforms complex project workflows into simple conversational interactions, making sophisticated project management accessible through natural language.
 
 ## Core Value Proposition
 
