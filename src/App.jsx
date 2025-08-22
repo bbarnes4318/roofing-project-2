@@ -159,9 +159,45 @@ export default function App() {
     };
 
     // Handle successful login from Supabase
-    const handleLoginSuccess = () => {
-        // Auth state will be handled by the useEffect above
-        // This is just a callback for the Login component
+    const handleLoginSuccess = async (supabaseUser) => {
+        if (!supabaseUser) return;
+        
+        // Create a traditional JWT token for the existing app to use
+        try {
+            const response = await fetch('/api/auth/supabase-token-exchange', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: supabaseUser.email,
+                    firstName: supabaseUser.user_metadata?.firstName || supabaseUser.email?.split('@')[0] || 'User',
+                    lastName: supabaseUser.user_metadata?.lastName || '',
+                    role: supabaseUser.user_metadata?.role || 'WORKER'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.token) {
+                    // Store the traditional JWT token
+                    sessionStorage.setItem('authToken', data.token);
+                    localStorage.setItem('authToken', data.token);
+                    
+                    // Set user state
+                    setCurrentUser({
+                        firstName: supabaseUser.user_metadata?.firstName || supabaseUser.email?.split('@')[0] || 'User',
+                        lastName: supabaseUser.user_metadata?.lastName || '',
+                        email: supabaseUser.email,
+                        role: supabaseUser.user_metadata?.role || 'WORKER',
+                        position: supabaseUser.user_metadata?.position || 'User'
+                    });
+                    setIsAuthenticated(true);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to exchange Supabase token:', error);
+        }
     };
 
     // Handle logout

@@ -53,7 +53,7 @@ const api = axios.create({
 
 // Request interceptor to add auth token and implement caching
 api.interceptors.request.use(
-  async (config) => {
+  (config) => {
     // Simple caching for GET requests to prevent rapid repeated calls
     if (config.method === 'get') {
       const cacheKey = `${config.url}${JSON.stringify(config.params || {})}`;
@@ -69,21 +69,10 @@ api.interceptors.request.use(
       }
     }
     
-    // Get Supabase token instead of old JWT tokens
-    try {
-      const { supabase } = await import('../lib/supabaseClient');
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.access_token) {
-        config.headers.Authorization = `Bearer ${session.access_token}`;
-      }
-    } catch (error) {
-      console.warn('Could not get Supabase session:', error);
-      // Fallback to old token method for backward compatibility
-      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    // Use original JWT token system - Supabase only handles login gate
+    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     
     return config;

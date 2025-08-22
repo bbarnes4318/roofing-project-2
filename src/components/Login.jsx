@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, getCurrentUser, isUserVerified, signOut, sendPasswordResetEmail } from '../lib/supabaseClient';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }) => {
   const [mode, setMode] = useState('login'); // 'login', 'signup', 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,8 +88,10 @@ const Login = () => {
           await signOut();
         } else {
           setMessage({ type: 'success', text: 'Login successful!' });
-          // The app should handle navigation based on auth state
-          window.location.href = '/dashboard';
+          // Call the parent's login success handler with the user
+          if (onLoginSuccess) {
+            onLoginSuccess(data.user);
+          }
         }
       }
     } catch (error) {

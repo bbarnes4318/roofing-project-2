@@ -957,4 +957,87 @@ router.get('/security/events', authenticateToken, asyncHandler(async (req, res) 
   });
 }));
 
+// @desc    Supabase token exchange - convert Supabase user to traditional JWT
+// @route   POST /api/auth/supabase-token-exchange
+// @access  Public
+router.post('/supabase-token-exchange', asyncHandler(async (req, res) => {
+  const { email, firstName, lastName, role } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email is required'
+    });
+  }
+
+  // Find or create user in database
+  let user = await prisma.user.findUnique({
+    where: { email: email },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      permissions: true,
+      isActive: true,
+      theme: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
+
+  // If user doesn't exist, create them
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        password: 'SUPABASE_MANAGED', // Placeholder since Supabase handles authentication
+        role: role || 'WORKER',
+        isActive: true,
+        theme: 'LIGHT',
+        lastLogin: new Date()
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        permissions: true,
+        isActive: true,
+        theme: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+  } else {
+    // Update last login
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() }
+    });
+  }
+
+  if (!user.isActive) {
+    return res.status(401).json({
+      success: false,
+      message: 'Account is deactivated.'
+    });
+  }
+
+  // Generate traditional JWT token
+  const token = generateToken(user.id, user.role);
+
+  res.json({
+    success: true,
+    token: token,
+    user: user
+  });
+}));
+
 module.exports = router; 
