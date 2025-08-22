@@ -156,7 +156,21 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               </div>
               <div className="flex items-center">
                 <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wide w-14 flex-shrink-0">Section:</span>
-                <span className="text-gray-900 font-medium ml-1 truncate">{WorkflowDataService.getCurrentSection(project) || project.currentWorkflowItem?.section || 'Not Available'}</span>
+                <span className="text-gray-900 font-medium ml-1 truncate">
+                  {(() => {
+                    // Get section from the correct database field
+                    if (project.currentWorkflowItem?.sectionDisplayName) {
+                      return project.currentWorkflowItem.sectionDisplayName;
+                    }
+                    if (project.currentWorkflowItem?.sectionName) {
+                      return project.currentWorkflowItem.sectionName;
+                    }
+                    if (project.currentWorkflowItem?.section) {
+                      return project.currentWorkflowItem.section;
+                    }
+                    return 'Not Available';
+                  })()}
+                </span>
               </div>
               <div className="flex items-center">
                 <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wide w-16 flex-shrink-0">Line Item:</span>
@@ -164,22 +178,102 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   onClick={async () => {
                     if (!onProjectSelect) return;
                     try {
-                      const projectId = project._id || project.id;
-                      const res = await api.get(`/workflow-data/project-position/${projectId}`);
-                      const pos = res?.data?.data || {};
-                      const targetLineItemId = pos.currentLineItem || `${pos.currentPhase}-${pos.currentSection}-0`;
-                      const targetSectionId = pos.currentSection || null;
-                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
-                    } catch (e) {
-                      const phase = project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project);
-                      const section = project.currentWorkflowItem?.section;
-                      const fallbackId = `${phase}-${section || 'unknown'}-0`;
-                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile', fallbackId, section || null);
+                      console.log('🎯 PROJECT PROFILE: Getting project position for workflow navigation');
+                      
+                      // Get project position data for proper targeting (same as working sections)
+                      const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                        headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                        }
+                      });
+                      
+                      if (positionResponse.ok) {
+                        const positionResult = await positionResponse.json();
+                        if (positionResult.success && positionResult.data) {
+                          const position = positionResult.data;
+                          console.log('🎯 PROJECT PROFILE: Project position data:', position);
+                          
+                          if (position.currentPhase && position.currentSection) {
+                            // Get subtask index for precise targeting
+                            const getSubtaskIndex = async () => {
+                              try {
+                                const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                                  headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                  }
+                                });
+                                
+                                if (workflowResponse.ok) {
+                                  const workflowResult = await workflowResponse.json();
+                                  if (workflowResult.success && workflowResult.data) {
+                                    // Find the current phase by phase type (LEAD, PROSPECT, etc.)
+                                    const currentPhaseData = workflowResult.data.find(phase => phase.phaseType === position.currentPhase);
+                                    if (currentPhaseData) {
+                                      // Find the current section by ID
+                                      const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                                      if (currentSectionData) {
+                                        // Find the subtask index by matching the current DB id or name
+                                        const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
+                                          if (typeof subtask === 'object') {
+                                            return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                                          }
+                                          return subtask === position.currentLineItemName;
+                                        });
+                                        return { subtaskIndex: subtaskIndex >= 0 ? subtaskIndex : 0, phaseId: currentPhaseData.id };
+                                      }
+                                    }
+                                  }
+                                }
+                              } catch (error) {
+                                console.warn('Could not determine subtask index:', error);
+                              }
+                              return { subtaskIndex: 0, phaseId: null }; // Default fallback
+                            };
+                            
+                            const { subtaskIndex, phaseId } = await getSubtaskIndex();
+                            const targetLineItemId = phaseId ? `${phaseId}-${position.currentSection}-${subtaskIndex}` : null;
+                            const targetSectionId = position.currentSection;
+                            
+                            console.log('🎯 PROJECT PROFILE: Generated targetLineItemId:', targetLineItemId);
+                            console.log('🎯 PROJECT PROFILE: Generated targetSectionId:', targetSectionId);
+
+                            onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
+                          } else {
+                            console.warn('No project position data found, using fallback navigation');
+                            // Fallback navigation
+                            onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                          }
+                        } else {
+                          console.error('Failed to get project position, using fallback navigation');
+                          // Fallback navigation
+                          onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                        }
+                      } else {
+                        console.error('Failed to get project position, using fallback navigation');
+                        // Fallback navigation
+                        onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                      }
+                    } catch (error) {
+                      console.error('Error in Project Profile line item navigation:', error);
+                      // Fallback navigation
+                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
                     }
                   }}
                   className="text-blue-600 hover:text-blue-800 hover:underline ml-1 truncate text-left flex-1"
                 >
-                  {WorkflowDataService.getCurrentLineItem(project)?.name || project.currentWorkflowItem?.lineItem || 'View Workflow'}
+                  {(() => {
+                    // Get line item from the correct database field
+                    if (project.currentWorkflowItem?.lineItemName) {
+                      return project.currentWorkflowItem.lineItemName;
+                    }
+                    if (project.currentWorkflowItem?.lineItem) {
+                      return project.currentWorkflowItem.lineItem;
+                    }
+                    if (project.currentWorkflowItem?.itemName) {
+                      return project.currentWorkflowItem.itemName;
+                    }
+                    return 'View Workflow';
+                  })()}
                 </button>
               </div>
             </div>
