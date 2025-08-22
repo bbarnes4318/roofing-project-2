@@ -1032,7 +1032,13 @@ const apiUrl = window.location.hostname === 'localhost'
                 );
             case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} />;
-            case 'Settings': return <SettingsPage colorMode={colorMode} currentUser={currentUser} />;
+            case 'Settings': return (
+                <SettingsPage 
+                    colorMode={colorMode} 
+                    currentUser={currentUser}
+                    onUserUpdated={(u) => { try { setCurrentUser(u); localStorage.setItem('user', JSON.stringify(u)); sessionStorage.setItem('user', JSON.stringify(u)); } catch (_) {} }}
+                />
+            );
             case 'Estimator': return <EstimateComparisonTool />;
             default: return (
                 <DashboardPage

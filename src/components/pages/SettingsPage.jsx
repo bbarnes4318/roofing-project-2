@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../../services/api';
 
 // Removed mock user; use real authenticated user via props
 
-const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
+const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -15,6 +15,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
   const [company, setCompany] = useState('');
   const [timezone, setTimezone] = useState('America/New_York');
   const [language, setLanguage] = useState('English');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -63,11 +65,46 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setSuccessMessage('Settings saved successfully!');
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+          phone: phone || undefined,
+          timezone,
+          language
+        })
+      });
+      const data = await response.json();
+      if (data?.success && data?.data?.user) {
+        const updated = data.data.user;
+        setFirstName(updated.firstName || '');
+        setLastName(updated.lastName || '');
+        setName(`${updated.firstName || ''} ${updated.lastName || ''}`.trim());
+        try {
+          localStorage.setItem('user', JSON.stringify(updated));
+          sessionStorage.setItem('user', JSON.stringify(updated));
+        } catch (_) {}
+        if (typeof onUserUpdated === 'function') onUserUpdated(updated);
+        setSuccessMessage('Profile updated');
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 2000);
+      } else {
+        throw new Error(data?.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      setSuccessMessage(err.message || 'Failed to save');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    }
   };
 
   // Subjects management functions
@@ -250,6 +287,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
   useEffect(() => {
     const fullName = currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '';
     setName(fullName);
+    setFirstName(currentUser?.firstName || '');
+    setLastName(currentUser?.lastName || '');
     setEmail(currentUser?.email || '');
     setPhone(currentUser?.phone || '');
     setCompany(currentUser?.company || '');
@@ -473,11 +512,20 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Full Name</label>
+          <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>First Name</label>
           <input
             type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+          />
+        </div>
+        <div>
+          <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Last Name</label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
             className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
           />
         </div>
