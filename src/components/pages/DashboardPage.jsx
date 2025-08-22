@@ -3189,20 +3189,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   const sectionName = actionData.section || 'Unknown Section';
                   const lineItemName = actionData.lineItem || 'Unknown Line Item';
                   
-                  // Extract user group from section name (after the "–" character)
-                  const getUserGroupFromSection = (sectionName) => {
-                    if (!sectionName) return 'OFFICE';
-                    const parts = sectionName.split('–');
-                    if (parts.length < 2) return 'OFFICE';
-                    const roleText = parts[1].trim();
-                    if (roleText.includes('Office')) return 'OFFICE';
-                    if (roleText.includes('Project Manager')) return 'PM';
-                    if (roleText.includes('Administration')) return 'ADMIN';
-                    if (roleText.includes('Field Director')) return 'FIELD';
-                    return 'OFFICE';
+                  // Get user group from alert's responsible role
+                  const getUserGroupFromAlert = (alert) => {
+                    const role = alert.responsibleRole || alert.metadata?.responsibleRole || 'OFFICE';
+                    return formatUserRole(String(role));
                   };
                   
-                  const correctUserGroup = getUserGroupFromSection(sectionName);
+                  const correctUserGroup = getUserGroupFromAlert(alert);
                   
                   // Use WorkflowProgressService for consistent phase colors and initials
                   const getPhaseProps = (phase) => {
@@ -3350,7 +3343,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '49px' }}>Section:</span>
                             {/* Section value - first letter aligns under Customer's Name first letter (5px left margin adjustment) */}
                             <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '8px' }}>
-                              {sectionName?.split('–')[0]?.trim() || sectionName}
+                              {sectionName || 'Unknown Section'}
                             </span>
                           </div>
                           
@@ -3361,7 +3354,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
                                   colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'
                                 }`}
-                                title={lineItemName}
+                                title={lineItemName || 'Unknown Line Item'}
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   if (project && onProjectSelect) {

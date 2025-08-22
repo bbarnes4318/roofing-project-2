@@ -1642,7 +1642,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     <div className="flex items-center gap-1" style={{ width: '210px' }}>
                                                         <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '50px' }}>Section:</span>
                                                         <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                                                            {sectionName?.split('-')[0]?.trim() || sectionName}
+                                                            {sectionName || 'Unknown Section'}
                                                         </span>
                                                     </div>
                                                     
@@ -1653,7 +1653,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                             className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
                                                                 colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
                                                             }`}
-                                                            title={lineItemName}
+                                                            title={lineItemName || 'Unknown Line Item'}
                                                             onClick={async (e) => {
                                                                 e.stopPropagation();
                                                                 if (alertProject && onProjectSelect) {

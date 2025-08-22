@@ -599,29 +599,24 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
                 idRemap.workflow_phases.set(oldId, created.id);
               }
             } else if (targetTable === 'workflow_sections') {
-              // Defensive: prefer provided id from source if present
+              // Strong preference: update by composite (phaseId, sectionNumber) when present
               const providedId = row.id ?? source.id;
-              if (providedId) {
-                const existing = await prisma[modelName].findUnique({ where: { id: providedId } });
-                const updateData = { ...row };
-                delete updateData.id;
-                if (existing) {
-                  created = await prisma[modelName].update({ where: { id: providedId }, data: updateData });
-                } else {
-                  created = await prisma[modelName].create({ data: { ...row, id: providedId } });
-                }
+              const updateData = { ...row };
+              delete updateData.id;
+              const hasComposite = row.phaseId !== undefined && row.sectionNumber !== undefined;
+              const existingByComposite = hasComposite
+                ? await prisma[modelName].findFirst({ where: { phaseId: row.phaseId, sectionNumber: row.sectionNumber } })
+                : null;
+              if (existingByComposite) {
+                created = await prisma[modelName].update({ where: { id: existingByComposite.id }, data: updateData });
               } else {
-                const updateData = { ...row };
-                delete updateData.id;
-                const existingByComposite = (row.phaseId !== undefined && row.sectionNumber !== undefined)
-                  ? await prisma[modelName].findFirst({ where: { phaseId: row.phaseId, sectionNumber: row.sectionNumber } })
-                  : null;
-                if (existingByComposite) {
-                  created = await prisma[modelName].update({ where: { id: existingByComposite.id }, data: updateData });
+                const existingById = providedId ? await prisma[modelName].findUnique({ where: { id: providedId } }) : null;
+                if (existingById) {
+                  created = await prisma[modelName].update({ where: { id: existingById.id }, data: updateData });
                 } else {
                   const createData = { ...row };
                   delete createData.id;
-                  created = await prisma[modelName].create({ data: createData });
+                  created = await prisma[modelName].create({ data: providedId ? { ...createData, id: providedId } : createData });
                 }
               }
               // Track key for later cleanup
