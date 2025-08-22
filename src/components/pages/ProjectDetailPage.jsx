@@ -114,10 +114,19 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     
-    const handleProjectSelectWithScroll = (selectedProject, view = 'Project Profile', phase = null, sourceSection = null) => {
+    const handleProjectSelectWithScroll = (selectedProject, view = 'Project Profile', phase = null, sourceSection = null, targetLineItemId = null, targetSectionId = null) => {
+        console.log('🔍 PROJECT_DETAIL: handleProjectSelectWithScroll called with:');
+        console.log('🔍 PROJECT_DETAIL: project:', selectedProject?.name);
+        console.log('🔍 PROJECT_DETAIL: view:', view);
+        console.log('🔍 PROJECT_DETAIL: phase:', phase);
+        console.log('🔍 PROJECT_DETAIL: sourceSection:', sourceSection);
+        console.log('🔍 PROJECT_DETAIL: targetLineItemId:', targetLineItemId);
+        console.log('🔍 PROJECT_DETAIL: targetSectionId:', targetSectionId);
+        
         scrollToTop();
         if (onProjectSelect) {
-            onProjectSelect(selectedProject, view, phase, sourceSection);
+            console.log('🔍 PROJECT_DETAIL: Calling onProjectSelect with all parameters');
+            onProjectSelect(selectedProject, view, phase, sourceSection, targetLineItemId, targetSectionId);
         }
     };
     
@@ -1776,7 +1785,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                         highlightDuration: 3000
                                                                                     }
                                                                                 };
-                                                                                handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                                handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId);
                                                                             }
                                                                         } else {
                                                                             console.error('🎯 PROJECT_DETAIL ALERTS CLICK: Failed to get project position, using fallback navigation');
@@ -1805,7 +1814,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                     highlightDuration: 3000
                                                                                 }
                                                                             };
-                                                                            handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                            handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId);
                                                                         }
                                                                     } catch (error) {
                                                                         console.error('🎯 PROJECT_DETAIL ALERTS CLICK: Error getting project position:', error);
@@ -1834,7 +1843,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                 highlightDuration: 3000
                                                                             }
                                                                         };
-                                                                        handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                                                        handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId);
                                                                     }
                                                                 }
                                                             }}
