@@ -1,0 +1,10 @@
+UNIFIED LINE ITEM DEEP-LINKING DEPLOYED
+Timestamp: ${new Date().toISOString()}
+
+All sections now navigate to Project Workflow with:
+- Correct phase expansion
+- Correct section expansion  
+- Correct line item highlighting
+- Same blue highlight as Current Alerts
+
+This file confirms the deployment went through.
