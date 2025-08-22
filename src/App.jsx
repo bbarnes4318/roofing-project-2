@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import {
   ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, FolderIcon, ArchiveBoxIcon
 } from './components/common/Icons';
-import { authService } from './services/api';
+import { getCurrentUser, isUserVerified } from './lib/supabaseClient';
 import DashboardPage from './components/pages/DashboardPage';
 import ProjectProfilePage from './components/pages/ProjectProfilePage';
 import ProjectDetailPage from './components/pages/ProjectDetailPage';
@@ -20,9 +20,9 @@ import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import AlertsCalendarPage from './components/pages/AlertsCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
-import HolographicLoginPage from './components/pages/HolographicLoginPage';
-import BlueprintLoginPage from './components/pages/BlueprintLoginPage';
-import RegisterPage from './components/pages/RegisterPage';
+import Login from './components/Login';
+import ProtectedRoute from './components/ProtectedRoute';
+import ResetPassword from './pages/ResetPassword';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 
 // Removed mock data import
@@ -73,7 +73,7 @@ export default function App() {
         } catch (_) {}
         return defaultUser;
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(() => authService.isAuthenticated());
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
     // unauthenticated view state: 'login' | 'register'
@@ -96,14 +96,25 @@ export default function App() {
         previousPage: 'Overview'
     });
 
-    // On mount, sync auth state
+    // On mount, check Supabase auth state
     useEffect(() => {
-        const authed = authService.isAuthenticated();
-        setIsAuthenticated(authed);
-        if (authed && !currentUser) {
-            const stored = authService.getStoredUser();
-            if (stored) setCurrentUser(stored);
-        }
+        const checkAuthState = async () => {
+            const user = await getCurrentUser();
+            if (user && isUserVerified(user)) {
+                setIsAuthenticated(true);
+                setCurrentUser({
+                    firstName: user.user_metadata?.firstName || user.email?.split('@')[0] || 'User',
+                    lastName: user.user_metadata?.lastName || '',
+                    email: user.email,
+                    role: user.user_metadata?.role || 'WORKER',
+                    position: user.user_metadata?.position || 'User'
+                });
+            } else {
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+            }
+        };
+        checkAuthState();
     }, []);
 
     // Check if user needs onboarding
@@ -147,17 +158,16 @@ export default function App() {
         localStorage.setItem('user', JSON.stringify(updatedUser));
     };
 
-    // Handle successful login
-    const handleLoginSuccess = (user, token) => {
-        const storedUser = user || authService.getStoredUser();
-        const storedToken = token || sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-        setCurrentUser(storedUser || null);
-        setIsAuthenticated(Boolean(storedToken));
+    // Handle successful login from Supabase
+    const handleLoginSuccess = () => {
+        // Auth state will be handled by the useEffect above
+        // This is just a callback for the Login component
     };
 
     // Handle logout
-    const handleLogout = () => {
-        try { authService.logout(); } catch (_) {}
+    const handleLogout = async () => {
+        const { supabase } = await import('./lib/supabaseClient');
+        await supabase.auth.signOut();
         setIsAuthenticated(false);
         setCurrentUser(null);
     };
@@ -397,21 +407,11 @@ export default function App() {
     //     );
     // }
 
-    // Gate the app behind login when unauthenticated
+    // Gate the app behind Supabase login when unauthenticated
     if (!isAuthenticated) {
         return (
             <QueryClientProvider client={queryClient}>
-                {authView === 'login' ? (
-                    <BlueprintLoginPage 
-                        onLoginSuccess={handleLoginSuccess} 
-                        onSwitchToRegister={() => setAuthView('register')} 
-                    />
-                ) : (
-                    <RegisterPage 
-                        onRegisterSuccess={handleLoginSuccess}
-                        onSwitchToLogin={() => setAuthView('login')}
-                    />
-                )}
+                <Login onLoginSuccess={handleLoginSuccess} />
                 <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         );
@@ -628,6 +628,41 @@ export default function App() {
             }
         }
         
+        // PRIORITY: Handle Current Alerts before Project Phases (prevents conflicts)
+        if (navigationState.projectSourceSection === 'Current Alerts') {
+            console.log('🔍 BACK_TO_PROJECTS: PRIORITY HANDLING - Navigating back to Current Alerts section');
+            setNavigationState(prev => ({ ...prev, selectedProject: null }));
+            setActivePage('Overview');
+            
+            // Enhanced navigation to Current Alerts section with multiple fallbacks
+            setTimeout(() => {
+                const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
+                if (currentAlertsSection) {
+                    console.log('🔍 BACK_TO_PROJECTS: Successfully scrolled to Current Alerts section');
+                    currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Add temporary highlight to make it clear where we returned
+                    currentAlertsSection.style.boxShadow = '0 0 10px rgba(59, 130, 246, 0.5)';
+                    setTimeout(() => {
+                        currentAlertsSection.style.boxShadow = '';
+                    }, 2000);
+                } else {
+                    console.warn('🔍 BACK_TO_PROJECTS: Current Alerts section not found, retrying...');
+                    // Fallback: try again with a longer delay
+                    setTimeout(() => {
+                        const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
+                        if (currentAlertsSection) {
+                            console.log('🔍 BACK_TO_PROJECTS: Found Current Alerts section on retry');
+                            currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                            console.error('🔍 BACK_TO_PROJECTS: Current Alerts section still not found');
+                        }
+                    }, 500);
+                }
+            }, 200);
+            return;
+        }
+        
         // Handle specific case: coming from Project Phases section (Alerts, Messages, Workflow buttons)
         if (navigationState.projectSourceSection === 'Project Phases' && navigationState.selectedProject) {
             console.log('🔍 BACK_TO_PROJECTS: Coming from Project Phases section, returning to Overview with phase restored');
@@ -678,21 +713,6 @@ export default function App() {
                 }
             }, 150);
             return;
-        } else if (navigationState.projectSourceSection === 'Current Alerts') {
-            setActivePage('Overview');
-            // Multiple attempts with increasing delays to ensure DOM is ready
-            setTimeout(() => {
-                const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
-                if (currentAlertsSection) {
-                    currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    // Fallback: try again with a longer delay
-                    setTimeout(() => {
-                        const currentAlertsSection = document.querySelector('[data-section="current-alerts"]');
-                        if (currentAlertsSection) currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 200);
-                }
-            }, 150);
         } else if (navigationState.projectSourceSection === 'Project Cubes') {
             setActivePage('Overview');
             setTimeout(() => {
@@ -1008,6 +1028,16 @@ export default function App() {
                     </div>
                 </div>
                 <Toaster />
+            </QueryClientProvider>
+        );
+    }
+
+    // Check for password reset route
+    if (window.location.pathname === '/reset-password') {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <ResetPassword />
+                <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         );
     }

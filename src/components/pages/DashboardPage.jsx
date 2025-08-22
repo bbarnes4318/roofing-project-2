@@ -3019,10 +3019,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (project && onProjectSelect) {
+                                    // Ensure navigation state tracks Current Alerts correctly
                                     const projectWithScrollId = {
                                       ...project,
-                                      scrollToProjectId: String(project.id)
+                                      scrollToProjectId: String(project.id),
+                                      navigationSource: 'Current Alerts',
+                                      returnToSection: 'current-alerts'
                                     };
+                                    console.log('🎯 PROJECT NUMBER CLICK: Navigating from Current Alerts to Profile');
                                     handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Current Alerts');
                                   }
                                 }}
@@ -3234,6 +3238,23 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             }
                                           };
                                           
+                                          // Enhanced navigation with comprehensive state tracking for Current Alerts
+                                          console.log('🎯 LINE ITEM CLICK: Navigating from Current Alerts to Workflow with targeting');
+                                          console.log('🎯 LINE ITEM CLICK: targetLineItemId:', targetLineItemId);
+                                          console.log('🎯 LINE ITEM CLICK: targetSectionId:', targetSectionId);
+                                          console.log('🎯 LINE ITEM CLICK: position data:', position);
+                                          
+                                          // Ensure project has all navigation metadata for proper back button behavior
+                                          projectWithNavigation.navigationSource = 'Current Alerts';
+                                          projectWithNavigation.returnToSection = 'current-alerts';
+                                          projectWithNavigation.highlightTarget = {
+                                            lineItemId: targetLineItemId,
+                                            sectionId: targetSectionId,
+                                            phaseId: position.currentPhase,
+                                            autoOpen: true,
+                                            scrollAndHighlight: true
+                                          };
+                                          
                                           // Use the enhanced navigation system with precise targeting (matching workflow button)
                                           handleProjectSelectWithScroll(
                                             projectWithNavigation, 
@@ -3245,7 +3266,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           );
                                         } else {
                                           console.warn('🎯 ALERTS CLICK: No position data found, using fallback navigation');
-                                          // Fallback to enhanced static navigation
+                                          // Fallback to enhanced static navigation with Current Alerts tracking
                                           const projectWithStepInfo = {
                                             ...project,
                                             highlightStep: lineItemName,
@@ -3255,6 +3276,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             targetLineItem: lineItemName,
                                             scrollToCurrentLineItem: true,
                                             alertPhase: phase,
+                                            navigationSource: 'Current Alerts',
+                                            returnToSection: 'current-alerts',
                                             navigationTarget: {
                                               phase: phase,
                                               section: sectionName,
@@ -3267,14 +3290,16 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               scrollBehavior: 'smooth',
                                               targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                               highlightColor: '#0066CC',
-                                              highlightDuration: 3000
+                                              highlightDuration: 3000,
+                                              autoOpen: true,
+                                              scrollAndHighlight: true
                                             }
                                           };
                                           handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
                                         }
                                       } else {
                                         console.error('🎯 ALERTS CLICK: Failed to get project position, using fallback navigation');
-                                        // Fallback to basic navigation
+                                        // Fallback to basic navigation with Current Alerts source tracking
                                         const projectWithStepInfo = {
                                           ...project,
                                           highlightStep: lineItemName,
@@ -3284,6 +3309,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           targetLineItem: lineItemName,
                                           scrollToCurrentLineItem: true,
                                           alertPhase: phase,
+                                          navigationSource: 'Current Alerts',
+                                          returnToSection: 'current-alerts',
                                           navigationTarget: {
                                             phase: phase,
                                             section: sectionName,
@@ -3296,7 +3323,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             scrollBehavior: 'smooth',
                                             targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                             highlightColor: '#0066CC',
-                                            highlightDuration: 3000
+                                            highlightDuration: 3000,
+                                            autoOpen: true,
+                                            scrollAndHighlight: true
                                           }
                                         };
                                         handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');

@@ -126,11 +126,15 @@ const loadCheckboxState = (projectId) => {
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId }) => {
   const projectId = project?._id || project?.id;
   
-  // LOG NAVIGATION PARAMETERS
+  // LOG NAVIGATION PARAMETERS - Enhanced for Current Alerts debugging
   console.log('📍 PROJECT CHECKLIST PAGE - Navigation params received:');
   console.log('   targetLineItemId:', targetLineItemId);
   console.log('   targetSectionId:', targetSectionId);
   console.log('   projectId:', projectId);
+  console.log('   project.navigationSource:', project?.navigationSource);
+  console.log('   project.highlightTarget:', project?.highlightTarget);
+  console.log('   project.navigationTarget:', project?.navigationTarget);
+  console.log('   project.returnToSection:', project?.returnToSection);
   
   // Add pulse animation styles
   React.useEffect(() => {
@@ -515,12 +519,50 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           setProjectPosition(positionData);
           console.log(`Loaded main workflow position:`, positionData);
           
-          // Handle navigation targets - expand phase/section if navigating to specific item
+          // Enhanced navigation handling - check project metadata for Current Alerts navigation
           let expanded = false;
-          if (targetLineItemId || targetSectionId || urlHighlight) {
-            const effectiveTargetLineItem = targetLineItemId || urlHighlight;
+          const hasNavigationTarget = targetLineItemId || targetSectionId || urlHighlight || 
+                                     project?.highlightTarget || project?.navigationTarget;
+          
+          if (hasNavigationTarget) {
+            console.log('🎯 ENHANCED NAVIGATION: Processing navigation target from', project?.navigationSource || 'unknown');
+            
+            // Use enhanced navigation metadata if available (from Current Alerts)
+            if (project?.highlightTarget) {
+              const target = project.highlightTarget;
+              console.log('🎯 ENHANCED NAVIGATION: Using highlightTarget:', target);
+              if (target.phaseId && target.sectionId) {
+                setOpenPhase(target.phaseId);
+                setOpenItem(prev => ({ ...prev, [target.sectionId]: true }));
+                expanded = true;
+              }
+            } else if (project?.navigationTarget) {
+              const target = project.navigationTarget;
+              console.log('🎯 ENHANCED NAVIGATION: Using navigationTarget:', target);
+              if (target.phase && target.section) {
+                // Find the actual phase ID from the phase name
+                const targetPhase = (workflowResult.data || []).find(p => 
+                  p.name === target.phase || p.id === target.phase
+                );
+                if (targetPhase) {
+                  const targetSection = targetPhase.items.find(item => 
+                    item.displayName === target.section || item.id === target.section
+                  );
+                  if (targetSection) {
+                    console.log('🎯 ENHANCED NAVIGATION: Expanding phase/section from navigationTarget');
+                    setOpenPhase(targetPhase.id);
+                    setOpenItem(prev => ({ ...prev, [targetSection.id]: true }));
+                    expanded = true;
+                  }
+                }
+              }
+            }
+            
+            // Fallback to standard navigation if enhanced navigation didn't handle it
+            if (!expanded) {
+              const effectiveTargetLineItem = targetLineItemId || urlHighlight;
 
-            if (effectiveTargetLineItem && mainWorkflow) {
+              if (effectiveTargetLineItem && mainWorkflow) {
               // Search within the main workflow for navigation
               const mainWorkflowPhases = mainWorkflow.phases || [];
               
@@ -584,33 +626,74 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             }
           }
           
-          // Auto-scroll to target or current position after a brief delay
+          // Enhanced auto-scroll with Current Alerts navigation support
           setTimeout(() => {
             let targetElement = null;
             let scrollReason = '';
             
-            // Priority 1: Navigate to specific target line item (prop or URL param)
-            const effectiveTargetLineItem = targetLineItemId || urlHighlight;
-            if (effectiveTargetLineItem) {
-              targetElement = document.getElementById(`lineitem-${effectiveTargetLineItem}`);
-              scrollReason = `target line item: ${effectiveTargetLineItem}`;
+            // Priority 0: Enhanced navigation from Current Alerts
+            if (project?.highlightTarget && project.highlightTarget.scrollAndHighlight) {
+              const target = project.highlightTarget;
+              console.log('🎯 ENHANCED SCROLL: Attempting to scroll to highlightTarget:', target.lineItemId);
               
-              // If not found by lineitem ID, try checkbox ID format
+              targetElement = document.getElementById(`lineitem-${target.lineItemId}`);
               if (!targetElement) {
-                targetElement = document.getElementById(`checkbox-${effectiveTargetLineItem}`);
+                targetElement = document.getElementById(`checkbox-${target.lineItemId}`);
                 if (targetElement) {
                   targetElement = targetElement.closest('.workflow-line-item');
-                  scrollReason = `target line item (via checkbox): ${effectiveTargetLineItem}`;
+                }
+              }
+              
+              if (targetElement) {
+                scrollReason = `Enhanced navigation from ${project.navigationSource}: ${target.lineItemId}`;
+              }
+            }
+            // Priority 0.5: Enhanced navigation with navigationTarget
+            else if (project?.navigationTarget && project.navigationTarget.autoOpen) {
+              const target = project.navigationTarget;
+              const targetElementId = target.targetElementId || `lineitem-${target.lineItemId}`;
+              console.log('🎯 ENHANCED SCROLL: Attempting to scroll to navigationTarget:', targetElementId);
+              
+              targetElement = document.getElementById(targetElementId);
+              if (!targetElement && target.lineItemId) {
+                targetElement = document.getElementById(`lineitem-${target.lineItemId}`);
+              }
+              if (!targetElement && target.lineItemId) {
+                targetElement = document.getElementById(`checkbox-${target.lineItemId}`);
+                if (targetElement) {
+                  targetElement = targetElement.closest('.workflow-line-item');
+                }
+              }
+              
+              if (targetElement) {
+                scrollReason = `Enhanced navigation from ${project.navigationSource}: ${target.lineItemId || targetElementId}`;
+              }
+            }
+            // Priority 1: Standard navigation to specific target line item (prop or URL param)
+            else {
+              const effectiveTargetLineItem = targetLineItemId || urlHighlight;
+              if (effectiveTargetLineItem) {
+                targetElement = document.getElementById(`lineitem-${effectiveTargetLineItem}`);
+                scrollReason = `target line item: ${effectiveTargetLineItem}`;
+                
+                // If not found by lineitem ID, try checkbox ID format
+                if (!targetElement) {
+                  targetElement = document.getElementById(`checkbox-${effectiveTargetLineItem}`);
+                  if (targetElement) {
+                    targetElement = targetElement.closest('.workflow-line-item');
+                    scrollReason = `target line item (via checkbox): ${effectiveTargetLineItem}`;
+                  }
                 }
               }
             }
+            
             // Priority 2: Navigate to specific target section
-            else if (targetSectionId) {
+            if (!targetElement && targetSectionId) {
               targetElement = document.getElementById(`item-${targetSectionId}`);
               scrollReason = `target section: ${targetSectionId}`;
             }
             // Priority 3: Navigate to current project position
-            else if (mainWorkflow?.currentSection) {
+            if (!targetElement && mainWorkflow?.currentSection) {
               targetElement = document.getElementById(`item-${mainWorkflow.currentSection}`);
               scrollReason = `current section: ${mainWorkflow.currentSection}`;
             }
@@ -623,12 +706,31 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 block: 'center' 
               });
               
-              // Enhanced highlighting for targeted navigation
-              if (targetLineItemId) {
-                // Apply strong highlight for line items
-                targetElement.style.backgroundColor = '#FEF3C7';
-                targetElement.style.border = '3px solid #F59E0B';
-                targetElement.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
+              // Enhanced highlighting with Current Alerts support
+              const useEnhancedHighlight = project?.highlightTarget || project?.navigationTarget;
+              const highlightColor = useEnhancedHighlight ? 
+                (project.highlightTarget?.highlightColor || project.navigationTarget?.highlightColor || '#0066CC') : 
+                '#F59E0B';
+              const highlightDuration = useEnhancedHighlight ?
+                (project.highlightTarget?.highlightDuration || project.navigationTarget?.highlightDuration || 5000) :
+                8000;
+              
+              if (targetLineItemId || useEnhancedHighlight) {
+                console.log('🎯 ENHANCED HIGHLIGHTING: Applying enhanced highlight from', project?.navigationSource);
+                
+                // Apply enhanced highlight for line items
+                if (highlightColor === '#0066CC') {
+                  // Special Current Alerts highlighting
+                  targetElement.style.backgroundColor = '#EFF6FF';
+                  targetElement.style.border = '3px solid #0066CC';
+                  targetElement.style.boxShadow = '0 0 20px rgba(0, 102, 204, 0.5)';
+                } else {
+                  // Standard highlighting  
+                  targetElement.style.backgroundColor = '#FEF3C7';
+                  targetElement.style.border = '3px solid #F59E0B';
+                  targetElement.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
+                }
+                
                 targetElement.style.transition = 'all 0.3s ease';
                 
                 // Add pulsing animation
@@ -640,7 +742,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   targetElement.style.border = '';
                   targetElement.style.boxShadow = '';
                   targetElement.style.animation = '';
-                }, 8000);
+                }, highlightDuration);
               } else {
                 // Standard highlight for sections
                 const highlightClass = ['ring-4', 'ring-blue-500', 'ring-opacity-75'];
@@ -655,6 +757,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               console.log('⚠️ Could not find element to highlight:', scrollReason);
             }
           }, 1000);
+        }
           
         } else {
           console.log(`⚠️ No project position found for: ${projectId}`);
