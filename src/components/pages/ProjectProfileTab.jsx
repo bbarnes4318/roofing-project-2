@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
-import api from '../../services/api';
+import api, { projectsService, customersService } from '../../services/api';
 import { formatProjectType } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
@@ -200,7 +200,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           }
         });
 
-        await api.put(`/customers/${project.customer.id}`, customerUpdateData);
+        const custResp = await customersService.update(project.customer.id, customerUpdateData);
+        if (!custResp?.success) {
+          throw new Error(custResp?.message || 'Customer update failed');
+        }
       }
 
       // Then, update project information
@@ -217,7 +220,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         }
       });
 
-      await api.put(`/projects/${project.id}`, projectUpdateData);
+      const projResp = await projectsService.update(project.id, projectUpdateData);
+      if (!projResp?.success) {
+        throw new Error(projResp?.message || 'Project update failed');
+      }
       
       // Close edit modes
       setIsEditingAddress(false);
@@ -232,7 +238,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       }
     } catch (error) {
       console.error('Error updating project:', error);
-      toast.error('Failed to update project information. Please try again.');
+      const msg = error?.response?.data?.message || error?.message || 'Failed to update project information. Please try again.';
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }
