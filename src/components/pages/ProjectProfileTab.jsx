@@ -78,12 +78,21 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const formatAddress = (address) => {
     if (!address) return 'Address not provided';
     
-    const parts = address.split(',');
-    if (parts.length >= 2) {
+    const parts = address.split(',').map(part => part.trim());
+    if (parts.length >= 3) {
+      // Format: Street, City, State ZIP
       return (
         <div className="text-sm text-gray-700">
-          <div className="font-medium">{parts[0]?.trim()}</div>
-          <div className="text-gray-600">{parts.slice(1).join(',').trim()}</div>
+          <div className="font-medium">{parts[0]}</div>
+          <div className="text-gray-600">{parts.slice(1).join(', ')}</div>
+        </div>
+      );
+    } else if (parts.length === 2) {
+      // Format: Street, State ZIP (missing city - fix this)
+      return (
+        <div className="text-sm text-gray-700">
+          <div className="font-medium">{parts[0]}</div>
+          <div className="text-gray-600">{parts[1]}</div>
         </div>
       );
     }
@@ -140,88 +149,140 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Address</div>
               <div className="mt-1 text-sm text-gray-900">{formatAddress(getProjectAddress(project))}</div>
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              <span className="text-gray-600 font-medium">Phase:</span>
-              <span className="text-gray-900">{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-gray-600 font-medium">Section:</span>
-              <span className="text-gray-900">{WorkflowDataService.getCurrentSection(project) || project.currentWorkflowItem?.section || 'Not Available'}</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-gray-600 font-medium">Line Item:</span>
-              <button
-                onClick={async () => {
-                  if (!onProjectSelect) return;
-                  try {
-                    const projectId = project._id || project.id;
-                    const res = await api.get(`/workflow-data/project-position/${projectId}`);
-                    const pos = res?.data?.data || {};
-                    const targetLineItemId = pos.currentLineItem || `${pos.currentPhase}-${pos.currentSection}-0`;
-                    const targetSectionId = pos.currentSection || null;
-                    onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
-                  } catch (e) {
-                    const phase = project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project);
-                    const section = project.currentWorkflowItem?.section;
-                    const fallbackId = `${phase}-${section || 'unknown'}-0`;
-                    onProjectSelect(project, 'Project Workflow', null, 'Project Profile', fallbackId, section || null);
-                  }
-                }}
-                className="text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {WorkflowDataService.getCurrentLineItem(project)?.name || project.currentWorkflowItem?.lineItem || 'View Workflow'}
-              </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div className="flex items-center">
+                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wide w-12 flex-shrink-0">Phase:</span>
+                <span className="text-gray-900 font-medium ml-1 truncate">{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wide w-14 flex-shrink-0">Section:</span>
+                <span className="text-gray-900 font-medium ml-1 truncate">{WorkflowDataService.getCurrentSection(project) || project.currentWorkflowItem?.section || 'Not Available'}</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-gray-500 font-medium text-[10px] uppercase tracking-wide w-16 flex-shrink-0">Line Item:</span>
+                <button
+                  onClick={async () => {
+                    if (!onProjectSelect) return;
+                    try {
+                      const projectId = project._id || project.id;
+                      const res = await api.get(`/workflow-data/project-position/${projectId}`);
+                      const pos = res?.data?.data || {};
+                      const targetLineItemId = pos.currentLineItem || `${pos.currentPhase}-${pos.currentSection}-0`;
+                      const targetSectionId = pos.currentSection || null;
+                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
+                    } catch (e) {
+                      const phase = project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project);
+                      const section = project.currentWorkflowItem?.section;
+                      const fallbackId = `${phase}-${section || 'unknown'}-0`;
+                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile', fallbackId, section || null);
+                    }
+                  }}
+                  className="text-blue-600 hover:text-blue-800 hover:underline ml-1 truncate text-left flex-1"
+                >
+                  {WorkflowDataService.getCurrentLineItem(project)?.name || project.currentWorkflowItem?.lineItem || 'View Workflow'}
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Contacts</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Primary Customer</div>
-                <div className="mt-1 space-y-1.5 text-sm">
-                  <div className="font-semibold text-gray-900">{project.customer?.primaryName || project.customer?.name || project.clientName || 'Not Available'}</div>
-                  <div className="flex items-center gap-2">
-                    <span>📞</span>
-                    <span>{project.customer?.primaryPhone ? formatPhoneNumber(project.customer.primaryPhone) : 'Not Available'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>✉️</span>
-                    <span>{project.customer?.primaryEmail || 'Not Available'}</span>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+              <button className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
+                  <div className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">Primary Customer</div>
+                  <div className="space-y-2">
+                    <div className="font-semibold text-gray-900 text-lg">
+                      {project.customer?.primaryName || project.customer?.name || project.clientName || 'Not Available'}
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
+                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        <span className="font-medium">{project.customer?.primaryPhone ? formatPhoneNumber(project.customer.primaryPhone) : 'Not Available'}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium">{project.customer?.primaryEmail || 'Not Available'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div>
-                <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Project Manager</div>
-                <div className="mt-1 space-y-1.5 text-sm">
-                  <div className="font-semibold text-gray-900">
-                    {project.projectManager?.firstName || project.projectManager?.lastName
-                      ? `${project.projectManager?.firstName || ''} ${project.projectManager?.lastName || ''}`.trim()
-                      : project.projectManager?.name || 'Not Available'}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>📞</span>
-                    <span>{project.projectManager?.phone ? formatPhoneNumber(project.projectManager.phone) : 'Not Available'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>✉️</span>
-                    <span>{project.projectManager?.email || 'Not Available'}</span>
+              <div className="space-y-4">
+                <div className="border-l-4 border-purple-500 bg-purple-50 p-4 rounded-r-lg">
+                  <div className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-2">Project Manager</div>
+                  <div className="space-y-2">
+                    <div className="font-semibold text-gray-900 text-lg">
+                      {project.projectManager?.firstName || project.projectManager?.lastName
+                        ? `${project.projectManager?.firstName || ''} ${project.projectManager?.lastName || ''}`.trim()
+                        : project.projectManager?.name || 'Not Available'}
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
+                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        <span className="font-medium">{project.projectManager?.phone ? formatPhoneNumber(project.projectManager.phone) : 'Not Available'}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium">{project.projectManager?.email || 'Not Available'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="mt-4">
-              <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Secondary Customer</div>
-              <div className="mt-1 space-y-1.5 text-sm">
-                <div className="font-semibold text-gray-900">{project.customer?.secondaryName || 'Not Available'}</div>
-                <div className="flex items-center gap-2">
-                  <span>📞</span>
-                  <span>{project.customer?.secondaryPhone ? formatPhoneNumber(project.customer.secondaryPhone) : 'Not Available'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>✉️</span>
-                  <span>{project.customer?.secondaryEmail || 'Not Available'}</span>
+            {(project.customer?.secondaryName || project.customer?.secondaryPhone || project.customer?.secondaryEmail) && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="border-l-4 border-gray-400 bg-gray-50 p-4 rounded-r-lg">
+                  <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Secondary Contact</div>
+                  <div className="space-y-2">
+                    <div className="font-semibold text-gray-900">
+                      {project.customer?.secondaryName || 'Not Available'}
+                    </div>
+                    {project.customer?.secondaryPhone && (
+                      <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
+                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          <span className="font-medium">{formatPhoneNumber(project.customer.secondaryPhone)}</span>
+                        </div>
+                      </div>
+                    )}
+                    {project.customer?.secondaryEmail && (
+                      <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
+                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          <span className="font-medium">{project.customer.secondaryEmail}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
