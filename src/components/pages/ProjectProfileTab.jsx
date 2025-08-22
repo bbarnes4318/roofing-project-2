@@ -897,6 +897,43 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               </button>
               )}
             </div>
+            {isEditingContact ? (
+              <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Primary Customer</h5>
+                    <div className="space-y-2">
+                      <input type="text" value={editFormData.customerName} onChange={(e) => setEditFormData(prev => ({ ...prev, customerName: e.target.value }))} placeholder="Customer Name" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input type="tel" value={editFormData.customerPhone} onChange={(e) => setEditFormData(prev => ({ ...prev, customerPhone: e.target.value }))} placeholder="Phone Number" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input type="email" value={editFormData.customerEmail} onChange={(e) => setEditFormData(prev => ({ ...prev, customerEmail: e.target.value }))} placeholder="Email Address" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Project Manager</h5>
+                    <div className="space-y-2">
+                      <select value={editFormData.pmId} onChange={(e) => { const selectedUser = users.find(user => user.id.toString() === e.target.value); setEditFormData(prev => ({ ...prev, pmId: e.target.value, pmName: selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : '', pmEmail: selectedUser?.email || '', pmPhone: selectedUser?.phone || '' })); }} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" disabled={usersLoading}>
+                        <option value="">{usersLoading ? '⏳ Loading users...' : '👤 Select Project Manager'}</option>
+                        {users.map(user => (<option key={user.id} value={user.id}>{user.firstName} {user.lastName} ({user.role || 'No role'})</option>))}
+                      </select>
+                      <input type="tel" value={editFormData.pmPhone} onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))} placeholder="Phone Number (Optional)" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input type="email" value={editFormData.pmEmail} onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))} placeholder="Email Address (Optional)" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 space-y-3">
+                  <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Secondary Contact (Optional)</h5>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                    <input type="text" value={editFormData.secondaryName} onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryName: e.target.value }))} placeholder="Secondary Contact Name" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="tel" value={editFormData.secondaryPhone} onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryPhone: e.target.value }))} placeholder="Phone Number" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="email" value={editFormData.secondaryEmail} onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryEmail: e.target.value }))} placeholder="Email Address" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 mt-6">
+                  <button onClick={handleSaveChanges} disabled={isSaving} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">{isSaving ? 'Saving...' : 'Save Changes'}</button>
+                  <button onClick={handleCancelEdit} disabled={isSaving} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 text-sm font-medium">Cancel</button>
+                </div>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
@@ -953,6 +990,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 </div>
               </div>
             </div>
+            )}
             {(project.customer?.secondaryName || project.customer?.secondaryPhone || project.customer?.secondaryEmail) && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="border-l-4 border-gray-400 bg-gray-50 p-4 rounded-r-lg">
