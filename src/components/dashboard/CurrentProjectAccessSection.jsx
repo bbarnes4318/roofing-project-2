@@ -136,31 +136,38 @@ const CurrentProjectAccessSection = ({
             console.log('🎯 CURRENT PROJECT ACCESS: Project position data:', position);
             
             if (position.currentPhase && position.currentSection) {
-              // Get current workflow item information
-              const phase = position.currentPhase || 'LEAD';
-              const section = position.currentSectionName || position.currentSection || 'Unknown Section';
-              const lineItem = position.currentLineItemName || position.currentLineItem || 'Unknown Item';
-              
-              console.log('🎯 CURRENT PROJECT ACCESS: Current workflow state:', {
-                phase,
-                section,
-                lineItem
-              });
-              
-              // Generate proper target IDs for navigation (matching Current Alerts pattern)
-              const targetLineItemId = position.currentLineItemId || 
-                                     position.currentLineItem || 
-                                     `${phase}-${section}-0`;
-              
-              const targetSectionId = position.currentSectionId || 
-                                    position.currentSection ||
-                                    section.toLowerCase().replace(/\s+/g, '-');
-              
-              console.log('🎯 CURRENT PROJECT ACCESS: Target IDs:', {
-                targetLineItemId,
-                targetSectionId
-              });
-              
+              // Compute subtask index from full workflow structure (match Projects by Phase)
+              let subtaskIndex = 0;
+              try {
+                const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                  }
+                });
+                if (workflowResponse.ok) {
+                  const workflowResult = await workflowResponse.json();
+                  if (workflowResult.success && workflowResult.data) {
+                    const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                    if (currentPhaseData) {
+                      const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                      if (currentSectionData) {
+                        const idx = currentSectionData.subtasks.findIndex(subtask => {
+                          if (typeof subtask === 'object') {
+                            return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
+                          }
+                          return subtask === position.currentLineItemName;
+                        });
+                        subtaskIndex = idx >= 0 ? idx : 0;
+                      }
+                    }
+                  }
+                }
+              } catch (_) {}
+
+              const targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+              const targetSectionId = position.currentSection;
+              const lineItem = position.currentLineItemName || 'Unknown Item';
+
               const projectWithNavigation = {
                 ...project,
                 dashboardState: {
@@ -168,17 +175,12 @@ const CurrentProjectAccessSection = ({
                 },
                 highlightStep: lineItem,
                 highlightLineItem: lineItem,
-                targetPhase: phase,
-                targetSection: section,
                 targetLineItem: lineItem,
                 scrollToCurrentLineItem: true,
                 navigationTarget: {
-                  phase: phase,
-                  section: section,
                   lineItem: lineItem,
                   stepName: lineItem,
                   lineItemId: targetLineItemId,
-                  workflowId: position.workflowId,
                   highlightMode: 'line-item',
                   scrollBehavior: 'smooth',
                   targetElementId: `lineitem-${targetLineItemId}`,
@@ -189,12 +191,11 @@ const CurrentProjectAccessSection = ({
                   expandSection: true
                 }
               };
-              
-              // Use the navigation system with enhanced data
+
               onProjectSelect(
-                projectWithNavigation, 
-                'Project Workflow', 
-                null, 
+                projectWithNavigation,
+                'Project Workflow',
+                null,
                 'Current Project Access',
                 targetLineItemId,
                 targetSectionId
