@@ -3371,7 +3371,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           {/* Section label aligned under Project Number, Section value aligned under Customer Name */}
                           <div className="flex items-center" style={{ width: '210px' }}>
                             {/* Section label - moved 1 space right closer to its value */}
-                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '49px' }}>Section:</span>
+                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '49px', marginLeft: '16px' }}>Section:</span>
                             {/* Section value - first letter aligns under Customer's Name first letter (5px left margin adjustment) */}
                             <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '8px' }}>
                               {sectionName || 'Unknown Section'}

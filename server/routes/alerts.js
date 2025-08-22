@@ -350,7 +350,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
         stepId: alert.stepId,
         lineItemId: alert.lineItemId, // Add lineItemId for workflow completion
         // CRITICAL: Use metadata values for section and lineItem
-        section: metadata.section || 'General Workflow',
+        section: metadata.section || 'Unknown Section',
         lineItem: metadata.lineItem || alert.stepName,
         relatedProject: {
           _id: alert.project.id,
@@ -368,7 +368,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
           // Ensure a normalized canonical phase is always present
           phase: normalizedPhase,
           // CRITICAL: Use metadata values
-          section: metadata.section || 'General Workflow',
+          section: metadata.section || 'Unknown Section',
           lineItem: metadata.lineItem || alert.stepName,
           workflowId: alert.workflowId,
           stepId: alert.stepId,

@@ -261,7 +261,7 @@ const CurrentAlertsSection = ({
     // Check metadata first, then fallback to database fields
     const sectionName = metadata.section || 
                        (alert.section && typeof alert.section === 'string' ? alert.section : null) ||
-                       'General Workflow';
+                       'Unknown Section';
     
     // CRITICAL FIX: Ensure we have the correct line item information
     const lineItemName = metadata.lineItem || 
