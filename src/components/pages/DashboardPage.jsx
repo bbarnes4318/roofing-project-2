@@ -3232,7 +3232,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
                                               // Prefer DB id if available
-                                              targetElementId: `lineitem-${actionData.stepId || actionData.lineItemId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                              targetElementId: `lineitem-${targetLineItemId}`,
                                               highlightColor: '#0066CC',
                                               highlightDuration: 3000,
                                               targetSectionId: targetSectionId,

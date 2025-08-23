@@ -337,7 +337,7 @@ const apiUrl = window.location.hostname === 'localhost'
     // Scroll to top whenever activePage changes
     useEffect(() => {
         // Skip global scroll-to-top when returning to a specific section (e.g., Current Alerts)
-        if (Date.now() < suppressScrollTopUntil) {
+        if (Date.now() < suppressScrollTopUntilRef.current) {
             return;
         }
         // IMMEDIATE scroll to top - multiple methods
