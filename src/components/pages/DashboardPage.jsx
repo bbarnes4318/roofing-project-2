@@ -3222,6 +3222,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             alertPhase: phase,
                                             // Enhanced navigation target with unique identifiers
                                             navigationTarget: {
+                                              nonce: Date.now(),
                                               phase: phase,
                                               section: sectionName,
                                               lineItem: lineItemName,

@@ -668,7 +668,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               
               targetElement = document.getElementById(`lineitem-${target.lineItemId}`);
               if (!targetElement) {
-                targetElement = document.getElementById(`checkbox-${target.lineItemId}`);
+                targetElement = document.getElementById(`lineitem-checkbox-${target.lineItemId}`);
                 if (targetElement) {
                   targetElement = targetElement.closest('.workflow-line-item');
                 }
@@ -689,7 +689,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 targetElement = document.getElementById(`lineitem-${target.lineItemId}`);
               }
               if (!targetElement && target.lineItemId) {
-                targetElement = document.getElementById(`checkbox-${target.lineItemId}`);
+                targetElement = document.getElementById(`lineitem-checkbox-${target.lineItemId}`);
                 if (targetElement) {
                   targetElement = targetElement.closest('.workflow-line-item');
                 }
@@ -979,7 +979,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           let el = null;
           const tli = targetLineItemId || project?.navigationTarget?.lineItemId || project?.highlightTarget?.lineItemId;
           if (tli) {
-            el = document.getElementById(`lineitem-${tli}`) || document.getElementById(`checkbox-${tli}`)?.closest('.workflow-line-item') || null;
+            el = document.getElementById(`lineitem-${tli}`) || document.getElementById(`lineitem-checkbox-${tli}`)?.closest('.workflow-line-item') || null;
           }
           if (!el && (targetSectionId || project?.navigationTarget?.targetSectionId)) {
             const sec = targetSectionId || project.navigationTarget.targetSectionId;
@@ -1254,7 +1254,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                 <div 
                                   key={subIdx} 
                                   id={`lineitem-${lineItemId}`}
-                                  className={`flex items-start space-x-3 ${
+                                  className={`workflow-line-item flex items-start space-x-3 ${
                                     isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : 
                                     isTargetedLineItem ? 'p-2 bg-yellow-100 border border-yellow-300 rounded-lg ring-2 ring-yellow-400 ring-opacity-75' : ''
                                   }`}
