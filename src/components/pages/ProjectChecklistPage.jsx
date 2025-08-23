@@ -125,6 +125,7 @@ const loadCheckboxState = (projectId) => {
 
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId, selectionNonce }) => {
   const projectId = project?._id || project?.id;
+  const normalizeRoleForServer = () => 'PROJECT_MANAGER';
   
   // LOG NAVIGATION PARAMETERS - Enhanced for Current Alerts debugging
   console.log('📍 PROJECT CHECKLIST PAGE - Navigation params received:');
@@ -169,6 +170,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   // Phase management - collapsed by default
   const [openPhase, setOpenPhase] = useState(null);
   const [openItem, setOpenItem] = useState({});
+  const [inlineNewSection, setInlineNewSection] = useState({});
+  const [inlineNewLineItem, setInlineNewLineItem] = useState({});
   
   // Workflow data states
   const [workflowData, setWorkflowData] = useState(null);
@@ -215,7 +218,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [showCreateLineItemModal, setShowCreateLineItemModal] = useState(false);
   const [createLineItemData, setCreateLineItemData] = useState({
     itemName: '',
-    responsibleRole: 'WORKER',
+    responsibleRole: 'OFFICE',
     description: '',
     estimatedMinutes: 30,
     alertDays: 1
@@ -448,7 +451,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       const requestData = {
         sectionId: selectedSectionForLineItem.id,
         itemName: createLineItemData.itemName.trim(),
-        responsibleRole: createLineItemData.responsibleRole,
+        responsibleRole: normalizeRoleForServer(createLineItemData.responsibleRole),
         description: createLineItemData.description.trim() ? createLineItemData.description.trim() : undefined,
         estimatedMinutes: parseInt(createLineItemData.estimatedMinutes) || 30,
         alertDays: parseInt(createLineItemData.alertDays) || 1
@@ -480,7 +483,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       }
     } catch (error) {
       console.error('❌ Error creating line item:', error);
-      alert('Failed to create line item. Please try again.');
+      const serverMsg = error?.response?.data?.message;
+      const serverErrors = error?.response?.data?.errors;
+      if (serverErrors && Array.isArray(serverErrors)) {
+        const first = serverErrors[0];
+        alert(first?.msg || first?.message || serverMsg || 'Failed to create line item.');
+      } else {
+        alert(serverMsg || 'Failed to create line item. Please try again.');
+      }
     } finally {
       setCreatingLineItem(false);
     }
@@ -1193,6 +1203,52 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             {/* Phase Content - Show when specific phase is open OR when ALL phases are open */}
             {openPhase === phase.id && (
               <div className="p-6 space-y-4">
+                {/* Inline add section */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setInlineNewSection(prev => ({ ...prev, [phase.id]: prev[phase.id] ? undefined : { name: '', saving: false } }))}
+                    className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    + Add Section
+                  </button>
+                  {inlineNewSection[phase.id] && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const val = inlineNewSection[phase.id].name?.trim();
+                        if (!val) return;
+                        setInlineNewSection(prev => ({ ...prev, [phase.id]: { ...prev[phase.id], saving: true } }));
+                        try {
+                          const payload = { phaseId: phase.id, sectionName: val, displayName: val };
+                          const resp = await api.post('/workflows/sections', payload);
+                          if (resp.data?.success) {
+                            const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                            if (workflowResponse.data.success) {
+                              setWorkflowData(workflowResponse.data.data);
+                            }
+                            setInlineNewSection(prev => ({ ...prev, [phase.id]: undefined }));
+                          }
+                        } catch (err) {
+                          alert(err?.response?.data?.message || 'Failed to add section');
+                          setInlineNewSection(prev => ({ ...prev, [phase.id]: { ...prev[phase.id], saving: false } }));
+                        }
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        autoFocus
+                        type="text"
+                        value={inlineNewSection[phase.id]?.name || ''}
+                        onChange={(e) => setInlineNewSection(prev => ({ ...prev, [phase.id]: { ...prev[phase.id], name: e.target.value } }))}
+                        className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                        placeholder="Section name"
+                      />
+                      <button type="submit" disabled={inlineNewSection[phase.id]?.saving} className="px-2 py-1 text-xs text-white bg-green-600 rounded-md disabled:opacity-50">
+                        {inlineNewSection[phase.id]?.saving ? 'Saving...' : 'Save'}
+                      </button>
+                    </form>
+                  )}
+                </div>
                 {phase.items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-2">📋</div>
@@ -1322,6 +1378,68 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                 </div>
                               );
                             })}
+                          </div>
+                          {/* Inline add line item */}
+                          <div className="mt-3">
+                            <button
+                              onClick={() => setInlineNewLineItem(prev => ({ ...prev, [item.id]: prev[item.id] ? undefined : { name: '', role: 'OFFICE', saving: false } }))}
+                              className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                            >
+                              + Add Line Item
+                            </button>
+                            {inlineNewLineItem[item.id] && (
+                              <form
+                                onSubmit={async (e) => {
+                                  e.preventDefault();
+                                  const val = inlineNewLineItem[item.id].name?.trim();
+                                  if (!val) return;
+                                  setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], saving: true } }));
+                                  try {
+                                    const payload = {
+                                      sectionId: item.id,
+                                      itemName: val,
+                                      responsibleRole: normalizeRoleForServer(inlineNewLineItem[item.id].role || 'OFFICE')
+                                    };
+                                    const resp = await api.post('/workflows/line-items', payload);
+                                    if (resp.data?.success) {
+                                      const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                      if (workflowResponse.data.success) {
+                                        setWorkflowData(workflowResponse.data.data);
+                                      }
+                                      setInlineNewLineItem(prev => ({ ...prev, [item.id]: undefined }));
+                                    }
+                                  } catch (err) {
+                                    alert(err?.response?.data?.message || 'Failed to add line item');
+                                    setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], saving: false } }));
+                                  }
+                                }}
+                                className="flex items-center gap-2 mt-2"
+                              >
+                                <input
+                                  autoFocus
+                                  type="text"
+                                  value={inlineNewLineItem[item.id]?.name || ''}
+                                  onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], name: e.target.value } }))}
+                                  className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                  placeholder="Line item name"
+                                />
+                                <select
+                                  value={inlineNewLineItem[item.id]?.role || 'OFFICE'}
+                                  onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], role: e.target.value } }))}
+                                  className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                >
+                                  <option value="OFFICE">Office</option>
+                                  <option value="ADMINISTRATION">Administration</option>
+                                  <option value="PROJECT_MANAGER">Project Manager</option>
+                                  <option value="FIELD_DIRECTOR">Field Director</option>
+                                  <option value="ROOF_SUPERVISOR">Roof Supervisor</option>
+                                  <option value="OFFICE_STAFF">Office Staff</option>
+                                </select>
+                                <button type="submit" disabled={inlineNewLineItem[item.id]?.saving} className="px-2 py-1 text-xs text-white bg-green-600 rounded-md disabled:opacity-50">
+                                  {inlineNewLineItem[item.id]?.saving ? 'Saving...' : 'Save'}
+                                </button>
+                              </form>
+                            )}
                           </div>
                         </div>
                       )}
@@ -1511,12 +1629,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="WORKER">Worker</option>
-                    <option value="FOREMAN">Foreman</option>
+                    <option value="OFFICE">Office</option>
+                    <option value="ADMINISTRATION">Administration</option>
                     <option value="PROJECT_MANAGER">Project Manager</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="CLIENT">Client</option>
+                    <option value="FIELD_DIRECTOR">Field Director</option>
+                    <option value="ROOF_SUPERVISOR">Roof Supervisor</option>
+                    <option value="OFFICE_STAFF">Office Staff</option>
                   </select>
                 </div>
                 

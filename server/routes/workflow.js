@@ -15,6 +15,26 @@ const router = express.Router();
 
 console.log('🔧 WORKFLOW ROUTES: Loading workflow routes module');
 
+// Normalize incoming role (accept both legacy and new enums)
+const normalizeResponsibleRole = (role) => {
+  const NEW_ROLES = new Set(['OFFICE', 'ADMINISTRATION', 'PROJECT_MANAGER', 'FIELD_DIRECTOR', 'ROOF_SUPERVISOR', 'OFFICE_STAFF']);
+  if (NEW_ROLES.has(role)) return role;
+  switch (role) {
+    case 'ADMIN':
+      return 'ADMINISTRATION';
+    case 'MANAGER':
+      return 'PROJECT_MANAGER';
+    case 'FOREMAN':
+      return 'FIELD_DIRECTOR';
+    case 'WORKER':
+      return 'OFFICE_STAFF';
+    case 'CLIENT':
+      return 'OFFICE';
+    default:
+      return 'PROJECT_MANAGER';
+  }
+};
+
 // **CRITICAL: Data transformation for frontend compatibility**
 const transformWorkflowForFrontend = async (projectId, tracker, workflowStatus) => {
   if (!tracker) return null;
@@ -1092,16 +1112,17 @@ router.post('/sections',
         });
       }
       
-      // Get the next section number for this phase
+      // Get the next section number for this phase (sectionNumber is stored as String)
       const lastSection = await prisma.workflowSection.findFirst({
         where: { phaseId },
-        orderBy: { sectionNumber: 'desc' }
+        orderBy: { displayOrder: 'desc' }
       });
       
-      const nextSectionNumber = lastSection ? lastSection.sectionNumber + 1 : 1;
+      const lastNum = lastSection ? parseInt(lastSection.sectionNumber, 10) || lastSection.displayOrder || 0 : 0;
+      const nextSectionNumber = String(lastNum + 1);
       
       // Get the next display order if not provided
-      const nextDisplayOrder = displayOrder || (lastSection ? lastSection.displayOrder + 1 : 1);
+      const nextDisplayOrder = typeof displayOrder === 'number' ? displayOrder : (lastSection ? (lastSection.displayOrder + 1) : 1);
       
       // Create the section
       const newSection = await prisma.workflowSection.create({
@@ -1160,7 +1181,8 @@ router.post('/line-items',
   [
     body('sectionId').isString().withMessage('Section ID is required'),
     body('itemName').isString().isLength({ min: 1, max: 500 }).withMessage('Item name must be between 1 and 500 characters'),
-    body('responsibleRole').isIn(['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT']).withMessage('Valid responsible role is required'),
+    // Accept both new and legacy enums; actual value normalized server-side
+    body('responsibleRole').isIn(['OFFICE', 'ADMINISTRATION', 'PROJECT_MANAGER', 'FIELD_DIRECTOR', 'ROOF_SUPERVISOR', 'OFFICE_STAFF', 'ADMIN', 'MANAGER', 'FOREMAN', 'WORKER', 'CLIENT']).withMessage('Valid responsible role is required'),
     body('description').optional().isString().isLength({ max: 2000 }).withMessage('Description must be less than 2000 characters'),
     body('displayOrder').optional().isInt({ min: 0 }).withMessage('Display order must be a positive integer'),
     body('estimatedMinutes').optional().isInt({ min: 1 }).withMessage('Estimated minutes must be a positive integer'),
@@ -1202,48 +1224,81 @@ router.post('/line-items',
         });
       }
       
-      // Get the next item letter for this section
+      // Normalize role to Prisma enum
+      const prismaRole = normalizeResponsibleRole(responsibleRole);
+
+      // Determine next available itemLetter within this section (handles uniqueness)
       const lastItem = await prisma.workflowLineItem.findFirst({
         where: { sectionId },
-        orderBy: { itemLetter: 'desc' }
+        orderBy: { displayOrder: 'desc' }
       });
-      
-      // Generate next letter (a, b, c, etc.)
-      const nextLetter = lastItem ? 
-        String.fromCharCode(lastItem.itemLetter.charCodeAt(0) + 1) : 'a';
-      
-      // Get the next display order if not provided
-      const nextDisplayOrder = displayOrder || (lastItem ? lastItem.displayOrder + 1 : 1);
-      
-      // Create the line item
-      const newLineItem = await prisma.workflowLineItem.create({
-        data: {
-          sectionId,
-          itemLetter: nextLetter,
-          itemName,
-          responsibleRole,
-          displayOrder: nextDisplayOrder,
-          description,
-          estimatedMinutes: estimatedMinutes || 30,
-          alertDays: alertDays || 1,
-          isActive: true,
-          isCurrent: true,
-          version: 1
-        },
-        include: {
-          section: {
+      const startLetter = 'a';
+      let candidate = lastItem ? (lastItem.itemLetter || startLetter) : startLetter;
+      const bump = (str) => {
+        // Simple a..z, then aa..zz progression
+        const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+        let i = str.length - 1;
+        let carry = true;
+        const chars = str.split('');
+        while (i >= 0 && carry) {
+          const idx = alphabet.indexOf(chars[i]);
+          if (idx === -1 || idx === 25) {
+            chars[i] = alphabet[0];
+            i--;
+          } else {
+            chars[i] = alphabet[idx + 1];
+            carry = false;
+          }
+        }
+        return carry ? ('a' + chars.join('')) : chars.join('');
+      };
+
+      // If lastItem had a letter, bump once to try next
+      if (lastItem && lastItem.itemLetter) {
+        candidate = bump(lastItem.itemLetter.toLowerCase());
+      }
+
+      // Compute display order
+      const nextDisplayOrder = typeof displayOrder === 'number' ? displayOrder : (lastItem ? (lastItem.displayOrder + 1) : 1);
+
+      // Try creating; on unique conflict, bump letter and retry a few times
+      let newLineItem;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          newLineItem = await prisma.workflowLineItem.create({
+            data: {
+              sectionId,
+              itemLetter: candidate,
+              itemName,
+              responsibleRole: prismaRole,
+              displayOrder: nextDisplayOrder,
+              description: description || null,
+              estimatedMinutes: estimatedMinutes || 30,
+              alertDays: alertDays || 1,
+              isActive: true,
+              isCurrent: true,
+              version: 1
+            },
             include: {
-              phase: {
-                select: {
-                  id: true,
-                  phaseType: true,
-                  phaseName: true
+              section: {
+                include: {
+                  phase: {
+                    select: { id: true, phaseType: true, phaseName: true }
+                  }
                 }
               }
             }
+          });
+          break; // success
+        } catch (e) {
+          if (e.code === 'P2002') {
+            // Unique constraint failed on (sectionId, itemLetter) — bump and retry
+            candidate = bump(candidate);
+            continue;
           }
+          throw e;
         }
-      });
+      }
       
       console.log(`✅ WORKFLOW: Successfully created line item ${newLineItem.id}`);
       
