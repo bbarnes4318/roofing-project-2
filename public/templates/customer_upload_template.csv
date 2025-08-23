@@ -1,4 +1,0 @@
-primaryName,primaryEmail,primaryPhone,secondaryName,secondaryEmail,secondaryPhone,primaryContact,address,notes
-John Smith,john.smith@email.com,303-555-0001,Jane Smith,jane.smith@email.com,303-555-0002,PRIMARY,"1234 Oak Street, Denver, CO 80202",Preferred contact is primary customer
-Sarah Johnson,sarah.johnson@email.com,720-555-0003,,,,,PRIMARY,"5678 Pine Avenue, Boulder, CO 80301",Single customer contact
-Mike Davis,mike.davis@email.com,303-555-0004,Lisa Davis,lisa.davis@email.com,303-555-0005,SECONDARY,"9012 Elm Drive, Lakewood, CO 80228",Secondary contact handles scheduling

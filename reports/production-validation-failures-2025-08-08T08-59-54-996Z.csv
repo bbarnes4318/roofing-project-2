@@ -1,8 +1,0 @@
-"Severity","Element","Page","Path","Category","Expected","Actual","Reproduction"
-"CRITICAL","Home Navigation","Customers","/customers","critical","Navigate to dashboard","Navigation to Navigate to dashboard failed - 404 Not Found","Navigate to /customers, locate ""Dashboard"", click element"
-"CRITICAL","Projects Navigation","Settings","/settings","critical","Navigate to projects","Navigation to Navigate to projects failed - 404 Not Found","Navigate to /settings, locate ""Projects"", click element"
-"CRITICAL","Save Settings","Settings","/settings","critical","Save configuration changes","Form submission failed - Save Settings returned 500 Internal Server Error","Navigate to /settings, locate ""Save Settings"", click element"
-"CRITICAL","Customers Navigation","Tasks and Alerts","/tasks-and-alerts","critical","Navigate to customers","Navigation to Navigate to customers failed - 404 Not Found","Navigate to /tasks-and-alerts, locate ""Customers"", click element"
-"MEDIUM","Settings Navigation","Company Calendar","/company-calendar","navigation","Navigate to settings","Navigation to Navigate to settings failed - 404 Not Found","Navigate to /company-calendar, locate ""Settings"", click element"
-"HIGH","Import Customers","Customers","/customers","form","Open import modal","Form submission failed - Import Customers returned 500 Internal Server Error","Navigate to /customers, locate ""Import"", click element"
-"MEDIUM","Customer Details Modal","Customers","/customers","modal","Open customer details modal","Modal failed to open - Customer Details Modal trigger not working","Navigate to /customers, locate ""Details"", click element"

@@ -1,6 +1,0 @@
-"Severity","Element","Page","Path","Category","Expected","Actual","Reproduction"
-"CRITICAL","View Project Details","Dashboard","/","critical","Navigate to project details","Navigation to Navigate to project details failed - 404 Not Found","Navigate to /, locate ""View Details"", click element"
-"CRITICAL","Customers Navigation","Customers","/customers","critical","Navigate to customers","Navigation to Navigate to customers failed - 404 Not Found","Navigate to /customers, locate ""Customers"", click element"
-"CRITICAL","Logout Button","Settings","/settings","critical","Logout user","Action failed - Logout Button did not execute expected behavior","Navigate to /settings, locate ""Logout"", click element"
-"CRITICAL","Logout Button","Workflow Settings","/workflow-settings","critical","Logout user","Action failed - Logout Button did not execute expected behavior","Navigate to /workflow-settings, locate ""Logout"", click element"
-"MEDIUM","Phase Filter - PROSPECT","Dashboard","/","standard","Filter projects by PROSPECT phase","Action failed - Phase Filter - PROSPECT did not execute expected behavior","Navigate to /, locate ""PROSPECT"", click element"

@@ -651,7 +651,8 @@ const apiUrl = window.location.hostname === 'localhost'
             // Preserve the dashboard state for back navigation if provided
             dashboardState: project?.dashboardState || navigationState.dashboardState,
             targetLineItemId: targetLineItemId, // For direct line item navigation
-            targetSectionId: targetSectionId // For direct section navigation
+            targetSectionId: targetSectionId, // For direct section navigation
+            selectionNonce: project?.navigationTarget?.nonce || Date.now()
         };
         
         console.log('🔍 APP: Setting navigationState:', newNavigationState);
@@ -1422,6 +1423,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                         onProjectSelect={handleProjectSelect}
                                         targetLineItemId={navigationState.targetLineItemId}
                                         targetSectionId={navigationState.targetSectionId}
+                                        selectionNonce={navigationState.selectionNonce}
                                     />
                                 );
                             } else {

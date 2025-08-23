@@ -1,2 +1,0 @@
-id,title,description,dueDate,status,priority,estimatedHours,actualHours,category,tags,notes,completedAt,projectId,assignedToId,createdById
-Sample id,Sample title,Sample description,2025-01-01T00:00:00Z,TO_DO,LOW,Sample estimatedHours,Sample actualHours,PLANNING,Sample tags,Sample notes,Sample completedAt,Sample projectId,Sample assignedToId,Sample createdById

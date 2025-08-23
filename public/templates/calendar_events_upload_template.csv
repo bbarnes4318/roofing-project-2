@@ -1,2 +1,0 @@
-id,title,description,startTime,endTime,location,isAllDay,eventType,status,isRecurring,recurrenceRule,parentEventId,organizerId,projectId
-Sample id,Sample title,Sample description,2025-01-01T00:00:00Z,2025-01-01T00:00:00Z,Sample location,true,MEETING,CONFIRMED,true,Sample recurrenceRule,Sample parentEventId,Sample organizerId,Sample projectId

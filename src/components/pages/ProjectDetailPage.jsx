@@ -91,7 +91,7 @@ const getPhaseStyles = (phase) => {
 
 
 
-const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect, targetLineItemId, targetSectionId }) => {
+const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect, targetLineItemId, targetSectionId, selectionNonce }) => {
     const { pushNavigation } = useNavigationHistory();
     const { subjects } = useSubjects();
     
@@ -922,7 +922,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 console.log('🏗️ DETAIL: Rendering Project Workflow with project:', projectData);
                 console.log('🏗️ DETAIL: Project has highlightStep:', !!projectData?.highlightStep);
                 console.log('🏗️ DETAIL: highlightStep value:', projectData?.highlightStep);
-                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={targetLineItemId} targetSectionId={targetSectionId} />;
+                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={targetLineItemId} targetSectionId={targetSectionId} selectionNonce={selectionNonce} />;
             case 'Project Profile':
                 return <ProjectProfileTab project={projectData} colorMode={colorMode} onProjectSelect={onProjectSelect} />;
             case 'Project Schedule':

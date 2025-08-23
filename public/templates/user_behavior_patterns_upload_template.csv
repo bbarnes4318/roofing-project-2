@@ -1,2 +1,0 @@
-id,userId,keystrokePatterns,mousePatterns,touchPatterns,usagePatterns,voicePattern,riskBaseline,anomalyThreshold,lastAnalysis
-Sample id,Sample userId,Sample keystrokePatterns,Sample mousePatterns,Sample touchPatterns,Sample usagePatterns,Sample voicePattern,Sample riskBaseline,Sample anomalyThreshold,Sample lastAnalysis

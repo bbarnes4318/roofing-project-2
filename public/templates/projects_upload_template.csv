@@ -1,2 +1,0 @@
-id,projectNumber,projectName,projectType,status,archived,archivedAt,progress,description,priority,budget,estimatedCost,actualCost,startDate,endDate,notes,pmPhone,pmEmail,customerId,projectManagerId,createdById,phase
-Sample id,1,Sample projectName,ROOF_REPLACEMENT,PENDING,true,Sample archivedAt,1,Sample description,LOW,100.00,Sample estimatedCost,Sample actualCost,2025-01-01T00:00:00Z,2025-01-01T00:00:00Z,Sample notes,Sample pmPhone,Sample pmEmail,Sample customerId,Sample projectManagerId,Sample createdById,LEAD

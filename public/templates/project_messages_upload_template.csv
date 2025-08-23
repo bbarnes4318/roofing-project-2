@@ -1,2 +1,0 @@
-id,content,subject,messageType,priority,authorId,authorName,authorRole,projectId,projectNumber,workflowId,stepId,stepName,phase,section,lineItem,isSystemGenerated,isWorkflowMessage,parentMessageId,readBy,readCount,metadata
-Sample id,Sample content,Sample subject,WORKFLOW_UPDATE,LOW,Sample authorId,Sample authorName,Sample authorRole,Sample projectId,1,Sample workflowId,Sample stepId,Sample stepName,LEAD,Sample section,Sample lineItem,true,true,Sample parentMessageId,Sample readBy,1,Sample metadata
