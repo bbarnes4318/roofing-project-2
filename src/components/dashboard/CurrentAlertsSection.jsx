@@ -254,6 +254,8 @@ const CurrentAlertsSection = ({
       const lineItemName = alert.stepName || alert.title || 'Unknown Item';
       let targetLineItemId = null;
       let targetSectionId = null;
+      let targetPhaseId = null;
+      let targetSectionName = null;
 
       // Get current project position (auto-initializes if needed)
       const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
@@ -295,8 +297,10 @@ const CurrentAlertsSection = ({
             }
           } catch (_) {}
 
-          targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-          targetSectionId = position.currentSection;
+          // Prefer DB line item id when available
+          targetLineItemId = position.currentLineItemId || position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+          targetSectionId = position.currentSectionId || position.currentSection;
+          targetPhaseId = position.currentPhase || null;
         }
       }
 
@@ -307,19 +311,26 @@ const CurrentAlertsSection = ({
         const sectionName = alert.section || metadata.section || 'Unknown Section';
         targetLineItemId = alert.stepId || metadata.stepId || metadata.lineItemId || `${phase}-${sectionName}-0`;
         targetSectionId = alert.sectionId || metadata.sectionId || sectionName.toLowerCase().replace(/\s+/g, '-');
+        targetPhaseId = phase;
+        targetSectionName = sectionName;
       }
 
       const projectWithNavigation = {
         ...project,
+        navigationSource: 'Current Alerts',
         highlightStep: lineItemName,
         highlightLineItem: lineItemName,
+        targetPhase: targetPhaseId || undefined,
+        targetSection: targetSectionName || undefined,
         targetLineItem: lineItemName,
         scrollToCurrentLineItem: true,
         navigationTarget: {
+          phase: targetPhaseId || undefined,
+          section: targetSectionName || undefined,
           lineItem: lineItemName,
           stepName: lineItemName,
           alertId: alert.id,
-          lineItemId: alert.stepId || alert.metadata?.stepId || alert.metadata?.lineItemId,
+          lineItemId: alert.stepId || alert.metadata?.stepId || alert.metadata?.lineItemId || targetLineItemId,
           highlightMode: 'line-item',
           scrollBehavior: 'smooth',
           targetElementId: `lineitem-${targetLineItemId}`,
@@ -327,7 +338,8 @@ const CurrentAlertsSection = ({
           highlightDuration: 3000,
           targetSectionId: targetSectionId,
           expandPhase: true,
-          expandSection: true
+          expandSection: true,
+          autoOpen: true
         }
       };
 
@@ -353,11 +365,16 @@ const CurrentAlertsSection = ({
       if (!project) return;
       const projectWithStepInfo = {
         ...project,
+        navigationSource: 'Current Alerts',
         highlightStep: lineItemName,
         highlightLineItem: lineItemName,
+        targetPhase: phase,
+        targetSection: sectionName,
         targetLineItem: lineItemName,
         scrollToCurrentLineItem: true,
         navigationTarget: {
+          phase: phase,
+          section: sectionName,
           lineItem: lineItemName,
           stepName: lineItemName,
           alertId: alert.id,
@@ -369,7 +386,8 @@ const CurrentAlertsSection = ({
           highlightDuration: 3000,
           targetSectionId: targetSectionId,
           expandPhase: true,
-          expandSection: true
+          expandSection: true,
+          autoOpen: true
         }
       };
       handleProjectSelectFromAlert(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId, alert.id);

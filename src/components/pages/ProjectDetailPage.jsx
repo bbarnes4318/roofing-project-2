@@ -1755,7 +1755,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                         scrollBehavior: 'smooth',
                                                                                          targetElementId: `lineitem-${actionData.stepId || actionData.lineItemId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                                                                         highlightColor: '#0066CC',
-                                                                                        highlightDuration: 3000
+                                                                                        highlightDuration: 3000,
+                                                                                        targetSectionId: targetSectionId,
+                                                                                        expandPhase: true,
+                                                                                        expandSection: true,
+                                                                                        autoOpen: true
                                                                                     }
                                                                                 };
                                                                                 
@@ -1792,7 +1796,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                         scrollBehavior: 'smooth',
                                                                                         targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                                                                         highlightColor: '#0066CC',
-                                                                                        highlightDuration: 3000
+                                                                                        highlightDuration: 3000,
+                                                                                        targetSectionId: targetSectionId,
+                                                                                        expandPhase: true,
+                                                                                        expandSection: true,
+                                                                                        autoOpen: true
                                                                                     }
                                                                                 };
                                                                                 handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId);
@@ -1821,7 +1829,11 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                                                     scrollBehavior: 'smooth',
                                                                                     targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                                                                     highlightColor: '#0066CC',
-                                                                                    highlightDuration: 3000
+                                                                                    highlightDuration: 3000,
+                                                                                    targetSectionId: targetSectionId,
+                                                                                    expandPhase: true,
+                                                                                    expandSection: true,
+                                                                                    autoOpen: true
                                                                                 }
                                                                             };
                                                                             handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts', targetLineItemId, targetSectionId);

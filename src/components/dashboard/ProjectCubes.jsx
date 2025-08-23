@@ -578,96 +578,87 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                 <div className="grid grid-cols-3 gap-2 gap-y-4 mb-4 mt-4">
                   <button
                     onClick={async () => {
-                      if (onProjectSelect) {
-                        try {
-                          // Get current project position from the API (EXACT same logic as working Workflow button)
-                          const response = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                            headers: {
-                              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                            }
-                          });
-                          
-                          if (response.ok) {
-                            const result = await response.json();
-                            if (result.success && result.data) {
-                              const position = result.data;
-                              
-                              // Generate the correct line item ID format that ProjectChecklistPage expects
-                              // Format: ${phase.id}-${item.id}-${subIdx}
-                              // Get the workflow structure to find the subtask index
-                              const getSubtaskIndex = async () => {
-                                try {
-                                  const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-                                    headers: {
-                                      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                    }
-                                  });
-                                  
-                                  if (workflowResponse.ok) {
-                                    const workflowResult = await workflowResponse.json();
-                                    if (workflowResult.success && workflowResult.data) {
-                                      // Find the current phase
-                                      const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
-                                      if (currentPhaseData) {
-                                        // Find the current section
-                                        const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
-                                        if (currentSectionData) {
-                                          // Find the subtask index by matching the current DB id or name
-                                          const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
-                                            if (typeof subtask === 'object') {
-                                              return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
-                                            }
-                                            return subtask === position.currentLineItemName;
-                                          });
-                                          return subtaskIndex >= 0 ? subtaskIndex : 0;
+                      if (!onProjectSelect) return;
+                      try {
+                        const response = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                          headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                          }
+                        });
+                        if (response.ok) {
+                          const result = await response.json();
+                          if (result.success && result.data) {
+                            const position = result.data;
+                            // Determine subtask index to form composite id
+                            let subtaskIndex = 0;
+                            try {
+                              const workflowResponse = await fetch('/api/workflow-data/full-structure', {
+                                headers: {
+                                  'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                }
+                              });
+                              if (workflowResponse.ok) {
+                                const workflowResult = await workflowResponse.json();
+                                if (workflowResult.success && workflowResult.data) {
+                                  const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
+                                  if (currentPhaseData) {
+                                    const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
+                                    if (currentSectionData) {
+                                      const idx = currentSectionData.subtasks.findIndex(subtask => {
+                                        if (typeof subtask === 'object') {
+                                          return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
                                         }
-                                      }
+                                        return subtask === position.currentLineItemName;
+                                      });
+                                      subtaskIndex = idx >= 0 ? idx : 0;
                                     }
                                   }
-                                } catch (error) {
-                                  console.warn('Could not determine subtask index:', error);
                                 }
-                                return 0; // Default fallback
-                              };
-                              
-                              const subtaskIndex = await getSubtaskIndex();
-                              const targetLineItemId = `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-                              const targetSectionId = position.currentSection;
-                              
-                              console.log('🎯 PROJECT CUBES WORKFLOW: Generated targetLineItemId:', targetLineItemId);
-                              console.log('🎯 PROJECT CUBES WORKFLOW: Generated targetSectionId:', targetSectionId);
-                              
-                              const projectWithNavigation = {
-                                ...project,
-                                dashboardState: {
-                                  scrollToProject: project
-                                }
-                              };
-                              
-                              // Use the navigation system with correct targetLineItemId (EXACT same as working Workflow button)
-                              onProjectSelect(
-                                projectWithNavigation, 
-                                'Project Workflow', 
-                                null, 
-                                'Project Cubes',
-                                targetLineItemId,
-                                targetSectionId
-                              );
-                            } else {
-                              console.warn('No project position data found, using fallback navigation');
-                              // Fallback to basic navigation
-                              onProjectSelect(project, 'Project Workflow', null, 'Project Cubes');
-                            }
+                              }
+                            } catch (_) {}
+                            const targetLineItemId = position.currentLineItemId || position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                            const targetSectionId = position.currentSectionId || position.currentSection;
+                            const projectWithNavigation = {
+                              ...project,
+                              highlightLineItem: position.currentLineItemName,
+                              targetPhase: position.currentPhase,
+                              targetSection: position.sectionDisplayName || position.currentSection,
+                              scrollToCurrentLineItem: true,
+                              navigationTarget: {
+                                phase: position.currentPhase,
+                                section: position.sectionDisplayName || position.currentSection,
+                                lineItem: position.currentLineItemName,
+                                stepName: position.currentLineItemName,
+                                lineItemId: targetLineItemId,
+                                workflowId: position.workflowId,
+                                highlightMode: 'line-item',
+                                scrollBehavior: 'smooth',
+                                targetElementId: `lineitem-${targetLineItemId}`,
+                                highlightColor: '#0066CC',
+                                highlightDuration: 3000,
+                                targetSectionId: targetSectionId,
+                                expandPhase: true,
+                                expandSection: true,
+                                autoOpen: true
+                              },
+                              dashboardState: { scrollToProject: project }
+                            };
+                            onProjectSelect(
+                              projectWithNavigation,
+                              'Project Workflow',
+                              null,
+                              'Project Cubes',
+                              targetLineItemId,
+                              targetSectionId
+                            );
                           } else {
-                            console.error('Failed to get project position, using fallback navigation');
-                            // Fallback to basic navigation
                             onProjectSelect(project, 'Project Workflow', null, 'Project Cubes');
                           }
-                        } catch (error) {
-                          console.error('Error in Project Workflow navigation:', error);
-                          // Fallback to basic navigation
+                        } else {
                           onProjectSelect(project, 'Project Workflow', null, 'Project Cubes');
                         }
+                      } catch (error) {
+                        onProjectSelect(project, 'Project Workflow', null, 'Project Cubes');
                       }
                     }}
                     className={`flex flex-col items-center justify-center p-2 rounded-lg shadow transition-all duration-200 border text-[9px] font-semibold ${colorMode ? 'bg-slate-700/60 border-slate-600/40 text-white hover:bg-blue-700/80 hover:border-brand-500' : 'bg-white border-gray-200 text-gray-800 hover:bg-blue-50 hover:border-blue-400'}`}

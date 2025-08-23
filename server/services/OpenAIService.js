@@ -21,12 +21,10 @@ class OpenAIService {
       try {
         console.log('🔍 OpenAI: Loading OpenAI package...');
         const OpenAI = require('openai');
-        console.log('🔍 OpenAI: Creating client...');
-        this.client = new OpenAI({
-          apiKey: this.apiKey,
-        });
+        console.log('🔍 OpenAI: Creating v4 client...');
+        this.client = new OpenAI({ apiKey: this.apiKey });
         this.isEnabled = true;
-        console.log('✅ OpenAI service initialized successfully with GPT-4 Turbo');
+        console.log('✅ OpenAI service initialized successfully with GPT-5');
       } catch (error) {
         console.error('❌ OpenAI package not found or failed to initialize:', error.message);
         console.error('❌ Full error:', error);
@@ -45,19 +43,16 @@ class OpenAIService {
 
     try {
       const systemPrompt = this.buildSystemPrompt(context);
-      const userPrompt = this.buildUserPrompt(prompt, context);
+      const messages = this.buildMessages(systemPrompt, prompt, context);
 
       console.log('🔍 Making OpenAI API call...');
       const response = await this.client.chat.completions.create({
-        model: 'gpt-5', // Using GPT-5 (latest and most advanced available model)
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.3
+        model: 'gpt-5',
+        messages,
+        max_tokens: 900,
+        temperature: 0.8,
+        presence_penalty: 0.3,
+        frequency_penalty: 0.1
       });
       console.log('✅ OpenAI API call successful');
 
@@ -67,7 +62,7 @@ class OpenAIService {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
-        source: 'openai-gpt4-turbo',
+        source: 'openai-gpt-5',
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
           model: 'gpt-5',
@@ -87,7 +82,7 @@ class OpenAIService {
   }
 
   buildSystemPrompt(context) {
-    return `You are Bubbles, the proactive AI project copilot for construction and roofing teams. Your goal is to make the next best action obvious and fast.
+    return `You are Bubbles, the proactive AI project copilot for construction and roofing teams. Your goal is to make the next best action obvious and fast while sounding like a helpful, normal human — not robotic.
 
 Key Capabilities (prioritize relevance to user intent):
 - Project status summarization with next steps
@@ -105,6 +100,7 @@ ${context.workflowStatus ? `- Workflow Status: ${context.workflowStatus}` : ''}
 
 Communication Style:
 - Be confident, concise, and actionable
+- Sound conversational and warm; acknowledge naturally; avoid repeating the user's phrasing
 - Prefer imperative phrasing (“Do X”, “Review Y”)
 - Use construction terminology appropriately
 - Structure with short headings and tight bullets
@@ -115,6 +111,30 @@ Response Format:
 - Use markdown headings and bullets
 - Surface risks/urgencies up top when present
 - Always include 2–3 suggested actions aligned to the content`;
+  }
+
+  buildMessages(systemPrompt, prompt, context) {
+    const messages = [{ role: 'system', content: systemPrompt }];
+
+    // Add recent conversation history as alternating user/assistant messages
+    if (Array.isArray(context.conversationHistory) && context.conversationHistory.length > 0) {
+      const recent = context.conversationHistory.slice(-8); // last 8 turns max
+      for (const item of recent) {
+        if (item && typeof item.message === 'string' && item.message.trim().length > 0) {
+          messages.push({ role: 'user', content: this.truncateForContext(item.message) });
+        }
+        const respText = this.extractResponseText(item?.response);
+        if (respText) {
+          messages.push({ role: 'assistant', content: this.truncateForContext(respText) });
+        }
+      }
+    }
+
+    // Current user prompt with embedded lightweight context
+    const userPrompt = this.buildUserPrompt(prompt, context);
+    messages.push({ role: 'user', content: userPrompt });
+
+    return messages;
   }
 
   buildUserPrompt(prompt, context) {
@@ -142,6 +162,20 @@ Response Format:
     }
 
     return contextualPrompt;
+  }
+
+  extractResponseText(response) {
+    if (!response) return '';
+    if (typeof response === 'string') return response;
+    if (typeof response.content === 'string') return response.content;
+    if (response.message && typeof response.message.content === 'string') return response.message.content;
+    return '';
+  }
+
+  truncateForContext(text) {
+    if (!text || typeof text !== 'string') return '';
+    const max = 500;
+    return text.length > max ? `${text.slice(0, max)}…` : text;
   }
 
   detectResponseType(prompt) {

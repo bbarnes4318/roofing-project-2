@@ -596,7 +596,8 @@ export default function GlobalSearch({
                                                   highlightDuration: 3000,
                                                   targetSectionId: targetSectionId,
                                                   expandPhase: true,
-                                                  expandSection: true
+                                                  expandSection: true,
+                                                  autoOpen: true
                                                 }
                                               },
                                               targetLineItemId,
@@ -633,7 +634,8 @@ export default function GlobalSearch({
                                                   highlightDuration: 3000,
                                                   targetSectionId: targetSectionId,
                                                   expandPhase: true,
-                                                  expandSection: true
+                                                  expandSection: true,
+                                                  autoOpen: true
                                                 }
                                               },
                                               targetLineItemId,
@@ -671,7 +673,8 @@ export default function GlobalSearch({
                                                 highlightDuration: 3000,
                                                 targetSectionId: targetSectionId,
                                                 expandPhase: true,
-                                                expandSection: true
+                                                expandSection: true,
+                                                autoOpen: true
                                               }
                                             },
                                             targetLineItemId,

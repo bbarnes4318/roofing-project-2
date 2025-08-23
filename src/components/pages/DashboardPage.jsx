@@ -3234,7 +3234,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               // Prefer DB id if available
                                               targetElementId: `lineitem-${actionData.stepId || actionData.lineItemId || lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                               highlightColor: '#0066CC',
-                                              highlightDuration: 3000
+                                              highlightDuration: 3000,
+                                              targetSectionId: targetSectionId,
+                                              expandPhase: true,
+                                              expandSection: true,
+                                              autoOpen: true
                                             }
                                           };
                                           
