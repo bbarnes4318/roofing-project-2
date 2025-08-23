@@ -82,6 +82,9 @@ export default function App() {
     const [projectsLoading, setProjectsLoading] = useState(false);
     const [projectsError, setProjectsError] = useState(null);
     const profileDropdownRef = useRef(null);
+    // Prevent global scroll-to-top during targeted back navigation
+    const suppressScrollTopUntilRef = useRef(0);
+    const suppressScrollTopUntil = suppressScrollTopUntilRef.current;
     
     // Onboarding state
     const [needsOnboarding, setNeedsOnboarding] = useState(false);
@@ -333,6 +336,10 @@ const apiUrl = window.location.hostname === 'localhost'
 
     // Scroll to top whenever activePage changes
     useEffect(() => {
+        // Skip global scroll-to-top when returning to a specific section (e.g., Current Alerts)
+        if (Date.now() < suppressScrollTopUntil) {
+            return;
+        }
         // IMMEDIATE scroll to top - multiple methods
         window.scrollTo({ top: 0, behavior: 'auto' });
         document.body.scrollTop = 0;
@@ -675,6 +682,8 @@ const apiUrl = window.location.hostname === 'localhost'
         // PRIORITY: Handle Current Alerts before Project Phases (prevents conflicts)
         if (navigationState.projectSourceSection === 'Current Alerts') {
             console.log('🔍 BACK_TO_PROJECTS: PRIORITY HANDLING - Navigating back to Current Alerts section');
+            // Prevent the global scroll-to-top effect from fighting our targeted scroll
+            suppressScrollTopUntilRef.current = Date.now() + 1500;
             setNavigationState(prev => ({ ...prev, selectedProject: null }));
             setActivePage('Overview');
             
@@ -689,6 +698,8 @@ const apiUrl = window.location.hostname === 'localhost'
                     currentAlertsSection.style.boxShadow = '0 0 10px rgba(59, 130, 246, 0.5)';
                     setTimeout(() => {
                         currentAlertsSection.style.boxShadow = '';
+                        // Re-enable global scroll-to-top after we're done
+                        suppressScrollTopUntilRef.current = 0;
                     }, 2000);
                 } else {
                     console.warn('🔍 BACK_TO_PROJECTS: Current Alerts section not found, retrying...');
@@ -698,8 +709,10 @@ const apiUrl = window.location.hostname === 'localhost'
                         if (currentAlertsSection) {
                             console.log('🔍 BACK_TO_PROJECTS: Found Current Alerts section on retry');
                             currentAlertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            suppressScrollTopUntilRef.current = 0;
                         } else {
                             console.error('🔍 BACK_TO_PROJECTS: Current Alerts section still not found');
+                            suppressScrollTopUntilRef.current = 0;
                         }
                     }, 500);
                 }
