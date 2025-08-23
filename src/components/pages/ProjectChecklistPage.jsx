@@ -186,6 +186,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const urlHighlight = urlParams.get('highlight_item');
   const [highlightedLineItemId, setHighlightedLineItemId] = useState(targetLineItemId || urlHighlight);
   const [highlightedSectionId, setHighlightedSectionId] = useState(targetSectionId);
+  const [navigationNonce, setNavigationNonce] = useState(project?.navigationTarget?.nonce || null);
   
   // =================================================================
   // CREATE SECTION AND LINE ITEM STATES
@@ -568,13 +569,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               const target = project.navigationTarget;
               console.log('🎯 ENHANCED NAVIGATION: Using navigationTarget:', target);
               if (target.phase && target.section) {
-                // Find the actual phase ID from the phase name
-                const targetPhase = (workflowResult.data || []).find(p => 
-                  p.name === target.phase || p.id === target.phase
+                // Find phase and section within the current workflow
+                const phasesToSearch = (mainWorkflow?.phases || []);
+                const targetPhase = phasesToSearch.find(p => 
+                  p.id === target.phase || p.label === target.phase || p.name === target.phase
                 );
                 if (targetPhase) {
-                  const targetSection = targetPhase.items.find(item => 
-                    item.displayName === target.section || item.id === target.section
+                  const targetSection = (targetPhase.items || []).find(item => 
+                    item.id === target.section || item.displayName === target.section || item.label === target.section
                   );
                   if (targetSection) {
                     console.log('🎯 ENHANCED NAVIGATION: Expanding phase/section from navigationTarget');
@@ -706,7 +708,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 
                 // If not found by lineitem ID, try checkbox ID format
                 if (!targetElement) {
-                  targetElement = document.getElementById(`checkbox-${effectiveTargetLineItem}`);
+                  targetElement = document.getElementById(`lineitem-checkbox-${effectiveTargetLineItem}`);
                   if (targetElement) {
                     targetElement = targetElement.closest('.workflow-line-item');
                     scrollReason = `target line item (via checkbox): ${effectiveTargetLineItem}`;
@@ -969,6 +971,103 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const currentWorkflow = workflowData[activeWorkflowIndex];
   const currentWorkflowPhases = currentWorkflow?.phases || [];
 
+  useEffect(() => {
+    // Re-run expansion and highlighting when targets change or nonce updates
+    if (!currentWorkflow || (!targetLineItemId && !targetSectionId && !project?.navigationTarget)) return;
+
+    // Expand phase/section based on incoming targets
+    const run = async () => {
+      try {
+        let expandedLocal = false;
+        const mainPhases = currentWorkflowPhases || [];
+
+        // If explicit DB line item id provided, locate its phase/section
+        if (targetLineItemId) {
+          outer2: for (const phase of mainPhases) {
+            for (const item of phase.items || []) {
+              const match = (item.subtasks || []).some(st => typeof st === 'object' && (st.id === targetLineItemId || st.id === String(targetLineItemId)));
+              if (match) {
+                setOpenPhase(phase.id);
+                setOpenItem(prev => ({ ...prev, [item.id]: true }));
+                expandedLocal = true;
+                break outer2;
+              }
+            }
+          }
+        }
+
+        // Section targeting fallback
+        if (!expandedLocal && targetSectionId) {
+          const targetPhase = mainPhases.find(p => (p.items || []).some(i => i.id === targetSectionId));
+          if (targetPhase) {
+            setOpenPhase(targetPhase.id);
+            setOpenItem(prev => ({ ...prev, [targetSectionId]: true }));
+            expandedLocal = true;
+          }
+        }
+
+        // navigationTarget phase/section names/ids
+        if (!expandedLocal && project?.navigationTarget?.phase && project?.navigationTarget?.section) {
+          const p = mainPhases.find(ph => ph.id === project.navigationTarget.phase || ph.label === project.navigationTarget.phase || ph.name === project.navigationTarget.phase);
+          if (p) {
+            const s = (p.items || []).find(it => it.id === project.navigationTarget.section || it.displayName === project.navigationTarget.section || it.label === project.navigationTarget.section);
+            if (s) {
+              setOpenPhase(p.id);
+              setOpenItem(prev => ({ ...prev, [s.id]: true }));
+              expandedLocal = true;
+            }
+          }
+        }
+
+        // Scroll and highlight
+        setTimeout(() => {
+          let el = null;
+          const tli = targetLineItemId || project?.navigationTarget?.lineItemId || project?.highlightTarget?.lineItemId;
+          if (tli) {
+            el = document.getElementById(`lineitem-${tli}`) || document.getElementById(`checkbox-${tli}`)?.closest('.workflow-line-item') || null;
+          }
+          if (!el && (targetSectionId || project?.navigationTarget?.targetSectionId)) {
+            const sec = targetSectionId || project.navigationTarget.targetSectionId;
+            el = document.getElementById(`item-${sec}`);
+          }
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Force highlight each time
+            const useEnhanced = project?.highlightTarget || project?.navigationTarget;
+            const highlightColor = useEnhanced ? (project.highlightTarget?.highlightColor || project.navigationTarget?.highlightColor || '#0066CC') : '#F59E0B';
+            if (highlightColor === '#0066CC') {
+              el.style.backgroundColor = '#EFF6FF';
+              el.style.border = '3px solid #0066CC';
+              el.style.boxShadow = '0 0 20px rgba(0, 102, 204, 0.5)';
+            } else {
+              el.style.backgroundColor = '#FEF3C7';
+              el.style.border = '3px solid #F59E0B';
+              el.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
+            }
+            el.style.transition = 'all 0.3s ease';
+            el.style.animation = 'pulse 1.5s ease-in-out 3';
+            setTimeout(() => {
+              el.style.backgroundColor = '';
+              el.style.border = '';
+              el.style.boxShadow = '';
+              el.style.animation = '';
+            }, (project.highlightTarget?.highlightDuration || project.navigationTarget?.highlightDuration || 5000));
+          }
+        }, 500);
+
+        // Clear nonce so subsequent clicks with new nonce re-trigger
+        if (project?.navigationTarget?.nonce) {
+          setNavigationNonce(project.navigationTarget.nonce);
+        }
+      } catch (e) {
+        console.error('Navigation re-run failed', e);
+      }
+    };
+
+    run();
+  // Include navigationNonce so each new click with a new nonce re-triggers
+  }, [targetLineItemId, targetSectionId, project?.navigationTarget?.phase, project?.navigationTarget?.section, project?.navigationTarget?.lineItemId, navigationNonce, currentWorkflowPhases]);
+  
   return (
     <div className="max-w-4xl mx-auto p-0 space-y-0">
       

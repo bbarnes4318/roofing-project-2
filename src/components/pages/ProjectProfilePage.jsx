@@ -748,7 +748,10 @@ const ProjectProfilePage = ({
                                                                         highlightDuration: 3000,
                                                                         targetSectionId: targetSectionId,
                                                                         expandPhase: true,
-                                                                        expandSection: true
+                                                                        expandSection: true,
+                                                                        autoOpen: true,
+                                                                        scrollAndHighlight: true,
+                                                                        nonce: Date.now()
                                                                     }
                                                                 };
                                                                 
@@ -770,7 +773,25 @@ const ProjectProfilePage = ({
                                                                 targetPhase: currentPhase,
                                                                 targetSection: currentSection,
                                                                 targetLineItem: currentLineItem.name,
-                                                                scrollToCurrentLineItem: true
+                                                                scrollToCurrentLineItem: true,
+                                                                navigationTarget: {
+                                                                    phase: currentPhase,
+                                                                    section: currentSection,
+                                                                    lineItem: currentLineItem.name,
+                                                                    stepName: currentLineItem.name,
+                                                                    lineItemId: currentLineItem.id || `${currentPhase}-${currentSection}-0`,
+                                                                    highlightMode: 'line-item',
+                                                                    scrollBehavior: 'smooth',
+                                                                    targetElementId: `lineitem-${currentLineItem.id || `${currentPhase}-${currentSection}-0`}`,
+                                                                    highlightColor: '#0066CC',
+                                                                    highlightDuration: 3000,
+                                                                    targetSectionId: typeof currentSection === 'string' ? currentSection : (currentSection?.id || ''),
+                                                                    expandPhase: true,
+                                                                    expandSection: true,
+                                                                    autoOpen: true,
+                                                                    scrollAndHighlight: true,
+                                                                    nonce: Date.now()
+                                                                }
                                                             };
                                                             onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile');
                                                         }
