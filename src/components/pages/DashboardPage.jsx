@@ -2969,7 +2969,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   
                   // Find associated project
                   const projectId = actionData.projectId;
-                  const project = projects?.find(p => p.id === projectId || p._id === projectId);
+                  const project = projects?.find(p => String(p.id) === String(projectId) || String(p._id) === String(projectId));
                   
                   // Alert details
                   const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
@@ -3292,7 +3292,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               workflowId: actionData.workflowId,
                                               highlightMode: 'line-item',
                                               scrollBehavior: 'smooth',
-                                              targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                              targetElementId: `lineitem-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                               highlightColor: '#0066CC',
                                               highlightDuration: 3000,
                                               autoOpen: true,
@@ -3325,7 +3325,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             workflowId: actionData.workflowId,
                                             highlightMode: 'line-item',
                                             scrollBehavior: 'smooth',
-                                            targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                            targetElementId: `lineitem-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                             highlightColor: '#0066CC',
                                             highlightDuration: 3000,
                                             autoOpen: true,
@@ -3356,7 +3356,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           workflowId: actionData.workflowId,
                                           highlightMode: 'line-item',
                                           scrollBehavior: 'smooth',
-                                          targetElementId: `line-item-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
+                                          targetElementId: `lineitem-${lineItemName.replace(/\s+/g, '-').toLowerCase()}`,
                                           highlightColor: '#0066CC',
                                           highlightDuration: 3000
                                         }
