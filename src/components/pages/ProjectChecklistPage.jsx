@@ -123,7 +123,7 @@ const loadCheckboxState = (projectId) => {
 
 // Workflow data will be loaded from database API
 
-const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId }) => {
+const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId, selectionNonce }) => {
   const projectId = project?._id || project?.id;
   
   // LOG NAVIGATION PARAMETERS - Enhanced for Current Alerts debugging
@@ -1066,7 +1066,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
 
     run();
   // Include navigationNonce so each new click with a new nonce re-triggers
-  }, [targetLineItemId, targetSectionId, project?.navigationTarget?.phase, project?.navigationTarget?.section, project?.navigationTarget?.lineItemId, navigationNonce, currentWorkflowPhases]);
+  }, [targetLineItemId, targetSectionId, project?.navigationTarget?.phase, project?.navigationTarget?.section, project?.navigationTarget?.lineItemId, navigationNonce, selectionNonce, currentWorkflowPhases]);
   
   return (
     <div className="max-w-4xl mx-auto p-0 space-y-0">
