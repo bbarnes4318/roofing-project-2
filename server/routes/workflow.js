@@ -1124,29 +1124,45 @@ router.post('/sections',
       // Get the next display order if not provided
       const nextDisplayOrder = typeof displayOrder === 'number' ? displayOrder : (lastSection ? (lastSection.displayOrder + 1) : 1);
       
-      // Create the section
-      const newSection = await prisma.workflowSection.create({
-        data: {
-          phaseId,
-          sectionNumber: nextSectionNumber,
-          sectionName,
-          displayName: displayName || sectionName,
-          displayOrder: nextDisplayOrder,
-          description,
-          isActive: true,
-          isCurrent: true,
-          version: 1
-        },
-        include: {
-          phase: {
-            select: {
-              id: true,
-              phaseType: true,
-              phaseName: true
+      // Create the section with retry on unique conflicts
+      let newSection;
+      let candidateSectionNumber = nextSectionNumber;
+      let candidateDisplayOrder = nextDisplayOrder;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          newSection = await prisma.workflowSection.create({
+            data: {
+              phaseId,
+              sectionNumber: candidateSectionNumber,
+              sectionName,
+              displayName: displayName || sectionName,
+              displayOrder: candidateDisplayOrder,
+              description: description || null,
+              isActive: true,
+              isCurrent: true,
+              version: 1
+            },
+            include: {
+              phase: {
+                select: {
+                  id: true,
+                  phaseType: true,
+                  phaseName: true
+                }
+              }
             }
+          });
+          break;
+        } catch (e) {
+          if (e.code === 'P2002') {
+            const bumped = (parseInt(candidateSectionNumber, 10) || candidateDisplayOrder || 0) + 1;
+            candidateSectionNumber = String(bumped);
+            candidateDisplayOrder = bumped;
+            continue;
           }
+          throw e;
         }
-      });
+      }
       
       console.log(`✅ WORKFLOW: Successfully created section ${newSection.id}`);
       
@@ -1331,6 +1347,74 @@ router.post('/line-items',
       console.error('❌ WORKFLOW: Error creating line item:', error);
       throw new AppError('Failed to create line item', 500);
     }
+}));
+
+// @desc    Soft delete a workflow section
+// @route   DELETE /api/workflows/sections/:id
+// @access  Private (Admin)
+router.delete('/sections/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const section = await prisma.workflowSection.update({
+      where: { id },
+      data: { isActive: false, updatedAt: new Date() }
+    });
+    res.status(200).json({ success: true, data: { id: section.id }, message: 'Section deleted' });
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error deleting section:', error);
+    throw new AppError('Failed to delete section', 500);
+  }
+}));
+
+// @desc    Soft delete a workflow line item
+// @route   DELETE /api/workflows/line-items/:id
+// @access  Private (Admin)
+router.delete('/line-items/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const item = await prisma.workflowLineItem.update({
+      where: { id },
+      data: { isActive: false, updatedAt: new Date() }
+    });
+    res.status(200).json({ success: true, data: { id: item.id }, message: 'Line item deleted' });
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error deleting line item:', error);
+    throw new AppError('Failed to delete line item', 500);
+  }
+}));
+
+// @desc    Soft delete a workflow section (fallback for environments blocking DELETE)
+// @route   POST /api/workflows/sections/:id/delete
+// @access  Private (Admin)
+router.post('/sections/:id/delete', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const section = await prisma.workflowSection.update({
+      where: { id },
+      data: { isActive: false, updatedAt: new Date() }
+    });
+    res.status(200).json({ success: true, data: { id: section.id }, message: 'Section deleted' });
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error deleting section (fallback):', error);
+    throw new AppError('Failed to delete section', 500);
+  }
+}));
+
+// @desc    Soft delete a workflow line item (fallback for environments blocking DELETE)
+// @route   POST /api/workflows/line-items/:id/delete
+// @access  Private (Admin)
+router.post('/line-items/:id/delete', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const item = await prisma.workflowLineItem.update({
+      where: { id },
+      data: { isActive: false, updatedAt: new Date() }
+    });
+    res.status(200).json({ success: true, data: { id: item.id }, message: 'Line item deleted' });
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error deleting line item (fallback):', error);
+    throw new AppError('Failed to delete line item', 500);
+  }
 }));
 
 module.exports = router; 

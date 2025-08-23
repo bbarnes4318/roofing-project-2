@@ -1278,16 +1278,49 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                           }) ? 'line-through decoration-2' : ''
                         }`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between group">
                           <span className="flex items-center gap-2">
                             {isCurrentSection && <span className="text-blue-500">👈</span>}
                             {item.label}
                           </span>
-                          <ChevronDownIcon 
-                            className={`w-4 h-4 transform transition-transform duration-200 ${
-                              openItem[item.id] ? 'rotate-180' : ''
-                            }`} 
-                          />
+                          <div className="flex items-center gap-2">
+                            {/* Delete section (subtle icon, shown on hover) */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!window.confirm('Delete this section?')) return;
+                                try {
+                                  let resp;
+                                  try {
+                                    resp = await api.delete(`/workflows/sections/${item.id}`);
+                                  } catch (e) {
+                                    // Fallback for environments without DELETE route
+                                    resp = await api.post(`/workflows/sections/${item.id}/delete`);
+                                  }
+                                  if (resp.data?.success) {
+                                    const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                    if (workflowResponse.data.success) {
+                                      setWorkflowData(workflowResponse.data.data);
+                                    }
+                                  }
+                                } catch (err) {
+                                  alert(err?.response?.data?.message || 'Failed to delete section');
+                                }
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition"
+                              title="Delete section"
+                              aria-label="Delete section"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" />
+                              </svg>
+                            </button>
+                            <ChevronDownIcon 
+                              className={`w-4 h-4 transform transition-transform duration-200 ${
+                                openItem[item.id] ? 'rotate-180' : ''
+                              }`} 
+                            />
+                          </div>
                         </div>
                       </button>
 
@@ -1319,7 +1352,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                 <div 
                                   key={subIdx} 
                                   id={`lineitem-${lineItemId}`}
-                                  className={`workflow-line-item flex items-start space-x-3 ${
+                                  className={`workflow-line-item group flex items-start space-x-3 ${
                                     isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : 
                                     isTargetedLineItem ? 'p-2 bg-yellow-100 border border-yellow-300 rounded-lg ring-2 ring-yellow-400 ring-opacity-75' : ''
                                   }`}
@@ -1375,6 +1408,39 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                     {isTargetedLineItem && <span className="text-yellow-500">⭐ </span>}
                                     {subtaskLabel}
                                   </label>
+                                  {/* Delete line item (subtle icon on hover) */}
+                                  {subtaskId && (
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+        									if (!window.confirm('Delete this line item?')) return;
+                                        try {
+                                          let resp;
+                                          try {
+                                            resp = await api.delete(`/workflows/line-items/${subtaskId}`);
+                                          } catch (e) {
+                                            // Fallback for environments without DELETE route
+                                            resp = await api.post(`/workflows/line-items/${subtaskId}/delete`);
+                                          }
+                                          if (resp.data?.success) {
+                                            const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                            if (workflowResponse.data.success) {
+                                              setWorkflowData(workflowResponse.data.data);
+                                            }
+                                          }
+                                        } catch (err) {
+                                          alert(err?.response?.data?.message || 'Failed to delete line item');
+                                        }
+                                      }}
+                                      className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition ml-2"
+                                      title="Delete line item"
+                                      aria-label="Delete line item"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
                               );
                             })}

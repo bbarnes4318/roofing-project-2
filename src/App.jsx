@@ -320,6 +320,10 @@ const apiUrl = window.location.hostname === 'localhost'
         return currentUser.role || "User";
     };
 
+    const getUserEmail = () => {
+        return currentUser?.email || "";
+    };
+
     // Handle clicking outside the profile dropdown to close it
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -1336,7 +1340,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         </button>
                         
                         {/* User Profile Dropdown */}
-                        <div className="relative" ref={profileDropdownRef}>
+                        <div className="relative" ref={profileDropdownRef} onMouseEnter={() => setProfileDropdownOpen(true)} onMouseLeave={() => setProfileDropdownOpen(false)}>
                             <button 
                                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                 className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
@@ -1344,41 +1348,32 @@ const apiUrl = window.location.hostname === 'localhost'
                                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                                     {getUserInitials()}
                                 </div>
-                                <div className="hidden sm:block text-left">
-                                    <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getUserFullName()}</div>
-                                    <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>{getUserPosition()}</div>
-                                </div>
-                                <ChevronDownIcon className="w-4 h-4" />
                             </button>
                             
                             {/* Dropdown Menu */}
                             {profileDropdownOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-[99999]">
+                                <div className={`absolute right-0 top-full mt-2 w-56 rounded-lg shadow-xl z-[99999] border ${colorMode ? 'bg-[#1e293b] border-brand-500/40 text-white' : 'bg-white border-gray-200'}`}>
                                     <div className="py-2">
+                                        <div className={`px-4 pb-2 text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>Signed in as</div>
+                                        <div className={`px-4 pb-2 text-sm font-medium truncate ${colorMode ? 'text-white' : 'text-gray-900'}`} title={getUserEmail()}>{getUserEmail()}</div>
+                                        <div className={`${colorMode ? 'border-[#3b82f6]/30' : 'border-gray-200'} border-t my-2`}></div>
                                         <button 
                                             onClick={() => { setProfileDropdownOpen(false); navigate('Settings'); }}
-                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                        >
-                                            <UserIcon /> Profile
-                                        </button>
-                                        <button 
-                                            onClick={() => { setProfileDropdownOpen(false); navigate('Settings'); }}
-                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${colorMode ? 'text-white hover:bg-[#232b4d]' : 'text-gray-700 hover:bg-gray-100'}`}
                                         >
                                             <CogIcon /> Settings
                                         </button>
-                                        <div className="border-t border-gray-200 my-1"></div>
+                                        <div className={`${colorMode ? 'border-[#3b82f6]/30' : 'border-gray-200'} border-t my-2`}></div>
                                         <button 
                                             onClick={(e) => { 
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                console.log('Sign Out button clicked');
                                                 setProfileDropdownOpen(false);
                                                 handleLogout();
                                             }}
-                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${colorMode ? 'text-red-300 hover:bg-[#3b0f0f]' : 'text-red-600 hover:bg-red-50'}`}
                                         >
-                                            <LogoutIcon /> Sign Out
+                                            <LogoutIcon /> Logout
                                         </button>
                                     </div>
                                 </div>
