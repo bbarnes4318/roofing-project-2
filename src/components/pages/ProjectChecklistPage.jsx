@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSocket, useRealTimeUpdates } from '../../hooks/useSocket';
 import api, { projectsService, workflowAlertsService } from '../../services/api';
 import workflowService from '../../services/workflowService';
-import { ChevronDownIcon, PlusCircleIcon } from '../common/Icons';
+import { ChevronDownIcon } from '../common/Icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -1145,23 +1145,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
             </p>
           </div>
           
-          {/* Create Buttons */}
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setShowCreateSectionModal(true)}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <PlusCircleIcon className="w-4 h-4 mr-1" />
-              Add Section
-            </button>
-            <button
-              onClick={() => setShowCreateLineItemModal(true)}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              <PlusCircleIcon className="w-4 h-4 mr-1" />
-              Add Line Item
-            </button>
-          </div>
+
         </div>
       </div>
 
