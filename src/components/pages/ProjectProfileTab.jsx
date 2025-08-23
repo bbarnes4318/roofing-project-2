@@ -6,12 +6,15 @@ import { formatProjectType } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
 
+
 const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const [activeSection] = useState('overview');
   // Match Projects by Phase progress behavior (keyed expansion + visibility management)
   const progressChartRefs = useRef({});
   const [expandedProgress, setExpandedProgress] = useState({});
   const [progressExpanded, setProgressExpanded] = useState(false);
+  
+
   
   // Edit states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -89,11 +92,13 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     const loadUsers = async () => {
       setUsersLoading(true);
       try {
-        const response = await api.get('/users');
-        if (response.data && response.data.success) {
-          setUsers(response.data.data || []);
+        const { usersService } = await import('../../services/api');
+        const result = await usersService.getTeamMembers();
+        const teamMembers = Array.isArray(result?.data?.teamMembers) ? result.data.teamMembers : [];
+        if (teamMembers.length > 0) {
+          setUsers(teamMembers);
         } else {
-          // Fallback to mock users if API fails
+          // Fallback to mock users if API returns empty
           setUsers([
             { id: 1, firstName: 'Mike', lastName: 'Field', role: 'Project Manager', email: 'mike.field@company.com' },
             { id: 2, firstName: 'Sarah', lastName: 'Johnson', role: 'Office Manager', email: 'sarah.johnson@company.com' },
@@ -311,6 +316,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+
+      
       {/* Phase/Section/Line Item Navigation */}
       <div className="mb-4">
         <div className="flex flex-nowrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg overflow-x-auto">
@@ -337,74 +344,160 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Line Item</span>
             <button
               onClick={async () => {
-                if (!onProjectSelect) return;
-                try {
-                  const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                    headers: {
-                      'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                    }
-                  });
-                  if (positionResponse.ok) {
-                    const positionResult = await positionResponse.json();
-                    if (positionResult.success && positionResult.data) {
-                      const position = positionResult.data;
-                      if (position.currentPhase && position.currentSection) {
-                        // Compute subtask index from full workflow structure
-                        const getSubtaskIndex = async () => {
-                          try {
-                            const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-                              headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                              }
-                            });
-                            if (workflowResponse.ok) {
-                              const workflowResult = await workflowResponse.json();
-                              if (workflowResult.success && workflowResult.data) {
-                                const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
-                                if (currentPhaseData) {
-                                  const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
-                                  if (currentSectionData) {
-                                    const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
-                                      if (typeof subtask === 'object') {
-                                        return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
-                                      }
-                                      return subtask === position.currentLineItemName;
-                                    });
-                                    return subtaskIndex >= 0 ? subtaskIndex : 0;
-                                  }
-                                }
-                              }
-                            }
-                          } catch (_) {}
-                          return 0;
-                        };
-                        const subtaskIndex = await getSubtaskIndex();
-                        // Prefer DB line item id; fallback to PHASE-SECTION-INDEX format
-                        const targetLineItemId = position.currentLineItem || position.currentLineItemId || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-                        const targetSectionId = position.currentSectionId || position.currentSection;
-                        onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
-                      } else {
-                        onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
-                      }
-                    } else {
-                      onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
-                    }
-                  } else {
-                    onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+
+                
+                
+                
+                if (!onProjectSelect) {
+                  console.error('🎯 LINE ITEM CLICKED! onProjectSelect is not available');
+                  toast.error('Navigation failed: onProjectSelect not available');
+                  
+                  // Try fallback navigation using window.location or other methods
+                  console.log('🎯 LINE ITEM CLICKED! Attempting fallback navigation...');
+                  
+                  // Fallback: Try to change the view to Project Workflow
+                  // This might work if we're in a context where we can change views
+                  try {
+                    // Try to trigger a view change by updating URL or using a different method
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('view', 'Project Workflow');
+                    currentUrl.searchParams.set('targetLineItemId', project.currentWorkflowItem?.lineItemId || '');
+                    window.history.pushState({}, '', currentUrl);
+                    
+                    // Force a page reload to trigger the view change
+                    window.location.reload();
+                  } catch (fallbackError) {
+                    console.error('🎯 LINE ITEM CLICKED! Fallback navigation also failed:', fallbackError);
+                    toast.error('All navigation methods failed');
                   }
-                } catch (_) {
-                  onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                  return;
+                }
+                
+                try {
+                  console.log('🎯 PROJECT PROFILE TAB: Line item clicked for project:', project.id);
+                  
+                  // Get current workflow data from the project
+                  const cw = project?.currentWorkflowItem;
+                  const currentLineItem = WorkflowDataService.getCurrentLineItem(project);
+                  const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(project);
+                  const currentPhase = cw?.phase || WorkflowProgressService.getProjectPhase(project) || 'LEAD';
+                  
+                  console.log('🎯 PROJECT PROFILE TAB: Current data:', {
+                    currentLineItem: currentLineItem?.name,
+                    currentSection,
+                    currentPhase,
+                    cw: cw
+                  });
+                  
+                  // Try to get position data for more accurate targeting
+                  let targetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
+                  let targetSectionId = typeof currentSection === 'string' ? currentSection.toLowerCase().replace(/\s+/g, '-') : (currentSection || '');
+                  
+                  try {
+                    const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                      }
+                    });
+                    
+                    if (positionResponse.ok) {
+                      const positionResult = await positionResponse.json();
+                      if (positionResult.success && positionResult.data) {
+                        const position = positionResult.data;
+                        console.log('🎯 PROJECT PROFILE TAB: Position data received:', position);
+                        
+                        // Use position data if available
+                        if (position.currentLineItemId) {
+                          targetLineItemId = position.currentLineItemId;
+                        }
+                        if (position.currentSectionId) {
+                          targetSectionId = position.currentSectionId;
+                        }
+                      }
+                    }
+                  } catch (positionError) {
+                    console.warn('🎯 PROJECT PROFILE TAB: Could not fetch position data, using fallback:', positionError);
+                  }
+                  
+                  console.log('🎯 PROJECT PROFILE TAB: Final target IDs:', {
+                    targetLineItemId,
+                    targetSectionId
+                  });
+                  
+                  // Create navigation object
+                  const projectWithNavigation = {
+                    ...project,
+                    navigationSource: 'Project Profile Tab',
+                    returnToSection: 'project-profile',
+                    highlightStep: currentLineItem?.name || 'Line Item',
+                    highlightLineItem: currentLineItem?.name || 'Line Item',
+                    targetPhase: currentPhase,
+                    targetSection: currentSection,
+                    targetLineItem: currentLineItem?.name || 'Line Item',
+                    scrollToCurrentLineItem: true,
+                    navigationTarget: {
+                      phase: currentPhase,
+                      section: currentSection,
+                      lineItem: currentLineItem?.name || 'Line Item',
+                      stepName: currentLineItem?.name || 'Line Item',
+                      lineItemId: targetLineItemId,
+                      highlightMode: 'line-item',
+                      scrollBehavior: 'smooth',
+                      targetElementId: `lineitem-${targetLineItemId}`,
+                      highlightColor: '#0066CC',
+                      highlightDuration: 3000,
+                      targetSectionId: targetSectionId,
+                      expandPhase: true,
+                      expandSection: true,
+                      autoOpen: true,
+                      scrollAndHighlight: true,
+                      nonce: Date.now()
+                    }
+                  };
+                  
+                  console.log('🎯 PROJECT PROFILE TAB: Navigating to workflow with:', projectWithNavigation.navigationTarget);
+                  console.log('🎯 PROJECT PROFILE TAB: Calling onProjectSelect with:', {
+                    project: projectWithNavigation,
+                    view: 'Project Workflow',
+                    targetLineItemId,
+                    targetSectionId
+                  });
+                  
+                  // Navigate to workflow
+                  onProjectSelect(
+                    projectWithNavigation, 
+                    'Project Workflow', 
+                    null, 
+                    'Project Profile', 
+                    targetLineItemId, 
+                    targetSectionId
+                  );
+                  
+                  console.log('🎯 PROJECT PROFILE TAB: onProjectSelect called successfully');
+                  
+                } catch (error) {
+                  console.error('🎯 PROJECT PROFILE TAB: Error navigating to workflow:', error);
+                  
+                  // Fallback navigation without complex data
+                  const fallbackProject = {
+                    ...project,
+                    navigationSource: 'Project Profile Tab (Fallback)',
+                    returnToSection: 'project-profile'
+                  };
+                  
+                  console.log('🎯 PROJECT PROFILE TAB: Using fallback navigation');
+                  onProjectSelect(fallbackProject, 'Project Workflow', null, 'Project Profile');
                 }
               }}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 bg-white border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors truncate"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 bg-white border-2 border-blue-400 rounded-full px-3 py-1 hover:bg-blue-50 hover:border-blue-500 transition-colors cursor-pointer truncate shadow-sm"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
               {(() => {
                 const cw = project.currentWorkflowItem;
+                if (cw?.lineItemDisplayName) return cw.lineItemDisplayName;
                 if (cw?.lineItemName) return cw.lineItemName;
                 if (cw?.lineItem) return cw.lineItem;
-                if (cw?.itemName) return cw.itemName;
-                return 'View Workflow';
+                return 'Click to View Workflow';
               })()}
             </button>
           </div>
@@ -774,7 +867,6 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               );
             })()}
           </div>
-          
         </div>
       </div>
     </div>

@@ -524,13 +524,15 @@ const ProjectProfilePage = ({
                                 </div>
 
                                 {/* Secondary Customer (when applicable) */}
-                                {selectedProject.customer?.secondaryName && (
+                                {(selectedProject.customer?.secondaryName || selectedProject.customer?.secondaryPhone || selectedProject.customer?.secondaryEmail) && (
                                     <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
                                         <h4 className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-3`}>Secondary Customer</h4>
                                         <div className="space-y-2">
-                                            <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                                {selectedProject.customer.secondaryName}
-                                            </div>
+                                            {selectedProject.customer?.secondaryName && (
+                                                <div className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                                    {selectedProject.customer.secondaryName}
+                                                </div>
+                                            )}
                                             {selectedProject.customer?.secondaryPhone && (
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-blue-500">📞</span>
@@ -728,6 +730,8 @@ const ProjectProfilePage = ({
                                                                 
                                                                 const projectWithNavigation = {
                                                                     ...selectedProject,
+                                                                    navigationSource: selectedProject.navigationSource || 'Project Profile',
+                                                                    returnToSection: selectedProject.returnToSection || 'project-profile',
                                                                     highlightStep: currentLineItem.name,
                                                                     highlightLineItem: currentLineItem.name,
                                                                     targetPhase: currentPhase,
@@ -766,8 +770,12 @@ const ProjectProfilePage = ({
                                                             }
                                                         } else {
                                                             // Fallback without position data
+                                                            const fallbackTargetLineItemId = currentLineItem.id || `${currentPhase}-${currentSection}-0`;
+                                                            const fallbackTargetSectionId = typeof currentSection === 'string' ? currentSection : (currentSection || '');
                                                             const projectWithNavigation = {
                                                                 ...selectedProject,
+                                                                navigationSource: selectedProject.navigationSource || 'Project Profile',
+                                                                returnToSection: selectedProject.returnToSection || 'project-profile',
                                                                 highlightStep: currentLineItem.name,
                                                                 highlightLineItem: currentLineItem.name,
                                                                 targetPhase: currentPhase,
@@ -779,13 +787,13 @@ const ProjectProfilePage = ({
                                                                     section: currentSection,
                                                                     lineItem: currentLineItem.name,
                                                                     stepName: currentLineItem.name,
-                                                                    lineItemId: currentLineItem.id || `${currentPhase}-${currentSection}-0`,
+                                                                    lineItemId: fallbackTargetLineItemId,
                                                                     highlightMode: 'line-item',
                                                                     scrollBehavior: 'smooth',
-                                                                    targetElementId: `lineitem-${currentLineItem.id || `${currentPhase}-${currentSection}-0`}`,
+                                                                    targetElementId: `lineitem-${fallbackTargetLineItemId}`,
                                                                     highlightColor: '#0066CC',
                                                                     highlightDuration: 3000,
-                                                                    targetSectionId: typeof currentSection === 'string' ? currentSection : (currentSection?.id || ''),
+                                                                    targetSectionId: fallbackTargetSectionId,
                                                                     expandPhase: true,
                                                                     expandSection: true,
                                                                     autoOpen: true,
@@ -793,12 +801,50 @@ const ProjectProfilePage = ({
                                                                     nonce: Date.now()
                                                                 }
                                                             };
-                                                            onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile');
+                                                            onProjectSelect(
+                                                                projectWithNavigation,
+                                                                'Project Workflow',
+                                                                null,
+                                                                'Project Profile',
+                                                                fallbackTargetLineItemId,
+                                                                fallbackTargetSectionId
+                                                            );
                                                         }
                                                     } catch (error) {
                                                         console.error('🎯 PROJECT PROFILE: Error navigating to workflow step:', error);
                                                         // Final fallback
-                                                        onProjectSelect(selectedProject, 'Project Workflow', null, 'Project Profile');
+                                                        const fallbackTargetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
+                                                        const fallbackTargetSectionId = typeof currentSection === 'string' ? currentSection : (currentSection || '');
+                                                        const projectWithNavigation = {
+                                                            ...selectedProject,
+                                                            navigationSource: selectedProject.navigationSource || 'Project Profile',
+                                                            returnToSection: selectedProject.returnToSection || 'project-profile',
+                                                            highlightStep: currentLineItem?.name || 'Line Item',
+                                                            highlightLineItem: currentLineItem?.name || 'Line Item',
+                                                            targetPhase: currentPhase,
+                                                            targetSection: currentSection,
+                                                            targetLineItem: currentLineItem?.name || 'Line Item',
+                                                            scrollToCurrentLineItem: true,
+                                                            navigationTarget: {
+                                                                phase: currentPhase,
+                                                                section: currentSection,
+                                                                lineItem: currentLineItem?.name || 'Line Item',
+                                                                stepName: currentLineItem?.name || 'Line Item',
+                                                                lineItemId: fallbackTargetLineItemId,
+                                                                highlightMode: 'line-item',
+                                                                scrollBehavior: 'smooth',
+                                                                targetElementId: `lineitem-${fallbackTargetLineItemId}`,
+                                                                highlightColor: '#0066CC',
+                                                                highlightDuration: 3000,
+                                                                targetSectionId: fallbackTargetSectionId,
+                                                                expandPhase: true,
+                                                                expandSection: true,
+                                                                autoOpen: true,
+                                                                scrollAndHighlight: true,
+                                                                nonce: Date.now()
+                                                            }
+                                                        };
+                                                        onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile', fallbackTargetLineItemId, fallbackTargetSectionId);
                                                     }
                                                 } else {
                                                     // No current line item, just navigate to workflow
@@ -809,6 +855,105 @@ const ProjectProfilePage = ({
                                         >
                                             {WorkflowDataService.getCurrentLineItem(selectedProject)?.name || 'View Workflow'}
                                         </button>
+                                        <span className={`${colorMode ? 'text-gray-500' : 'text-gray-300'}`}>•</span>
+                                        <span
+                                            className={`font-mono cursor-pointer hover:underline ${
+                                                colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
+                                            }`}
+                                            title={`Line Item ID: ${(() => { const cw = selectedProject?.currentWorkflowItem; const currentLineItem = WorkflowDataService.getCurrentLineItem(selectedProject); const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(selectedProject); const currentPhase = getPhaseForProject(selectedProject.id); return currentLineItem?.id || `${currentPhase}-${currentSection}-0`; })()}`}
+                                            onClick={async () => {
+                                                const cw = selectedProject?.currentWorkflowItem;
+                                                const currentLineItem = WorkflowDataService.getCurrentLineItem(selectedProject);
+                                                const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(selectedProject);
+                                                const currentPhase = getPhaseForProject(selectedProject.id);
+                                                try {
+                                                    const positionResponse = await fetch(`/api/workflow-data/project-position/${selectedProject.id}`, {
+                                                        headers: {
+                                                            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                        }
+                                                    });
+                                                    let targetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
+                                                    let targetSectionId = typeof currentSection === 'string' ? currentSection.toLowerCase().replace(/\s+/g, '-') : (currentSection || '');
+                                                    let workflowId = null;
+                                                    if (positionResponse.ok) {
+                                                        const positionResult = await positionResponse.json();
+                                                        if (positionResult.success && positionResult.data) {
+                                                            const position = positionResult.data;
+                                                            targetLineItemId = currentLineItem?.id || position.currentLineItemId || targetLineItemId;
+                                                            targetSectionId = position.currentSectionId || targetSectionId;
+                                                            workflowId = position.workflowId || null;
+                                                        }
+                                                    }
+                                                    const projectWithNavigation = {
+                                                        ...selectedProject,
+                                                        navigationSource: selectedProject.navigationSource || 'Project Profile',
+                                                        returnToSection: selectedProject.returnToSection || 'project-profile',
+                                                        highlightStep: currentLineItem?.name || 'Line Item',
+                                                        highlightLineItem: currentLineItem?.name || 'Line Item',
+                                                        targetPhase: currentPhase,
+                                                        targetSection: currentSection,
+                                                        targetLineItem: currentLineItem?.name || 'Line Item',
+                                                        scrollToCurrentLineItem: true,
+                                                        navigationTarget: {
+                                                            phase: currentPhase,
+                                                            section: currentSection,
+                                                            lineItem: currentLineItem?.name || 'Line Item',
+                                                            stepName: currentLineItem?.name || 'Line Item',
+                                                            lineItemId: targetLineItemId,
+                                                            workflowId: workflowId,
+                                                            highlightMode: 'line-item',
+                                                            scrollBehavior: 'smooth',
+                                                            targetElementId: `lineitem-${targetLineItemId}`,
+                                                            highlightColor: '#0066CC',
+                                                            highlightDuration: 3000,
+                                                            targetSectionId: targetSectionId,
+                                                            expandPhase: true,
+                                                            expandSection: true,
+                                                            autoOpen: true,
+                                                            scrollAndHighlight: true,
+                                                            nonce: Date.now()
+                                                        }
+                                                    };
+                                                    onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
+                                                } catch (error) {
+                                                    console.error('🎯 PROJECT PROFILE: Error navigating via Line Item ID:', error);
+                                                    const fallbackTargetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
+                                                    const fallbackTargetSectionId = typeof currentSection === 'string' ? currentSection : (currentSection || '');
+                                                    const projectWithNavigation = {
+                                                        ...selectedProject,
+                                                        navigationSource: selectedProject.navigationSource || 'Project Profile',
+                                                        returnToSection: selectedProject.returnToSection || 'project-profile',
+                                                        highlightStep: currentLineItem?.name || 'Line Item',
+                                                        highlightLineItem: currentLineItem?.name || 'Line Item',
+                                                        targetPhase: currentPhase,
+                                                        targetSection: currentSection,
+                                                        targetLineItem: currentLineItem?.name || 'Line Item',
+                                                        scrollToCurrentLineItem: true,
+                                                        navigationTarget: {
+                                                            phase: currentPhase,
+                                                            section: currentSection,
+                                                            lineItem: currentLineItem?.name || 'Line Item',
+                                                            stepName: currentLineItem?.name || 'Line Item',
+                                                            lineItemId: fallbackTargetLineItemId,
+                                                            highlightMode: 'line-item',
+                                                            scrollBehavior: 'smooth',
+                                                            targetElementId: `lineitem-${fallbackTargetLineItemId}`,
+                                                            highlightColor: '#0066CC',
+                                                            highlightDuration: 3000,
+                                                            targetSectionId: fallbackTargetSectionId,
+                                                            expandPhase: true,
+                                                            expandSection: true,
+                                                            autoOpen: true,
+                                                            scrollAndHighlight: true,
+                                                            nonce: Date.now()
+                                                        }
+                                                    };
+                                                    onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile', fallbackTargetLineItemId, fallbackTargetSectionId);
+                                                }
+                                            }}
+                                        >
+                                            {(() => { const cw = selectedProject?.currentWorkflowItem; const currentLineItem = WorkflowDataService.getCurrentLineItem(selectedProject); const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(selectedProject); const currentPhase = getPhaseForProject(selectedProject.id); return currentLineItem?.id || `${currentPhase}-${currentSection}-0`; })()}
+                                       </span>
                                     </div>
                                 </div>
                             </div>
@@ -1483,7 +1628,64 @@ const ProjectListCard = ({
                     
                     <div className="grid grid-cols-2 gap-2 mt-4">
                         <button
-                            onClick={() => onProjectSelect(project, 'Project Workflow', null, 'Project Profile')}
+                            onClick={async () => {
+                                try {
+                                    const cw = project?.currentWorkflowItem;
+                                    const currentLineItem = WorkflowDataService.getCurrentLineItem(project);
+                                    const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(project);
+                                    const currentPhase = getPhaseForProject(project.id);
+                                    const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                                        headers: {
+                                            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                        }
+                                    });
+                                    let targetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
+                                    let targetSectionId = typeof currentSection === 'string' ? currentSection.toLowerCase().replace(/\s+/g, '-') : (currentSection || '');
+                                    let workflowId = null;
+                                    if (positionResponse.ok) {
+                                        const positionResult = await positionResponse.json();
+                                        if (positionResult.success && positionResult.data) {
+                                            const position = positionResult.data;
+                                            targetLineItemId = currentLineItem?.id || position.currentLineItemId || targetLineItemId;
+                                            targetSectionId = position.currentSectionId || targetSectionId;
+                                            workflowId = position.workflowId || null;
+                                        }
+                                    }
+                                    const projectWithNavigation = {
+                                        ...project,
+                                        navigationSource: project.navigationSource || 'Project Profile',
+                                        returnToSection: project.returnToSection || 'project-profile',
+                                        highlightStep: currentLineItem?.name || 'Line Item',
+                                        highlightLineItem: currentLineItem?.name || 'Line Item',
+                                        targetPhase: currentPhase,
+                                        targetSection: currentSection,
+                                        targetLineItem: currentLineItem?.name || 'Line Item',
+                                        scrollToCurrentLineItem: true,
+                                        navigationTarget: {
+                                            phase: currentPhase,
+                                            section: currentSection,
+                                            lineItem: currentLineItem?.name || 'Line Item',
+                                            stepName: currentLineItem?.name || 'Line Item',
+                                            lineItemId: targetLineItemId,
+                                            workflowId: workflowId,
+                                            highlightMode: 'line-item',
+                                            scrollBehavior: 'smooth',
+                                            targetElementId: `lineitem-${targetLineItemId}`,
+                                            highlightColor: '#0066CC',
+                                            highlightDuration: 3000,
+                                            targetSectionId: targetSectionId,
+                                            expandPhase: true,
+                                            expandSection: true,
+                                            autoOpen: true,
+                                            scrollAndHighlight: true,
+                                            nonce: Date.now()
+                                        }
+                                    };
+                                    onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
+                                } catch (e) {
+                                    onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
+                                }
+                            }}
                             className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-xs"
                         >
                             <span>🗂️</span>

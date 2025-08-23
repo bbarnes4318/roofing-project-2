@@ -82,19 +82,11 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
         const fetchUsers = async () => {
             setUsersLoading(true);
             try {
-                const response = await fetch('/api/users', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.data) {
-                        setAvailableUsers(result.data);
-                        console.log('✅ Loaded users for message assignment:', result.data.length);
-                    }
-                }
+                const { usersService } = await import('../../services/api');
+                const result = await usersService.getTeamMembers();
+                const teamMembers = Array.isArray(result?.data?.teamMembers) ? result.data.teamMembers : [];
+                setAvailableUsers(teamMembers);
+                console.log('✅ Loaded users for message assignment:', teamMembers.length);
             } catch (error) {
                 console.error('❌ Failed to fetch users:', error);
             } finally {

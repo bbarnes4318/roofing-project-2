@@ -188,6 +188,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [highlightedSectionId, setHighlightedSectionId] = useState(targetSectionId);
   const [navigationNonce, setNavigationNonce] = useState(project?.navigationTarget?.nonce || null);
   
+  // React to changes in incoming targets (e.g., tab click deep-link)
+  useEffect(() => {
+    if (targetLineItemId || targetSectionId) {
+      setHighlightedLineItemId(targetLineItemId || highlightedLineItemId);
+      setHighlightedSectionId(targetSectionId || highlightedSectionId);
+      setNavigationNonce(Date.now());
+    }
+  }, [targetLineItemId, targetSectionId]);
+  
   // =================================================================
   // CREATE SECTION AND LINE ITEM STATES
   // =================================================================
@@ -391,12 +400,12 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         phaseId: selectedPhaseForSection.id,
         sectionName: createSectionData.sectionName.trim(),
         displayName: createSectionData.displayName.trim() || createSectionData.sectionName.trim(),
-        description: createSectionData.description.trim() || null
+        description: createSectionData.description.trim() ? createSectionData.description.trim() : undefined
       };
       
       console.log('🔍 CREATE SECTION: Sending request data:', requestData);
       
-             const response = await api.post('/api/workflows/sections', requestData);
+             const response = await api.post('/workflows/sections', requestData);
       
       if (response.data.success) {
         // Refresh workflow data to show new section
@@ -440,14 +449,14 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         sectionId: selectedSectionForLineItem.id,
         itemName: createLineItemData.itemName.trim(),
         responsibleRole: createLineItemData.responsibleRole,
-        description: createLineItemData.description.trim() || null,
+        description: createLineItemData.description.trim() ? createLineItemData.description.trim() : undefined,
         estimatedMinutes: parseInt(createLineItemData.estimatedMinutes) || 30,
         alertDays: parseInt(createLineItemData.alertDays) || 1
       };
       
       console.log('🔍 CREATE LINE ITEM: Sending request data:', requestData);
       
-             const response = await api.post('/api/workflows/line-items', requestData);
+             const response = await api.post('/workflows/line-items', requestData);
       
       if (response.data.success) {
         // Refresh workflow data to show new line item

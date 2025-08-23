@@ -1,0 +1,1042 @@
+Debug Info:
+{
+  "projectId": "cmem9367y000tumc44rjeierw",
+  "currentWorkflowItem": {
+    "phase": "LEAD",
+    "phaseDisplay": "Lead",
+    "section": "Input Customer Information",
+    "lineItem": "Confirm name is spelled correctly.",
+    "lineItemId": "cmei0ods40004um80l8s7vtrz",
+    "sectionId": "cmei0odpn0002um80krhmauwl",
+    "phaseId": "cmei0odn40000um80vzrkywmk",
+    "isComplete": false,
+    "completedItems": [],
+    "totalLineItems": 85
+  },
+  "projectName": "Robert Johnson - ROOFING Project",
+  "onProjectSelect": "undefined",
+  "onProjectSelectAvailable": false
+}
+
+DashboardPage.jsx:3029 🎯 PROJECT NUMBER CLICK: Navigating from Current Alerts to Profile
+DashboardPage.jsx:770 🔍 DASHBOARD: handleProjectSelectWithScroll called with:
+DashboardPage.jsx:771 🔍 DASHBOARD: project: {id: 'cmem3kdji0013umis168buph1', _id: 'cmem3kdji0013umis168buph1', projectId: '90067', projectNumber: 90067, projectName: 'George Matthews - GUTTERS Project', …}
+DashboardPage.jsx:772 🔍 DASHBOARD: project.name: undefined
+DashboardPage.jsx:773 🔍 DASHBOARD: project.id: cmem3kdji0013umis168buph1
+ 🔍 DASHBOARD: project.projectNumber: 90067
+ 🔍 DASHBOARD: view: Profile
+ 🔍 DASHBOARD: phase: null
+ 🔍 DASHBOARD: sourceSection: Current Alerts
+ 🔍 DASHBOARD: targetLineItemId: null
+ 🔍 DASHBOARD: targetSectionId: null
+ 🔍 DASHBOARD: sourceSection type: string
+ 🔍 DASHBOARD: sourceSection === "Current Alerts": true
+ 🔍 DASHBOARD: onProjectSelect available: true
+ 🔍 DASHBOARD: Calling onProjectSelect with all parameters
+ 🔍 APP: handleProjectSelect called with:
+ 🔍 APP: project: undefined
+ 🔍 APP: view: Profile
+ 🔍 APP: phase: null
+ 🔍 APP: sourceSection: Current Alerts
+ 🔍 APP: targetLineItemId: null
+ 🔍 APP: targetSectionId: null
+ 🔍 APP: Setting navigationState: {selectedProject: {…}, projectInitialView: 'Profile', projectSourceSection: 'Current Alerts', previousPage: 'Overview', dashboardState: null, …}
+ 🔍 APP: Dashboard state being preserved: undefined
+ 🔍 MAIN_RENDER: navigationState.selectedProject: {id: 'cmem3kdji0013umis168buph1', _id: 'cmem3kdji0013umis168buph1', projectId: '90067', projectNumber: 90067, projectName: 'George Matthews - GUTTERS Project', …}
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering ProjectDetailPage
+ 🔍 MAIN_RENDER: navigationState.selectedProject: {id: 'cmem3kdji0013umis168buph1', _id: 'cmem3kdji0013umis168buph1', projectId: '90067', projectNumber: 90067, projectName: 'George Matthews - GUTTERS Project', …}
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering ProjectDetailPage
+ 🔍 PROJECT DETAIL PAGE PROPS:
+ 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ 🔍 project: George Matthews - GUTTERS Project
+ 🔍 previousPage: Overview
+ 🔍 projectSourceSection: Current Alerts
+ 🔍 projectSourceSection type: string
+ 🏗️ PROJECT DETAIL: Received props:
+ 🏗️ PROJECT DETAIL: previousPage: Overview
+ 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ 🔍 PROJECT_DETAIL: activeView state: Profile
+ 🔍 PROJECT_DETAIL: initialView prop: Profile
+ 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ 🔍 PROJECT DETAIL PAGE PROPS:
+ 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:690 🔍 PROJECT_DETAIL: activeView changed to: Profile
+App.jsx:446 🔍 NAV_STATE_CHANGE: navigationState updated: {selectedProject: {…}, projectInitialView: 'Profile', projectSourceSection: 'Current Alerts', previousPage: 'Overview', dashboardState: null, …}
+App.jsx:447 🔍 NAV_STATE_CHANGE: activePage: Overview
+ProjectDetailPage.jsx:690 🔍 PROJECT_DETAIL: activeView changed to: Profile
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:98   GET https://goldfish-app-4yuma.ondigitalocean.app/api/users 403 (Forbidden)
+dispatchXhrRequest @ xhr.js:195
+xhr @ xhr.js:15
+dispatchRequest @ dispatchRequest.js:51
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+Axios.<computed> @ Axios.js:213
+wrap @ bind.js:5
+loadUsers @ ProjectProfileTab.jsx:98
+(anonymous) @ ProjectProfileTab.jsx:132
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+api.js:138  🚨 API ERROR: {url: '/users', method: 'get', status: 403, statusText: '', data: {…}, …}
+(anonymous) @ api.js:138
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+Axios.<computed> @ Axios.js:213
+wrap @ bind.js:5
+loadUsers @ ProjectProfileTab.jsx:98
+(anonymous) @ ProjectProfileTab.jsx:132
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+ProjectProfileTab.jsx:115  Error loading users: AxiosError {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+loadUsers @ ProjectProfileTab.jsx:115
+await in loadUsers
+(anonymous) @ ProjectProfileTab.jsx:132
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:98   GET https://goldfish-app-4yuma.ondigitalocean.app/api/users 403 (Forbidden)
+dispatchXhrRequest @ xhr.js:195
+xhr @ xhr.js:15
+dispatchRequest @ dispatchRequest.js:51
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+Axios.<computed> @ Axios.js:213
+wrap @ bind.js:5
+loadUsers @ ProjectProfileTab.jsx:98
+(anonymous) @ ProjectProfileTab.jsx:132
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+api.js:138  🚨 API ERROR: {url: '/users', method: 'get', status: 403, statusText: '', data: {…}, …}
+(anonymous) @ api.js:138
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+Axios.<computed> @ Axios.js:213
+wrap @ bind.js:5
+loadUsers @ ProjectProfileTab.jsx:98
+(anonymous) @ ProjectProfileTab.jsx:132
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+ProjectProfileTab.jsx:115  Error loading users: AxiosError {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+loadUsers @ ProjectProfileTab.jsx:115
+await in loadUsers
+(anonymous) @ ProjectProfileTab.jsx:132
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:529 🔍 API Response for users: {success: true, data: {…}, message: 'Team members retrieved successfully'}
+ProjectDetailPage.jsx:534 ✅ Loaded users for assignment: 43
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:529 🔍 API Response for users: {success: true, data: {…}, message: 'Team members retrieved successfully'}
+ProjectDetailPage.jsx:534 ✅ Loaded users for assignment: 43
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectDetailPage.jsx:110 🔍 PROJECT DETAIL PAGE PROPS:
+ProjectDetailPage.jsx:111 🔍 PROJECT DETAIL PAGE: onProjectSelect type: function
+ProjectDetailPage.jsx:112 🔍 PROJECT DETAIL PAGE: onProjectSelect available: true
+ProjectDetailPage.jsx:113 🔍 PROJECT DETAIL PAGE: project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:114 🔍 PROJECT DETAIL PAGE: initialView: Profile
+ProjectDetailPage.jsx:422 🔍 project: George Matthews - GUTTERS Project
+ProjectDetailPage.jsx:423 🔍 previousPage: Overview
+ProjectDetailPage.jsx:424 🔍 projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:425 🔍 projectSourceSection type: string
+ProjectDetailPage.jsx:426 🏗️ PROJECT DETAIL: Received props:
+ProjectDetailPage.jsx:427 🏗️ PROJECT DETAIL: previousPage: Overview
+ProjectDetailPage.jsx:428 🏗️ PROJECT DETAIL: projectSourceSection: Current Alerts
+ProjectDetailPage.jsx:430 🔍 PROJECT_DETAIL: activeView state: Profile
+ProjectDetailPage.jsx:431 🔍 PROJECT_DETAIL: initialView prop: Profile
+ProjectDetailPage.jsx:920 🔍 PROJECT_DETAIL: renderProjectView called with activeView: Profile
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+ProjectProfileTab.jsx:17 🔍 PROJECT PROFILE TAB: Component rendered
+ProjectProfileTab.jsx:18 🔍 PROJECT PROFILE TAB: onProjectSelect type: undefined
+ProjectProfileTab.jsx:19 🔍 PROJECT PROFILE TAB: onProjectSelect available: false
+ProjectProfileTab.jsx:20 🔍 PROJECT PROFILE TAB: project: George Matthews - GUTTERS Project
+DashboardPage.jsx:544 🔍 DASHBOARD: Fetched messages from API: 20
+DashboardPage.jsx:544 🔍 DASHBOARD: Fetched messages from API: 20
+
+
+
+react refresh:37 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+supabaseClient.js:8 Supabase URL: Set
+supabaseClient.js:9 Supabase Key: Set
+api.js:8 🔍 API CONFIG: Current host: localhost:3000
+api.js:19 🔍 API CONFIG: Using env var API: https://goldfish-app-4yuma.ondigitalocean.app/api
+App.jsx:446 🔍 NAV_STATE_CHANGE: navigationState updated: {selectedProject: null, projectInitialView: 'Profile', projectSourceSection: null, previousPage: 'Overview'}
+App.jsx:447 🔍 NAV_STATE_CHANGE: activePage: Overview
+deprecations.ts:9  ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+warnOnce @ deprecations.ts:9
+logDeprecation @ deprecations.ts:13
+logV6DeprecationWarnings @ deprecations.ts:26
+(anonymous) @ index.tsx:816
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+deprecations.ts:9  ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+warnOnce @ deprecations.ts:9
+logDeprecation @ deprecations.ts:13
+logV6DeprecationWarnings @ deprecations.ts:37
+(anonymous) @ index.tsx:816
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+App.jsx:446 🔍 NAV_STATE_CHANGE: navigationState updated: {selectedProject: null, projectInitialView: 'Profile', projectSourceSection: null, previousPage: 'Overview'}
+App.jsx:447 🔍 NAV_STATE_CHANGE: activePage: Overview
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+read.js:2530 READ - Host validation failed: {hostName: '', hostType: undefined}
+content.js:2524 Host is not supported
+content.js:2526 Host is not valid or supported
+content.js:2526 Host is not in insights whitelist
+App.jsx:127 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+App.jsx:128 🔍 ONBOARDING: User role: WORKER
+App.jsx:129 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:130 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:131 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:262 🔍 Fetching activities from API...
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:321 🔍 INITIAL USER FROM STORAGE: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+DashboardPage.jsx:331 🔍 FETCHING CURRENT USER FROM SERVER...
+DashboardPage.jsx:382 🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...
+DashboardPage.jsx:656 🔍 DASHBOARD: URL params restoration: {section: null, phase: null, highlight: null, search: null, expandedPhases: null}
+DashboardPage.jsx:321 🔍 INITIAL USER FROM STORAGE: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+DashboardPage.jsx:331 🔍 FETCHING CURRENT USER FROM SERVER...
+DashboardPage.jsx:382 🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...
+DashboardPage.jsx:656 🔍 DASHBOARD: URL params restoration: {section: null, phase: null, highlight: null, search: null, expandedPhases: null}
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+App.jsx:127 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+App.jsx:128 🔍 ONBOARDING: User role: WORKER
+App.jsx:129 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:130 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:131 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:406  ❌ DASHBOARD: Failed to fetch workflow phases: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+fetchWorkflowPhases @ DashboardPage.jsx:406
+await in fetchWorkflowPhases
+(anonymous) @ DashboardPage.jsx:420
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+DashboardPage.jsx:416 ⚠️ DASHBOARD: Using fallback workflow phases due to API error
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:406  ❌ DASHBOARD: Failed to fetch workflow phases: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+fetchWorkflowPhases @ DashboardPage.jsx:406
+await in fetchWorkflowPhases
+(anonymous) @ DashboardPage.jsx:420
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+DashboardPage.jsx:416 ⚠️ DASHBOARD: Using fallback workflow phases due to API error
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+ 🔍 ONBOARDING: User role: WORKER
+ 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+ 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+ 🔍 ONBOARDING: needsOnboarding result: false
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+ 🔍 ONBOARDING: User role: WORKER
+ 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+ 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+ 🔍 ONBOARDING: needsOnboarding result: false
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: true
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: undefined
+ 🔍 DASHBOARD: Alerts array length: 0
+ Selected Phase: null Filtered Projects Count: 0
+ 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+App.jsx:128 🔍 ONBOARDING: User role: WORKER
+App.jsx:129 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:130 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:131 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+App.jsx:127 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+App.jsx:128 🔍 ONBOARDING: User role: WORKER
+App.jsx:129 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:130 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:131 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: true
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: undefined
+ 🔍 DASHBOARD: Projects array length: 0
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ 🔍 DASHBOARD: Alerts array length: 30
+ Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:333 🔍 SERVER RESPONSE: {success: true, data: {…}}
+DashboardPage.jsx:335 🔍 EXTRACTED USER: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+DashboardPage.jsx:338 ✅ CURRENT USER SET TO: jimbosky35  ID: cmen0vdvu0000ap0dlgm1npuz
+DashboardPage.jsx:355 🔍 API Response for users: {success: true, data: {…}, message: 'Team members retrieved successfully'}
+DashboardPage.jsx:360 ✅ Loaded users for assignment: 43
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+ ✅ Fetched activities from API: 0
+ ✅ Fetched projects from API: 21
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: navigationState.selectedProject: null
+ 🔍 MAIN_RENDER: activePage: Overview
+ 🔍 MAIN_RENDER: Rendering renderPage()
+ 🔍 RENDER: renderPage called with activePage: Overview
+ 🔍 RENDER: navigationState.selectedProject: null
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+ 🔍 DASHBOARD: Projects array length: 21
+ 🔍 DASHBOARD: Alerts loading state: false
+ 🔍 DASHBOARD: Alerts error: null
+ 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ 🔍 DASHBOARD: Alerts array length: 30
+ Selected Phase: null Filtered Projects Count: 0
+ Card View - Selected Phase: null Filtered Projects Count: 0
+ 🔍 DASHBOARD: Component rendering...
+ 🔍 DASHBOARD: Projects loading state: false
+ 🔍 DASHBOARD: Projects error: null
+ 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+App.jsx:127 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+App.jsx:128 🔍 ONBOARDING: User role: WORKER
+App.jsx:129 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:130 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:131 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+App.jsx:127 🔍 ONBOARDING: Checking status for user: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+App.jsx:128 🔍 ONBOARDING: User role: WORKER
+App.jsx:129 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:130 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:131 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:984 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:985 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:333 🔍 SERVER RESPONSE: {success: true, data: {…}}
+DashboardPage.jsx:335 🔍 EXTRACTED USER: {id: 'cmen0vdvu0000ap0dlgm1npuz', firstName: 'jimbosky35', lastName: '', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+DashboardPage.jsx:338 ✅ CURRENT USER SET TO: jimbosky35  ID: cmen0vdvu0000ap0dlgm1npuz
+DashboardPage.jsx:355 🔍 API Response for users: {success: true, data: {…}, message: 'Team members retrieved successfully'}
+DashboardPage.jsx:360 ✅ Loaded users for assignment: 43
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: {data: Array(21), total: undefined, page: undefined, limit: undefined, totalPages: undefined}
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 21
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: (30) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 30
+DashboardPage.jsx:1960 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2126 Card View - Selected Phase: null Filtered Projects Count: 0
+

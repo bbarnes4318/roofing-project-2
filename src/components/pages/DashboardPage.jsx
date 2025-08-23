@@ -380,31 +380,22 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const fetchWorkflowPhases = async () => {
       try {
         console.log('🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...');
-        const response = await fetch('/api/workflow-data/phases', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          }
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const phases = result.data.map(phase => ({
-              id: phase.id,
-              name: phase.name,
-              displayName: phase.displayName || phase.name
-            }));
-            setWorkflowPhases(phases);
-            console.log('✅ DASHBOARD: Loaded workflow phases from database:', phases);
-          } else {
-            throw new Error('Invalid response format');
-          }
+        const api = (await import('../../services/api')).default;
+        const response = await api.get('/workflow-data/phases');
+        const result = response.data;
+        if (result?.success && result.data) {
+          const phases = result.data.map(phase => ({
+            id: phase.id,
+            name: phase.name,
+            displayName: phase.displayName || phase.name
+          }));
+          setWorkflowPhases(phases);
+          console.log('✅ DASHBOARD: Loaded workflow phases from database:', phases);
         } else {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error('Invalid response format');
         }
       } catch (error) {
         console.error('❌ DASHBOARD: Failed to fetch workflow phases:', error);
-        // Fallback phases if API fails
         const fallbackPhases = [
           { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
           { id: 'PROSPECT', name: 'PROSPECT', displayName: 'Prospect' },

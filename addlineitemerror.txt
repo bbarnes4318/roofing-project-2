@@ -1,0 +1,100 @@
+bundle.js:131366 🔍 CREATE LINE ITEM: Sending request data: {sectionId: 'cmei0ody4000cum802993pm5m', itemName: 'call customer', responsibleRole: 'ADMIN', description: null, estimatedMinutes: 30, …}
+bundle.js:131068 📍 PROJECT CHECKLIST PAGE - Navigation params received:
+bundle.js:131069    targetLineItemId: null
+bundle.js:131070    targetSectionId: null
+bundle.js:131071    projectId: cmem3kdgp0011umis9k09xplx
+bundle.js:131072    project.navigationSource: Current Alerts
+bundle.js:131073    project.highlightTarget: undefined
+bundle.js:131074    project.navigationTarget: undefined
+bundle.js:131075    project.returnToSection: current-alerts
+bundle.js:132207 Rendering phase: LEAD with 5 items
+bundle.js:132207 Rendering phase: PROSPECT with 5 items
+bundle.js:132207 Rendering phase: APPROVED with 7 items
+bundle.js:132207 Rendering phase: EXECUTION with 6 items
+bundle.js:132207 Rendering phase: SECOND_SUPPLEMENT with 4 items
+bundle.js:132207 Rendering phase: COMPLETION with 3 items
+bundle.js:131068 📍 PROJECT CHECKLIST PAGE - Navigation params received:
+bundle.js:131069    targetLineItemId: null
+bundle.js:131070    targetSectionId: null
+bundle.js:131071    projectId: cmem3kdgp0011umis9k09xplx
+bundle.js:131072    project.navigationSource: Current Alerts
+bundle.js:131073    project.highlightTarget: undefined
+bundle.js:131074    project.navigationTarget: undefined
+bundle.js:131075    project.returnToSection: current-alerts
+bundle.js:132207 Rendering phase: LEAD with 5 items
+bundle.js:132207 Rendering phase: PROSPECT with 5 items
+bundle.js:132207 Rendering phase: APPROVED with 7 items
+bundle.js:132207 Rendering phase: EXECUTION with 6 items
+bundle.js:132207 Rendering phase: SECOND_SUPPLEMENT with 4 items
+bundle.js:132207 Rendering phase: COMPLETION with 3 items
+bundle.js:20562   POST https://goldfish-app-4yuma.ondigitalocean.app/api/api/workflows/line-items 404 (Not Found)
+dispatchXhrRequest @ bundle.js:20562
+xhr @ bundle.js:20400
+dispatchRequest @ bundle.js:21638
+Promise.then
+_request @ bundle.js:21038
+request @ bundle.js:20934
+httpMethod @ bundle.js:21090
+wrap @ bundle.js:22210
+handleCreateLineItem @ bundle.js:131367
+callCallback @ bundle.js:40728
+invokeGuardedCallbackDev @ bundle.js:40772
+invokeGuardedCallback @ bundle.js:40829
+invokeGuardedCallbackAndCatchFirstError @ bundle.js:40843
+executeDispatch @ bundle.js:44986
+processDispatchQueueItemsInOrder @ bundle.js:45012
+processDispatchQueue @ bundle.js:45023
+dispatchEventsForPlugins @ bundle.js:45032
+(anonymous) @ bundle.js:45192
+batchedUpdates$1 @ bundle.js:59611
+batchedUpdates @ bundle.js:40576
+dispatchEventForPluginEventSystem @ bundle.js:45191
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ bundle.js:42698
+dispatchEvent @ bundle.js:42692
+dispatchDiscreteEvent @ bundle.js:42669
+bundle.js:160098  🚨 API ERROR: {url: '/api/workflows/line-items', method: 'post', status: 404, statusText: '', data: {…}, …}
+(anonymous) @ bundle.js:160098
+Promise.then
+_request @ bundle.js:21038
+request @ bundle.js:20934
+httpMethod @ bundle.js:21090
+wrap @ bundle.js:22210
+handleCreateLineItem @ bundle.js:131367
+callCallback @ bundle.js:40728
+invokeGuardedCallbackDev @ bundle.js:40772
+invokeGuardedCallback @ bundle.js:40829
+invokeGuardedCallbackAndCatchFirstError @ bundle.js:40843
+executeDispatch @ bundle.js:44986
+processDispatchQueueItemsInOrder @ bundle.js:45012
+processDispatchQueue @ bundle.js:45023
+dispatchEventsForPlugins @ bundle.js:45032
+(anonymous) @ bundle.js:45192
+batchedUpdates$1 @ bundle.js:59611
+batchedUpdates @ bundle.js:40576
+dispatchEventForPluginEventSystem @ bundle.js:45191
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ bundle.js:42698
+dispatchEvent @ bundle.js:42692
+dispatchDiscreteEvent @ bundle.js:42669
+bundle.js:131388  ❌ Error creating line item: AxiosError {message: 'Not found: The requested resource could not be found.', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+handleCreateLineItem @ bundle.js:131388
+await in handleCreateLineItem
+callCallback @ bundle.js:40728
+invokeGuardedCallbackDev @ bundle.js:40772
+invokeGuardedCallback @ bundle.js:40829
+invokeGuardedCallbackAndCatchFirstError @ bundle.js:40843
+executeDispatch @ bundle.js:44986
+processDispatchQueueItemsInOrder @ bundle.js:45012
+processDispatchQueue @ bundle.js:45023
+dispatchEventsForPlugins @ bundle.js:45032
+(anonymous) @ bundle.js:45192
+batchedUpdates$1 @ bundle.js:59611
+batchedUpdates @ bundle.js:40576
+dispatchEventForPluginEventSystem @ bundle.js:45191
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ bundle.js:42698
+dispatchEvent @ bundle.js:42692
+dispatchDiscreteEvent @ bundle.js:42669
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again

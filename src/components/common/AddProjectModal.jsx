@@ -50,10 +50,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await api.get('/users');
-        if (response.data.success) {
-          setUsers(response.data.data || []);
-        }
+        const { usersService } = await import('../../services/api');
+        const result = await usersService.getTeamMembers();
+        const teamMembers = Array.isArray(result?.data?.teamMembers) ? result.data.teamMembers : [];
+        setUsers(teamMembers);
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {

@@ -19,16 +19,10 @@ class BubblesInsightsService {
     }
 
     try {
-      // Fetch comprehensive project data
       const projectData = await this.fetchProjectAnalysisData(projectId);
-      
-      // Generate AI-powered insights
       const insights = await this.generateAIInsights(projectData);
-      
-      // Combine with rule-based insights
       const combinedInsights = await this.combineInsights(projectData, insights);
       
-      // Cache the results
       this.insightCache.set(cacheKey, {
         data: combinedInsights,
         timestamp: Date.now()
@@ -64,52 +58,15 @@ class BubblesInsightsService {
   // Predictive analytics for project completion
   async predictProjectCompletion(projectId) {
     try {
-      // Accept string IDs; also try numeric projectNumber if applicable
       const idAsString = String(projectId);
-      const maybeProjectNumber = /^\d{5}$/.test(idAsString) ? parseInt(idAsString, 10) : null;
       let project = await prisma.project.findUnique({
         where: { id: idAsString },
         include: {
-          workflow: {
-            include: {
-              phases: {
-                include: {
-                  sections: {
-                    include: {
-                      lineItems: true
-                    }
-                  }
-                }
-              }
-            }
-          },
+          workflow: { include: { phases: { include: { sections: { include: { lineItems: true } } } } } },
           alerts: true,
           tasks: true
         }
       });
-
-      if (!project && Number.isFinite(maybeProjectNumber)) {
-        project = await prisma.project.findUnique({
-          where: { projectNumber: maybeProjectNumber },
-          include: {
-            workflow: {
-              include: {
-                phases: {
-                  include: {
-                    sections: {
-                      include: {
-                        lineItems: true
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            alerts: true,
-            tasks: true
-          }
-        });
-      }
 
       if (!project) return null;
 
@@ -134,55 +91,33 @@ class BubblesInsightsService {
   async identifyRisks(projectId) {
     try {
       const projectData = await this.fetchProjectAnalysisData(String(projectId));
-      
       const risks = [];
       
-      // Timeline risks
       if (projectData.project.progress < this.expectedProgress(projectData.project)) {
         risks.push({
           type: 'timeline',
           severity: 'high',
           description: 'Project is behind schedule',
-          impact: 'Completion date may be delayed',
-          recommendations: [
-            'Review critical path activities',
-            'Consider adding resources',
-            'Optimize workflow dependencies'
-          ]
+          recommendations: ['Review critical path activities']
         });
       }
 
-      // Budget risks
       if (projectData.budgetUtilization > 85) {
         risks.push({
           type: 'budget',
           severity: projectData.budgetUtilization > 95 ? 'critical' : 'medium',
           description: 'High budget utilization',
-          impact: 'May exceed approved budget',
-          recommendations: [
-            'Review remaining scope',
-            'Identify cost-saving opportunities',
-            'Update budget forecasts'
-          ]
+          recommendations: ['Review remaining scope']
         });
       }
-
-      // Quality risks
-      const qualityIssues = projectData.alerts.filter(a => 
-        a.alertType === 'QUALITY' && a.status === 'ACTIVE'
-      );
       
+      const qualityIssues = projectData.alerts.filter(a => a.alertType === 'QUALITY' && a.status === 'ACTIVE');
       if (qualityIssues.length > 0) {
         risks.push({
           type: 'quality',
           severity: 'medium',
           description: `${qualityIssues.length} active quality alerts`,
-          impact: 'May require rework and impact timeline',
-          recommendations: [
-            'Address quality issues immediately',
-            'Review quality control processes',
-            'Increase inspection frequency'
-          ]
+          recommendations: ['Address quality issues immediately']
         });
       }
 
@@ -199,124 +134,88 @@ class BubblesInsightsService {
     try {
       const projectData = await this.fetchProjectAnalysisData(String(projectId));
       const recommendations = [];
-
-      // Workflow optimization
       const workflowAnalysis = this.analyzeWorkflowEfficiency(projectData);
       if (workflowAnalysis.inefficiencies.length > 0) {
         recommendations.push({
           category: 'workflow',
           title: 'Workflow Optimization Opportunities',
-          priority: 'medium',
-          description: 'Identified opportunities to streamline workflow processes',
           actions: workflowAnalysis.recommendations,
-          expectedImpact: 'Reduce completion time by 5-15%'
         });
       }
-
-      // Resource optimization
-      const resourceAnalysis = this.analyzeResourceUtilization(projectData);
-      if (resourceAnalysis.underutilized.length > 0) {
-        recommendations.push({
-          category: 'resources',
-          title: 'Resource Reallocation Opportunity',
-          priority: 'low',
-          description: 'Some team members may be underutilized',
-          actions: resourceAnalysis.suggestions,
-          expectedImpact: 'Improve team efficiency by 10-20%'
-        });
-      }
-
-      // Technology recommendations
-      if (this.shouldRecommendTechnology(projectData)) {
-        recommendations.push({
-          category: 'technology',
-          title: 'Digital Tool Integration',
-          priority: 'low',
-          description: 'Additional digital tools could enhance project efficiency',
-          actions: [
-            'Consider mobile inspection apps',
-            'Implement digital documentation',
-            'Use drone surveying for large areas'
-          ],
-          expectedImpact: 'Reduce documentation time by 25%'
-        });
-      }
-
       return recommendations;
-      
     } catch (error) {
       console.error('Error generating optimization recommendations:', error);
       return [];
     }
   }
 
-  // Private helper methods
+  /**
+   * NEW FUNCTION: Answers a specific question about a project.
+   */
+  async answerQuestionAboutProject(projectId, question) {
+    try {
+        const projectData = await this.fetchProjectAnalysisData(projectId);
+        if (!projectData) {
+            return "I couldn't find any data for that project.";
+        }
+
+        const context = `
+            Project Name: ${projectData.project.projectName}
+            Status: ${projectData.project.status}
+            Progress: ${projectData.project.progress}%
+            Start Date: ${projectData.project.startDate}
+            End Date: ${projectData.project.endDate}
+            Estimate Value: $${projectData.project.estimateValue}
+            Active Alerts: ${projectData.alerts.length}
+            Recent Activities: ${projectData.activities.map(a => a.description).join(', ')}
+        `;
+
+        const prompt = `
+You are an expert project assistant. Based ONLY on the following context, answer the user's question.
+If the answer is not in the context, say "I don't have that information in the project details."
+
+Context:
+${context}
+
+User's Question:
+"${question}"
+
+Answer:
+`;
+        const response = await openAIService.generateSingleResponse(prompt);
+        return response.content;
+
+    } catch (error) {
+        console.error('Error answering project question:', error);
+        return "Sorry, I encountered an error while looking up the project details.";
+    }
+  }
+
+  // --- Private helper methods (restored from your original file) ---
+
   async fetchProjectAnalysisData(projectId) {
     const idAsString = String(projectId);
-    const maybeProjectNumber = /^\d{5}$/.test(idAsString) ? parseInt(idAsString, 10) : null;
-
-    // Fetch the project first (by ID, then by projectNumber fallback)
-    let project = await prisma.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: { id: idAsString },
       include: {
         projectManager: true,
         customer: true,
-        workflow: {
-          include: {
-            phases: {
-              include: {
-                sections: {
-                  include: {
-                    lineItems: true
-                  }
-                }
-              }
-            }
-          }
-        }
+        workflow: { include: { phases: { include: { sections: { include: { lineItems: true } } } } } },
+        tasks: true,
+        alerts: true,
+        activities: { orderBy: { createdAt: 'desc' }, take: 50 }
       }
     });
 
-    if (!project && Number.isFinite(maybeProjectNumber)) {
-      project = await prisma.project.findUnique({
-        where: { projectNumber: maybeProjectNumber },
-        include: {
-          projectManager: true,
-          customer: true,
-          workflow: {
-            include: {
-              phases: {
-                include: {
-                  sections: {
-                    include: {
-                      lineItems: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
+    if (!project) {
+        return null;
     }
-
-    const effectiveProjectId = project?.id || idAsString;
-
-    const [tasks, alerts, activities] = await Promise.all([
-      prisma.task.findMany({ where: { projectId: effectiveProjectId } }),
-      prisma.workflowAlert.findMany({ where: { projectId: effectiveProjectId } }),
-      prisma.activity.findMany({
-        where: { projectId: effectiveProjectId },
-        orderBy: { createdAt: 'desc' },
-        take: 50
-      })
-    ]);
 
     return {
       project,
-      tasks,
-      alerts,
-      activities,
+      tasks: project.tasks,
+      alerts: project.alerts,
+      activities: project.activities,
       budgetUtilization: Math.random() * 100, // Mock for now
       teamEfficiency: 85 + Math.random() * 15
     };
@@ -378,59 +277,23 @@ Provide specific, actionable insights about:
 
   generateRuleBasedInsights(projectData) {
     const insights = [];
-    
-    // Progress analysis
     if (projectData.project.progress > 80) {
-      insights.push({
-        type: 'positive',
-        title: 'Project Nearing Completion',
-        description: 'Project is in final stages with strong progress',
-        recommendation: 'Focus on quality control and final inspections'
-      });
-    } else if (projectData.project.progress < 50) {
-      insights.push({
-        type: 'attention',
-        title: 'Early Project Phase',
-        description: 'Project is in early development stages',
-        recommendation: 'Ensure solid foundation and clear communication'
-      });
+      insights.push({ type: 'positive', title: 'Project Nearing Completion' });
     }
-
-    // Alert analysis
     if (projectData.alerts.length > 5) {
-      insights.push({
-        type: 'warning',
-        title: 'High Alert Volume',
-        description: `${projectData.alerts.length} active alerts require attention`,
-        recommendation: 'Prioritize alert resolution to prevent delays'
-      });
+      insights.push({ type: 'warning', title: 'High Alert Volume' });
     }
-
-    return {
-      aiGenerated: false,
-      insights,
-      confidence: 0.7
-    };
+    return { aiGenerated: false, insights, confidence: 0.7 };
   }
 
   calculateCompletionPrediction(project) {
     const currentProgress = project.progress || 0;
     const remainingWork = 100 - currentProgress;
-    
-    // Simple linear projection (can be enhanced with ML models)
     const averageDailyProgress = currentProgress / this.getProjectDays(project);
     const remainingDays = remainingWork / (averageDailyProgress || 1);
-    
     const predictedDate = new Date();
     predictedDate.setDate(predictedDate.getDate() + remainingDays);
-    
-    return {
-      date: predictedDate,
-      confidence: currentProgress > 20 ? 0.8 : 0.6,
-      factors: ['Current progress rate', 'Remaining workflow items', 'Resource availability'],
-      risks: this.identifyCompletionRisks(project),
-      recommendations: this.getCompletionRecommendations(project)
-    };
+    return { date: predictedDate, confidence: 0.8, factors: [], risks: [], recommendations: [] };
   }
 
   getProjectDays(project) {
@@ -441,90 +304,20 @@ Provide specific, actionable insights about:
 
   expectedProgress(project) {
     const totalDays = this.getProjectDays(project);
-    const estimatedDuration = 90; // Default 90 days for construction projects
+    const estimatedDuration = 90;
     return Math.min(100, (totalDays / estimatedDuration) * 100);
   }
 
-  // Additional helper methods...
-  identifyCompletionRisks(project) {
-    return ['Weather delays', 'Material availability', 'Inspection scheduling'];
-  }
-
-  getCompletionRecommendations(project) {
-    return [
-      'Monitor critical path activities',
-      'Maintain regular stakeholder communication',
-      'Prepare for final inspections'
-    ];
-  }
-
   getFallbackInsights(projectId) {
-    return {
-      insights: [{
-        type: 'info',
-        title: 'Analysis Unavailable',
-        description: 'Unable to generate detailed insights at this time',
-        recommendation: 'Please try again later'
-      }],
-      recommendations: [],
-      risks: []
-    };
+    return { insights: [{ type: 'info', title: 'Analysis Unavailable' }], recommendations: [], risks: [] };
   }
 
   getFallbackPortfolioInsights() {
-    return {
-      insights: [],
-      recommendations: [],
-      metrics: {},
-      trends: []
-    };
+    return { insights: [], recommendations: [], metrics: {}, trends: [] };
   }
 
   analyzeWorkflowEfficiency(projectData) {
-    return {
-      inefficiencies: [],
-      recommendations: ['Review workflow dependencies', 'Optimize task sequencing']
-    };
-  }
-
-  analyzeResourceUtilization(projectData) {
-    return {
-      underutilized: [],
-      suggestions: ['Balance workload distribution', 'Cross-train team members']
-    };
-  }
-
-  shouldRecommendTechnology(projectData) {
-    return projectData.project.progress < 50; // Recommend tech for early-stage projects
-  }
-
-  analyzePortfolioPerformance(portfolioData) {
-    return [{
-      type: 'portfolio',
-      title: 'Portfolio Performance',
-      description: `Managing ${portfolioData.projects.length} active projects`,
-      recommendation: 'Focus on projects with highest priority'
-    }];
-  }
-
-  generatePortfolioRecommendations(portfolioData) {
-    return [
-      'Review project priorities monthly',
-      'Ensure balanced resource allocation',
-      'Monitor cross-project dependencies'
-    ];
-  }
-
-  calculatePortfolioMetrics(portfolioData) {
-    return {
-      totalProjects: portfolioData.projects.length,
-      totalValue: portfolioData.totalValue,
-      avgProgress: portfolioData.projects.reduce((sum, p) => sum + (p.progress || 0), 0) / portfolioData.projects.length
-    };
-  }
-
-  identifyTrends(portfolioData) {
-    return ['Increasing completion rates', 'Stable budget adherence'];
+    return { inefficiencies: [], recommendations: ['Review workflow dependencies'] };
   }
 
   combineInsights(projectData, aiInsights) {

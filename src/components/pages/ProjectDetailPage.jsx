@@ -107,7 +107,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
         }
     }, [pushNavigation, project?.id, initialView]);
 
-    console.log('🔍 PROJECT DETAIL PAGE PROPS:');
+
     
     // Helper functions for Project Messages
     const scrollToTop = () => {
@@ -423,6 +423,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
     console.log('🏗️ PROJECT DETAIL: previousPage:', previousPage);
     console.log('🏗️ PROJECT DETAIL: projectSourceSection:', projectSourceSection);
     const [activeView, setActiveView] = useState(initialView);
+    // Local workflow deep-link target to support tab clicks
+    const [workflowTarget, setWorkflowTarget] = useState({ lineItemId: targetLineItemId, sectionId: targetSectionId });
     console.log('🔍 PROJECT_DETAIL: activeView state:', activeView);
     console.log('🔍 PROJECT_DETAIL: initialView prop:', initialView);
     const [projectData, setProjectData] = useState(project);
@@ -922,7 +924,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 console.log('🏗️ DETAIL: Rendering Project Workflow with project:', projectData);
                 console.log('🏗️ DETAIL: Project has highlightStep:', !!projectData?.highlightStep);
                 console.log('🏗️ DETAIL: highlightStep value:', projectData?.highlightStep);
-                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={targetLineItemId} targetSectionId={targetSectionId} selectionNonce={selectionNonce} />;
+                return <ProjectChecklistPage project={projectData} onUpdate={handleChecklistUpdate} onPhaseCompletionChange={handlePhaseCompletionChange} targetLineItemId={workflowTarget?.lineItemId || targetLineItemId} targetSectionId={workflowTarget?.sectionId || targetSectionId} selectionNonce={selectionNonce} />;
             case 'Project Profile':
                 return <ProjectProfileTab project={projectData} colorMode={colorMode} onProjectSelect={onProjectSelect} />;
             case 'Project Schedule':
@@ -2265,7 +2267,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             case 'Work Order':
                 return <div className="p-8 text-center text-gray-400 text-sm">(Blank for now)</div>;
             default:
-                return <ProjectProfileTab project={projectData} colorMode={colorMode} />;
+                return <ProjectProfileTab project={projectData} colorMode={colorMode} onProjectSelect={onProjectSelect} />;
         }
     };
 
@@ -2334,10 +2336,68 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 <button 
                                     key={item} 
                                     disabled={isDisabled}
-                                    onClick={() => {
+                                    onClick={async () => {
                                         if (!isDisabled) {
                                             console.log('🔍 PROJECT_DETAIL: Tab clicked:', item);
                                             console.log('🔍 PROJECT_DETAIL: Current activeView:', activeView);
+                                            // If navigating to Project Workflow tab, compute deep-link target like Current Alerts
+                                            if (item === 'Project Workflow') {
+                                                try {
+                                                    // Priority 1: Use navigationTarget/highlightTarget already on project
+                                                    const navTarget = project?.navigationTarget || project?.highlightTarget || {};
+                                                    let nextLineItemId = navTarget.lineItemId || workflowTarget.lineItemId || targetLineItemId || null;
+                                                    let nextSectionId = navTarget.targetSectionId || navTarget.sectionId || workflowTarget.sectionId || targetSectionId || null;
+                                                    // Priority 2: If coming from Current Alerts context, derive from alert id
+                                                    if (!nextLineItemId && project?.dashboardState?.currentAlertsState?.scrollToAlert) {
+                                                        const alertId = project.dashboardState.currentAlertsState.scrollToAlert;
+                                                        // Attempt to find alert from loaded data if available
+                                                        try {
+                                                            // workflowAlerts may be available via hooks in this component
+                                                            const allAlerts = (typeof workflowAlerts !== 'undefined' && Array.isArray(workflowAlerts)) ? workflowAlerts : [];
+                                                            const matched = allAlerts.find(a => (a._id || a.id) === alertId);
+                                                            const actionData = matched?.actionData || matched?.metadata || {};
+                                                            if (matched) {
+                                                                nextLineItemId = actionData.stepId || actionData.lineItemId || matched.stepId || null;
+                                                                nextSectionId = actionData.sectionId || matched.sectionId || null;
+                                                            }
+                                                        } catch (_) {}
+                                                    }
+                                                    // Priority 3: Fallback to current project position API
+                                                    if (!nextLineItemId) {
+                                                        const posResp = await fetch(`/api/workflow-data/project-position/${project.id}`);
+                                                        if (posResp.ok) {
+                                                            const posJson = await posResp.json();
+                                                            if (posJson.success && posJson.data) {
+                                                                const position = posJson.data;
+                                                                // Determine subtask index from full structure
+                                                                let subtaskIndex = 0;
+                                                                try {
+                                                                    const wfResp = await fetch('/api/workflow-data/full-structure', {
+                                                                        headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}` }
+                                                                    });
+                                                                    if (wfResp.ok) {
+                                                                        const wfJson = await wfResp.json();
+                                                                        if (wfJson.success && wfJson.data) {
+                                                                            const currentPhaseData = wfJson.data.find(ph => ph.id === position.currentPhase);
+                                                                            const currentSectionData = currentPhaseData?.items?.find(it => it.id === position.currentSection);
+                                                                            if (currentSectionData) {
+                                                                                const idx = currentSectionData.subtasks.findIndex(st => typeof st === 'object' ? (st.id === position.currentLineItem || st.label === position.currentLineItemName) : st === position.currentLineItemName);
+                                                                                subtaskIndex = idx >= 0 ? idx : 0;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } catch (_) {}
+                                                                nextLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                                                                nextSectionId = position.currentSection;
+                                                            }
+                                                        }
+                                                    }
+                                                    // Save target for ProjectChecklistPage to consume on tab render
+                                                    setWorkflowTarget({ lineItemId: nextLineItemId || null, sectionId: nextSectionId || null });
+                                                } catch (e) {
+                                                    // Non-blocking – proceed to tab render
+                                                }
+                                            }
                                             setActiveView(item);
                                             console.log('🔍 PROJECT_DETAIL: Setting activeView to:', item);
                                             
@@ -2378,7 +2438,13 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 {/* Scrollable Content with proper spacing */}
                 <div className="p-6 bg-white">
                     <div className="min-h-[calc(100vh-200px)] bg-white">
-                        {renderProjectView()}
+                        {(() => {
+                            // Pass local workflow target into ProjectChecklistPage via render
+                            if (activeView === 'Project Workflow') {
+                                console.log('🔍 PROJECT_DETAIL: Passing workflow target to checklist:', workflowTarget);
+                            }
+                            return renderProjectView();
+                        })()}
                     </div>
                 </div>
             </div>

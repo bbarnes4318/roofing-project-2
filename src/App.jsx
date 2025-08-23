@@ -688,11 +688,14 @@ const apiUrl = window.location.hostname === 'localhost'
         }
         
         // PRIORITY: Handle Current Alerts before Project Phases (prevents conflicts)
-        if (navigationState.projectSourceSection === 'Current Alerts') {
+        const cameFromCurrentAlerts = navigationState.projectSourceSection === 'Current Alerts'
+            || (navigationState.selectedProject && navigationState.selectedProject.returnToSection === 'current-alerts')
+            || (navigationState.dashboardState && navigationState.dashboardState.currentAlertsState);
+        if (cameFromCurrentAlerts) {
             console.log('🔍 BACK_TO_PROJECTS: PRIORITY HANDLING - Navigating back to Current Alerts section');
             // Prevent the global scroll-to-top effect from fighting our targeted scroll
             suppressScrollTopUntilRef.current = Date.now() + 1500;
-            setNavigationState(prev => ({ ...prev, selectedProject: null }));
+            setNavigationState(prev => ({ ...prev, selectedProject: null, dashboardState: null }));
             setActivePage('Overview');
             
             // Enhanced navigation to Current Alerts section with multiple fallbacks
@@ -724,7 +727,12 @@ const apiUrl = window.location.hostname === 'localhost'
                         }
                     }, 500);
                 }
-            }, 200);
+            }, 100);
+            // Extra enforcement scroll to counter any later auto-scrolls
+            setTimeout(() => {
+                const currentAlertsSection2 = document.querySelector('[data-section="current-alerts"]');
+                if (currentAlertsSection2) currentAlertsSection2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 700);
             return;
         }
         

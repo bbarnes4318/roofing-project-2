@@ -51,35 +51,25 @@ const WorkflowImportPage = ({ colorMode }) => {
     const fetchWorkflowPhases = async () => {
       try {
         console.log('🔍 WORKFLOW IMPORT: Fetching workflow phases for dropdown...');
-        const response = await fetch('/api/workflow-data/phases', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        const api = (await import('../../services/api')).default;
+        const response = await api.get('/workflow-data/phases');
+        const result = response.data;
+        if (result?.success && result.data) {
+          const phases = result.data.map(phase => ({
+            id: phase.id,
+            name: phase.name,
+            displayName: phase.displayName || phase.name
+          }));
+          setWorkflowPhases(phases);
+          if (phases.length > 0) {
+            setStartingPhase(phases[0].id);
           }
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const phases = result.data.map(phase => ({
-              id: phase.id,
-              name: phase.name,
-              displayName: phase.displayName || phase.name
-            }));
-            setWorkflowPhases(phases);
-            // Set the first phase as default if available
-            if (phases.length > 0) {
-              setStartingPhase(phases[0].id);
-            }
-            console.log('✅ WORKFLOW IMPORT: Loaded workflow phases from database:', phases);
-          } else {
-            throw new Error('Invalid response format');
-          }
+          console.log('✅ WORKFLOW IMPORT: Loaded workflow phases from database:', phases);
         } else {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error('Invalid response format');
         }
       } catch (error) {
         console.error('❌ WORKFLOW IMPORT: Failed to fetch workflow phases:', error);
-        // Fallback phases if API fails
         const fallbackPhases = [
           { id: 'LEAD', name: 'LEAD', displayName: 'Lead' },
           { id: 'PROSPECT', name: 'PROSPECT', displayName: 'Prospect' },

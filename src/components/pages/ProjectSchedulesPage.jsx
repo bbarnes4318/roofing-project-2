@@ -123,27 +123,19 @@ export default function ProjectSchedulesPage() {
     const fetchWorkflowPhases = async () => {
       try {
         console.log('🔍 PROJECT SCHEDULES: Fetching workflow phases for status filter...');
-        const response = await fetch('/api/workflow-data/phases', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          }
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const phases = result.data.map(phase => ({
-              id: phase.id,
-              name: phase.name,
-              displayName: phase.displayName || phase.name
-            }));
-            setWorkflowPhases(phases);
-            console.log('✅ PROJECT SCHEDULES: Loaded workflow phases from database:', phases);
-          } else {
-            throw new Error('Invalid response format');
-          }
+        const api = (await import('../../services/api')).default;
+        const response = await api.get('/workflow-data/phases');
+        const result = response.data;
+        if (result?.success && result.data) {
+          const phases = result.data.map(phase => ({
+            id: phase.id,
+            name: phase.name,
+            displayName: phase.displayName || phase.name
+          }));
+          setWorkflowPhases(phases);
+          console.log('✅ PROJECT SCHEDULES: Loaded workflow phases from database:', phases);
         } else {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error('Invalid response format');
         }
       } catch (error) {
         console.error('❌ PROJECT SCHEDULES: Failed to fetch workflow phases:', error);
