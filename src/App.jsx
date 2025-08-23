@@ -643,7 +643,11 @@ const apiUrl = window.location.hostname === 'localhost'
         // Robustly determine source section to ensure correct Back behavior
         const normalizedReturnTo = (project?.returnToSection || '').toString().toLowerCase();
         const inferredSourceFromReturn = normalizedReturnTo === 'current-alerts' ? 'Current Alerts' : null;
-        const effectiveSourceSection = sourceSection || project?.navigationSource || inferredSourceFromReturn || navigationState.projectSourceSection || null;
+        // Preserve 'Current Alerts' as the origin even when navigating via intermediary pages (e.g., Project Profile → Workflow)
+        let effectiveSourceSection = sourceSection || project?.navigationSource || inferredSourceFromReturn || navigationState.projectSourceSection || null;
+        if (navigationState.projectSourceSection === 'Current Alerts' && effectiveSourceSection !== 'Current Alerts') {
+            effectiveSourceSection = 'Current Alerts';
+        }
 
         const newNavigationState = {
             selectedProject: projectWithEnhancements,
