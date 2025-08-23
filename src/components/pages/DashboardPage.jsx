@@ -3117,12 +3117,23 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {projectTypeRaw && (
                                 <span
-                                  className={`px-2 py-0.5 rounded-full border text-[8px] font-semibold ${
-                                    colorMode ? getProjectTypeColorDark(projectTypeRaw) : getProjectTypeColor(projectTypeRaw)
-                                  }`}
+                                  className={
+                                    `inline-flex items-center justify-center w-16 h-4 border border-brand-500 text-black ` +
+                                    `rounded-md hover:bg-brand-50 transition-colors font-semibold overflow-hidden px-1`
+                                  }
                                   title={`Project Type: ${formatProjectType(projectTypeRaw)}`}
                                 >
-                                  {formatProjectType(projectTypeRaw)}
+                                  <span
+                                    className={`uppercase leading-none whitespace-nowrap tracking-tight ${
+                                      String(formatProjectType(projectTypeRaw) || '').length > 16
+                                        ? 'text-[6px]'
+                                        : String(formatProjectType(projectTypeRaw) || '').length > 12
+                                          ? 'text-[7px]'
+                                          : 'text-[8px]'
+                                    }`}
+                                  >
+                                    {String(formatProjectType(projectTypeRaw) || '').toUpperCase()}
+                                  </span>
                                 </span>
                               )}
                               <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>

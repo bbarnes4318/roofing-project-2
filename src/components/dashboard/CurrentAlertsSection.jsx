@@ -615,10 +615,10 @@ const CurrentAlertsSection = ({
     <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="current-alerts">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+          <h2 className="text-2xl leading-tight font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
             Current Alerts
           </h2>
-          <p className="text-sm text-gray-600 font-medium">
+          <p className="text-[15px] leading-snug text-gray-600 font-medium">
             Active workflow alerts requiring attention
           </p>
         </div>
@@ -769,7 +769,7 @@ const CurrentAlertsSection = ({
 
                       
                       {/* Title */}
-                      <h3 className="font-semibold text-gray-900 truncate flex-1">
+                      <h3 className="font-semibold text-[17px] leading-tight text-gray-900 truncate flex-1">
                         {alert.title}
                       </h3>
                       
@@ -792,9 +792,11 @@ const CurrentAlertsSection = ({
                       {/* Project Type Tag */}
                       {alert.projectType && (
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold border ${
-                            colorMode ? getProjectTypeColorDark(alert.projectType) : getProjectTypeColor(alert.projectType)
-                          }`}
+                          className={
+                            `px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 ` +
+                            `transition-colors text-xs font-medium border border-blue-200 ` +
+                            `max-w-[160px] whitespace-nowrap truncate`
+                          }
                           title={`Project Type: ${formatProjectType(alert.projectType)}`}
                         >
                           {formatProjectType(alert.projectType)}
@@ -803,7 +805,7 @@ const CurrentAlertsSection = ({
                     </div>
                     
                     {/* Message */}
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                    <p className="text-[15px] leading-snug text-gray-600 mb-2 line-clamp-2">
                       {alert.message}
                     </p>
                     
