@@ -922,53 +922,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     return props.bgColor || 'bg-gray-500';
   };
 
-  if (!project) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">No project selected</div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <div className="text-gray-600">Loading workflow from database...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadingError) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="text-red-600 font-semibold mb-2">Failed to Load Workflow</div>
-          <div className="text-red-500 text-sm">{loadingError}</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!workflowData || workflowData.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <div className="text-yellow-600 font-semibold">No Workflow Data Found</div>
-          <div className="text-yellow-500 text-sm mt-1">Unable to load workflow structure from database.</div>
-        </div>
-      </div>
-    );
-  }
-
   // Get current workflow data based on active tab
-  const currentWorkflow = workflowData[activeWorkflowIndex];
+  const currentWorkflow = workflowData?.[activeWorkflowIndex];
   const currentWorkflowPhases = currentWorkflow?.phases || [];
 
   useEffect(() => {
@@ -1067,6 +1022,51 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     run();
   // Include navigationNonce so each new click with a new nonce re-triggers
   }, [targetLineItemId, targetSectionId, project?.navigationTarget?.phase, project?.navigationTarget?.section, project?.navigationTarget?.lineItemId, navigationNonce, selectionNonce, currentWorkflowPhases]);
+
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">No project selected</div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <div className="text-gray-600">Loading workflow from database...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingError) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="text-red-600 font-semibold mb-2">Failed to Load Workflow</div>
+          <div className="text-red-500 text-sm">{loadingError}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!workflowData || workflowData.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <div className="text-yellow-600 font-semibold">No Workflow Data Found</div>
+          <div className="text-yellow-500 text-sm mt-1">Unable to load workflow structure from database.</div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="max-w-4xl mx-auto p-0 space-y-0">
