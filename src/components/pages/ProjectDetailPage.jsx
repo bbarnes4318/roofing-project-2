@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { ChevronLeftIcon, LocationMarkerIcon } from '../common/Icons';
 import ProjectChecklistPage from './ProjectChecklistPage';
-
+import ProjectMessagesPage from './ProjectMessagesPage';
 import ProjectDocumentsPage from './ProjectDocumentsPage';
 import TasksAndAlertsPage from './TasksAndAlertsPage';
 import ProjectProfileTab from './ProjectProfileTab';
