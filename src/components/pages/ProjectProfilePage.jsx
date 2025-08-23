@@ -674,15 +674,23 @@ const ProjectProfilePage = ({
                                         <span className={`${colorMode ? 'text-gray-500' : 'text-gray-300'}`}>|</span>
                                         <span className={`${colorMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Section:</span>
                                         <span className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                            {WorkflowDataService.getCurrentSection(selectedProject) || 'Not Available'}
+                                            {(() => {
+                                                const cw = selectedProject?.currentWorkflowItem;
+                                                // Prefer display name if provided by backend
+                                                if (cw?.sectionDisplayName) return cw.sectionDisplayName;
+                                                if (cw?.sectionName) return cw.sectionName;
+                                                if (cw?.section) return cw.section;
+                                                return 'Not Available';
+                                            })()}
                                         </span>
                                         <span className={`${colorMode ? 'text-gray-500' : 'text-gray-300'}`}>|</span>
                                         <span className={`${colorMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Line Item:</span>
                                         <button
                                             onClick={async () => {
                                                 // Enhanced navigation to specific line item in workflow
+                                                const cw = selectedProject?.currentWorkflowItem;
                                                 const currentLineItem = WorkflowDataService.getCurrentLineItem(selectedProject);
-                                                const currentSection = WorkflowDataService.getCurrentSection(selectedProject);
+                                                const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(selectedProject);
                                                 const currentPhase = getPhaseForProject(selectedProject.id);
                                                 
                                                 if (currentLineItem && selectedProject) {
@@ -709,7 +717,8 @@ const ProjectProfilePage = ({
                                                                                        `${currentPhase}-${currentSection}-0`;
                                                                 
                                                                 const targetSectionId = position.currentSectionId || 
-                                                                                      currentSection?.toLowerCase().replace(/\s+/g, '-') || 
+                                                                                      cw?.sectionId || 
+                                                                                      (typeof currentSection === 'string' ? currentSection.toLowerCase().replace(/\s+/g, '-') : currentSection) || 
                                                                                       '';
                                                                 
                                                                 console.log('🎯 PROJECT PROFILE: Target IDs:', {

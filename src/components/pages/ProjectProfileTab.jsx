@@ -324,15 +324,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 bg-white border border-slate-200 rounded-full px-2 py-0.5 truncate">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
               {(() => {
-                if (project.currentWorkflowItem?.sectionDisplayName) {
-                  return project.currentWorkflowItem.sectionDisplayName;
-                }
-                if (project.currentWorkflowItem?.sectionName) {
-                  return project.currentWorkflowItem.sectionName;
-                }
-                if (project.currentWorkflowItem?.section) {
-                  return project.currentWorkflowItem.section;
-                }
+                const cw = project.currentWorkflowItem;
+                if (cw?.sectionDisplayName) return cw.sectionDisplayName;
+                if (cw?.sectionName) return cw.sectionName;
+                if (cw?.section) return cw.section;
                 return 'Not Available';
               })()}
             </span>
@@ -385,8 +380,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                         };
                         const subtaskIndex = await getSubtaskIndex();
                         // Prefer DB line item id; fallback to PHASE-SECTION-INDEX format
-                        const targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-                        const targetSectionId = position.currentSection;
+                        const targetLineItemId = position.currentLineItem || position.currentLineItemId || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
+                        const targetSectionId = position.currentSectionId || position.currentSection;
                         onProjectSelect(project, 'Project Workflow', null, 'Project Profile', targetLineItemId, targetSectionId);
                       } else {
                         onProjectSelect(project, 'Project Workflow', null, 'Project Profile');
@@ -405,15 +400,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
               {(() => {
-                if (project.currentWorkflowItem?.lineItemName) {
-                  return project.currentWorkflowItem.lineItemName;
-                }
-                if (project.currentWorkflowItem?.lineItem) {
-                  return project.currentWorkflowItem.lineItem;
-                }
-                if (project.currentWorkflowItem?.itemName) {
-                  return project.currentWorkflowItem.itemName;
-                }
+                const cw = project.currentWorkflowItem;
+                if (cw?.lineItemName) return cw.lineItemName;
+                if (cw?.lineItem) return cw.lineItem;
+                if (cw?.itemName) return cw.itemName;
                 return 'View Workflow';
               })()}
             </button>

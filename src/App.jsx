@@ -629,11 +629,18 @@ const apiUrl = window.location.hostname === 'localhost'
             name: project?.name || project?.projectName || 'Selected Project'
         };
 
+        // Robustly determine source section to ensure correct Back behavior
+        const normalizedReturnTo = (project?.returnToSection || '').toString().toLowerCase();
+        const inferredSourceFromReturn = normalizedReturnTo === 'current-alerts' ? 'Current Alerts' : null;
+        const effectiveSourceSection = sourceSection || project?.navigationSource || inferredSourceFromReturn || navigationState.projectSourceSection || null;
+
         const newNavigationState = {
             selectedProject: projectWithEnhancements,
             projectInitialView: view,
-            projectSourceSection: sourceSection,
-            previousPage: navigationState.selectedProject ? navigationState.previousPage : activePage,
+            projectSourceSection: effectiveSourceSection,
+            previousPage: (effectiveSourceSection === 'Current Alerts')
+              ? 'Overview'
+              : (navigationState.selectedProject ? navigationState.previousPage : activePage),
             // Preserve the dashboard state for back navigation if provided
             dashboardState: project?.dashboardState || navigationState.dashboardState,
             targetLineItemId: targetLineItemId, // For direct line item navigation
