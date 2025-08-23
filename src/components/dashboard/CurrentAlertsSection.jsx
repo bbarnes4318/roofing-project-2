@@ -4,6 +4,7 @@ import BackButton from '../common/BackButton';
 import { useWorkflowAlerts } from '../../hooks/useQueryApi';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 
 const CurrentAlertsSection = ({ 
   alerts = [], 
@@ -433,6 +434,7 @@ const CurrentAlertsSection = ({
       id: alert._id || alert.id,
       projectId: metadata.projectId || alert.projectId || project._id || project.id,
       projectName: project.projectName || alert.projectName || project.name,
+      projectType: alert.projectType || project.projectType || metadata.projectType,
       title: alert.title || metadata.title || metadata.stepName || alert.stepName || 'Alert',
       message: alert.message || metadata.message || '',
       stepName: lineItemName, // Use the properly resolved line item name
@@ -786,6 +788,18 @@ const CurrentAlertsSection = ({
                       >
                         {alert.projectName}
                       </span>
+
+                      {/* Project Type Tag */}
+                      {alert.projectType && (
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-semibold border ${
+                            colorMode ? getProjectTypeColorDark(alert.projectType) : getProjectTypeColor(alert.projectType)
+                          }`}
+                          title={`Project Type: ${formatProjectType(alert.projectType)}`}
+                        >
+                          {formatProjectType(alert.projectType)}
+                        </span>
+                      )}
                     </div>
                     
                     {/* Message */}
@@ -811,7 +825,7 @@ const CurrentAlertsSection = ({
                           {alert.stepName}
                         </span>
                       </div>
-                      <span>Role: {alert.responsibleRole}</span>
+                      {/* Removed role pill per request; replaced with project type tag above */}
                       <span>Created: {new Date(alert.createdAt).toLocaleDateString()}</span>
                       {alert.dueDate && (
                         <span className={new Date(alert.dueDate) < new Date() ? 'text-red-600 font-medium' : ''}>

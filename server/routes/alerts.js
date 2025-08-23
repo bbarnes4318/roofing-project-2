@@ -244,6 +244,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
             id: true,
             projectNumber: true,
             projectName: true,
+            projectType: true,
             status: true,
             customer: {
               select: {
@@ -342,6 +343,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
         priority: alert.priority.charAt(0) + alert.priority.slice(1).toLowerCase(),
         status: alert.status,
         projectId: alert.projectId,
+        projectType: metadata.projectType || alert.project?.projectType || null,
         isRead: alert.isRead,
         read: alert.isRead,
         createdAt: alert.createdAt,
@@ -356,6 +358,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
           _id: alert.project.id,
           projectName: alert.project.projectName,
           projectNumber: alert.project.projectNumber,
+          projectType: alert.project?.projectType || metadata.projectType || null,
           name: alert.project.customer?.primaryName || 'Unknown Customer'
         },
         metadata: {
@@ -364,6 +367,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
           projectId: alert.projectId,
           projectName: alert.project.projectName,
           projectNumber: alert.project.projectNumber,
+          projectType: metadata.projectType || alert.project?.projectType || null,
           customerName: alert.project.customer?.primaryName,
           // Ensure a normalized canonical phase is always present
           phase: normalizedPhase,

@@ -1288,12 +1288,7 @@ const apiUrl = window.location.hostname === 'localhost'
                 {/* Desktop header with user profile */}
                 <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
                     <div className="flex items-center flex-1 min-w-0">
-                        {activePage === 'Overview' ? (
-                            <div className="flex-shrink-0">
-                                <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{getGreeting()}</h1>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-600'}`}>Here's what's happening with your projects today.</p>
-                            </div>
-                        ) : (
+                        {activePage !== 'Overview' && (
                             <div className="flex-shrink-0">
                                 <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                                     {activePage === 'Alerts' ? 'Project Alerts' :
@@ -1323,7 +1318,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         )}
                         
                         {/* Global Search - Center */}
-                        <div className="flex-1 max-w-md mx-8">
+                        <div className="flex-1 max-w-3xl xl:max-w-4xl mx-8">
                             <GlobalSearch
                                 projects={projects}
                                 activities={activities}

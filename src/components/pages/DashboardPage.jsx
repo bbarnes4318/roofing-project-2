@@ -2977,6 +2977,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   };
                   
                   const correctUserGroup = getUserGroupFromAlert(alert);
+                  // Determine project type from alert payload with reliable fallbacks
+                  const projectTypeRaw = alert.projectType 
+                    || alert.relatedProject?.projectType 
+                    || actionData.projectType 
+                    || project?.projectType;
                   
                   // Use WorkflowProgressService for consistent phase colors and initials
                   const getPhaseProps = (phase) => {
@@ -3108,9 +3113,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </div>
                             </div>
                             
-                            {/* Right Section: User Group & Arrow */}
+                            {/* Right Section: Project Type Tag & Arrow */}
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <div className={`px-2 py-0.5 rounded-full border bg-white ${colorMode ? 'border-gray-400' : 'border-gray-300'} text-black text-[8px] font-semibold`}>{correctUserGroup}</div>
+                              {projectTypeRaw && (
+                                <span
+                                  className={`px-2 py-0.5 rounded-full border text-[8px] font-semibold ${
+                                    colorMode ? getProjectTypeColorDark(projectTypeRaw) : getProjectTypeColor(projectTypeRaw)
+                                  }`}
+                                  title={`Project Type: ${formatProjectType(projectTypeRaw)}`}
+                                >
+                                  {formatProjectType(projectTypeRaw)}
+                                </span>
+                              )}
                               <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                                 <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
