@@ -198,7 +198,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">Current Project Access</h2>
-            <p className={`text-xs mt-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Quick access to project management tools and communications</p>
+            {/* Subtitle removed per request */}
           </div>
           
           {/* Navigation Info and Controls */}

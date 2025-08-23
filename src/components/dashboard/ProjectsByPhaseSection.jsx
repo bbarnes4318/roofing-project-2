@@ -701,13 +701,13 @@ const ProjectsByPhaseSection = ({
                             <div className="grid grid-cols-2 gap-2">
                               <button
                                 onClick={() => handleProjectNavigation(project, 'Project Workflow', phase.id, phase.name)}
-                                className="px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
+                                className="inline-flex items-center justify-center w-16 h-6 border border-brand-500 text-black rounded-md hover:bg-brand-50 transition-colors text-[10px] font-semibold"
                               >
                                 Workflow
                               </button>
                               <button
                                 onClick={() => handleProjectNavigation(project, 'Messages', phase.id, phase.name)}
-                                className="px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-xs font-medium"
+                                className="inline-flex items-center justify-center w-16 h-6 border border-brand-500 text-black rounded-md hover:bg-brand-50 transition-colors text-[10px] font-semibold"
                               >
                                 Messages
                               </button>

@@ -1847,9 +1847,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
               Current Projects by Phase
             </h2>
-            <p className="text-sm text-gray-600 font-medium">
-              Complete project details organized by phase
-            </p>
+            {/* Subtitle removed per request */}
           </div>
           
           <div className="flex items-center gap-3">
@@ -2335,7 +2333,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               };
                               handleProjectSelectWithScroll(projectWithDashboardState, 'Alerts', null, 'Project Phases');
                             }}
-                            className="w-16 h-6 border border-brand-500 text-black text-xs rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
+                            className="inline-flex items-center justify-center w-16 h-6 border border-brand-500 text-black rounded-md hover:bg-brand-50 transition-colors text-[10px] font-semibold"
                           >
                             Alerts
                           </button>
@@ -2356,7 +2354,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               };
                               handleProjectSelectWithScroll(projectWithDashboardState, 'Messages', null, 'Project Phases');
                             }}
-                            className="w-16 h-6 border border-brand-500 text-black text-xs rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
+                            className="inline-flex items-center justify-center w-16 h-6 border border-brand-500 text-black rounded-md hover:bg-brand-50 transition-colors text-[10px] font-semibold"
                           >
                             Messages
                           </button>
@@ -2460,7 +2458,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 }
                               }
                             }}
-                            className="w-16 h-6 border border-brand-500 text-black text-xs rounded-full hover:bg-brand-50 transition-colors flex items-center justify-center"
+                            className="inline-flex items-center justify-center w-16 h-6 border border-brand-500 text-black rounded-md hover:bg-brand-50 transition-colors text-[10px] font-semibold"
                           >
                             Workflow
                           </button>
