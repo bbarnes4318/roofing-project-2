@@ -673,6 +673,12 @@ export const bubblesService = {
     return response.data;
   },
 
+  // Get current step for selected project
+  getCurrentStep: async (projectId) => {
+    const response = await api.get(`/bubbles/project/${projectId}/current-step`);
+    return response.data;
+  },
+
   // Execute Bubbles action
   executeAction: async (actionType, parameters = {}) => {
     const response = await api.post('/bubbles/action', {

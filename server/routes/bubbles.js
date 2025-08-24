@@ -17,6 +17,126 @@ const router = express.Router();
 const workflowActionService = new WorkflowActionService();
 const knowledgeBaseService = new KnowledgeBaseService();
 
+// Helper: derive intent and handle locally when AI is unavailable or returns plain text
+async function handleHeuristicIntent(message, projectContext, userId) {
+  const text = String(message || '').toLowerCase();
+  if (!projectContext) return { handled: false };
+
+  // Project status summary
+  if (text.includes('status') || text.includes('project status')) {
+    // Pull basic status from DB
+    const [tracker, activeAlerts] = await Promise.all([
+      prisma.projectWorkflowTracker.findFirst({
+        where: { projectId: projectContext.id, isMainWorkflow: true },
+        select: { id: true, currentLineItemId: true }
+      }),
+      prisma.workflowAlert.count({ where: { projectId: projectContext.id, status: 'ACTIVE' } })
+    ]);
+
+    let currentStep = null;
+    let phaseName = null;
+    if (tracker?.currentLineItemId) {
+      const li = await prisma.workflowLineItem.findUnique({
+        where: { id: tracker.currentLineItemId },
+        select: { itemName: true, section: { select: { phase: { select: { phaseType: true } } } } }
+      });
+      currentStep = li?.itemName || null;
+      phaseName = li?.section?.phase?.phaseType || null;
+    }
+
+    const pct = typeof projectContext.progress === 'number' ? Math.round(projectContext.progress) : null;
+    const content = [
+      `**${projectContext.projectName || 'Project'} — Status**`,
+      pct !== null ? `- Progress: ${pct}%` : null,
+      phaseName ? `- Phase: ${phaseName}` : null,
+      currentStep ? `- Current step: ${currentStep}` : null,
+      `- Active alerts: ${activeAlerts}`,
+      '',
+      'Next actions:',
+      '- Check blocking tasks',
+      '- Show incomplete tasks in current phase',
+      '- Reassign current step'
+    ].filter(Boolean).join('\n');
+
+    return { handled: true, content };
+  }
+
+  // Complete/mark task
+  if (text.includes('check off') || text.includes('complete') || text.includes('mark')) {
+    // Prefer explicit quoted name
+    let lineItemName = null;
+    const match = message.match(/"([^"]+)"/);
+    if (match) {
+      lineItemName = match[1];
+    } else {
+      // Fallback: fuzzy token search (longer tokens only)
+      const tokens = text.split(/[^a-z0-9]+/i).filter(t => t && t.length >= 4);
+      // Search by the first meaningful token that matches a line item
+      for (const token of tokens) {
+        const li = await prisma.workflowLineItem.findFirst({
+          where: {
+            isActive: true,
+            isCurrent: true,
+            itemName: { contains: token, mode: 'insensitive' }
+          },
+          select: { itemName: true, id: true }
+        });
+        if (li) { lineItemName = li.itemName; break; }
+      }
+    }
+    if (lineItemName) {
+      const result = await workflowActionService.markLineItemComplete(projectContext.id, lineItemName, userId);
+      return { handled: true, content: result.message || `Marked "${lineItemName}" complete.` };
+    }
+  }
+
+  // Incomplete items
+  if (text.includes('incomplete')) {
+    // Try to infer current phase via tracker
+    const tracker = await prisma.projectWorkflowTracker.findFirst({
+      where: { projectId: projectContext.id, isMainWorkflow: true },
+      select: { currentLineItemId: true }
+    });
+    let phaseName = null;
+    if (tracker?.currentLineItemId) {
+      const li = await prisma.workflowLineItem.findUnique({
+        where: { id: tracker.currentLineItemId },
+        select: { section: { select: { phase: { select: { phaseType: true } } } } }
+      });
+      phaseName = li?.section?.phase?.phaseType || null;
+    }
+    if (phaseName) {
+      const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, phaseName);
+      const msg = items.length
+        ? `Incomplete tasks in ${phaseName}:\n${items.map(i => `- ${i.itemName} (section: ${i.sectionName})`).join('\n')}`
+        : `All tasks in ${phaseName} are complete.`;
+      return { handled: true, content: msg };
+    }
+  }
+
+  // Blocking task
+  if (text.includes('blocking')) {
+    const tracker = await prisma.projectWorkflowTracker.findFirst({
+      where: { projectId: projectContext.id, isMainWorkflow: true },
+      select: { currentLineItemId: true }
+    });
+    let phaseName = null;
+    if (tracker?.currentLineItemId) {
+      const li = await prisma.workflowLineItem.findUnique({
+        where: { id: tracker.currentLineItemId },
+        select: { section: { select: { phase: { select: { phaseType: true } } } } }
+      });
+      phaseName = li?.section?.phase?.phaseType || null;
+    }
+    if (phaseName) {
+      const blocker = await workflowActionService.findBlockingTask(projectContext.id, phaseName);
+      return { handled: true, content: blocker ? `Blocker in ${phaseName}: "${blocker.itemName}".` : `No blockers in ${phaseName}.` };
+    }
+  }
+
+  return { handled: false };
+}
+
 
 // Apply authentication to all routes
 router.use(authenticateToken);
@@ -201,7 +321,13 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
     const session = contextManager.getUserSession(userId);
-    const aiResponse = await openAIService.generateResponse(message, { systemPrompt, conversationHistory: session.conversationHistory });
+    const aiResponse = await openAIService.generateResponse(message, {
+      systemPrompt,
+      conversationHistory: session.conversationHistory,
+      projectName: projectContext?.projectName,
+      progress: projectContext?.progress,
+      status: projectContext?.status
+    });
     
     let finalResponseContent = '';
 
@@ -252,55 +378,61 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
             finalResponseContent = aiResponse.content;
         }
     } catch (e) {
-        // Retry with stricter instruction to respond ONLY with JSON tool call
-        const strictPrompt = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with a JSON object like {\"tool\": <name>, \"parameters\": { ... }} for actionable requests. No extra text.`;
-        const strictResponse = await openAIService.generateResponse(message, { systemPrompt: strictPrompt });
-        try {
-            const toolCall = JSON.parse(strictResponse.content);
-            if (toolCall.tool && toolCall.parameters) {
-                let toolResult;
-                const params = toolCall.parameters;
-                const newUser = params.newUserEmail ? await prisma.user.findUnique({ where: { email: params.newUserEmail } }) : null;
+        // Heuristic handling for common intents when AI didn't return JSON
+        const heuristic = await handleHeuristicIntent(message, projectContext, userId);
+        if (heuristic.handled) {
+            finalResponseContent = heuristic.content;
+        } else {
+            // Retry with stricter instruction to respond ONLY with JSON tool call
+            const strictPrompt = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with a JSON object like {"tool": <name>, "parameters": { ... }} for actionable requests. No extra text.`;
+            const strictResponse = await openAIService.generateResponse(message, { systemPrompt: strictPrompt });
+            try {
+                const toolCall = JSON.parse(strictResponse.content);
+                if (toolCall.tool && toolCall.parameters) {
+                    let toolResult;
+                    const params = toolCall.parameters;
+                    const newUser = params.newUserEmail ? await prisma.user.findUnique({ where: { email: params.newUserEmail } }) : null;
 
-                switch (toolCall.tool) {
-                    case 'mark_line_item_complete_and_notify':
-                        toolResult = await workflowActionService.markLineItemComplete(projectContext.id, params.lineItemName, userId);
-                        break;
-                    case 'get_incomplete_items_in_phase':
-                        const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, params.phaseName);
-                        const responseMessage = items.length > 0
-                          ? `Here are the incomplete tasks for the ${params.phaseName} phase:\n${items.map(i => `- ${i.itemName} (section: ${i.sectionName})`).join('\n')}`
-                          : `All tasks in the ${params.phaseName} phase are complete.`;
-                        toolResult = { success: true, message: responseMessage };
-                        break;
-                    case 'find_blocking_task':
-                        const task = await workflowActionService.findBlockingTask(projectContext.id, params.phaseName);
-                        toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.itemName}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
-                        break;
-                    case 'check_phase_readiness':
-                        toolResult = await workflowActionService.canAdvancePhase(projectContext.id, params.phaseName);
-                        break;
-                    case 'reassign_task':
-                        if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
-                        else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
-                        break;
-                    case 'answer_company_question':
-                        const answer = await knowledgeBaseService.answerQuestion(params.question);
-                        toolResult = { success: true, message: answer };
-                        break;
-                    default:
-                        toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
+                    switch (toolCall.tool) {
+                        case 'mark_line_item_complete_and_notify':
+                            toolResult = await workflowActionService.markLineItemComplete(projectContext.id, params.lineItemName, userId);
+                            break;
+                        case 'get_incomplete_items_in_phase':
+                            const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, params.phaseName);
+                            const responseMessage = items.length > 0
+                              ? `Here are the incomplete tasks for the ${params.phaseName} phase:\n${items.map(i => `- ${i.itemName} (section: ${i.sectionName})`).join('\n')}`
+                              : `All tasks in the ${params.phaseName} phase are complete.`;
+                            toolResult = { success: true, message: responseMessage };
+                            break;
+                        case 'find_blocking_task':
+                            const task = await workflowActionService.findBlockingTask(projectContext.id, params.phaseName);
+                            toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.itemName}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
+                            break;
+                        case 'check_phase_readiness':
+                            toolResult = await workflowActionService.canAdvancePhase(projectContext.id, params.phaseName);
+                            break;
+                        case 'reassign_task':
+                            if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
+                            else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
+                            break;
+                        case 'answer_company_question':
+                            const answer = await knowledgeBaseService.answerQuestion(params.question);
+                            toolResult = { success: true, message: answer };
+                            break;
+                        default:
+                            toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
+                    }
+
+                    const confirmationPrompt = `The user's action was processed. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions.`;
+                    const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt);
+                    finalResponseContent = finalAiResponse.content;
+                } else {
+                    finalResponseContent = strictResponse.content;
                 }
-
-                const confirmationPrompt = `The user's action was processed. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions.`;
-                const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt);
-                finalResponseContent = finalAiResponse.content;
-            } else {
+            } catch (e2) {
+                // If still not JSON, just return the conversational response
                 finalResponseContent = strictResponse.content;
             }
-        } catch (e2) {
-            // If still not JSON, just return the conversational response
-            finalResponseContent = strictResponse.content;
         }
     }
 
@@ -419,6 +551,131 @@ router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) =>
     totalRecommendations: recommendations.length,
     generatedAt: new Date()
   }, 'Optimization recommendations generated');
+}));
+
+// @desc    Get current step (phase, section, line item) for a project
+// @route   GET /api/bubbles/project/:projectId/current-step
+// @access  Private
+router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => {
+  const projectId = String(req.params.projectId);
+  const tracker = await prisma.projectWorkflowTracker.findFirst({
+    where: { projectId, isMainWorkflow: true },
+    select: { id: true, currentLineItemId: true, currentPhaseId: true }
+  });
+  if (!tracker) {
+    return sendSuccess(res, 200, { current: null }, 'No workflow tracker');
+  }
+  let li = null;
+  if (tracker.currentLineItemId) {
+    li = await prisma.workflowLineItem.findUnique({
+      where: { id: tracker.currentLineItemId },
+      select: {
+        id: true,
+        itemName: true,
+        responsibleRole: true,
+        section: { select: { id: true, displayName: true, phase: { select: { id: true, phaseType: true, phaseName: true } } } }
+      }
+    });
+  }
+  // Fallback: compute first incomplete item in current phase
+  if (!li) {
+    let phaseName = null;
+    if (tracker.currentPhaseId) {
+      const phase = await prisma.workflowPhase.findUnique({ where: { id: tracker.currentPhaseId }, select: { phaseType: true, phaseName: true } });
+      phaseName = phase?.phaseType || phase?.phaseName || null;
+    }
+    if (phaseName) {
+      try {
+        const items = await new WorkflowActionService().getIncompleteItemsInPhase(projectId, phaseName);
+        if (items && items.length > 0) {
+          const first = items[0];
+          return sendSuccess(res, 200, { current: {
+            lineItemId: first.id,
+            lineItemName: first.itemName,
+            sectionId: null,
+            sectionName: first.sectionName,
+            phaseId: null,
+            phaseType: first.phaseName || phaseName,
+            phaseName: first.phaseName || phaseName,
+            responsibleRole: null
+          } }, 'Current step fetched (computed)');
+        }
+      } catch (_) {}
+    }
+
+    // Fallback 2: derive from active workflow alerts
+    try {
+      const alert = await prisma.workflowAlert.findFirst({
+        where: { projectId, status: 'ACTIVE', lineItemId: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          lineItemId: true,
+          lineItem: {
+            select: {
+              id: true,
+              itemName: true,
+              responsibleRole: true,
+              section: { select: { id: true, displayName: true, phase: { select: { id: true, phaseType: true, phaseName: true } } } }
+            }
+          }
+        }
+      });
+      if (alert?.lineItem) {
+        const li2 = alert.lineItem;
+        return sendSuccess(res, 200, { current: {
+          lineItemId: li2.id,
+          lineItemName: li2.itemName,
+          sectionId: li2.section?.id,
+          sectionName: li2.section?.displayName,
+          phaseId: li2.section?.phase?.id,
+          phaseType: li2.section?.phase?.phaseType,
+          phaseName: li2.section?.phase?.phaseName,
+          responsibleRole: li2.responsibleRole
+        } }, 'Current step fetched (from active alert)');
+      }
+    } catch (_) {}
+
+    // Fallback 3: compute first active item across current active phase/sections
+    try {
+      const wfType = tracker?.workflowType || 'ROOFING';
+      const phaseAny = await prisma.workflowPhase.findFirst({
+        where: { isActive: true, isCurrent: true, workflowType: wfType },
+        orderBy: { displayOrder: 'asc' },
+        include: {
+          sections: {
+            where: { isActive: true, isCurrent: true },
+            orderBy: { displayOrder: 'asc' },
+            include: { lineItems: { where: { isActive: true, isCurrent: true }, orderBy: { displayOrder: 'asc' } } }
+          }
+        }
+      });
+      const firstSection = phaseAny?.sections?.[0] || null;
+      const firstItem = firstSection?.lineItems?.[0] || null;
+      if (firstItem) {
+        return sendSuccess(res, 200, { current: {
+          lineItemId: firstItem.id,
+          lineItemName: firstItem.itemName,
+          sectionId: firstSection.id,
+          sectionName: firstSection.displayName,
+          phaseId: phaseAny.id,
+          phaseType: phaseAny.phaseType,
+          phaseName: phaseAny.phaseName,
+          responsibleRole: firstItem.responsibleRole
+        } }, 'Current step fetched (first active)');
+      }
+    } catch (_) {}
+  }
+  const current = li ? {
+    lineItemId: li.id,
+    lineItemName: li.itemName,
+    sectionId: li.section?.id,
+    sectionName: li.section?.displayName,
+    phaseId: li.section?.phase?.id,
+    phaseType: li.section?.phase?.phaseType,
+    phaseName: li.section?.phase?.phaseName,
+    responsibleRole: li.responsibleRole
+  } : null;
+  sendSuccess(res, 200, { current }, 'Current step fetched');
 }));
 
 

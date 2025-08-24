@@ -52,6 +52,7 @@
     "workflow:init": "node scripts/init-workflow-trackers.js",
     "workflow:seed": "node scripts/seed-workflow-templates.js",
     "kb:build": "node scripts/build-knowledge-base.js",
+    "users:remove-test": "node scripts/remove-test-users.js",
     "test": "jest --runInBand",
     "ci": "prisma generate && jest --runInBand"
   }

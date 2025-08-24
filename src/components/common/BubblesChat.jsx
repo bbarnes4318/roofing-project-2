@@ -1,7 +1,9 @@
 // --- BubblesChat Component ---
 import React, { useState, useEffect, useRef } from 'react';
-import { bubblesService, workflowAlertsService } from '../../services/api';
-import { CalendarIcon, ExclamationTriangleIcon, BellIcon, SparklesIcon, ClockIcon, ChevronDownIcon, XCircleIcon, PaperAirplaneIcon } from '../common/Icons';
+import { bubblesService, workflowAlertsService, usersService, projectMessagesService } from '../../services/api';
+import socketService from '../../services/socket';
+import { CalendarIcon, ExclamationTriangleIcon, BellIcon, SparklesIcon, ClockIcon, ChevronDownIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '../common/Icons';
+import { useSubjects } from '../../contexts/SubjectsContext';
 
 const BubblesChat = ({
   isOpen,
@@ -18,6 +20,15 @@ const BubblesChat = ({
   const [insightChips, setInsightChips] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Project Message Composer state
+  const { subjects } = useSubjects();
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [composerSubject, setComposerSubject] = useState('Project Status Update');
+  const [composerRecipients, setComposerRecipients] = useState([]); // user ids
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [composerBody, setComposerBody] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   // Fetch a dynamic, AI-generated welcome message
   useEffect(() => {
@@ -54,10 +65,11 @@ const BubblesChat = ({
     const fetchChips = async () => {
       if (!isOpen || !currentProject?.id) return;
       try {
-        const [predictionRes, risksRes, alertsRes] = await Promise.all([
+        const [predictionRes, risksRes, alertsRes, currentStepRes] = await Promise.all([
           bubblesService.insights.getProjectPrediction(currentProject.id),
           bubblesService.insights.getProjectRisks(currentProject.id),
-          workflowAlertsService.getByProject(currentProject.id)
+          workflowAlertsService.getByProject(currentProject.id),
+          bubblesService.getCurrentStep(currentProject.id)
         ]);
         
         const chips = [];
@@ -69,6 +81,13 @@ const BubblesChat = ({
         
         const activeAlerts = alertsRes.data?.alerts?.data?.filter(a => a.status === 'ACTIVE').length || 0;
         chips.push({ key: 'alerts', icon: BellIcon, label: 'Alerts', value: String(activeAlerts), tone: activeAlerts > 0 ? 'warn' : 'ok', action: 'check alerts' });
+
+        const current = currentStepRes?.data?.current;
+        if (current?.lineItemName) {
+          chips.push({ key: 'complete_current', icon: SparklesIcon, label: 'Complete', value: current.lineItemName, action: `Complete "${current.lineItemName}"` });
+        }
+        // Add Send Project Message chip
+        chips.push({ key: 'send_message', icon: ChatBubbleLeftRightIcon, label: 'Send Project Message', value: '', action: 'send_project_message' });
         
         setInsightChips(chips);
       } catch (e) {
@@ -89,6 +108,19 @@ const BubblesChat = ({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Load team members when composer opens
+  useEffect(() => {
+    const loadTeam = async () => {
+      if (!isComposerOpen) return;
+      try {
+        const res = await usersService.getTeamMembers();
+        const members = Array.isArray(res?.data) ? res.data : (res?.data?.users || []);
+        setTeamMembers(members);
+      } catch (_) {}
+    };
+    loadTeam();
+  }, [isComposerOpen]);
 
   const handleSendMessage = async (messageContent = inputMessage) => {
     const trimmedMessage = messageContent.trim();
@@ -164,6 +196,60 @@ const BubblesChat = ({
     }
   };
 
+  // Message composer handlers
+  const toggleRecipient = (userId) => {
+    setComposerRecipients(prev => prev.includes(userId)
+      ? prev.filter(id => id !== userId)
+      : [...prev, userId]
+    );
+  };
+
+  const submitProjectMessage = async () => {
+    if (!currentProject?.id || !composerSubject || !composerBody.trim()) return;
+    setIsSendingMessage(true);
+    try {
+      await projectMessagesService.create(currentProject.id, {
+        content: composerBody.trim(),
+        subject: composerSubject,
+        priority: 'MEDIUM',
+        recipients: composerRecipients
+      });
+      // Emit per-recipient notifications (best-effort)
+      try {
+        if (Array.isArray(composerRecipients) && composerRecipients.length > 0) {
+          await Promise.all(
+            composerRecipients.map(uid => socketService.sendNotification({
+              title: 'New Project Message',
+              message: composerSubject,
+              type: 'PROJECT_UPDATE',
+              recipientId: uid,
+              actionData: { projectId: currentProject.id }
+            }).catch(() => null))
+          );
+        }
+      } catch (_) {}
+      setMessages(prev => [...prev, {
+        id: `msg_${Date.now()}`,
+        type: 'assistant',
+        content: `Message sent in project: ${composerSubject}\n\n${composerBody.trim()}`,
+        timestamp: new Date()
+      }]);
+      setComposerBody('');
+      setComposerRecipients([]);
+      setComposerSubject(subjects?.[0] || 'Project Status Update');
+      setIsComposerOpen(false);
+    } catch (e) {
+      setMessages(prev => [...prev, {
+        id: `msg_err_${Date.now()}`,
+        type: 'error',
+        content: 'Failed to send message. Please try again.',
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
   // Enhanced markdown renderer
   const renderMessageContent = (content) => {
     if (typeof content !== 'string') return content;
@@ -225,11 +311,19 @@ const BubblesChat = ({
               const warn = colorMode ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-700';
               const ok = colorMode ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700';
               const toneClass = chip.tone === 'warn' ? warn : chip.tone === 'ok' ? ok : base;
+              const onClick = chip.key === 'complete_current'
+                ? async () => {
+                    // Attempt completion via chat tool call; if that fails, heuristic will complete
+                    await handleSendMessage(chip.action);
+                  }
+                : chip.key === 'send_message'
+                  ? () => setIsComposerOpen(true)
+                  : () => handleSendMessage(chip.action);
               return (
-                <button key={chip.key} onClick={() => handleSendMessage(chip.action)} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs border shadow-sm hover:opacity-90 transition whitespace-nowrap ${toneClass}`}>
+                <button key={chip.key} onClick={onClick} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs border shadow-sm hover:opacity-90 transition whitespace-nowrap ${toneClass}`}>
                   <chip.icon className="w-3.5 h-3.5" />
-                  <span className="font-semibold">{chip.label}:</span>
-                  <span>{chip.value}</span>
+                  <span className="font-semibold">{chip.label}{chip.value ? ':' : ''}</span>
+                  {chip.value ? <span>{chip.value}</span> : null}
                 </button>
               );
             })}
@@ -282,6 +376,48 @@ const BubblesChat = ({
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Composer Modal */}
+        {isComposerOpen && (
+          <div className={`px-4 pb-3 border-t ${colorMode ? 'border-blue-400/20 bg-slate-900/40' : 'border-gray-200/80 bg-white/70'}`}>
+            <div className="mb-2 text-sm font-semibold flex items-center gap-2"><ChatBubbleLeftRightIcon className="w-4 h-4" /> Send Project Message</div>
+            <div className="grid grid-cols-1 gap-2">
+              <div>
+                <label className="text-xs block mb-1">Subject</label>
+                <select value={composerSubject} onChange={e => setComposerSubject(e.target.value)} className={`w-full text-sm rounded-md border px-2 py-1 ${colorMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-gray-300'}`}>
+                  {(subjects || []).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs block mb-1">Recipients</label>
+                <div className={`max-h-24 overflow-auto rounded-md border p-2 ${colorMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-gray-300'}`}>
+                  {(teamMembers || []).map(u => (
+                    <label key={u.id} className="flex items-center gap-2 text-sm py-0.5">
+                      <input type="checkbox" checked={composerRecipients.includes(u.id)} onChange={() => toggleRecipient(u.id)} />
+                      <span>{u.firstName ? `${u.firstName} ${u.lastName || ''}`.trim() : (u.name || u.email || u.id)}</span>
+                    </label>
+                  ))}
+                  {(!teamMembers || teamMembers.length === 0) && (
+                    <div className="text-xs opacity-70">No team members listed.</div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs block mb-1">Message</label>
+                <textarea value={composerBody} onChange={e => setComposerBody(e.target.value)} rows={3} className={`w-full text-sm rounded-md border px-2 py-1 resize-none ${colorMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-gray-300'}`} placeholder="Type your message..." />
+              </div>
+              <div className="flex items-center justify-end gap-2 mt-1">
+                <button onClick={() => setIsComposerOpen(false)} className={`text-xs px-3 py-1 rounded-md border ${colorMode ? 'border-slate-600 hover:bg-white/10' : 'border-gray-300 hover:bg-gray-50'}`}>Cancel</button>
+                <button onClick={submitProjectMessage} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-1 rounded-md text-white flex items-center gap-1 ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                  {isSendingMessage ? 'Sending...' : 'Send'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <div className={`p-3 border-t ${colorMode ? 'border-blue-400/20 bg-slate-900/50' : 'border-gray-200/80 bg-white/50'}`}>
           <div className="flex items-center gap-2">
@@ -299,7 +435,7 @@ const BubblesChat = ({
             <button onClick={() => handleSendMessage()} disabled={!inputMessage.trim() || isLoading} className={`p-2.5 rounded-lg transition-all text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
                 colorMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-500 hover:bg-blue-600'
             }`}>
-              <PaperAirplaneIcon className="w-5 h-5" />
+              <ChatBubbleLeftRightIcon className="w-5 h-5" />
             </button>
           </div>
         </div>

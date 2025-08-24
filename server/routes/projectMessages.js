@@ -189,7 +189,9 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
 // @desc    Create new project message
 // @route   POST /api/project-messages/:projectId
 // @access  Private
-router.post('/:projectId', messageValidation, asyncHandler(async (req, res, next) => {
+router.post('/:projectId', messageValidation.concat([
+  body('recipients').optional().isArray().withMessage('Recipients must be an array of user IDs')
+]), asyncHandler(async (req, res, next) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -201,45 +203,54 @@ router.post('/:projectId', messageValidation, asyncHandler(async (req, res, next
   }
 
   const { projectId } = req.params;
-  const { content, subject, priority = 'MEDIUM', parentMessageId } = req.body;
+  const { content, subject, priority = 'MEDIUM', parentMessageId, recipients = [] } = req.body;
 
   // Check if user has access to this project
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { 
-      id: true, 
-      projectNumber: true,
-      projectManagerId: true,
-      teamMembers: {
-        select: { userId: true }
-      }
-    }
+    select: { id: true, projectNumber: true, projectManagerId: true, teamMembers: { select: { userId: true } } }
   });
 
-  if (!project) {
-    return next(new AppError('Project not found', 404));
-  }
+  if (!project) { return next(new AppError('Project not found', 404)); }
 
-  // Check access
-  const hasAccess = true; // Temporarily bypass auth check
-  // const hasAccess = project.projectManagerId === req.user?.id ||
-  //                  project.teamMembers.some(member => member.userId === req.user?.id) ||
-  //                  ['ADMIN', 'MANAGER'].includes(req.user?.role);
+  // Access (temporary bypass)
+  const hasAccess = true;
+  if (!hasAccess) { return next(new AppError('Access denied to this project', 403)); }
 
-  if (!hasAccess) {
-    return next(new AppError('Access denied to this project', 403));
-  }
+  // Create message and recipients in a transaction
+  const uniqueRecipients = Array.isArray(recipients) ? [...new Set(recipients.filter(Boolean))] : [];
+  const result = await prisma.$transaction(async (tx) => {
+    const message = await ProjectMessageService.createUserMessage(
+      projectId,
+      req.user?.id || 'system',
+      content,
+      subject,
+      { parentMessageId, priority }
+    );
 
-  // Create message using service
-  const message = await ProjectMessageService.createUserMessage(
-    projectId,
-    req.user?.id || 'system',
-    content,
-    subject,
-    { parentMessageId, priority }
-  );
+    if (uniqueRecipients.length > 0) {
+      await tx.projectMessageRecipient.createMany({
+        data: uniqueRecipients.map(userId => ({ messageId: message.id, userId }))
+      });
+    }
 
-  sendSuccess(res, 201, { message }, 'Message created successfully');
+    return message;
+  });
+
+  // Emit socket events: broadcast new message and per-recipient notifications
+  try {
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project_${projectId}`).emit('newMessage', { projectId, subject, messageId: result.id });
+      if (uniqueRecipients.length > 0) {
+        uniqueRecipients.forEach(uid => {
+          io.to(`user_${uid}`).emit('newMessage', { projectId, subject, messageId: result.id, recipientId: uid });
+        });
+      }
+    }
+  } catch (_) {}
+
+  sendSuccess(res, 201, { message: result }, 'Message created successfully');
 }));
 
 // @desc    Mark message as read

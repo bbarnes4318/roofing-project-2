@@ -69,6 +69,7 @@ model User {
   webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
   assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
+  projectMessageRecipients ProjectMessageRecipient[]
 
   @@map("users")
 }
@@ -310,6 +311,7 @@ model ProjectMessage {
   parentMessage     ProjectMessage?    @relation("MessageReplies", fields: [parentMessageId], references: [id])
   replies           ProjectMessage[]   @relation("MessageReplies")
   project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  recipients        ProjectMessageRecipient[]
 
   @@index([projectId, createdAt])
   @@index([workflowId, stepId])
@@ -317,6 +319,19 @@ model ProjectMessage {
   @@index([isSystemGenerated])
   @@index([authorId])
   @@map("project_messages")
+}
+
+model ProjectMessageRecipient {
+  id         String         @id @default(cuid())
+  createdAt  DateTime       @default(now())
+  messageId  String         @map("message_id")
+  userId     String         @map("user_id")
+  message    ProjectMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@map("project_message_recipients")
 }
 
 model Conversation {

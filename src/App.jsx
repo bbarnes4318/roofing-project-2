@@ -28,7 +28,6 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
-import BubblesButton from './components/common/BubblesButton';
 import { SubjectsProvider } from './contexts/SubjectsContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import './App.css';
@@ -1438,11 +1437,7 @@ const apiUrl = window.location.hostname === 'localhost'
             </main>
         </div>
         
-        {/* Bubbles AI Assistant */}
-        <BubblesButton 
-          currentProject={navigationState.selectedProject} 
-          colorMode={colorMode}
-        />
+        {/* Bubbles AI Assistant (floating chat) disabled per request */}
         
         </SubjectsProvider>
         </NavigationProvider>
