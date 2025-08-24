@@ -17,6 +17,70 @@ const router = express.Router();
 const workflowActionService = new WorkflowActionService();
 const knowledgeBaseService = new KnowledgeBaseService();
 
+// ---- Project resolution helpers ----
+function extractProjectNumberFromText(text) {
+  if (!text) return null;
+  const m = String(text).match(/(?:project\s*#?|#)\s*(\d{3,7})/i) || String(text).match(/\b(\d{4,7})\b/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function tokenizeName(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+async function resolveProjectFromMessage(message) {
+  const projectNumber = extractProjectNumberFromText(message);
+  let candidates = [];
+
+  if (projectNumber) {
+    candidates = await prisma.project.findMany({
+      where: { projectNumber: projectNumber },
+      include: { customer: true },
+      take: 5
+    });
+    if (candidates.length === 1) return { project: candidates[0] };
+  }
+
+  // Try customer primary name fuzzy contains using tokens length >= 2
+  const tokens = tokenizeName(message).filter(t => t.length >= 3);
+  if (tokens.length >= 1) {
+    // Search by concatenated tokens in primaryName
+    candidates = await prisma.project.findMany({
+      where: {
+        customer: {
+          primaryName: { contains: tokens.join(' '), mode: 'insensitive' }
+        }
+      },
+      include: { customer: true },
+      take: 10
+    });
+    if (candidates.length === 1) return { project: candidates[0] };
+
+    // If none, try OR on individual tokens (at least 2 tokens)
+    if (candidates.length === 0 && tokens.length >= 2) {
+      candidates = await prisma.project.findMany({
+        where: {
+          OR: tokens.map(t => ({ customer: { primaryName: { contains: t, mode: 'insensitive' } } }))
+        },
+        include: { customer: true },
+        take: 10
+      });
+    }
+  }
+
+  if (candidates.length === 1) {
+    return { project: candidates[0] };
+  }
+  if (candidates.length > 1) {
+    return { multiple: candidates };
+  }
+  return { project: null };
+}
+
 // Helper: derive intent and handle locally when AI is unavailable or returns plain text
 async function handleHeuristicIntent(message, projectContext, userId) {
   const text = String(message || '').toLowerCase();
@@ -312,11 +376,52 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
         return sendSuccess(res, 200, { response: { content: "I've reset our conversation. How can I assist you now?" } });
     }
 
-    // Get project context
-    const projectContext = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null;
+    // Allow quick command: "use project <#number>" or by ID
+    const useMatch = String(message).match(/^\s*use\s+project\s+([#]?(\d{3,7})|([a-z0-9-]{8,}))/i);
+    if (useMatch) {
+      let selected = null;
+      if (useMatch[2]) {
+        const pn = parseInt(useMatch[2], 10);
+        selected = await prisma.project.findFirst({ where: { projectNumber: pn } });
+      } else if (useMatch[3]) {
+        selected = await prisma.project.findUnique({ where: { id: useMatch[3] } });
+      }
+      if (selected) {
+        const session = contextManager.getUserSession(userId);
+        session.activeProject = selected;
+        return sendSuccess(res, 200, { response: { content: `Active project set: #${String(selected.projectNumber).padStart(5, '0')} — ${selected.projectName}` } });
+      }
+      return sendSuccess(res, 200, { response: { content: 'I could not find that project. Please provide a valid project number or customer name.' } });
+    }
 
-    if (!projectContext && (message.includes('task') || message.includes('phase'))) { // Basic check for project-specific requests
-        return sendSuccess(res, 200, { response: { content: "Please select a project first. I need a project context to perform workflow actions." } });
+    // Get or resolve project context
+    let projectContext = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null;
+    if (!projectContext) {
+      // Try previous active project in session
+      const session = contextManager.getUserSession(userId);
+      if (session.activeProject) {
+        projectContext = session.activeProject;
+      } else {
+        const resolved = await resolveProjectFromMessage(message);
+        if (resolved.project) {
+          projectContext = resolved.project;
+          session.activeProject = projectContext;
+        } else if (resolved.multiple && resolved.multiple.length > 0) {
+          // Ask user to choose, provide suggested actions
+          const suggestions = resolved.multiple.slice(0, 5).map(p => ({
+            label: `Use project #${String(p.projectNumber).padStart(5, '0')} — ${p.projectName}`,
+            action: `Use project #${p.projectNumber}`
+          }));
+          return sendSuccess(res, 200, { response: {
+            content: 'I found multiple projects. Please choose one:',
+            suggestedActions: suggestions
+          } });
+        }
+      }
+    }
+
+    if (!projectContext && (message.includes('task') || message.includes('phase') || /project/i.test(message))) {
+        return sendSuccess(res, 200, { response: { content: 'Please provide a project number or primary customer name so I can look it up.' } });
     }
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
