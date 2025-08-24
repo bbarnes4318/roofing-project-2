@@ -1,5 +1,6 @@
 const { prisma } = require('../config/prisma');
 const WorkflowProgressionService = require('./WorkflowProgressionService');
+const WorkflowCompletionService = require('./WorkflowCompletionService');
 
 class WorkflowActionService {
 	constructor() {}
@@ -59,7 +60,34 @@ class WorkflowActionService {
 			return { success: false, message: `I couldn't find a workflow item named "${lineItemName}" for this project.` };
 		}
 
-		const result = await WorkflowProgressionService.completeLineItem(projectId, lineItem.id, userId, notes, global.io);
+        let result;
+        try {
+            result = await WorkflowProgressionService.completeLineItem(projectId, lineItem.id, userId, notes, global.io);
+        } catch (e) {
+            // Fallback to legacy completion service when DB functions are unavailable
+            const legacy = await WorkflowCompletionService.completeLineItem(projectId, lineItem.id, userId, notes || undefined);
+            const nextLegacy = legacy?.tracker?.currentLineItemId
+                ? await prisma.workflowLineItem.findUnique({
+                        where: { id: legacy.tracker.currentLineItemId },
+                        include: { section: { include: { phase: true } } }
+                    })
+                : null;
+            return {
+                success: true,
+                completedItem: legacy.completedItem,
+                nextItem: nextLegacy
+                    ? {
+                        id: nextLegacy.id,
+                        lineItemName: nextLegacy.itemName,
+                        sectionName: nextLegacy.section?.displayName,
+                        phaseName: nextLegacy.section?.phase?.phaseType
+                    }
+                    : null,
+                message: nextLegacy
+                    ? `The task "${legacy.completedItem.lineItemName}" is marked complete. Next: "${nextLegacy.itemName}" assigned to ${nextLegacy.responsibleRole}.`
+                    : `The task "${legacy.completedItem.lineItemName}" is marked complete. That was the last item in this section or workflow.`
+            };
+        }
 
 		const next = result?.tracker?.currentLineItemId
 			? await prisma.workflowLineItem.findUnique({

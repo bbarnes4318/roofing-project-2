@@ -217,7 +217,6 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                 case 'mark_line_item_complete_and_notify':
                     toolResult = await workflowActionService.markLineItemComplete(projectContext.id, params.lineItemName, userId);
                     break;
-                
                 case 'get_incomplete_items_in_phase':
                     const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, params.phaseName);
                     const responseMessage = items.length > 0
@@ -225,26 +224,21 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                       : `All tasks in the ${params.phaseName} phase are complete.`;
                     toolResult = { success: true, message: responseMessage };
                     break;
-
                 case 'find_blocking_task':
                     const task = await workflowActionService.findBlockingTask(projectContext.id, params.phaseName);
                     toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.itemName}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
                     break;
-
                 case 'check_phase_readiness':
                     toolResult = await workflowActionService.canAdvancePhase(projectContext.id, params.phaseName);
                     break;
-
                 case 'reassign_task':
                     if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
                     else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
                     break;
-
                 case 'answer_company_question':
                     const answer = await knowledgeBaseService.answerQuestion(params.question);
                     toolResult = { success: true, message: answer };
                     break;
-
                 default:
                     toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
             }
@@ -258,8 +252,56 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
             finalResponseContent = aiResponse.content;
         }
     } catch (e) {
-        // If JSON.parse fails, it's a direct conversational response from the AI
-        finalResponseContent = aiResponse.content;
+        // Retry with stricter instruction to respond ONLY with JSON tool call
+        const strictPrompt = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with a JSON object like {\"tool\": <name>, \"parameters\": { ... }} for actionable requests. No extra text.`;
+        const strictResponse = await openAIService.generateResponse(message, { systemPrompt: strictPrompt });
+        try {
+            const toolCall = JSON.parse(strictResponse.content);
+            if (toolCall.tool && toolCall.parameters) {
+                let toolResult;
+                const params = toolCall.parameters;
+                const newUser = params.newUserEmail ? await prisma.user.findUnique({ where: { email: params.newUserEmail } }) : null;
+
+                switch (toolCall.tool) {
+                    case 'mark_line_item_complete_and_notify':
+                        toolResult = await workflowActionService.markLineItemComplete(projectContext.id, params.lineItemName, userId);
+                        break;
+                    case 'get_incomplete_items_in_phase':
+                        const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, params.phaseName);
+                        const responseMessage = items.length > 0
+                          ? `Here are the incomplete tasks for the ${params.phaseName} phase:\n${items.map(i => `- ${i.itemName} (section: ${i.sectionName})`).join('\n')}`
+                          : `All tasks in the ${params.phaseName} phase are complete.`;
+                        toolResult = { success: true, message: responseMessage };
+                        break;
+                    case 'find_blocking_task':
+                        const task = await workflowActionService.findBlockingTask(projectContext.id, params.phaseName);
+                        toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.itemName}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
+                        break;
+                    case 'check_phase_readiness':
+                        toolResult = await workflowActionService.canAdvancePhase(projectContext.id, params.phaseName);
+                        break;
+                    case 'reassign_task':
+                        if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
+                        else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
+                        break;
+                    case 'answer_company_question':
+                        const answer = await knowledgeBaseService.answerQuestion(params.question);
+                        toolResult = { success: true, message: answer };
+                        break;
+                    default:
+                        toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
+                }
+
+                const confirmationPrompt = `The user's action was processed. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions.`;
+                const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt);
+                finalResponseContent = finalAiResponse.content;
+            } else {
+                finalResponseContent = strictResponse.content;
+            }
+        } catch (e2) {
+            // If still not JSON, just return the conversational response
+            finalResponseContent = strictResponse.content;
+        }
     }
 
     contextManager.addToHistory(userId, message, finalResponseContent);
