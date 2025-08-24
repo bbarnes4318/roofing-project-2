@@ -10,94 +10,175 @@ const { authenticateToken } = require('../middleware/auth');
 const { PrismaClient } = require('@prisma/client');
 const openAIService = require('../services/OpenAIService');
 const bubblesInsightsService = require('../services/BubblesInsightsService');
+const WorkflowActionService = require('../services/WorkflowActionService'); // From bubbles2.js
+const KnowledgeBaseService = require('../services/KnowledgeBaseService'); // From bubbles2.js
 
 const prisma = new PrismaClient();
 const router = express.Router();
+const workflowActionService = new WorkflowActionService();
+const knowledgeBaseService = new KnowledgeBaseService();
 
+
+// Apply authentication to all routes
 router.use(authenticateToken);
 
+// Bubbles AI Context Manager (from bubbles.js)
 class BubblesContextManager {
-  constructor() { this.userSessions = new Map(); }
+  constructor() {
+    this.userSessions = new Map(); // Store user context and conversation state
+  }
+
+  // Get or create user session
   getUserSession(userId) {
     if (!this.userSessions.has(userId)) {
-      this.userSessions.set(userId, { conversationHistory: [] });
+      this.userSessions.set(userId, {
+        conversationHistory: [],
+        activeProject: null,
+      });
     }
     return this.userSessions.get(userId);
   }
+
+  // Add message to conversation history
   addToHistory(userId, userMessage, aiResponse) {
     const session = this.getUserSession(userId);
     session.conversationHistory.push({ role: 'user', content: userMessage });
     session.conversationHistory.push({ role: 'assistant', content: aiResponse });
+    // Keep history to a reasonable length
     if (session.conversationHistory.length > 20) {
       session.conversationHistory = session.conversationHistory.slice(-20);
     }
   }
-  resetHistory(userId) { this.userSessions.delete(userId); }
+  
+  resetHistory(userId) {
+      this.userSessions.delete(userId);
+  }
 }
+
 const contextManager = new BubblesContextManager();
 
 /**
- * FINAL UPGRADED PROMPT
- * This prompt now explicitly tells the AI how to handle general knowledge questions.
+ * COMBINED SYSTEM PROMPT: Merges the detailed persona from bubbles.js 
+ * with the tool-calling functionality from bubbles2.js.
  */
 const getSystemPrompt = (user, projectContext) => {
     const userName = user.fullName || `${user.firstName} ${user.lastName}`;
-    const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
+    // Tool definitions from bubbles2.js
     const tools = [
         {
-            name: 'add_project',
-            description: 'Creates a new construction project.',
-            parameters: { /* ... */ }
+            name: 'mark_line_item_complete_and_notify',
+            description: 'Marks a workflow task as complete and alerts the next person in the sequence. Use this for prompts like "Check off [task name]".',
+            parameters: {
+                type: 'object',
+                properties: { lineItemName: { type: 'string', description: 'The exact name of the line item to mark as complete.' } },
+                required: ['lineItemName']
+            }
         },
         {
-            name: 'send_project_message',
-            description: 'Sends a message or update to a specific project.',
-            parameters: { /* ... */ }
+            name: 'get_incomplete_items_in_phase',
+            description: 'Lists all tasks that are not yet complete for a specific phase of the current project.',
+            parameters: {
+                type: 'object',
+                properties: { phaseName: { type: 'string', description: 'The name of the phase, e.g., "Lead", "Prospect".' } },
+                required: ['phaseName']
+            }
         },
         {
-            name: 'create_alert',
-            description: 'Creates a new alert for a project.',
-            parameters: { /* ... */ }
+            name: 'find_blocking_task',
+            description: 'Identifies the single task that is currently preventing a project phase from moving forward.',
+            parameters: {
+                type: 'object',
+                properties: { phaseName: { type: 'string', description: 'The name of the phase to check.' } },
+                required: ['phaseName']
+            }
         },
         {
-            name: 'mark_line_item_complete',
-            description: 'Marks a specific line item in a project workflow as complete.',
-            parameters: { /* ... */ }
+            name: 'check_phase_readiness',
+            description: 'Checks if all tasks in a phase are complete and if the project can advance to the next phase.',
+            parameters: {
+                type: 'object',
+                properties: { phaseName: { type: 'string', description: 'The name of the phase to verify for completion.' } },
+                required: ['phaseName']
+            }
         },
         {
-            name: 'answer_project_question',
-            description: 'Retrieves specific details about a project to answer a user\'s question.',
-            parameters: { /* ... */ }
-        }
+            name: 'reassign_task',
+            description: 'Reassigns a task (and its alert) to a different team member.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    lineItemName: { type: 'string', description: 'The name of the task to reassign.' },
+                    newUserEmail: { type: 'string', description: 'The email address of the team member to reassign the task to.' }
+                },
+                required: ['lineItemName', 'newUserEmail']
+            }
+        },
+        {
+            name: 'answer_company_question',
+            description: 'Searches the historical knowledge base for broad, multi-project, or historical questions.',
+            parameters: {
+                type: 'object',
+                properties: { question: { type: 'string', description: 'The user\'s question for the knowledge base.' } },
+                required: ['question']
+            }
+        },
     ];
 
-    let prompt = `You are "Bubbles," an expert AI assistant for Kenstruction. Your user is ${userName}. Today is ${currentDate}.
-Your primary role is to help the user with their construction projects.
+    // Persona and rules from bubbles.js
+    let prompt = `You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing and construction company. Your user is ${userName}. Today is ${currentDate}.
 
-**IMPORTANT INSTRUCTIONS:**
-1.  **First, analyze the user's request to see if it matches one of your available tools.** The tools are for construction-related tasks.
-2.  If the request matches a tool, you MUST respond with ONLY the JSON object for that tool.
-3.  **If, and only if, the user's request is clearly NOT about construction and does NOT match any tool (e.g., "what time is sunset?", "how tall is the empire state building?"), then you may answer it using your general knowledge.** In this case, just provide a direct, conversational answer without using a tool.
+Your persona is:
+- **Professional & Proactive:** You anticipate needs and provide clear, actionable information.
+- **Concise:** Get straight to the point. Use bullet points and bold text for clarity.
+- **An Expert:** You understand construction and roofing terminology.
+- **A Copilot:** Your goal is to help the user manage their projects more effectively.
 
-Available tools for construction tasks:
-${JSON.stringify(tools, null, 2)}
+Current Project Context:
 `;
 
     if (projectContext && projectContext.projectName) {
-        prompt += `\nThe user is currently viewing the "${projectContext.projectName}" project (ID: ${projectContext.id}). Use this as the default projectId if not otherwise specified.`;
+        prompt += `- **Project Name:** ${projectContext.projectName} (ID: ${projectContext.id})\n`;
+        prompt += `- **Status:** ${projectContext.status || 'N/A'}\n`;
+        prompt += `- **Progress:** ${projectContext.progress || 0}%\n`;
+    } else {
+        prompt += `- No specific project is currently selected. You must ask the user to select one if their query is project-specific.\n`;
     }
 
+    prompt += `
+Interaction Rules:
+1.  **Tool-First Approach:** Your primary role is to translate user requests into one of your available tools. You MUST use a tool if the request matches a function. Respond ONLY with the JSON for the tool call. Do not add any conversational text or markdown.
+2.  **General Conversation:** If the request is a general question not covered by a tool, you may answer it directly. Use Markdown for formatting (e.g., \`### Headers\`, \`* Lists\`, \`**Bold Text**\`).
+3.  Keep conversational responses focused and under 150 words unless a detailed report is requested.
+4.  End your conversational responses by suggesting 2-3 relevant next actions the user might want to take.
+
+Available tools:
+${JSON.stringify(tools, null, 2)}
+`;
     return prompt;
 };
 
-// @desc    Chat with Bubbles AI Assistant
-// @route   POST /api/bubbles/chat
-// @access  Private
-router.post('/chat', [
-    body('message').trim().isLength({ min: 1, max: 5000 }),
-    body('projectId').optional({ nullable: true }).isString(),
-], asyncHandler(async (req, res, next) => {
+
+// Validation rules
+const chatValidation = [
+  body('message')
+    .trim()
+    .isLength({ min: 1, max: 5000 })
+    .withMessage('Message must be between 1 and 5000 characters'),
+  body('projectId')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('Project ID must be a string if provided'),
+];
+
+/**
+ * @desc    Chat with Bubbles AI Assistant
+ * @route   POST /api/bubbles/chat
+ * @access  Private
+ * @summary This new chat route uses the powerful tool-calling architecture from bubbles2.js
+ */
+router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
@@ -105,71 +186,95 @@ router.post('/chat', [
 
     const { message, projectId } = req.body;
     const userId = req.user.id;
-    let projectContext = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null;
+
+    // Handle conversation reset
+    if (message.toLowerCase().trim() === '/reset') {
+        contextManager.resetHistory(userId);
+        return sendSuccess(res, 200, { response: { content: "I've reset our conversation. How can I assist you now?" } });
+    }
+
+    // Get project context
+    const projectContext = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null;
+
+    if (!projectContext && (message.includes('task') || message.includes('phase'))) { // Basic check for project-specific requests
+        return sendSuccess(res, 200, { response: { content: "Please select a project first. I need a project context to perform workflow actions." } });
+    }
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
     const session = contextManager.getUserSession(userId);
-
-    let aiResponse = await openAIService.generateResponse(systemPrompt, message, session.conversationHistory);
+    const aiResponse = await openAIService.generateResponse(systemPrompt, message, session.conversationHistory);
+    
     let finalResponseContent = '';
 
+    // Tool-calling logic from bubbles2.js
     try {
-        // Try to parse the response as a tool call
         const toolCall = JSON.parse(aiResponse.content);
         if (toolCall.tool && toolCall.parameters) {
-            // It's a tool call, so execute the function
-            let toolResult = { success: false, message: 'An unknown error occurred.' };
-            
-            // ... (The entire switch statement for executing tools remains here)
+            let toolResult;
+            const params = toolCall.parameters;
+
+            const lineItem = params.lineItemName ? await prisma.workflowLineItem.findFirst({ where: { name: { equals: params.lineItemName, mode: 'insensitive' }, section: { phase: { workflow: { projectId: projectContext.id } } } } }) : null;
+            const newUser = params.newUserEmail ? await prisma.user.findUnique({ where: { email: params.newUserEmail } }) : null;
+
             switch (toolCall.tool) {
-                case 'add_project':
-                    // ... logic
+                case 'mark_line_item_complete_and_notify':
+                    if (lineItem) toolResult = await workflowActionService.completeLineItemAndGetNext(lineItem.id, projectContext.id, userId);
+                    else toolResult = { success: false, message: `I couldn't find the task "${params.lineItemName}" in this project.` };
                     break;
-                case 'send_project_message':
-                    // ... logic
+                
+                case 'get_incomplete_items_in_phase':
+                    const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, params.phaseName);
+                    const responseMessage = items.length > 0 ? `Here are the incomplete tasks for the ${params.phaseName} phase:\n${items.map(i => `- ${i.name} (in section: ${i.section.name})`).join('\n')}` : `All tasks in the ${params.phaseName} phase are complete.`;
+                    toolResult = { success: true, message: responseMessage };
                     break;
-                case 'create_alert':
-                    // ... logic
+
+                case 'find_blocking_task':
+                    const task = await workflowActionService.findBlockingTask(projectContext.id, params.phaseName);
+                    toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.name}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
                     break;
-                case 'mark_line_item_complete':
-                    // ... logic
+
+                case 'check_phase_readiness':
+                    toolResult = await workflowActionService.canAdvancePhase(projectContext.id, params.phaseName);
                     break;
-                case 'answer_project_question':
-                    // ... logic
+
+                case 'reassign_task':
+                    if (!lineItem) toolResult = { success: false, message: `I couldn't find the task "${params.lineItemName}".` };
+                    else if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
+                    else toolResult = await workflowActionService.reassignTask(lineItem.id, newUser.id, projectContext.id);
                     break;
+
+                case 'answer_company_question':
+                    const answer = await knowledgeBaseService.answerQuestion(params.question);
+                    toolResult = { success: true, message: answer };
+                    break;
+
                 default:
-                    toolResult = { success: false, message: `The tool "${toolCall.tool}" does not exist.` };
+                    toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
             }
 
-            const confirmationPrompt = `The user tried to use the tool '${toolCall.tool}'. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, friendly confirmation message for the user based on this result.`;
+            // Second AI call to formulate a natural response
+            const confirmationPrompt = `The user's action was processed. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions.`;
             const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt);
             finalResponseContent = finalAiResponse.content;
-
         } else {
-            // The JSON was not a valid tool call, treat as a direct answer
+             // This is not a tool call, so it's a direct answer.
             finalResponseContent = aiResponse.content;
         }
     } catch (e) {
-        // If JSON.parse fails, it means the AI provided a direct text answer
-        // (like for the sunset question), which is exactly what we want.
+        // If JSON.parse fails, it's a direct conversational response from the AI
         finalResponseContent = aiResponse.content;
     }
 
     contextManager.addToHistory(userId, message, finalResponseContent);
-    sendSuccess(res, 200, { response: { content: finalResponseContent } }, 'Bubbles response generated');
-}));
+    
+    const io = req.app.get('io');
+    if (io) {
+        io.to(`user_${userId}`).emit('bubbles_response', {
+            response: { content: finalResponseContent },
+        });
+    }
 
-// --- ALL ORIGINAL ROUTES ARE RESTORED BELOW ---
-
-// @desc    Execute Bubbles action
-// @route   POST /api/bubbles/action
-// @access  Private
-router.post('/action', asyncHandler(async (req, res, next) => {
-  const { actionType, parameters = {} } = req.body;
-  const userId = req.user.id;
-  let result = {};
-  // ... (Full original code for this route)
-  sendSuccess(res, 200, result, 'Bubbles action executed');
+    sendSuccess(res, 200, { response: { content: finalResponseContent } });
 }));
 
 // @desc    Get user's Bubbles conversation history
@@ -178,9 +283,15 @@ router.post('/action', asyncHandler(async (req, res, next) => {
 router.get('/history', asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { limit = 20 } = req.query;
+  
   const session = contextManager.getUserSession(userId);
   const history = session.conversationHistory.slice(-parseInt(limit)).reverse();
-  sendSuccess(res, 200, { history }, 'Conversation history retrieved');
+
+  sendSuccess(res, 200, {
+    history,
+    totalMessages: session.conversationHistory.length,
+    activeProject: session.activeProject?.projectName || null,
+  }, 'Conversation history retrieved');
 }));
 
 // @desc    Reset Bubbles conversation context
@@ -196,44 +307,80 @@ router.post('/reset', asyncHandler(async (req, res) => {
 // @route   GET /api/bubbles/status
 // @access  Private
 router.get('/status', asyncHandler(async (req, res) => {
-  // ... (Full original code for this route)
-  sendSuccess(res, 200, { capabilities, status: 'operational' }, 'Bubbles status retrieved');
+  const capabilities = {
+    projectManagement: { status: 'active', features: ['workflow_tracking', 'progress_monitoring'] },
+    alertManagement: { status: 'active', features: ['alert_creation', 'alert_monitoring'] },
+    intelligentInsights: { status: 'active', features: ['predictive_analysis', 'risk_assessment'] },
+    aiIntegration: openAIService.getStatus()
+  };
+
+  sendSuccess(res, 200, {
+    capabilities,
+    version: '2.0.0', // Updated version
+    status: 'operational'
+  }, 'Bubbles status retrieved');
 }));
 
-// --- All /insights routes ---
+// --- INSIGHTS ROUTES ---
+
+// @desc    Get AI-powered project insights
+// @route   GET /api/bubbles/insights/project/:projectId
+// @access  Private
 router.get('/insights/project/:projectId', asyncHandler(async (req, res) => {
   const projectId = String(req.params.projectId);
-  const insights = await bubblesInsightsService.generateProjectInsights(projectId, req.user.id);
-  sendSuccess(res, 200, { insights }, 'Project insights generated');
+  const userId = req.user.id;
+  const insights = await bubblesInsightsService.generateProjectInsights(projectId, userId);
+  sendSuccess(res, 200, { projectId, insights, generatedAt: new Date() }, 'Project insights generated');
 }));
 
-router.get('/insights/portfolio', asyncHandler(async (req, res) => {
-  const insights = await bubblesInsightsService.generatePortfolioInsights(req.user.id);
-  sendSuccess(res, 200, { insights }, 'Portfolio insights generated');
-}));
-
-router.get('/insights/prediction/:projectId', asyncHandler(async (req, res) => {
-  const prediction = await bubblesInsightsService.predictProjectCompletion(String(req.params.projectId));
-  sendSuccess(res, 200, prediction, 'Prediction generated');
-}));
-
-router.get('/insights/risks/:projectId', asyncHandler(async (req, res) => {
-    const risks = await bubblesInsightsService.identifyRisks(String(req.params.projectId));
-    sendSuccess(res, 200, { risks }, 'Risks identified');
-}));
-
-router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) => {
-    const recommendations = await bubblesInsightsService.generateOptimizationRecommendations(String(req.params.projectId));
-    sendSuccess(res, 200, { recommendations }, 'Recommendations generated');
-}));
-
-// @desc    Debug endpoint
-// @route   GET /api/bubbles/debug/openai
+// @desc    Get portfolio-level insights
+// @route   GET /api/bubbles/insights/portfolio
 // @access  Private
-router.get('/debug/openai', asyncHandler(async (req, res) => {
-  const status = openAIService.getStatus();
-  // ... (Full original code for this route)
-  sendSuccess(res, 200, { status }, 'OpenAI debug info retrieved');
+router.get('/insights/portfolio', asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const insights = await bubblesInsightsService.generatePortfolioInsights(userId);
+  sendSuccess(res, 200, { userId, ...insights, generatedAt: new Date() }, 'Portfolio insights generated');
 }));
+
+// @desc    Get project completion prediction
+// @route   GET /api/bubbles/insights/prediction/:projectId
+// @access  Private
+router.get('/insights/prediction/:projectId', asyncHandler(async (req, res) => {
+  const projectId = String(req.params.projectId);
+  const prediction = await bubblesInsightsService.predictProjectCompletion(projectId);
+  if (!prediction) {
+    return res.status(404).json({ success: false, message: 'Project not found or prediction unavailable' });
+  }
+  sendSuccess(res, 200, prediction, 'Project completion prediction generated');
+}));
+
+// @desc    Get project risk analysis
+// @route   GET /api/bubbles/insights/risks/:projectId
+// @access  Private
+router.get('/insights/risks/:projectId', asyncHandler(async (req, res) => {
+  const projectId = String(req.params.projectId);
+  const risks = await bubblesInsightsService.identifyRisks(projectId);
+  sendSuccess(res, 200, {
+    projectId,
+    risks,
+    riskLevel: risks.length > 2 ? 'high' : risks.length > 0 ? 'medium' : 'low',
+    generatedAt: new Date()
+  }, 'Risk analysis completed');
+}));
+
+// @desc    Get optimization recommendations
+// @route   GET /api/bubbles/insights/optimization/:projectId
+// @access  Private
+router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) => {
+  const projectId = String(req.params.projectId);
+  const recommendations = await bubblesInsightsService.generateOptimizationRecommendations(projectId);
+  sendSuccess(res, 200, {
+    projectId,
+    recommendations,
+    totalRecommendations: recommendations.length,
+    generatedAt: new Date()
+  }, 'Optimization recommendations generated');
+}));
+
 
 module.exports = router;
