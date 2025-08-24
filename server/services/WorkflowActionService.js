@@ -32,7 +32,7 @@ class WorkflowActionService {
 	async findLineItemByName(itemName, workflowType = 'ROOFING') {
 		if (!itemName) return null;
 		return await prisma.workflowLineItem.findFirst({
-			where: {
+            where: {
 				isActive: true,
 				isCurrent: true,
 				workflowType,
@@ -119,7 +119,7 @@ class WorkflowActionService {
 	}
 
 	// 2) List incomplete items in a given phase
-	async getIncompleteItemsInPhase(projectId, phaseName) {
+    async getIncompleteItemsInPhase(projectId, phaseName) {
 		const tracker = await this.getMainTracker(projectId);
 		if (!tracker) return [];
 
@@ -191,7 +191,7 @@ class WorkflowActionService {
 		const updated = await prisma.workflowAlert.updateMany({
 			where: {
 				projectId,
-				status: 'ACTIVE',
+                status: 'ACTIVE',
 				OR: [
 					{ stepName: lineItemName },
 				]

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { ChevronLeftIcon, LocationMarkerIcon } from '../common/Icons';
+import { TrashIcon } from '../common/Icons';
 import ProjectChecklistPage from './ProjectChecklistPage';
 import ProjectMessagesPage from './ProjectMessagesPage';
 import ProjectDocumentsPage from './ProjectDocumentsPage';
@@ -9,6 +10,7 @@ import ProjectTimeline from '../../dashboard/ProjectTimeline';
 import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useWorkflowAlerts, useWorkflowAlertsByProject } from '../../hooks/useQueryApi';
+import { useDeleteProject } from '../../hooks/useQueryApi';
 
 import { usersService, projectMessagesService } from '../../services/api';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
@@ -92,6 +94,22 @@ const getPhaseStyles = (phase) => {
 
 
 const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', onSendMessage, tasks, projects, onUpdate, activities, onAddActivity, colorMode, previousPage, projectSourceSection, onProjectSelect, targetLineItemId, targetSectionId, selectionNonce }) => {
+    const deleteProject = useDeleteProject();
+
+    const handleDeleteProject = async () => {
+        if (!project?.id) return;
+        const confirmed = window.confirm('Delete this project? This action cannot be undone.');
+        if (!confirmed) return;
+        try {
+            await deleteProject.mutateAsync(project.id);
+            toast.success('Project deleted');
+            if (typeof onBack === 'function') {
+                onBack();
+            }
+        } catch (e) {
+            toast.error(e?.message || 'Failed to delete project');
+        }
+    };
     const { pushNavigation } = useNavigationHistory();
     const { subjects } = useSubjects();
     
@@ -2293,6 +2311,17 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                         preservePosition={true}
                         customLabel={getBackButtonText()}
                     />
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleDeleteProject}
+                            disabled={deleteProject.isPending}
+                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded border transition-colors ${deleteProject.isPending ? 'opacity-60 cursor-not-allowed' : colorMode ? 'border-red-400 text-red-300 hover:bg-red-900/20' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
+                            title="Delete project"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                            <span>Delete</span>
+                        </button>
+                    </div>
                     
                     {/* Compact Project Number & Customer Info */}
                     <div className="flex items-center gap-2 text-xs">

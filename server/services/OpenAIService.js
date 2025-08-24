@@ -351,30 +351,31 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
       };
     }
 
-    // Default intelligent response
+    // Default: action-first, no canned phrasing
+    const hasProject = Boolean(context && context.projectName);
+    const content = hasProject
+      ? `I'm ready to act on ${context.projectName}. Choose a next step:
+• Project status
+• Show incomplete tasks
+• Complete a task (name it)`
+      : `Tell me the project number or primary customer name so I can act (e.g., "Use project #12345" or the customer's name).`;
+
+    const actions = hasProject
+      ? [
+          { type: 'project_status', label: 'Project Status' },
+          { type: 'view_pending', label: 'Show Incomplete Tasks' },
+          { type: 'complete_task', label: 'Complete a Task' }
+        ]
+      : [
+          { type: 'use_project', label: 'Use Project #_____'}
+        ];
+
     return {
-      type: 'general_assistance',
-      content: `Got it: "${prompt}"
-
-Here’s how I can help right now:
-• Clarify status and next steps
-• Flag risks and deadlines
-• Create alerts or assign tasks
-
-Quick actions
-• "Project status"
-• "Show risks"
-• "Create alert"
-• "Complete task: <item>"
-
-What should we do first?`,
+      type: hasProject ? 'project_assist' : 'project_selection',
+      content,
       confidence: 0.85,
       source: 'mock-responses',
-      suggestedActions: [
-        { type: 'priorities_today', label: "Today's Priorities" },
-        { type: 'project_status', label: 'Project Status' },
-        { type: 'risks_overview', label: 'Risks & Blockers' }
-      ]
+      suggestedActions: actions
     };
   }
 

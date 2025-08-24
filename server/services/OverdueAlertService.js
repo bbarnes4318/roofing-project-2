@@ -69,35 +69,62 @@ class OverdueAlertService {
           }
         });
 
-        // Create a new HIGH ALERT notification for the project manager
+        // Notify/assign project manager without violating unique constraint
         if (alert.project?.projectManagerId && alert.assignedToId !== alert.project.projectManagerId) {
-          const pmAlert = await prisma.workflowAlert.create({
-            data: {
-              type: 'HIGH ALERT - Overdue Task',
-              priority: 'HIGH',
-              status: 'ACTIVE',
-              title: `OVERDUE: ${alert.title}`,
-              message: `Alert "${alert.title}" is overdue and requires immediate attention. Originally assigned to another team member.`,
-              stepName: alert.stepName,
-              responsibleRole: 'PROJECT_MANAGER',
-              dueDate: alert.dueDate,
+          // Check for an existing ACTIVE alert for the same project + line item
+          const existingActive = await prisma.workflowAlert.findFirst({
+            where: {
               projectId: alert.projectId,
-              workflowId: alert.workflowId,
               lineItemId: alert.lineItemId,
-              sectionId: alert.sectionId,
-              phaseId: alert.phaseId,
-              assignedToId: alert.project.projectManagerId,
-              metadata: {
-                ...alert.metadata,
-                originalAlertId: alert.id,
-                originalAssignee: alert.assignedToId,
-                escalationType: 'OVERDUE_PM_NOTIFICATION',
-                escalatedAt: now
-              }
+              status: 'ACTIVE'
             }
           });
-          
-          escalatedAlerts.push(pmAlert);
+
+          if (existingActive) {
+            // Reassign the existing alert to the PM and bump metadata
+            const updated = await prisma.workflowAlert.update({
+              where: { id: existingActive.id },
+              data: {
+                assignedToId: alert.project.projectManagerId,
+                priority: 'HIGH',
+                metadata: {
+                  ...(existingActive.metadata || {}),
+                  escalatedAt: now,
+                  previousAssignee: alert.assignedToId,
+                  escalationType: 'OVERDUE_PM_REASSIGN'
+                }
+              }
+            });
+            escalatedAlerts.push(updated);
+          } else {
+            // Safe create when no ACTIVE exists for same (project,lineItem)
+            const pmAlert = await prisma.workflowAlert.create({
+              data: {
+                type: 'HIGH ALERT - Overdue Task',
+                priority: 'HIGH',
+                status: 'ACTIVE',
+                title: `OVERDUE: ${alert.title}`,
+                message: `Alert "${alert.title}" is overdue and requires immediate attention. Originally assigned to another team member.`,
+                stepName: alert.stepName,
+                responsibleRole: 'PROJECT_MANAGER',
+                dueDate: alert.dueDate,
+                projectId: alert.projectId,
+                workflowId: alert.workflowId,
+                lineItemId: alert.lineItemId,
+                sectionId: alert.sectionId,
+                phaseId: alert.phaseId,
+                assignedToId: alert.project.projectManagerId,
+                metadata: {
+                  ...alert.metadata,
+                  originalAlertId: alert.id,
+                  originalAssignee: alert.assignedToId,
+                  escalationType: 'OVERDUE_PM_NOTIFICATION',
+                  escalatedAt: now
+                }
+              }
+            });
+            escalatedAlerts.push(pmAlert);
+          }
         }
 
         escalatedAlerts.push(alert);

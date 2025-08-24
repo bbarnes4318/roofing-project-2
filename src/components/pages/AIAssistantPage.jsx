@@ -169,7 +169,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const ProjectSelector = () => (
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="text-sm font-medium text-blue-900 mb-2">Select a project for workflow actions:</h3>
-            <div className="space-y-2">
+                <div className="space-y-2">
                 {projects.filter(p => p.status !== 'archived').map(project => (
                     <button
                         key={project.id}
@@ -190,8 +190,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                     Cancel
                 </button>
             </div>
-        </div>
-    );
+                </div>
+            );
 
     const MessageBubble = ({ message }) => {
         const isAssistant = message.type === 'assistant';
