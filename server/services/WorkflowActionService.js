@@ -1,5 +1,6 @@
 const { prisma } = require('../config/prisma');
 const WorkflowProgressionService = require('./WorkflowProgressionService');
+const WorkflowCompletionService = require('./WorkflowCompletionService');
 
 class WorkflowActionService {
 	constructor() {}
@@ -31,7 +32,7 @@ class WorkflowActionService {
 	async findLineItemByName(itemName, workflowType = 'ROOFING') {
 		if (!itemName) return null;
 		return await prisma.workflowLineItem.findFirst({
-            where: {
+			where: {
 				isActive: true,
 				isCurrent: true,
 				workflowType,
@@ -59,7 +60,34 @@ class WorkflowActionService {
 			return { success: false, message: `I couldn't find a workflow item named "${lineItemName}" for this project.` };
 		}
 
-		const result = await WorkflowProgressionService.completeLineItem(projectId, lineItem.id, userId, notes, global.io);
+        let result;
+        try {
+            result = await WorkflowProgressionService.completeLineItem(projectId, lineItem.id, userId, notes, global.io);
+        } catch (e) {
+            // Fallback to legacy completion service when DB functions are unavailable
+            const legacy = await WorkflowCompletionService.completeLineItem(projectId, lineItem.id, userId, notes || undefined);
+            const nextLegacy = legacy?.tracker?.currentLineItemId
+                ? await prisma.workflowLineItem.findUnique({
+                        where: { id: legacy.tracker.currentLineItemId },
+                        include: { section: { include: { phase: true } } }
+                    })
+                : null;
+            return {
+                success: true,
+                completedItem: legacy.completedItem,
+                nextItem: nextLegacy
+                    ? {
+                        id: nextLegacy.id,
+                        lineItemName: nextLegacy.itemName,
+                        sectionName: nextLegacy.section?.displayName,
+                        phaseName: nextLegacy.section?.phase?.phaseType
+                    }
+                    : null,
+                message: nextLegacy
+                    ? `The task "${legacy.completedItem.lineItemName}" is marked complete. Next: "${nextLegacy.itemName}" assigned to ${nextLegacy.responsibleRole}.`
+                    : `The task "${legacy.completedItem.lineItemName}" is marked complete. That was the last item in this section or workflow.`
+            };
+        }
 
 		const next = result?.tracker?.currentLineItemId
 			? await prisma.workflowLineItem.findUnique({
@@ -91,7 +119,7 @@ class WorkflowActionService {
 	}
 
 	// 2) List incomplete items in a given phase
-    async getIncompleteItemsInPhase(projectId, phaseName) {
+	async getIncompleteItemsInPhase(projectId, phaseName) {
 		const tracker = await this.getMainTracker(projectId);
 		if (!tracker) return [];
 
@@ -163,7 +191,7 @@ class WorkflowActionService {
 		const updated = await prisma.workflowAlert.updateMany({
 			where: {
 				projectId,
-                status: 'ACTIVE',
+				status: 'ACTIVE',
 				OR: [
 					{ stepName: lineItemName },
 				]
@@ -180,8 +208,4 @@ class WorkflowActionService {
 	}
 }
 
-<<<<<<< Current (Your changes)
-module.exports = new WorkflowActionService();
-=======
 module.exports = WorkflowActionService;
->>>>>>> Incoming (Background Agent changes)
