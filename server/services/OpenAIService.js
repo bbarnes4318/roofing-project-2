@@ -3,6 +3,7 @@ class OpenAIService {
     this.isEnabled = false;
     this.client = null;
     this.apiKey = null;
+    this.model = process.env.OPENAI_MODEL || 'gpt-5';
     
     // Try to initialize OpenAI if available
     console.log('🔍 OpenAI Initialization: Checking for API key...');
@@ -24,7 +25,7 @@ class OpenAIService {
         console.log('🔍 OpenAI: Creating v4 client...');
         this.client = new OpenAI({ apiKey: this.apiKey });
         this.isEnabled = true;
-        console.log('✅ OpenAI service initialized successfully with GPT-5');
+        console.log(`✅ OpenAI service initialized successfully with model: ${this.model}`);
       } catch (error) {
         console.error('❌ OpenAI package not found or failed to initialize:', error.message);
         console.error('❌ Full error:', error);
@@ -47,7 +48,7 @@ class OpenAIService {
 
       console.log('🔍 Making OpenAI API call...');
       const response = await this.client.chat.completions.create({
-        model: 'gpt-5',
+        model: this.model,
         messages,
         max_tokens: 900,
         temperature: 0.8,
@@ -62,10 +63,10 @@ class OpenAIService {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
-        source: 'openai-gpt-5',
+        source: `openai:${this.model}`,
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
         metadata: {
-          model: 'gpt-5',
+          model: this.model,
           tokens: response.usage?.total_tokens,
           timestamp: new Date()
         }
@@ -388,7 +389,7 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
   getStatus() {
     return {
       enabled: this.isEnabled,
-              model: this.isEnabled ? 'gpt-5' : 'mock-responses',
+      model: this.isEnabled ? this.model : 'mock-responses',
       status: this.isEnabled ? 'active' : 'fallback'
     };
   }
@@ -413,7 +414,7 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
       ];
 
       const response = await this.client.chat.completions.create({
-        model: 'gpt-5',
+        model: this.model,
         messages,
         max_tokens: 200,
         temperature: 0.3
@@ -422,7 +423,7 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
       return {
         content: response.choices?.[0]?.message?.content || 'Done.',
         confidence: 0.95,
-        source: 'openai-gpt-5'
+        source: `openai:${this.model}`
       };
     } catch (error) {
       console.error('❌ OpenAI single response error:', error?.message || error);

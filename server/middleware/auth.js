@@ -3,10 +3,13 @@ const { createClient } = require('@supabase/supabase-js');
 const { prisma } = require('../config/prisma');
 
 // Initialize Supabase client for server-side token validation
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kqotdxuhptpkmbsrvjga.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtxb3RkeHVocHRwa21ic3J2amdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Njg2NjMsImV4cCI6MjA3MTQ0NDY2M30.6220K6MLU1-tnI8o9QEwgKNUPd53HZpkHVDuBG2mMI0';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Only create Supabase client if config provided; otherwise skip gracefully
+const supabase = (supabaseUrl && supabaseServiceKey)
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 // Authenticate JWT token (supports both old JWT and Supabase tokens)
 const authenticateToken = async (req, res, next) => {
@@ -54,8 +57,9 @@ const authenticateToken = async (req, res, next) => {
     let user = null;
     let isSupabaseToken = false;
 
-    // First, try to validate as Supabase token
+    // First, try to validate as Supabase token (if configured)
     try {
+      if (!supabase) throw new Error('Supabase not configured');
       const { data: supabaseUser, error } = await supabase.auth.getUser(token);
       
       if (supabaseUser?.user && !error) {

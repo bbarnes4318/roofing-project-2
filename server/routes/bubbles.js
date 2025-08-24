@@ -396,9 +396,20 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 
     // Get or resolve project context
     let projectContext = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null;
+    const session = contextManager.getUserSession(userId);
+
+    // If message explicitly mentions a project number, override active project
+    const explicitProjectNumber = extractProjectNumberFromText(message);
+    if (explicitProjectNumber) {
+      const override = await prisma.project.findFirst({ where: { projectNumber: explicitProjectNumber } });
+      if (override) {
+        projectContext = override;
+        session.activeProject = override;
+      }
+    }
+
     if (!projectContext) {
       // Try previous active project in session
-      const session = contextManager.getUserSession(userId);
       if (session.activeProject) {
         projectContext = session.activeProject;
       } else {
