@@ -1,144 +1,183 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
+const WorkflowProgressionService = require('./WorkflowProgressionService');
 
 class WorkflowActionService {
+	constructor() {}
 
-    /**
-     * Marks a line item as complete and finds the next one in the sequence to alert.
-     */
-    async completeLineItemAndGetNext(lineItemId, projectId, userId) {
-        const currentItem = await prisma.workflowLineItem.findUnique({
-            where: { id: lineItemId },
-            include: { section: { include: { phase: true } } }
-        });
+	// Map human-readable phase names to enum values used by Prisma
+	static normalizePhaseName(phaseName) {
+		if (!phaseName) return null;
+		const normalized = String(phaseName).trim().toUpperCase().replace(/\s+/g, '_');
+		const mapping = {
+			LEAD: 'LEAD',
+			PROSPECT: 'PROSPECT',
+			APPROVED: 'APPROVED',
+			EXECUTION: 'EXECUTION',
+			'2ND_SUPP': 'SECOND_SUPPLEMENT',
+			'2ND_SUPPLEMENT': 'SECOND_SUPPLEMENT',
+			SECOND_SUPPLEMENT: 'SECOND_SUPPLEMENT',
+			COMPLETION: 'COMPLETION'
+		};
+		return mapping[normalized] || mapping[normalized.replace(':', '')] || null;
+	}
 
-        if (!currentItem) {
-            return { success: false, message: `Line item with ID ${lineItemId} not found.` };
-        }
+	async getMainTracker(projectId) {
+		return await prisma.projectWorkflowTracker.findFirst({
+			where: { projectId, isMainWorkflow: true },
+			select: { id: true, workflowType: true }
+		});
+	}
 
-        // Use an upsert to avoid duplicate completion records
-        await prisma.completedWorkflowItem.upsert({
-            where: {
-                projectId_lineItemId: {
-                    projectId: projectId,
-                    lineItemId: lineItemId,
-                },
-            },
-            update: { completedBy: userId, completedAt: new Date() },
-            create: {
-                lineItemId: lineItemId,
-                projectId: projectId,
-                completedBy: userId,
-                notes: 'Completed via Bubbles AI'
-            }
-        });
-        
-        const nextItem = await prisma.workflowLineItem.findFirst({
-            where: {
-                sectionId: currentItem.sectionId,
-                sequence: { gt: currentItem.sequence }
-            },
-            orderBy: { sequence: 'asc' }
-        });
+	async findLineItemByName(itemName, workflowType = 'ROOFING') {
+		if (!itemName) return null;
+		return await prisma.workflowLineItem.findFirst({
+			where: {
+				isActive: true,
+				isCurrent: true,
+				workflowType,
+				itemName: { equals: itemName, mode: 'insensitive' }
+			},
+			include: {
+				section: { include: { phase: true } }
+			}
+		});
+	}
 
-        if (nextItem) {
-            await this.triggerAlert(projectId, `Task ready: "${nextItem.name}"`, nextItem.id, userId);
-            return { success: true, message: `Completed "${currentItem.name}". The next task is "${nextItem.name}".`, nextItem };
-        } else {
-            return { success: true, message: `Completed "${currentItem.name}". This was the last item in the section.`, nextItem: null };
-        }
-    }
+	// 1) Mark a line item complete and trigger progression/alerts
+	async markLineItemComplete(projectId, lineItemName, userId = null, notes = null) {
+		if (!projectId || !lineItemName) {
+			return { success: false, message: 'projectId and lineItemName are required.' };
+		}
 
-    /**
-     * Finds all incomplete line items for a given project phase.
-     */
-    async getIncompleteItemsInPhase(projectId, phaseName) {
-        const completedItems = await prisma.completedWorkflowItem.findMany({
-            where: { projectId },
-            select: { lineItemId: true }
-        });
-        const completedItemIds = completedItems.map(item => item.lineItemId);
+		const tracker = await this.getMainTracker(projectId);
+		if (!tracker) {
+			return { success: false, message: 'No workflow tracker found for this project. Initialize the workflow first.' };
+		}
 
-        const incompleteItems = await prisma.workflowLineItem.findMany({
-            where: {
-                id: { notIn: completedItemIds },
-                section: {
-                    phase: {
-                        name: { equals: phaseName, mode: 'insensitive' },
-                        workflow: { projectId }
-                    }
-                }
-            },
-            orderBy: { section: { sequence: 'asc' }, sequence: 'asc' },
-            select: { name: true, sequence: true, section: { select: { name: true } } }
-        });
-        
-        return incompleteItems;
-    }
-    
-    /**
-     * Identifies the first incomplete line item in a phase, which is the current blocker.
-     */
-    async findBlockingTask(projectId, phaseName) {
-        const incompleteItems = await this.getIncompleteItemsInPhase(projectId, phaseName);
-        if (incompleteItems.length > 0) {
-            return incompleteItems[0]; // The first one in the sequence is the blocker
-        }
-        return null;
-    }
+		const lineItem = await this.findLineItemByName(lineItemName, tracker.workflowType || 'ROOFING');
+		if (!lineItem) {
+			return { success: false, message: `I couldn't find a workflow item named "${lineItemName}" for this project.` };
+		}
 
-    /**
-     * Reassigns an alert for a specific task to a new user.
-     */
-    async reassignTask(lineItemId, newUserId, projectId) {
-        const user = await prisma.user.findUnique({ where: { id: newUserId } });
-        if (!user) {
-            return { success: false, message: `User with ID ${newUserId} not found.` };
-        }
+		const result = await WorkflowProgressionService.completeLineItem(projectId, lineItem.id, userId, notes, global.io);
 
-        // Find the line item to get its name
-        const lineItem = await prisma.workflowLineItem.findUnique({ where: { id: lineItemId } });
-        if (!lineItem) {
-            return { success: false, message: `Line item with ID ${lineItemId} not found.` };
-        }
+		const next = result?.tracker?.currentLineItemId
+			? await prisma.workflowLineItem.findUnique({
+					where: { id: result.tracker.currentLineItemId },
+					include: { section: { include: { phase: true } } }
+				})
+			: null;
 
-        // Delete old alerts for this item and create a new one
-        await prisma.workflowAlert.deleteMany({ where: { lineItemId: lineItemId, projectId: projectId } });
-        
-        await this.triggerAlert(projectId, `Task reassigned to you: "${lineItem.name}"`, lineItemId, newUserId);
+		return {
+			success: true,
+			completedItem: {
+				id: lineItem.id,
+				lineItemName: lineItem.itemName,
+				sectionName: lineItem.section?.displayName,
+				phaseName: lineItem.section?.phase?.phaseType
+			},
+			nextItem: next
+				? {
+					id: next.id,
+					lineItemName: next.itemName,
+					sectionName: next.section?.displayName,
+					phaseName: next.section?.phase?.phaseType
+				}
+			: null,
+			message: next
+				? `The task "${lineItem.itemName}" is marked complete. Next: "${next.itemName}" assigned to ${next.responsibleRole}.`
+				: `The task "${lineItem.itemName}" is marked complete. That was the last item in this section or workflow.`
+		};
+	}
 
-        return { success: true, message: `Task "${lineItem.name}" has been reassigned to ${user.firstName} ${user.lastName}.` };
-    }
+	// 2) List incomplete items in a given phase
+	async getIncompleteItemsInPhase(projectId, phaseName) {
+		const tracker = await this.getMainTracker(projectId);
+		if (!tracker) return [];
 
-    /**
-     * Checks if all line items in a phase are complete.
-     */
-    async canAdvancePhase(projectId, phaseName) {
-        const incompleteItems = await this.getIncompleteItemsInPhase(projectId, phaseName);
-        const isComplete = incompleteItems.length === 0;
-        let message = isComplete 
-            ? `Yes, all tasks in the ${phaseName} phase are complete. You are ready to advance.`
-            : `No, there are still ${incompleteItems.length} incomplete tasks in the ${phaseName} phase. The current blocker is "${incompleteItems[0].name}".`;
-        return { ready: isComplete, message: message };
-    }
+		const phaseType = WorkflowActionService.normalizePhaseName(phaseName);
+		if (!phaseType) return [];
 
-    /**
-     * Helper function to create and send an alert.
-     */
-    async triggerAlert(projectId, message, lineItemId, assignedTo) {
-        // In a real app, this would also trigger a push notification or email
-        return await prisma.workflowAlert.create({
-            data: {
-                projectId: projectId,
-                message: message,
-                lineItemId: lineItemId,
-                assignedTo: assignedTo,
-                createdBy: 'system',
-                status: 'ACTIVE',
-                alertType: 'AUTOMATIC'
-            }
-        });
-    }
+		const phase = await prisma.workflowPhase.findFirst({
+			where: { phaseType, isActive: true, isCurrent: true, workflowType: tracker.workflowType || 'ROOFING' },
+			include: {
+				sections: {
+					where: { isActive: true, isCurrent: true },
+					include: { lineItems: { where: { isActive: true, isCurrent: true } } },
+					orderBy: { displayOrder: 'asc' }
+				}
+			}
+		});
+		if (!phase) return [];
+
+		const completed = await prisma.completedWorkflowItem.findMany({
+			where: { trackerId: tracker.id },
+			select: { lineItemId: true }
+		});
+		const completedIds = new Set(completed.map(c => c.lineItemId));
+
+		const items = [];
+		for (const section of phase.sections) {
+			const sorted = [...section.lineItems].sort((a, b) => a.displayOrder - b.displayOrder);
+			for (const item of sorted) {
+				if (!completedIds.has(item.id)) {
+					items.push({
+						id: item.id,
+						itemName: item.itemName,
+						sectionName: section.displayName,
+						phaseName: phase.phaseType,
+						displayOrder: item.displayOrder
+					});
+				}
+			}
+		}
+
+		return items;
+	}
+
+	// 3) Find the current blocker in a phase (first incomplete item)
+	async findBlockingTask(projectId, phaseName) {
+		const items = await this.getIncompleteItemsInPhase(projectId, phaseName);
+		return items.length > 0 ? items[0] : null;
+	}
+
+	// 4) Can we advance phase?
+	async canAdvancePhase(projectId, phaseName) {
+		const incomplete = await this.getIncompleteItemsInPhase(projectId, phaseName);
+		const ready = incomplete.length === 0;
+		return {
+			ready,
+			message: ready
+				? `All tasks in the ${phaseName} phase are complete. You can advance.`
+				: `There are ${incomplete.length} incomplete tasks in ${phaseName}. Blocker: "${incomplete[0].itemName}".`
+		};
+	}
+
+	// 5) Reassign an alert for a specific task to a new user
+	async reassignTask(lineItemName, newUserId, projectId) {
+		if (!lineItemName || !newUserId || !projectId) {
+			return { success: false, message: 'lineItemName, newUserId, and projectId are required.' };
+		}
+
+		// Update all active alerts for this project and this step name
+		const updated = await prisma.workflowAlert.updateMany({
+			where: {
+				projectId,
+				status: 'ACTIVE',
+				OR: [
+					{ stepName: lineItemName },
+				]
+			},
+			data: { assignedToId: newUserId, acknowledged: false, isRead: false }
+		});
+
+		return {
+			success: true,
+			message: updated.count > 0
+				? `Reassigned ${updated.count} alert(s) for "${lineItemName}".`
+				: `No active alerts found for "${lineItemName}" to reassign.`
+		};
+	}
 }
 
-module.exports = new WorkflowActionService();
+module.exports = WorkflowActionService;

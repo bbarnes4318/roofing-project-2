@@ -7,13 +7,12 @@ const {
   AppError
 } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/prisma');
 const openAIService = require('../services/OpenAIService');
 const bubblesInsightsService = require('../services/BubblesInsightsService');
 const WorkflowActionService = require('../services/WorkflowActionService'); // From bubbles2.js
 const KnowledgeBaseService = require('../services/KnowledgeBaseService'); // From bubbles2.js
 
-const prisma = new PrismaClient();
 const router = express.Router();
 const workflowActionService = new WorkflowActionService();
 const knowledgeBaseService = new KnowledgeBaseService();
@@ -202,7 +201,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
     const session = contextManager.getUserSession(userId);
-    const aiResponse = await openAIService.generateResponse(systemPrompt, message, session.conversationHistory);
+    const aiResponse = await openAIService.generateResponse(message, { systemPrompt });
     
     let finalResponseContent = '';
 
@@ -212,25 +211,24 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
         if (toolCall.tool && toolCall.parameters) {
             let toolResult;
             const params = toolCall.parameters;
-
-            const lineItem = params.lineItemName ? await prisma.workflowLineItem.findFirst({ where: { name: { equals: params.lineItemName, mode: 'insensitive' }, section: { phase: { workflow: { projectId: projectContext.id } } } } }) : null;
             const newUser = params.newUserEmail ? await prisma.user.findUnique({ where: { email: params.newUserEmail } }) : null;
 
             switch (toolCall.tool) {
                 case 'mark_line_item_complete_and_notify':
-                    if (lineItem) toolResult = await workflowActionService.completeLineItemAndGetNext(lineItem.id, projectContext.id, userId);
-                    else toolResult = { success: false, message: `I couldn't find the task "${params.lineItemName}" in this project.` };
+                    toolResult = await workflowActionService.markLineItemComplete(projectContext.id, params.lineItemName, userId);
                     break;
                 
                 case 'get_incomplete_items_in_phase':
                     const items = await workflowActionService.getIncompleteItemsInPhase(projectContext.id, params.phaseName);
-                    const responseMessage = items.length > 0 ? `Here are the incomplete tasks for the ${params.phaseName} phase:\n${items.map(i => `- ${i.name} (in section: ${i.section.name})`).join('\n')}` : `All tasks in the ${params.phaseName} phase are complete.`;
+                    const responseMessage = items.length > 0
+                      ? `Here are the incomplete tasks for the ${params.phaseName} phase:\n${items.map(i => `- ${i.itemName} (section: ${i.sectionName})`).join('\n')}`
+                      : `All tasks in the ${params.phaseName} phase are complete.`;
                     toolResult = { success: true, message: responseMessage };
                     break;
 
                 case 'find_blocking_task':
                     const task = await workflowActionService.findBlockingTask(projectContext.id, params.phaseName);
-                    toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.name}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
+                    toolResult = { success: true, message: task ? `The current blocker in the ${params.phaseName} phase is "${task.itemName}".` : `There are no blocking tasks; the ${params.phaseName} phase is complete.` };
                     break;
 
                 case 'check_phase_readiness':
@@ -238,9 +236,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                     break;
 
                 case 'reassign_task':
-                    if (!lineItem) toolResult = { success: false, message: `I couldn't find the task "${params.lineItemName}".` };
-                    else if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
-                    else toolResult = await workflowActionService.reassignTask(lineItem.id, newUser.id, projectContext.id);
+                    if (!newUser) toolResult = { success: false, message: `I couldn't find a user with the email "${params.newUserEmail}".` };
+                    else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
                     break;
 
                 case 'answer_company_question':
