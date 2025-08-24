@@ -50,7 +50,9 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "node prisma/seed.js",
     "workflow:init": "node scripts/init-workflow-trackers.js",
+    "workflow:seed": "node scripts/seed-workflow-templates.js",
     "kb:build": "node scripts/build-knowledge-base.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "ci": "prisma generate && jest --runInBand"
   }
 }
