@@ -42,7 +42,7 @@ class OpenAIService {
     }
 
     try {
-      const systemPrompt = this.buildSystemPrompt(context);
+      const systemPrompt = context.systemPrompt || this.buildSystemPrompt(context);
       const messages = this.buildMessages(systemPrompt, prompt, context);
 
       console.log('🔍 Making OpenAI API call...');
@@ -390,6 +390,47 @@ What should we do first?`,
               model: this.isEnabled ? 'gpt-5' : 'mock-responses',
       status: this.isEnabled ? 'active' : 'fallback'
     };
+  }
+
+  /**
+   * Generate a single-shot response without conversation scaffolding.
+   * Used to turn tool results into concise confirmations.
+   */
+  async generateSingleResponse(prompt) {
+    if (!this.isEnabled) {
+      return {
+        content: prompt && typeof prompt === 'string' ? prompt.slice(0, 400) : 'Acknowledged.',
+        confidence: 0.9,
+        source: 'mock-responses'
+      };
+    }
+
+    try {
+      const messages = [
+        { role: 'system', content: 'You are a concise, professional assistant. Reply in under 80 words.' },
+        { role: 'user', content: String(prompt) }
+      ];
+
+      const response = await this.client.chat.completions.create({
+        model: 'gpt-5',
+        messages,
+        max_tokens: 200,
+        temperature: 0.3
+      });
+
+      return {
+        content: response.choices?.[0]?.message?.content || 'Done.',
+        confidence: 0.95,
+        source: 'openai-gpt-5'
+      };
+    } catch (error) {
+      console.error('❌ OpenAI single response error:', error?.message || error);
+      return {
+        content: 'Acknowledged.',
+        confidence: 0.7,
+        source: 'fallback'
+      };
+    }
   }
 }
 
