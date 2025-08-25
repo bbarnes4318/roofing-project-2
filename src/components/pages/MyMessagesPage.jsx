@@ -508,7 +508,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
 
               {!showAddMessageForm ? (
                 /* Quick Message Form */
-                <form onSubmit={handleSendDM} className="flex gap-2">
+                <form onSubmit={(e) => { e.preventDefault(); handleSendDM(); }} className="flex gap-2">
                   <input
                     type="text"
                     value={dmInput}
