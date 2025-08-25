@@ -15,7 +15,7 @@ class KnowledgeBaseService {
 		}
 	}
 
-	async answerQuestion(question) {
+	async answerQuestion(question, projectContext = null) {
 		const root = path.resolve(__dirname, '..', '..');
 		const phasesText = this.readFileSafe(path.join(root, 'project-phases.txt'), 150_000);
 		const tablesText = this.readFileSafe(path.join(root, 'tables-and-fields.md'), 150_000);
@@ -39,7 +39,7 @@ ${context.slice(0, 18000)}
 
 Answer in 80 words or fewer.`;
 
-		const response = await openAIService.generateSingleResponse(prompt);
+		const response = await openAIService.generateSingleResponse(prompt, projectContext);
 		return response.content || "I don't have that information in the provided context.";
 	}
 }

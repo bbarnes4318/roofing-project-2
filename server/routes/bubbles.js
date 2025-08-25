@@ -538,7 +538,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                     else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
                     break;
                 case 'answer_company_question':
-                    const answer = await knowledgeBaseService.answerQuestion(params.question);
+                    const answer = await knowledgeBaseService.answerQuestion(params.question, projectContext);
                     toolResult = { success: true, message: answer };
                     break;
                 default:
@@ -546,8 +546,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
             }
 
             // Second AI call to formulate a natural response
-            const confirmationPrompt = `The user's action was processed. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions.`;
-            const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt);
+            const confirmationPrompt = `The user's action was processed for project "${projectContext?.projectName || 'the selected project'}". The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions. DO NOT ask for project numbers or customer names - use the current project context.`;
+            const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt, projectContext);
             finalResponseContent = finalAiResponse.content;
         } else {
              // This is not a tool call, so it's a direct answer.
@@ -592,15 +592,15 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                             else toolResult = await workflowActionService.reassignTask(params.lineItemName, newUser.id, projectContext.id);
                             break;
                         case 'answer_company_question':
-                            const answer = await knowledgeBaseService.answerQuestion(params.question);
+                            const answer = await knowledgeBaseService.answerQuestion(params.question, projectContext);
                             toolResult = { success: true, message: answer };
                             break;
                         default:
                             toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
                     }
 
-                    const confirmationPrompt = `The user's action was processed. The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions.`;
-                    const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt);
+                    const confirmationPrompt = `The user's action was processed for project "${projectContext?.projectName || 'the selected project'}". The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions. DO NOT ask for project numbers or customer names - use the current project context.`;
+                    const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt, projectContext);
                     finalResponseContent = finalAiResponse.content;
                 } else {
                     finalResponseContent = strictResponse.content;

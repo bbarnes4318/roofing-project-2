@@ -399,7 +399,7 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
    * Generate a single-shot response without conversation scaffolding.
    * Used to turn tool results into concise confirmations.
    */
-  async generateSingleResponse(prompt) {
+  async generateSingleResponse(prompt, projectContext = null) {
     if (!this.isEnabled) {
       return {
         content: prompt && typeof prompt === 'string' ? prompt.slice(0, 400) : 'Acknowledged.',
@@ -409,8 +409,15 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
     }
 
     try {
+      let systemContent = 'You are a concise, professional assistant. Reply in under 80 words.';
+      
+      // Add project context if provided
+      if (projectContext && projectContext.projectName) {
+        systemContent += `\n\nCurrent Project Context: ${projectContext.projectName} (ID: ${projectContext.id}). Use this project context for all operations. DO NOT ask for project numbers or customer names.`;
+      }
+
       const messages = [
-        { role: 'system', content: 'You are a concise, professional assistant. Reply in under 80 words.' },
+        { role: 'system', content: systemContent },
         { role: 'user', content: String(prompt) }
       ];
 
