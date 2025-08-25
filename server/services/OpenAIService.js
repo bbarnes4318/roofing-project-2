@@ -3,6 +3,7 @@ class OpenAIService {
     this.isEnabled = false;
     this.client = null;
     this.apiKey = null;
+    // Default to gpt-5 unless overridden; service uses server-owned key and is always on
     this.model = process.env.OPENAI_MODEL || 'gpt-5';
     
     // Try to initialize OpenAI if available
