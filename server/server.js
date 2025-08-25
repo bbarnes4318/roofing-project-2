@@ -58,7 +58,13 @@ const projectMessageRoutes = require('./routes/projectMessages');
 const documentRoutes = require('./routes/documents');
 const calendarRoutes = require('./routes/calendar');
 const aiRoutes = require('./routes/ai');
-const bubblesRoutes = require('./routes/bubbles');
+let bubblesRoutes;
+try {
+  bubblesRoutes = require('./routes/bubbles');
+  console.log('✅ SERVER: Bubbles routes loaded successfully');
+} catch (error) {
+  console.error('⚠️ SERVER: Failed to load Bubbles routes:', error?.message || error);
+}
 const healthRoutes = require('./routes/health');
 const debugRoutes = require('./routes/debug');
 const customerRoutes = require('./routes/customers');
@@ -670,7 +676,11 @@ if (workflowRoutes) {
 }
 app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/bubbles', bubblesRoutes);
+if (bubblesRoutes) {
+  app.use('/api/bubbles', bubblesRoutes);
+} else {
+  console.warn('⚠️ SERVER: Bubbles routes not mounted');
+}
 // app.use('/api/workflow-updates', workflowUpdateRoutes); // REMOVED - legacy route deleted
 app.use('/api/phase-override', phaseOverrideRoutes);
 if (workflowImportRoutes) {
