@@ -11,11 +11,11 @@ const { prisma } = require('../config/prisma');
 const openAIService = require('../services/OpenAIService');
 const bubblesInsightsService = require('../services/BubblesInsightsService');
 const WorkflowActionService = require('../services/WorkflowActionService'); // From bubbles2.js
-const KnowledgeBaseService = require('../services/KnowledgeBaseService'); // From bubbles2.js
+// Removed KnowledgeBaseService usage per request – use OpenAI directly for general Q&A
 
 const router = express.Router();
 const workflowActionService = new WorkflowActionService();
-const knowledgeBaseService = new KnowledgeBaseService();
+// const knowledgeBaseService = new KnowledgeBaseService();
 
 // ---- Project resolution helpers ----
 function extractProjectNumberFromText(text) {
@@ -502,6 +502,35 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     if (projectContext) session.activeProject = projectContext;
   } else if (session.activeProject) {
     projectContext = session.activeProject;
+  }
+
+  // Heuristic 1: Customer info requests (name/address/phone/email)
+  const lower = String(message || '').toLowerCase();
+  const wantsCustomerInfo = /customer|owner|client/.test(lower) && /(name|phone|email|address)/.test(lower);
+  if (projectContext && wantsCustomerInfo) {
+    const proj = await prisma.project.findUnique({ where: { id: projectContext.id }, include: { customer: true } });
+    const c = proj?.customer || {};
+    const lines = [];
+    if (c.primaryName) lines.push(`Customer: ${c.primaryName}`);
+    if (c.secondaryName) lines.push(`Secondary: ${c.secondaryName}`);
+    const addrParts = [c.addressLine1, c.addressLine2, c.city && c.state ? `${c.city}, ${c.state}` : c.city || c.state, c.postalCode || c.zip];
+    const addr = addrParts.filter(Boolean).join(', ');
+    if (addr) lines.push(`Address: ${addr}`);
+    if (c.primaryPhone || c.phone) lines.push(`Phone: ${c.primaryPhone || c.phone}`);
+    if (c.primaryEmail || c.email) lines.push(`Email: ${c.primaryEmail || c.email}`);
+    const content = lines.length ? lines.join('\n') : 'No customer contact details are available for this project.';
+    contextManager.addToHistory(req.user.id, message, content, proj || projectContext);
+    return sendSuccess(res, 200, { response: { content } });
+  }
+
+  // Heuristic 2: General/company questions → Use OpenAI directly
+  if (!projectContext) {
+    const generic = await openAIService.generateResponse(message, {
+      systemPrompt,
+    });
+    const contentGeneric = generic?.content || 'OK';
+    contextManager.addToHistory(req.user.id, message, contentGeneric, null);
+    return sendSuccess(res, 200, { response: { content: contentGeneric } });
   }
 
   const systemPrompt = getSystemPrompt(req.user, projectContext);
