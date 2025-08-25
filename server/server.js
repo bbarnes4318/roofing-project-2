@@ -726,11 +726,17 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   const fs = require('fs');
   
-  // React build is copied to server/public during build process
-  const buildPath = path.join(__dirname, 'public');
+  // Determine React build location (support multiple layouts)
+  const candidatePaths = [
+    path.join(__dirname, 'public'),           // server/public (if copied during build)
+    path.join(__dirname, '..', 'build'),      // root/build (CRA default)
+    path.join(process.cwd(), 'build')         // cwd/build fallback
+  ];
+  const buildPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
   
   console.log('🏗️ Server directory:', __dirname);
-  console.log('🏗️ Build path:', buildPath);
+  console.log('🏗️ Build path candidates:', candidatePaths);
+  console.log('🏗️ Selected build path:', buildPath);
   console.log('🏗️ Build exists?', fs.existsSync(buildPath));
   
   // List files in /app to see what's actually there
