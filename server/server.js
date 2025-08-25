@@ -678,8 +678,6 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
 if (bubblesRoutes) {
   app.use('/api/bubbles', bubblesRoutes);
-} else {
-  console.warn('⚠️ SERVER: Bubbles routes not mounted');
 }
 // app.use('/api/workflow-updates', workflowUpdateRoutes); // REMOVED - legacy route deleted
 app.use('/api/phase-override', phaseOverrideRoutes);
