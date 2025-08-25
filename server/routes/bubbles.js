@@ -198,6 +198,37 @@ async function handleHeuristicIntent(message, projectContext, userId) {
     }
   }
 
+  // Next line item
+  if (text.includes('next') && (text.includes('line item') || text.includes('task') || text.includes('step'))) {
+    const tracker = await prisma.projectWorkflowTracker.findFirst({
+      where: { projectId: projectContext.id, isMainWorkflow: true },
+      select: { currentLineItemId: true }
+    });
+    if (tracker?.currentLineItemId) {
+      const li = await prisma.workflowLineItem.findUnique({
+        where: { id: tracker.currentLineItemId },
+        select: { 
+          itemName: true, 
+          section: { 
+            select: { 
+              phase: { select: { phaseType: true, phaseName: true } },
+              sectionName: true
+            } 
+          } 
+        }
+      });
+      if (li) {
+        const phaseName = li.section?.phase?.phaseName || li.section?.phase?.phaseType || 'Current Phase';
+        const sectionName = li.section?.sectionName || 'Current Section';
+        return { 
+          handled: true, 
+          content: `**Next Line Item:** ${li.itemName}\n\n**Location:** ${sectionName} (${phaseName})\n\n**Status:** Ready to complete\n\n**Next actions:**\n• Complete this task\n• Check for blocking items\n• Review phase progress` 
+        };
+      }
+    }
+    return { handled: true, content: 'I couldn\'t find the current line item. Let me check the project status.' };
+  }
+
   return { handled: false };
 }
 
@@ -371,10 +402,11 @@ ${projectContext && projectContext.projectName ? `
 4. If general question: Answer directly
 
 ### STEP 2: RESPONSE GENERATION
-1. **Tool-First Approach:** Use tools for actionable requests
-2. **Direct Answers:** Answer general questions directly
-3. **Context Maintenance:** Always maintain project context
-4. **No Repetition:** Never ask for project identification twice
+1. **For ACTIONABLE requests** (complete tasks, check status, etc.): Use JSON tool call format
+2. **For GENERAL QUESTIONS** (what is next, how to do something, etc.): Respond conversationally in natural language
+3. **For PROJECT STATUS queries**: Provide direct answers using project context
+4. **Context Maintenance:** Always maintain project context
+5. **No Repetition:** Never ask for project identification twice
 
 ### STEP 3: FORMATTING
 - Use Markdown formatting (headers, bold, lists)
@@ -397,6 +429,13 @@ ${projectContext && projectContext.projectName ? `
 - ❌ NEVER ask "Tell me the project number" or similar
 - ❌ NEVER ask for customer identification
 - ❌ NEVER ask for project identification
+
+### 🎯 RESPONSE GUIDELINES:
+- **For "what is next" questions**: Answer directly with current line item info
+- **For "how to" questions**: Provide helpful guidance
+- **For status questions**: Give current project status
+- **For actionable requests**: Use JSON tool calls
+- **For general questions**: Respond conversationally
 ` : `
 **NO PROJECT SELECTED:**
 - Ask user to select project for project-specific queries
@@ -404,11 +443,11 @@ ${projectContext && projectContext.projectName ? `
 `}
 
 ### 🎯 RESPONSE PATTERNS
-1. **Project Status Query:** Provide status using selected project
-2. **Task Query:** Use tools with selected project
-3. **Phase Query:** Use tools with selected project  
-4. **General Question:** Answer directly
-5. **Multiple Projects:** Ask user to choose specific project
+1. **Project Status Query:** Provide status using selected project (conversational response)
+2. **Task Query:** Use tools with selected project (JSON tool call)
+3. **Phase Query:** Use tools with selected project (JSON tool call)
+4. **General Question:** Answer directly (conversational response)
+5. **Multiple Projects:** Ask user to choose specific project (conversational response)
 
 ### ⚠️ ERROR PREVENTION
 - If you ask for project identification when project is selected: YOU ARE MAKING AN ERROR
@@ -616,7 +655,13 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
     
     // BULLETPROOF FINAL INSTRUCTION
     const finalInstruction = projectContext && projectContext.projectName ? 
-        `\n\n🚨 FINAL BULLETPROOF INSTRUCTION: You are working with project "${projectContext.projectName}" (ID: ${projectContext.id}). NEVER ask for project numbers, customer names, or any project identification. Use this project for ALL project-related questions.` : 
+        `\n\n🚨 FINAL BULLETPROOF INSTRUCTION: You are working with project "${projectContext.projectName}" (ID: ${projectContext.id}). NEVER ask for project numbers, customer names, or any project identification. Use this project for ALL project-related questions.
+
+## RESPONSE FORMAT INSTRUCTIONS:
+- For ACTIONABLE requests (complete tasks, check status, etc.): Respond with JSON tool call format
+- For GENERAL QUESTIONS (what is next, how to do something, etc.): Respond conversationally in natural language
+- For PROJECT STATUS queries: Provide direct answers using project context
+- NEVER ask for project identification when project is already selected` : 
         '';
     
     const completeSystemPrompt = systemPrompt + finalInstruction;
@@ -718,9 +763,13 @@ Generate a natural, helpful response following this pattern.`;
         if (heuristic.handled) {
             finalResponseContent = heuristic.content;
         } else {
-            // Retry with stricter instruction to respond ONLY with JSON tool call
-            const strictPrompt = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with a JSON object like {"tool": <name>, "parameters": { ... }} for actionable requests. No extra text.`;
-            const strictResponse = await openAIService.generateResponse(message, { systemPrompt: strictPrompt });
+            // For general questions, use the AI response directly instead of forcing JSON
+            if (message.toLowerCase().includes('what') || message.toLowerCase().includes('how') || message.toLowerCase().includes('next') || message.toLowerCase().includes('line item')) {
+                finalResponseContent = aiResponse.content;
+            } else {
+                // Retry with stricter instruction to respond ONLY with JSON tool call for actionable requests
+                const strictPrompt = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with a JSON object like {"tool": <name>, "parameters": { ... }} for actionable requests. No extra text.`;
+                const strictResponse = await openAIService.generateResponse(message, { systemPrompt: strictPrompt });
             try {
                 const toolCall = JSON.parse(strictResponse.content);
                 if (toolCall.tool && toolCall.parameters) {

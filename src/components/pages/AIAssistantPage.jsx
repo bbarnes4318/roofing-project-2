@@ -98,21 +98,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             if (selectedProject?.id) {
                 sessionStorage.setItem('aiAssistant.lastProjectId', String(selectedProject.id));
                 
-                // Add a context message to the AI when project is selected (only if not already present)
-                const hasContextMessage = messages.some(msg => 
-                    msg.isContextMessage && msg.content.includes(selectedProject.projectName || selectedProject.name)
-                );
-                
-                if (!hasContextMessage) {
-                    const contextMessage = {
-                        id: Date.now(),
-                        type: 'assistant',
-                        content: `Project context set: **#${String(selectedProject.projectNumber || selectedProject.id).padStart(5, '0')} — ${selectedProject.projectName || selectedProject.name}**\n\nI'm now ready to help you with this project. You can ask me about tasks, status, phases, or any other project-related questions.`,
-                        timestamp: new Date(),
-                        isContextMessage: true
-                    };
-                    setMessages(prev => [...prev, contextMessage]);
-                }
+                // Project context is now handled silently without adding messages to the chat
+                // The context is maintained in the backend and UI indicators
             }
         } catch (_) {}
     }, [selectedProject, messages]);
@@ -153,27 +140,6 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
     const quickActions = [
         {
-            id: 'complete-photo',
-            icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
-            label: 'Complete "Take site photos"',
-            requiresProject: true,
-            text: 'Check off "Take site photos"'
-        },
-        {
-            id: 'complete-inspection',
-            icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
-            label: 'Complete "Inspection"',
-            requiresProject: true,
-            text: 'Mark "Complete inspection form" as complete'
-        },
-        {
-            id: 'blocking-tasks',
-            icon: <ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />,
-            label: 'Find Blocking Tasks',
-            requiresProject: true,
-            text: 'What\'s blocking the current phase?'
-        },
-        {
             id: 'phase-status',
             icon: <ChartBarIcon className="w-5 h-5 text-blue-600" />,
             label: 'Check Phase Status',
@@ -186,13 +152,6 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             label: 'Show Incomplete Tasks',
             requiresProject: true,
             text: 'Show me all incomplete tasks in the current phase'
-        },
-        {
-            id: 'company-help',
-            icon: <CogIcon className="w-5 h-5 text-purple-600" />,
-            label: 'Company Knowledge',
-            requiresProject: false,
-            text: 'What are the project phases and workflow process?'
         }
     ];
 
@@ -352,7 +311,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         if (currentStep?.lineItemName) {
             dynamicPrompts.push({ id: 'dyn-complete', label: `Complete "${currentStep.lineItemName}"`, onClick: () => handleSubmit(null, `Complete "${currentStep.lineItemName}"`) });
         }
-        dynamicPrompts.push({ id: 'dyn-send-msg', label: 'Send Project Message', onClick: () => setIsComposerOpen(true) });
+        // Send Project Message button removed from UI but functionality remains in backend
     }
 
     return (
@@ -454,21 +413,9 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 {/* Selected Project Context Indicator */}
                 {selectedProject && (
                     <div className="mt-3 p-3 bg-blue-100 border border-blue-200 rounded-lg">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                                <CheckCircleIcon className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-900">Active Project Context</span>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setSelectedProject(null);
-                                    setMessages([]);
-                                    sessionStorage.removeItem('aiAssistant.lastProjectId');
-                                }}
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
-                            >
-                                Clear Context
-                            </button>
+                        <div className="flex items-center gap-2 mb-1">
+                            <CheckCircleIcon className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-900">Active Project Context</span>
                         </div>
                         <div className="text-sm text-blue-800">
                             <strong>#{String(selectedProject.projectNumber || selectedProject.id).padStart(5, '0')}</strong> — {selectedProject.projectName || selectedProject.name}
@@ -536,17 +483,17 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 
                 {selectedProject && (
                     <div className="mt-3 p-3 bg-blue-100 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mb-2">
                             <UserGroupIcon className="w-4 h-4 text-blue-600" />
                             <span className="text-sm font-medium text-blue-900">
                                 Active Project: {selectedProject.projectName || selectedProject.name}
                             </span>
                         </div>
-                        <p className="text-xs text-blue-700 mt-1">
-                            Phase: {currentStep?.phaseName || currentStep?.phaseType || '-'}
-                            {'   '}Section: {currentStep?.sectionName || '-'}
-                            {'   '}Line Item: {currentStep?.lineItemName || '-'}
-                        </p>
+                        <div className="text-xs text-blue-700 space-y-1">
+                            <div><strong>Phase:</strong> {currentStep?.phaseName || currentStep?.phaseType || '-'}</div>
+                            <div><strong>Section:</strong> {currentStep?.sectionName || '-'}</div>
+                            <div><strong>Line Item:</strong> {currentStep?.lineItemName || '-'}</div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -554,9 +501,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
-                    {messages.map(message => (
-                        <MessageBubble key={message.id} message={message} />
-                    ))}
+                    {messages
+                        .filter(message => !message.isContextMessage) // Hide context messages
+                        .map(message => (
+                            <MessageBubble key={message.id} message={message} />
+                        ))}
                     {isLoading && (
                         <div className="flex justify-start mb-4">
                             <div className="flex items-start gap-2">
