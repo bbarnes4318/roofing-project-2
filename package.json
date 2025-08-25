@@ -31,7 +31,6 @@
     "web-vitals": "^4.2.2"
   },
   "scripts": {
-    "postinstall": "npm run build",
     "db:wipe": "cross-env WIPE_CONFIRM=YES node server/scripts/wipe-database.js",
     "db:wipe:dry": "cross-env WIPE_CONFIRM=YES WIPE_DRY_RUN=1 node server/scripts/wipe-database.js",
     "db:seed:all": "node server/scripts/seed-everything.js",

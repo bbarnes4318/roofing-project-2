@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy frontend package files
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 # Copy frontend source
 COPY src ./src
@@ -26,8 +26,8 @@ WORKDIR /app
 
 # Copy backend package files
 COPY server/package*.json ./
-# Install all dependencies including xlsx, csv-parse, multer, express-validator
-RUN npm install --production=false
+# Install only production deps for server
+RUN npm ci --omit=dev
 
 # Copy backend source
 COPY server ./
