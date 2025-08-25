@@ -435,6 +435,45 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
         return sendSuccess(res, 200, { response: { content: 'Please provide a project number or primary customer name so I can look it up.' } });
     }
 
+    // Build richer project context for better answers
+    let contextExtras = {};
+    if (projectContext) {
+      const [tracker, activeAlertsCount, nextDueAlert] = await Promise.all([
+        prisma.projectWorkflowTracker.findFirst({
+          where: { projectId: projectContext.id, isMainWorkflow: true },
+          select: { id: true, currentLineItemId: true, currentPhaseId: true }
+        }),
+        prisma.workflowAlert.count({ where: { projectId: projectContext.id, status: 'ACTIVE' } }),
+        prisma.workflowAlert.findFirst({
+          where: { projectId: projectContext.id, status: 'ACTIVE', dueDate: { not: null } },
+          orderBy: { dueDate: 'asc' },
+          select: { id: true, title: true, dueDate: true, priority: true }
+        })
+      ]);
+
+      let currentStepName = null;
+      let currentPhaseName = null;
+      if (tracker?.currentLineItemId) {
+        const li = await prisma.workflowLineItem.findUnique({
+          where: { id: tracker.currentLineItemId },
+          select: { itemName: true, section: { select: { phase: { select: { phaseType: true, phaseName: true } } } } }
+        });
+        currentStepName = li?.itemName || null;
+        currentPhaseName = li?.section?.phase?.phaseName || li?.section?.phase?.phaseType || null;
+      }
+
+      contextExtras = {
+        activeAlerts: activeAlertsCount,
+        workflowStatus: currentPhaseName || projectContext.status || null,
+        currentStep: currentStepName,
+        nextDueAlert: nextDueAlert ? {
+          title: nextDueAlert.title,
+          dueDate: nextDueAlert.dueDate,
+          priority: nextDueAlert.priority
+        } : null
+      };
+    }
+
     const systemPrompt = getSystemPrompt(req.user, projectContext);
     const session = contextManager.getUserSession(userId);
     const aiResponse = await openAIService.generateResponse(message, {
@@ -442,7 +481,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
       conversationHistory: session.conversationHistory,
       projectName: projectContext?.projectName,
       progress: projectContext?.progress,
-      status: projectContext?.status
+      status: projectContext?.status,
+      ...contextExtras
     });
     
     let finalResponseContent = '';
