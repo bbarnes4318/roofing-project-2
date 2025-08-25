@@ -23,6 +23,62 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const [composerBody, setComposerBody] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
 
+    // Enhanced markdown renderer for AI responses
+    const renderMessageContent = (content) => {
+        if (!content) return '';
+        
+        // Split content into lines and process each line
+        const lines = content.split('\n');
+        let inList = false;
+        let listItems = [];
+        
+        const processedLines = lines.map((line, index) => {
+            // Handle bold text with ** or __
+            let processedLine = line
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.*?)__/g, '<strong>$1</strong>');
+            
+            // Handle headers (lines starting with #)
+            if (line.startsWith('#')) {
+                const level = line.match(/^#+/)[0].length;
+                const text = line.replace(/^#+\s*/, '');
+                return `<h${Math.min(level, 6)} class="font-bold text-lg mb-3 mt-2">${text}</h${Math.min(level, 6)}>`;
+            }
+            
+            // Handle bullet points
+            if (line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
+                const text = line.trim().replace(/^[-•]\s*/, '');
+                return `<li class="ml-4 mb-2 list-disc">${text}</li>`;
+            }
+            
+            // Handle numbered lists
+            if (/^\d+\.\s/.test(line.trim())) {
+                const text = line.trim().replace(/^\d+\.\s*/, '');
+                return `<li class="ml-4 mb-2 list-decimal">${text}</li>`;
+            }
+            
+            // Handle empty lines
+            if (line.trim() === '') {
+                return '<div class="h-3"></div>';
+            }
+            
+            // Handle lines that look like section headers (Phase:, Section:, etc.)
+            if (/^(Phase|Section|Line Item|Status|Progress|Customer|Project):/.test(line.trim())) {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const label = parts[0].trim();
+                    const value = parts.slice(1).join(':').trim();
+                    return `<div class="mb-3 p-2 bg-gray-50 rounded border-l-4 border-blue-400"><strong class="text-blue-700">${label}:</strong> <span class="text-gray-800">${value}</span></div>`;
+                }
+            }
+            
+            // Handle regular text with proper spacing
+            return `<p class="mb-2 leading-relaxed">${processedLine}</p>`;
+        });
+        
+        return processedLines.join('');
+    };
+
     // Restore last selected project from sessionStorage when projects load
     useEffect(() => {
         try {
@@ -255,9 +311,12 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                                     : 'bg-gray-100 text-gray-800' 
                             : 'bg-blue-600 text-white'
                     }`}>
-                        <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                            {message.content}
-                        </div>
+                        <div 
+                            className="text-sm leading-relaxed prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ 
+                                __html: isAssistant ? renderMessageContent(message.content) : message.content 
+                            }}
+                        />
                         
                         {/* Render suggested actions */}
                         {message.suggestedActions && message.suggestedActions.length > 0 && (
@@ -298,6 +357,28 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
     return (
         <div className="h-full flex flex-col bg-white rounded-lg shadow-sm">
+            {/* Custom styles for message formatting */}
+            <style jsx>{`
+                .prose strong {
+                    font-weight: 600;
+                    color: #1f2937;
+                }
+                .prose li {
+                    margin-bottom: 0.5rem;
+                    padding-left: 0.5rem;
+                }
+                .prose p {
+                    margin-bottom: 0.75rem;
+                    line-height: 1.6;
+                }
+                .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+                    margin-top: 1rem;
+                    margin-bottom: 0.75rem;
+                    font-weight: 600;
+                    color: #1f2937;
+                }
+            `}</style>
+            
             {/* Header with project selector */}
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex items-center justify-between mb-4">
@@ -587,21 +668,3 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                                 ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                                 : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
                         }`}
-                    >
-                        {isLoading ? (
-                            <>
-                                <span className="text-sm md:text-base">Processing...</span>
-                            </>
-                        ) : (
-                            <>
-                                <span className="uppercase tracking-wide text-sm md:text-base">SEND</span>
-                            </>
-                        )}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-};
-
-export default AIAssistantPage; 

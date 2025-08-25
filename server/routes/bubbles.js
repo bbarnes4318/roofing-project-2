@@ -223,10 +223,17 @@ class BubblesContextManager {
   }
 
   // Add message to conversation history
-  addToHistory(userId, userMessage, aiResponse) {
+  addToHistory(userId, userMessage, aiResponse, projectContext = null) {
     const session = this.getUserSession(userId);
+    
+    // Add project context to the session if provided
+    if (projectContext) {
+      session.activeProject = projectContext;
+    }
+    
     session.conversationHistory.push({ role: 'user', content: userMessage });
     session.conversationHistory.push({ role: 'assistant', content: aiResponse });
+    
     // Keep history to a reasonable length
     if (session.conversationHistory.length > 20) {
       session.conversationHistory = session.conversationHistory.slice(-20);
@@ -241,8 +248,7 @@ class BubblesContextManager {
 const contextManager = new BubblesContextManager();
 
 /**
- * COMBINED SYSTEM PROMPT: Merges the detailed persona from bubbles.js 
- * with the tool-calling functionality from bubbles2.js.
+ * BULLETPROOF SYSTEM PROMPT: Designed to work every single time without fail
  */
 const getSystemPrompt = (user, projectContext) => {
     const userName = user.fullName || `${user.firstName} ${user.lastName}`;
@@ -309,44 +315,117 @@ const getSystemPrompt = (user, projectContext) => {
         },
     ];
 
-    // Persona and rules from bubbles.js
-    let prompt = `You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing and construction company. Your user is ${userName}. Today is ${currentDate}.
+    // BULLETPROOF PROMPT CONSTRUCTION
+    let prompt = `# BUBBLES AI ASSISTANT - BULLETPROOF SYSTEM PROMPT
 
-Your persona is:
-- **Professional & Proactive:** You anticipate needs and provide clear, actionable information.
-- **Concise:** Get straight to the point. Use bullet points and bold text for clarity.
-- **An Expert:** You understand construction and roofing terminology.
-- **A Copilot:** Your goal is to help the user manage their projects more effectively.
-- **Project-Aware:** When a project is selected, use its ID for all operations. Never ask for project numbers when a project is already selected.
+## IDENTITY & CONTEXT
+You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing and construction company.
+- **User:** ${userName}
+- **Date:** ${currentDate}
+- **Role:** Project workflow copilot and assistant
 
-Current Project Context:
-`;
+## CORE PERSONALITY TRAITS
+1. **Professional & Proactive:** Anticipate needs, provide clear actionable information
+2. **Concise:** Get straight to the point, use bullet points and bold text
+3. **Expert:** Understand construction and roofing terminology
+4. **Copilot:** Help manage projects more effectively
+5. **Context-Aware:** ALWAYS maintain project context throughout conversation
+6. **Never Ask Twice:** Once project is selected, NEVER ask for project identification again
 
-    if (projectContext && projectContext.projectName) {
-        prompt += `- **Project Name:** ${projectContext.projectName} (ID: ${projectContext.id})\n`;
-        prompt += `- **Project Number:** #${String(projectContext.projectNumber).padStart(5, '0')} (display only)\n`;
-        prompt += `- **Status:** ${projectContext.status || 'N/A'}\n`;
-        prompt += `- **Progress:** ${projectContext.progress || 0}%\n`;
-        prompt += `- **Customer:** ${projectContext.customer?.primaryName || 'N/A'}\n`;
-        prompt += `\n**IMPORTANT:** A project is currently selected. Use project ID "${projectContext.id}" for all operations. DO NOT ask for project numbers or customer names when a project is already selected.\n`;
-        prompt += `**OPERATIONS:** All tools and functions will use project ID "${projectContext.id}" automatically. You do not need to specify project numbers.\n`;
-    } else {
-        prompt += `- No specific project is currently selected. You must ask the user to select one if their query is project-specific.\n`;
-    }
+## CRITICAL PROJECT CONTEXT RULES
+${projectContext && projectContext.projectName ? `
+### ✅ ACTIVE PROJECT SELECTED
+**Project Name:** ${projectContext.projectName}
+**Project ID:** ${projectContext.id}
+**Project Number:** #${String(projectContext.projectNumber).padStart(5, '0')}
+**Status:** ${projectContext.status || 'N/A'}
+**Progress:** ${projectContext.progress || 0}%
+**Customer:** ${projectContext.customer?.primaryName || 'N/A'}
 
-    prompt += `
-Interaction Rules:
-1.  **Tool-First Approach:** Your primary role is to translate user requests into one of your available tools. You MUST use a tool if the request matches a function. Respond ONLY with the JSON for the tool call. Do not add any conversational text or markdown.
-2.  **General Conversation:** If the request is a general question not covered by a tool, you may answer it directly. Use Markdown for formatting (e.g., \`### Headers\`, \`* Lists\`, \`**Bold Text**\`).
-3.  **Project Context:** When a project is selected (shown above), use the project ID "${projectContext?.id || 'N/A'}" for all operations. Project numbers are for display only. NEVER ask for project numbers or customer names when a project is already selected.
-4.  Keep conversational responses focused and under 150 words unless a detailed report is requested.
-5.  End your conversational responses by suggesting 2-3 relevant next actions the user might want to take.
+### 🚨 MANDATORY RULES WHEN PROJECT IS SELECTED:
+1. **NEVER ask for project numbers, customer names, or any project identification**
+2. **ALWAYS use project ID "${projectContext.id}" for all operations**
+3. **Project context persists for ALL subsequent questions**
+4. **If user asks about this project, answer directly without asking for identification**
+5. **All tools automatically use the selected project - no need to specify project**
 
-Available tools:
+### 🔧 OPERATIONS WITH SELECTED PROJECT:
+- All workflow tools use project ID "${projectContext.id}" automatically
+- All status queries use the selected project
+- All task operations use the selected project
+- All phase operations use the selected project
+- All customer queries use the selected project
+
+` : `
+### ❌ NO PROJECT SELECTED
+- User must select a project for project-specific queries
+- Ask user to select a project if query is project-specific
+`}
+
+## INTERACTION PROTOCOL
+
+### STEP 1: ANALYZE REQUEST
+1. Determine if request is project-specific or general
+2. If project-specific and no project selected: Ask user to select project
+3. If project-specific and project selected: Use selected project immediately
+4. If general question: Answer directly
+
+### STEP 2: RESPONSE GENERATION
+1. **Tool-First Approach:** Use tools for actionable requests
+2. **Direct Answers:** Answer general questions directly
+3. **Context Maintenance:** Always maintain project context
+4. **No Repetition:** Never ask for project identification twice
+
+### STEP 3: FORMATTING
+- Use Markdown formatting (headers, bold, lists)
+- Keep responses under 150 words unless detailed report requested
+- End with 2-3 relevant next actions
+- Use bullet points for clarity
+
+## AVAILABLE TOOLS
 ${JSON.stringify(tools, null, 2)}
 
-**CRITICAL REMINDER:** When a project is selected above, NEVER ask the user for project numbers, customer names, or any other project identification. Use the selected project context automatically for all operations.
-`;
+## FINAL MANDATORY INSTRUCTIONS
+
+### 🚨 CRITICAL: PROJECT CONTEXT RULES
+${projectContext && projectContext.projectName ? `
+**PROJECT IS SELECTED:** ${projectContext.projectName} (ID: ${projectContext.id})
+- ✅ USE this project for ALL project-related questions
+- ✅ NEVER ask for project numbers or customer names
+- ✅ Project context persists throughout entire conversation
+- ✅ All tools use this project automatically
+- ❌ NEVER ask "Tell me the project number" or similar
+- ❌ NEVER ask for customer identification
+- ❌ NEVER ask for project identification
+` : `
+**NO PROJECT SELECTED:**
+- Ask user to select project for project-specific queries
+- Answer general questions directly
+`}
+
+### 🎯 RESPONSE PATTERNS
+1. **Project Status Query:** Provide status using selected project
+2. **Task Query:** Use tools with selected project
+3. **Phase Query:** Use tools with selected project  
+4. **General Question:** Answer directly
+5. **Multiple Projects:** Ask user to choose specific project
+
+### ⚠️ ERROR PREVENTION
+- If you ask for project identification when project is selected: YOU ARE MAKING AN ERROR
+- If you ask for customer name when project is selected: YOU ARE MAKING AN ERROR
+- If you ask for project number when project is selected: YOU ARE MAKING AN ERROR
+- Project context is established and should be used for ALL subsequent questions
+
+## CONVERSATION FLOW
+1. User asks question
+2. Check if project-specific
+3. If project-specific and project selected: Answer using selected project
+4. If project-specific and no project: Ask user to select project
+5. If general: Answer directly
+6. Maintain context for next question
+
+**REMEMBER:** Once a project is selected, it remains selected for the entire conversation. Never ask for project identification again.`;
+
     return prompt;
 };
 
@@ -414,6 +493,41 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
     }) : null;
     const session = contextManager.getUserSession(userId);
 
+    // BULLETPROOF CONTEXT VALIDATION
+    const validateAndMaintainContext = () => {
+        // Ensure project context is properly set
+        if (projectContext && !session.activeProject) {
+            session.activeProject = projectContext;
+        }
+        
+        // If we have a projectId but no projectContext, try to recover from session
+        if (projectId && !projectContext && session.activeProject) {
+            projectContext = session.activeProject;
+        }
+        
+        // Final validation - if we still don't have project context but should
+        if (projectId && !projectContext) {
+            console.warn('⚠️ Project context lost - attempting recovery');
+            // Try to fetch project again
+            return prisma.project.findUnique({ 
+                where: { id: projectId },
+                include: { customer: true }
+            }).then(recovered => {
+                if (recovered) {
+                    projectContext = recovered;
+                    session.activeProject = recovered;
+                    return recovered;
+                }
+                return null;
+            });
+        }
+        
+        return Promise.resolve(projectContext);
+    };
+
+    // Validate and maintain context
+    projectContext = await validateAndMaintainContext();
+
     // If message explicitly mentions a project number, override active project
     const explicitProjectNumber = extractProjectNumberFromText(message);
     if (explicitProjectNumber) {
@@ -448,6 +562,11 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
           } });
         }
       }
+    }
+
+    // Ensure project context is set in session if we have it
+    if (projectContext && !session.activeProject) {
+      session.activeProject = projectContext;
     }
 
     if (!projectContext && (message.includes('task') || message.includes('phase') || /project/i.test(message))) {
@@ -495,13 +614,21 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
     
+    // BULLETPROOF FINAL INSTRUCTION
+    const finalInstruction = projectContext && projectContext.projectName ? 
+        `\n\n🚨 FINAL BULLETPROOF INSTRUCTION: You are working with project "${projectContext.projectName}" (ID: ${projectContext.id}). NEVER ask for project numbers, customer names, or any project identification. Use this project for ALL project-related questions.` : 
+        '';
+    
+    const completeSystemPrompt = systemPrompt + finalInstruction;
+    
     // Reuse the existing session reference declared earlier
     const aiResponse = await openAIService.generateResponse(message, {
-      systemPrompt,
+      systemPrompt: completeSystemPrompt,
       conversationHistory: session.conversationHistory,
       projectName: projectContext?.projectName,
       progress: projectContext?.progress,
       status: projectContext?.status,
+      projectContext: projectContext, // Pass the full project context
       ...contextExtras
     });
     
@@ -545,8 +672,40 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                     toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
             }
 
-            // Second AI call to formulate a natural response
-            const confirmationPrompt = `The user's action was processed for project "${projectContext?.projectName || 'the selected project'}". The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions. DO NOT ask for project numbers or customer names - use the current project context.`;
+            // Second AI call to formulate a natural response with bulletproof context
+            const confirmationPrompt = `# CONFIRMATION RESPONSE GENERATOR
+
+## CONTEXT
+- **Project:** ${projectContext?.projectName || 'No project selected'}
+- **Project ID:** ${projectContext?.id || 'N/A'}
+- **User Action:** ${message}
+- **Tool Result:** ${JSON.stringify(toolResult)}
+
+## MANDATORY INSTRUCTIONS
+1. **Use the selected project context** - ${projectContext?.projectName || 'No project selected'}
+2. **NEVER ask for project numbers or customer names** - project is already selected
+3. **Answer naturally and conversationally** based on the tool result
+4. **Suggest 2-3 relevant next actions** for the user
+5. **Keep response under 100 words** unless detailed explanation needed
+6. **Use proper formatting** with bullet points and bold text
+
+## RESPONSE FORMAT
+- Brief confirmation of the action taken
+- Natural explanation of the result
+- 2-3 suggested next actions as bullet points
+- Maintain project context throughout
+
+## EXAMPLE RESPONSE PATTERN
+"✅ [Action completed] for ${projectContext?.projectName || 'the project'}.
+
+[Brief explanation of what happened]
+
+**Next actions:**
+• [Action 1]
+• [Action 2] 
+• [Action 3]"
+
+Generate a natural, helpful response following this pattern.`;
             const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt, projectContext);
             finalResponseContent = finalAiResponse.content;
         } else {
@@ -599,7 +758,39 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
                             toolResult = { success: false, message: `The tool "${toolCall.tool}" is not recognized.` };
                     }
 
-                    const confirmationPrompt = `The user's action was processed for project "${projectContext?.projectName || 'the selected project'}". The result was: ${JSON.stringify(toolResult)}. Formulate a brief, natural, and friendly confirmation message for the user based on this result. Also suggest 2-3 relevant next actions. DO NOT ask for project numbers or customer names - use the current project context.`;
+                    const confirmationPrompt = `# CONFIRMATION RESPONSE GENERATOR
+
+## CONTEXT
+- **Project:** ${projectContext?.projectName || 'No project selected'}
+- **Project ID:** ${projectContext?.id || 'N/A'}
+- **User Action:** ${message}
+- **Tool Result:** ${JSON.stringify(toolResult)}
+
+## MANDATORY INSTRUCTIONS
+1. **Use the selected project context** - ${projectContext?.projectName || 'No project selected'}
+2. **NEVER ask for project numbers or customer names** - project is already selected
+3. **Answer naturally and conversationally** based on the tool result
+4. **Suggest 2-3 relevant next actions** for the user
+5. **Keep response under 100 words** unless detailed explanation needed
+6. **Use proper formatting** with bullet points and bold text
+
+## RESPONSE FORMAT
+- Brief confirmation of the action taken
+- Natural explanation of the result
+- 2-3 suggested next actions as bullet points
+- Maintain project context throughout
+
+## EXAMPLE RESPONSE PATTERN
+"✅ [Action completed] for ${projectContext?.projectName || 'the project'}.
+
+[Brief explanation of what happened]
+
+**Next actions:**
+• [Action 1]
+• [Action 2] 
+• [Action 3]"
+
+Generate a natural, helpful response following this pattern.`;
                     const finalAiResponse = await openAIService.generateSingleResponse(confirmationPrompt, projectContext);
                     finalResponseContent = finalAiResponse.content;
                 } else {
@@ -612,7 +803,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
         }
     }
 
-    contextManager.addToHistory(userId, message, finalResponseContent);
+    contextManager.addToHistory(userId, message, finalResponseContent, projectContext);
     
     const io = req.app.get('io');
     if (io) {

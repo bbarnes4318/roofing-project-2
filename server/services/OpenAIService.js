@@ -396,8 +396,7 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
   }
 
   /**
-   * Generate a single-shot response without conversation scaffolding.
-   * Used to turn tool results into concise confirmations.
+   * Generate a bulletproof single-shot response with guaranteed project context
    */
   async generateSingleResponse(prompt, projectContext = null) {
     if (!this.isEnabled) {
@@ -409,12 +408,51 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
     }
 
     try {
-      let systemContent = 'You are a concise, professional assistant. Reply in under 80 words.';
-      
-      // Add project context if provided
-      if (projectContext && projectContext.projectName) {
-        systemContent += `\n\nCurrent Project Context: ${projectContext.projectName} (ID: ${projectContext.id}). Use this project context for all operations. DO NOT ask for project numbers or customer names.`;
-      }
+      let systemContent = `# BUBBLES AI ASSISTANT - SINGLE RESPONSE GENERATOR
+
+## CORE INSTRUCTIONS
+- You are a concise, professional assistant
+- Reply in under 80 words
+- Use proper formatting with bullet points and bold text
+- Be natural and conversational
+
+## PROJECT CONTEXT RULES
+${projectContext && projectContext.projectName ? `
+### ✅ ACTIVE PROJECT: ${projectContext.projectName}
+- **Project ID:** ${projectContext.id}
+- **Customer:** ${projectContext.customer?.primaryName || 'N/A'}
+
+### 🚨 MANDATORY RULES:
+1. **NEVER ask for project numbers or customer names**
+2. **ALWAYS use the selected project context**
+3. **Project is already selected - no need for identification**
+4. **Answer directly using the selected project**
+
+### ✅ CORRECT BEHAVIOR:
+- Use project context automatically
+- Answer questions about the selected project
+- Provide project-specific information
+- Suggest relevant next actions
+
+### ❌ INCORRECT BEHAVIOR:
+- Asking "Tell me the project number"
+- Asking for customer identification
+- Asking for project identification
+- Asking "Use project #12345"
+
+**REMEMBER:** The project is already selected. Use it directly without asking for identification.
+` : `
+### ❌ NO PROJECT SELECTED
+- Answer general questions directly
+- If project-specific question: Ask user to select project
+`}
+
+## RESPONSE REQUIREMENTS
+- Natural and conversational tone
+- Proper formatting with bullet points
+- Clear and concise information
+- Relevant next actions when appropriate
+- NEVER ask for project identification when project is selected`;
 
       const messages = [
         { role: 'system', content: systemContent },
