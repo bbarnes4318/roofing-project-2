@@ -252,7 +252,7 @@ const getSystemPrompt = (user, projectContext) => {
     const tools = [
         {
             name: 'mark_line_item_complete_and_notify',
-            description: 'Marks a workflow task as complete and alerts the next person in the sequence. Use this for prompts like "Check off [task name]".',
+            description: 'Marks a workflow task as complete and alerts the next person in the sequence. Uses the currently selected project. Use this for prompts like "Check off [task name]".',
             parameters: {
                 type: 'object',
                 properties: { lineItemName: { type: 'string', description: 'The exact name of the line item to mark as complete.' } },
@@ -261,7 +261,7 @@ const getSystemPrompt = (user, projectContext) => {
         },
         {
             name: 'get_incomplete_items_in_phase',
-            description: 'Lists all tasks that are not yet complete for a specific phase of the current project.',
+            description: 'Lists all tasks that are not yet complete for a specific phase of the currently selected project.',
             parameters: {
                 type: 'object',
                 properties: { phaseName: { type: 'string', description: 'The name of the phase, e.g., "Lead", "Prospect".' } },
@@ -270,7 +270,7 @@ const getSystemPrompt = (user, projectContext) => {
         },
         {
             name: 'find_blocking_task',
-            description: 'Identifies the single task that is currently preventing a project phase from moving forward.',
+            description: 'Identifies the single task that is currently preventing a project phase from moving forward in the currently selected project.',
             parameters: {
                 type: 'object',
                 properties: { phaseName: { type: 'string', description: 'The name of the phase to check.' } },
@@ -279,7 +279,7 @@ const getSystemPrompt = (user, projectContext) => {
         },
         {
             name: 'check_phase_readiness',
-            description: 'Checks if all tasks in a phase are complete and if the project can advance to the next phase.',
+            description: 'Checks if all tasks in a phase are complete and if the currently selected project can advance to the next phase.',
             parameters: {
                 type: 'object',
                 properties: { phaseName: { type: 'string', description: 'The name of the phase to verify for completion.' } },
@@ -288,7 +288,7 @@ const getSystemPrompt = (user, projectContext) => {
         },
         {
             name: 'reassign_task',
-            description: 'Reassigns a task (and its alert) to a different team member.',
+            description: 'Reassigns a task (and its alert) to a different team member in the currently selected project.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -317,14 +317,19 @@ Your persona is:
 - **Concise:** Get straight to the point. Use bullet points and bold text for clarity.
 - **An Expert:** You understand construction and roofing terminology.
 - **A Copilot:** Your goal is to help the user manage their projects more effectively.
+- **Project-Aware:** When a project is selected, use its ID for all operations. Never ask for project numbers when a project is already selected.
 
 Current Project Context:
 `;
 
     if (projectContext && projectContext.projectName) {
         prompt += `- **Project Name:** ${projectContext.projectName} (ID: ${projectContext.id})\n`;
+        prompt += `- **Project Number:** #${String(projectContext.projectNumber).padStart(5, '0')} (display only)\n`;
         prompt += `- **Status:** ${projectContext.status || 'N/A'}\n`;
         prompt += `- **Progress:** ${projectContext.progress || 0}%\n`;
+        prompt += `- **Customer:** ${projectContext.customer?.primaryName || 'N/A'}\n`;
+        prompt += `\n**IMPORTANT:** A project is currently selected. Use project ID "${projectContext.id}" for all operations. DO NOT ask for project numbers or customer names when a project is already selected.\n`;
+        prompt += `**OPERATIONS:** All tools and functions will use project ID "${projectContext.id}" automatically. You do not need to specify project numbers.\n`;
     } else {
         prompt += `- No specific project is currently selected. You must ask the user to select one if their query is project-specific.\n`;
     }
@@ -333,11 +338,14 @@ Current Project Context:
 Interaction Rules:
 1.  **Tool-First Approach:** Your primary role is to translate user requests into one of your available tools. You MUST use a tool if the request matches a function. Respond ONLY with the JSON for the tool call. Do not add any conversational text or markdown.
 2.  **General Conversation:** If the request is a general question not covered by a tool, you may answer it directly. Use Markdown for formatting (e.g., \`### Headers\`, \`* Lists\`, \`**Bold Text**\`).
-3.  Keep conversational responses focused and under 150 words unless a detailed report is requested.
-4.  End your conversational responses by suggesting 2-3 relevant next actions the user might want to take.
+3.  **Project Context:** When a project is selected (shown above), use the project ID "${projectContext?.id || 'N/A'}" for all operations. Project numbers are for display only. NEVER ask for project numbers or customer names when a project is already selected.
+4.  Keep conversational responses focused and under 150 words unless a detailed report is requested.
+5.  End your conversational responses by suggesting 2-3 relevant next actions the user might want to take.
 
 Available tools:
 ${JSON.stringify(tools, null, 2)}
+
+**CRITICAL REMINDER:** When a project is selected above, NEVER ask the user for project numbers, customer names, or any other project identification. Use the selected project context automatically for all operations.
 `;
     return prompt;
 };
@@ -388,20 +396,31 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
       }
       if (selected) {
         const session = contextManager.getUserSession(userId);
-        session.activeProject = selected;
+        // Ensure we have customer information for the session
+        const projectWithCustomer = await prisma.project.findUnique({
+          where: { id: selected.id },
+          include: { customer: true }
+        });
+        session.activeProject = projectWithCustomer;
         return sendSuccess(res, 200, { response: { content: `Active project set: #${String(selected.projectNumber).padStart(5, '0')} — ${selected.projectName}` } });
       }
       return sendSuccess(res, 200, { response: { content: 'I could not find that project. Please provide a valid project number or customer name.' } });
     }
 
     // Get or resolve project context
-    let projectContext = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null;
+    let projectContext = projectId ? await prisma.project.findUnique({ 
+        where: { id: projectId },
+        include: { customer: true }
+    }) : null;
     const session = contextManager.getUserSession(userId);
 
     // If message explicitly mentions a project number, override active project
     const explicitProjectNumber = extractProjectNumberFromText(message);
     if (explicitProjectNumber) {
-      const override = await prisma.project.findFirst({ where: { projectNumber: explicitProjectNumber } });
+      const override = await prisma.project.findFirst({ 
+          where: { projectNumber: explicitProjectNumber },
+          include: { customer: true }
+      });
       if (override) {
         projectContext = override;
         session.activeProject = override;
@@ -475,6 +494,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
     }
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
+    
     // Reuse the existing session reference declared earlier
     const aiResponse = await openAIService.generateResponse(message, {
       systemPrompt,

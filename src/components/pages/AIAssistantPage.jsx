@@ -41,9 +41,25 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         try {
             if (selectedProject?.id) {
                 sessionStorage.setItem('aiAssistant.lastProjectId', String(selectedProject.id));
+                
+                // Add a context message to the AI when project is selected (only if not already present)
+                const hasContextMessage = messages.some(msg => 
+                    msg.isContextMessage && msg.content.includes(selectedProject.projectName || selectedProject.name)
+                );
+                
+                if (!hasContextMessage) {
+                    const contextMessage = {
+                        id: Date.now(),
+                        type: 'assistant',
+                        content: `Project context set: **#${String(selectedProject.projectNumber || selectedProject.id).padStart(5, '0')} — ${selectedProject.projectName || selectedProject.name}**\n\nI'm now ready to help you with this project. You can ask me about tasks, status, phases, or any other project-related questions.`,
+                        timestamp: new Date(),
+                        isContextMessage: true
+                    };
+                    setMessages(prev => [...prev, contextMessage]);
+                }
             }
         } catch (_) {}
-    }, [selectedProject]);
+    }, [selectedProject, messages]);
 
     // Auto-select first project if only one available
     useEffect(() => {
@@ -218,13 +234,14 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const MessageBubble = ({ message }) => {
         const isAssistant = message.type === 'assistant';
         const isError = message.isError;
+        const isContextMessage = message.isContextMessage;
 
         return (
             <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-4`}>
                 <div className={`flex max-w-[85%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'} items-start gap-2`}>
                     {isAssistant && (
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isError ? 'bg-red-500' : 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                            isError ? 'bg-red-500' : isContextMessage ? 'bg-green-500' : 'bg-gradient-to-br from-blue-500 to-indigo-600'
                         }`}>
                             <SparklesIcon className="w-5 h-5 text-white" />
                         </div>
@@ -233,7 +250,9 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                         isAssistant 
                             ? isError 
                                 ? 'bg-red-50 text-red-800 border border-red-200' 
-                                : 'bg-gray-100 text-gray-800' 
+                                : isContextMessage
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-gray-100 text-gray-800' 
                             : 'bg-blue-600 text-white'
                     }`}>
                         <div className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -350,6 +369,50 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                         )}
                     </div>
                 </div>
+                
+                {/* Selected Project Context Indicator */}
+                {selectedProject && (
+                    <div className="mt-3 p-3 bg-blue-100 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                                <CheckCircleIcon className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-medium text-blue-900">Active Project Context</span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setSelectedProject(null);
+                                    setMessages([]);
+                                    sessionStorage.removeItem('aiAssistant.lastProjectId');
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                            >
+                                Clear Context
+                            </button>
+                        </div>
+                        <div className="text-sm text-blue-800">
+                            <strong>#{String(selectedProject.projectNumber || selectedProject.id).padStart(5, '0')}</strong> — {selectedProject.projectName || selectedProject.name}
+                            {selectedProject.customerName && (
+                                <span className="text-blue-600"> • {selectedProject.customerName}</span>
+                            )}
+                            {selectedProject.status && (
+                                <span className="text-blue-600"> • {selectedProject.status}</span>
+                            )}
+                        </div>
+                    </div>
+                )}
+                
+                {/* No Project Selected Message */}
+                {!selectedProject && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                            <ExclamationTriangleIcon className="w-4 h-4 text-yellow-600" />
+                            <span className="text-sm font-medium text-yellow-900">No Project Selected</span>
+                        </div>
+                        <div className="text-sm text-yellow-800">
+                            Please select a project from the dropdown above to get project-specific assistance.
+                        </div>
+                    </div>
+                )}
                 
                 {/* Dynamic Prompts */}
                 {dynamicPrompts.length > 0 && (
