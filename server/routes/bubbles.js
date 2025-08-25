@@ -475,7 +475,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res, next) => {
     }
 
     const systemPrompt = getSystemPrompt(req.user, projectContext);
-    const session = contextManager.getUserSession(userId);
+    // Reuse the existing session reference declared earlier
     const aiResponse = await openAIService.generateResponse(message, {
       systemPrompt,
       conversationHistory: session.conversationHistory,
