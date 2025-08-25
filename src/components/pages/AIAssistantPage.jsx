@@ -668,3 +668,21 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                                 ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                                 : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
                         }`}
+                    >
+                        {isLoading ? (
+                            <>
+                                <span className="text-sm md:text-base">Processing...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="uppercase tracking-wide text-sm md:text-base">SEND</span>
+                            </>
+                        )}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default AIAssistantPage;
