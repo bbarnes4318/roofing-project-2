@@ -639,6 +639,13 @@ const apiUrl = window.location.hostname === 'localhost'
             name: project?.name || project?.projectName || 'Selected Project'
         };
 
+        // Persist globally selected project for AI Assistant auto-context
+        try {
+            if (projectWithEnhancements?.id) {
+                sessionStorage.setItem('aiAssistant.lastProjectId', String(projectWithEnhancements.id));
+            }
+        } catch (_) {}
+
         // Robustly determine source section to ensure correct Back behavior
         const normalizedReturnTo = (project?.returnToSection || '').toString().toLowerCase();
         const inferredSourceFromReturn = normalizedReturnTo === 'current-alerts' ? 'Current Alerts' : null;
