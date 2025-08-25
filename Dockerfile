@@ -36,8 +36,8 @@ WORKDIR /app
 
 # Copy backend package files
 COPY server/package*.json ./
-# Install only production deps for server
-RUN npm install --omit=dev
+# Install server deps including dev so prisma generate can run
+RUN npm install
 
 # Copy backend source
 COPY server ./
@@ -46,8 +46,8 @@ COPY server/prisma ./prisma
 # Copy built frontend
 COPY --from=frontend-build /app/build ./public
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client, then prune dev deps for smaller image
+RUN npx prisma generate && npm prune --omit=dev
 
 EXPOSE 8080
 
