@@ -658,11 +658,8 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
   const projectId = String(req.params.projectId);
   const tracker = await prisma.projectWorkflowTracker.findFirst({
     where: { projectId, isMainWorkflow: true },
-    select: { id: true, currentLineItemId: true, currentPhaseId: true }
+    select: { id: true, currentLineItemId: true, currentPhaseId: true, workflowType: true }
   });
-  if (!tracker) {
-    return sendSuccess(res, 200, { current: null }, 'No workflow tracker');
-  }
   let li = null;
   if (tracker.currentLineItemId) {
     li = await prisma.workflowLineItem.findUnique({
@@ -675,10 +672,10 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
       }
     });
   }
-  // Fallback: compute first incomplete item in current phase
+  // Fallbacks when we don't have a direct current line item
   if (!li) {
     let phaseName = null;
-    if (tracker.currentPhaseId) {
+    if (tracker?.currentPhaseId) {
       const phase = await prisma.workflowPhase.findUnique({ where: { id: tracker.currentPhaseId }, select: { phaseType: true, phaseName: true } });
       phaseName = phase?.phaseType || phase?.phaseName || null;
     }
@@ -762,6 +759,68 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
         } }, 'Current step fetched (first active)');
       }
     } catch (_) {}
+
+    // Final fallback if no tracker at all: try alert-first, then first active
+    if (!tracker) {
+      try {
+        const alert = await prisma.workflowAlert.findFirst({
+          where: { projectId, status: 'ACTIVE', lineItemId: { not: null } },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            lineItemId: true,
+            lineItem: {
+              select: {
+                id: true,
+                itemName: true,
+                responsibleRole: true,
+                section: { select: { id: true, displayName: true, phase: { select: { id: true, phaseType: true, phaseName: true } } } }
+              }
+            }
+          }
+        });
+        if (alert?.lineItem) {
+          const li2 = alert.lineItem;
+          return sendSuccess(res, 200, { current: {
+            lineItemId: li2.id,
+            lineItemName: li2.itemName,
+            sectionId: li2.section?.id,
+            sectionName: li2.section?.displayName,
+            phaseId: li2.section?.phase?.id,
+            phaseType: li2.section?.phase?.phaseType,
+            phaseName: li2.section?.phase?.phaseName,
+            responsibleRole: li2.responsibleRole
+          } }, 'Current step fetched (from active alert, no tracker)');
+        }
+      } catch (_) {}
+
+      try {
+        const phaseAny = await prisma.workflowPhase.findFirst({
+          where: { isActive: true, isCurrent: true },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            sections: {
+              where: { isActive: true, isCurrent: true },
+              orderBy: { displayOrder: 'asc' },
+              include: { lineItems: { where: { isActive: true, isCurrent: true }, orderBy: { displayOrder: 'asc' } } }
+            }
+          }
+        });
+        const firstSection = phaseAny?.sections?.[0] || null;
+        const firstItem = firstSection?.lineItems?.[0] || null;
+        if (firstItem) {
+          return sendSuccess(res, 200, { current: {
+            lineItemId: firstItem.id,
+            lineItemName: firstItem.itemName,
+            sectionId: firstSection.id,
+            sectionName: firstSection.displayName,
+            phaseId: phaseAny.id,
+            phaseType: phaseAny.phaseType,
+            phaseName: phaseAny.phaseName,
+            responsibleRole: firstItem.responsibleRole
+          } }, 'Current step fetched (first active, no tracker)');
+        }
+      } catch (_) {}
+    }
   }
   const current = li ? {
     lineItemId: li.id,
