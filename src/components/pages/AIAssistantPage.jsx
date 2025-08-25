@@ -23,6 +23,28 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const [composerBody, setComposerBody] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
 
+    // Restore last selected project from sessionStorage when projects load
+    useEffect(() => {
+        try {
+            if (!selectedProject && Array.isArray(projects) && projects.length > 0) {
+                const storedId = sessionStorage.getItem('aiAssistant.lastProjectId');
+                if (storedId) {
+                    const match = projects.find(p => String(p.id) === String(storedId));
+                    if (match) setSelectedProject(match);
+                }
+            }
+        } catch (_) {}
+    }, [projects, selectedProject]);
+
+    // Persist selection
+    useEffect(() => {
+        try {
+            if (selectedProject?.id) {
+                sessionStorage.setItem('aiAssistant.lastProjectId', String(selectedProject.id));
+            }
+        } catch (_) {}
+    }, [selectedProject]);
+
     // Auto-select first project if only one available
     useEffect(() => {
         if (projects.length === 1 && !selectedProject) {

@@ -665,11 +665,11 @@ export const aiService = {
 export const bubblesService = {
   // Chat with Bubbles AI Assistant
   chat: async (message, projectId = null, context = {}) => {
-    const response = await api.post('/bubbles/chat', {
-      message,
-      projectId,
-      context
-    });
+    const payload = { message, context };
+    if (projectId !== null && projectId !== undefined && String(projectId).trim() !== '') {
+      payload.projectId = String(projectId);
+    }
+    const response = await api.post('/bubbles/chat', payload);
     return response.data;
   },
 
