@@ -501,7 +501,7 @@ const ProjectsByPhaseSection = ({
                                       }}
                                       className="hover:underline transition-colors text-blue-600 hover:text-blue-800"
                                     >
-                                      #{project.projectNumber || project.id}
+                                      #{String(project.projectNumber || '').padStart(5, '0')}
                                     </button>
                                   </p>
                                 </div>

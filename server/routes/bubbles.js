@@ -1,5 +1,6 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const expressValidator = require('express-validator');
+const { body, validationResult } = expressValidator;
 const {
   asyncHandler,
   sendSuccess,
@@ -8,14 +9,37 @@ const {
 } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
-const openAIService = require('../services/OpenAIService');
-const bubblesInsightsService = require('../services/BubblesInsightsService');
-const WorkflowActionService = require('../services/WorkflowActionService'); // From bubbles2.js
-// Removed KnowledgeBaseService usage per request – use OpenAI directly for general Q&A
+
+// Try to load services with error handling
+let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
+
+try {
+  openAIService = require('../services/OpenAIService');
+  console.log('✅ Bubbles: OpenAIService loaded');
+} catch (error) {
+  console.error('❌ Bubbles: Failed to load OpenAIService:', error.message);
+  openAIService = null;
+}
+
+try {
+  bubblesInsightsService = require('../services/BubblesInsightsService');
+  console.log('✅ Bubbles: BubblesInsightsService loaded');
+} catch (error) {
+  console.error('❌ Bubbles: Failed to load BubblesInsightsService:', error.message);
+  bubblesInsightsService = null;
+}
+
+try {
+  WorkflowActionService = require('../services/WorkflowActionService');
+  workflowActionService = new WorkflowActionService();
+  console.log('✅ Bubbles: WorkflowActionService loaded');
+} catch (error) {
+  console.error('❌ Bubbles: Failed to load WorkflowActionService:', error.message);
+  WorkflowActionService = null;
+  workflowActionService = null;
+}
 
 const router = express.Router();
-const workflowActionService = new WorkflowActionService();
-// const knowledgeBaseService = new KnowledgeBaseService();
 
 // ---- Project resolution helpers ----
 function extractProjectNumberFromText(text) {
@@ -235,6 +259,11 @@ async function handleHeuristicIntent(message, projectContext, userId) {
 
 // Apply authentication to all routes
 router.use(authenticateToken);
+
+// Test route to verify bubbles routes are loading
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Bubbles routes are working!' });
+});
 
 // Bubbles AI Context Manager (from bubbles.js)
 class BubblesContextManager {
@@ -525,8 +554,9 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
   // Heuristic 2: General/company questions → Use OpenAI directly
   if (!projectContext) {
+    const genericSystemPrompt = `You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing and construction company. You help with general questions about construction, roofing, and business operations.`;
     const generic = await openAIService.generateResponse(message, {
-      systemPrompt,
+      systemPrompt: genericSystemPrompt,
     });
     const contentGeneric = generic?.content || 'OK';
     contextManager.addToHistory(req.user.id, message, contentGeneric, null);
@@ -837,4 +867,3 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
 
 
 module.exports = router;
-We nneed togit

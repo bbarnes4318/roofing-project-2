@@ -2326,7 +2326,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     {/* Compact Project Number & Customer Info */}
                     <div className="flex items-center gap-2 text-xs">
                         <span className={`font-bold text-sm px-2 py-1 rounded-md ${colorMode ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800'}`}>
-                            #{project.projectNumber || project.id || '12345'}
+                            #{String(project.projectNumber || '').padStart(5, '0')}
                         </span>
                         <span className="text-gray-400">•</span>
                         <span className={`font-semibold ${colorMode ? 'text-gray-800' : 'text-gray-800'}`}>

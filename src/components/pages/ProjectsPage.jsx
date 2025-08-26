@@ -544,7 +544,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${phaseColors.bg} ${phaseColors.text} text-sm font-bold shadow-sm`}>
-                                {project.projectNumber?.slice(-2) || '#'}
+                                {String(project.projectNumber || '').padStart(5, '0')}
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900">

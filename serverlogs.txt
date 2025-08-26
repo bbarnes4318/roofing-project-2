@@ -1,0 +1,720 @@
+risma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query SELECT 1
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query SELECT 1
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔄 Running scheduled overdue alert check...
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."createdAt", "public"."workflow_alerts"."updatedAt", "public"."workflow_alerts"."type", "public"."workflow_alerts"."priority"::text, "public"."workflow_alerts"."status"::text, "public"."workflow_alerts"."title", "public"."workflow_alerts"."message", "public"."workflow_alerts"."stepName", "public"."workflow_alerts"."isRead", "public"."workflow_alerts"."readAt", "public"."workflow_alerts"."acknowledged", "public"."workflow_alerts"."acknowledgedAt", "public"."workflow_alerts"."dueDate", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."assigned_to_id", "public"."workflow_alerts"."created_by_id", "public"."workflow_alerts"."metadata", "public"."workflow_alerts"."responsibleRole"::text, "public"."workflow_alerts"."line_item_id", "public"."workflow_alerts"."phase_id", "public"."workflow_alerts"."section_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."status" = CAST($1::text AS "public"."alert_status") AND "public"."workflow_alerts"."dueDate" < $2 AND "public"."workflow_alerts"."priority" <> CAST($3::text AS "public"."alert_priorities")) OFFSET $4
+✅ No overdue alerts found
+[2025-08-26T13:15:09.359Z] [PID: 13488] [NODE-CRON] [WARN] missed execution at Tue Aug 26 2025 09:15:00 GMT-0400 (Eastern Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+POST /api/auth/supabase-token-exchange 200 728.537 ms - 585
+POST /api/auth/supabase-token-exchange 200 735.814 ms - 585
+POST /api/auth/supabase-token-exchange 200 843.771 ms - 585
+POST /api/auth/supabase-token-exchange 200 9781.370 ms - 585
+POST /api/auth/supabase-token-exchange 200 967.163 ms - 585
+POST /api/auth/supabase-token-exchange 200 1102.528 ms - 585
+POST /api/auth/supabase-token-exchange 200 233.729 ms - 585
+POST /api/auth/supabase-token-exchange 200 293.057 ms - 585
+POST /api/auth/supabase-token-exchange 200 139.010 ms - 585
+POST /api/auth/supabase-token-exchange 200 112.694 ms - 585
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query SELECT 1
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+POST /api/auth/supabase-token-exchange 200 557.096 ms - 585
+POST /api/auth/supabase-token-exchange 200 576.238 ms - 585
+POST /api/auth/supabase-token-exchange 200 477.973 ms - 585
+POST /api/auth/supabase-token-exchange 200 152.301 ms - 585
+POST /api/auth/supabase-token-exchange 200 198.693 ms - 585
+POST /api/auth/supabase-token-exchange 200 104.907 ms - 585
+POST /api/auth/supabase-token-exchange 200 100.768 ms - 585
+POST /api/auth/supabase-token-exchange 200 125.554 ms - 585
+POST /api/auth/supabase-token-exchange 200 475.118 ms - 585
+POST /api/auth/supabase-token-exchange 200 487.438 ms - 585
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query SELECT 1
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔄 Running scheduled overdue alert check...
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."createdAt", "public"."workflow_alerts"."updatedAt", "public"."workflow_alerts"."type", "public"."workflow_alerts"."priority"::text, "public"."workflow_alerts"."status"::text, "public"."workflow_alerts"."title", "public"."workflow_alerts"."message", "public"."workflow_alerts"."stepName", "public"."workflow_alerts"."isRead", "public"."workflow_alerts"."readAt", "public"."workflow_alerts"."acknowledged", "public"."workflow_alerts"."acknowledgedAt", "public"."workflow_alerts"."dueDate", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."assigned_to_id", "public"."workflow_alerts"."created_by_id", "public"."workflow_alerts"."metadata", "public"."workflow_alerts"."responsibleRole"::text, "public"."workflow_alerts"."line_item_id", "public"."workflow_alerts"."phase_id", "public"."workflow_alerts"."section_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."status" = CAST($1::text AS "public"."alert_status") AND "public"."workflow_alerts"."dueDate" < $2 AND "public"."workflow_alerts"."priority" <> CAST($3::text AS "public"."alert_priorities")) OFFSET $4
+✅ No overdue alerts found
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query SELECT 1
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+
+🔄 Gracefully shutting down...
+✅ Disconnected from PostgreSQL database
+PS C:\Users\Jimbo\Desktop\new-roof\roofing-project-2\server> ^C
+PS C:\Users\Jimbo\Desktop\new-roof\roofing-project-2\server> ^C
+PS C:\Users\Jimbo\Desktop\new-roof\roofing-project-2\server> ^C
+PS C:\Users\Jimbo\Desktop\new-roof\roofing-project-2\server> npm start
+
+> kenstruction-server@0.1.0 start
+> node server.js
+
+🚀 Starting Kenstruction server...
+📅 Startup time: 2025-08-26T13:48:33.989Z
+🧪 Loaded environment from: C:\Users\Jimbo\Desktop\new-roof\roofing-project-2\server\.env, C:\Users\Jimbo\Desktop\new-roof\roofing-project-2\.env
+✅ Required modules loaded successfully
+🟡 Redis not configured - using in-memory cache fallback
+🔍 OpenAI Initialization: Checking for API key...
+🔍 API Key present: true
+🔍 API Key length: 164
+🔍 API Key first 20 chars: sk-proj-0FpUNM3i-zgS...
+🔍 API Key last 4 chars: ...wk0A
+🔍 OpenAI: Loading OpenAI package...
+🔍 OpenAI: Creating v4 client...
+✅ OpenAI service initialized successfully with model: gpt-5
+✅ Bubbles: OpenAIService loaded
+✅ Bubbles: BubblesInsightsService loaded
+✅ Bubbles: WorkflowActionService loaded
+✅ SERVER: Bubbles routes loaded successfully
+🔧 SERVER: Loading workflow routes...
+🔧 WORKFLOW ROUTES: Loading workflow routes module
+✅ SERVER: Workflow routes loaded successfully
+🔧 PHASE OVERRIDE ROUTES: Loading phase override routes module
+🚀 ONBOARDING: Loading onboarding routes module
+🔧 SERVER: Loading workflow import routes...
+✅ SERVER: Workflow import routes loaded successfully
+🔧 SERVER: Loading project import routes...
+✅ SERVER: Project import routes loaded successfully
+✅ SERVER: Workflow routes registered at /api/workflows
+✅ SERVER: Bubbles routes registered at /api/bubbles
+✅ SERVER: Workflow import routes registered at /api/workflow-import
+✅ SERVER: Project import routes registered at /api/project-import
+📅 Starting overdue alert scheduler (checking every 30 minutes)
+🔧 Debug: PORT from env = 5000, final PORT = 5000
+🔧 Debug: NODE_ENV = development
+🔧 Debug: DATABASE_URL present = true
+🔧 Debug: JWT_SECRET present = true
+(node:19804) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🚀 Kenstruction server running on port 5000
+🌍 Environment: development
+🔗 API Base URL: http://0.0.0.0:5000/api
+📡 Socket.IO server ready for real-time connections
+✅ Server startup completed successfully
+prisma:info Starting a postgresql pool with 5 connections.
+✅ Connected to PostgreSQL database successfully
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."createdAt", "public"."workflow_alerts"."updatedAt", "public"."workflow_alerts"."type", "public"."workflow_alerts"."priority"::text, "public"."workflow_alerts"."status"::text, "public"."workflow_alerts"."title", "public"."workflow_alerts"."message", "public"."workflow_alerts"."stepName", "public"."workflow_alerts"."isRead", "public"."workflow_alerts"."readAt", "public"."workflow_alerts"."acknowledged", "public"."workflow_alerts"."acknowledgedAt", "public"."workflow_alerts"."dueDate", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."assigned_to_id", "public"."workflow_alerts"."created_by_id", "public"."workflow_alerts"."metadata", "public"."workflow_alerts"."responsibleRole"::text, "public"."workflow_alerts"."line_item_id", "public"."workflow_alerts"."phase_id", "public"."workflow_alerts"."section_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."status" = CAST($1::text AS "public"."alert_status") AND "public"."workflow_alerts"."dueDate" < $2 AND "public"."workflow_alerts"."priority" <> CAST($3::text AS "public"."alert_priorities")) OFFSET $4
+✅ No overdue alerts found
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."users"."id" FROM "public"."users" WHERE 1=1 OFFSET $1) AS "sub"
+📊 Database ready - Found 46 users
+✅ Database connection established, initializing services...
+📦 Initializing Alert Cache Service...
+🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete
+⏰ Alert Scheduler ENABLED - PostgreSQL migration complete
+🚀 Alert scheduler started - checking workflow deadlines every 5 minutes
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+prisma:query SELECT 1
+prisma:query SELECT "public"."users"."id" FROM "public"."users" WHERE ("public"."users"."isActive" = $1 AND "public"."users"."lastLogin" >= $2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."createdAt", "public"."workflow_alerts"."updatedAt", "public"."workflow_alerts"."type", "public"."workflow_alerts"."priority"::text, "public"."workflow_alerts"."status"::text, "public"."workflow_alerts"."title", "public"."workflow_alerts"."message", "public"."workflow_alerts"."stepName", "public"."workflow_alerts"."isRead", "public"."workflow_alerts"."readAt", "public"."workflow_alerts"."acknowledged", "public"."workflow_alerts"."acknowledgedAt", "public"."workflow_alerts"."dueDate", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."assigned_to_id", "public"."workflow_alerts"."created_by_id", "public"."workflow_alerts"."metadata", "public"."workflow_alerts"."responsibleRole"::text, "public"."workflow_alerts"."line_item_id", "public"."workflow_alerts"."phase_id", "public"."workflow_alerts"."section_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."assigned_to_id" = $1 AND "public"."workflow_alerts"."status" = CAST($2::text AS "public"."alert_status")) ORDER BY "public"."workflow_alerts"."priority" DESC LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."createdAt", "public"."workflow_alerts"."updatedAt", "public"."workflow_alerts"."type", "public"."workflow_alerts"."priority"::text, "public"."workflow_alerts"."status"::text, "public"."workflow_alerts"."title", "public"."workflow_alerts"."message", "public"."workflow_alerts"."stepName", "public"."workflow_alerts"."isRead", "public"."workflow_alerts"."readAt", "public"."workflow_alerts"."acknowledged", "public"."workflow_alerts"."acknowledgedAt", "public"."workflow_alerts"."dueDate", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."assigned_to_id", "public"."workflow_alerts"."created_by_id", "public"."workflow_alerts"."metadata", "public"."workflow_alerts"."responsibleRole"::text, "public"."workflow_alerts"."line_item_id", "public"."workflow_alerts"."phase_id", "public"."workflow_alerts"."section_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."assigned_to_id" = $1 AND "public"."workflow_alerts"."status" = CAST($2::text AS "public"."alert_status")) ORDER BY "public"."workflow_alerts"."priority" DESC LIMIT $3 OFFSET $4
+🔥 Warmed up alert cache for 2 active users
+✅ Alert cache warmed up
+🚀 Generating alerts for 15 active projects
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 15 active projects
+prisma:query SELECT 1
+prisma:query 
+        SELECT
+          pwt.project_id,
+          pwt.id as tracker_id,
+          wli.id as line_item_id,
+          wli."itemName" as item_name,
+          wli."responsibleRole" as responsible_role,
+          wli."alertDays" as alert_days,
+          wli."estimatedMinutes" as estimated_minutes,
+          ws.id as section_id,
+          ws."displayName" as section_name,
+          wp.id as phase_id,
+          wp."phaseType" as phase_type,
+          wp."phaseName" as phase_name,
+          p."projectNumber" as project_number,
+          p."projectName" as project_name,
+          p."project_manager_id" as project_manager_id,
+          c."primaryName" as customer_name,
+          c.address as customer_address
+        FROM project_workflow_trackers pwt
+        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
+        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
+        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
+        INNER JOIN projects p ON p.id = pwt.project_id
+        LEFT JOIN customers c ON c.id = p.customer_id
+        WHERE pwt.project_id = ANY($1::text[])
+          AND wli."isActive" = true
+          AND p.status IN ('PENDING','IN_PROGRESS')
+          AND pwt.current_line_item_id IS NOT NULL
+
+prisma:query SELECT "public"."role_assignments"."id", "public"."role_assignments"."createdAt", "public"."role_assignments"."updatedAt", "public"."role_assignments"."role_type"::text, "public"."role_assignments"."user_id", "public"."role_assignments"."assigned_at", "public"."role_assignments"."assigned_by_id", "public"."role_assignments"."isActive" FROM "public"."role_assignments" WHERE ("public"."role_assignments"."role_type" IN (CAST($1::text AS "public"."role_types"),CAST($2::text AS "public"."role_types")) AND "public"."role_assignments"."isActive" = $3) OFFSET $4
+prisma:query SELECT "public"."users"."id", "public"."users"."firstName", "public"."users"."lastName", "public"."users"."email" FROM "public"."users" WHERE "public"."users"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."workflow_alerts"."id", "public"."workflow_alerts"."project_id", "public"."workflow_alerts"."line_item_id" FROM "public"."workflow_alerts" WHERE ("public"."workflow_alerts"."project_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) AND "public"."workflow_alerts"."status" = CAST($16::text AS "public"."alert_status")) OFFSET $17
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90076
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90073     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90072     
+⚠️ Skipping duplicate alert for call customer on project 90070
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90075
+⚠️ Skipping duplicate alert for Add Street View photos from Google Maps. on project 900774
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90067     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90064     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90065     
+⚠️ Skipping duplicate alert for Confirm name is spelled correctly. on project 90066     
+⚠️ Skipping duplicate alert for Validate customer's email and send confirmation. on projject 90059
+⚠️ Skipping duplicate alert for Record property details. on project 90078
+No new alerts to create
+✅ Generated 0 new alerts

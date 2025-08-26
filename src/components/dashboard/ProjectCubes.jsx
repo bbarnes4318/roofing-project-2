@@ -304,9 +304,9 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
                         <button
                           onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Cubes')}
                           className={`text-[10px] font-bold hover:underline transition-all duration-200 ${colorMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
-                          title={`View project profile for ${project.projectNumber || project.id}`}
+                          title={`View project profile for ${String(project.projectNumber || '').padStart(5, '0')}`}
                         >
-                          {project.projectNumber || `PRJ-${project.id}`}
+                                                      {String(project.projectNumber || '').padStart(5, '0')}
                         </button>
                       </div>
 

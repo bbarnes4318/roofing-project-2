@@ -64,6 +64,8 @@ try {
   console.log('✅ SERVER: Bubbles routes loaded successfully');
 } catch (error) {
   console.error('⚠️ SERVER: Failed to load Bubbles routes:', error?.message || error);
+  console.error('⚠️ SERVER: Bubbles routes error stack:', error?.stack || 'No stack trace');
+  console.error('⚠️ SERVER: Bubbles routes will not be available');
 }
 const healthRoutes = require('./routes/health');
 const debugRoutes = require('./routes/debug');
@@ -678,6 +680,9 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
 if (bubblesRoutes) {
   app.use('/api/bubbles', bubblesRoutes);
+  console.log('✅ SERVER: Bubbles routes registered at /api/bubbles');
+} else {
+  console.log('❌ SERVER: Bubbles routes not registered due to loading error');
 }
 // app.use('/api/workflow-updates', workflowUpdateRoutes); // REMOVED - legacy route deleted
 app.use('/api/phase-override', phaseOverrideRoutes);

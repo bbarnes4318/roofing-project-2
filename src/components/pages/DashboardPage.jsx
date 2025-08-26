@@ -3145,18 +3145,16 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         
                         {/* Second Row - Section and Line Item */}
                         <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '20px' }}>
-                          {/* Section label aligned under Project Number, Section value aligned under Customer Name */}
-                          <div className="flex items-center" style={{ width: '210px' }}>
-                            {/* Section label - moved 1 space right closer to its value */}
-                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ width: '49px', marginLeft: '16px' }}>Section:</span>
-                            {/* Section value - first letter aligns under Customer's Name first letter (5px left margin adjustment) */}
-                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '8px' }}>
+                          {/* Section label and value - properly aligned */}
+                          <div className="flex items-center gap-0.5" style={{ width: '150px' }}>
+                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
+                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                               {sectionName || 'Unknown Section'}
                             </span>
                           </div>
                           
-                          {/* Line Item - moved closer to Section */}
-                          <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '0px' }}>
+                          {/* Line Item - properly aligned */}
+                          <div className="flex items-center gap-0.5 flex-shrink-0">
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
@@ -3703,7 +3701,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       onClick={() => onProjectSelect(project, 'Project Profile', null, 'Project Progress Panel')}
                       className={`hover:underline transition-colors ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
                     >
-                      #{project.projectNumber || project.id}
+                      #{String(project.projectNumber || '').padStart(5, '0')}
                     </button>
                     )
                   </p>
