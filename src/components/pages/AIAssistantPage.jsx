@@ -136,14 +136,13 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         loadTeam();
     }, [isComposerOpen]);
 
-    // Scroll messages to bottom when new messages are added
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     };
 
-    // Only scroll to bottom when new messages are added (not on initial load)
+    // Scroll to bottom when new messages are added (but not on initial load)
     useEffect(() => {
         if (messages.length > 1) {
             scrollToBottom();

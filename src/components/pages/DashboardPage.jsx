@@ -3148,7 +3148,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           {/* Section label and value - properly aligned */}
                           <div className="flex items-center gap-0" style={{ width: '150px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
-                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                            <span className={`font-semibold truncate ml-0 ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                               {sectionName || 'Unknown Section'}
                             </span>
                           </div>
@@ -3157,7 +3157,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <div className="flex items-center gap-0 flex-shrink-0">
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
-                                className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
+                                className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ml-0 ${
                                   colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'
                                 }`}
                                 title={lineItemName || 'Unknown Line Item'}

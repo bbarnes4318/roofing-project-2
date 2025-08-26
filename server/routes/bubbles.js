@@ -1,5 +1,6 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const expressValidator = require('express-validator');
+const { body, validationResult } = expressValidator;
 const {
   asyncHandler,
   sendSuccess,
@@ -8,14 +9,37 @@ const {
 } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
-const openAIService = require('../services/OpenAIService');
-const bubblesInsightsService = require('../services/BubblesInsightsService');
-const WorkflowActionService = require('../services/WorkflowActionService'); // From bubbles2.js
-// Removed KnowledgeBaseService usage per request – use OpenAI directly for general Q&A
+
+// Try to load services with error handling
+let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
+
+try {
+  openAIService = require('../services/OpenAIService');
+  console.log('✅ Bubbles: OpenAIService loaded');
+} catch (error) {
+  console.error('❌ Bubbles: Failed to load OpenAIService:', error.message);
+  openAIService = null;
+}
+
+try {
+  bubblesInsightsService = require('../services/BubblesInsightsService');
+  console.log('✅ Bubbles: BubblesInsightsService loaded');
+} catch (error) {
+  console.error('❌ Bubbles: Failed to load BubblesInsightsService:', error.message);
+  bubblesInsightsService = null;
+}
+
+try {
+  WorkflowActionService = require('../services/WorkflowActionService');
+  workflowActionService = new WorkflowActionService();
+  console.log('✅ Bubbles: WorkflowActionService loaded');
+} catch (error) {
+  console.error('❌ Bubbles: Failed to load WorkflowActionService:', error.message);
+  WorkflowActionService = null;
+  workflowActionService = null;
+}
 
 const router = express.Router();
-const workflowActionService = new WorkflowActionService();
-// const knowledgeBaseService = new KnowledgeBaseService();
 
 // ---- Project resolution helpers ----
 function extractProjectNumberFromText(text) {
