@@ -338,21 +338,14 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 }
             `}</style>
             
-            {/* Header with project selector */}
+            {/* Header with project selector (left-aligned) */}
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                            <SparklesIcon className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-900">Bubbles AI Assistant</h2>
-                            <p className="text-sm text-gray-600">Your workflow copilot</p>
-                        </div>
+                        <img src="/bubblesai.png" alt="Bubbles AI" className="h-14 md:h-16 w-auto" />
                     </div>
-                    
-                    {/* Project selector dropdown */}
-                    <div className="relative">
+                    {/* Project selector dropdown (left) */}
+                    <div className="relative mt-3 inline-block">
                         <button
                             onClick={() => setShowProjectSelector(!showProjectSelector)}
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:border-blue-500 transition-colors"
@@ -362,9 +355,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                             </span>
                             <ChevronDownIcon className="w-4 h-4 text-gray-500" />
                         </button>
-                        
                         {showProjectSelector && (
-                            <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                            <div className="absolute left-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                                 <div className="p-3">
                                     <h3 className="text-sm font-medium text-gray-900 mb-2">Choose Active Project:</h3>
                                     <input
@@ -410,41 +402,28 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                     </div>
                 </div>
                 
-                {/* Selected Project Context Indicator */}
+                {/* Phase / Section / Line Item summary (moved up, above prompts) */}
                 {selectedProject && (
                     <div className="mt-3 p-3 bg-blue-100 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-1">
-                            <CheckCircleIcon className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-900">Active Project Context</span>
+                        <div className="flex items-center gap-2 mb-2">
+                            <UserGroupIcon className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-900">
+                                Active Project: {selectedProject.projectName || selectedProject.name}
+                            </span>
                         </div>
-                        <div className="text-sm text-blue-800">
-                            <strong>#{String(selectedProject.projectNumber || selectedProject.id).padStart(5, '0')}</strong> — {selectedProject.projectName || selectedProject.name}
-                            {selectedProject.customerName && (
-                                <span className="text-blue-600"> • {selectedProject.customerName}</span>
-                            )}
-                            {selectedProject.status && (
-                                <span className="text-blue-600"> • {selectedProject.status}</span>
-                            )}
+                        <div className="text-xs text-blue-700 space-y-1">
+                            <div><strong>Phase:</strong> {currentStep?.phaseName || currentStep?.phaseType || '-'}</div>
+                            <div><strong>Section:</strong> {currentStep?.sectionName || '-'}</div>
+                            <div><strong>Line Item:</strong> {currentStep?.lineItemName || '-'}</div>
                         </div>
                     </div>
                 )}
                 
-                {/* No Project Selected Message */}
-                {!selectedProject && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-1">
-                            <ExclamationTriangleIcon className="w-4 h-4 text-yellow-600" />
-                            <span className="text-sm font-medium text-yellow-900">No Project Selected</span>
-                        </div>
-                        <div className="text-sm text-yellow-800">
-                            Please select a project from the dropdown above to get project-specific assistance.
-                        </div>
-                    </div>
-                )}
+                {/* Removed: No Project Selected message */}
                 
-                {/* Dynamic Prompts */}
+                {/* Dynamic Prompts (single row) */}
                 {dynamicPrompts.length > 0 && (
-                    <div className="mb-3 grid grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="mb-3 grid grid-flow-col auto-cols-max gap-3 overflow-x-auto">
                         {dynamicPrompts.map(dp => (
                             <button
                                 key={dp.id}
@@ -481,21 +460,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                     ))}
                 </div>
                 
-                {selectedProject && (
-                    <div className="mt-3 p-3 bg-blue-100 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                            <UserGroupIcon className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-900">
-                                Active Project: {selectedProject.projectName || selectedProject.name}
-                            </span>
-                        </div>
-                        <div className="text-xs text-blue-700 space-y-1">
-                            <div><strong>Phase:</strong> {currentStep?.phaseName || currentStep?.phaseType || '-'}</div>
-                            <div><strong>Section:</strong> {currentStep?.sectionName || '-'}</div>
-                            <div><strong>Line Item:</strong> {currentStep?.lineItemName || '-'}</div>
-                        </div>
-                    </div>
-                )}
+                {/* (Removed duplicate phase/section/line item block from here) */}
             </div>
 
             {/* Messages Area */}
