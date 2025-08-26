@@ -321,7 +321,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
 
     return (
-        <div className="ai-assistant-container h-screen flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="ai-assistant-container h-screen min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
             {/* Custom styles for message formatting */}
             <style jsx>{`
                 .prose strong {
@@ -372,8 +372,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 </div>
             </div>
 
-            {/* Messages Area - Fixed height, scrollable */}
-            <div className="messages-container overflow-y-auto p-4 pb-4" style={{ height: '300px' }}>
+            {/* Messages Area - Fills available space, scrollable */}
+            <div className="messages-container flex-1 min-h-0 overflow-y-auto p-4 pb-4">
                 <div className="space-y-4">
                     {messages
                         .filter(message => !message.isContextMessage) // Hide context messages
