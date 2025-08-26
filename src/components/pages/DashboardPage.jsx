@@ -3146,7 +3146,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         {/* Second Row - Section and Line Item */}
                         <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '20px' }}>
                           {/* Section label and value - properly aligned */}
-                          <div className="flex items-center gap-0.5" style={{ width: '150px' }}>
+                          <div className="flex items-center gap-0" style={{ width: '150px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
                             <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                               {sectionName || 'Unknown Section'}
@@ -3154,7 +3154,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           </div>
                           
                           {/* Line Item - properly aligned */}
-                          <div className="flex items-center gap-0.5 flex-shrink-0">
+                          <div className="flex items-center gap-0 flex-shrink-0">
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${

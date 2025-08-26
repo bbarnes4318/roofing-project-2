@@ -102,11 +102,6 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         } catch (_) {}
     }, [selectedProject]);
 
-    // Keep page at top when component mounts
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
-
     // Auto-select first project if only one available
     useEffect(() => {
         if (projects.length === 1 && !selectedProject) {
@@ -141,13 +136,14 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         loadTeam();
     }, [isComposerOpen]);
 
+    // Scroll messages to bottom when new messages are added
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     };
 
-    // Only scroll to bottom when new messages are added (but not on initial load)
+    // Only scroll to bottom when new messages are added (not on initial load)
     useEffect(() => {
         if (messages.length > 1) {
             scrollToBottom();
