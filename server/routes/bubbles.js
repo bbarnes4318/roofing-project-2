@@ -310,7 +310,7 @@ const contextManager = new BubblesContextManager();
 /**
  * BULLETPROOF SYSTEM PROMPT: Designed to work every single time without fail
  */
-const getSystemPrompt = (user, projectContext) => {
+const getSystemPrompt = (user, projectContext, currentWorkflowData = null) => {
     const userName = user.fullName || `${user.firstName} ${user.lastName}`;
     const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -401,6 +401,13 @@ ${projectContext && projectContext.projectName ? `
 **Status:** ${projectContext.status || 'N/A'}
 **Progress:** ${projectContext.progress || 0}%
 **Customer:** ${projectContext.customer?.primaryName || 'N/A'}
+${currentWorkflowData ? `
+**Current Workflow Status:**
+- **Phase:** ${currentWorkflowData.phaseName || currentWorkflowData.phaseType || 'N/A'}
+- **Section:** ${currentWorkflowData.sectionName || 'N/A'}
+- **Current Line Item:** ${currentWorkflowData.lineItemName || 'N/A'}
+- **Responsible Role:** ${currentWorkflowData.responsibleRole || 'N/A'}
+` : ''}
 
 ### 🚨 MANDATORY RULES WHEN PROJECT IS SELECTED:
 1. **NEVER ask for project numbers, customer names, or any project identification**
@@ -408,6 +415,8 @@ ${projectContext && projectContext.projectName ? `
 3. **Project context persists for ALL subsequent questions**
 4. **If user asks about this project, answer directly without asking for identification**
 5. **All tools automatically use the selected project - no need to specify project**
+6. **ALWAYS use the REAL workflow data provided above - NEVER make up fake phases or line items**
+7. **If workflow data shows "N/A", say the information is not available rather than guessing**
 
 ### 🔧 OPERATIONS WITH SELECTED PROJECT:
 - All workflow tools use project ID "${projectContext.id}" automatically
@@ -415,6 +424,7 @@ ${projectContext && projectContext.projectName ? `
 - All task operations use the selected project
 - All phase operations use the selected project
 - All customer queries use the selected project
+- **ALWAYS reference the real phase, section, and line item data provided above**
 
 ` : `
 ### ❌ NO PROJECT SELECTED
@@ -460,11 +470,13 @@ ${projectContext && projectContext.projectName ? `
 - ❌ NEVER ask for project identification
 
 ### 🎯 RESPONSE GUIDELINES:
-- **For "what is next" questions**: Answer directly with current line item info
+- **For "what is next" questions**: Answer directly with current line item info from the real workflow data above
 - **For "how to" questions**: Provide helpful guidance
-- **For status questions**: Give current project status
+- **For status questions**: Give current project status using the real workflow data provided
 - **For actionable requests**: Use JSON tool calls
 - **For general questions**: Respond conversationally
+- **CRITICAL**: ALWAYS use the real phase, section, and line item data provided above - NEVER make up fake workflow information
+- **If workflow data shows "N/A"**: Say the information is not available rather than guessing or making up fake data
 ` : `
 **NO PROJECT SELECTED:**
 - Ask user to select project for project-specific queries
@@ -526,11 +538,29 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   const session = contextManager.getUserSession(req.user.id);
 
   let projectContext = null;
+  let currentWorkflowData = null;
+  
   if (projectId) {
     projectContext = await prisma.project.findUnique({ where: { id: projectId }, include: { customer: true } });
-    if (projectContext) session.activeProject = projectContext;
+    if (projectContext) {
+      session.activeProject = projectContext;
+      // Get real workflow data
+      try {
+        const currentStepRes = await bubblesService.getCurrentStep(projectId);
+        currentWorkflowData = currentStepRes?.data?.current || null;
+      } catch (_) {
+        currentWorkflowData = null;
+      }
+    }
   } else if (session.activeProject) {
     projectContext = session.activeProject;
+    // Get real workflow data for active project
+    try {
+      const currentStepRes = await bubblesService.getCurrentStep(projectContext.id);
+      currentWorkflowData = currentStepRes?.data?.current || null;
+    } catch (_) {
+      currentWorkflowData = null;
+    }
   }
 
   // Heuristic 1: Customer info requests (name/address/phone/email)
@@ -563,7 +593,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, { response: { content: contentGeneric } });
   }
 
-  const systemPrompt = getSystemPrompt(req.user, projectContext);
+  const systemPrompt = getSystemPrompt(req.user, projectContext, currentWorkflowData);
   const aiResponse = await openAIService.generateResponse(message, {
     systemPrompt,
     projectName: projectContext?.projectName,

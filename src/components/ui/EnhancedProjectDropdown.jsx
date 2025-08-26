@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 
 const EnhancedProjectDropdown = ({ 
   projects = [], 
@@ -11,8 +12,12 @@ const EnhancedProjectDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [expandedProject, setExpandedProject] = useState(null);
   const [projectSearch, setProjectSearch] = useState('');
+  const triggerRef = useRef(null);
+  const [menuStyle, setMenuStyle] = useState(null);
+  const [detailsStyle, setDetailsStyle] = useState(null);
 
   const handleProjectSelect = (project) => {
+    console.log('🔍 EnhancedProjectDropdown: handleProjectSelect called with:', project);
     onProjectSelect(project);
     setIsOpen(false);
     setProjectSearch('');
@@ -27,6 +32,33 @@ const EnhancedProjectDropdown = ({
   const toggleProjectExpansion = (projectId) => {
     setExpandedProject(expandedProject === projectId ? null : projectId);
   };
+
+  // Compute positions for portal menus relative to trigger
+  useEffect(() => {
+    const computePositions = () => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const base = {
+        position: 'fixed',
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 10000
+      };
+      setMenuStyle(base);
+      setDetailsStyle({ ...base });
+    };
+
+    if (isOpen || (selectedProject && expandedProject === selectedProject.id)) {
+      computePositions();
+      window.addEventListener('resize', computePositions);
+      window.addEventListener('scroll', computePositions, true);
+      return () => {
+        window.removeEventListener('resize', computePositions);
+        window.removeEventListener('scroll', computePositions, true);
+      };
+    }
+  }, [isOpen, expandedProject, selectedProject]);
 
   // Get project phase and phase configuration
   const getProjectPhase = (project) => {
@@ -113,11 +145,12 @@ const EnhancedProjectDropdown = ({
     .slice(0, 50);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" style={{ zIndex: 30 }}>
       {/* Main Dropdown Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:border-blue-500 transition-colors relative z-10 w-full"
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:border-blue-500 transition-colors relative z-30 w-full"
+        ref={triggerRef}
       >
         <span className="text-sm font-medium">
           {selectedProject ? (
@@ -194,7 +227,29 @@ const EnhancedProjectDropdown = ({
                 <span className="text-xs text-gray-500">Details</span>
               </button>
             </div>
-          ) : placeholder}
+          ) : (
+            <div className="flex items-center gap-3 w-full">
+              {/* General Chat Icon */}
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm bg-gray-400 text-white"
+                title="General Chat - No Project Context"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+
+              {/* No Project Text */}
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-sm font-semibold text-gray-900">
+                  No Project Selected
+                </span>
+                <span className="text-xs text-gray-500">
+                  Chat about general topics
+                </span>
+              </div>
+            </div>
+          )}
         </span>
         <svg className="w-4 h-4 text-gray-500 transition-transform" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" title={isOpen ? "Close project list" : "Open project list to search and select"}>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -202,8 +257,8 @@ const EnhancedProjectDropdown = ({
       </button>
 
       {/* Expanded Details for Selected Project */}
-      {selectedProject && expandedProject === selectedProject.id && (
-        <div className="absolute top-full left-0 right-0 mt-2 px-4 py-3 bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg shadow-lg z-40">
+      {selectedProject && expandedProject === selectedProject.id && detailsStyle && ReactDOM.createPortal(
+        <div style={detailsStyle} className="px-4 py-3 bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg shadow-lg">
           <div className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -257,12 +312,12 @@ const EnhancedProjectDropdown = ({
               </span>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
 
       {/* Dropdown Options */}
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+      {isOpen && menuStyle && ReactDOM.createPortal(
+        <div style={menuStyle} className="bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {/* Search Input */}
           <div className="p-3 border-b border-gray-200">
             <input
@@ -277,80 +332,182 @@ const EnhancedProjectDropdown = ({
 
           {/* Project List */}
           <div className="py-1">
-            {filteredProjects.length === 0 ? (
-              <div className="px-4 py-2 text-gray-500 text-sm">No projects found</div>
-            ) : (
-              filteredProjects.map((project) => (
-                <div
-                  key={project.id}
-                  onClick={() => handleProjectSelect(project)}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                >
-                  {/* Phase Circle */}
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm"
-                    style={{ 
-                      backgroundColor: getPhaseConfig(project).color,
-                      color: getContrastTextColor(getPhaseConfig(project).color)
-                    }}
-                    title={`Phase: ${getPhaseConfig(project).name}`}
+            {/* No Project Selected Option - Always visible */}
+            <div
+              onClick={() => handleProjectSelect(null)}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 bg-gray-50"
+            >
+              {/* General Chat Icon */}
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm bg-blue-500 text-white"
+                title="General Chat - No Project Context"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+
+              {/* No Project Text */}
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-sm font-semibold text-gray-900">
+                  No Project Selected
+                </span>
+                <span className="text-xs text-gray-500">
+                  Chat about general topics, company info, or workflows
+                </span>
+              </div>
+            </div>
+
+            {/* Filtered Projects - Only show if there are projects and no search filter */}
+            {projectSearch.trim() === '' ? (
+              filteredProjects.length === 0 ? (
+                <div className="px-4 py-2 text-gray-500 text-sm">No projects found</div>
+              ) : (
+                filteredProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    onClick={() => handleProjectSelect(project)}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                   >
-                    {getPhaseConfig(project).initial}
-                  </div>
+                    {/* Phase Circle */}
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm"
+                      style={{ 
+                        backgroundColor: getPhaseConfig(project).color,
+                        color: getContrastTextColor(getPhaseConfig(project).color)
+                      }}
+                      title={`Phase: ${getPhaseConfig(project).name}`}
+                    >
+                      {getPhaseConfig(project).initial}
+                    </div>
 
-                  {/* Project Number */}
-                  <span className="text-sm font-bold text-blue-600">
-                    #{String(project.projectNumber || project.id).padStart(5, '0')}
-                  </span>
-
-                  {/* Project Info */}
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-gray-900 truncate">
-                      {project.projectName || project.name}
+                    {/* Project Number */}
+                    <span className="text-sm font-bold text-blue-600">
+                      #{String(project.projectNumber || project.id).padStart(5, '0')}
                     </span>
-                    <span className="text-xs text-gray-500 truncate">
-                      {project.customerName || project.customer?.name || project.clientName}
-                    </span>
-                  </div>
 
-                  {/* Action Icons */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <div 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProjectNavigate(project, 'Project Workflow');
-                      }}
-                      title="Go to Project Workflow"
-                      className="p-1 hover:bg-blue-100 rounded"
-                    >
-                      {getProjectIcon('workflow')}
+                    {/* Project Info */}
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-gray-900 truncate">
+                        {project.projectName || project.name}
+                      </span>
+                      <span className="text-xs text-gray-500 truncate">
+                        {project.customerName || project.customer?.name || project.clientName}
+                      </span>
                     </div>
-                    <div 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProjectNavigate(project, 'Alerts');
-                      }}
-                      title="Go to Project Alerts"
-                      className="p-1 hover:bg-red-100 rounded"
-                    >
-                      {getProjectIcon('alerts')}
-                    </div>
-                    <div 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProjectNavigate(project, 'Messages');
-                      }}
-                      title="Go to Project Messages"
-                      className="p-1 hover:bg-green-100 rounded"
-                    >
-                      {getProjectIcon('messages')}
+
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectNavigate(project, 'Project Workflow');
+                        }}
+                        title="Go to Project Workflow"
+                        className="p-1 hover:bg-blue-100 rounded"
+                      >
+                        {getProjectIcon('workflow')}
+                      </div>
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectNavigate(project, 'Alerts');
+                        }}
+                        title="Go to Project Alerts"
+                        className="p-1 hover:bg-red-100 rounded"
+                      >
+                        {getProjectIcon('alerts')}
+                      </div>
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectNavigate(project, 'Messages');
+                        }}
+                        title="Go to Project Messages"
+                        className="p-1 hover:bg-green-100 rounded"
+                      >
+                        {getProjectIcon('messages')}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
+              )
+            ) : (
+              filteredProjects.length === 0 ? (
+                <div className="px-4 py-2 text-gray-500 text-sm">No projects found</div>
+              ) : (
+                filteredProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    onClick={() => handleProjectSelect(project)}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                  >
+                    {/* Phase Circle */}
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm"
+                      style={{ 
+                        backgroundColor: getPhaseConfig(project).color,
+                        color: getContrastTextColor(getPhaseConfig(project).color)
+                      }}
+                      title={`Phase: ${getPhaseConfig(project).name}`}
+                    >
+                      {getPhaseConfig(project).initial}
+                    </div>
+
+                    {/* Project Number */}
+                    <span className="text-sm font-bold text-blue-600">
+                      #{String(project.projectNumber || project.id).padStart(5, '0')}
+                    </span>
+
+                    {/* Project Info */}
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-gray-900 truncate">
+                        {project.projectName || project.name}
+                      </span>
+                      <span className="text-xs text-gray-500 truncate">
+                        {project.customerName || project.customer?.name || project.clientName}
+                      </span>
+                    </div>
+
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectNavigate(project, 'Project Workflow');
+                        }}
+                        title="Go to Project Workflow"
+                        className="p-1 hover:bg-blue-100 rounded"
+                      >
+                        {getProjectIcon('workflow')}
+                      </div>
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectNavigate(project, 'Alerts');
+                        }}
+                        title="Go to Project Alerts"
+                        className="p-1 hover:bg-red-100 rounded"
+                      >
+                        {getProjectIcon('alerts')}
+                      </div>
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectNavigate(project, 'Messages');
+                        }}
+                        title="Go to Project Messages"
+                        className="p-1 hover:bg-green-100 rounded"
+                      >
+                        {getProjectIcon('messages')}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )
             )}
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

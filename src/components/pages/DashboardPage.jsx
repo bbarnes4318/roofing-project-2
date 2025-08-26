@@ -3144,20 +3144,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         </div>
                         
                         {/* Second Row - Section and Line Item */}
-                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '20px' }}>
+                        <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
                           {/* Section label and value - properly aligned */}
-                          <div className="flex items-center gap-0" style={{ width: '150px' }}>
+                          <div className="flex items-center" style={{ width: '150px' }}>
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
-                            <span className={`font-semibold truncate ml-0 ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
                               {sectionName || 'Unknown Section'}
                             </span>
                           </div>
                           
                           {/* Line Item - properly aligned */}
-                          <div className="flex items-center gap-0 flex-shrink-0">
+                          <div className="flex items-center flex-shrink-0 ml-2">
                             <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
                             <span 
-                                className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ml-0 ${
+                                className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
                                   colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'
                                 }`}
                                 title={lineItemName || 'Unknown Line Item'}

@@ -85,7 +85,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         try {
             if (!selectedProject && Array.isArray(projects) && projects.length > 0) {
                 const storedId = sessionStorage.getItem('aiAssistant.lastProjectId');
-                if (storedId) {
+                if (storedId === 'null') {
+                    // User previously selected "No Project Selected"
+                    setSelectedProject(null);
+                } else if (storedId) {
                     const match = projects.find(p => String(p.id) === String(storedId));
                     if (match) setSelectedProject(match);
                 }
@@ -98,16 +101,43 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         try {
             if (selectedProject?.id) {
                 sessionStorage.setItem('aiAssistant.lastProjectId', String(selectedProject.id));
+            } else if (selectedProject === null) {
+                // User explicitly selected "No Project Selected"
+                sessionStorage.setItem('aiAssistant.lastProjectId', 'null');
             }
         } catch (_) {}
     }, [selectedProject]);
 
-    // Auto-select first project if only one available
+    // Auto-select first project if only one available (but respect explicit "No Project Selected" choice)
     useEffect(() => {
         if (projects.length === 1 && !selectedProject) {
+            // Check if user explicitly selected "No Project Selected" in session storage
+            try {
+                const storedId = sessionStorage.getItem('aiAssistant.lastProjectId');
+                if (storedId === 'null') {
+                    // User explicitly chose "No Project Selected", don't auto-select
+                    return;
+                }
+            } catch (_) {}
+            
+            // Only auto-select if user hasn't made an explicit choice
             setSelectedProject(projects[0]);
         }
     }, [projects, selectedProject]);
+
+    // Ensure page is always at top and never scrolls
+    useEffect(() => {
+        // Force page to top and prevent scrolling
+        window.scrollTo(0, 0);
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        // Cleanup function to restore body overflow when component unmounts
+        return () => {
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        };
+    }, []);
 
     // Fetch current step for selected project
     useEffect(() => {
@@ -283,7 +313,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
 
     return (
-        <div className="h-screen flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="ai-assistant-container h-screen flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
             {/* Custom styles for message formatting */}
             <style jsx>{`
                 .prose strong {
@@ -436,7 +466,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             )}
 
             {/* Input Area - Fixed at bottom, always visible */}
-            <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-gray-50" style={{ position: 'fixed', bottom: 0, left: '280px', right: 0, zIndex: 100 }}>
+            <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-gray-50">
                 <form onSubmit={handleSubmit} className="flex gap-2">
                     <input
                         type="text"
