@@ -3070,7 +3070,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                               </div>
                               
                               {/* PM with dropdown arrow - align baseline with Line Item label */}
-                              <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '40px' }}>
+                              <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '8px' }}>
                                 <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                                 <button 
                                   ref={(el) => alertPmButtonRefs.current[alertId] = el}
@@ -3147,19 +3147,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <div className="flex items-center text-[9px]" style={{ marginTop: '-2px', marginLeft: '32px' }}>
                           {/* Section label and value - properly aligned */}
                           <div className="flex items-center" style={{ width: '150px' }}>
-                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Section:</span>
-                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ marginLeft: '4px' }}>Section:</span>
+                            <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '4px' }}>
                               {sectionName || 'Unknown Section'}
                             </span>
                           </div>
                           
                           {/* Line Item - properly aligned */}
                           <div className="flex items-center flex-shrink-0 ml-2">
-                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Line Item:</span>
+                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ marginLeft: '8px' }}>Line Item:</span>
                             <span 
                                 className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
                                   colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'
                                 }`}
+                                style={{ marginLeft: '4px' }}
                                 title={lineItemName || 'Unknown Line Item'}
                                 onClick={async (e) => {
                                   e.stopPropagation();

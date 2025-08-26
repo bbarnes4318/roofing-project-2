@@ -132,6 +132,12 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
         
+        // Also scroll the messages area to top on initial load
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = 0;
+        }
+        
         // Cleanup function to restore body overflow when component unmounts
         return () => {
             document.body.style.overflow = 'auto';
@@ -174,7 +180,9 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
     // Scroll to bottom when new messages are added (but not on initial load)
     useEffect(() => {
-        if (messages.length > 1) {
+        // Only scroll to bottom if there are more than 1 message (meaning new messages were added)
+        // and we're not on the initial load
+        if (messages.length > 1 && messages.length > 2) {
             scrollToBottom();
         }
     }, [messages.length]);
@@ -364,8 +372,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 </div>
             </div>
 
-            {/* Messages Area - Scrollable with flex-1 to fill available space */}
-            <div className="flex-1 overflow-y-auto p-4 pb-20 min-h-0">
+            {/* Messages Area - Fixed height, scrollable */}
+            <div className="messages-container overflow-y-auto p-4 pb-4" style={{ height: '300px' }}>
                 <div className="space-y-4">
                     {messages
                         .filter(message => !message.isContextMessage) // Hide context messages
@@ -465,7 +473,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 </div>
             )}
 
-            {/* Input Area - Fixed at bottom, always visible */}
+            {/* Input Area - Always visible at bottom */}
             <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-gray-50">
                 <form onSubmit={handleSubmit} className="flex gap-2">
                     <input
