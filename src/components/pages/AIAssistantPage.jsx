@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import socketService from '../../services/socket';
@@ -14,6 +14,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const [projectSearch, setProjectSearch] = useState('');
     const [currentStep, setCurrentStep] = useState(null);
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+    const headerRef = useRef(null);
+    const inputRef = useRef(null);
+    const composerRef = useRef(null);
+    const [messagesHeight, setMessagesHeight] = useState(null);
 
     // Message composer (subjects/recipients) for "Send Project Message"
     const { subjects } = useSubjects();
@@ -125,25 +130,35 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         }
     }, [projects, selectedProject]);
 
-    // Ensure page is always at top and never scrolls
+    // Ensure initial view starts at top, without locking page scroll
     useEffect(() => {
-        // Force page to top and prevent scrolling
-        window.scrollTo(0, 0);
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        
-        // Also scroll the messages area to top on initial load
-        const messagesContainer = document.querySelector('.messages-container');
-        if (messagesContainer) {
-            messagesContainer.scrollTop = 0;
-        }
-        
-        // Cleanup function to restore body overflow when component unmounts
-        return () => {
-            document.body.style.overflow = 'auto';
-            document.documentElement.style.overflow = 'auto';
-        };
+        try {
+            window.scrollTo(0, 0);
+            if (messagesContainerRef.current) {
+                messagesContainerRef.current.scrollTop = 0;
+            }
+        } catch (_) {}
     }, []);
+
+    // Calculate available height so input stays visible; shrink messages area as needed
+    useLayoutEffect(() => {
+        const recalcHeights = () => {
+            try {
+                const viewport = window.innerHeight || document.documentElement.clientHeight || 800;
+                const headerH = headerRef.current ? headerRef.current.getBoundingClientRect().height : 0;
+                const inputH = inputRef.current ? inputRef.current.getBoundingClientRect().height : 0;
+                const composerH = composerRef.current ? composerRef.current.getBoundingClientRect().height : 0;
+                const paddingAllowance = 0; // container already handles internal paddings
+                const available = Math.max(viewport - headerH - composerH - inputH - paddingAllowance, 120);
+                const capped = Math.min(available, 360); // slight bump, keep input visible
+                setMessagesHeight(capped);
+            } catch (_) {}
+        };
+
+        recalcHeights();
+        window.addEventListener('resize', recalcHeights);
+        return () => window.removeEventListener('resize', recalcHeights);
+    }, [isComposerOpen]);
 
     // Fetch current step for selected project
     useEffect(() => {
@@ -173,19 +188,12 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     }, [isComposerOpen]);
 
     const scrollToBottom = () => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
         }
     };
 
-    // Scroll to bottom when new messages are added (but not on initial load)
-    useEffect(() => {
-        // Only scroll to bottom if there are more than 1 message (meaning new messages were added)
-        // and we're not on the initial load
-        if (messages.length > 1 && messages.length > 2) {
-            scrollToBottom();
-        }
-    }, [messages.length]);
+    // Remove auto-scroll on load; we'll scroll only when sending/receiving messages
 
     const handleSubmit = async (e, quickActionText = null) => {
         if (e) e.preventDefault();
@@ -201,6 +209,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         };
 
         setMessages(prev => [...prev, userMessage]);
+        // Keep input visible; only scroll the messages container
+        setTimeout(scrollToBottom, 0);
         setInput('');
         setIsLoading(true);
 
@@ -217,6 +227,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             };
             
             setMessages(prev => [...prev, assistantMessage]);
+            setTimeout(scrollToBottom, 0);
         } catch (error) {
             const errorMessage = {
                 id: Date.now() + 1,
@@ -321,7 +332,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
 
     return (
-        <div className="ai-assistant-container h-screen min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="ai-assistant-container flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
             {/* Custom styles for message formatting */}
             <style jsx>{`
                 .prose strong {
@@ -345,7 +356,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             `}</style>
             
             {/* Header with project selector - Compact and clean */}
-            <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 relative">
+            <div ref={headerRef} className="flex-shrink-0 p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 relative">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
                         <img src="/bubblesai.png" alt="Bubbles AI" className="h-10 w-auto" />
@@ -372,8 +383,12 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 </div>
             </div>
 
-            {/* Messages Area - Fills available space, scrollable */}
-            <div className="messages-container flex-1 min-h-0 overflow-y-auto p-4 pb-4">
+            {/* Messages Area - Reduced default height to ensure input is visible */}
+            <div
+                ref={messagesContainerRef}
+                className="messages-container flex-shrink-0 overflow-y-auto p-3 pb-3"
+                style={{ height: messagesHeight ? `${messagesHeight}px` : '340px' }}
+            >
                 <div className="space-y-4">
                     {messages
                         .filter(message => !message.isContextMessage) // Hide context messages
@@ -402,7 +417,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
             {/* Composer Modal */}
             {isComposerOpen && (
-                <div className="p-4 border-t border-gray-200 bg-white">
+                <div ref={composerRef} className="p-4 border-t border-gray-200 bg-white">
                     <div className="mb-2 text-sm font-semibold flex items-center gap-2"><ChatBubbleLeftRightIcon className="w-4 h-4" /> Send Project Message</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
@@ -474,7 +489,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             )}
 
             {/* Input Area - Always visible at bottom */}
-            <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-gray-50">
+            <div ref={inputRef} className="flex-shrink-0 p-3 border-t border-gray-200 bg-gray-50">
                 <form onSubmit={handleSubmit} className="flex gap-2">
                     <input
                         type="text"
