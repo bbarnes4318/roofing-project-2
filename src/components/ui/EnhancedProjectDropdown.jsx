@@ -218,10 +218,9 @@ const EnhancedProjectDropdown = ({
                   toggleProjectExpansion(selectedProject.id);
                 }}
                 title={expandedProject === selectedProject.id ? "Hide project details (Address, Contact, PM)" : "Show project details (Address, Contact, PM)"}
-                className="p-1 rounded transition-transform hover:bg-gray-100 flex items-center gap-1"
-                style={{ transform: expandedProject === selectedProject.id ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                className="p-1 rounded hover:bg-gray-100 flex items-center gap-1"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 transition-transform" style={{ transform: expandedProject === selectedProject.id ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
                 <span className="text-xs text-gray-500">Details</span>
