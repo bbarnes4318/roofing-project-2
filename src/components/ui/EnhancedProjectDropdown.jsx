@@ -43,7 +43,7 @@ const EnhancedProjectDropdown = ({
         top: rect.bottom + 8,
         left: rect.left,
         width: rect.width,
-        zIndex: 10000
+        zIndex: 30000
       };
       setMenuStyle(base);
       setDetailsStyle({ ...base });
@@ -145,7 +145,7 @@ const EnhancedProjectDropdown = ({
     .slice(0, 50);
 
   return (
-    <div className="relative w-full" style={{ zIndex: 30 }}>
+    <div className="relative w-full" style={{ zIndex: 200, position: 'sticky', top: 0 }}>
       {/* Main Dropdown Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -316,7 +316,7 @@ const EnhancedProjectDropdown = ({
 
       {/* Dropdown Options */}
       {isOpen && menuStyle && ReactDOM.createPortal(
-        <div style={menuStyle} className="bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div style={menuStyle} className="bg-white border border-gray-300 rounded-lg shadow-lg max-h-[60vh] overflow-y-auto">
           {/* Search Input */}
           <div className="p-3 border-b border-gray-200">
             <input

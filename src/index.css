@@ -36,6 +36,46 @@ body {
   overflow-x: hidden;
 }
 
+/* Strong no-page-scroll mode, applied via body/html class from the AI page */
+html.no-page-scroll, body.no-page-scroll {
+  overflow: hidden !important; /* Hide scrollbars */
+  height: 100% !important;
+  overscroll-behavior: none !important; /* Prevent scroll chaining/bounce */
+}
+
+/* Chromium-specific attempt to remove gutter */
+@supports (scrollbar-gutter: stable) {
+  html.no-page-scroll, body.no-page-scroll {
+    scrollbar-gutter: stable both-edges; /* avoids forced gutter shifts */
+  }
+}
+
+/* WebKit: force overlay scrollbars off page */
+html.no-page-scroll::-webkit-scrollbar,
+body.no-page-scroll::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+body.no-page-scroll {
+  position: fixed !important;
+  width: 100vw !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+body.no-page-scroll #root {
+  height: 100vh;
+  overflow: hidden !important;
+}
+
+html.no-page-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+body.no-page-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+html.no-page-scroll::-webkit-scrollbar { display: none; }
+body.no-page-scroll::-webkit-scrollbar { display: none; }
+
 /* Prevent horizontal scrolling */
 .container {
   max-width: 100%;
@@ -229,6 +269,16 @@ main {
 
 .dark .custom-scrollbar {
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+/* Hide scrollbars but keep scroll functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Text truncation utilities */

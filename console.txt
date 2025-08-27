@@ -1,0 +1,447 @@
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api.js:8 🔍 API CONFIG: Current host: localhost:3000
+api.js:19 🔍 API CONFIG: Using env var API: http://localhost:5000/api
+App.jsx:449 🔍 NAV_STATE_CHANGE: navigationState updated: Object
+App.jsx:450 🔍 NAV_STATE_CHANGE: activePage: Overview
+deprecations.ts:9  ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+warnOnce @ deprecations.ts:9
+deprecations.ts:9  ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+warnOnce @ deprecations.ts:9
+App.jsx:449 🔍 NAV_STATE_CHANGE: navigationState updated: Object
+App.jsx:450 🔍 NAV_STATE_CHANGE: activePage: Overview
+App.jsx:126 🔍 ONBOARDING: Checking status for user: Object
+App.jsx:127 🔍 ONBOARDING: User role: WORKER
+App.jsx:128 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:129 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:130 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:261 🔍 Fetching activities from API...
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:321 🔍 INITIAL USER FROM STORAGE: Object
+DashboardPage.jsx:331 🔍 FETCHING CURRENT USER FROM SERVER...
+DashboardPage.jsx:382 🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...
+DashboardPage.jsx:647 🔍 DASHBOARD: URL params restoration: Object
+DashboardPage.jsx:321 🔍 INITIAL USER FROM STORAGE: Object
+DashboardPage.jsx:331 🔍 FETCHING CURRENT USER FROM SERVER...
+DashboardPage.jsx:382 🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...
+DashboardPage.jsx:647 🔍 DASHBOARD: URL params restoration: Object
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+App.jsx:126 🔍 ONBOARDING: Checking status for user: Object
+App.jsx:127 🔍 ONBOARDING: User role: WORKER
+App.jsx:128 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:129 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:130 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: true
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: undefined
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 0
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:333 🔍 SERVER RESPONSE: Object
+DashboardPage.jsx:335 🔍 EXTRACTED USER: Object
+DashboardPage.jsx:338 ✅ CURRENT USER SET TO: jimbosky35  ID: cmen0vdvu0000ap0dlgm1npuz
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+App.jsx:239 ✅ Fetched projects from API: 20
+DashboardPage.jsx:355 🔍 API Response for users: Object
+DashboardPage.jsx:360 ✅ Loaded users for assignment: 43
+DashboardPage.jsx:393 ✅ DASHBOARD: Loaded workflow phases from database: Array(6)
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: true
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+App.jsx:277 ✅ Fetched activities from API: 2
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+App.jsx:126 🔍 ONBOARDING: Checking status for user: Object
+App.jsx:127 🔍 ONBOARDING: User role: WORKER
+App.jsx:128 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:129 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:130 🔍 ONBOARDING: needsOnboarding result: false
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:393 ✅ DASHBOARD: Loaded workflow phases from database: Array(6)
+App.jsx:126 🔍 ONBOARDING: Checking status for user: Object
+App.jsx:127 🔍 ONBOARDING: User role: WORKER
+App.jsx:128 🔍 ONBOARDING: User ID: cmen0vdvu0000ap0dlgm1npuz
+App.jsx:129 🔍 ONBOARDING: hasCompletedOnboarding: undefined
+App.jsx:130 🔍 ONBOARDING: needsOnboarding result: false
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:333 🔍 SERVER RESPONSE: Object
+DashboardPage.jsx:335 🔍 EXTRACTED USER: Object
+DashboardPage.jsx:338 ✅ CURRENT USER SET TO: jimbosky35  ID: cmen0vdvu0000ap0dlgm1npuz
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:355 🔍 API Response for users: Object
+DashboardPage.jsx:360 ✅ Loaded users for assignment: 43
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:133 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:149 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:150 🔍 DASHBOARD: Projects error: null
+DashboardPage.jsx:151 🔍 DASHBOARD: Projects data: Object
+DashboardPage.jsx:152 🔍 DASHBOARD: Projects array length: 20
+DashboardPage.jsx:302 🔍 DASHBOARD: Alerts loading state: false
+DashboardPage.jsx:303 🔍 DASHBOARD: Alerts error: null
+DashboardPage.jsx:304 🔍 DASHBOARD: Alerts data: Array(31)
+DashboardPage.jsx:305 🔍 DASHBOARD: Alerts array length: 31
+DashboardPage.jsx:1949 Selected Phase: null Filtered Projects Count: 0
+DashboardPage.jsx:2115 Card View - Selected Phase: null Filtered Projects Count: 0
+App.jsx:475 🔍 APP: navigate called with page: AI Assistant
+App.jsx:476 🔍 APP: Current activePage: Overview
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: AI Assistant
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: AI Assistant
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+App.jsx:1412 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1413 🔍 MAIN_RENDER: activePage: AI Assistant
+App.jsx:1438 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:998 🔍 RENDER: renderPage called with activePage: AI Assistant
+App.jsx:999 🔍 RENDER: navigationState.selectedProject: null
+react-dom.development.js:86  Warning: Received `true` for a non-boolean attribute `jsx`.
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+    at style
+    at div
+    at AIAssistantPage (http://localhost:3000/static/js/bundle.js:116533:3)
+    at div
+    at div
+    at main
+    at div
+    at SubjectsProvider (http://localhost:3000/static/js/bundle.js:157542:3)
+    at NavigationProvider (http://localhost:3000/static/js/bundle.js:157184:3)
+    at QueryClientProvider (http://localhost:3000/static/js/bundle.js:19580:3)
+    at App (http://localhost:3000/static/js/bundle.js:105635:86)
+    at Router (http://localhost:3000/static/js/bundle.js:95430:15)
+    at BrowserRouter (http://localhost:3000/static/js/bundle.js:93331:5)
+printWarning @ react-dom.development.js:86
+App.jsx:449 🔍 NAV_STATE_CHANGE: navigationState updated: Object
+App.jsx:450 🔍 NAV_STATE_CHANGE: activePage: AI Assistant
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+DashboardPage.jsx:535 🔍 DASHBOARD: Fetched messages from API: 22
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
+AIAssistantPage.jsx:410 [Vapi] mic clicked
