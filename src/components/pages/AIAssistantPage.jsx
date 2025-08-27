@@ -35,56 +35,106 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const renderMessageContent = (content) => {
         if (!content) return '';
         
-        // Split content into lines and process each line
-        const lines = content.split('\n');
-        let inList = false;
-        let listItems = [];
+        const lines = String(content).replace(/\r\n?/g, '\n').split('\n');
+        const out = [];
+        let inUl = false;
+        let inOl = false;
+        let pendingAutoList = false; // after a heading that ends with ':'
         
-        const processedLines = lines.map((line, index) => {
-            // Handle bold text with ** or __
-            let processedLine = line
+        const closeLists = () => {
+            if (inUl) { out.push('</ul>'); inUl = false; }
+            if (inOl) { out.push('</ol>'); inOl = false; }
+        };
+        
+        for (let i = 0; i < lines.length; i++) {
+            const raw = lines[i];
+            const line = raw == null ? '' : String(raw);
+            const trimmed = line.trim();
+            
+            // Blank line -> paragraph break / close lists and reset auto-list
+            if (trimmed === '') {
+                closeLists();
+                pendingAutoList = false;
+                out.push('<div class="h-3"></div>');
+                continue;
+            }
+            
+            // Bold (** **) and __ __
+            let processed = line
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/__(.*?)__/g, '<strong>$1</strong>');
             
-            // Handle headers (lines starting with #)
-            if (line.startsWith('#')) {
-                const level = line.match(/^#+/)[0].length;
-                const text = line.replace(/^#+\s*/, '');
-                return `<h${Math.min(level, 6)} class="font-bold text-lg mb-3 mt-2">${text}</h${Math.min(level, 6)}>`;
+            // True markdown headers starting with #
+            if (trimmed.startsWith('#')) {
+                closeLists(); pendingAutoList = false;
+                const level = Math.min((trimmed.match(/^#+/)?.[0]?.length) || 1, 6);
+                const text = trimmed.replace(/^#+\s*/, '');
+                out.push(`<h${level} class="font-bold text-lg mb-3 mt-2">${text}</h${level}>`);
+                continue;
             }
             
-            // Handle bullet points
-            if (line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
-                const text = line.trim().replace(/^[-•]\s*/, '');
-                return `<li class="ml-4 mb-2 list-disc">${text}</li>`;
+            // Treat short lines ending with ':' as section headings
+            if (/^.{1,80}:$/.test(trimmed)) {
+                closeLists();
+                pendingAutoList = true;
+                const headingText = trimmed.slice(0, -1);
+                out.push(`<h3 class="font-semibold text-base mb-2 mt-2">${headingText}</h3>`);
+                continue;
             }
             
-            // Handle numbered lists
-            if (/^\d+\.\s/.test(line.trim())) {
-                const text = line.trim().replace(/^\d+\.\s*/, '');
-                return `<li class="ml-4 mb-2 list-decimal">${text}</li>`;
+            // Numbered list item
+            if (/^\d+\.\s+/.test(trimmed)) {
+                if (inUl) { out.push('</ul>'); inUl = false; }
+                if (!inOl) { out.push('<ol class="list-decimal ml-5 mb-2 space-y-1">'); inOl = true; }
+                const text = trimmed.replace(/^\d+\.\s+/, '');
+                out.push(`<li>${text}</li>`);
+                pendingAutoList = false;
+                continue;
             }
             
-            // Handle empty lines
-            if (line.trim() === '') {
-                return '<div class="h-3"></div>';
+            // Bullet list item markers: -, *, •, –, —
+            if (/^[-*•–—]\s+/.test(trimmed)) {
+                if (inOl) { out.push('</ol>'); inOl = false; }
+                if (!inUl) { out.push('<ul class="list-disc ml-5 mb-2 space-y-1">'); inUl = true; }
+                const text = trimmed.replace(/^[-*•–—]\s+/, '');
+                out.push(`<li>${text}</li>`);
+                pendingAutoList = false;
+                continue;
             }
             
-            // Handle lines that look like section headers (Phase:, Section:, etc.)
-            if (/^(Phase|Section|Line Item|Status|Progress|Customer|Project):/.test(line.trim())) {
+            // Auto-list lines immediately following a heading ending with ':'
+            if (pendingAutoList) {
+                if (inOl) { out.push('</ol>'); inOl = false; }
+                if (!inUl) { out.push('<ul class="list-disc ml-5 mb-2 space-y-1">'); inUl = true; }
+                out.push(`<li>${processed}</li>`);
+                continue;
+            }
+            
+            // Label: Value blocks like Phase:, Section:, etc.
+            if (/^(Phase|Section|Line Item|Status|Progress|Customer|Project):/i.test(trimmed)) {
+                closeLists(); pendingAutoList = false;
                 const parts = line.split(':');
                 if (parts.length >= 2) {
                     const label = parts[0].trim();
                     const value = parts.slice(1).join(':').trim();
-                    return `<div class="mb-3 p-2 bg-gray-50 rounded border-l-4 border-blue-400"><strong class="text-blue-700">${label}:</strong> <span class="text-gray-800">${value}</span></div>`;
+                    out.push(`<div class="mb-3 p-2 bg-gray-50 rounded border-l-4 border-blue-400"><strong class="text-blue-700">${label}:</strong> <span class="text-gray-800">${value}</span></div>`);
+                    continue;
                 }
             }
             
-            // Handle regular text with proper spacing
-            return `<p class="mb-2 leading-relaxed">${processedLine}</p>`;
-        });
+            // Default paragraph line
+            closeLists(); pendingAutoList = false;
+            out.push(`<p class="mb-2 leading-relaxed">${processed}</p>`);
+        }
         
-        return processedLines.join('');
+        // Close any open lists at end
+        const html = (function finalize(parts){
+            if (inUl) parts.push('</ul>');
+            if (inOl) parts.push('</ol>');
+            return parts.join('');
+        })(out);
+        
+        return html;
     };
 
     // Restore last selected project from sessionStorage when projects load

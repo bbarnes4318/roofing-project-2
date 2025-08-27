@@ -280,7 +280,7 @@ export const EmptyState = ({
   </div>
 );
 
-export default {
+export const SkeletonLoaders = {
   ProjectCardSkeleton,
   ListItemSkeleton,
   TableSkeleton,
@@ -292,3 +292,5 @@ export default {
   ErrorState,
   EmptyState,
 };
+
+export default SkeletonLoaders;

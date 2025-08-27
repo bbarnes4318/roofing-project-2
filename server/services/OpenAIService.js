@@ -43,43 +43,55 @@ class OpenAIService {
       return this.generateMockResponse(prompt, context);
     }
 
-    try {
-      const systemPrompt = context.systemPrompt || this.buildSystemPrompt(context);
-      const messages = this.buildMessages(systemPrompt, prompt, context);
+    const systemPrompt = context.systemPrompt || this.buildSystemPrompt(context);
+    const messages = this.buildMessages(systemPrompt, prompt, context);
 
-      console.log('🔍 Making OpenAI API call...');
-      const response = await this.client.chat.completions.create({
-        model: this.model,
+    const attemptResponses = async (modelName) => {
+      console.log('🔍 Making OpenAI API call (responses.create)...', modelName);
+      const response = await this.client.responses.create({
+        model: modelName,
         messages,
-        max_tokens: 900,
+        max_completion_tokens: 900,
         temperature: 0.8,
-        presence_penalty: 0.3,
-        frequency_penalty: 0.1
       });
-      console.log('✅ OpenAI API call successful');
-
-      const aiResponse = response.choices[0].message.content;
-      
+      console.log('✅ OpenAI API call successful (responses.create)', modelName);
+      const text = response.output_text 
+        || response?.output?.[0]?.content?.[0]?.text 
+        || response?.choices?.[0]?.message?.content 
+        || '';
+      const aiResponse = text || 'OK';
       return {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
-        source: `openai:${this.model}`,
+        source: `openai:${modelName}`,
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
-        metadata: {
-          model: this.model,
-          tokens: response.usage?.total_tokens,
-          timestamp: new Date()
-        }
+        metadata: { model: modelName, tokens: response.usage?.total_tokens, timestamp: new Date() }
       };
+    };
 
+    const tryModel = async (modelName) => {
+      try {
+        return await attemptResponses(modelName);
+      } catch (error) {
+        console.error('❌ OpenAI responses.create error:', error?.message || error);
+        throw error;
+      }
+    };
+
+    try {
+      // Primary model
+      return await tryModel(this.model);
     } catch (error) {
-      console.error('❌ OpenAI API error:', error.message);
-      console.error('❌ Error code:', error.code);
-      console.error('❌ Error type:', error.type);
-      console.error('❌ Full error object:', error);
-      // Fallback to mock response on error
-      return this.generateMockResponse(prompt, context);
+      console.error('❌ OpenAI API error (primary model):', error?.message || error);
+      // Fallback model
+      const fallbackModel = process.env.OPENAI_FALLBACK_MODEL || 'gpt-4o';
+      try {
+        return await tryModel(fallbackModel);
+      } catch (error2) {
+        console.error('❌ OpenAI API error (fallback model):', error2?.message || error2);
+        return this.generateMockResponse(prompt, context);
+      }
     }
   }
 
@@ -118,9 +130,8 @@ Response Format:
   buildMessages(systemPrompt, prompt, context) {
     const messages = [{ role: 'system', content: systemPrompt }];
 
-    // Add recent conversation history as alternating user/assistant messages
     if (Array.isArray(context.conversationHistory) && context.conversationHistory.length > 0) {
-      const recent = context.conversationHistory.slice(-8); // last 8 turns max
+      const recent = context.conversationHistory.slice(-8);
       for (const item of recent) {
         if (item && typeof item.message === 'string' && item.message.trim().length > 0) {
           messages.push({ role: 'user', content: this.truncateForContext(item.message) });
@@ -132,7 +143,6 @@ Response Format:
       }
     }
 
-    // Current user prompt with embedded lightweight context
     const userPrompt = this.buildUserPrompt(prompt, context);
     messages.push({ role: 'user', content: userPrompt });
 
@@ -208,7 +218,6 @@ Response Format:
   extractSuggestedActions(response, context) {
     const actions = [];
     
-    // Parse response for action suggestions
     if (response.includes('complete') || response.includes('mark as done')) {
       actions.push({ type: 'complete_task', label: 'Complete Task' });
     }
@@ -222,19 +231,17 @@ Response Format:
       actions.push({ type: 'view_workflow', label: 'View Workflow' });
     }
     
-    // Always include help option
     if (actions.length === 0) {
       actions.push({ type: 'help', label: 'Show Commands' });
     }
     
-    return actions.slice(0, 3); // Limit to 3 actions
+    return actions.slice(0, 3);
   }
 
   // Enhanced mock response generator for when OpenAI is not available
   generateMockResponse(prompt, context) {
     const lowerPrompt = prompt.toLowerCase();
     
-    // Command detection and responses
     if (lowerPrompt.includes('help') || lowerPrompt.includes('what can you do') || lowerPrompt === 'help') {
       return {
         type: 'capabilities',
@@ -353,7 +360,6 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
       };
     }
 
-    // Default: action-first, no canned phrasing
     const hasProject = Boolean(context && context.projectName);
     const content = hasProject
       ? `I'm ready to act on ${context.projectName}. Choose a next step:
@@ -369,7 +375,7 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
           { type: 'complete_task', label: 'Complete a Task' }
         ]
       : [
-          { type: 'use_project', label: 'Use Project #_____'}
+          { type: 'use_project', label: 'Use Project #_____' }
         ];
 
     return {
@@ -459,15 +465,19 @@ ${projectContext && projectContext.projectName ? `
         { role: 'user', content: String(prompt) }
       ];
 
-      const response = await this.client.chat.completions.create({
+      const response = await this.client.responses.create({
         model: this.model,
         messages,
-        max_tokens: 200,
+        max_completion_tokens: 200,
         temperature: 0.3
       });
+      const text = response.output_text 
+        || response?.output?.[0]?.content?.[0]?.text 
+        || response?.choices?.[0]?.message?.content 
+        || 'Done.';
 
       return {
-        content: response.choices?.[0]?.message?.content || 'Done.',
+        content: text,
         confidence: 0.95,
         source: `openai:${this.model}`
       };

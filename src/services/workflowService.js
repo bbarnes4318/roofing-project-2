@@ -139,4 +139,5 @@ class WorkflowService {
   }
 }
 
-export default new WorkflowService();
+const workflowService = new WorkflowService();
+export default workflowService;

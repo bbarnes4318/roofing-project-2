@@ -256,6 +256,67 @@ async function handleHeuristicIntent(message, projectContext, userId) {
   return { handled: false };
 }
 
+// Heuristic general answer for common topics when OpenAI is unavailable
+function heuristicGeneralAnswer(message) {
+  const q = String(message || '').toLowerCase();
+
+  // Roofing recommendations by climate/location
+  if (q.includes('roof') || q.includes('roofing')) {
+    const mentionsMiami = q.includes('miami') || q.includes('fl') || q.includes('florida');
+    const mentionsWarehouse = q.includes('warehouse');
+    const mentionsTpo = q.includes('tpo');
+    const mentionsEpdm = q.includes('epdm');
+    const mentionsMetal = q.includes('metal');
+
+    if (mentionsMiami) {
+      return [
+        '**Recommendation for Miami, FL:**',
+        '- **Hurricane‑rated metal (standing seam)** or **concrete/clay tile** for steep‑slope homes (great wind uplift, long life).',
+        '- **TPO/PVC single‑ply** for low‑slope areas (reflective, heat‑welded seams, good in high heat/humidity).',
+        '- Avoid standard **EPDM** in high UV + heat unless fully adhered and protected (white EPDM less common).',
+        '',
+        '**Why:** Miami has high wind, salt air, extreme UV, and heavy rains. Use Miami‑Dade/High‑Velocity Hurricane Zone (HVHZ) approved assemblies, proper underlayment, and corrosion‑resistant fasteners.',
+        '',
+        '**Next steps:**',
+        '- Confirm roof slope and code zone (HVHZ).',
+        '- Choose light/reflective color for energy savings.',
+        '- Get wind‑uplift engineering and permit set.'
+      ].join('\n');
+    }
+
+    if (mentionsTpo && mentionsEpdm) {
+      return [
+        '**TPO vs. EPDM (quick guide):**',
+        '- **TPO:** white/reflective, heat‑welded seams, good in hot climates; seams are strong; watch for quality of membrane brand.',
+        '- **EPDM:** black (or white), glued/taped seams, excellent longevity in temperate climates; can run hotter in sun.',
+        '',
+        '**Pick TPO** for hot/sunny climates or energy savings; **Pick EPDM** for cold/temperate zones or retrofit over certain decks.'
+      ].join('\n');
+    }
+
+    if (mentionsWarehouse) {
+      return [
+        '**Warehouse roof options:**',
+        '- **TPO/PVC single‑ply** (reflective, fast install, good seams).',
+        '- **Coatings** (if existing roof is sound) for cost‑effective life extension.',
+        '- **Metal retrofit** with insulation if structure allows.',
+        '',
+        '**Decide by:** deck condition, slope, budget, and required warranty length.'
+      ].join('\n');
+    }
+
+    // Generic roofing guidance
+    return [
+      '**Roof selection factors:** climate, slope, deck condition, code/wind zone, energy goals, budget, desired warranty.',
+      '- Low‑slope: TPO/PVC; Steep‑slope: metal or architectural shingle/tile.',
+      '- In hot climates, prefer reflective membranes or light‑colored metal/tile.'
+    ].join('\n');
+  }
+
+  // Fallback generic answer
+  return 'I can help with that. Give me a bit more detail (context, goals, constraints) and I\'ll recommend specific options with pros/cons.';
+}
+
 
 // Apply authentication to all routes
 router.use(authenticateToken);
@@ -534,6 +595,15 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
   }
 
+  // Guard: if OpenAI is unavailable, return 503 so frontend shows a clear error instead of canned fallback
+  if (!openAIService || !openAIService.isAvailable || !openAIService.isAvailable()) {
+    return res.status(503).json({
+      success: false,
+      message: 'AI service is temporarily unavailable',
+      aiStatus: openAIService && openAIService.getStatus ? openAIService.getStatus() : { enabled: false, model: 'mock-responses', status: 'fallback' }
+    });
+  }
+
   const { message, projectId } = req.body;
   const session = contextManager.getUserSession(req.user.id);
 
@@ -582,15 +652,35 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, { response: { content } });
   }
 
+  // Determine whether the message is project-specific or a general question
+  const projectKeywords = [
+    'project','phase','section','line item','workflow','task','alert','status','current step',
+    'customer','quote','estimate','invoice','schedule','deadline','assign','reassign','complete',
+    'check off','incomplete','team','recipient','message in project','mark as complete'
+  ];
+  const isProjectSpecific = projectKeywords.some(k => lower.includes(k));
+
   // Heuristic 2: General/company questions → Use OpenAI directly
-  if (!projectContext) {
-    const genericSystemPrompt = `You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing and construction company. You help with general questions about construction, roofing, and business operations.`;
+  if (!projectContext || (projectContext && !isProjectSpecific)) {
+    const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Kenstruction. Answer general questions about any topic helpfully and accurately. If the question is not about the selected project, do not force project context; just answer directly.`;
     const generic = await openAIService.generateResponse(message, {
       systemPrompt: genericSystemPrompt,
     });
-    const contentGeneric = generic?.content || 'OK';
-    contextManager.addToHistory(req.user.id, message, contentGeneric, null);
-    return sendSuccess(res, 200, { response: { content: contentGeneric } });
+    let contentGeneric = generic?.content || 'OK';
+    // If service is in fallback/mock, generate a better heuristic answer
+    const usedMock = !generic?.source || String(generic.source).includes('mock-responses');
+    if (usedMock) {
+      contentGeneric = heuristicGeneralAnswer(message);
+    }
+    contextManager.addToHistory(req.user.id, message, contentGeneric, projectContext || null);
+    return sendSuccess(res, 200, { 
+      response: { 
+        content: contentGeneric,
+        source: generic?.source || 'unknown',
+        metadata: generic?.metadata || {},
+        aiStatus: openAIService.getStatus()
+      } 
+    });
   }
 
   const systemPrompt = getSystemPrompt(req.user, projectContext, currentWorkflowData);
@@ -601,9 +691,14 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     status: projectContext?.status
   });
 
-  const content = aiResponse?.content || 'OK';
+  let content = aiResponse?.content || 'OK';
+  const usedMockProject = !aiResponse?.source || String(aiResponse.source).includes('mock-responses');
+  if (usedMockProject && !isProjectSpecific) {
+    // If this is actually a general question but we ended up here, still provide heuristic
+    content = heuristicGeneralAnswer(message);
+  }
   contextManager.addToHistory(req.user.id, message, content, projectContext);
-  return sendSuccess(res, 200, { response: { content } });
+  return sendSuccess(res, 200, { response: { content, source: aiResponse?.source || 'unknown', metadata: aiResponse?.metadata || {}, aiStatus: openAIService.getStatus() } });
 }));
 
 // @desc    Get user's Bubbles conversation history

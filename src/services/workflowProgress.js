@@ -107,19 +107,19 @@ class WorkflowProgressService {
             for (let phaseIdx = 0; phaseIdx < currentPhaseIndex; phaseIdx++) {
                 const phaseKey = phaseKeys[phaseIdx];
                 const phaseData = workflowStructure[phaseKey];
-                
                 if (phaseData && phaseData.sections) {
-                    Object.values(phaseData.sections).forEach(section => {
+                    const sectionValues = Object.values(phaseData.sections);
+                    for (let s = 0; s < sectionValues.length; s++) {
+                        const section = sectionValues[s];
                         if (section.lineItems) {
-                            Object.values(section.lineItems).forEach(lineItem => {
-                                // Check if this item is not already in completed items
+                            const liValues = Object.values(section.lineItems);
+                            for (let l = 0; l < liValues.length; l++) {
+                                const lineItem = liValues[l];
                                 const isAlreadyCompleted = adjustedCompletedItems.some(item => 
                                     item.lineItemId === lineItem.id || 
                                     item.id === lineItem.id
                                 );
-                                
                                 if (!isAlreadyCompleted) {
-                                    // Add as skipped/completed item
                                     adjustedCompletedItems.push({
                                         id: lineItem.id,
                                         lineItemId: lineItem.id,
@@ -131,12 +131,11 @@ class WorkflowProgressService {
                                     });
                                     skippedItemsCount++;
                                 }
-                            });
+                            }
                         }
-                    });
+                    }
                 }
             }
-            
             // In current phase, mark items in previous sections as completed
             if (currentSection && workflowStructure[currentPhase]) {
                 const currentPhaseData = workflowStructure[currentPhase];
@@ -144,18 +143,17 @@ class WorkflowProgressService {
                 const currentSectionIndex = sections.findIndex(section => 
                     section.name === currentSection || section.id === currentSection
                 );
-                
                 if (currentSectionIndex > 0) {
-                    // Mark all items in previous sections of current phase as completed
                     for (let secIdx = 0; secIdx < currentSectionIndex; secIdx++) {
                         const section = sections[secIdx];
                         if (section.lineItems) {
-                            Object.values(section.lineItems).forEach(lineItem => {
+                            const liValues = Object.values(section.lineItems);
+                            for (let l = 0; l < liValues.length; l++) {
+                                const lineItem = liValues[l];
                                 const isAlreadyCompleted = adjustedCompletedItems.some(item => 
                                     item.lineItemId === lineItem.id || 
                                     item.id === lineItem.id
                                 );
-                                
                                 if (!isAlreadyCompleted) {
                                     adjustedCompletedItems.push({
                                         id: lineItem.id,
@@ -168,11 +166,10 @@ class WorkflowProgressService {
                                     });
                                     skippedItemsCount++;
                                 }
-                            });
+                            }
                         }
                     }
                 }
-                
                 // In current section, mark items before current line item as completed
                 if (currentLineItem && currentSectionIndex >= 0) {
                     const currentSectionData = sections[currentSectionIndex];
@@ -181,7 +178,6 @@ class WorkflowProgressService {
                         const currentLineItemIndex = lineItems.findIndex(item => 
                             item.name === currentLineItem || item.id === currentLineItem
                         );
-                        
                         if (currentLineItemIndex > 0) {
                             for (let itemIdx = 0; itemIdx < currentLineItemIndex; itemIdx++) {
                                 const lineItem = lineItems[itemIdx];
@@ -189,7 +185,6 @@ class WorkflowProgressService {
                                     item.lineItemId === lineItem.id || 
                                     item.id === lineItem.id
                                 );
-                                
                                 if (!isAlreadyCompleted) {
                                     adjustedCompletedItems.push({
                                         id: lineItem.id,
