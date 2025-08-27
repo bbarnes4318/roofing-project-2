@@ -387,34 +387,41 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                     on('error', (e) => { setVoiceError(String(e?.message || 'Voice error')); setIsVoiceConnecting(false); setIsVoiceLive(false); try { console.error('[Vapi] error', e); } catch(_){} });
                 } catch(_){}
             };
-            const tryLoad = (urls, idx = 0) => {
-                if (idx >= urls.length) {
-                    setVoiceError('Voice SDK failed to load.');
-                    return;
+            const tryLoad = async (urls) => {
+                const isGoodJs = (contentType) => /javascript|ecmascript|text\/js|application\/x-javascript/i.test(contentType || '');
+                for (let i = 0; i < urls.length; i++) {
+                    const url = urls[i];
+                    try {
+                        const res = await fetch(url, { cache: 'no-store', mode: 'cors' });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const ct = res.headers.get('content-type') || '';
+                        if (!isGoodJs(ct)) throw new Error(`Bad content-type: ${ct}`);
+                        // Inject only after probe validates JS
+                        const tagId = `vapi-web-sdk-${i}`;
+                        if (!document.getElementById(tagId)) {
+                            const s = document.createElement('script');
+                            s.id = tagId;
+                            s.async = true;
+                            s.crossOrigin = 'anonymous';
+                            s.referrerPolicy = 'no-referrer';
+                            s.src = url;
+                            s.onload = initVapi;
+                            s.onerror = () => { try { console.error('[Vapi] SDK load failed at exec:', url); } catch(_){} };
+                            document.body.appendChild(s);
+                        } else {
+                            initVapi();
+                        }
+                        return; // stop after first success
+                    } catch (e) {
+                        try { console.error('[Vapi] SDK probe failed:', url, e); } catch(_){}
+                        continue;
+                    }
                 }
-                const url = urls[idx];
-                const tagId = `vapi-web-sdk-${idx}`;
-                if (document.getElementById(tagId)) {
-                    const timer = setInterval(() => {
-                        const V = window && window.Vapi;
-                        if (V) { clearInterval(timer); initVapi(); }
-                    }, 100);
-                    setTimeout(() => { try { clearInterval(timer); } catch(_){} }, 5000);
-                    return;
-                }
-                const s = document.createElement('script');
-                s.id = tagId;
-                s.async = true;
-                s.src = url;
-                s.onload = initVapi;
-                s.onerror = () => {
-                    try { console.error('[Vapi] SDK load failed:', url); } catch(_){}
-                    tryLoad(urls, idx + 1);
-                };
-                document.body.appendChild(s);
+                setVoiceError('Voice SDK failed to load. Add /public/vapi-web.js or allow CDN.');
             };
             if (!window || window.Vapi == null) {
                 tryLoad([
+                    '/vapi-web.js',
                     'https://unpkg.com/@vapi-ai/web@latest/dist/index.umd.js',
                     'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js'
                 ]);
