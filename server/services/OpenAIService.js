@@ -3,8 +3,11 @@ class OpenAIService {
     this.isEnabled = false;
     this.client = null;
     this.apiKey = null;
-    // Default to gpt-5 unless overridden; service uses server-owned key and is always on
-    this.model = process.env.OPENAI_MODEL || 'gpt-5';
+    // Default to gpt-4o-mini unless overridden; service uses server-owned key and is always on
+    this.model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    this.lastError = null;
+    this.lastUsedModel = null;
+    this.lastUsedApi = null;
     
     // Try to initialize OpenAI if available
     console.log('🔍 OpenAI Initialization: Checking for API key...');
@@ -27,14 +30,17 @@ class OpenAIService {
         this.client = new OpenAI({ apiKey: this.apiKey });
         this.isEnabled = true;
         console.log(`✅ OpenAI service initialized successfully with model: ${this.model}`);
+        this.lastError = null;
       } catch (error) {
         console.error('❌ OpenAI package not found or failed to initialize:', error.message);
         console.error('❌ Full error:', error);
         console.log('⚠️ Using enhanced mock responses instead');
         this.isEnabled = false;
+        this.lastError = error?.message || String(error);
       }
     } else {
       console.log('⚠️ OpenAI API key not provided, using enhanced mock responses');
+      this.lastError = 'OPENAI_API_KEY not provided';
     }
   }
 
@@ -51,10 +57,13 @@ class OpenAIService {
       const response = await this.client.responses.create({
         model: modelName,
         messages,
-        max_completion_tokens: 900,
+        max_output_tokens: 900,
         temperature: 0.8,
       });
       console.log('✅ OpenAI API call successful (responses.create)', modelName);
+      this.lastError = null;
+      this.lastUsedModel = modelName;
+      this.lastUsedApi = 'responses';
       const text = response.output_text 
         || response?.output?.[0]?.content?.[0]?.text 
         || response?.choices?.[0]?.message?.content 
@@ -75,7 +84,35 @@ class OpenAIService {
         return await attemptResponses(modelName);
       } catch (error) {
         console.error('❌ OpenAI responses.create error:', error?.message || error);
-        throw error;
+        this.lastError = error?.message || String(error);
+        // Fallback path: try chat.completions for orgs without Responses API access
+        try {
+          console.log('🔁 Falling back to chat.completions API...', modelName);
+          const chatResponse = await this.client.chat.completions.create({
+            model: modelName,
+            messages,
+            max_tokens: 900,
+            temperature: 0.8
+          });
+          console.log('✅ OpenAI API call successful (chat.completions.create)', modelName);
+          this.lastError = null;
+          this.lastUsedModel = modelName;
+          this.lastUsedApi = 'chat.completions';
+          const text = chatResponse?.choices?.[0]?.message?.content || '';
+          const aiResponse = text || 'OK';
+          return {
+            type: this.detectResponseType(prompt),
+            content: aiResponse,
+            confidence: 0.95,
+            source: `openai:${modelName}`,
+            suggestedActions: this.extractSuggestedActions(aiResponse, context),
+            metadata: { model: modelName, tokens: chatResponse.usage?.total_tokens, timestamp: new Date(), api: 'chat.completions' }
+          };
+        } catch (chatErr) {
+          console.error('❌ OpenAI chat.completions error:', chatErr?.message || chatErr);
+          this.lastError = chatErr?.message || String(chatErr);
+          throw error; // rethrow original to trigger outer fallbacks
+        }
       }
     };
 
@@ -90,6 +127,7 @@ class OpenAIService {
         return await tryModel(fallbackModel);
       } catch (error2) {
         console.error('❌ OpenAI API error (fallback model):', error2?.message || error2);
+        this.lastError = error2?.message || String(error2);
         return this.generateMockResponse(prompt, context);
       }
     }
@@ -397,7 +435,10 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
     return {
       enabled: this.isEnabled,
       model: this.isEnabled ? this.model : 'mock-responses',
-      status: this.isEnabled ? 'active' : 'fallback'
+      status: this.isEnabled ? 'active' : 'fallback',
+      lastError: this.lastError,
+      activeModel: this.lastUsedModel || null,
+      activeApi: this.lastUsedApi || null
     };
   }
 
@@ -468,7 +509,7 @@ ${projectContext && projectContext.projectName ? `
       const response = await this.client.responses.create({
         model: this.model,
         messages,
-        max_completion_tokens: 200,
+        max_output_tokens: 200,
         temperature: 0.3
       });
       const text = response.output_text 

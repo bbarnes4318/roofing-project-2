@@ -677,7 +677,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       response: { 
         content: contentGeneric,
         source: generic?.source || 'unknown',
-        metadata: generic?.metadata || {},
+        metadata: { ...(generic?.metadata || {}), usedMock },
         aiStatus: openAIService.getStatus()
       } 
     });
