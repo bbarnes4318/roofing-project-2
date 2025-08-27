@@ -19,6 +19,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const inputRef = useRef(null);
     const composerRef = useRef(null);
     const [messagesHeight, setMessagesHeight] = useState(null);
+    const containerRef = useRef(null);
+    const [containerHeight, setContainerHeight] = useState(null);
 
     // Message composer (subjects/recipients) for "Send Project Message"
     const { subjects } = useSubjects();
@@ -140,18 +142,35 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         } catch (_) {}
     }, []);
 
+    // Lock page scroll so only the messages container scrolls
+    useEffect(() => {
+        try {
+            window.scrollTo(0, 0);
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+        } catch (_) {}
+        return () => {
+            try {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            } catch (_) {}
+        };
+    }, []);
+
     // Calculate available height so input stays visible; shrink messages area as needed
     useLayoutEffect(() => {
         const recalcHeights = () => {
             try {
                 const viewport = window.innerHeight || document.documentElement.clientHeight || 800;
+                const containerTop = containerRef.current ? containerRef.current.getBoundingClientRect().top : 0;
                 const headerH = headerRef.current ? headerRef.current.getBoundingClientRect().height : 0;
                 const inputH = inputRef.current ? inputRef.current.getBoundingClientRect().height : 0;
                 const composerH = composerRef.current ? composerRef.current.getBoundingClientRect().height : 0;
-                const paddingAllowance = 0; // container already handles internal paddings
-                const available = Math.max(viewport - headerH - composerH - inputH - paddingAllowance, 120);
-                const capped = Math.min(available, 360); // slight bump, keep input visible
-                setMessagesHeight(capped);
+                const paddingAllowance = 0;
+                const containerH = Math.max(viewport - containerTop, 400);
+                setContainerHeight(containerH);
+                const available = Math.max(containerH - headerH - composerH - inputH - paddingAllowance, 140);
+                setMessagesHeight(available);
             } catch (_) {}
         };
 
@@ -276,53 +295,33 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
         const isContextMessage = message.isContextMessage;
 
         return (
-            <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-4`}>
-                <div className={`flex max-w-[85%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'} items-start gap-2`}>
-                    {isAssistant && (
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isError ? 'bg-red-500' : isContextMessage ? 'bg-green-500' : 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                        }`}>
-                            <SparklesIcon className="w-5 h-5 text-white" />
+            <div className="w-full">
+                <div className={`rounded-xl px-4 py-3 border ${
+                    isAssistant
+                        ? (isError ? 'bg-red-50 border-red-200 text-red-800' : 'bg-[#f7f7f8] border-gray-200 text-gray-900')
+                        : 'bg-white border-gray-200 text-gray-900'
+                }`}>
+                    <div 
+                        className="text-[14px] md:text-[15px] leading-6 md:leading-7 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ 
+                            __html: isAssistant ? renderMessageContent(message.content) : message.content 
+                        }}
+                    />
+                    {message.suggestedActions && message.suggestedActions.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {message.suggestedActions.map((action, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleSubmit(null, action.label || action.action)}
+                                    className="px-3 py-1 text-xs rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition-colors"
+                                >
+                                    {action.label || action.action}
+                                </button>
+                            ))}
                         </div>
                     )}
-                    <div className={`rounded-2xl px-4 py-3 shadow-sm ${
-                        isAssistant 
-                            ? isError 
-                                ? 'bg-red-50 text-red-800 border border-red-200' 
-                                : isContextMessage
-                                    ? 'bg-green-50 text-green-800 border border-green-200'
-                                    : 'bg-gray-100 text-gray-800' 
-                            : 'bg-blue-600 text-white'
-                    }`}>
-                        <div 
-                            className="text-sm leading-relaxed prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ 
-                                __html: isAssistant ? renderMessageContent(message.content) : message.content 
-                            }}
-                        />
-                        
-                        {/* Render suggested actions */}
-                        {message.suggestedActions && message.suggestedActions.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {message.suggestedActions.map((action, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => handleSubmit(null, action.label || action.action)}
-                                        className="px-3 py-1 text-xs rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-                                    >
-                                        {action.label || action.action}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                        
-                        <div className={`text-xs mt-2 ${
-                            isAssistant 
-                                ? isError ? 'text-red-500' : 'text-gray-500' 
-                                : 'text-blue-100'
-                        }`}>
-                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
+                    <div className="text-xs mt-2 text-gray-400">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                 </div>
             </div>
@@ -332,19 +331,22 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
 
 
     return (
-        <div className="ai-assistant-container flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
+        <div ref={containerRef} className="ai-assistant-container min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden" style={{ height: containerHeight ? `${containerHeight}px` : '100vh' }}>
             {/* Custom styles for message formatting */}
             <style jsx>{`
+                .ai-assistant-container {
+                    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+                }
                 .prose strong {
                     font-weight: 600;
                     color: #1f2937;
                 }
                 .prose li {
-                    margin-bottom: 0.5rem;
+                    margin-bottom: 0.25rem;
                     padding-left: 0.5rem;
                 }
                 .prose p {
-                    margin-bottom: 0.75rem;
+                    margin-bottom: 0.5rem;
                     line-height: 1.6;
                 }
                 .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
@@ -358,10 +360,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             {/* Header with project selector - Compact and clean */}
             <div ref={headerRef} className="flex-shrink-0 p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 relative">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <img src="/bubblesai.png" alt="Bubbles AI" className="h-10 w-auto" />
-                    </div>
-                    {/* Enhanced Project selector dropdown - Closer to logo */}
+                    {/* Enhanced Project selector dropdown - Left aligned */}
                     <div className="flex-1 max-w-2xl relative">
                         <EnhancedProjectDropdown
                             projects={projects}
@@ -383,35 +382,32 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 </div>
             </div>
 
-            {/* Messages Area - Reduced default height to ensure input is visible */}
+            {/* Messages Area - Centered, wider column for more visible text */}
             <div
                 ref={messagesContainerRef}
-                className="messages-container flex-shrink-0 overflow-y-auto p-3 pb-3"
-                style={{ height: messagesHeight ? `${messagesHeight}px` : '340px' }}
+                className="messages-container flex-1 min-h-0 overflow-y-auto"
+                style={{ height: messagesHeight ? `${messagesHeight}px` : 'auto' }}
             >
-                <div className="space-y-4">
-                    {messages
-                        .filter(message => !message.isContextMessage) // Hide context messages
-                        .map(message => (
-                            <MessageBubble key={message.id} message={message} />
-                        ))}
-                    {isLoading && (
-                        <div className="flex justify-start mb-4">
-                            <div className="flex items-start gap-2">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                                    <SparklesIcon className="w-5 h-5 text-white" />
-                                </div>
-                                <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                <div className="mx-auto w-full max-w-3xl md:max-w-4xl px-3 md:px-4 py-2">
+                    <div className="space-y-3 md:space-y-4">
+                        {messages
+                            .filter(message => !message.isContextMessage)
+                            .map(message => (
+                                <MessageBubble key={message.id} message={message} />
+                            ))}
+                        {isLoading && (
+                            <div className="mb-4">
+                                <div className="bg-[#f7f7f8] border border-gray-200 rounded-xl px-5 py-3">
                                     <div className="flex space-x-2">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
                 </div>
             </div>
 
@@ -489,35 +485,31 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             )}
 
             {/* Input Area - Always visible at bottom */}
-            <div ref={inputRef} className="flex-shrink-0 p-3 border-t border-gray-200 bg-gray-50">
-                <form onSubmit={handleSubmit} className="flex gap-2">
+            <div ref={inputRef} className="flex-shrink-0 p-1 border-t border-gray-200 bg-gray-50">
+                <form onSubmit={handleSubmit} className="mx-auto w-full max-w-2xl flex items-center gap-1">
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={selectedProject 
                             ? `Ask about ${selectedProject.projectName || selectedProject.name}...` 
-                            : "Ask about workflows, tasks, or company processes..."
+                            : "Send a message..."
                         }
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                        className="flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
                     />
                     <button
                         type="submit"
                         disabled={isLoading || !input.trim()}
-                        className={`px-6 py-3 rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm ${
+                        className={`px-3 py-1 rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm ${
                             isLoading || !input.trim()
                                 ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
+                                : 'bg-black hover:bg-gray-900 text-white'
                         }`}
                     >
                         {isLoading ? (
-                            <>
-                                <span className="text-sm md:text-base">Processing...</span>
-                            </>
+                            <span className="text-xs md:text-sm">Processing...</span>
                         ) : (
-                            <>
-                                <span className="uppercase tracking-wide text-sm md:text-base">SEND</span>
-                            </>
+                            <span className="text-xs md:text-sm">Send</span>
                         )}
                     </button>
                 </form>
