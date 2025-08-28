@@ -617,7 +617,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     return (
         <div ref={containerRef} className="ai-assistant-container min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden" style={{ height: '100vh' }}>
             {/* Custom styles for message formatting */}
-            <style jsx>{`
+            <style>{`
                 .ai-assistant-container {
                     font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
                 }

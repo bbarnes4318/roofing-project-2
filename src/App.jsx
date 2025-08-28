@@ -984,7 +984,7 @@ const apiUrl = window.location.hostname === 'localhost'
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
-        { name: 'AI Assistant', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
+        { name: 'Bubbles', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
         { name: 'AI Estimate Analysis', icon: <DocumentTextIcon />, page: 'Estimator' },
         { name: 'AI Training Tools', icon: <ChartBarIcon />, page: 'AI Tools' },
         { name: 'Project Schedules', icon: <CalendarIcon />, page: 'Project Schedules', isDisabled: true },
@@ -1299,7 +1299,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                 <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                                     {activePage === 'Alerts' ? 'Project Alerts' :
                                         activePage === 'Company Calendar' ? 'Company Calendar' :
-                                        activePage === 'AI Assistant' ? 'AI Assistant' :
+                                        activePage === 'AI Assistant' ? 'Bubbles' :
                                         activePage === 'AI Tools' ? 'AI Training Tools' :
                                         activePage === 'Archived Projects' ? 'Archived Projects' :
                                         activePage === 'Project Messages' ? 'Messages' :
@@ -1312,7 +1312,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     {activePage === 'Alerts' ? 'Monitor project alerts, tasks, and urgent notifications.' :
                                         activePage === 'Project Schedules' ? 'Plan and organize project timelines and milestones' :
                                         activePage === 'Company Calendar' ? 'Company-wide events, meetings, and project schedules' :
-                                        activePage === 'AI Assistant' ? 'Get intelligent assistance with project management tasks' :
+                                        activePage === 'AI Assistant' ? 'Get help from Bubbles with your project management tasks' :
                                         activePage === 'AI Tools' ? 'Advanced AI-powered construction management tools' :
                                         activePage === 'Archived Projects' ? 'Completed projects and historical records' :
                                         activePage === 'Project Messages' ? 'Stay up-to-date with activity feeds and manage important project messages in one place.' :
