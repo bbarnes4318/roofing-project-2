@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { bubblesService, workflowAlertsService, usersService, projectMessagesService } from '../../services/api';
 import socketService from '../../services/socket';
-import { CalendarIcon, ExclamationTriangleIcon, BellIcon, SparklesIcon, ClockIcon, ChevronDownIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '../common/Icons';
+import { CalendarIcon, ExclamationTriangleIcon, BellIcon, SparklesIcon, ClockIcon, ChevronDownIcon, XCircleIcon, ChatBubbleLeftRightIcon, TrashIcon, ArchiveBoxIcon, ChevronLeftIcon } from '../common/Icons';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import Vapi from '@vapi-ai/web';
 
@@ -39,6 +39,12 @@ const BubblesChat = ({
   const [isVoiceReady, setIsVoiceReady] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState([]); // last lines
   const [showTranscript, setShowTranscript] = useState(false);
+
+  // Chat History state
+  const [chatHistory, setChatHistory] = useState([]);
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const [isSavingChat, setIsSavingChat] = useState(false);
 
   // Get Vapi configuration from environment variables
   const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
@@ -111,9 +117,22 @@ const BubblesChat = ({
     fetchChips();
   }, [isOpen, currentProject]);
 
-  // Auto-scroll to the latest message
+  // Auto-scroll to the latest message with improved behavior
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        // Use smooth scrolling for new messages
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end',
+          inline: 'nearest'
+        });
+      }
+    };
+
+    // Small delay to ensure DOM is updated before scrolling
+    const timeoutId = setTimeout(scrollToBottom, 50);
+    return () => clearTimeout(timeoutId);
   }, [messages, isTyping]);
 
   // Ensure when the widget is opened it is scrolled to the bottom
@@ -222,6 +241,8 @@ const BubblesChat = ({
       content: trimmedMessage,
       timestamp: new Date(),
     };
+    
+    // Add user message and scroll to it
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
@@ -236,6 +257,8 @@ const BubblesChat = ({
         suggestedActions: response.data.response.suggestedActions || [],
         timestamp: new Date(response.data.response.timestamp),
       };
+      
+      // Add AI response and it will auto-scroll via useEffect
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       const errorMessage = {
@@ -251,6 +274,10 @@ const BubblesChat = ({
     }
   };
   
+  const handleClearChat = () => {
+    startNewChat();
+  };
+
   const handleResetConversation = () => {
     setMessages([]);
      const fetchInitialGreeting = async () => {
@@ -285,6 +312,125 @@ const BubblesChat = ({
       handleSendMessage();
     }
   };
+
+  // Chat History Functions
+  const getChatStorageKey = () => `bubbles_chat_history_${currentProject?.id || 'general'}`;
+
+  const loadChatHistory = () => {
+    try {
+      const stored = localStorage.getItem(getChatStorageKey());
+      if (stored) {
+        const history = JSON.parse(stored);
+        setChatHistory(history || []);
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
+      setChatHistory([]);
+    }
+  };
+
+  const saveChatToHistory = () => {
+    if (messages.length === 0 || isSavingChat) return;
+    
+    setIsSavingChat(true);
+    try {
+      const userMessages = messages.filter(msg => msg.type === 'user');
+      if (userMessages.length === 0) return;
+      
+      const firstUserMessage = userMessages[0];
+      const title = firstUserMessage.content.slice(0, 60) + (firstUserMessage.content.length > 60 ? '...' : '');
+      
+      const chatToSave = {
+        id: currentChatId || `chat_${Date.now()}`,
+        title,
+        messages: [...messages],
+        timestamp: new Date().toISOString(),
+        projectId: currentProject?.id || null,
+        projectName: currentProject?.name || null
+      };
+
+      const stored = localStorage.getItem(getChatStorageKey());
+      let history = [];
+      if (stored) {
+        history = JSON.parse(stored);
+      }
+
+      // Remove existing chat with same ID if updating
+      history = history.filter(chat => chat.id !== chatToSave.id);
+      
+      // Add new chat to beginning
+      history.unshift(chatToSave);
+      
+      // Keep only last 50 chats
+      history = history.slice(0, 50);
+      
+      localStorage.setItem(getChatStorageKey(), JSON.stringify(history));
+      setChatHistory(history);
+      setCurrentChatId(chatToSave.id);
+    } catch (error) {
+      console.error('Failed to save chat:', error);
+    } finally {
+      setIsSavingChat(false);
+    }
+  };
+
+  const loadChatFromHistory = (chatId) => {
+    const chat = chatHistory.find(c => c.id === chatId);
+    if (chat) {
+      setMessages(chat.messages);
+      setCurrentChatId(chat.id);
+      setShowChatHistory(false);
+      setIsLoading(false);
+      setIsTyping(false);
+    }
+  };
+
+  const deleteChatFromHistory = (chatId) => {
+    try {
+      const updatedHistory = chatHistory.filter(chat => chat.id !== chatId);
+      setChatHistory(updatedHistory);
+      localStorage.setItem(getChatStorageKey(), JSON.stringify(updatedHistory));
+      
+      // If we're currently viewing the deleted chat, start fresh
+      if (currentChatId === chatId) {
+        setMessages([]);
+        setCurrentChatId(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+    }
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setCurrentChatId(null);
+    setIsLoading(false);
+    setIsTyping(false);
+    setShowChatHistory(false);
+    
+    // Focus input for immediate typing
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
+  // Load chat history when component mounts or project changes
+  useEffect(() => {
+    if (isOpen) {
+      loadChatHistory();
+    }
+  }, [isOpen, currentProject?.id]);
+
+  // Save chat when messages change (debounced)
+  useEffect(() => {
+    if (messages.length > 0 && !isLoading && !isTyping) {
+      const timeoutId = setTimeout(() => {
+        saveChatToHistory();
+      }, 1000); // Save 1 second after last message
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, isLoading, isTyping]);
 
   const handleVoiceToggle = async () => {
     console.log('[Vapi] mic clicked');
@@ -553,11 +699,154 @@ const BubblesChat = ({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <button 
+              onClick={() => setShowChatHistory(!showChatHistory)} 
+              className={`p-2 rounded-full transition-colors relative ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'} ${
+                showChatHistory ? (colorMode ? 'bg-white/20' : 'bg-blue-100') : ''
+              }`} 
+              title="Chat History"
+            >
+              <ArchiveBoxIcon className="w-5 h-5" />
+              {chatHistory.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  {chatHistory.length > 99 ? '99+' : chatHistory.length}
+                </span>
+              )}
+            </button>
+            <button onClick={handleClearChat} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Clear Chat"><TrashIcon className="w-5 h-5" /></button>
             <button onClick={handleResetConversation} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Reset Conversation"><ClockIcon className="w-5 h-5" /></button>
             {onMinimize && <button onClick={onMinimize} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Minimize"><ChevronDownIcon className="w-5 h-5" /></button>}
             <button onClick={onClose} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Close"><XCircleIcon className="w-5 h-5" /></button>
           </div>
         </div>
+
+        {/* Chat History Panel */}
+        {showChatHistory && (
+          <div className={`absolute top-0 left-0 w-full h-full z-20 rounded-2xl overflow-hidden ${
+            colorMode ? 'bg-slate-900/95' : 'bg-white/95'
+          } backdrop-blur-xl`}>
+            {/* History Header */}
+            <div className={`flex items-center justify-between p-4 border-b ${
+              colorMode ? 'border-slate-700 bg-slate-800/50' : 'border-gray-200 bg-gray-50/50'
+            }`}>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowChatHistory(false)}
+                  className={`p-2 rounded-full transition-colors ${
+                    colorMode ? 'hover:bg-slate-700' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <ChevronLeftIcon className="w-5 h-5" />
+                </button>
+                <div>
+                  <h3 className="font-bold text-md">Chat History</h3>
+                  <p className={`text-xs ${
+                    colorMode ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    {chatHistory.length} saved conversations
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={startNewChat}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  colorMode 
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white' 
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
+              >
+                New Chat
+              </button>
+            </div>
+
+            {/* History List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {chatHistory.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                  <ArchiveBoxIcon className={`w-12 h-12 mb-4 ${
+                    colorMode ? 'text-slate-600' : 'text-gray-400'
+                  }`} />
+                  <h4 className={`font-medium mb-2 ${
+                    colorMode ? 'text-slate-300' : 'text-gray-700'
+                  }`}>
+                    No saved chats yet
+                  </h4>
+                  <p className={`text-sm ${
+                    colorMode ? 'text-slate-500' : 'text-gray-500'
+                  }`}>
+                    Your conversations will appear here automatically
+                  </p>
+                </div>
+              ) : (
+                chatHistory.map((chat) => {
+                  const isActive = currentChatId === chat.id;
+                  const chatDate = new Date(chat.timestamp);
+                  const now = new Date();
+                  const diffDays = Math.floor((now - chatDate) / (1000 * 60 * 60 * 24));
+                  
+                  let timeLabel;
+                  if (diffDays === 0) timeLabel = 'Today';
+                  else if (diffDays === 1) timeLabel = 'Yesterday';
+                  else if (diffDays < 7) timeLabel = `${diffDays} days ago`;
+                  else timeLabel = chatDate.toLocaleDateString();
+                  
+                  return (
+                    <div
+                      key={chat.id}
+                      className={`group relative p-3 rounded-lg cursor-pointer transition-all ${
+                        isActive
+                          ? (colorMode ? 'bg-blue-600/20 border border-blue-500/50' : 'bg-blue-50 border border-blue-200')
+                          : (colorMode ? 'hover:bg-slate-800/50 border border-transparent' : 'hover:bg-gray-50 border border-transparent')
+                      }`}
+                      onClick={() => loadChatFromHistory(chat.id)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-medium text-sm truncate mb-1 ${
+                            isActive
+                              ? (colorMode ? 'text-blue-300' : 'text-blue-700')
+                              : (colorMode ? 'text-slate-200' : 'text-gray-900')
+                          }`}>
+                            {chat.title}
+                          </h4>
+                          <p className={`text-xs mb-1 ${
+                            colorMode ? 'text-slate-400' : 'text-gray-600'
+                          }`}>
+                            {timeLabel}
+                          </p>
+                          {chat.projectName && (
+                            <p className={`text-xs truncate ${
+                              colorMode ? 'text-slate-500' : 'text-gray-500'
+                            }`}>
+                              📁 {chat.projectName}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteChatFromHistory(chat.id);
+                          }}
+                          className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-md transition-all ${
+                            colorMode ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'
+                          }`}
+                          title="Delete chat"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {isActive && (
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-r ${
+                          colorMode ? 'bg-blue-400' : 'bg-blue-500'
+                        }`} />
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Insight Chips */}
         <div className={`px-3 pt-3 pb-2 border-b ${colorMode ? 'border-neutral-700/60' : 'border-gray-200/80'}`}>
@@ -587,13 +876,26 @@ const BubblesChat = ({
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ scrollBehavior: 'smooth' }}>
           {isLoading && messages.length === 0 && (
              <div className="flex justify-center items-center h-full">
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                     <SparklesIcon className="w-5 h-5 animate-pulse text-blue-500" />
                     <span>Bubbles is preparing your daily brief...</span>
                 </div>
+            </div>
+          )}
+          {!isLoading && messages.length === 0 && (
+            <div className="flex flex-col justify-center items-center h-full text-center p-8">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 mb-4">
+                <SparklesIcon className="w-8 h-8 text-blue-500" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                Chat Cleared
+              </h3>
+              <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                Start a new conversation with Bubbles AI
+              </p>
             </div>
           )}
           {messages.map((msg) => (

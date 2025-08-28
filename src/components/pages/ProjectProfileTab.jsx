@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
 import api, { projectsService, customersService } from '../../services/api';
-import { formatProjectType } from '../../utils/projectTypeFormatter';
+import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
 
@@ -262,6 +262,76 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     );
   }
 
+  // Compact header (Number | Name | Type) + Address with Edit button
+  const HeaderBlock = () => (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-[12px] font-semibold text-gray-800">#{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
+        <h1 className="text-[14px] font-bold text-gray-900 truncate">{project.projectName || project.name || 'Project Profile'}</h1>
+        {project.projectType && (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border ${getProjectTypeColor(project.projectType)}`}>
+            {formatProjectType(project.projectType)}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-[11px] text-gray-600">Address:</label>
+        {!isEditingAddress ? (
+          <>
+            <span className="text-[11px] text-gray-800 truncate max-w-[520px]">
+              {(project.address || project.customer?.address || 'Not Provided').trim()}
+            </span>
+            <button
+              onClick={() => setIsEditingAddress(true)}
+              className="px-2 py-1 rounded-md text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              Edit
+            </button>
+          </>
+        ) : (
+          <>
+            <input
+              type="text"
+              value={editFormData.address}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+              className="min-w-[260px] max-w-[520px] flex-1 px-2 py-1 border rounded-md text-[11px] bg-white border-gray-300 text-gray-800 placeholder-gray-400"
+              placeholder="Project address"
+              title="Edit project address"
+              autoFocus
+            />
+            <button
+              onClick={async () => {
+                try {
+                  // Prefer updating customer address when available
+                  if (project.customer?.id) {
+                    await customersService.update(project.customer.id, { address: editFormData.address });
+                  } else {
+                    await projectsService.update(project.id, { address: editFormData.address });
+                  }
+                  setIsEditingAddress(false);
+                } catch (_) {
+                  setIsEditingAddress(false);
+                }
+              }}
+              className="px-2 py-1 rounded-md text-[11px] bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setIsEditingAddress(false);
+                setEditFormData(prev => ({ ...prev, address: project.customer?.address || project.address || '' }));
+              }}
+              className="px-2 py-1 rounded-md text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              Cancel
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   const formatAddress = (address) => {
     if (!address) return 'Address not provided';
     
@@ -317,7 +387,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   return (
     <div className="max-w-6xl mx-auto p-6">
 
-      
+      <HeaderBlock />
+
       {/* Phase/Section/Line Item Navigation */}
       <div className="mb-4">
         <div className="flex flex-nowrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg overflow-x-auto">
