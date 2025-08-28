@@ -188,11 +188,17 @@ app.use(helmet({
       scriptSrc: [
         "'self'",
         "'unsafe-inline'",
+        "'unsafe-eval'",  // Required for Vapi.ai/Daily.co
         "https://sc.lfeeder.com",
-        "https://cdn.jsdelivr.net"
+        "https://cdn.jsdelivr.net",
+        "https://c.daily.co",  // Daily.co domain for Vapi
+        "https://*.daily.co"   // Daily.co subdomains for Vapi
       ],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:", "ws:"]
+      connectSrc: ["'self'", "https:", "wss:", "ws:", "https://*.vapi.ai", "https://*.daily.co"],
+      mediaSrc: ["'self'", "https://*.daily.co", "blob:"],  // For audio/video streams
+      frameSrc: ["'self'", "https://*.daily.co"],  // For Daily.co iframe if needed
+      workerSrc: ["'self'", "blob:"]  // For web workers that Daily.co might use
     }
   } : undefined,
   crossOriginEmbedderPolicy: false

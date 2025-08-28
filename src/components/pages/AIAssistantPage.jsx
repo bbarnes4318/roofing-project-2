@@ -770,7 +770,13 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 suggestedActions: response.data?.response?.suggestedActions || []
             };
             
-            setMessages(prev => [assistantMessage, ...prev]);
+            // Add AI response with special flag to keep it paired with the user message
+            setMessages(prev => {
+                // Remove the user message temporarily
+                const [lastUserMsg, ...rest] = prev;
+                // Add both back in correct order: user first, then AI response
+                return [lastUserMsg, assistantMessage, ...rest];
+            });
             setTimeout(scrollToTop, 0);
         } catch (error) {
             const errorMessage = {
@@ -780,7 +786,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 timestamp: new Date(),
                 isError: true
             };
-            setMessages(prev => [errorMessage, ...prev]);
+            // Add error message after the user message
+            setMessages(prev => {
+                const [lastUserMsg, ...rest] = prev;
+                return [lastUserMsg, errorMessage, ...rest];
+            });
         } finally {
             setIsLoading(false);
         }
