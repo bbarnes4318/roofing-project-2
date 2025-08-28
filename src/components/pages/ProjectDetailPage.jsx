@@ -2331,7 +2331,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 </span>
                                 <span className="text-gray-400">•</span>
                                 <a 
-                                    href={`tel:${((project.customer?.phone || project.client?.phone) || '').replace([^\d+]/g, '') || ''}`} 
+                                    href={`tel:${((project.customer?.phone || project.client?.phone) || '').replace(/[^\d+]/g, '') || ''}`} 
                                     className={`hover:underline ${colorMode ? 'text-blue-600 hover:text-blue-500' : 'text-blue-600 hover:text-blue-700'}`}
                                 >
                                     {formatPhoneNumber(project.customer?.phone || project.client?.phone)}

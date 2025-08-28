@@ -1154,11 +1154,92 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                 setShowProjectSelector(false);
                                 setProjectSearch('');
                             }}
-                            onProjectNavigate={(project, targetTab) => {
+                            onProjectNavigate={async (project, targetTab) => {
                                 try {
                                     if (!project || !onProjectSelect) return;
+                                    
+                                    // Enhanced navigation for Project Workflow to navigate to current line item
                                     if (targetTab === 'Project Workflow') {
-                                        // Route to workflow; let ProjectProfile expand/highlight via existing logic
+                                        try {
+                                            console.log('🎯 AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
+                                            
+                                            // Get current workflow state
+                                            const currentWorkflow = project.currentWorkflowItem || {};
+                                            const phase = currentWorkflow.phase || 'LEAD';
+                                            const section = currentWorkflow.section || 'Unknown Section';
+                                            const lineItem = currentWorkflow.lineItem || 'Unknown Item';
+                                            
+                                            console.log('🎯 AI ASSISTANT: Current workflow state:', {
+                                                phase,
+                                                section,
+                                                lineItem
+                                            });
+                                            
+                                            // Get project position data for proper targeting
+                                            const projectId = project.id || project._id;
+                                            const positionResponse = await fetch(`/api/workflow-data/project-position/${projectId}`, {
+                                                headers: {
+                                                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                                }
+                                            });
+                                            
+                                            if (positionResponse.ok) {
+                                                const positionResult = await positionResponse.json();
+                                                if (positionResult.success && positionResult.data) {
+                                                    const position = positionResult.data;
+                                                    console.log('🎯 AI ASSISTANT: Project position data:', position);
+                                                    
+                                                    // Generate proper target IDs for navigation
+                                                    const targetLineItemId = position.currentLineItemId || 
+                                                                           position.currentLineItem || 
+                                                                           `${phase}-${section}-0`;
+                                                    
+                                                    const targetSectionId = position.currentSectionId || 
+                                                                          position.currentSection ||
+                                                                          section.toLowerCase().replace(/\s+/g, '-');
+                                                    
+                                                    console.log('🎯 AI ASSISTANT: Target IDs:', {
+                                                        targetLineItemId,
+                                                        targetSectionId
+                                                    });
+                                                    
+                                                    const projectWithNavigation = {
+                                                        ...project,
+                                                        highlightStep: lineItem,
+                                                        highlightLineItem: lineItem,
+                                                        targetPhase: phase,
+                                                        targetSection: section,
+                                                        targetLineItem: lineItem,
+                                                        scrollToCurrentLineItem: true,
+                                                        navigationTarget: {
+                                                            phase: phase,
+                                                            section: section,
+                                                            lineItem: lineItem,
+                                                            stepName: lineItem,
+                                                            lineItemId: targetLineItemId,
+                                                            workflowId: position.workflowId,
+                                                            highlightMode: 'line-item',
+                                                            scrollBehavior: 'smooth',
+                                                            targetElementId: `lineitem-${targetLineItemId}`,
+                                                            highlightColor: '#0066CC',
+                                                            highlightDuration: 3000,
+                                                            targetSectionId: targetSectionId,
+                                                            expandPhase: true,
+                                                            expandSection: true
+                                                        }
+                                                    };
+                                                    
+                                                    onProjectSelect(projectWithNavigation, 'Project Workflow', null, 'AI Assistant', targetLineItemId, targetSectionId);
+                                                    return;
+                                                }
+                                            }
+                                            
+                                            console.log('🎯 AI ASSISTANT: Could not get position data, using fallback navigation');
+                                        } catch (error) {
+                                            console.error('🎯 AI ASSISTANT: Error enhancing workflow navigation:', error);
+                                        }
+                                        
+                                        // Fallback to simple navigation if enhanced navigation fails
                                         onProjectSelect(project, 'Project Workflow', null, 'AI Assistant');
                                     } else if (targetTab === 'Alerts') {
                                         onProjectSelect(project, 'Alerts', null, 'AI Assistant');
@@ -1167,7 +1248,11 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                     } else {
                                         onProjectSelect(project, 'Project Profile', null, 'AI Assistant');
                                     }
-                                } catch (_) {}
+                                } catch (error) {
+                                    console.error('🎯 AI ASSISTANT: Error in project navigation:', error);
+                                    // Fallback to simple navigation
+                                    onProjectSelect(project, targetTab || 'Project Profile', null, 'AI Assistant');
+                                }
                             }}
                             colorMode={colorMode}
                             placeholder="Select Project"
