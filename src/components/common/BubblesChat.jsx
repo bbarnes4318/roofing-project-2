@@ -116,6 +116,18 @@ const BubblesChat = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
+  // Ensure when the widget is opened it is scrolled to the bottom
+  useEffect(() => {
+    if (!isOpen) return;
+    try {
+      // run immediately and on next tick to catch first paint
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 0);
+    } catch (_) {}
+  }, [isOpen]);
+
   // Focus input when chat opens
   useEffect(() => {
     if (isOpen) {

@@ -2263,7 +2263,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         
                         {/* Project Type Column */}
                         <td className="py-2 px-2 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${colorMode ? getProjectTypeColorDark(project.projectType) : getProjectTypeColor(project.projectType)}`}>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border ${colorMode ? getProjectTypeColorDark(project.projectType) : getProjectTypeColor(project.projectType)}`}>
                             {formatProjectType(project.projectType)}
                           </span>
                         </td>
@@ -3115,7 +3115,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {projectTypeRaw && (
                                 <span
-                                  className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border max-w-[140px] whitespace-nowrap truncate ${
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border max-w-[140px] whitespace-nowrap truncate ${
                                     colorMode ? getProjectTypeColorDark(projectTypeRaw) : getProjectTypeColor(projectTypeRaw)
                                   }`}
                                   title={`Project Type: ${formatProjectType(projectTypeRaw)}`}
