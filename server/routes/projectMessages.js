@@ -220,13 +220,49 @@ router.post('/:projectId', messageValidation.concat([
   // Create message and recipients in a transaction
   const uniqueRecipients = Array.isArray(recipients) ? [...new Set(recipients.filter(Boolean))] : [];
   const result = await prisma.$transaction(async (tx) => {
-    const message = await ProjectMessageService.createUserMessage(
-      projectId,
-      req.user?.id || 'system',
-      content,
-      subject,
-      { parentMessageId, priority }
-    );
+    let message;
+    
+    // Check if this is a Bubbles AI message (system-generated)
+    if (req.body.isFromBubbles || req.body.isSystemGenerated) {
+      // Create Bubbles/system message directly
+      const messageData = {
+        content,
+        subject,
+        messageType: req.body.messageType || 'SYSTEM_MESSAGE',
+        priority,
+        authorName: req.body.authorName || 'Bubbles AI Assistant',
+        authorRole: req.body.authorRole || 'AI_ASSISTANT',
+        projectId,
+        projectNumber: project.projectNumber,
+        parentMessageId,
+        isSystemGenerated: true,
+        isWorkflowMessage: false,
+        metadata: req.body.metadata || {}
+      };
+      
+      message = await tx.projectMessage.create({
+        data: messageData,
+        include: {
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              role: true
+            }
+          }
+        }
+      });
+    } else {
+      // Regular user message
+      message = await ProjectMessageService.createUserMessage(
+        projectId,
+        req.user?.id || 'system',
+        content,
+        subject,
+        { parentMessageId, priority }
+      );
+    }
 
     if (uniqueRecipients.length > 0) {
       await tx.projectMessageRecipient.createMany({

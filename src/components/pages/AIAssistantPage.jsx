@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
+import api from '../../services/api';
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
@@ -45,6 +46,12 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [isVoiceReady, setIsVoiceReady] = useState(false);
     const [voiceTranscript, setVoiceTranscript] = useState([]); // last lines
     const [showTranscript, setShowTranscript] = useState(false);
+    
+    // Voice conversation tracking for summary
+    const [voiceConversation, setVoiceConversation] = useState([]);
+    const [voiceActions, setVoiceActions] = useState([]);
+    const voiceStartTimeRef = useRef(null);
+    const voiceEndTimeRef = useRef(null);
 
     // Get Vapi configuration from environment variables
     const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
@@ -476,10 +483,39 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                         setIsVoiceLive(true);
                         setVoiceError('');
                         setShowTranscript(true);
+                        
+                        // Reset conversation tracking
+                        setVoiceConversation([]);
+                        setVoiceActions([]);
+                        voiceStartTimeRef.current = new Date();
+                        voiceEndTimeRef.current = null;
                     });
                     
-                    vapiRef.current.on('call-end', () => {
+                    vapiRef.current.on('call-end', async () => {
                         console.log('[Vapi] call ended');
+                        voiceEndTimeRef.current = new Date();
+                        
+                        // Show processing message
+                        const processingMessage = {
+                            id: `processing_${Date.now()}`,
+                            type: 'assistant',
+                            content: '🔄 Processing voice conversation and generating summary...',
+                            timestamp: new Date()
+                        };
+                        setMessages(prev => [processingMessage, ...prev]);
+                        
+                        // Generate and send conversation summary
+                        const summary = generateVoiceSummary();
+                        if (summary) {
+                            console.log('[Vapi] Generated voice summary:', summary);
+                            await sendVoiceSummaryAsProjectMessage(summary);
+                            
+                            // Remove processing message
+                            setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id));
+                        } else {
+                            // Remove processing message if no summary
+                            setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id));
+                        }
                         
                         // Save transcription as a chat message if there was any
                         if (voiceTranscript.length > 0) {
@@ -511,6 +547,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     
                     vapiRef.current.on('message', (message) => {
                         console.log('[Vapi] message received:', message.type);
+                        
                         if (message.type === 'transcript' && message.transcript) {
                             const text = String(message.transcript).trim();
                             if (text) {
@@ -519,7 +556,31 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                                     console.log('[Vapi] Updated transcript:', newTranscript);
                                     return newTranscript;
                                 });
+                                
+                                // Add to conversation tracking
+                                const role = message.role || 'user'; // Vapi provides role information
+                                setVoiceConversation(prev => [...prev, {
+                                    speaker: role,
+                                    message: text,
+                                    timestamp: new Date()
+                                }]);
                             }
+                        }
+                        
+                        // Track function calls and actions
+                        if (message.type === 'function-call' && message.functionCall) {
+                            const action = `Called function: ${message.functionCall.name}`;
+                            console.log('[Vapi] Function called:', action);
+                            setVoiceActions(prev => [...prev, action]);
+                        }
+                        
+                        // Track assistant responses
+                        if (message.type === 'speech' && message.speech) {
+                            setVoiceConversation(prev => [...prev, {
+                                speaker: 'assistant',
+                                message: message.speech,
+                                timestamp: new Date()
+                            }]);
                         }
                     });
                     
@@ -736,6 +797,189 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             return () => clearTimeout(timeoutId);
         }
     }, [messages, isLoading]);
+    
+    // Voice Conversation Summary Functions
+    const generateVoiceSummary = () => {
+        if (voiceConversation.length === 0) return null;
+        
+        const duration = voiceStartTimeRef.current && voiceEndTimeRef.current
+            ? Math.round((voiceEndTimeRef.current - voiceStartTimeRef.current) / 1000)
+            : 0;
+        
+        const summary = {
+            title: 'Voice Conversation Summary',
+            duration: `${Math.floor(duration / 60)}m ${duration % 60}s`,
+            startTime: voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown',
+            endTime: voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown',
+            exchanges: voiceConversation.map(exchange => ({
+                speaker: exchange.speaker,
+                message: exchange.message,
+                timestamp: exchange.timestamp
+            })),
+            actions: voiceActions.length > 0 ? voiceActions : ['No specific actions were taken during this conversation'],
+            keyPoints: extractKeyPoints(voiceConversation),
+            projectContext: selectedProject ? {
+                id: selectedProject.id,
+                name: selectedProject.projectName || selectedProject.name
+            } : null
+        };
+        
+        return summary;
+    };
+    
+    const extractKeyPoints = (conversation) => {
+        const points = [];
+        
+        // Extract questions asked
+        const questions = conversation
+            .filter(c => c.speaker === 'user' && c.message.includes('?'))
+            .map(c => `Question: ${c.message}`);
+        
+        // Extract any mentions of specific tasks or issues
+        const taskMentions = conversation
+            .filter(c => c.message.toLowerCase().includes('task') || 
+                        c.message.toLowerCase().includes('issue') ||
+                        c.message.toLowerCase().includes('problem'))
+            .map(c => `${c.speaker === 'user' ? 'User mentioned' : 'AI addressed'}: ${c.message.slice(0, 100)}...`);
+        
+        points.push(...questions.slice(0, 3)); // Top 3 questions
+        points.push(...taskMentions.slice(0, 2)); // Top 2 task mentions
+        
+        if (points.length === 0) {
+            points.push('General conversation about project status');
+        }
+        
+        return points;
+    };
+    
+    const sendVoiceSummaryAsProjectMessage = async (summary) => {
+        if (!summary || !selectedProject) {
+            console.log('[Voice] No summary or project to send message');
+            return;
+        }
+        
+        try {
+            // Format the summary for the project message
+            const messageBody = `
+**Voice Interaction Summary**
+📅 Date: ${new Date().toLocaleDateString()}
+⏱️ Duration: ${summary.duration}
+🕐 Time: ${summary.startTime} - ${summary.endTime}
+
+**Key Points Discussed:**
+${summary.keyPoints.map(point => `• ${point}`).join('\n')}
+
+**Full Conversation:**
+${summary.exchanges.map(ex => `${ex.speaker === 'user' ? '👤 You' : '🤖 Bubbles'}: ${ex.message}`).join('\n\n')}
+
+**Actions Taken:**
+${summary.actions.map(action => `✅ ${action}`).join('\n')}
+
+---
+*This summary was automatically generated from your voice conversation with Bubbles AI Assistant.*
+            `.trim();
+            
+            // Get current user info (try to extract from browser or use anonymous)
+            const getCurrentUser = () => {
+                try {
+                    // Check if user info is stored in localStorage
+                    const userInfo = localStorage.getItem('user') || localStorage.getItem('currentUser');
+                    if (userInfo) {
+                        const user = JSON.parse(userInfo);
+                        return user.id || user.userId || null;
+                    }
+                    
+                    // Check session storage as fallback
+                    const sessionUser = sessionStorage.getItem('user') || sessionStorage.getItem('currentUser');
+                    if (sessionUser) {
+                        const user = JSON.parse(sessionUser);
+                        return user.id || user.userId || null;
+                    }
+                } catch (error) {
+                    console.log('[Voice] Could not get current user:', error.message);
+                }
+                return null;
+            };
+            
+            const currentUserId = getCurrentUser();
+            
+            // Get team members to include in recipients
+            const getProjectRecipients = async () => {
+                const recipients = [];
+                
+                // Always include current user if available
+                if (currentUserId) {
+                    recipients.push(currentUserId);
+                }
+                
+                try {
+                    // Get team members for additional recipients
+                    const teamRes = await usersService.getTeamMembers();
+                    const teamMembers = teamRes?.data?.teamMembers || (Array.isArray(teamRes?.data) ? teamRes.data : []);
+                    
+                    // Add team member IDs (avoid duplicates)
+                    teamMembers.forEach(member => {
+                        const memberId = member.id || member.userId;
+                        if (memberId && !recipients.includes(memberId)) {
+                            recipients.push(memberId);
+                        }
+                    });
+                } catch (error) {
+                    console.log('[Voice] Could not load team members:', error.message);
+                }
+                
+                return recipients;
+            };
+            
+            const recipients = await getProjectRecipients();
+            console.log('[Voice] Sending summary to recipients:', recipients);
+            
+            // Create Bubbles message directly via backend API (bypassing user lookup)
+            const response = await api.post(`/project-messages/${selectedProject.id}`, {
+                content: messageBody,
+                subject: 'Bubbles Conversation',
+                priority: 'HIGH',
+                messageType: 'SYSTEM_MESSAGE',
+                authorName: 'Bubbles AI Assistant',
+                authorRole: 'AI_ASSISTANT',
+                isSystemGenerated: true,
+                isFromBubbles: true,
+                recipients: recipients,
+                metadata: {
+                    type: 'voice_summary',
+                    duration: summary.duration,
+                    timestamp: new Date().toISOString(),
+                    isFromBubbles: true
+                }
+            });
+            
+            if (response.data.success) {
+                // Add confirmation to chat
+                const recipientCount = recipients.length;
+                const confirmationMessage = {
+                    id: `confirm_${Date.now()}`,
+                    type: 'assistant',
+                    content: `✅ Voice conversation summary sent as Project Message "Bubbles Conversation" to ${recipientCount > 0 ? `${recipientCount} team member${recipientCount > 1 ? 's' : ''}` : 'project team'}`,
+                    timestamp: new Date()
+                };
+                setMessages(prev => [confirmationMessage, ...prev]);
+                
+                console.log('[Voice] Summary sent as project message');
+            }
+        } catch (error) {
+            console.error('[Voice] Failed to send summary as project message:', error);
+            
+            // Add error message to chat
+            const errorMessage = {
+                id: `error_${Date.now()}`,
+                type: 'assistant',
+                content: `⚠️ Could not send conversation summary as project message. The summary has been saved locally.`,
+                timestamp: new Date(),
+                isError: true
+            };
+            setMessages(prev => [errorMessage, ...prev]);
+        }
+    };
 
     // Remove auto-scroll on load; we'll scroll only when sending/receiving messages
 
