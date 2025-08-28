@@ -550,12 +550,6 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     setVoiceError('Voice initialization failed');
                 }
             });
-        } catch (e) {
-            console.error('[Vapi] Setup error:', e);
-            if (!isUnmounted) {
-                setVoiceError('Voice setup failed');
-            }
-        }
         
         // Cleanup on unmount
         return () => {
@@ -1248,10 +1242,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                                         // Ignore notification errors
                                     }
                                     
-                                    setMessages(prev => [...prev, { id: `msg_${Date.now()}`, type: 'assistant', content: `Message sent in project: ${composerSubject}\n\n${composerBody.trim()}`, timestamp: new Date() }]);
+                                    setMessages(prev => [{ id: `msg_${Date.now()}`, type: 'assistant', content: `Message sent in project: ${composerSubject}\n\n${composerBody.trim()}`, timestamp: new Date() }, ...prev]);
                                     setComposerBody(''); setComposerRecipients([]); setComposerSubject(subjects?.[0] || 'Project Status Update'); setIsComposerOpen(false);
                                 } catch (e) {
-                                    setMessages(prev => [...prev, { id: `msg_err_${Date.now()}`, type: 'error', content: 'Failed to send message. Please try again.', timestamp: new Date() }]);
+                                    setMessages(prev => [{ id: `msg_err_${Date.now()}`, type: 'error', content: 'Failed to send message. Please try again.', timestamp: new Date() }, ...prev]);
                                 } finally { setIsSendingMessage(false); }
                             }} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-2 rounded-md text-white ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
                                 <span className="font-semibold text-sm md:text-base">{isSendingMessage ? 'Sending...' : 'SEND'}</span>
