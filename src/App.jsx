@@ -1074,7 +1074,7 @@ const apiUrl = window.location.hostname === 'localhost'
                     </div>
                 );
             case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
-            case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} />;
+            case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'Settings': return (
                 <SettingsPage 
                     colorMode={colorMode} 
@@ -1272,21 +1272,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         )
                     ))}
                 </nav>
-                {/* Sidebar footer (Color Mode button) always visible */}
-                <div className="px-4 pb-2 pt-4 flex flex-col gap-1 flex-shrink-0">
-                    {/* Compact Color Mode button */}
-                    <button
-                        onClick={() => setColorMode((prev) => !prev)}
-                        className={`flex items-center justify-center gap-1 px-1.5 py-1 rounded border transition-colors duration-200 text-[7px] font-medium
-                            ${colorMode 
-                                ? 'bg-[#232b4d] border-[#3b82f6] text-white hover:bg-[#1e293b] hover:text-[#3b82f6]' 
-                                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 hover:text-blue-700'}`}
-                        aria-label="Toggle color mode"
-                    >
-                        <SparklesIcon className="w-2.5 h-2.5" />
-                        <span>{colorMode ? 'Default' : 'Color'}</span>
-                    </button>
-                </div>
+                
             </aside>
             
             {/* Main content */}

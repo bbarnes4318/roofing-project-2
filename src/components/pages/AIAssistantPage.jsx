@@ -5,7 +5,7 @@ import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
 
-const AIAssistantPage = ({ projects = [], colorMode = false }) => {
+const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -657,9 +657,19 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                                 setProjectSearch('');
                             }}
                             onProjectNavigate={(project, targetTab) => {
-                                // Handle navigation to specific project tabs
-                                console.log(`Navigating to ${targetTab} for project:`, project.name);
-                                // You can implement navigation logic here if needed
+                                try {
+                                    if (!project || !onProjectSelect) return;
+                                    if (targetTab === 'Project Workflow') {
+                                        // Route to workflow; let ProjectProfile expand/highlight via existing logic
+                                        onProjectSelect(project, 'Project Workflow', null, 'AI Assistant');
+                                    } else if (targetTab === 'Alerts') {
+                                        onProjectSelect(project, 'Alerts', null, 'AI Assistant');
+                                    } else if (targetTab === 'Messages') {
+                                        onProjectSelect(project, 'Project Messages', null, 'AI Assistant');
+                                    } else {
+                                        onProjectSelect(project, 'Project Profile', null, 'AI Assistant');
+                                    }
+                                } catch (_) {}
                             }}
                             colorMode={colorMode}
                             placeholder="Select Project"

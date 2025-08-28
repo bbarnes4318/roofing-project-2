@@ -250,26 +250,141 @@ const BubblesChat = ({
     }
   };
 
-  // Enhanced markdown renderer
+  // Robust markdown → HTML renderer (aligned with AIAssistantPage)
   const renderMessageContent = (content) => {
-    if (typeof content !== 'string') return content;
-    const lines = content.split('\n');
-    return lines.map((line, i) => {
-      if (line.startsWith('### ')) {
-        return <h3 key={i} className="text-md font-bold mt-2 mb-1">{line.substring(4)}</h3>;
-      }
-      if (line.startsWith('* ')) {
-        // **FIXED**: Use dangerouslySetInnerHTML for list items to render HTML correctly
-        const styledLine = line.substring(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        return <li key={i} className="list-disc list-inside ml-2" dangerouslySetInnerHTML={{ __html: styledLine }} />;
-      }
-      if (line.startsWith('> ')) {
-        return <blockquote key={i} className={`border-l-4 ${colorMode ? 'border-blue-400' : 'border-blue-500'} pl-3 my-2 italic`}>{line.substring(2)}</blockquote>
-      }
-      // Basic bold support for paragraphs
-      const styledLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      return <p key={i} dangerouslySetInnerHTML={{ __html: styledLine }} />;
+    if (!content) return '';
+    const escapeHtml = (s) => String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    const replaceLinks = (s) => s.replace(/\[(.*?)\]\((https?:\/\/[^)\s]+)\)/g, (_m, text, url) => {
+      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">${escapeHtml(text)}</a>`;
     });
+
+    const lines = String(content).replace(/\r\n?/g, '\n').split('\n');
+    const out = [];
+    let inUl = false;
+    let inOl = false;
+    let inCodeBlock = false;
+    let pendingAutoList = false;
+
+    const closeLists = () => {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+      if (inOl) { out.push('</ol>'); inOl = false; }
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i] ?? '';
+      const trimmed = String(line).trim();
+
+      // Code fence toggle
+      if (/^```/.test(trimmed)) {
+        if (inCodeBlock) {
+          out.push('</code></pre>');
+          inCodeBlock = false;
+        } else {
+          closeLists();
+          inCodeBlock = true;
+          out.push('<pre class="bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto"><code>');
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        out.push(`${escapeHtml(line)}\n`);
+        continue;
+      }
+
+      // Blank line
+      if (trimmed === '') {
+        closeLists(); pendingAutoList = false;
+        out.push('<div class="h-2"></div>');
+        continue;
+      }
+
+      // Headers
+      if (trimmed.startsWith('#')) {
+        closeLists(); pendingAutoList = false;
+        const level = Math.min((trimmed.match(/^#+/)?.[0]?.length) || 1, 6);
+        const text = trimmed.replace(/^#+\s*/, '');
+        out.push(`<h${level} class="font-semibold mb-2 mt-1">${escapeHtml(text)}</h${level}>`);
+        continue;
+      }
+
+      // Section heading ending with :
+      if (/^.{1,120}:$/.test(trimmed)) {
+        closeLists(); pendingAutoList = true;
+        const headingText = trimmed.slice(0, -1);
+        out.push(`<h3 class="font-semibold mb-1 mt-1">${escapeHtml(headingText)}</h3>`);
+        continue;
+      }
+
+      // Numbered list: 1., 1) or 1 - patterns
+      if (/^\d+[\.)]\s+/.test(trimmed) || /^\d+\s+-\s+/.test(trimmed) || /^\d+\.\s*/.test(trimmed)) {
+        if (inUl) { out.push('</ul>'); inUl = false; }
+        if (!inOl) { out.push('<ol class="list-decimal ml-5 mb-1 space-y-1">'); inOl = true; }
+        const text = trimmed
+          .replace(/^\d+[\.)]\s+/, '')
+          .replace(/^\d+\s+-\s+/, '')
+          .replace(/^\d+\.\s*/, '');
+        out.push(`<li>${replaceLinks(escapeHtml(text))}</li>`);
+        pendingAutoList = false;
+        continue;
+      }
+
+      // Bulleted list (-, *, •, –, —)
+      if (/^[-*•–—]\s+/.test(trimmed)) {
+        if (inOl) { out.push('</ol>'); inOl = false; }
+        if (!inUl) { out.push('<ul class="list-disc ml-5 mb-1 space-y-1">'); inUl = true; }
+        const text = trimmed.replace(/^[-*•–—]\s+/, '');
+        out.push(`<li>${replaceLinks(escapeHtml(text))}</li>`);
+        pendingAutoList = false;
+        continue;
+      }
+
+      // Auto-list after heading:
+      if (pendingAutoList) {
+        if (!inUl) { out.push('<ul class="list-disc ml-5 mb-1 space-y-1">'); inUl = true; }
+        out.push(`<li>${replaceLinks(escapeHtml(trimmed))}</li>`);
+        continue;
+      }
+
+      // Label: Value blocks
+      if (/^(Phase|Section|Line Item|Status|Progress|Customer|Project):/i.test(trimmed)) {
+        closeLists(); pendingAutoList = false;
+        const idx = line.indexOf(':');
+        const label = line.slice(0, idx).trim();
+        const value = line.slice(idx + 1).trim();
+        out.push(`<div class="mb-2 p-2 bg-gray-50 rounded border-l-4 border-blue-400"><strong class="text-blue-700">${escapeHtml(label)}:</strong> <span class="text-gray-800">${replaceLinks(escapeHtml(value))}</span></div>`);
+        continue;
+      }
+
+      // Inline emphasis (bold/italic)
+      let processed = escapeHtml(line)
+        .replace(/\*\*\*([^*]+)\*\*\*/g, '<em><strong>$1</strong></em>')
+        .replace(/___([^_]+)___/g, '<em><strong>$1</strong></em>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/_([^_]+)_/g, '<em>$1</em>');
+      processed = replaceLinks(processed);
+
+      closeLists(); pendingAutoList = false;
+      out.push(`<p class="mb-1 leading-relaxed">${processed}</p>`);
+    }
+
+    if (inUl) out.push('</ul>');
+    if (inOl) out.push('</ol>');
+    if (inCodeBlock) out.push('</code></pre>');
+    let html = out.join('');
+    // Final cleanup: remove stray markdown tokens that might remain
+    html = html
+      .replace(/\s?`{1,3}\s?/g, ' ')
+      .replace(/\s?\*{3,}\s?/g, ' ')
+      .replace(/\s?_{3,}\s?/g, ' ')
+      .replace(/\s?#{2,}\s?/g, ' ');
+    return html;
   };
 
   if (!isOpen) return null;
@@ -347,7 +462,7 @@ const BubblesChat = ({
                 msg.type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
                 (colorMode ? 'bg-slate-700 text-white' : 'bg-gray-100 text-gray-900')
               }`}>
-                <div className="space-y-2">{renderMessageContent(msg.content)}</div>
+                <div className="space-y-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: renderMessageContent(msg.content) }} />
                 {msg.suggestedActions && msg.suggestedActions.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {msg.suggestedActions.map((action, i) => (
