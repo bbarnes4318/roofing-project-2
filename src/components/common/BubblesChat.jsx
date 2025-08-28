@@ -4,6 +4,7 @@ import { bubblesService, workflowAlertsService, usersService, projectMessagesSer
 import socketService from '../../services/socket';
 import { CalendarIcon, ExclamationTriangleIcon, BellIcon, SparklesIcon, ClockIcon, ChevronDownIcon, XCircleIcon, ChatBubbleLeftRightIcon } from '../common/Icons';
 import { useSubjects } from '../../contexts/SubjectsContext';
+import Vapi from '@vapi-ai/web';
 
 const BubblesChat = ({
   isOpen,
@@ -29,6 +30,19 @@ const BubblesChat = ({
   const [teamMembers, setTeamMembers] = useState([]);
   const [composerBody, setComposerBody] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+
+  // Voice (Vapi) state
+  const vapiRef = useRef(null);
+  const [isVoiceConnecting, setIsVoiceConnecting] = useState(false);
+  const [isVoiceLive, setIsVoiceLive] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
+  const [isVoiceReady, setIsVoiceReady] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState([]); // last lines
+  const [showTranscript, setShowTranscript] = useState(false);
+
+  // Get Vapi configuration from environment variables
+  const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
+  const VAPI_ASSISTANT_ID = process.env.REACT_APP_VAPI_ASSISTANT_ID || '1ad2d156-7732-4f8b-97d3-41addce2d6a7';
 
   // Fetch a dynamic, AI-generated welcome message
   useEffect(() => {
@@ -108,6 +122,70 @@ const BubblesChat = ({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Initialize Vapi voice SDK
+  useEffect(() => {
+    try {
+      const initVapi = () => {
+        try {
+          if (vapiRef.current) return;
+          
+          vapiRef.current = new Vapi(VAPI_PUBLIC_KEY);
+          console.log('[Vapi] initialized in BubblesChat');
+          setIsVoiceReady(true);
+          
+          // Wire events
+          vapiRef.current.on('call-start', () => {
+            setIsVoiceConnecting(false);
+            setIsVoiceLive(true);
+            setVoiceError('');
+            setShowTranscript(true);
+            console.log('[Vapi] call started');
+          });
+          
+          vapiRef.current.on('call-end', () => {
+            setIsVoiceConnecting(false);
+            setIsVoiceLive(false);
+            setVoiceError('');
+            setShowTranscript(false);
+            setVoiceTranscript([]);
+            console.log('[Vapi] call ended');
+          });
+          
+          vapiRef.current.on('speech-start', () => {
+            console.log('[Vapi] speech started');
+          });
+          
+          vapiRef.current.on('speech-end', () => {
+            console.log('[Vapi] speech ended');
+          });
+          
+          vapiRef.current.on('message', (message) => {
+            if (message.type === 'transcript' && message.transcript) {
+              setVoiceTranscript(prev => {
+                const text = String(message.transcript).trim();
+                return text ? [...prev, text].slice(-3) : prev;
+              });
+            }
+          });
+          
+          vapiRef.current.on('error', (e) => {
+            setVoiceError(String(e?.message || 'Voice error'));
+            setIsVoiceConnecting(false);
+            setIsVoiceLive(false);
+            console.error('[Vapi] error', e);
+          });
+        } catch (e) {
+          console.error('[Vapi] Init error:', e);
+        }
+      };
+      
+      // Initialize Vapi immediately since it's imported
+      initVapi();
+    } catch (e) {
+      console.error('[Vapi] Setup error:', e);
+    }
+  }, [VAPI_PUBLIC_KEY]);
 
   // Load team members when composer opens
   useEffect(() => {
@@ -193,6 +271,47 @@ const BubblesChat = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleVoiceToggle = async () => {
+    console.log('[Vapi] mic clicked');
+    setVoiceError('');
+    
+    const vapi = vapiRef.current;
+    if (!vapi) {
+      setVoiceError('Voice not ready.');
+      console.error('[Vapi] vapi instance not available');
+      return;
+    }
+    
+    try {
+      if (isVoiceLive || isVoiceConnecting) {
+        console.log('[Vapi] Stopping call...');
+        vapi.stop();
+        return;
+      }
+      
+      setIsVoiceConnecting(true);
+      setVoiceError('');
+      
+      // Start with assistant ID and optional overrides
+      const overrides = {};
+      if (currentProject?.id && currentProject.id !== 'proj_123') {
+        overrides.variableValues = {
+          projectId: currentProject.id,
+          projectName: currentProject.name || currentProject.projectName || 'Current Project'
+        };
+      }
+      
+      console.log('[Vapi] Starting call with assistant:', VAPI_ASSISTANT_ID);
+      vapi.start(VAPI_ASSISTANT_ID, overrides);
+      
+    } catch (e) {
+      setIsVoiceConnecting(false);
+      setIsVoiceLive(false);
+      setVoiceError(String(e?.message || 'Voice start failed'));
+      console.error('[Vapi] start error', e);
     }
   };
 
@@ -378,12 +497,22 @@ const BubblesChat = ({
     if (inOl) out.push('</ol>');
     if (inCodeBlock) out.push('</code></pre>');
     let html = out.join('');
-    // Final cleanup: remove stray markdown tokens that might remain
+    // Final cleanup: remove stray markdown or delimiter tokens that might remain
     html = html
+      // remove any remaining backticks (inline/code fence leftovers)
       .replace(/\s?`{1,3}\s?/g, ' ')
-      .replace(/\s?\*{3,}\s?/g, ' ')
-      .replace(/\s?_{3,}\s?/g, ' ')
-      .replace(/\s?#{2,}\s?/g, ' ');
+      // remove long runs of asterisks/underscores/hashes
+      .replace(/\s?\*{2,}\s?/g, ' ')
+      .replace(/\s?_{2,}\s?/g, ' ')
+      .replace(/\s?#{2,}\s?/g, ' ')
+      // remove common LLM delimiter artifacts like '///' and ']/'
+      .replace(/\/{3,}/g, ' ')
+      .replace(/\]\s*\//g, ' ')
+      // collapse stray brackets that aren't part of links
+      .replace(/(^|\s)[\[\]](?=\s|$)/g, ' ')
+      // normalize excessive whitespace
+      .replace(/\s{2,}/g, ' ')
+      .trim();
     return html;
   };
 
@@ -552,7 +681,52 @@ const BubblesChat = ({
             }`}>
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
             </button>
+            {/* Vapi Voice mic button */}
+            <button
+              type="button"
+              onClick={handleVoiceToggle}
+              className={`p-2.5 rounded-lg border flex items-center justify-center transition ${
+                isVoiceLive ? 'border-blue-600 bg-blue-50 shadow-lg' : 
+                colorMode ? 'border-slate-600 bg-slate-700 hover:bg-slate-600' : 'border-gray-300 bg-white hover:bg-gray-100'
+              }`}
+              aria-label={isVoiceLive ? 'End voice with Bubbles' : (isVoiceConnecting ? 'Connecting to Bubbles' : 'Speak to Bubbles')}
+              title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'Connecting…' : 'Speak to Bubbles')}
+            >
+              {isVoiceConnecting ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-spin" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" stroke="#93c5fd" strokeWidth="3" opacity="0.35" />
+                  <path d="M21 12a9 9 0 00-9-9" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className={isVoiceLive ? 'animate-pulse' : ''}>
+                  <path d="M9 5a3 3 0 016 0v6a3 3 0 11-6 0V5z" fill={isVoiceLive ? '#2563eb' : (colorMode ? '#e2e8f0' : '#111827')} />
+                  <path d="M5 12a7 7 0 0014 0M12 19v-3" stroke={isVoiceLive ? '#2563eb' : (colorMode ? '#e2e8f0' : '#111827')} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
           </div>
+          {(voiceError && voiceError !== 'Voice SDK failed to load. Add /public/vapi-web.js or allow CDN.') && (
+            <div className="mt-1 text-xs text-red-600">{voiceError}</div>
+          )}
+          {(isVoiceLive || isVoiceConnecting) && (
+            <div className="flex items-center gap-2 text-xs mt-2">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                colorMode ? 'bg-blue-900/50 border border-blue-500 text-blue-300' : 'bg-blue-50 border border-blue-200 text-blue-700'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                {isVoiceConnecting ? 'Connecting…' : 'Listening…'}
+              </span>
+            </div>
+          )}
+          {showTranscript && voiceTranscript.length > 0 && (
+            <div className={`text-xs mt-2 border rounded p-2 ${
+              colorMode ? 'border-slate-600 bg-slate-800 text-gray-300' : 'border-gray-200 bg-white text-gray-600'
+            }`}>
+              {voiceTranscript.slice(-3).map((t, i) => (
+                <div key={i} className="truncate">{t}</div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

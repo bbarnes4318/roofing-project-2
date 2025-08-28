@@ -212,19 +212,19 @@ const EnhancedProjectDropdown = ({
               </div>
 
               {/* Expand/Collapse Arrow */}
-              <button
+              <div
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleProjectExpansion(selectedProject.id);
                 }}
                 title={expandedProject === selectedProject.id ? "Hide project details (Address, Contact, PM)" : "Show project details (Address, Contact, PM)"}
-                className="p-1 rounded hover:bg-gray-100 flex items-center gap-1"
+                className="p-1 rounded hover:bg-gray-100 flex items-center gap-1 cursor-pointer"
               >
                 <svg className="w-3 h-3 transition-transform" style={{ transform: expandedProject === selectedProject.id ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
                 <span className="text-xs text-gray-500">Details</span>
-              </button>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-3 w-full">
@@ -357,85 +357,11 @@ const EnhancedProjectDropdown = ({
               </div>
             </div>
 
-            {/* Filtered Projects - Only show if there are projects and no search filter */}
-            {projectSearch.trim() === '' ? (
-              filteredProjects.length === 0 ? (
-                <div className="px-4 py-2 text-gray-500 text-sm">No projects found</div>
-              ) : (
-                filteredProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    onClick={() => handleProjectSelect(project)}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  >
-                    {/* Phase Circle */}
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm"
-                      style={{ 
-                        backgroundColor: getPhaseConfig(project).color,
-                        color: getContrastTextColor(getPhaseConfig(project).color)
-                      }}
-                      title={`Phase: ${getPhaseConfig(project).name}`}
-                    >
-                      {getPhaseConfig(project).initial}
-                    </div>
-
-                    {/* Project Number */}
-                    <span className="text-sm font-bold text-blue-600">
-                      #{String(project.projectNumber || project.id).padStart(5, '0')}
-                    </span>
-
-                    {/* Project Info */}
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-gray-900 truncate">
-                        {project.projectName || project.name}
-                      </span>
-                      <span className="text-xs text-gray-500 truncate">
-                        {project.customerName || project.customer?.name || project.clientName}
-                      </span>
-                    </div>
-
-                    {/* Action Icons */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProjectNavigate(project, 'Project Workflow');
-                        }}
-                        title="Go to Project Workflow"
-                        className="p-1 hover:bg-blue-100 rounded"
-                      >
-                        {getProjectIcon('workflow')}
-                      </div>
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProjectNavigate(project, 'Alerts');
-                        }}
-                        title="Go to Project Alerts"
-                        className="p-1 hover:bg-red-100 rounded"
-                      >
-                        {getProjectIcon('alerts')}
-                      </div>
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProjectNavigate(project, 'Messages');
-                        }}
-                        title="Go to Project Messages"
-                        className="p-1 hover:bg-green-100 rounded"
-                      >
-                        {getProjectIcon('messages')}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )
+            {/* Filtered Projects */}
+            {filteredProjects.length === 0 ? (
+              <div className="px-4 py-2 text-gray-500 text-sm">No projects found</div>
             ) : (
-              filteredProjects.length === 0 ? (
-                <div className="px-4 py-2 text-gray-500 text-sm">No projects found</div>
-              ) : (
-                filteredProjects.map((project) => (
+              filteredProjects.map((project) => (
                   <div
                     key={project.id}
                     onClick={() => handleProjectSelect(project)}
@@ -503,7 +429,6 @@ const EnhancedProjectDropdown = ({
                     </div>
                   </div>
                 ))
-              )
             )}
           </div>
         </div>, document.body

@@ -4,6 +4,7 @@ import { bubblesService, projectsService, projectMessagesService, usersService }
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
+import Vapi from '@vapi-ai/web';
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
     const [messages, setMessages] = useState([]);
@@ -40,9 +41,9 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [voiceTranscript, setVoiceTranscript] = useState([]); // last lines
     const [showTranscript, setShowTranscript] = useState(false);
 
-    // Replace with envs if supported
-    const VAPI_PUBLIC_KEY = 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4'; // TEST KEY
-    const VAPI_ASSISTANT_ID = '1ad2d156-7732-4f8b-97d3-41addce2d6a7'; // TEST ASSISTANT
+    // Get Vapi configuration from environment variables
+    const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
+    const VAPI_ASSISTANT_ID = process.env.REACT_APP_VAPI_ASSISTANT_ID || '1ad2d156-7732-4f8b-97d3-41addce2d6a7';
 
     // Enhanced markdown renderer for AI responses
     const renderMessageContent = (content) => {
@@ -172,12 +173,22 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         if (inOl) out.push('</ol>');
         if (inCodeBlock) out.push('</code></pre>');
         let html = out.join('');
-        // Final cleanup: remove stray markdown tokens that might remain
+        // Final cleanup: remove stray markdown or delimiter tokens that might remain
         html = html
+            // remove any remaining backticks (inline/code fence leftovers)
             .replace(/\s?`{1,3}\s?/g, ' ')
-            .replace(/\s?\*{3,}\s?/g, ' ')
-            .replace(/\s?_{3,}\s?/g, ' ')
-            .replace(/\s?#{2,}\s?/g, ' ');
+            // remove long runs of asterisks/underscores/hashes
+            .replace(/\s?\*{2,}\s?/g, ' ')
+            .replace(/\s?_{2,}\s?/g, ' ')
+            .replace(/\s?#{2,}\s?/g, ' ')
+            // remove common LLM delimiter artifacts like '///' and ']/'
+            .replace(/\/{3,}/g, ' ')
+            .replace(/\]\s*\//g, ' ')
+            // collapse stray brackets that aren't part of links
+            .replace(/(^|\s)[\[\]](?=\s|$)/g, ' ')
+            // normalize excessive whitespace
+            .replace(/\s{2,}/g, ' ')
+            .trim();
         return html;
     };
 
@@ -369,67 +380,63 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         try {
             const initVapi = () => {
                 try {
-                    if (!window) return;
-                    const V = (window.Vapi && (window.Vapi.default || window.Vapi.Vapi || window.Vapi)) || null;
-                    if (!V) return;
                     if (vapiRef.current) return;
-                    vapiRef.current = new V(VAPI_PUBLIC_KEY);
-                    // Debug hook
-                    try { console.log('[Vapi] initialized'); } catch(_){}
+                    
+                    vapiRef.current = new Vapi(VAPI_PUBLIC_KEY);
+                    console.log('[Vapi] initialized in AIAssistantPage');
                     setIsVoiceReady(true);
+                    
                     // Wire events
-                    const on = (evt, cb) => { try { vapiRef.current.on && vapiRef.current.on(evt, cb); } catch(_){} };
-                    on('call.started', () => { setIsVoiceConnecting(false); setIsVoiceLive(true); setVoiceError(''); setShowTranscript(true); try { console.log('[Vapi] call.started'); } catch(_){} });
-                    on('call-started', () => { setIsVoiceConnecting(false); setIsVoiceLive(true); setVoiceError(''); setShowTranscript(true); try { console.log('[Vapi] call-started'); } catch(_){} });
-                    on('call.ended', () => { setIsVoiceConnecting(false); setIsVoiceLive(false); setVoiceError(''); setShowTranscript(false); setVoiceTranscript([]); try { console.log('[Vapi] call.ended'); } catch(_){} });
-                    on('call-ended', () => { setIsVoiceConnecting(false); setIsVoiceLive(false); setVoiceError(''); setShowTranscript(false); setVoiceTranscript([]); try { console.log('[Vapi] call-ended'); } catch(_){} });
-                    on('transcript.partial', (t) => { setVoiceTranscript(prev => { const text = String(t?.text || '').trim(); const next = text ? [...prev, text].slice(-3) : prev; return next; }); });
-                    on('transcript.final', (t) => { setVoiceTranscript(prev => { const text = String(t?.text || '').trim(); const next = text ? [...prev, text].slice(-3) : prev; return next; }); });
-                    on('error', (e) => { setVoiceError(String(e?.message || 'Voice error')); setIsVoiceConnecting(false); setIsVoiceLive(false); try { console.error('[Vapi] error', e); } catch(_){} });
-                } catch(_){}
-            };
-            const tryLoad = async (urls) => {
-                const isGoodJs = (contentType) => /javascript|ecmascript|text\/js|application\/x-javascript/i.test(contentType || '');
-                for (let i = 0; i < urls.length; i++) {
-                    const url = urls[i];
-                    try {
-                        const res = await fetch(url, { cache: 'no-store', mode: 'cors' });
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                        const ct = res.headers.get('content-type') || '';
-                        if (!isGoodJs(ct)) throw new Error(`Bad content-type: ${ct}`);
-                        // Inject only after probe validates JS
-                        const tagId = `vapi-web-sdk-${i}`;
-                        if (!document.getElementById(tagId)) {
-                            const s = document.createElement('script');
-                            s.id = tagId;
-                            s.async = true;
-                            s.crossOrigin = 'anonymous';
-                            s.referrerPolicy = 'no-referrer';
-                            s.src = url;
-                            s.onload = initVapi;
-                            s.onerror = () => { try { console.error('[Vapi] SDK load failed at exec:', url); } catch(_){} };
-                            document.body.appendChild(s);
-                        } else {
-                            initVapi();
+                    vapiRef.current.on('call-start', () => {
+                        setIsVoiceConnecting(false);
+                        setIsVoiceLive(true);
+                        setVoiceError('');
+                        setShowTranscript(true);
+                        console.log('[Vapi] call started');
+                    });
+                    
+                    vapiRef.current.on('call-end', () => {
+                        setIsVoiceConnecting(false);
+                        setIsVoiceLive(false);
+                        setVoiceError('');
+                        setShowTranscript(false);
+                        setVoiceTranscript([]);
+                        console.log('[Vapi] call ended');
+                    });
+                    
+                    vapiRef.current.on('speech-start', () => {
+                        console.log('[Vapi] speech started');
+                    });
+                    
+                    vapiRef.current.on('speech-end', () => {
+                        console.log('[Vapi] speech ended');
+                    });
+                    
+                    vapiRef.current.on('message', (message) => {
+                        if (message.type === 'transcript' && message.transcript) {
+                            setVoiceTranscript(prev => {
+                                const text = String(message.transcript).trim();
+                                return text ? [...prev, text].slice(-3) : prev;
+                            });
                         }
-                        return; // stop after first success
-                    } catch (e) {
-                        try { console.error('[Vapi] SDK probe failed:', url, e); } catch(_){}
-                        continue;
-                    }
+                    });
+                    
+                    vapiRef.current.on('error', (e) => {
+                        setVoiceError(String(e?.message || 'Voice error'));
+                        setIsVoiceConnecting(false);
+                        setIsVoiceLive(false);
+                        console.error('[Vapi] error', e);
+                    });
+                } catch (e) {
+                    console.error('[Vapi] Init error:', e);
                 }
-                setVoiceError('Voice SDK failed to load. Add /public/vapi-web.js or allow CDN.');
             };
-            if (!window || window.Vapi == null) {
-                tryLoad([
-                    '/vapi-web.js',
-                    'https://unpkg.com/@vapi-ai/web@latest/dist/index.umd.js',
-                    'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js'
-                ]);
-            } else {
-                initVapi();
-            }
-        } catch(_){ }
+            
+            // Initialize Vapi immediately since it's imported
+            initVapi();
+        } catch (e) {
+            console.error('[Vapi] Setup error:', e);
+        }
     }, [VAPI_PUBLIC_KEY]);
 
     const handleVoiceToggle = async () => {
@@ -442,23 +449,31 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         }
         try {
             if (isVoiceLive || isVoiceConnecting) {
-                await vapi.end();
+                console.log('[Vapi] Stopping call...');
+                vapi.stop();
                 return;
             }
+            
             setIsVoiceConnecting(true);
-            const metadata = {};
-            try {
-                if (selectedProject) {
-                    metadata.projectId = selectedProject.id;
-                    metadata.projectName = selectedProject.projectName || selectedProject.name;
-                }
-            } catch(_){}
-            await vapi.start({ assistantId: VAPI_ASSISTANT_ID, mode: 'voice', metadata });
+            setVoiceError('');
+            
+            // Start with assistant ID and optional overrides
+            const overrides = {};
+            if (selectedProject?.id) {
+                overrides.variableValues = {
+                    projectId: selectedProject.id,
+                    projectName: selectedProject.projectName || selectedProject.name || 'Current Project'
+                };
+            }
+            
+            console.log('[Vapi] Starting call with assistant:', VAPI_ASSISTANT_ID);
+            vapi.start(VAPI_ASSISTANT_ID, overrides);
+            
         } catch (e) {
             setIsVoiceConnecting(false);
             setIsVoiceLive(false);
-            setVoiceError(String(e?.message || 'Unable to start voice.'));
-            try { console.error('[Vapi] start error', e); } catch(_){}
+            setVoiceError(String(e?.message || 'Voice start failed'));
+            console.error('[Vapi] start error', e);
         }
     };
 

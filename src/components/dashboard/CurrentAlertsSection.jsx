@@ -789,14 +789,12 @@ const CurrentAlertsSection = ({
                         {alert.projectName}
                       </span>
 
-                      {/* Project Type Tag */}
+                      {/* Project Type Tag - match Projects by Phase rectangular style */}
                       {alert.projectType && (
                         <span
-                          className={
-                            `px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 ` +
-                            `transition-colors text-xs font-medium border border-blue-200 ` +
-                            `max-w-[160px] whitespace-nowrap truncate`
-                          }
+                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border max-w-[140px] whitespace-nowrap truncate ${
+                            colorMode ? getProjectTypeColorDark(alert.projectType) : getProjectTypeColor(alert.projectType)
+                          }`}
                           title={`Project Type: ${formatProjectType(alert.projectType)}`}
                         >
                           {formatProjectType(alert.projectType)}
