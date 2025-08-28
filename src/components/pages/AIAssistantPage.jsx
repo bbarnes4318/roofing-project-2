@@ -1104,7 +1104,10 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         </div>
                     )}
                     <div className="text-xs mt-2 text-gray-400">
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {message.timestamp instanceof Date 
+                            ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        }
                     </div>
                 </div>
             </div>
