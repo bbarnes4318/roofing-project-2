@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vapi.ai Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-container { max-width: 600px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Vapi.ai Integration Test</h1>
+        
+        <div id="status" class="status info">
+            Initializing Vapi...
+        </div>
+        
+        <button id="testBtn" disabled>Test Voice Call</button>
+        <button id="stopBtn" disabled>Stop Call</button>
+        
+        <div id="transcript"></div>
+        
+        <h3>Test Steps:</h3>
+        <ol>
+            <li>Allow microphone permissions when prompted</li>
+            <li>Click "Test Voice Call" to start</li>
+            <li>Speak to the assistant</li>
+            <li>Click "Stop Call" to end</li>
+        </ol>
+        
+        <div id="logs" style="background: #f5f5f5; padding: 10px; margin-top: 20px; max-height: 300px; overflow-y: scroll; font-family: monospace; font-size: 12px;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.js"></script>
+    <script>
+        const VAPI_PUBLIC_KEY = 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
+        const VAPI_ASSISTANT_ID = '1ad2d156-7732-4f8b-97d3-41addce2d6a7';
+        
+        const statusDiv = document.getElementById('status');
+        const testBtn = document.getElementById('testBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const transcriptDiv = document.getElementById('transcript');
+        const logsDiv = document.getElementById('logs');
+        
+        let vapi = null;
+        let isConnecting = false;
+        let isLive = false;
+        
+        function log(message) {
+            console.log(message);
+            logsDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+        }
+        
+        async function initVapi() {
+            try {
+                log('Initializing Vapi with key: ' + VAPI_PUBLIC_KEY.substring(0, 8) + '...');
+                
+                vapi = new window.Vapi(VAPI_PUBLIC_KEY);
+                
+                vapi.on('call-start', () => {
+                    log('Call started');
+                    isConnecting = false;
+                    isLive = true;
+                    updateStatus('Voice call active - speak now!', 'success');
+                    testBtn.disabled = true;
+                    stopBtn.disabled = false;
+                });
+                
+                vapi.on('call-end', () => {
+                    log('Call ended');
+                    isConnecting = false;
+                    isLive = false;
+                    updateStatus('Call ended', 'info');
+                    testBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    transcriptDiv.innerHTML = '';
+                });
+                
+                vapi.on('speech-start', () => {
+                    log('User started speaking');
+                });
+                
+                vapi.on('speech-end', () => {
+                    log('User stopped speaking');
+                });
+                
+                vapi.on('message', (message) => {
+                    log('Message: ' + message.type);
+                    if (message.type === 'transcript' && message.transcript) {
+                        transcriptDiv.innerHTML = '<strong>You said:</strong> ' + message.transcript;
+                    }
+                });
+                
+                vapi.on('error', (error) => {
+                    log('Error: ' + error.message);
+                    updateStatus('Error: ' + error.message, 'error');
+                    isConnecting = false;
+                    isLive = false;
+                    testBtn.disabled = false;
+                    stopBtn.disabled = true;
+                });
+                
+                updateStatus('Vapi initialized successfully!', 'success');
+                testBtn.disabled = false;
+                log('Vapi initialized successfully');
+                
+            } catch (error) {
+                log('Initialization failed: ' + error.message);
+                updateStatus('Failed to initialize: ' + error.message, 'error');
+            }
+        }
+        
+        async function startCall() {
+            if (!vapi || isConnecting || isLive) return;
+            
+            try {
+                // Check microphone permissions
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                log('Microphone permission granted');
+                
+                isConnecting = true;
+                updateStatus('Connecting...', 'info');
+                testBtn.disabled = true;
+                
+                log('Starting call with assistant: ' + VAPI_ASSISTANT_ID);
+                await vapi.start(VAPI_ASSISTANT_ID);
+                
+            } catch (error) {
+                log('Failed to start call: ' + error.message);
+                updateStatus('Failed to start: ' + error.message, 'error');
+                isConnecting = false;
+                testBtn.disabled = false;
+            }
+        }
+        
+        async function stopCall() {
+            if (!vapi || !isLive) return;
+            
+            try {
+                log('Stopping call...');
+                await vapi.stop();
+            } catch (error) {
+                log('Failed to stop call: ' + error.message);
+                updateStatus('Failed to stop: ' + error.message, 'error');
+            }
+        }
+        
+        testBtn.addEventListener('click', startCall);
+        stopBtn.addEventListener('click', stopCall);
+        
+        // Initialize when page loads
+        window.addEventListener('load', initVapi);
+    </script>
+</body>
+</html>

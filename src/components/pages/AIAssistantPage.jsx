@@ -4,7 +4,7 @@ import { bubblesService, projectsService, projectMessagesService, usersService }
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
-import Vapi from '@vapi-ai/web';
+// Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
     const [messages, setMessages] = useState([]);
@@ -380,105 +380,258 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     // (Header sits above the scrollable messages; no need to observe its height)
 
     // Removed dynamic height calculations; layout uses flex + overflow
-    // Load Vapi Web SDK (UMD) and initialize once
+    // Load Vapi Web SDK dynamically and initialize
     useEffect(() => {
-        try {
-            const initVapi = () => {
+        let isUnmounted = false;
+        
+        const loadVapiSDK = async () => {
+            try {
+                // Check if Vapi is already loaded
+                if (window.Vapi && typeof window.Vapi === 'function') {
+                    console.log('[Vapi] SDK already loaded from window');
+                    return window.Vapi;
+                }
+                
+                // Try to load from npm package first
                 try {
-                    if (vapiRef.current) return;
+                    console.log('[Vapi] Attempting to load from npm package...');
+                    const { default: Vapi } = await import('@vapi-ai/web');
+                    if (Vapi && typeof Vapi === 'function') {
+                        console.log('[Vapi] SDK loaded from npm package');
+                        return Vapi;
+                    }
+                } catch (npmError) {
+                    console.log('[Vapi] npm package not available, falling back to CDN:', npmError.message);
+                }
+                
+                console.log('[Vapi] Loading SDK from CDN...');
+                
+                // Load the Vapi SDK from CDN as fallback
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.js';
+                script.async = true;
+                
+                const loadPromise = new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Vapi SDK loading timeout'));
+                    }, 10000); // 10 second timeout
                     
-                    vapiRef.current = new Vapi(VAPI_PUBLIC_KEY);
-                    console.log('[Vapi] initialized in AIAssistantPage');
-                    setIsVoiceReady(true);
-                    
-                    // Wire events
-                    vapiRef.current.on('call-start', () => {
+                    script.onload = () => {
+                        clearTimeout(timeout);
+                        if (window.Vapi && typeof window.Vapi === 'function') {
+                            console.log('[Vapi] SDK loaded successfully from CDN');
+                            resolve(window.Vapi);
+                        } else {
+                            reject(new Error('Vapi SDK loaded but constructor not available'));
+                        }
+                    };
+                    script.onerror = () => {
+                        clearTimeout(timeout);
+                        reject(new Error('Failed to load Vapi SDK from CDN'));
+                    };
+                });
+                
+                // Remove existing script if any
+                const existingScript = document.querySelector('script[src*="@vapi-ai/web"]');
+                if (existingScript) existingScript.remove();
+                
+                document.head.appendChild(script);
+                return await loadPromise;
+                
+            } catch (error) {
+                console.error('[Vapi] SDK loading failed:', error);
+                throw error;
+            }
+        };
+        
+        const initVapi = async () => {
+            try {
+                if (isUnmounted) return;
+                
+                if (vapiRef.current) {
+                    console.log('[Vapi] Already initialized');
+                    return;
+                }
+                
+                if (!VAPI_PUBLIC_KEY || VAPI_PUBLIC_KEY === 'your-vapi-public-key') {
+                    throw new Error('VAPI_PUBLIC_KEY not configured');
+                }
+                
+                // Load SDK first
+                const VapiClass = await loadVapiSDK();
+                
+                if (isUnmounted) return;
+                
+                console.log('[Vapi] Initializing with key:', VAPI_PUBLIC_KEY.substring(0, 8) + '...');
+                vapiRef.current = new VapiClass(VAPI_PUBLIC_KEY);
+                
+                console.log('[Vapi] initialized in AIAssistantPage');
+                setIsVoiceReady(true);
+                setVoiceError('');
+                
+                // Wire events with better error handling
+                vapiRef.current.on('call-start', () => {
+                        console.log('[Vapi] call started');
                         setIsVoiceConnecting(false);
                         setIsVoiceLive(true);
                         setVoiceError('');
                         setShowTranscript(true);
-                        console.log('[Vapi] call started');
                     });
                     
                     vapiRef.current.on('call-end', () => {
+                        console.log('[Vapi] call ended');
+                        
+                        // Save transcription as a chat message if there was any
+                        if (voiceTranscript.length > 0) {
+                            const transcriptContent = voiceTranscript.join(' ');
+                            const voiceMessage = {
+                                id: `voice_${Date.now()}`,
+                                type: 'user',
+                                content: `🎤 Voice: ${transcriptContent}`,
+                                timestamp: new Date(),
+                                isVoiceMessage: true
+                            };
+                            setMessages(prev => [voiceMessage, ...prev]);
+                        }
+                        
                         setIsVoiceConnecting(false);
                         setIsVoiceLive(false);
                         setVoiceError('');
                         setShowTranscript(false);
                         setVoiceTranscript([]);
-                        console.log('[Vapi] call ended');
                     });
                     
                     vapiRef.current.on('speech-start', () => {
-                        console.log('[Vapi] speech started');
+                        console.log('[Vapi] speech started (user speaking)');
                     });
                     
                     vapiRef.current.on('speech-end', () => {
-                        console.log('[Vapi] speech ended');
+                        console.log('[Vapi] speech ended (user stopped speaking)');
                     });
                     
                     vapiRef.current.on('message', (message) => {
+                        console.log('[Vapi] message received:', message.type);
                         if (message.type === 'transcript' && message.transcript) {
-                            setVoiceTranscript(prev => {
-                                const text = String(message.transcript).trim();
-                                return text ? [...prev, text].slice(-3) : prev;
-                            });
+                            const text = String(message.transcript).trim();
+                            if (text) {
+                                setVoiceTranscript(prev => {
+                                    const newTranscript = [...prev, text].slice(-3); // Keep last 3 lines
+                                    console.log('[Vapi] Updated transcript:', newTranscript);
+                                    return newTranscript;
+                                });
+                            }
                         }
                     });
                     
                     vapiRef.current.on('error', (e) => {
-                        setVoiceError(String(e?.message || 'Voice error'));
+                        console.error('[Vapi] error event:', e);
+                        const errorMsg = String(e?.message || e || 'Voice connection error');
+                        setVoiceError(errorMsg);
                         setIsVoiceConnecting(false);
                         setIsVoiceLive(false);
-                        console.error('[Vapi] error', e);
                     });
+                    
+                    // Additional events for better debugging
+                    vapiRef.current.on('volume-level', (level) => {
+                        // Could be used for visual feedback
+                    });
+                    
                 } catch (e) {
                     console.error('[Vapi] Init error:', e);
+                    setVoiceError(`Voice initialization failed: ${e.message}`);
+                    setIsVoiceReady(false);
                 }
             };
             
-            // Initialize Vapi immediately since it's imported
-            initVapi();
+            // Initialize Vapi (async)
+            initVapi().catch(e => {
+                console.error('[Vapi] Async init failed:', e);
+                if (!isUnmounted) {
+                    setVoiceError('Voice initialization failed');
+                }
+            });
         } catch (e) {
             console.error('[Vapi] Setup error:', e);
+            if (!isUnmounted) {
+                setVoiceError('Voice setup failed');
+            }
         }
+        
+        // Cleanup on unmount
+        return () => {
+            isUnmounted = true;
+            try {
+                if (vapiRef.current && typeof vapiRef.current.stop === 'function') {
+                    vapiRef.current.stop();
+                }
+            } catch (e) {
+                console.error('[Vapi] Cleanup error:', e);
+            }
+        };
     }, [VAPI_PUBLIC_KEY]);
 
     const handleVoiceToggle = async () => {
         try { console.log('[Vapi] mic clicked'); } catch(_){}
         setVoiceError('');
+        
         const vapi = vapiRef.current;
-        if (!vapi || typeof vapi.start !== 'function' || typeof vapi.end !== 'function') {
-            setVoiceError('Voice not ready.');
+        if (!vapi) {
+            setVoiceError('Voice not initialized. Please refresh the page.');
             return;
         }
+        
+        if (typeof vapi.start !== 'function' || typeof vapi.stop !== 'function') {
+            setVoiceError('Voice SDK not properly loaded.');
+            return;
+        }
+        
         try {
+            // If already active, stop the call
             if (isVoiceLive || isVoiceConnecting) {
                 console.log('[Vapi] Stopping call...');
-                vapi.stop();
+                await vapi.stop();
+                return;
+            }
+            
+            // Check microphone permissions before starting
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('[Vapi] Microphone permission granted');
+            } catch (permError) {
+                console.error('[Vapi] Microphone permission denied:', permError);
+                setVoiceError('Microphone permission required for voice chat.');
                 return;
             }
             
             setIsVoiceConnecting(true);
             setVoiceError('');
             
-            // Start with assistant ID and optional overrides
-            const overrides = {};
+            // Prepare assistant overrides for project context
+            const assistantOverrides = {};
             if (selectedProject?.id) {
-                overrides.variableValues = {
+                assistantOverrides.variableValues = {
                     projectId: selectedProject.id,
                     projectName: selectedProject.projectName || selectedProject.name || 'Current Project'
                 };
+                console.log('[Vapi] Adding project context:', assistantOverrides);
             }
             
-            console.log('[Vapi] Starting call with assistant:', VAPI_ASSISTANT_ID);
-            vapi.start(VAPI_ASSISTANT_ID, overrides);
+            console.log('[Vapi] Starting call with assistant ID:', VAPI_ASSISTANT_ID);
+            
+            // Start the voice call with assistant ID and optional overrides
+            // Format: vapi.start(assistantId, assistantOverrides?)
+            if (Object.keys(assistantOverrides).length > 0) {
+                await vapi.start(VAPI_ASSISTANT_ID, assistantOverrides);
+            } else {
+                await vapi.start(VAPI_ASSISTANT_ID);
+            }
             
         } catch (e) {
             setIsVoiceConnecting(false);
             setIsVoiceLive(false);
-            setVoiceError(String(e?.message || 'Voice start failed'));
-            console.error('[Vapi] start error', e);
+            const errorMsg = String(e?.message || e || 'Voice start failed');
+            setVoiceError(errorMsg);
+            console.error('[Vapi] start error:', e);
         }
     };
 
@@ -671,11 +824,14 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         const isAssistant = message.type === 'assistant';
         const isError = message.isError;
         const isContextMessage = message.isContextMessage;
+        const isVoiceMessage = message.isVoiceMessage;
 
         return (
             <div className="w-full">
                 <div className={`rounded-xl px-4 py-3 border ${
-                    isAssistant
+                    isVoiceMessage
+                        ? 'bg-blue-50 border-blue-200 text-blue-900'
+                        : isAssistant
                         ? (isError ? 'bg-red-50 border-red-200 text-red-800' : 'bg-[#f7f7f8] border-gray-200 text-gray-900')
                         : 'bg-white border-gray-200 text-gray-900'
                 }`}>
@@ -854,8 +1010,20 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                         </svg>
                     </a>
                 </form>
-                {(voiceError && voiceError !== 'Voice SDK failed to load. Add /public/vapi-web.js or allow CDN.') && (
-                    <div className="mt-1 text-[10px] text-red-600">{voiceError}</div>
+                {voiceError && (
+                    <div className="mt-1 text-[10px] text-red-600">
+                        🎤 {voiceError}
+                        {voiceError.includes('permission') && (
+                            <div className="text-gray-600 mt-1">
+                                Please allow microphone access and try again.
+                            </div>
+                        )}
+                    </div>
+                )}
+                {isVoiceReady && !voiceError && (
+                    <div className="mt-1 text-[10px] text-green-600">
+                        🎤 Voice assistant ready - click to start talking
+                    </div>
                 )}
             </div>
 
@@ -966,15 +1134,43 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             <div
                 className="messages-container flex-1 min-h-0 overflow-hidden"
             >
-                <div ref={messagesContainerRef} className="w-full h-full overflow-y-auto custom-scrollbar px-3 md:px-4 py-2 flex flex-col-reverse">
+                <div ref={messagesContainerRef} className="w-full h-full overflow-y-auto custom-scrollbar px-3 md:px-4 py-2">
                     <div className="space-y-3 md:space-y-4">
+                        {/* Voice Status and Transcription - Show at top when active */}
+                        {(isVoiceLive || isVoiceConnecting) && (
+                            <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <span className="inline-flex items-center gap-2 font-medium">
+                                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                    {isVoiceConnecting ? '🎤 Connecting to voice...' : '🎤 Listening - speak now'}
+                                </span>
+                            </div>
+                        )}
+                        {showTranscript && voiceTranscript.length > 0 && (
+                            <div className="w-full">
+                                <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                                        <span className="text-sm font-medium">🎤 Live Transcription</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {voiceTranscript.slice(-3).map((t, i) => (
+                                            <div key={i} className="text-sm font-mono bg-white/50 px-2 py-1 rounded">
+                                                "{t}"
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Chat Messages */}
                         {messages
                             .filter(message => !message.isContextMessage)
-                            .slice()
-                            .reverse()
                             .map(message => (
                                 <MessageBubble key={message.id} message={message} />
                             ))}
+                        
+                        {/* Loading Indicator */}
                         {isLoading && (
                             <div className="mb-4">
                                 <div className="bg-[#f7f7f8] border border-gray-200 rounded-xl px-5 py-3">
@@ -986,21 +1182,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                                 </div>
                             </div>
                         )}
-                        {(isVoiceLive || isVoiceConnecting) && (
-                            <div className="flex items-center gap-2 text-[10px] text-blue-700">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-                                    {isVoiceConnecting ? 'Connecting…' : 'Listening…'}
-                                </span>
-                            </div>
-                        )}
-                        {showTranscript && voiceTranscript.length > 0 && (
-                            <div className="text-[10px] text-gray-600 border border-gray-200 rounded p-2 bg-white">
-                                {voiceTranscript.slice(-3).map((t, i) => (
-                                    <div key={i} className="truncate">{t}</div>
-                                ))}
-                            </div>
-                        )}
+                        
                         <div ref={messagesEndRef} />
                     </div>
                 </div>
