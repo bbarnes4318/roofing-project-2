@@ -193,7 +193,6 @@ Response Format:
     if (context.projectName) {
       contextualPrompt += `\n\nProject Context: ${context.projectName}`;
       if (context.progress) contextualPrompt += ` (${context.progress}% complete)`;
-      if (context.status) contextualPrompt += ` - Status: ${context.status}`;
     }
     
     if (context.conversationHistory && context.conversationHistory.length > 0) {
@@ -315,24 +314,21 @@ Ask for anything, or try a quick command:
       if (context.projectName) {
         return {
           type: 'project_status',
-          content: `**${context.projectName} — Status at a glance**
+          content: `**Project Name:** ${context.projectName}
+${context.projectNumber ? `**Project Number:** #${String(context.projectNumber).padStart(5, '0')}` : ''}
+**Progress:** ${context.progress ?? 'N/A'}%
 
-**Progress:** ${context.progress || '75'}%  |  **Phase:** ${context.status || 'Execution'}  |  **Timeline:** ${context.timeline || 'On track'}  |  **Budget:** ${context.budgetStatus || 'Within limits'}
+**Phase**
+N/A
 
-**Recent milestones**
-• Foundation inspection — complete
-• Framing — 90% complete
-• Roofing materials — delivered
+**Section**
+N/A
 
-**Action items**
-• Schedule electrical inspection
-• Coordinate plumbing rough‑in
-• Review weather contingency
+**Line Item**
+N/A
 
-**Performance**
-• Team efficiency: 94%  • Quality: 96/100  • Safety: Excellent
-
-Need details on any section?`,
+**Next Actions:**
+- No upcoming items found`,
           confidence: 0.94,
           source: 'mock-responses',
           suggestedActions: [
@@ -466,8 +462,11 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
 ## PROJECT CONTEXT RULES
 ${projectContext && projectContext.projectName ? `
 ### ✅ ACTIVE PROJECT: ${projectContext.projectName}
-- **Project ID:** ${projectContext.id}
 - **Customer:** ${projectContext.customer?.primaryName || 'N/A'}
+
+Display rules:
+- Show Project Number, never the internal Project ID
+- Do not use a field named "Status"; show Phase, Section, Line Item, and Next Actions
 
 ### 🚨 MANDATORY RULES:
 1. **NEVER ask for project numbers or customer names**

@@ -112,7 +112,7 @@ async function handleHeuristicIntent(message, projectContext, userId) {
 
   // Project status summary
   if (text.includes('status') || text.includes('project status')) {
-    // Pull basic status from DB
+    // Pull workflow and alerts; format per business rules
     const [tracker, activeAlerts] = await Promise.all([
       prisma.projectWorkflowTracker.findFirst({
         where: { projectId: projectContext.id, isMainWorkflow: true },
@@ -121,30 +121,54 @@ async function handleHeuristicIntent(message, projectContext, userId) {
       prisma.workflowAlert.count({ where: { projectId: projectContext.id, status: 'ACTIVE' } })
     ]);
 
-    let currentStep = null;
-    let phaseName = null;
+    let current = { phaseName: null, sectionName: null, lineItemName: null };
     if (tracker?.currentLineItemId) {
       const li = await prisma.workflowLineItem.findUnique({
         where: { id: tracker.currentLineItemId },
-        select: { itemName: true, section: { select: { phase: { select: { phaseType: true } } } } }
+        select: { 
+          itemName: true, 
+          section: { select: { displayName: true, phase: { select: { phaseType: true, phaseName: true } } } }
+        }
       });
-      currentStep = li?.itemName || null;
-      phaseName = li?.section?.phase?.phaseType || null;
+      current.lineItemName = li?.itemName || null;
+      current.sectionName = li?.section?.displayName || null;
+      current.phaseName = li?.section?.phase?.phaseName || li?.section?.phase?.phaseType || null;
     }
 
     const pct = typeof projectContext.progress === 'number' ? Math.round(projectContext.progress) : null;
+
+    // Fetch next few actions: next line items within current section/phase
+    let nextItems = [];
+    if (tracker?.currentLineItemId) {
+      const curr = await prisma.workflowLineItem.findUnique({
+        where: { id: tracker.currentLineItemId },
+        select: { sectionId: true, displayOrder: true, section: { select: { lineItems: { select: { itemName: true, displayOrder: true }, orderBy: { displayOrder: 'asc' } } } } }
+      });
+      if (curr?.section?.lineItems) {
+        nextItems = curr.section.lineItems
+          .filter(li => li.displayOrder > (curr.displayOrder || 0))
+          .slice(0, 3)
+          .map(li => li.itemName);
+      }
+    }
+
     const content = [
-      `**${projectContext.projectName || 'Project'} — Status**`,
-      pct !== null ? `- Progress: ${pct}%` : null,
-      phaseName ? `- Phase: ${phaseName}` : null,
-      currentStep ? `- Current step: ${currentStep}` : null,
-      `- Active alerts: ${activeAlerts}`,
+      `**Project Name:** ${projectContext.projectName || 'Project'}`,
+      `**Project Number:** #${String(projectContext.projectNumber || '').padStart(5, '0')}`,
+      pct !== null ? `**Progress:** ${pct}%` : null,
       '',
-      'Next actions:',
-      '- Check blocking tasks',
-      '- Show incomplete tasks in current phase',
-      '- Reassign current step'
-    ].filter(Boolean).join('\n');
+      '**Phase**',
+      current.phaseName ? `${current.phaseName}` : 'N/A',
+      '',
+      '**Section**',
+      current.sectionName ? `${current.sectionName}` : 'N/A',
+      '',
+      '**Line Item**',
+      current.lineItemName ? `${current.lineItemName}` : 'N/A',
+      '',
+      '**Next Actions:**',
+      nextItems.length ? nextItems.map(i => `- ${i}`).join('\n') : '- No upcoming items found',
+    ].filter(v => v !== null).join('\n');
 
     return { handled: true, content };
   }
@@ -246,7 +270,7 @@ async function handleHeuristicIntent(message, projectContext, userId) {
         const sectionName = li.section?.sectionName || 'Current Section';
         return { 
           handled: true, 
-          content: `**Next Line Item:** ${li.itemName}\n\n**Location:** ${sectionName} (${phaseName})\n\n**Status:** Ready to complete\n\n**Next actions:**\n• Complete this task\n• Check for blocking items\n• Review phase progress` 
+          content: `**Next Line Item:** ${li.itemName}\n\n**Location:** ${sectionName} (${phaseName})\n\n**Next actions:**\n• Complete this task\n• Check for blocking items\n• Review phase progress` 
         };
       }
     }
@@ -457,9 +481,7 @@ You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing an
 ${projectContext && projectContext.projectName ? `
 ### ✅ ACTIVE PROJECT SELECTED
 **Project Name:** ${projectContext.projectName}
-**Project ID:** ${projectContext.id}
 **Project Number:** #${String(projectContext.projectNumber).padStart(5, '0')}
-**Status:** ${projectContext.status || 'N/A'}
 **Progress:** ${projectContext.progress || 0}%
 **Customer:** ${projectContext.customer?.primaryName || 'N/A'}
 ${currentWorkflowData ? `
@@ -472,15 +494,15 @@ ${currentWorkflowData ? `
 
 ### 🚨 MANDATORY RULES WHEN PROJECT IS SELECTED:
 1. **NEVER ask for project numbers, customer names, or any project identification**
-2. **ALWAYS use project ID "${projectContext.id}" for all operations**
+2. **ALWAYS use internal project ID for operations, but NEVER display it**
 3. **Project context persists for ALL subsequent questions**
 4. **If user asks about this project, answer directly without asking for identification**
 5. **All tools automatically use the selected project - no need to specify project**
 6. **ALWAYS use the REAL workflow data provided above - NEVER make up fake phases or line items**
-7. **If workflow data shows "N/A", say the information is not available rather than guessing**
+7. **NEVER display a field named "Status"; show Phase, Section, Line Item, and Next Actions instead**
 
 ### 🔧 OPERATIONS WITH SELECTED PROJECT:
-- All workflow tools use project ID "${projectContext.id}" automatically
+- All workflow tools use the internal project ID automatically (do not display it)
 - All status queries use the selected project
 - All task operations use the selected project
 - All phase operations use the selected project
@@ -521,11 +543,12 @@ ${JSON.stringify(tools, null, 2)}
 
 ### 🚨 CRITICAL: PROJECT CONTEXT RULES
 ${projectContext && projectContext.projectName ? `
-**PROJECT IS SELECTED:** ${projectContext.projectName} (ID: ${projectContext.id})
+**PROJECT IS SELECTED:** ${projectContext.projectName}
 - ✅ USE this project for ALL project-related questions
 - ✅ NEVER ask for project numbers or customer names
 - ✅ Project context persists throughout entire conversation
 - ✅ All tools use this project automatically
+- ✅ When referencing the project, display the Project Number (not the ID)
 - ❌ NEVER ask "Tell me the project number" or similar
 - ❌ NEVER ask for customer identification
 - ❌ NEVER ask for project identification
@@ -533,7 +556,7 @@ ${projectContext && projectContext.projectName ? `
 ### 🎯 RESPONSE GUIDELINES:
 - **For "what is next" questions**: Answer directly with current line item info from the real workflow data above
 - **For "how to" questions**: Provide helpful guidance
-- **For status questions**: Give current project status using the real workflow data provided
+- **For status questions**: Provide these fields only, in this order: Project Name, Project Number, Progress; Phase, Section, Line Item; Next Actions (list the next few line items). Never show a field named "Status".
 - **For actionable requests**: Use JSON tool calls
 - **For general questions**: Respond conversationally
 - **CRITICAL**: ALWAYS use the real phase, section, and line item data provided above - NEVER make up fake workflow information
@@ -545,7 +568,7 @@ ${projectContext && projectContext.projectName ? `
 `}
 
 ### 🎯 RESPONSE PATTERNS
-1. **Project Status Query:** Provide status using selected project (conversational response)
+1. **Project Status Query:** Provide fields as specified (no "Status" field)
 2. **Task Query:** Use tools with selected project (JSON tool call)
 3. **Phase Query:** Use tools with selected project (JSON tool call)
 4. **General Question:** Answer directly (conversational response)
@@ -688,7 +711,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     systemPrompt,
     projectName: projectContext?.projectName,
     progress: projectContext?.progress,
-    status: projectContext?.status
+    projectNumber: projectContext?.projectNumber
   });
 
   let content = aiResponse?.content || 'OK';

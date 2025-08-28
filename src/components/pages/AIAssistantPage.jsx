@@ -10,6 +10,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedProjectNonce, setSelectedProjectNonce] = useState(0);
     const [showProjectSelector, setShowProjectSelector] = useState(false);
     const [projectSearch, setProjectSearch] = useState('');
     const [currentStep, setCurrentStep] = useState(null);
@@ -240,7 +241,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                 sessionStorage.setItem('aiAssistant.lastProjectId', 'null');
             }
         } catch (_) {}
-    }, [selectedProject]);
+    }, [selectedProject, selectedProjectNonce]);
 
     // Auto-select first project if only one available (but respect explicit "No Project Selected" choice)
     useEffect(() => {
@@ -473,7 +474,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
             } catch (_) { setCurrentStep(null); }
         };
         fetchCurrent();
-    }, [selectedProject]);
+    }, [selectedProject, selectedProjectNonce]);
 
     // Load team for composer
     useEffect(() => {
@@ -651,6 +652,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                             selectedProject={selectedProject}
                             onProjectSelect={(project) => {
                                 setSelectedProject(project);
+                                setSelectedProjectNonce(prev => prev + 1);
                                 setShowProjectSelector(false);
                                 setProjectSearch('');
                             }}
@@ -727,7 +729,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false }) => {
                         </svg>
                     </a>
                 </form>
-                {voiceError && (
+                {(voiceError && voiceError !== 'Voice SDK failed to load. Add /public/vapi-web.js or allow CDN.') && (
                     <div className="mt-1 text-[10px] text-red-600">{voiceError}</div>
                 )}
             </div>
