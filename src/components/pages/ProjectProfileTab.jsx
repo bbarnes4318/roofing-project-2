@@ -266,8 +266,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const HeaderBlock = () => (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-[12px] font-semibold text-gray-800">#{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
-        <h1 className="text-[14px] font-bold text-gray-900 truncate">{project.projectName || project.name || 'Project Profile'}</h1>
+        <span className="text-[12px] font-semibold text-gray-800">{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
+        <h1 className="text-[14px] font-bold text-gray-900 truncate">{(project.address || project.customer?.address || '').trim() || 'Address not provided'}</h1>
         {project.projectType && (
           <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border ${getProjectTypeColor(project.projectType)}`}>
             {formatProjectType(project.projectType)}

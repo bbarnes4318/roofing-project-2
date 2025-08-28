@@ -2304,54 +2304,59 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             {/* Header with Back Button and Tabs - Modern Design */}
             <div className="bg-white border-b border-gray-200 shadow-sm">
                 {/* Enhanced Back Button Row with Position Preservation */}
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-                    <HeaderBackButton 
-                        onClick={onBack || handleBackButton}
-                        colorMode={colorMode}
-                        variant="primary"
-                        size="small"
-                        preservePosition={true}
-                        customLabel={getBackButtonText()}
-                    />
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={handleDeleteProject}
-                            disabled={deleteProject.isPending}
-                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded border transition-colors ${deleteProject.isPending ? 'opacity-60 cursor-not-allowed' : colorMode ? 'border-red-400 text-red-300 hover:bg-red-900/20' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
-                            title="Delete project"
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                            <span>Delete</span>
-                        </button>
-                    </div>
-                    
-                    {/* Compact Project Number & Customer Info */}
-                    <div className="flex items-center gap-2 text-xs">
-                        <span className={`font-bold text-sm px-2 py-1 rounded-md ${colorMode ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800'}`}>
-                            #{String(project.projectNumber || '').padStart(5, '0')}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <span className={`font-semibold ${colorMode ? 'text-gray-800' : 'text-gray-800'}`}>
-                            {project.projectName || project.name || 'Project Name'}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <span className={`font-semibold ${colorMode ? 'text-gray-800' : 'text-gray-800'}`}>
-                            {project.customer?.name || project.client?.name || 'Client Name'}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <a 
-                            href={`tel:${((project.customer?.phone || project.client?.phone) || '(555) 123-4567').replace(/[^\d+]/g, '')}`} 
-                            className={`hover:underline ${colorMode ? 'text-blue-600 hover:text-blue-500' : 'text-blue-600 hover:text-blue-700'}`}
-                        >
-                            {formatPhoneNumber(project.customer?.phone || project.client?.phone)}
-                        </a>
-                        <span className="text-gray-400">•</span>
-                        <a 
-                            href={`mailto:${(project.customer?.email || project.client?.email) || 'client@email.com'}`} 
-                            className={`hover:underline ${colorMode ? 'text-blue-600 hover:text-blue-500' : 'text-blue-600 hover:text-blue-700'}`}
-                        >
-                            {project.customer?.email || project.client?.email || 'client@email.com'}
-                        </a>
+                <div className="px-6 py-4 border-b border-gray-100 bg-white">
+                    <div className="flex items-center justify-between">
+                        {/* Left: Back + Compact Info */}
+                        <div className="flex items-center gap-3 min-w-0">
+                            <HeaderBackButton 
+                                onClick={onBack || handleBackButton}
+                                colorMode={colorMode}
+                                variant="primary"
+                                size="small"
+                                preservePosition={true}
+                                customLabel={getBackButtonText()}
+                            />
+                            {/* Compact Project Number, Address, Client, Contact */}
+                            <div className="flex items-center gap-2 text-xs min-w-0">
+                                <span className="font-bold text-sm">
+                                    {String(project.projectNumber || '').padStart(5, '0')}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span className={`font-semibold truncate max-w-[28ch] ${colorMode ? 'text-gray-800' : 'text-gray-800'}`}>
+                                    {(project.address || project.customer?.address || project.client?.address || '').trim() || 'Address not provided'}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span className={`font-semibold truncate max-w-[20ch] ${colorMode ? 'text-gray-800' : 'text-gray-800'}`}>
+                                    {project.customer?.name || project.client?.name || 'Client Name'}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <a 
+                                    href={`tel:${((project.customer?.phone || project.client?.phone) || '').replace([^\d+]/g, '') || ''}`} 
+                                    className={`hover:underline ${colorMode ? 'text-blue-600 hover:text-blue-500' : 'text-blue-600 hover:text-blue-700'}`}
+                                >
+                                    {formatPhoneNumber(project.customer?.phone || project.client?.phone)}
+                                </a>
+                                <span className="text-gray-400">•</span>
+                                <a 
+                                    href={`mailto:${(project.customer?.email || project.client?.email) || ''}`} 
+                                    className={`hover:underline ${colorMode ? 'text-blue-600 hover:text-blue-500' : 'text-blue-600 hover:text-blue-700'}`}
+                                >
+                                    {project.customer?.email || project.client?.email || '—'}
+                                </a>
+                            </div>
+                        </div>
+                        {/* Right: Delete action */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleDeleteProject}
+                                disabled={deleteProject.isPending}
+                                className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded border transition-colors ${deleteProject.isPending ? 'opacity-60 cursor-not-allowed' : colorMode ? 'border-red-400 text-red-300 hover:bg-red-900/20' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
+                                title="Delete project"
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                                <span>Delete</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -2473,8 +2478,8 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                         {activeView === 'Project Profile' && (
                             <div className="mb-4">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[12px] font-semibold text-gray-800">#{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
-                                    <h1 className="text-[14px] font-bold text-gray-900 truncate">{project.name || project.projectName || 'Project Profile'}</h1>
+                                    <span className="text-[12px] font-semibold text-gray-800">{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
+                                    <h1 className="text-[14px] font-bold text-gray-900 truncate">{(project.address || project.customer?.address || '').trim() || 'Address not provided'}</h1>
                                     {project.projectType && (
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border ${colorMode ? getProjectTypeColorDark(project.projectType) : getProjectTypeColor(project.projectType)}`}>
                                             {formatProjectType(project.projectType)}
