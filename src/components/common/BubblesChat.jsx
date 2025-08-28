@@ -876,7 +876,7 @@ const BubblesChat = ({
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ scrollBehavior: 'smooth' }}>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col-reverse" style={{ scrollBehavior: 'smooth' }}>
           {isLoading && messages.length === 0 && (
              <div className="flex justify-center items-center h-full">
                 <div className="flex items-center space-x-2 text-sm text-gray-500">

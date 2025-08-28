@@ -10,6 +10,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Chat History state
+    const [chatHistory, setChatHistory] = useState([]);
+    const [showChatHistory, setShowChatHistory] = useState(false);
+    const [currentChatId, setCurrentChatId] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
     const [selectedProjectNonce, setSelectedProjectNonce] = useState(0);
     const [showProjectSelector, setShowProjectSelector] = useState(false);
@@ -505,11 +510,85 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         loadTeam();
     }, [isComposerOpen]);
 
-    const scrollToBottom = () => {
+    const scrollToTop = () => {
         if (messagesContainerRef.current) {
-            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+            messagesContainerRef.current.scrollTop = 0;
         }
     };
+    
+    // Chat History Functions
+    const getChatStorageKey = () => `ai_assistant_chat_history_${selectedProject?.id || 'general'}`;
+
+    const loadChatHistory = () => {
+        try {
+            const stored = localStorage.getItem(getChatStorageKey());
+            if (stored) {
+                const history = JSON.parse(stored);
+                setChatHistory(history || []);
+            }
+        } catch (error) {
+            console.error('Failed to load chat history:', error);
+            setChatHistory([]);
+        }
+    };
+
+    const saveChatToHistory = () => {
+        if (messages.length === 0) return;
+        
+        try {
+            const userMessages = messages.filter(msg => msg.type === 'user');
+            if (userMessages.length === 0) return;
+            
+            const firstUserMessage = userMessages[0];
+            const title = firstUserMessage.content.slice(0, 60) + (firstUserMessage.content.length > 60 ? '...' : '');
+            
+            const chatToSave = {
+                id: currentChatId || `chat_${Date.now()}`,
+                title,
+                messages: [...messages],
+                timestamp: new Date().toISOString(),
+                projectId: selectedProject?.id || null,
+                projectName: selectedProject?.projectName || selectedProject?.name || null
+            };
+
+            const stored = localStorage.getItem(getChatStorageKey());
+            let history = [];
+            if (stored) {
+                history = JSON.parse(stored);
+            }
+
+            // Remove existing chat with same ID if updating
+            history = history.filter(chat => chat.id !== chatToSave.id);
+            
+            // Add new chat to beginning
+            history.unshift(chatToSave);
+            
+            // Keep only last 50 chats
+            history = history.slice(0, 50);
+            
+            localStorage.setItem(getChatStorageKey(), JSON.stringify(history));
+            setChatHistory(history);
+            setCurrentChatId(chatToSave.id);
+        } catch (error) {
+            console.error('Failed to save chat:', error);
+        }
+    };
+    
+    // Load chat history when component mounts or project changes
+    useEffect(() => {
+        loadChatHistory();
+    }, [selectedProject?.id]);
+
+    // Save chat when messages change (debounced)
+    useEffect(() => {
+        if (messages.length > 0 && !isLoading) {
+            const timeoutId = setTimeout(() => {
+                saveChatToHistory();
+            }, 1000); // Save 1 second after last message
+            
+            return () => clearTimeout(timeoutId);
+        }
+    }, [messages, isLoading]);
 
     // Remove auto-scroll on load; we'll scroll only when sending/receiving messages
 
@@ -526,9 +605,9 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, userMessage]);
-        // Keep input visible; only scroll the messages container
-        setTimeout(scrollToBottom, 0);
+        setMessages(prev => [userMessage, ...prev]);
+        // Scroll to top to show newest message
+        setTimeout(scrollToTop, 0);
         setInput('');
         setIsLoading(true);
 
@@ -544,8 +623,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 suggestedActions: response.data?.response?.suggestedActions || []
             };
             
-            setMessages(prev => [...prev, assistantMessage]);
-            setTimeout(scrollToBottom, 0);
+            setMessages(prev => [assistantMessage, ...prev]);
+            setTimeout(scrollToTop, 0);
         } catch (error) {
             const errorMessage = {
                 id: Date.now() + 1,
@@ -554,7 +633,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 timestamp: new Date(),
                 isError: true
             };
-            setMessages(prev => [...prev, errorMessage]);
+            setMessages(prev => [errorMessage, ...prev]);
         } finally {
             setIsLoading(false);
         }
@@ -631,7 +710,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
 
 
     return (
-        <div ref={containerRef} className="ai-assistant-container min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden" style={{ height: '100vh' }}>
+        <div ref={containerRef} className="ai-assistant-container min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden relative" style={{ height: '100vh' }}>
             {/* Custom styles for message formatting */}
             <style>{`
                 .ai-assistant-container {
@@ -659,7 +738,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             
             {/* Header with project selector - Compact and clean */}
             <div ref={headerRef} className="flex-shrink-0 p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 relative">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-4">
                     {/* Enhanced Project selector dropdown - Left aligned */}
                     <div className="flex-1 max-w-2xl relative">
                         <EnhancedProjectDropdown
@@ -689,6 +768,27 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                             colorMode={colorMode}
                             placeholder="Select Project"
                         />
+                    </div>
+                    
+                    {/* Header Actions */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowChatHistory(!showChatHistory)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-blue-500 hover:bg-blue-600 text-white"
+                            title="Chat History"
+                        >
+                            History ({chatHistory.length})
+                        </button>
+                        <button
+                            onClick={() => {
+                                setMessages([]);
+                                setCurrentChatId(null);
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-red-500 hover:bg-red-600 text-white"
+                            title="Clear Chat"
+                        >
+                            Clear Chat
+                        </button>
                     </div>
                 </div>
             </div>
@@ -759,14 +859,119 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 )}
             </div>
 
+            {/* Chat History Panel */}
+            {showChatHistory && (
+                <div className="absolute top-0 left-0 w-full h-full z-20 bg-white">
+                    <div className="flex flex-col h-full">
+                        {/* History Header */}
+                        <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-gray-50">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setShowChatHistory(false)}
+                                        className="p-2 rounded-lg hover:bg-gray-100"
+                                    >
+                                        ← Back
+                                    </button>
+                                    <div>
+                                        <h3 className="font-bold text-lg">Chat History</h3>
+                                        <p className="text-sm text-gray-600">{chatHistory.length} saved conversations</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setMessages([]);
+                                        setCurrentChatId(null);
+                                        setShowChatHistory(false);
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white"
+                                >
+                                    New Chat
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* History List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                            {chatHistory.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                                        <ChatBubbleLeftRightIcon className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                    <h4 className="font-medium text-gray-700 mb-2">No saved chats yet</h4>
+                                    <p className="text-sm text-gray-500">Your conversations will appear here automatically</p>
+                                </div>
+                            ) : (
+                                chatHistory.map((chat) => {
+                                    const isActive = currentChatId === chat.id;
+                                    const chatDate = new Date(chat.timestamp);
+                                    const now = new Date();
+                                    const diffDays = Math.floor((now - chatDate) / (1000 * 60 * 60 * 24));
+                                    
+                                    let timeLabel;
+                                    if (diffDays === 0) timeLabel = 'Today';
+                                    else if (diffDays === 1) timeLabel = 'Yesterday';
+                                    else if (diffDays < 7) timeLabel = `${diffDays} days ago`;
+                                    else timeLabel = chatDate.toLocaleDateString();
+                                    
+                                    return (
+                                        <div
+                                            key={chat.id}
+                                            className={`group p-4 rounded-lg cursor-pointer transition-all border ${
+                                                isActive
+                                                    ? 'bg-blue-50 border-blue-200'
+                                                    : 'hover:bg-gray-50 border-gray-200'
+                                            }`}
+                                            onClick={() => {
+                                                setMessages(chat.messages);
+                                                setCurrentChatId(chat.id);
+                                                setShowChatHistory(false);
+                                            }}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-medium text-sm truncate mb-1 text-gray-900">
+                                                        {chat.title}
+                                                    </h4>
+                                                    <p className="text-xs text-gray-600 mb-1">{timeLabel}</p>
+                                                    {chat.projectName && (
+                                                        <p className="text-xs text-gray-500 truncate">📁 {chat.projectName}</p>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setChatHistory(prev => prev.filter(c => c.id !== chat.id));
+                                                        if (currentChatId === chat.id) {
+                                                            setMessages([]);
+                                                            setCurrentChatId(null);
+                                                        }
+                                                    }}
+                                                    className="p-1.5 rounded-md hover:bg-red-100 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="Delete chat"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             {/* Messages Area - Centered, wider column for more visible text */}
             <div
                 className="messages-container flex-1 min-h-0 overflow-hidden"
             >
-                <div ref={messagesContainerRef} className="w-full h-full overflow-y-auto custom-scrollbar px-3 md:px-4 py-2">
+                <div ref={messagesContainerRef} className="w-full h-full overflow-y-auto custom-scrollbar px-3 md:px-4 py-2 flex flex-col-reverse">
                     <div className="space-y-3 md:space-y-4">
                         {messages
                             .filter(message => !message.isContextMessage)
+                            .slice()
+                            .reverse()
                             .map(message => (
                                 <MessageBubble key={message.id} message={message} />
                             ))}
