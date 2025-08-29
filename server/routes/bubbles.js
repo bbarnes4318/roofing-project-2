@@ -902,9 +902,17 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   ];
   const isProjectSpecific = projectKeywords.some(k => lower.includes(k));
 
-  // Heuristic 2: General/company questions → Use OpenAI directly
-  if (!projectContext || (projectContext && !isProjectSpecific)) {
-    const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Kenstruction. Answer general questions about any topic helpfully and accurately. If the question is not about the selected project, do not force project context; just answer directly.`;
+  // Check if it's a workflow/roofing knowledge question (should use enhanced prompt even without project selected)
+  const workflowKnowledgeKeywords = [
+    'workflow', 'phase', 'section', 'line item', 'roofing', 'ice and water shield', 'ice dam',
+    'colorado roofing', 'building code', 'lead phase', 'prospect phase', 'approved phase',
+    'execution phase', 'completion phase', 'second supplement'
+  ];
+  const isWorkflowKnowledge = workflowKnowledgeKeywords.some(k => lower.includes(k));
+
+  // Heuristic 2: General/company questions → Use OpenAI directly (but not for workflow knowledge)
+  if (!projectContext && !isProjectSpecific && !isWorkflowKnowledge) {
+    const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Kenstruction. Answer general questions about any topic helpfully and accurately.`;
     const generic = await openAIService.generateResponse(message, {
       systemPrompt: genericSystemPrompt,
     });
@@ -925,6 +933,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     });
   }
 
+  // Use enhanced system prompt for workflow knowledge questions or project-specific questions
   const systemPrompt = getSystemPrompt(req.user, projectContext, currentWorkflowData);
   const aiResponse = await openAIService.generateResponse(message, {
     systemPrompt,
