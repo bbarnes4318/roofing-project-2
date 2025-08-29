@@ -33,7 +33,17 @@ class WorkflowProgressService {
             return this.getDefaultProgressData();
         }
 
-        // If workflow is complete, return 100%
+        // STRICT CALCULATION: overall = completed / total (no synthetic/skipped items)
+        const totalLineItems = Number(currentWorkflow.totalLineItems) || this.estimateTotalLineItems();
+        const completedLineItems = Array.isArray(currentWorkflow.completedItems)
+            ? currentWorkflow.completedItems.length
+            : 0;
+
+        const overall = totalLineItems > 0 
+            ? Math.round((completedLineItems / totalLineItems) * 100)
+            : 0;
+
+        // If workflow is complete, force 100%
         if (currentWorkflow.isComplete) {
             return {
                 overall: 100,
@@ -45,53 +55,29 @@ class WorkflowProgressService {
                 totalPhases: Object.keys(PHASES).length,
                 completedPhases: Object.keys(PHASES).length,
                 hasPhaseOverride: false,
-                completedLineItems: currentWorkflow.completedItems?.length || 0,
-                totalLineItems: currentWorkflow.totalLineItems || 0
+                completedLineItems,
+                totalLineItems
             };
         }
 
-        // Get current position in workflow
         const currentPhase = currentWorkflow.phase || 'LEAD';
-        const currentSection = currentWorkflow.section;
-        const currentLineItem = currentWorkflow.lineItem;
-        
-        // Calculate progress including skipped items
-        const progressData = this.calculateProgressWithSkippedItems(
-            currentWorkflow.completedItems || [],
-            currentPhase,
-            currentSection,
-            currentLineItem,
-            currentWorkflow.totalLineItems || this.estimateTotalLineItems(),
-            currentWorkflow.workflowStructure || null
-        );
-
         const phaseKeys = Object.keys(PHASES);
         const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
 
-        // Prevent showing 100% unless workflow is truly complete
-        let overall = Math.min(progressData.overallProgress, 100);
-        if (!currentWorkflow.isComplete && overall >= 100) {
-            overall = 99;
-        }
-
         return {
             overall,
-            phaseBreakdown: this.calculatePhaseBreakdownFromLineItems(
-                progressData.adjustedCompletedItems, 
-                currentPhase, 
-                currentPhaseIndex,
-                currentWorkflow.workflowStructure || null
-            ),
+            // Keep breakdown minimal without structure; rely on simple counts
+            phaseBreakdown: {},
             currentPhase: currentPhase,
             currentPhaseDisplay: currentWorkflow.phaseDisplay || this.formatPhase(currentPhase),
-            currentSection: currentSection,
-            currentLineItem: currentLineItem,
+            currentSection: currentWorkflow.section,
+            currentLineItem: currentWorkflow.lineItem,
             totalPhases: phaseKeys.length,
-            completedPhases: currentPhaseIndex,
+            completedPhases: Math.max(0, currentPhaseIndex),
             hasPhaseOverride: false,
-            completedLineItems: progressData.adjustedCompletedItems.length,
-            totalLineItems: progressData.totalLineItems,
-            skippedItemsCount: progressData.skippedItemsCount
+            completedLineItems,
+            totalLineItems,
+            skippedItemsCount: 0
         };
     }
 
