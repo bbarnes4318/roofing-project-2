@@ -207,7 +207,7 @@ const EnhancedProjectDropdown = ({
                     e.stopPropagation();
                     handleProjectNavigate(selectedProject, 'Messages');
                   }}
-                  title="Go to Project Messages"
+                  title="Go to Project Profile"
                   className="p-1 hover:bg-green-100 rounded"
                 >
                   {getProjectIcon('messages')}
@@ -438,7 +438,7 @@ const EnhancedProjectDropdown = ({
                           e.stopPropagation();
                           handleProjectNavigate(project, 'Messages');
                         }}
-                        title="Go to Project Messages"
+                        title="Go to Project Profile"
                         className="p-1 hover:bg-green-100 rounded"
                       >
                         {getProjectIcon('messages')}

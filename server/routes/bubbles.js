@@ -670,7 +670,10 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   let currentWorkflowData = null;
   
   if (projectId) {
-    projectContext = await prisma.project.findUnique({ where: { id: projectId }, include: { customer: true } });
+    projectContext = await prisma.project.findUnique({ 
+      where: { id: projectId }, 
+      include: { customer: true }
+    });
     if (projectContext) {
       session.activeProject = projectContext;
       // Get real workflow data
