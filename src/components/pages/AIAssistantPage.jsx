@@ -504,9 +504,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     });
                     
                     vapiRef.current.on('call-end', async () => {
-                        console.log('[Vapi] call ended');
-                        console.log('[Vapi] DEBUG: voiceConversation length:', voiceConversation.length);
-                        console.log('[Vapi] DEBUG: voiceTranscript:', voiceTranscript);
+                        console.log('🔴 [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL');
+                        console.log('🔴 [CALL-END] voiceConversation length:', voiceConversation.length);
+                        console.log('🔴 [CALL-END] voiceTranscript:', voiceTranscript);
+                        console.log('🔴 [CALL-END] showTranscriptModal before:', showTranscriptModal);
                         voiceEndTimeRef.current = new Date();
                         
                         // If no conversation was captured, create one from the transcript
@@ -527,8 +528,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                         console.log('[Vapi] DEBUG: generated summary:', summary);
                         
                         // Always show modal if there was any conversation
+                        console.log('🔴 [CALL-END] conversationToUse.length:', conversationToUse.length);
+                        console.log('🔴 [CALL-END] voiceTranscript.length:', voiceTranscript.length);
                         if (conversationToUse.length > 0 || voiceTranscript.length > 0) {
-                            console.log('[Vapi] Showing transcript modal');
+                            console.log('🔴 [CALL-END] SHOULD show transcript modal - entering try block');
                             try {
                                 const enhancedSummary = await generateEnhancedTranscriptSummary(summary || {}, conversationToUse);
                                 console.log('[Vapi] DEBUG: enhanced summary:', enhancedSummary);
@@ -569,9 +572,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                                     console.error('[Vapi] Error saving transcript:', saveError);
                                 }
                                 
+                                console.log('🔴 [CALL-END] SUCCESS - About to setShowTranscriptModal(true)');
                                 setShowTranscriptModal(true);
+                                console.log('🔴 [CALL-END] SUCCESS - Called setShowTranscriptModal(true)');
                             } catch (error) {
-                                console.error('[Vapi] Error generating enhanced summary:', error);
+                                console.error('🔴 [CALL-END] ERROR generating enhanced summary:', error);
                                 // Show modal with basic summary even if enhancement fails
                                 setTranscriptSummary({
                                     metadata: {
@@ -587,10 +592,30 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                                     risks: [],
                                     fullTranscript: conversationToUse
                                 });
+                                console.log('🔴 [CALL-END] FALLBACK - About to setShowTranscriptModal(true)');
                                 setShowTranscriptModal(true);
+                                console.log('🔴 [CALL-END] FALLBACK - Called setShowTranscriptModal(true)');
                             }
                         } else {
-                            console.log('[Vapi] No conversation data to show');
+                            console.log('🔴 [CALL-END] No conversation data to show - FORCING MODAL ANYWAY FOR TESTING');
+                            // FORCE MODAL TO SHOW EVEN WITH NO DATA
+                            setTranscriptSummary({
+                                metadata: {
+                                    callDate: new Date().toLocaleDateString(),
+                                    callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
+                                    duration: 'Unknown',
+                                    participantCount: 1
+                                },
+                                executiveSummary: 'Call ended with no conversation data captured.',
+                                keyDecisions: [],
+                                actionItems: [],
+                                materialsList: [],
+                                risks: [],
+                                fullTranscript: []
+                            });
+                            console.log('🔴 [CALL-END] FORCE - About to setShowTranscriptModal(true)');
+                            setShowTranscriptModal(true);
+                            console.log('🔴 [CALL-END] FORCE - Called setShowTranscriptModal(true)');
                         }
                         
                         // Save transcription as a chat message if there was any
@@ -622,11 +647,13 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     });
                     
                     vapiRef.current.on('message', (message) => {
-                        console.log('[Vapi] message received:', message.type, message);
+                        console.log('🟡 [MESSAGE] type:', message.type, 'message:', message);
                         
                         // Handle various transcript types
                         if (message.type === 'transcript') {
+                            console.log('🟡 [MESSAGE] Processing transcript message');
                             const text = String(message.transcript || message.text || '').trim();
+                            console.log('🟡 [MESSAGE] Transcript text:', text);
                             if (text) {
                                 setVoiceTranscript(prev => {
                                     const newTranscript = [...prev, text].slice(-5); // Keep last 5 lines
@@ -1988,6 +2015,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
             )}
 
             {/* Transcript and Summary Modal */}
+            {console.log('🔵 [RENDER] showTranscriptModal:', showTranscriptModal, 'transcriptSummary:', !!transcriptSummary)}
             {showTranscriptModal && transcriptSummary && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-8" style={{ zIndex: 999999 }}>
                     <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col" style={{ zIndex: 999999 }}>
