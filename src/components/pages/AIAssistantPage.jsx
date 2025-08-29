@@ -264,7 +264,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 }
             }
         } catch (_) {}
-    }, [projects, selectedProject]);
+    }, [projects]);
 
     // Persist selection
     useEffect(() => {
@@ -1387,6 +1387,16 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="text-sm font-medium text-blue-900 mb-2">Select a project for workflow actions:</h3>
                 <div className="space-y-2">
+                <button
+                    onClick={() => {
+                        setSelectedProject(null);
+                        setShowProjectSelector(false);
+                    }}
+                    className="w-full text-left p-3 bg-gray-50 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                    <div className="font-medium text-gray-700">No Project Selected</div>
+                    <div className="text-sm text-gray-500">Work without a specific project context</div>
+                </button>
                 {projects.filter(p => p.status !== 'archived').map(project => (
                     <button
                         key={project.id}
@@ -1494,7 +1504,10 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                             projects={projects}
                             selectedProject={selectedProject}
                             onProjectSelect={(project) => {
+                                console.log('🔍 AIAssistantPage: onProjectSelect called with:', project);
+                                console.log('🔍 AIAssistantPage: Current selectedProject before:', selectedProject);
                                 setSelectedProject(project);
+                                console.log('🔍 AIAssistantPage: setSelectedProject called with:', project);
                                 setSelectedProjectNonce(prev => prev + 1);
                                 setShowProjectSelector(false);
                                 setProjectSearch('');

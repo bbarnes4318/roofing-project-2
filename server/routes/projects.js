@@ -92,6 +92,7 @@ const getTotalLineItemsCount = async (workflowType = 'ROOFING') => {
     const count = await prisma.workflowLineItem.count({
       where: {
         isActive: true,
+        workflowType: workflowType,
         section: {
           isActive: true,
           phase: {
@@ -113,9 +114,10 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
   if (!project) return null;
   
   // Get total line items count for progress calculation
+  const trackerType = (project.workflowTrackers && project.workflowTrackers[0]?.workflowType) || project.projectType || 'ROOFING';
   const totalLineItems = typeof precomputedTotalLineItems === 'number'
     ? precomputedTotalLineItems
-    : await getTotalLineItemsCount();
+    : await getTotalLineItemsCount(trackerType);
   
   return {
     // Keep both ID formats for compatibility
@@ -223,7 +225,7 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
         phaseId: mainTracker.currentPhaseId || null,
         isComplete: !mainTracker.currentPhaseId && !mainTracker.currentSectionId && !mainTracker.currentLineItemId,
         completedItems: mainTracker.completedItems || [],
-        totalLineItems: totalLineItems
+        totalLineItems: mainTracker.totalLineItems || totalLineItems
       };
     })() : null,
     

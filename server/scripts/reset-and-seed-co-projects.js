@@ -42,7 +42,8 @@ const lastNames  = ['Johnson','Smith','Williams','Brown','Jones','Garcia','Mille
 
 const areaCodes = ['303','720','719','970'];
 
-const projectTypes = ['ROOFING','GUTTERS','INTERIOR_PAINT'];
+// Ensure templates exist: use ROOFING for all projects so trackers initialize
+const projectTypes = ['ROOFING'];
 const phases = ['LEAD','PROSPECT','APPROVED','EXECUTION','SECOND_SUPPLEMENT','COMPLETION'];
 // 20 projects across 6 phases → distribute as evenly as possible
 const phaseDistribution = ['LEAD','LEAD','LEAD','LEAD', 'PROSPECT','PROSPECT','PROSPECT','PROSPECT', 'APPROVED','APPROVED','APPROVED', 'EXECUTION','EXECUTION','EXECUTION', 'SECOND_SUPPLEMENT','SECOND_SUPPLEMENT', 'COMPLETION','COMPLETION','COMPLETION','COMPLETION'];
@@ -154,7 +155,7 @@ async function main() {
     });
 
     const pmUser = pick(pms, i);
-    const projectType = pick(projectTypes, i);
+    const projectType = 'ROOFING';
     const projectNumber = await getNextProjectNumber();
     // Use address as projectName for realism
     const projectName = `${address} – ${projectType.replace('_',' ')}`;

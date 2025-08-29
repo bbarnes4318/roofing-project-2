@@ -91,11 +91,6 @@ class WorkflowProgressionService {
         // Get total line items count for this workflow type
         const totalLineItems = await this.getTotalLineItemCount(tx, workflowType);
 
-        // Mark all previous phases as completed if starting phase is not LEAD
-        if (startingPhase !== 'LEAD') {
-          await this.markPreviousPhasesAsCompleted(tx, projectId, workflowType, startingPhase);
-        }
-
         // Create project workflow tracker using template references only
         const tracker = await tx.projectWorkflowTracker.create({
           data: {
@@ -120,6 +115,11 @@ class WorkflowProgressionService {
 
         console.log(`✅ Initialized ${workflowType} workflow for project ${projectId} starting at phase ${startingPhase} with: ${firstLineItem.itemName}`);
         
+        // Mark all previous phases as completed if starting phase is not LEAD (must run AFTER tracker exists)
+        if (startingPhase !== 'LEAD') {
+          await this.markPreviousPhasesAsCompleted(tx, tracker.id, workflowType, startingPhase);
+        }
+
         return {
           tracker,
           firstPhase: targetPhase,
@@ -1025,7 +1025,7 @@ class WorkflowProgressionService {
   /**
    * Mark all previous phases as completed when starting at an advanced phase
    */
-  async markPreviousPhasesAsCompleted(tx, projectId, workflowType, startingPhase) {
+  async markPreviousPhasesAsCompleted(tx, trackerId, workflowType, startingPhase) {
     try {
       // Define phase order
       const phaseOrder = ['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'];
@@ -1045,7 +1045,7 @@ class WorkflowProgressionService {
         return;
       }
 
-      console.log(`Marking phases as completed for project ${projectId}: ${phasesToComplete.join(', ')}`);
+      console.log(`Marking previous phases as completed for tracker ${trackerId}: ${phasesToComplete.join(', ')}`);
 
       // Get all line items from previous phases and mark them as completed
       const previousPhases = await tx.workflowPhase.findMany({
@@ -1083,14 +1083,12 @@ class WorkflowProgressionService {
         for (const section of phase.sections) {
           for (const lineItem of section.lineItems) {
             completedItems.push({
-              projectId,
+              trackerId,
+              phaseId: phase.id,
+              sectionId: section.id,
               lineItemId: lineItem.id,
-              lineItemText: lineItem.itemName,
-              sectionName: section.displayName,
-              phaseName: phase.phaseName,
               completedAt: new Date(),
-              completedById: null, // System completion
-              notes: `Automatically completed when project started at ${startingPhase} phase`
+              completedById: null
             });
           }
         }
@@ -1102,11 +1100,11 @@ class WorkflowProgressionService {
           data: completedItems
         });
         
-        console.log(`✅ Marked ${completedItems.length} line items as completed for project ${projectId} (phases: ${phasesToComplete.join(', ')})`);
+        console.log(`✅ Marked ${completedItems.length} line items as completed for tracker ${trackerId} (phases: ${phasesToComplete.join(', ')})`);
       }
 
     } catch (error) {
-      console.error(`Error marking previous phases as completed for project ${projectId}:`, error);
+      console.error(`Error marking previous phases as completed for tracker ${trackerId}:`, error);
       throw error;
     }
   }

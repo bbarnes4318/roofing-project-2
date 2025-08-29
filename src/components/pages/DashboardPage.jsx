@@ -3848,7 +3848,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <span className="text-sm font-medium text-green-600 dark:text-green-400">Materials</span>
                       </div>
                       <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                        {project.materialsProgress || 85}%
+                        {getProjectProgress(project)}%
                       </span>
                     </div>
                     <div className={`w-full h-2 rounded-full overflow-hidden shadow-inner ${
@@ -3856,9 +3856,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     }`}>
                       <div 
                         className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 ease-out"
-                        style={{ width: `${project.materialsProgress || 85}%` }}
+                        style={{ width: `${getProjectProgress(project)}%` }}
                       >
-                        {(project.materialsProgress || 85) > 15 && (
+                        {getProjectProgress(project) > 15 && (
                           <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
                         )}
                       </div>
@@ -3872,7 +3872,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <span className="text-sm font-medium text-orange-600 dark:text-orange-400">Labor</span>
                       </div>
                       <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                        {project.laborProgress || 75}%
+                        {getProjectProgress(project)}%
                       </span>
                     </div>
                     <div className={`w-full h-2 rounded-full overflow-hidden shadow-inner ${
@@ -3880,9 +3880,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     }`}>
                       <div 
                         className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 ease-out"
-                        style={{ width: `${project.laborProgress || 75}%` }}
+                        style={{ width: `${getProjectProgress(project)}%` }}
                       >
-                        {(project.laborProgress || 75) > 15 && (
+                        {getProjectProgress(project) > 15 && (
                           <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
                         )}
                       </div>
@@ -3913,11 +3913,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     
                     <div className="space-y-2">
                       {[
-                        { name: 'Roofing', progress: project.roofingProgress || 90, color: 'from-purple-500 to-purple-600' },
-                        { name: 'Siding', progress: project.sidingProgress || 60, color: 'from-blue-500 to-indigo-600' },
+                        { name: 'Roofing', progress: getProjectProgress(project), color: 'from-purple-500 to-purple-600' },
+                        { name: 'Siding', progress: getProjectProgress(project), color: 'from-blue-500 to-indigo-600' },
                         ...(expandedAdditionalTrades.has(project.id) ? [
-                          { name: 'Windows', progress: project.windowsProgress || 40, color: 'from-yellow-500 to-amber-500' },
-                          { name: 'Gutters', progress: project.guttersProgress || 30, color: 'from-red-500 to-rose-500' }
+                          { name: 'Windows', progress: getProjectProgress(project), color: 'from-yellow-500 to-amber-500' },
+                          { name: 'Gutters', progress: getProjectProgress(project), color: 'from-red-500 to-rose-500' }
                         ] : [])
                       ].map((trade) => (
                         <div key={trade.name} className="group">

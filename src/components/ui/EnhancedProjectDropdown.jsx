@@ -18,7 +18,10 @@ const EnhancedProjectDropdown = ({
 
   const handleProjectSelect = (project) => {
     console.log('🔍 EnhancedProjectDropdown: handleProjectSelect called with:', project);
+    console.log('🔍 EnhancedProjectDropdown: Current selectedProject:', selectedProject);
+    console.log('🔍 EnhancedProjectDropdown: About to call onProjectSelect');
     onProjectSelect(project);
+    console.log('🔍 EnhancedProjectDropdown: onProjectSelect called, closing dropdown');
     setIsOpen(false);
     setProjectSearch('');
   };
@@ -209,6 +212,20 @@ const EnhancedProjectDropdown = ({
                 >
                   {getProjectIcon('messages')}
                 </div>
+              </div>
+
+              {/* Clear Selection Button */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleProjectSelect(null);
+                }}
+                title="Clear project selection"
+                className="p-1 rounded hover:bg-red-100 cursor-pointer text-red-600"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </div>
 
               {/* Expand/Collapse Arrow */}
