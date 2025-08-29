@@ -68,8 +68,14 @@ class WorkflowProgressService {
         const phaseKeys = Object.keys(PHASES);
         const currentPhaseIndex = phaseKeys.indexOf(currentPhase);
 
+        // Prevent showing 100% unless workflow is truly complete
+        let overall = Math.min(progressData.overallProgress, 100);
+        if (!currentWorkflow.isComplete && overall >= 100) {
+            overall = 99;
+        }
+
         return {
-            overall: Math.min(progressData.overallProgress, 100),
+            overall,
             phaseBreakdown: this.calculatePhaseBreakdownFromLineItems(
                 progressData.adjustedCompletedItems, 
                 currentPhase, 
@@ -203,28 +209,7 @@ class WorkflowProgressService {
                 }
             }
         } else {
-            // Fallback: estimate skipped items based on phase progression
-            if (currentPhaseIndex > 0) {
-                // Estimate items per phase
-                const estimatedItemsPerPhase = Math.ceil(totalLineItems / phaseKeys.length);
-                const estimatedSkippedItems = currentPhaseIndex * estimatedItemsPerPhase;
-                
-                // Add placeholder skipped items
-                for (let i = 0; i < estimatedSkippedItems; i++) {
-                    const phaseIndex = Math.floor(i / estimatedItemsPerPhase);
-                    const phaseKey = phaseKeys[phaseIndex];
-                    
-                    adjustedCompletedItems.push({
-                        id: `skipped_${phaseKey}_${i}`,
-                        lineItemId: `skipped_${phaseKey}_${i}`,
-                        phaseId: phaseKey,
-                        name: `Skipped Item ${i + 1}`,
-                        isSkipped: true,
-                        completedAt: new Date().toISOString()
-                    });
-                    skippedItemsCount++;
-                }
-            }
+            // No structure: do NOT synthesize skipped items. Use actual completed items only.
         }
         
         // Calculate overall progress
