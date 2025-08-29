@@ -189,6 +189,7 @@ app.use(helmet({
         "'self'",
         "'unsafe-inline'",
         "'unsafe-eval'",  // Required for Vapi.ai/Daily.co
+        "blob:",  // Required for Vapi audio worklets
         "https://sc.lfeeder.com",
         "https://cdn.jsdelivr.net",
         "https://c.daily.co",  // Daily.co domain for Vapi
