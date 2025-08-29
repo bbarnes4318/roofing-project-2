@@ -52,6 +52,13 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [voiceActions, setVoiceActions] = useState([]);
     const voiceStartTimeRef = useRef(null);
     const voiceEndTimeRef = useRef(null);
+    
+    // Transcript modal state
+    const [showTranscriptModal, setShowTranscriptModal] = useState(false);
+    const [transcriptSummary, setTranscriptSummary] = useState(null);
+    const [selectedFileFormats, setSelectedFileFormats] = useState(['pdf', 'json']);
+    const [isGeneratingFiles, setIsGeneratingFiles] = useState(false);
+    const [downloadLinks, setDownloadLinks] = useState(null);
 
     // Get Vapi configuration from environment variables
     const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
@@ -493,28 +500,56 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     
                     vapiRef.current.on('call-end', async () => {
                         console.log('[Vapi] call ended');
+                        console.log('[Vapi] DEBUG: voiceConversation length:', voiceConversation.length);
+                        console.log('[Vapi] DEBUG: voiceTranscript:', voiceTranscript);
                         voiceEndTimeRef.current = new Date();
                         
-                        // Show processing message
-                        const processingMessage = {
-                            id: `processing_${Date.now()}`,
-                            type: 'assistant',
-                            content: '🔄 Processing voice conversation and generating summary...',
-                            timestamp: new Date()
-                        };
-                        setMessages(prev => [processingMessage, ...prev]);
+                        // If no conversation was captured, create one from the transcript
+                        let conversationToUse = voiceConversation;
+                        if (voiceConversation.length === 0 && voiceTranscript.length > 0) {
+                            console.log('[Vapi] Using voiceTranscript as fallback');
+                            conversationToUse = voiceTranscript.map((text, index) => ({
+                                speaker: 'User',
+                                message: text,
+                                timestamp: new Date(),
+                                confidence: 'high'
+                            }));
+                            setVoiceConversation(conversationToUse);
+                        }
                         
-                        // Generate and send conversation summary
+                        // Generate conversation summary for modal
                         const summary = generateVoiceSummary();
-                        if (summary) {
-                            console.log('[Vapi] Generated voice summary:', summary);
-                            await sendVoiceSummaryAsProjectMessage(summary);
-                            
-                            // Remove processing message
-                            setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id));
+                        console.log('[Vapi] DEBUG: generated summary:', summary);
+                        
+                        // Always show modal if there was any conversation
+                        if (conversationToUse.length > 0 || voiceTranscript.length > 0) {
+                            console.log('[Vapi] Showing transcript modal');
+                            try {
+                                const enhancedSummary = await generateEnhancedTranscriptSummary(summary || {});
+                                console.log('[Vapi] DEBUG: enhanced summary:', enhancedSummary);
+                                setTranscriptSummary(enhancedSummary);
+                                setShowTranscriptModal(true);
+                            } catch (error) {
+                                console.error('[Vapi] Error generating enhanced summary:', error);
+                                // Show modal with basic summary even if enhancement fails
+                                setTranscriptSummary({
+                                    metadata: {
+                                        callDate: new Date().toLocaleDateString(),
+                                        callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
+                                        duration: summary?.duration || 'Unknown',
+                                        participantCount: 1
+                                    },
+                                    executiveSummary: voiceTranscript.join(' ') || 'Voice call ended.',
+                                    keyDecisions: [],
+                                    actionItems: [],
+                                    materialsList: [],
+                                    risks: [],
+                                    fullTranscript: conversationToUse
+                                });
+                                setShowTranscriptModal(true);
+                            }
                         } else {
-                            // Remove processing message if no summary
-                            setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id));
+                            console.log('[Vapi] No conversation data to show');
                         }
                         
                         // Save transcription as a chat message if there was any
@@ -546,23 +581,55 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     });
                     
                     vapiRef.current.on('message', (message) => {
-                        console.log('[Vapi] message received:', message.type);
+                        console.log('[Vapi] message received:', message.type, message);
                         
-                        if (message.type === 'transcript' && message.transcript) {
-                            const text = String(message.transcript).trim();
+                        // Handle various transcript types
+                        if (message.type === 'transcript') {
+                            const text = String(message.transcript || message.text || '').trim();
                             if (text) {
                                 setVoiceTranscript(prev => {
-                                    const newTranscript = [...prev, text].slice(-3); // Keep last 3 lines
+                                    const newTranscript = [...prev, text].slice(-5); // Keep last 5 lines
                                     console.log('[Vapi] Updated transcript:', newTranscript);
                                     return newTranscript;
                                 });
                                 
-                                // Add to conversation tracking
-                                const role = message.role || 'user'; // Vapi provides role information
+                                // Add to conversation tracking - determine speaker
+                                const speaker = message.role === 'assistant' ? 'Assistant' : 'User';
+                                setVoiceConversation(prev => {
+                                    const updated = [...prev, {
+                                        speaker: speaker,
+                                        message: text,
+                                        timestamp: new Date(),
+                                        confidence: 'high'
+                                    }];
+                                    console.log('[Vapi] Updated conversation:', updated);
+                                    return updated;
+                                });
+                            }
+                        }
+                        
+                        // Also capture user-message events
+                        if (message.type === 'user-message' && message.message) {
+                            const text = String(message.message).trim();
+                            if (text) {
                                 setVoiceConversation(prev => [...prev, {
-                                    speaker: role,
+                                    speaker: 'User',
                                     message: text,
-                                    timestamp: new Date()
+                                    timestamp: new Date(),
+                                    confidence: 'high'
+                                }]);
+                            }
+                        }
+                        
+                        // Capture assistant-message events
+                        if (message.type === 'assistant-message' && message.message) {
+                            const text = String(message.message).trim();
+                            if (text) {
+                                setVoiceConversation(prev => [...prev, {
+                                    speaker: 'Assistant',
+                                    message: text,
+                                    timestamp: new Date(),
+                                    confidence: 'high'
                                 }]);
                             }
                         }
@@ -574,13 +641,17 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                             setVoiceActions(prev => [...prev, action]);
                         }
                         
-                        // Track assistant responses
+                        // Track assistant speech responses
                         if (message.type === 'speech' && message.speech) {
-                            setVoiceConversation(prev => [...prev, {
-                                speaker: 'assistant',
-                                message: message.speech,
-                                timestamp: new Date()
-                            }]);
+                            const text = String(message.speech).trim();
+                            if (text) {
+                                setVoiceConversation(prev => [...prev, {
+                                    speaker: 'Assistant',
+                                    message: text,
+                                    timestamp: new Date(),
+                                    confidence: 'high'
+                                }]);
+                            }
                         }
                     });
                     
@@ -980,6 +1051,229 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
             setMessages(prev => [errorMessage, ...prev]);
         }
     };
+    
+    // Enhanced transcript and summary generation for modal with GPT-5
+    const generateEnhancedTranscriptSummary = async (baseSummary) => {
+        try {
+            const projectInfo = selectedProject ? {
+                name: selectedProject.projectName || selectedProject.name,
+                number: selectedProject.projectNumber,
+                address: selectedProject.address || selectedProject.customer?.address
+            } : null;
+            
+            // First, try to get AI-enhanced summary from backend using GPT-5
+            try {
+                const response = await fetch('/api/transcripts/enhance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                    },
+                    body: JSON.stringify({
+                        fullTranscript: voiceConversation.map(exchange => ({
+                            timestamp: exchange.timestamp || new Date(),
+                            speaker: exchange.speaker || 'User',
+                            message: exchange.message,
+                            confidence: exchange.confidence || 'high'
+                        })),
+                        metadata: {
+                            callDate: new Date().toLocaleDateString(),
+                            callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
+                            duration: baseSummary?.duration || 'Unknown',
+                            participantCount: voiceConversation.length > 0 ? new Set(voiceConversation.map(c => c.speaker)).size : 1
+                        },
+                        projectInfo
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data?.summary) {
+                        console.log('[Vapi] Successfully generated GPT-5 enhanced summary');
+                        return result.data.summary;
+                    }
+                }
+            } catch (aiError) {
+                console.error('[Vapi] Error getting AI-enhanced summary:', aiError);
+            }
+            
+            // Fallback to local extraction if AI service fails
+            console.log('[Vapi] Using fallback local extraction');
+            const enhancedSummary = {
+                metadata: {
+                    callDate: new Date().toLocaleDateString(),
+                    callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
+                    duration: baseSummary?.duration || 'Unknown',
+                    project: projectInfo,
+                    participantCount: voiceConversation.length > 0 ? new Set(voiceConversation.map(c => c.speaker)).size : 1
+                },
+                executiveSummary: await generateExecutiveSummary(voiceConversation),
+                keyDecisions: extractKeyDecisions(voiceConversation),
+                actionItems: extractActionItems(voiceConversation),
+                materialsList: extractMaterialsList(voiceConversation),
+                risks: extractRisksAndIssues(voiceConversation),
+                fullTranscript: voiceConversation.map(exchange => ({
+                    timestamp: exchange.timestamp || new Date(),
+                    speaker: exchange.speaker || 'User',
+                    message: exchange.message,
+                    confidence: exchange.confidence || 'high'
+                })),
+                actions: voiceActions
+            };
+            
+            return enhancedSummary;
+        } catch (error) {
+            console.error('Error generating enhanced summary:', error);
+            return null;
+        }
+    };
+    
+    // Extract specific information from voice conversation
+    const generateExecutiveSummary = async (conversation) => {
+        if (!conversation || conversation.length === 0) return "No conversation recorded.";
+        
+        // Simple summarization - in production, this could use AI
+        const messages = conversation.map(c => c.message).join(' ');
+        if (messages.length > 200) {
+            return `Discussion covered project status, materials, and timeline. Key topics included: ${messages.substring(0, 200)}...`;
+        }
+        return messages;
+    };
+    
+    const extractKeyDecisions = (conversation) => {
+        const decisions = [];
+        conversation.forEach(exchange => {
+            const message = exchange.message.toLowerCase();
+            if (message.includes('approved') || message.includes('decided') || message.includes('agreed')) {
+                decisions.push({
+                    decision: exchange.message,
+                    timestamp: exchange.timestamp || new Date(),
+                    speaker: exchange.speaker
+                });
+            }
+        });
+        return decisions;
+    };
+    
+    const extractActionItems = (conversation) => {
+        const actions = [];
+        conversation.forEach(exchange => {
+            const message = exchange.message.toLowerCase();
+            if (message.includes('need to') || message.includes('will') || message.includes('schedule') || message.includes('order')) {
+                actions.push({
+                    action: exchange.message,
+                    assignee: exchange.speaker === 'User' ? 'Customer' : 'Team',
+                    dueDate: null, // Could be extracted with better parsing
+                    priority: 'medium'
+                });
+            }
+        });
+        return actions;
+    };
+    
+    const extractMaterialsList = (conversation) => {
+        const materials = [];
+        conversation.forEach(exchange => {
+            const message = exchange.message.toLowerCase();
+            // Simple material detection - could be enhanced with NLP
+            const materialKeywords = ['shingles', 'lumber', 'nails', 'tar', 'flashing', 'gutters', 'materials'];
+            materialKeywords.forEach(keyword => {
+                if (message.includes(keyword)) {
+                    materials.push({
+                        material: keyword,
+                        mentioned: exchange.message,
+                        timestamp: exchange.timestamp || new Date()
+                    });
+                }
+            });
+        });
+        return materials;
+    };
+    
+    const extractRisksAndIssues = (conversation) => {
+        const risks = [];
+        conversation.forEach(exchange => {
+            const message = exchange.message.toLowerCase();
+            if (message.includes('problem') || message.includes('issue') || message.includes('concern') || message.includes('delay')) {
+                risks.push({
+                    risk: exchange.message,
+                    severity: 'medium',
+                    timestamp: exchange.timestamp || new Date(),
+                    status: 'open'
+                });
+            }
+        });
+        return risks;
+    };
+    
+    // Handle file format selection
+    const handleFileFormatChange = (format) => {
+        setSelectedFileFormats(prev => {
+            if (prev.includes(format)) {
+                return prev.filter(f => f !== format);
+            } else {
+                return [...prev, format];
+            }
+        });
+    };
+    
+    // Generate and download files
+    const handleDownloadFiles = async () => {
+        if (!transcriptSummary || selectedFileFormats.length === 0) return;
+        
+        setIsGeneratingFiles(true);
+        
+        try {
+            const response = await fetch('/api/transcripts/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                },
+                body: JSON.stringify({
+                    summary: transcriptSummary,
+                    formats: selectedFileFormats,
+                    projectId: selectedProject?.id,
+                    sessionId: `voice_${Date.now()}`,
+                    useAI: true  // Flag to indicate we want AI-enhanced generation
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data.downloadLinks) {
+                    setDownloadLinks(result.data.downloadLinks);
+                    
+                    // Trigger downloads
+                    Object.entries(result.data.downloadLinks).forEach(([format, url]) => {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `transcript_${new Date().toISOString().split('T')[0]}.${format}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                } else {
+                    throw new Error('Failed to generate files');
+                }
+            } else {
+                throw new Error('API request failed');
+            }
+        } catch (error) {
+            console.error('Error generating transcript files:', error);
+            alert('Failed to generate transcript files. Please try again.');
+        } finally {
+            setIsGeneratingFiles(false);
+        }
+    };
+    
+    // Close transcript modal
+    const closeTranscriptModal = () => {
+        setShowTranscriptModal(false);
+        setTranscriptSummary(null);
+        setDownloadLinks(null);
+        setSelectedFileFormats(['pdf', 'json']);
+    };
 
     // Remove auto-scroll on load; we'll scroll only when sending/receiving messages
 
@@ -1281,6 +1575,45 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         >
                             Clear Chat
                         </button>
+                        <button
+                            onClick={async () => {
+                                // TEST: Manually trigger the transcript modal
+                                const testSummary = {
+                                    metadata: {
+                                        callDate: new Date().toLocaleDateString(),
+                                        callTime: '2:30 PM - 2:35 PM',
+                                        duration: '5m 0s',
+                                        participantCount: 2,
+                                        project: selectedProject ? {
+                                            name: selectedProject.projectName || selectedProject.name,
+                                            number: selectedProject.projectNumber,
+                                            address: selectedProject.address
+                                        } : null
+                                    },
+                                    executiveSummary: 'Test conversation about project progress and timeline.',
+                                    keyDecisions: [
+                                        { decision: 'Approved material delivery for next week', speaker: 'Customer', timestamp: new Date() }
+                                    ],
+                                    actionItems: [
+                                        { action: 'Schedule inspection for Friday', assignee: 'Team', priority: 'high' }
+                                    ],
+                                    materialsList: [
+                                        { material: 'shingles', mentioned: 'Need 20 bundles of shingles' }
+                                    ],
+                                    risks: [],
+                                    fullTranscript: [
+                                        { speaker: 'User', message: 'How is the project going?', timestamp: new Date(), confidence: 'high' },
+                                        { speaker: 'Assistant', message: 'The project is progressing well. We are on schedule.', timestamp: new Date(), confidence: 'high' }
+                                    ]
+                                };
+                                setTranscriptSummary(testSummary);
+                                setShowTranscriptModal(true);
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-green-500 hover:bg-green-600 text-white"
+                            title="Test Modal"
+                        >
+                            Test Modal
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1346,21 +1679,6 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         </svg>
                     </a>
                 </form>
-                {voiceError && (
-                    <div className="mt-1 text-[10px] text-red-600">
-                        🎤 {voiceError}
-                        {voiceError.includes('permission') && (
-                            <div className="text-gray-600 mt-1">
-                                Please allow microphone access and try again.
-                            </div>
-                        )}
-                    </div>
-                )}
-                {isVoiceReady && !voiceError && (
-                    <div className="mt-1 text-[10px] text-green-600">
-                        🎤 Voice assistant ready - click to start talking
-                    </div>
-                )}
             </div>
 
             {/* Chat History Panel */}
@@ -1592,6 +1910,230 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                             }} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-2 rounded-md text-white ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
                                 <span className="font-semibold text-sm md:text-base">{isSendingMessage ? 'Sending...' : 'SEND'}</span>
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Transcript and Summary Modal */}
+            {showTranscriptModal && transcriptSummary && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-8" style={{ zIndex: 999999 }}>
+                    <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col" style={{ zIndex: 999999 }}>
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-900">Voice Call Transcript & Summary</h2>
+                                    <p className="text-sm text-gray-600">
+                                        {transcriptSummary.metadata.callDate} • {transcriptSummary.metadata.duration} • {transcriptSummary.metadata.participantCount} participant(s)
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={closeTranscriptModal}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Modal Content - Scrollable */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            {/* Project Info */}
+                            {transcriptSummary.metadata.project && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Project Information</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                        <div><span className="font-medium">Project:</span> {transcriptSummary.metadata.project.name}</div>
+                                        <div><span className="font-medium">Number:</span> #{transcriptSummary.metadata.project.number}</div>
+                                        {transcriptSummary.metadata.project.address && (
+                                            <div className="md:col-span-2"><span className="font-medium">Address:</span> {transcriptSummary.metadata.project.address}</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Executive Summary */}
+                            <div className="bg-blue-50 rounded-lg p-4">
+                                <h3 className="text-lg font-semibold text-blue-900 mb-3">Executive Summary</h3>
+                                <p className="text-gray-800 leading-relaxed">{transcriptSummary.executiveSummary}</p>
+                            </div>
+
+                            {/* Key Sections Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Key Decisions */}
+                                {transcriptSummary.keyDecisions.length > 0 && (
+                                    <div className="bg-green-50 rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold text-green-900 mb-3">Key Decisions & Approvals</h3>
+                                        <div className="space-y-2">
+                                            {transcriptSummary.keyDecisions.map((decision, index) => (
+                                                <div key={index} className="bg-white p-3 rounded border border-green-200">
+                                                    <p className="text-sm text-gray-800">{decision.decision}</p>
+                                                    <p className="text-xs text-gray-600 mt-1">
+                                                        {decision.speaker} • {new Date(decision.timestamp).toLocaleTimeString()}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Action Items */}
+                                {transcriptSummary.actionItems.length > 0 && (
+                                    <div className="bg-orange-50 rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold text-orange-900 mb-3">Action Items</h3>
+                                        <div className="space-y-2">
+                                            {transcriptSummary.actionItems.map((item, index) => (
+                                                <div key={index} className="bg-white p-3 rounded border border-orange-200">
+                                                    <p className="text-sm text-gray-800 font-medium">{item.action}</p>
+                                                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                                                        <span>Assignee: {item.assignee}</span>
+                                                        <span className={`px-2 py-1 rounded ${
+                                                            item.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                                            item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-green-100 text-green-800'
+                                                        }`}>
+                                                            {item.priority} priority
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Materials List */}
+                                {transcriptSummary.materialsList.length > 0 && (
+                                    <div className="bg-purple-50 rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold text-purple-900 mb-3">Materials Discussed</h3>
+                                        <div className="space-y-2">
+                                            {transcriptSummary.materialsList.map((material, index) => (
+                                                <div key={index} className="bg-white p-3 rounded border border-purple-200">
+                                                    <p className="text-sm text-gray-800 font-medium">{material.material}</p>
+                                                    <p className="text-xs text-gray-600 mt-1">"{material.mentioned}"</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Risks/Issues */}
+                                {transcriptSummary.risks.length > 0 && (
+                                    <div className="bg-red-50 rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold text-red-900 mb-3">Risks & Open Issues</h3>
+                                        <div className="space-y-2">
+                                            {transcriptSummary.risks.map((risk, index) => (
+                                                <div key={index} className="bg-white p-3 rounded border border-red-200">
+                                                    <p className="text-sm text-gray-800">{risk.risk}</p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className={`px-2 py-1 rounded text-xs ${
+                                                            risk.severity === 'high' ? 'bg-red-100 text-red-800' :
+                                                            risk.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-green-100 text-green-800'
+                                                        }`}>
+                                                            {risk.severity} severity
+                                                        </span>
+                                                        <span className="text-xs text-gray-600">{risk.status}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Full Transcript */}
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Full Conversation Transcript</h3>
+                                <div className="space-y-3 max-h-60 overflow-y-auto">
+                                    {transcriptSummary.fullTranscript.map((exchange, index) => (
+                                        <div key={index} className="bg-white p-3 rounded border border-gray-200">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-sm font-semibold text-gray-700">
+                                                    {exchange.speaker === 'User' ? '👤 You' : '🤖 Assistant'}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                    {new Date(exchange.timestamp).toLocaleTimeString()}
+                                                </span>
+                                                {exchange.confidence !== 'high' && (
+                                                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
+                                                        {exchange.confidence} confidence
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-800">{exchange.message}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="border-t border-gray-200 p-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                {/* File Format Selection */}
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Select file formats:</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {[
+                                            { id: 'pdf', label: 'PDF (Branded)', icon: '📄' },
+                                            { id: 'json', label: 'JSON (Structured)', icon: '📊' },
+                                            { id: 'docx', label: 'Word Document', icon: '📝' },
+                                            { id: 'txt', label: 'Plain Text', icon: '📃' }
+                                        ].map(format => (
+                                            <label key={format.id} className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFileFormats.includes(format.id)}
+                                                    onChange={() => handleFileFormatChange(format.id)}
+                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">
+                                                    {format.icon} {format.label}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={closeTranscriptModal}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                    <button
+                                        onClick={handleDownloadFiles}
+                                        disabled={selectedFileFormats.length === 0 || isGeneratingFiles}
+                                        className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                                            selectedFileFormats.length === 0 || isGeneratingFiles
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : 'bg-blue-600 hover:bg-blue-700'
+                                        }`}
+                                    >
+                                        {isGeneratingFiles ? (
+                                            <div className="flex items-center gap-2">
+                                                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Generating...
+                                            </div>
+                                        ) : (
+                                            `Download Selected (${selectedFileFormats.length})`
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

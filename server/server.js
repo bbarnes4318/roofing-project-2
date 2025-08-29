@@ -709,6 +709,7 @@ app.use('/api/workflow-data', workflowDataRoutes);
 app.use('/api/excel-data', excelDataRoutes);
 app.use('/api/complete-excel-data', completeExcelDataRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/transcripts', require('./routes/transcripts'));
 
 // Legacy route fallbacks for frontend requests missing /api prefix
 // Redirect to proper /api endpoints

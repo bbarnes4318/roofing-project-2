@@ -5,7 +5,21 @@ import api, { projectsService, customersService } from '../../services/api';
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
-
+import { 
+  PhoneIcon, 
+  EnvelopeIcon, 
+  MapPinIcon, 
+  UserIcon, 
+  UserGroupIcon, 
+  PencilIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ChartBarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  PlusIcon,
+  XCircleIcon
+} from '../common/Icons';
 
 const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const [activeSection] = useState('overview');
@@ -13,8 +27,6 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const progressChartRefs = useRef({});
   const [expandedProgress, setExpandedProgress] = useState({});
   const [progressExpanded, setProgressExpanded] = useState(false);
-  
-
   
   // Edit states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -262,684 +274,687 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     );
   }
 
-  // Compact header (Number | Name | Type) + Address with Edit button
-  const HeaderBlock = () => (
-    <div className="mb-4">
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-[12px] font-semibold text-gray-800">{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
-        <h1 className="text-[14px] font-bold text-gray-900 truncate">{(project.address || project.customer?.address || '').trim() || 'Address not provided'}</h1>
-        {project.projectType && (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border ${getProjectTypeColor(project.projectType)}`}>
-            {formatProjectType(project.projectType)}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <label className="text-[11px] text-gray-600">Address:</label>
-        {!isEditingAddress ? (
-          <>
-            <span className="text-[11px] text-gray-800 truncate max-w-[520px]">
-              {(project.address || project.customer?.address || 'Not Provided').trim()}
+  // Modern Header Section
+  const HeaderSection = () => (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 mb-6 shadow-soft">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Project Title and Number */}
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {project.name || project.projectName || 'Project Profile'}
+            </h1>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200">
+              #{String(project.projectNumber || project.id || '').padStart(5, '0')}
             </span>
-            <button
-              onClick={() => setIsEditingAddress(true)}
-              className="px-2 py-1 rounded-md text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700"
-            >
-              Edit
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              type="text"
-              value={editFormData.address}
-              onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
-              className="min-w-[260px] max-w-[520px] flex-1 px-2 py-1 border rounded-md text-[11px] bg-white border-gray-300 text-gray-800 placeholder-gray-400"
-              placeholder="Project address"
-              title="Edit project address"
-              autoFocus
-            />
-            <button
-              onClick={async () => {
-                try {
-                  // Prefer updating customer address when available
-                  if (project.customer?.id) {
-                    await customersService.update(project.customer.id, { address: editFormData.address });
-                  } else {
-                    await projectsService.update(project.id, { address: editFormData.address });
-                  }
-                  setIsEditingAddress(false);
-                } catch (_) {
-                  setIsEditingAddress(false);
-                }
-              }}
-              className="px-2 py-1 rounded-md text-[11px] bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Save
-            </button>
-            <button
-              onClick={() => {
-                setIsEditingAddress(false);
-                setEditFormData(prev => ({ ...prev, address: project.customer?.address || project.address || '' }));
-              }}
-              className="px-2 py-1 rounded-md text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700"
-            >
-              Cancel
-            </button>
-          </>
-        )}
+          </div>
+          
+          {/* Project Type Badge */}
+          {project.projectType && (
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getProjectTypeColor(project.projectType)}`}>
+                {formatProjectType(project.projectType)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Address Section */}
+        <div className="flex-1">
+          <div className="flex items-start gap-3">
+            <MapPinIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-600 mb-1 block">Project Address</label>
+              {!isEditingAddress ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-900 font-medium">
+                    {(project.address || project.customer?.address || 'Address not provided').trim()}
+                  </span>
+                  <button
+                    onClick={handleEditAddress}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    <PencilIcon className="w-3 h-3" />
+                    Edit
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editFormData.address}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Project address"
+                    autoFocus
+                  />
+                  <button
+                    onClick={async () => {
+                      try {
+                        if (project.customer?.id) {
+                          await customersService.update(project.customer.id, { address: editFormData.address });
+                        } else {
+                          await projectsService.update(project.id, { address: editFormData.address });
+                        }
+                        setIsEditingAddress(false);
+                        toast.success('Address updated successfully!');
+                      } catch (error) {
+                        console.error('Error updating address:', error);
+                        toast.error('Failed to update address');
+                      }
+                    }}
+                    className="px-3 py-2 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditingAddress(false);
+                      setEditFormData(prev => ({ ...prev, address: project.customer?.address || project.address || '' }));
+                    }}
+                    className="px-3 py-2 text-xs font-medium bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 
-  const formatAddress = (address) => {
-    if (!address) return 'Address not provided';
-    
-    const parts = address.split(',').map(part => part.trim());
-    if (parts.length >= 3) {
-      // Format: Street, City, State ZIP
-      return (
-        <div className="text-sm text-gray-700">
-          <div className="font-medium">{parts[0]}</div>
-          <div className="text-gray-600">{parts.slice(1).join(', ')}</div>
+  // Workflow Navigation Section
+  const WorkflowNavigation = () => (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-soft">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Phase</span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm font-semibold text-blue-800">
+            <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+            {WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}
+          </span>
         </div>
-      );
-    } else if (parts.length === 2) {
-      // Format: Street, State ZIP (missing city - fix this)
-      return (
-        <div className="text-sm text-gray-700">
-          <div className="font-medium">{parts[0]}</div>
-          <div className="text-gray-600">{parts[1]}</div>
+        
+        <div className="hidden sm:block w-px h-6 bg-gray-300"></div>
+        
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Section</span>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-gray-800">
+            <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+            {(() => {
+              const cw = project.currentWorkflowItem;
+              if (cw?.sectionDisplayName) return cw.sectionDisplayName;
+              if (cw?.sectionName) return cw.sectionName;
+              if (cw?.section) return cw.section;
+              return 'Not Available';
+            })()}
+          </span>
         </div>
-      );
-    }
-    return <div className="text-sm text-gray-700">{address}</div>;
-  };
-
-  const getProjectAddress = (proj) => {
-    if (!proj) return null;
-    const addr = (proj.address || '').trim();
-    const name = (proj.projectName || '').trim();
-    if (addr && addr !== name) return addr;
-    // Fallbacks when legacy data mapped projectName into address
-    return proj.customer?.address || proj.client?.address || addr || null;
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'completed': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'on hold': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-
-      <HeaderBlock />
-
-      {/* Phase/Section/Line Item Navigation */}
-      <div className="mb-4">
-        <div className="flex flex-nowrap items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg overflow-x-auto">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Phase</span>
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 bg-white border border-blue-200 rounded-full px-2 py-0.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>{WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}</span>
-          </div>
-          <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Section</span>
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 bg-white border border-slate-200 rounded-full px-2 py-0.5 truncate">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-              {(() => {
-                const cw = project.currentWorkflowItem;
-                if (cw?.sectionDisplayName) return cw.sectionDisplayName;
-                if (cw?.sectionName) return cw.sectionName;
-                if (cw?.section) return cw.section;
-                return 'Not Available';
-              })()}
-            </span>
-          </div>
-          <span className="hidden sm:block h-4 w-px bg-gray-200"></span>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Line Item</span>
-            <button
-              onClick={async () => {
-
+        
+        <div className="hidden sm:block w-px h-6 bg-gray-300"></div>
+        
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Line Item</span>
+          <button
+            onClick={async () => {
+              if (!onProjectSelect) {
+                console.error('🎯 LINE ITEM CLICKED! onProjectSelect is not available');
+                toast.error('Navigation failed: onProjectSelect not available');
+                return;
+              }
+              
+              try {
+                console.log('🎯 PROJECT PROFILE TAB: Line item clicked for project:', project.id);
                 
+                const cw = project?.currentWorkflowItem;
+                const currentLineItem = WorkflowDataService.getCurrentLineItem(project);
+                const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(project);
+                const currentPhase = cw?.phase || WorkflowProgressService.getProjectPhase(project) || 'LEAD';
                 
-                
-                if (!onProjectSelect) {
-                  console.error('🎯 LINE ITEM CLICKED! onProjectSelect is not available');
-                  toast.error('Navigation failed: onProjectSelect not available');
-                  
-                  // Try fallback navigation using window.location or other methods
-                  console.log('🎯 LINE ITEM CLICKED! Attempting fallback navigation...');
-                  
-                  // Fallback: Try to change the view to Project Workflow
-                  // This might work if we're in a context where we can change views
-                  try {
-                    // Try to trigger a view change by updating URL or using a different method
-                    const currentUrl = new URL(window.location.href);
-                    currentUrl.searchParams.set('view', 'Project Workflow');
-                    currentUrl.searchParams.set('targetLineItemId', project.currentWorkflowItem?.lineItemId || '');
-                    window.history.pushState({}, '', currentUrl);
-                    
-                    // Force a page reload to trigger the view change
-                    window.location.reload();
-                  } catch (fallbackError) {
-                    console.error('🎯 LINE ITEM CLICKED! Fallback navigation also failed:', fallbackError);
-                    toast.error('All navigation methods failed');
-                  }
-                  return;
-                }
+                let targetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
+                let targetSectionId = typeof currentSection === 'string' ? currentSection.toLowerCase().replace(/\s+/g, '-') : (currentSection || '');
                 
                 try {
-                  console.log('🎯 PROJECT PROFILE TAB: Line item clicked for project:', project.id);
-                  
-                  // Get current workflow data from the project
-                  const cw = project?.currentWorkflowItem;
-                  const currentLineItem = WorkflowDataService.getCurrentLineItem(project);
-                  const currentSection = cw?.sectionId || cw?.section || WorkflowDataService.getCurrentSection(project);
-                  const currentPhase = cw?.phase || WorkflowProgressService.getProjectPhase(project) || 'LEAD';
-                  
-                  console.log('🎯 PROJECT PROFILE TAB: Current data:', {
-                    currentLineItem: currentLineItem?.name,
-                    currentSection,
-                    currentPhase,
-                    cw: cw
+                  const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                    }
                   });
                   
-                  // Try to get position data for more accurate targeting
-                  let targetLineItemId = currentLineItem?.id || `${currentPhase}-${currentSection}-0`;
-                  let targetSectionId = typeof currentSection === 'string' ? currentSection.toLowerCase().replace(/\s+/g, '-') : (currentSection || '');
-                  
-                  try {
-                    const positionResponse = await fetch(`/api/workflow-data/project-position/${project.id}`, {
-                      headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                  if (positionResponse.ok) {
+                    const positionResult = await positionResponse.json();
+                    if (positionResult.success && positionResult.data) {
+                      const position = positionResult.data;
+                      if (position.currentLineItemId) {
+                        targetLineItemId = position.currentLineItemId;
                       }
-                    });
-                    
-                    if (positionResponse.ok) {
-                      const positionResult = await positionResponse.json();
-                      if (positionResult.success && positionResult.data) {
-                        const position = positionResult.data;
-                        console.log('🎯 PROJECT PROFILE TAB: Position data received:', position);
-                        
-                        // Use position data if available
-                        if (position.currentLineItemId) {
-                          targetLineItemId = position.currentLineItemId;
-                        }
-                        if (position.currentSectionId) {
-                          targetSectionId = position.currentSectionId;
-                        }
+                      if (position.currentSectionId) {
+                        targetSectionId = position.currentSectionId;
                       }
                     }
-                  } catch (positionError) {
-                    console.warn('🎯 PROJECT PROFILE TAB: Could not fetch position data, using fallback:', positionError);
                   }
-                  
-                  console.log('🎯 PROJECT PROFILE TAB: Final target IDs:', {
-                    targetLineItemId,
-                    targetSectionId
-                  });
-                  
-                  // Create navigation object
-                  const projectWithNavigation = {
-                    ...project,
-                    navigationSource: 'Project Profile Tab',
-                    returnToSection: 'project-profile',
-                    highlightStep: currentLineItem?.name || 'Line Item',
-                    highlightLineItem: currentLineItem?.name || 'Line Item',
-                    targetPhase: currentPhase,
-                    targetSection: currentSection,
-                    targetLineItem: currentLineItem?.name || 'Line Item',
-                    scrollToCurrentLineItem: true,
-                    navigationTarget: {
-                      phase: currentPhase,
-                      section: currentSection,
-                      lineItem: currentLineItem?.name || 'Line Item',
-                      stepName: currentLineItem?.name || 'Line Item',
-                      lineItemId: targetLineItemId,
-                      highlightMode: 'line-item',
-                      scrollBehavior: 'smooth',
-                      targetElementId: `lineitem-${targetLineItemId}`,
-                      highlightColor: '#0066CC',
-                      highlightDuration: 3000,
-                      targetSectionId: targetSectionId,
-                      expandPhase: true,
-                      expandSection: true,
-                      autoOpen: true,
-                      scrollAndHighlight: true,
-                      nonce: Date.now()
-                    }
-                  };
-                  
-                  console.log('🎯 PROJECT PROFILE TAB: Navigating to workflow with:', projectWithNavigation.navigationTarget);
-                  console.log('🎯 PROJECT PROFILE TAB: Calling onProjectSelect with:', {
-                    project: projectWithNavigation,
-                    view: 'Project Workflow',
-                    targetLineItemId,
-                    targetSectionId
-                  });
-                  
-                  // Navigate to workflow
-                  onProjectSelect(
-                    projectWithNavigation, 
-                    'Project Workflow', 
-                    null, 
-                    'Project Profile', 
-                    targetLineItemId, 
-                    targetSectionId
-                  );
-                  
-                  console.log('🎯 PROJECT PROFILE TAB: onProjectSelect called successfully');
-                  
-                } catch (error) {
-                  console.error('🎯 PROJECT PROFILE TAB: Error navigating to workflow:', error);
-                  
-                  // Fallback navigation without complex data
-                  const fallbackProject = {
-                    ...project,
-                    navigationSource: 'Project Profile Tab (Fallback)',
-                    returnToSection: 'project-profile'
-                  };
-                  
-                  console.log('🎯 PROJECT PROFILE TAB: Using fallback navigation');
-                  onProjectSelect(fallbackProject, 'Project Workflow', null, 'Project Profile');
+                } catch (positionError) {
+                  console.warn('🎯 PROJECT PROFILE TAB: Could not fetch position data, using fallback:', positionError);
                 }
-              }}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 bg-white border-2 border-blue-400 rounded-full px-3 py-1 hover:bg-blue-50 hover:border-blue-500 transition-colors cursor-pointer truncate shadow-sm"
+                
+                const projectWithNavigation = {
+                  ...project,
+                  navigationSource: 'Project Profile Tab',
+                  returnToSection: 'project-profile',
+                  highlightStep: currentLineItem?.name || 'Line Item',
+                  highlightLineItem: currentLineItem?.name || 'Line Item',
+                  targetPhase: currentPhase,
+                  targetSection: currentSection,
+                  targetLineItem: currentLineItem?.name || 'Line Item',
+                  scrollToCurrentLineItem: true,
+                  navigationTarget: {
+                    phase: currentPhase,
+                    section: currentSection,
+                    lineItem: currentLineItem?.name || 'Line Item',
+                    stepName: currentLineItem?.name || 'Line Item',
+                    lineItemId: targetLineItemId,
+                    highlightMode: 'line-item',
+                    scrollBehavior: 'smooth',
+                    targetElementId: `lineitem-${targetLineItemId}`,
+                    highlightColor: '#0066CC',
+                    highlightDuration: 3000,
+                    targetSectionId: targetSectionId,
+                    expandPhase: true,
+                    expandSection: true,
+                    autoOpen: true,
+                    scrollAndHighlight: true,
+                    nonce: Date.now()
+                  }
+                };
+                
+                onProjectSelect(
+                  projectWithNavigation, 
+                  'Project Workflow', 
+                  null, 
+                  'Project Profile', 
+                  targetLineItemId, 
+                  targetSectionId
+                );
+                
+              } catch (error) {
+                console.error('🎯 PROJECT PROFILE TAB: Error navigating to workflow:', error);
+                const fallbackProject = {
+                  ...project,
+                  navigationSource: 'Project Profile Tab (Fallback)',
+                  returnToSection: 'project-profile'
+                };
+                onProjectSelect(fallbackProject, 'Project Workflow', null, 'Project Profile');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+          >
+            <div className="w-2 h-2 rounded-full bg-white"></div>
+            {(() => {
+              const cw = project.currentWorkflowItem;
+              if (cw?.lineItemDisplayName) return cw.lineItemDisplayName;
+              if (cw?.lineItemName) return cw.lineItemName;
+              if (cw?.lineItem) return cw.lineItem;
+              return 'View Workflow';
+            })()}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Contact Information Cards
+  const ContactCards = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* Primary Customer Card */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-soft">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <UserIcon className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Primary Customer</h3>
+              <p className="text-sm text-gray-600">Main point of contact</p>
+            </div>
+          </div>
+          {!isEditingContact && (
+            <button
+              onClick={handleEditContact}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
             >
-              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-              {(() => {
-                const cw = project.currentWorkflowItem;
-                if (cw?.lineItemDisplayName) return cw.lineItemDisplayName;
-                if (cw?.lineItemName) return cw.lineItemName;
-                if (cw?.lineItem) return cw.lineItem;
-                return 'Click to View Workflow';
-              })()}
+              <PencilIcon className="w-4 h-4" />
+              Edit
+            </button>
+          )}
+        </div>
+        
+        <div className="space-y-3">
+          <div className="font-semibold text-gray-900 text-lg">
+            {project.customer?.primaryName || project.customer?.name || 'Not Available'}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <PhoneIcon className="w-4 h-4 text-green-600" />
+            <a 
+              href={`tel:${(project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
+              className="text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              {project.customer?.primaryPhone ? formatPhoneNumber(project.customer.primaryPhone) : 'Not Available'}
+            </a>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <EnvelopeIcon className="w-4 h-4 text-blue-600" />
+            <a 
+              href={`mailto:${project.customer?.primaryEmail || ''}`}
+              className="text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              {project.customer?.primaryEmail || 'Not Available'}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Manager Card */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-soft">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+            <UserGroupIcon className="w-5 h-5 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Project Manager</h3>
+            <p className="text-sm text-gray-600">Project oversight</p>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="font-semibold text-gray-900 text-lg">
+            {project.projectManager?.firstName && project.projectManager?.lastName
+              ? `${project.projectManager.firstName} ${project.projectManager.lastName}`
+              : project.projectManager?.name || 'Not Assigned'}
+          </div>
+          
+          {project.projectManager?.phone && (
+            <div className="flex items-center gap-3">
+              <PhoneIcon className="w-4 h-4 text-green-600" />
+              <a 
+                href={`tel:${project.projectManager.phone.replace(/[^\d+]/g, '')}`}
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                {formatPhoneNumber(project.projectManager.phone)}
+              </a>
+            </div>
+          )}
+          
+          {project.projectManager?.email && (
+            <div className="flex items-center gap-3">
+              <EnvelopeIcon className="w-4 h-4 text-blue-600" />
+              <a 
+                href={`mailto:${project.projectManager.email}`}
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                {project.projectManager.email}
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Secondary Contact Card
+  const SecondaryContactCard = () => {
+    const hasSecondaryContact = project.customer?.secondaryName || project.customer?.secondaryPhone || project.customer?.secondaryEmail;
+    
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-soft">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <UserIcon className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Secondary Contact</h3>
+              <p className="text-sm text-gray-600">Additional contact person</p>
+            </div>
+          </div>
+          {!hasSecondaryContact && !isEditingContact && (
+            <button
+              onClick={() => setIsEditingContact(true)}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Add Contact
+            </button>
+          )}
+        </div>
+        
+        {hasSecondaryContact ? (
+          <div className="space-y-3">
+            {project.customer?.secondaryName && (
+              <div className="font-semibold text-gray-900 text-lg">
+                {project.customer.secondaryName}
+              </div>
+            )}
+            
+            {project.customer?.secondaryPhone && (
+              <div className="flex items-center gap-3">
+                <PhoneIcon className="w-4 h-4 text-green-600" />
+                <a 
+                  href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`}
+                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  {formatPhoneNumber(project.customer.secondaryPhone)}
+                </a>
+              </div>
+            )}
+            
+            {project.customer?.secondaryEmail && (
+              <div className="flex items-center gap-3">
+                <EnvelopeIcon className="w-4 h-4 text-blue-600" />
+                <a 
+                  href={`mailto:${project.customer.secondaryEmail}`}
+                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  {project.customer.secondaryEmail}
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-gray-400 text-4xl mb-3">👤</div>
+            <p className="text-gray-500">No secondary contact added</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Modern Progress Chart
+  const ProgressChart = () => {
+    const trades = getProjectTrades(project);
+    const overall = Math.round(trades.reduce((s,t)=> s + (t.laborProgress||0), 0) / (trades.length||1));
+    const materialsProgress = Math.round((trades.filter(t=>t.materialsDelivered).length / trades.length) * 100);
+    
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-soft">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+              <ChartBarIcon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Project Progress</h3>
+              <p className="text-sm text-gray-600">Overall completion status</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-gray-900">{overall}%</div>
+            <div className="text-sm text-gray-600">Complete</div>
+          </div>
+        </div>
+
+        {/* Overall Progress Bar */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Overall Progress</span>
+            <span className="text-sm font-bold text-gray-900">{overall}%</span>
+          </div>
+          <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ease-out ${
+                overall === 100 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+              }`}
+              style={{ width: `${overall}%` }}
+            >
+              {overall > 15 && (
+                <div className="h-full w-full bg-gradient-to-t from-white/20 to-transparent rounded-full" />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Materials Progress */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Materials Delivered</span>
+            <span className="text-sm font-bold text-gray-900">{materialsProgress}%</span>
+          </div>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500"
+              style={{ width: `${materialsProgress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Trade Breakdown */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700">Trade Breakdown</span>
+            <button
+              onClick={() => setProgressExpanded(!progressExpanded)}
+              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+            >
+              {progressExpanded ? (
+                <>
+                  <span>Hide Details</span>
+                  <ChevronUpIcon className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <span>Show Details</span>
+                  <ChevronDownIcon className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+          
+          {progressExpanded && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gray-200">
+              {trades.map((trade, idx) => {
+                const colors = [
+                  'from-purple-500 to-purple-600',
+                  'from-pink-500 to-pink-600', 
+                  'from-yellow-500 to-yellow-600',
+                  'from-teal-500 to-teal-600',
+                  'from-red-500 to-red-600',
+                  'from-indigo-500 to-indigo-600',
+                  'from-cyan-500 to-cyan-600',
+                  'from-amber-500 to-amber-600',
+                  'from-lime-500 to-lime-600',
+                  'from-fuchsia-500 to-fuchsia-600'
+                ];
+                const gradientClass = colors[idx % colors.length];
+                
+                return (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800 truncate">{trade.name}</span>
+                      <span className="text-sm font-bold text-gray-900">{trade.laborProgress}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full bg-gradient-to-r ${gradientClass} rounded-full transition-all duration-500`}
+                        style={{ width: `${trade.laborProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Edit Contact Form Modal
+  const EditContactForm = () => {
+    if (!isEditingContact) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Edit Contact Information</h3>
+            <button
+              onClick={handleCancelEdit}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XCircleIcon className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Primary Customer */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-blue-700 border-b border-blue-200 pb-2">Primary Customer</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  value={editFormData.customerName}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                  placeholder="Customer Name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="tel"
+                  value={editFormData.customerPhone}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                  placeholder="Phone Number"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="email"
+                  value={editFormData.customerEmail}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                  placeholder="Email Address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            {/* Project Manager */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-purple-700 border-b border-purple-200 pb-2">Project Manager</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select
+                  value={editFormData.pmId}
+                  onChange={(e) => {
+                    const selectedUser = users.find(user => user.id.toString() === e.target.value);
+                    setEditFormData(prev => ({
+                      ...prev,
+                      pmId: e.target.value,
+                      pmName: selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : '',
+                      pmEmail: selectedUser?.email || '',
+                      pmPhone: selectedUser?.phone || ''
+                    }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={usersLoading}
+                >
+                  <option value="">
+                    {usersLoading ? '⏳ Loading users...' : '👤 Select Project Manager'}
+                  </option>
+                  {users.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName} ({user.role || 'No role'})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  value={editFormData.pmPhone}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))}
+                  placeholder="Phone Number (Optional)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="email"
+                  value={editFormData.pmEmail}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))}
+                  placeholder="Email Address (Optional)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            {/* Secondary Contact */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-600 border-b border-gray-200 pb-2">Secondary Contact (Optional)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  value={editFormData.secondaryName}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryName: e.target.value }))}
+                  placeholder="Secondary Contact Name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="tel"
+                  value={editFormData.secondaryPhone}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryPhone: e.target.value }))}
+                  placeholder="Phone Number"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="email"
+                  value={editFormData.secondaryEmail}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryEmail: e.target.value }))}
+                  placeholder="Email Address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              disabled={isSaving}
+              className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50 font-medium transition-colors"
+            >
+              Cancel
             </button>
           </div>
         </div>
       </div>
+    );
+  };
 
-      {/* Two-column content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left column: Primary Details */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Primary Details card: Name, Number|Type, Address, Phase|Section|Line Item */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2 truncate">
-              {project.name || project.projectName || 'Project Profile'}
-            </h1>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-base font-bold text-gray-900">{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-sm font-medium text-gray-700">{formatProjectType(project.projectType) || project.jobType || 'Project'}</span>
-            </div>
-
-
-
-            
-            {/* Edit Contact Information Form */}
-            {isEditingContact && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-900 mb-4">Edit Contact Information</h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Primary Customer */}
-                  <div className="space-y-3">
-                    <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Primary Customer</h5>
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        value={editFormData.customerName}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                        placeholder="Customer Name"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="tel"
-                        value={editFormData.customerPhone}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
-                        placeholder="Phone Number"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="email"
-                        value={editFormData.customerEmail}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                        placeholder="Email Address"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                  
-                                     {/* Project Manager */}
-                   <div className="space-y-3">
-                     <h5 className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Project Manager</h5>
-                     <div className="space-y-2">
-                       <select
-                         value={editFormData.pmId}
-                         onChange={(e) => {
-                           const selectedUser = users.find(user => user.id.toString() === e.target.value);
-                           setEditFormData(prev => ({
-                             ...prev,
-                             pmId: e.target.value,
-                             pmName: selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : '',
-                             pmEmail: selectedUser?.email || '',
-                             pmPhone: selectedUser?.phone || ''
-                           }));
-                         }}
-                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                         disabled={usersLoading}
-                       >
-                         <option value="">
-                           {usersLoading ? '⏳ Loading users...' : '👤 Select Project Manager'}
-                         </option>
-                         {users.map(user => (
-                           <option key={user.id} value={user.id}>
-                             {user.firstName} {user.lastName} ({user.role || 'No role'})
-                           </option>
-                         ))}
-                       </select>
-                       <input
-                         type="tel"
-                         value={editFormData.pmPhone}
-                         onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))}
-                         placeholder="Phone Number (Optional)"
-                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       />
-                       <input
-                         type="email"
-                         value={editFormData.pmEmail}
-                         onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))}
-                         placeholder="Email Address (Optional)"
-                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       />
-                     </div>
-                   </div>
-                </div>
-                
-                {/* Secondary Contact */}
-                <div className="mt-6 space-y-3">
-                  <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Secondary Contact (Optional)</h5>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      value={editFormData.secondaryName}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryName: e.target.value }))}
-                      placeholder="Secondary Contact Name"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="tel"
-                      value={editFormData.secondaryPhone}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryPhone: e.target.value }))}
-                      placeholder="Phone Number"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="email"
-                      value={editFormData.secondaryEmail}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryEmail: e.target.value }))}
-                      placeholder="Email Address"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex items-center gap-3 mt-6">
-                  <button
-                    onClick={handleSaveChanges}
-                    disabled={isSaving}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    disabled={isSaving}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 text-sm font-medium"
-                  >
-                    Cancel
-                </button>
-              </div>
-            </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
-              {!isEditingContact && (
-                <button
-                  onClick={handleEditContact}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </button>
-              )}
-            </div>
-            {isEditingContact ? (
-              <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Primary Customer</h5>
-                    <div className="space-y-2">
-                      <input type="text" value={editFormData.customerName} onChange={(e) => setEditFormData(prev => ({ ...prev, customerName: e.target.value }))} placeholder="Customer Name" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      <input type="tel" value={editFormData.customerPhone} onChange={(e) => setEditFormData(prev => ({ ...prev, customerPhone: e.target.value }))} placeholder="Phone Number" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      <input type="email" value={editFormData.customerEmail} onChange={(e) => setEditFormData(prev => ({ ...prev, customerEmail: e.target.value }))} placeholder="Email Address" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h5 className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Project Manager</h5>
-                    <div className="space-y-2">
-                      <select value={editFormData.pmId} onChange={(e) => { const selectedUser = users.find(user => user.id.toString() === e.target.value); setEditFormData(prev => ({ ...prev, pmId: e.target.value, pmName: selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : '', pmEmail: selectedUser?.email || '', pmPhone: selectedUser?.phone || '' })); }} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" disabled={usersLoading}>
-                        <option value="">{usersLoading ? '⏳ Loading users...' : '👤 Select Project Manager'}</option>
-                        {users.map(user => (<option key={user.id} value={user.id}>{user.firstName} {user.lastName} ({user.role || 'No role'})</option>))}
-                      </select>
-                      <input type="tel" value={editFormData.pmPhone} onChange={(e) => setEditFormData(prev => ({ ...prev, pmPhone: e.target.value }))} placeholder="Phone Number (Optional)" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      <input type="email" value={editFormData.pmEmail} onChange={(e) => setEditFormData(prev => ({ ...prev, pmEmail: e.target.value }))} placeholder="Email Address (Optional)" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-6 space-y-3">
-                  <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Secondary Contact (Optional)</h5>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                    <input type="text" value={editFormData.secondaryName} onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryName: e.target.value }))} placeholder="Secondary Contact Name" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    <input type="tel" value={editFormData.secondaryPhone} onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryPhone: e.target.value }))} placeholder="Phone Number" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    <input type="email" value={editFormData.secondaryEmail} onChange={(e) => setEditFormData(prev => ({ ...prev, secondaryEmail: e.target.value }))} placeholder="Email Address" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 mt-6">
-                  <button onClick={handleSaveChanges} disabled={isSaving} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">{isSaving ? 'Saving...' : 'Save Changes'}</button>
-                  <button onClick={handleCancelEdit} disabled={isSaving} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 text-sm font-medium">Cancel</button>
-                </div>
-              </div>
-            ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
-                  <div className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">Primary Customer</div>
-                  <div className="space-y-2">
-                    <div className="font-semibold text-gray-900 text-lg">
-                      {project.customer?.primaryName || project.customer?.name || project.clientName || 'Not Available'}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
-                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        <span className="font-medium">{project.customer?.primaryPhone ? formatPhoneNumber(project.customer.primaryPhone) : 'Not Available'}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="font-medium">{project.customer?.primaryEmail || 'Not Available'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="border-l-4 border-purple-500 bg-purple-50 p-4 rounded-r-lg">
-                  <div className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-2">Project Manager</div>
-                  <div className="space-y-2">
-                    <div className="font-semibold text-gray-900 text-lg">
-                      {project.projectManager?.firstName || project.projectManager?.lastName
-                        ? `${project.projectManager?.firstName || ''} ${project.projectManager?.lastName || ''}`.trim()
-                        : project.projectManager?.name || 'Not Available'}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
-                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        <span className="font-medium">{project.projectManager?.phone ? formatPhoneNumber(project.projectManager.phone) : 'Not Available'}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                      <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="font-medium">{project.projectManager?.email || 'Not Available'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            )}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="border-l-4 border-gray-400 bg-gray-50 p-4 rounded-r-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Secondary Contact</div>
-                  {!project.customer?.secondaryName && !project.customer?.secondaryPhone && !project.customer?.secondaryEmail && (
-                    <button
-                      onClick={() => setIsEditingContact(true)}
-                      className="text-xs font-medium text-blue-600 hover:text-blue-800"
-                    >
-                      Add Secondary Contact
-                    </button>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <div className="font-semibold text-gray-900">
-                    {project.customer?.secondaryName || 'Not Provided'}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-700">
-                    <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
-                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      <span className="font-medium">{project.customer?.secondaryPhone ? formatPhoneNumber(project.customer.secondaryPhone) : 'Not Provided'}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-700">
-                    <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md shadow-sm">
-                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <span className="font-medium">{project.customer?.secondaryEmail || 'Not Provided'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <HeaderSection />
+      <WorkflowNavigation />
+      
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Left Column - Contact Information */}
+        <div className="xl:col-span-2 space-y-6">
+          <ContactCards />
+          <SecondaryContactCard />
         </div>
-
-        {/* Right column: Progress + Project Manager */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:min-h-[420px]">
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Project Progress</h3>
-            {(() => {
-              const trades = getProjectTrades(project);
-              const overall = Math.round(trades.reduce((s,t)=> s + (t.laborProgress||0), 0) / (trades.length||1));
-              return (
-                <div className={`rounded-lg transition-all duration-300 relative ${colorMode ? 'bg-slate-700/20 border border-slate-600/30' : 'bg-gray-50/90 border border-gray-200/50'}`}>
-                  <button
-                    onClick={() => setProgressExpanded(!progressExpanded)}
-                    className={`w-full text-left transition-all duration-200 ${colorMode ? 'hover:bg-slate-600/40' : 'hover:bg-gray-100'} rounded p-2`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Overall Project Progress</span>
-                      <div className="flex items-center gap-1">
-                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{overall}%</span>
-                        <svg className={`w-3 h-3 ${colorMode ? 'text-gray-300' : 'text-gray-600'} ${progressExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
-                    <div className={`w-full h-2 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                      <div className="bg-brand-500 h-2 rounded-full transition-all duration-500" style={{ width: `${overall}%` }}></div>
-                    </div>
-                  </button>
-                  <div className="px-2 pb-2">
-                    {progressExpanded && (
-                      <div className="space-y-2 mt-2">
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className={`text-[11px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Materials Progress</span>
-                            <span className={`text-[11px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{Math.round((trades.filter(t=>t.materialsDelivered).length / trades.length) * 100)}%</span>
-                          </div>
-                          <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                            <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${Math.round((trades.filter(t=>t.materialsDelivered).length / trades.length) * 100)}%` }}></div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className={`text-[11px] font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Labor Progress</span>
-                            <span className={`text-[11px] font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{overall}%</span>
-                          </div>
-                          <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                            <div className="bg-orange-400 h-1.5 rounded-full transition-all duration-500" style={{ width: `${overall}%` }}></div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {trades.map((trade, idx) => {
-                            const colors = ['bg-purple-500','bg-pink-500','bg-yellow-500','bg-teal-500','bg-red-500','bg-indigo-500','bg-cyan-500','bg-amber-500','bg-lime-500','bg-fuchsia-500'];
-                            const barColor = colors[idx % colors.length];
-                            return (
-                              <div key={idx}>
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className={`${colorMode ? 'text-white' : 'text-gray-800'} text-[11px] font-semibold truncate`}>{trade.name}</span>
-                                  <span className={`${colorMode ? 'text-white' : 'text-gray-800'} text-[11px] font-bold`}>{trade.laborProgress}%</span>
-                                </div>
-                                <div className={`w-full h-1.5 rounded-full overflow-hidden ${colorMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
-                                  <div className={`${barColor} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${trade.laborProgress}%` }}></div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
+        
+        {/* Right Column - Progress Chart */}
+        <div className="xl:col-span-1">
+          <ProgressChart />
         </div>
       </div>
+      
+      <EditContactForm />
     </div>
   );
 };
