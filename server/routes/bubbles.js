@@ -280,6 +280,42 @@ async function handleHeuristicIntent(message, projectContext, userId) {
   return { handled: false };
 }
 
+// Helper function to get current workflow data for a project (same logic as the API endpoint)
+async function getCurrentWorkflowData(projectId) {
+  const tracker = await prisma.projectWorkflowTracker.findFirst({
+    where: { projectId, isMainWorkflow: true },
+    select: { id: true, currentLineItemId: true, currentPhaseId: true, workflowType: true }
+  });
+  
+  let li = null;
+  if (tracker?.currentLineItemId) {
+    li = await prisma.workflowLineItem.findUnique({
+      where: { id: tracker.currentLineItemId },
+      select: {
+        id: true,
+        itemName: true,
+        responsibleRole: true,
+        section: { select: { id: true, displayName: true, phase: { select: { id: true, phaseType: true, phaseName: true } } } }
+      }
+    });
+  }
+  
+  if (li) {
+    return {
+      lineItemId: li.id,
+      lineItemName: li.itemName,
+      sectionId: li.section?.id,
+      sectionName: li.section?.displayName,
+      phaseId: li.section?.phase?.id,
+      phaseType: li.section?.phase?.phaseType,
+      phaseName: li.section?.phase?.phaseName,
+      responsibleRole: li.responsibleRole
+    };
+  }
+  
+  return null;
+}
+
 // Heuristic general answer for common topics when OpenAI is unavailable
 function heuristicGeneralAnswer(message) {
   const q = String(message || '').toLowerCase();
@@ -639,8 +675,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       session.activeProject = projectContext;
       // Get real workflow data
       try {
-        const currentStepRes = await bubblesService.getCurrentStep(projectId);
-        currentWorkflowData = currentStepRes?.data?.current || null;
+        currentWorkflowData = await getCurrentWorkflowData(projectId);
       } catch (_) {
         currentWorkflowData = null;
       }
@@ -649,8 +684,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     projectContext = session.activeProject;
     // Get real workflow data for active project
     try {
-      const currentStepRes = await bubblesService.getCurrentStep(projectContext.id);
-      currentWorkflowData = currentStepRes?.data?.current || null;
+      currentWorkflowData = await getCurrentWorkflowData(projectContext.id);
     } catch (_) {
       currentWorkflowData = null;
     }
