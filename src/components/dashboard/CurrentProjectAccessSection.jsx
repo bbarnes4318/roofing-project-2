@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSectionNavigation } from '../../contexts/NavigationContext';
 import BackButton from '../common/BackButton';
 import ProjectCubes from './ProjectCubes';
+import WorkflowProgressService from '../../services/workflowProgress';
 
 const CurrentProjectAccessSection = ({ 
   projects, 
@@ -251,8 +252,8 @@ const CurrentProjectAccessSection = ({
     // Apply phase filter
     if (selectedPhaseFilter) {
       filteredProjects = filteredProjects.filter(project => {
-        const projectPhase = project.phase || project.status || 'lead';
-        return projectPhase.toLowerCase().includes(selectedPhaseFilter.toLowerCase());
+        const phaseKey = WorkflowProgressService.getProjectPhase(project);
+        return String(phaseKey).toUpperCase() === String(selectedPhaseFilter).toUpperCase();
       });
     }
 
@@ -286,8 +287,8 @@ const CurrentProjectAccessSection = ({
           bValue = b.client?.name || '';
           break;
         case 'phase':
-          aValue = a.phase || a.status || '';
-          bValue = b.phase || b.status || '';
+          aValue = WorkflowProgressService.getProjectPhase(a) || a.status || '';
+          bValue = WorkflowProgressService.getProjectPhase(b) || b.status || '';
           break;
         case 'progress':
           aValue = a.progress || 0;
@@ -372,8 +373,11 @@ const CurrentProjectAccessSection = ({
   const getUniquePhases = () => {
     const phasesSet = new Set();
     projects?.forEach(project => {
-      const phase = project.phase || project.status || 'lead';
-      phasesSet.add(phase);
+      // Use centralized tracker-driven phase
+      const phaseKey = (project.currentWorkflowItem && project.currentWorkflowItem.phase)
+        ? project.currentWorkflowItem.phase
+        : (project.phase || 'LEAD');
+      phasesSet.add(String(phaseKey).toUpperCase());
     });
     return Array.from(phasesSet).sort();
   };
@@ -433,7 +437,7 @@ const CurrentProjectAccessSection = ({
             <option value="">All Phases</option>
             {uniquePhases.map(phase => (
               <option key={phase} value={phase}>
-                {phase.charAt(0).toUpperCase() + phase.slice(1)}
+                {WorkflowProgressService.getPhaseName(phase)}
               </option>
             ))}
           </select>
@@ -602,7 +606,7 @@ const CurrentProjectAccessSection = ({
                         </div>
                       )}
                     </div>
-                    <div><span className="font-medium">Phase:</span> {selectedProject.phase || selectedProject.status || 'Lead'}</div>
+                    <div><span className="font-medium">Phase:</span> {WorkflowProgressService.getPhaseName(WorkflowProgressService.getProjectPhase(selectedProject))}</div>
                     <div><span className="font-medium">Progress:</span> {selectedProject.progress || 0}%</div>
                   </div>
                 </div>

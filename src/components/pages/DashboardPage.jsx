@@ -67,7 +67,7 @@ const generateActivitiesFromProjects = (projects) => {
         timestamp: timestamp.toISOString(),
         priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
         metadata: {
-          projectPhase: project.phase || 'Lead',
+          projectPhase: WorkflowProgressService.getProjectPhase(project) || 'LEAD',
           projectValue: project.budget || project.estimateValue,
           assignedTo: project.assignedTo || 'Sarah Owner'
         }
@@ -110,22 +110,24 @@ const formatUserRole = (role) => {
 
 // Helper function to convert project data to consistent format
 const convertProjectToTableFormat = (project) => {
+  // Single source of truth for phase: use tracker-driven helper with fallbacks
+  const canonicalPhase = WorkflowProgressService.getProjectPhase(project);
   return {
     id: project.id,
-    projectName: project.name,
+    projectName: project.projectName || project.name,
     startDate: project.startDate,
     endDate: project.endDate,
     status: project.status,
     progress: getProjectProgress(project),
-    budget: project.estimateValue || 0,
-    expenses: 0, // Not available in current project structure
-    responsibleTeam: 'Team Alpha', // Default value
+    budget: project.estimateValue || project.budget || 0,
+    expenses: 0,
+    responsibleTeam: 'Team Alpha',
     priority: project.priority || 'Low',
-    clientName: project.client?.name || 'Unknown',
-    clientEmail: project.client?.email || '',
+    clientName: project.client?.name || project.customer?.primaryName || 'Unknown',
+    clientEmail: project.client?.email || project.customer?.primaryEmail || '',
     projectManager: project.projectManager || null,
-    // Use canonical phase key from API (server provides uppercase key)
-    phase: project.phase || 'LEAD'
+    // Canonical uppercase phase key
+    phase: canonicalPhase || 'LEAD'
   };
 };
 
@@ -137,6 +139,58 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const { data: projectsData, isLoading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
   // Extract the projects array from the response object
   const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || []);
+  // Enriched projects with canonical phase from workflow position when missing
+  const [projectsEnriched, setProjectsEnriched] = useState(null);
+  const uiProjects = projectsEnriched || projects;
+
+  useEffect(() => {
+    let cancelled = false;
+    const enrich = async () => {
+      if (!Array.isArray(projects) || projects.length === 0) {
+        if (!cancelled) setProjectsEnriched(null);
+        return;
+      }
+      try {
+        // Only enrich projects that do not have a reliable phase
+        const headers = {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        };
+        const enriched = await Promise.all(projects.map(async (p) => {
+          const existingPhase = WorkflowProgressService.getProjectPhase(p);
+          if (existingPhase && existingPhase !== 'LEAD') return p;
+          try {
+            const resp = await fetch(`/api/workflow-data/project-position/${p.id}`, { headers });
+            if (!resp.ok) return p;
+            const result = await resp.json();
+            if (result?.success && result.data) {
+              const pos = result.data;
+              return {
+                ...p,
+                currentWorkflowItem: {
+                  ...(p.currentWorkflowItem || {}),
+                  phase: pos.phaseType || p.currentWorkflowItem?.phase || p.phase || 'LEAD',
+                  phaseDisplay: pos.phaseName || p.currentWorkflowItem?.phaseDisplay || null,
+                  section: pos.sectionDisplayName || p.currentWorkflowItem?.section || null,
+                  lineItem: pos.currentLineItemName || p.currentWorkflowItem?.lineItem || null,
+                  lineItemId: pos.currentLineItem || p.currentWorkflowItem?.lineItemId || null,
+                  sectionId: pos.currentSectionId || p.currentWorkflowItem?.sectionId || null,
+                  phaseId: pos.currentPhase || p.currentWorkflowItem?.phaseId || null,
+                  isComplete: false,
+                  totalLineItems: p.currentWorkflowItem?.totalLineItems || WorkflowProgressService.estimateTotalLineItems()
+                }
+              };
+            }
+          } catch (_) {}
+          return p;
+        }));
+        if (!cancelled) setProjectsEnriched(enriched);
+      } catch (_) {
+        if (!cancelled) setProjectsEnriched(null);
+      }
+    };
+    enrich();
+    return () => { cancelled = true; };
+  }, [projects]);
   
   // Get subjects from context
   const { subjects } = useSubjects();
@@ -484,8 +538,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 const subject = subjectMatch ? subjectMatch[1] : 'Project Update';
                 const content = message.text.replace(/\*\*(.+?)\*\*\n\n/, '');
                 
-                // Use canonical phase from project to ensure consistency
-                const canonicalPhase = (project.phase || 'LEAD');
+                // Use canonical tracker-driven phase
+                const canonicalPhase = WorkflowProgressService.getProjectPhase(project) || 'LEAD';
                 const messageRecipients = [];
                 // Prefer explicit recipientId
                 if (message.recipientId) {
@@ -1031,9 +1085,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   // Convert projects to table format for consistency
   const tableProjects = useMemo(() => {
-    if (!Array.isArray(projects)) return [];
-    return projects.map(project => convertProjectToTableFormat(project));
-  }, [projects]);
+    if (!Array.isArray(uiProjects)) return [];
+    return uiProjects.map(project => convertProjectToTableFormat(project));
+  }, [uiProjects]);
 
   // Group projects by phase
   const projectsByPhase = useMemo(() => {
@@ -1046,8 +1100,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const safeTableProjects = Array.isArray(tableProjects) ? tableProjects : [];
     
     safeTableProjects.forEach(project => {
-      // Ensure canonical uppercase phase key for grouping
-      const phase = (project.phase || 'LEAD').toUpperCase();
+      // Ensure canonical uppercase phase key for grouping using tracker-driven helper
+      const phase = String(WorkflowProgressService.getProjectPhase(project) || 'LEAD').toUpperCase();
       if (grouped[phase]) {
         grouped[phase].push(project);
       } else {
@@ -1942,8 +1996,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 const filteredProjects = !selectedPhase ? [] : selectedPhase === 'all' 
                   ? projects 
                   : projects.filter(project => {
-                      const projectPhase = getProjectPhase(project);
-                      return projectPhase === selectedPhase;
+                      const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                      return String(projectPhase).toUpperCase() === String(selectedPhase).toUpperCase();
                     });
                 
                 console.log('Selected Phase:', selectedPhase, 'Filtered Projects Count:', filteredProjects.length);
@@ -2108,8 +2162,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   const filteredProjects = !selectedPhase ? [] : selectedPhase === 'all' 
                     ? projects 
                     : projects.filter(project => {
-                        const projectPhase = getProjectPhase(project);
-                        return projectPhase === selectedPhase;
+                        const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                        return String(projectPhase).toUpperCase() === String(selectedPhase).toUpperCase();
                       });
                   
                   console.log('Card View - Selected Phase:', selectedPhase, 'Filtered Projects Count:', filteredProjects.length);
@@ -2135,6 +2189,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         } else if (sortConfig.key === 'projectType') {
                           aValue = a.projectType || 'N/A';
                           bValue = b.projectType || 'N/A';
+                        } else if (sortConfig.key === 'phase') {
+                          aValue = WorkflowProgressService.getProjectPhase(a) || '';
+                          bValue = WorkflowProgressService.getProjectPhase(b) || '';
                         }
                         
                         // Convert to strings for comparison

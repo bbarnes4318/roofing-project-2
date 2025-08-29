@@ -8,7 +8,9 @@ const {
 } = require('../middleware/errorHandler');
 const transcriptAIService = require('../services/TranscriptAIService');
 const pdfGeneratorService = require('../services/PDFGeneratorService');
+const { PrismaClient } = require('@prisma/client');
 
+const prisma = new PrismaClient();
 const router = express.Router();
 
 // Apply authentication to all routes
@@ -19,6 +21,7 @@ router.use(authenticateToken);
 // @access  Private
 router.post('/enhance', asyncHandler(async (req, res, next) => {
     try {
+        console.log('🚨 TRANSCRIPT ROUTE: enhance endpoint called - CODE VERSION 2');
         const { fullTranscript, metadata, projectInfo } = req.body;
         
         if (!fullTranscript || !Array.isArray(fullTranscript)) {
@@ -32,12 +35,51 @@ router.post('/enhance', asyncHandler(async (req, res, next) => {
             projectInfo
         });
 
+        // Save to database automatically
+        const userId = req.user?.id || req.user?.userId;
+        // For demo users, don't save with invalid user ID
+        const validUserId = (userId && userId !== 'demo-sarah-owner-id') ? userId : null;
+        const sessionId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        const savedTranscript = await prisma.voiceTranscript.create({
+            data: {
+                sessionId,
+                projectId: projectInfo?.id || null,
+                userId: validUserId,
+                callDate: metadata?.callDate ? new Date(metadata.callDate) : new Date(),
+                startTime: metadata?.startTime ? new Date(metadata.startTime) : new Date(),
+                endTime: metadata?.endTime ? new Date(metadata.endTime) : new Date(),
+                duration: metadata?.duration || 'Unknown',
+                participantCount: metadata?.participantCount || 1,
+                executiveSummary: enhancedSummary.executiveSummary,
+                projectStatus: enhancedSummary.projectStatus,
+                keyDecisions: enhancedSummary.keyDecisions || [],
+                actionItems: enhancedSummary.actionItems || [],
+                materials: enhancedSummary.materialsAndSpecifications || [],
+                schedule: enhancedSummary.scheduleAndTimeline || {},
+                risks: enhancedSummary.risksAndIssues || enhancedSummary.risks || [],
+                budget: enhancedSummary.budgetAndCosts || {},
+                technicalDetails: enhancedSummary.technicalDetails || [],
+                clientConcerns: enhancedSummary.clientConcerns || [],
+                nextSteps: enhancedSummary.nextSteps || [],
+                communicationItems: enhancedSummary.communicationItems || [],
+                fullTranscript: fullTranscript,
+                aiModel: enhancedSummary.metadata?.aiModel || 'gpt-5',
+                aiProcessedAt: new Date(),
+                isAiEnhanced: true
+            }
+        });
+
         sendSuccess(res, 200, { 
-            summary: enhancedSummary
-        }, 'Transcript enhanced successfully with GPT-5');
+            summary: enhancedSummary,
+            transcriptId: savedTranscript.id,
+            sessionId: savedTranscript.sessionId
+        }, 'Transcript enhanced successfully with GPT-5 and saved to database');
 
     } catch (error) {
         console.error('Error enhancing transcript:', error);
+        console.error('Error stack:', error.stack);
+        console.error('Error message:', error.message);
         return next(new AppError('Failed to enhance transcript', 500));
     }
 }));

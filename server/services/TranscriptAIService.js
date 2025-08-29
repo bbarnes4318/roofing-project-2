@@ -9,6 +9,8 @@ class TranscriptAIService {
 
     async generateProfessionalSummary(transcriptData) {
         try {
+            console.log('🔍 TranscriptAIService: Starting generateProfessionalSummary');
+            console.log('🔍 TranscriptAIService: Input data:', JSON.stringify(transcriptData, null, 2));
             const { fullTranscript, metadata, projectInfo } = transcriptData;
             
             // Prepare the conversation text
@@ -140,18 +142,26 @@ ${conversationText}
 
 Please analyze this conversation and provide a comprehensive professional summary following the specified JSON format. Be thorough and extract all relevant information for project documentation.`;
 
+            console.log('🔍 TranscriptAIService: About to call OpenAI API');
+            console.log('🔍 TranscriptAIService: Model:', process.env.OPENAI_MODEL || "gpt-5");
             const completion = await this.openai.chat.completions.create({
                 model: process.env.OPENAI_MODEL || "gpt-5",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
                 ],
-                temperature: 0.3,
-                max_tokens: 4000,
+                max_completion_tokens: 8000,
                 response_format: { type: "json_object" }
             });
+            console.log('🔍 TranscriptAIService: OpenAI API call successful');
+            
+            const responseContent = completion.choices?.[0]?.message?.content;
+            
+            if (!responseContent || responseContent.trim() === '') {
+                throw new Error('GPT-5 returned empty response content');
+            }
 
-            const aiSummary = JSON.parse(completion.choices[0].message.content);
+            const aiSummary = JSON.parse(responseContent);
 
             // Enhance with original transcript data
             return {

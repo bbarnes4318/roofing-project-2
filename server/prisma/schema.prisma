@@ -70,6 +70,7 @@ model User {
   assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
   projectMessageRecipients ProjectMessageRecipient[]
+  voiceTranscripts         VoiceTranscript[]
 
   @@map("users")
 }
@@ -132,6 +133,7 @@ model Project {
   projectManager   User?                    @relation("ProjectManager", fields: [projectManagerId], references: [id])
   tasks            Task[]
   workflowAlerts   WorkflowAlert[]
+  voiceTranscripts VoiceTranscript[]
 
   @@map("projects")
 }
@@ -710,6 +712,55 @@ model WebAuthnCredential {
   @@index([credentialID])
   @@index([lastUsed])
   @@map("webauthn_credentials")
+}
+
+model VoiceTranscript {
+  id                String              @id @default(cuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  sessionId         String              @unique @map("session_id") @db.VarChar(100)
+  projectId         String?             @map("project_id")
+  userId            String?             @map("user_id")
+  callDate          DateTime            @map("call_date")
+  startTime         DateTime            @map("start_time")
+  endTime           DateTime            @map("end_time")
+  duration          String              @db.VarChar(50)
+  participantCount  Int                 @default(1) @map("participant_count")
+  
+  // AI-Generated Summary Fields
+  executiveSummary  String?             @db.Text
+  projectStatus     String?             @db.VarChar(500)
+  keyDecisions      Json?               @map("key_decisions")
+  actionItems       Json?               @map("action_items")
+  materials         Json?               @map("materials_list")
+  schedule          Json?               @map("schedule_timeline")
+  risks             Json?               @map("risks_issues")
+  budget            Json?               @map("budget_costs")
+  technicalDetails  Json?               @map("technical_details")
+  clientConcerns    Json?               @map("client_concerns")
+  nextSteps         Json?               @map("next_steps")
+  communicationItems Json?              @map("communication_items")
+  
+  // Full Transcript
+  fullTranscript    Json                @map("full_transcript")
+  
+  // Metadata
+  aiModel           String?             @map("ai_model") @db.VarChar(50)
+  aiProcessedAt     DateTime?           @map("ai_processed_at")
+  isAiEnhanced      Boolean             @default(false) @map("is_ai_enhanced")
+  
+  // File Generation
+  generatedFiles    Json?               @map("generated_files")
+  
+  // Relations
+  project           Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([projectId])
+  @@index([userId])
+  @@index([callDate])
+  @@index([sessionId])
+  @@map("voice_transcripts")
 }
 
 enum WorkflowState {

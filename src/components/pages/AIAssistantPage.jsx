@@ -5,6 +5,7 @@ import api from '../../services/api';
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
+import TranscriptHistory from '../ui/TranscriptHistory';
 // Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
@@ -59,6 +60,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [selectedFileFormats, setSelectedFileFormats] = useState(['pdf', 'json']);
     const [isGeneratingFiles, setIsGeneratingFiles] = useState(false);
     const [downloadLinks, setDownloadLinks] = useState(null);
+    
+    // Transcript history state
+    const [showTranscriptHistory, setShowTranscriptHistory] = useState(false);
+    const [transcriptId, setTranscriptId] = useState(null);
 
     // Get Vapi configuration from environment variables
     const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
@@ -525,9 +530,45 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                         if (conversationToUse.length > 0 || voiceTranscript.length > 0) {
                             console.log('[Vapi] Showing transcript modal');
                             try {
-                                const enhancedSummary = await generateEnhancedTranscriptSummary(summary || {});
+                                const enhancedSummary = await generateEnhancedTranscriptSummary(summary || {}, conversationToUse);
                                 console.log('[Vapi] DEBUG: enhanced summary:', enhancedSummary);
                                 setTranscriptSummary(enhancedSummary);
+                                
+                                // Save to database via the voice-transcripts API
+                                try {
+                                    const saveResponse = await fetch('/api/voice-transcripts', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+                                        },
+                                        body: JSON.stringify({
+                                            sessionId: `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                                            projectId: selectedProject?.id || null,
+                                            summary: enhancedSummary,
+                                            fullTranscript: conversationToUse,
+                                            metadata: {
+                                                callDate: new Date().toLocaleDateString(),
+                                                callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
+                                                duration: summary?.duration || 'Unknown',
+                                                participantCount: conversationToUse.length > 0 ? new Set(conversationToUse.map(c => c.speaker)).size : 1,
+                                                startTime: voiceStartTimeRef.current?.toISOString(),
+                                                endTime: voiceEndTimeRef.current?.toISOString()
+                                            }
+                                        })
+                                    });
+                                    
+                                    if (saveResponse.ok) {
+                                        const saveResult = await saveResponse.json();
+                                        if (saveResult.success) {
+                                            console.log('[Vapi] Transcript saved to database:', saveResult.data.transcript.id);
+                                            setTranscriptId(saveResult.data.transcript.id);
+                                        }
+                                    }
+                                } catch (saveError) {
+                                    console.error('[Vapi] Error saving transcript:', saveError);
+                                }
+                                
                                 setShowTranscriptModal(true);
                             } catch (error) {
                                 console.error('[Vapi] Error generating enhanced summary:', error);
@@ -1053,13 +1094,16 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
     };
     
     // Enhanced transcript and summary generation for modal with GPT-5
-    const generateEnhancedTranscriptSummary = async (baseSummary) => {
+    const generateEnhancedTranscriptSummary = async (baseSummary, conversationData = null) => {
         try {
             const projectInfo = selectedProject ? {
                 name: selectedProject.projectName || selectedProject.name,
                 number: selectedProject.projectNumber,
                 address: selectedProject.address || selectedProject.customer?.address
             } : null;
+            
+            // Use the conversation data passed to the function, or fall back to voiceConversation
+            const conversationToProcess = conversationData || voiceConversation;
             
             // First, try to get AI-enhanced summary from backend using GPT-5
             try {
@@ -1070,7 +1114,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
                     },
                     body: JSON.stringify({
-                        fullTranscript: voiceConversation.map(exchange => ({
+                        fullTranscript: conversationToProcess.map(exchange => ({
                             timestamp: exchange.timestamp || new Date(),
                             speaker: exchange.speaker || 'User',
                             message: exchange.message,
@@ -1080,7 +1124,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                             callDate: new Date().toLocaleDateString(),
                             callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
                             duration: baseSummary?.duration || 'Unknown',
-                            participantCount: voiceConversation.length > 0 ? new Set(voiceConversation.map(c => c.speaker)).size : 1
+                            participantCount: conversationToProcess.length > 0 ? new Set(conversationToProcess.map(c => c.speaker)).size : 1
                         },
                         projectInfo
                     })
@@ -1090,6 +1134,10 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                     const result = await response.json();
                     if (result.success && result.data?.summary) {
                         console.log('[Vapi] Successfully generated GPT-5 enhanced summary');
+                        // Store the transcript ID for potential later use
+                        if (result.data.transcriptId) {
+                            setTranscriptId(result.data.transcriptId);
+                        }
                         return result.data.summary;
                     }
                 }
@@ -1105,14 +1153,14 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                     callTime: `${voiceStartTimeRef.current?.toLocaleTimeString() || 'Unknown'} - ${voiceEndTimeRef.current?.toLocaleTimeString() || 'Unknown'}`,
                     duration: baseSummary?.duration || 'Unknown',
                     project: projectInfo,
-                    participantCount: voiceConversation.length > 0 ? new Set(voiceConversation.map(c => c.speaker)).size : 1
+                    participantCount: conversationToProcess.length > 0 ? new Set(conversationToProcess.map(c => c.speaker)).size : 1
                 },
-                executiveSummary: await generateExecutiveSummary(voiceConversation),
-                keyDecisions: extractKeyDecisions(voiceConversation),
-                actionItems: extractActionItems(voiceConversation),
-                materialsList: extractMaterialsList(voiceConversation),
-                risks: extractRisksAndIssues(voiceConversation),
-                fullTranscript: voiceConversation.map(exchange => ({
+                executiveSummary: await generateExecutiveSummary(conversationToProcess),
+                keyDecisions: extractKeyDecisions(conversationToProcess),
+                actionItems: extractActionItems(conversationToProcess),
+                materialsList: extractMaterialsList(conversationToProcess),
+                risks: extractRisksAndIssues(conversationToProcess),
+                fullTranscript: conversationToProcess.map(exchange => ({
                     timestamp: exchange.timestamp || new Date(),
                     speaker: exchange.speaker || 'User',
                     message: exchange.message,
@@ -1667,6 +1715,17 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         )}
                     </button>
 
+                    {/* Transcript History button */}
+                    <button
+                        type="button"
+                        onClick={() => setShowTranscriptHistory(true)}
+                        className="ml-1 p-[6px] rounded-full border border-gray-300 bg-white hover:bg-gray-100 flex items-center justify-center"
+                        aria-label="View transcript history"
+                        title="Transcript History"
+                    >
+                        <DocumentTextIcon className="w-[18px] h-[18px] text-gray-700" />
+                    </button>
+
                     {/* Telephone call button */}
                     <a
                         href="tel:+17243812859"
@@ -2137,6 +2196,20 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Transcript History Modal */}
+            {showTranscriptHistory && (
+                <TranscriptHistory
+                    projectId={selectedProject?.id}
+                    onTranscriptSelect={(transcript) => {
+                        // When a transcript is selected, show its modal
+                        setTranscriptSummary(transcript);
+                        setShowTranscriptModal(true);
+                        setShowTranscriptHistory(false);
+                    }}
+                    onClose={() => setShowTranscriptHistory(false)}
+                />
             )}
 
         </div>

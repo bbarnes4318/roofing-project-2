@@ -710,6 +710,7 @@ app.use('/api/excel-data', excelDataRoutes);
 app.use('/api/complete-excel-data', completeExcelDataRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/transcripts', require('./routes/transcripts'));
+app.use('/api/voice-transcripts', require('./routes/voiceTranscripts'));
 
 // Legacy route fallbacks for frontend requests missing /api prefix
 // Redirect to proper /api endpoints

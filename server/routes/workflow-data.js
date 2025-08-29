@@ -258,92 +258,13 @@ router.get('/project-position/:projectId', async (req, res) => {
       WHERE pwt.project_id = ${projectId}
     `;
     
-    // If no row (no tracker or null current_line_item_id), try to resolve safely
+    // If no row (no tracker or null current_line_item_id), DO NOT mutate state on read.
     if (!tracker || tracker.length === 0) {
-      console.warn('⚠️ No active current_line_item_id found. Attempting to initialize or derive first position.');
-      // Ensure a tracker exists; if not, try to initialize to first active item
-      const existingTracker = await prisma.projectWorkflowTracker.findFirst({ where: { projectId } });
-      if (!existingTracker) {
-        try {
-          // Initialize workflow at LEAD via template data
-          const firstPhase = await prisma.workflowPhase.findFirst({
-            where: { isActive: true, isCurrent: true },
-            orderBy: { displayOrder: 'asc' },
-            include: {
-              sections: {
-                where: { isActive: true, isCurrent: true },
-                orderBy: { displayOrder: 'asc' },
-                include: {
-                  lineItems: { where: { isActive: true, isCurrent: true }, orderBy: { displayOrder: 'asc' } }
-                }
-              }
-            }
-          });
-          if (firstPhase && firstPhase.sections?.[0]?.lineItems?.[0]) {
-            await prisma.projectWorkflowTracker.create({
-              data: {
-                projectId,
-                currentPhaseId: firstPhase.id,
-                currentSectionId: firstPhase.sections[0].id,
-                currentLineItemId: firstPhase.sections[0].lineItems[0].id,
-                phaseStartedAt: new Date(),
-                sectionStartedAt: new Date(),
-                lineItemStartedAt: new Date()
-              }
-            });
-          }
-        } catch (e) {
-          console.error('❌ Failed to auto-initialize tracker:', e.message);
-        }
-      } else if (!existingTracker.currentLineItemId) {
-        // Tracker exists but no current item: set to the earliest active item for its phase
-        try {
-          // Find the earliest active item overall
-          const firstItem = await prisma.workflowLineItem.findFirst({
-            where: { isActive: true },
-            orderBy: { displayOrder: 'asc' },
-            include: { section: { include: { phase: true } } }
-          });
-          if (firstItem) {
-            await prisma.projectWorkflowTracker.update({
-              where: { id: existingTracker.id },
-              data: {
-                currentPhaseId: firstItem.section.phase.id,
-                currentSectionId: firstItem.section.id,
-                currentLineItemId: firstItem.id,
-                phaseStartedAt: new Date(),
-                sectionStartedAt: new Date(),
-                lineItemStartedAt: new Date()
-              }
-            });
-          }
-        } catch (e) {
-          console.error('❌ Failed to set default current line item:', e.message);
-        }
-      }
-
-      // Re-run the position query after remediation
-      tracker = await prisma.$queryRaw`
-        SELECT 
-          pwt.project_id,
-          pwt.current_line_item_id,
-          wli.id as line_item_id,
-          wli."itemName" as current_line_item,
-          ws.id as section_id,
-          ws."sectionName" as current_section,
-          ws."displayName" as section_display_name,
-          wp.id as phase_id,
-          wp."phaseName" as current_phase,
-          wp."phaseType" as phase_type,
-          p."projectName" as project_name,
-          p.status as project_status
-        FROM project_workflow_trackers pwt
-        INNER JOIN workflow_line_items wli ON wli.id = pwt.current_line_item_id
-        INNER JOIN workflow_sections ws ON ws.id = wli.section_id
-        INNER JOIN workflow_phases wp ON ws.phase_id = wp.id
-        INNER JOIN projects p ON p.id = pwt.project_id
-        WHERE pwt.project_id = ${projectId}
-      `;
+      return res.json({
+        success: true,
+        data: null,
+        message: 'No active workflow position found for this project'
+      });
     }
 
     if (tracker && tracker.length > 0) {
