@@ -26,6 +26,13 @@ const getApiBaseUrl = () => {
 };
 
 export const API_BASE_URL = getApiBaseUrl();
+// Origin for non-API assets (e.g., /uploads). Strip trailing /api
+export const API_ORIGIN = (() => {
+  try {
+    if (API_BASE_URL.endsWith('/api')) return API_BASE_URL.slice(0, -4);
+  } catch (_) {}
+  return API_BASE_URL;
+})();
 // Compute a safe same-origin fallback for production deployments
 const getSameOriginApi = () => {
   try {
@@ -490,6 +497,78 @@ export const activitiesService = {
   // Create new activity
   create: async (activityData) => {
     const response = await api.post('/activities', activityData);
+    return response.data;
+  }
+};
+
+// Company Documents Service
+export const companyDocsService = {
+  // Customer-facing assets
+  listAssets: async (params = {}) => {
+    const response = await api.get('/company-docs/assets', { params });
+    return response.data;
+  },
+  uploadAsset: async (file, meta = {}) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (meta.title) form.append('title', meta.title);
+    if (meta.description) form.append('description', meta.description);
+    if (meta.tags) form.append('tags', JSON.stringify(meta.tags));
+    if (meta.section) form.append('section', meta.section);
+    const response = await api.post('/company-docs/assets/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return response.data;
+  },
+  deleteAsset: async (id) => {
+    const response = await api.delete(`/company-docs/assets/${id}`);
+    return response.data;
+  },
+  // Templates
+  listTemplates: async () => {
+    const response = await api.get('/company-docs/templates');
+    return response.data;
+  },
+  createTemplate: async (file, template) => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('name', template.name);
+    if (template.description) form.append('description', template.description);
+    if (template.format) form.append('format', template.format);
+    if (template.section) form.append('section', template.section);
+    if (template.fields !== undefined) {
+      const fieldsPayload = typeof template.fields === 'string' ? template.fields : JSON.stringify(template.fields);
+      form.append('fields', fieldsPayload);
+    }
+    const response = await api.post('/company-docs/templates', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return response.data;
+  },
+  // Generation
+  generate: async (payload) => {
+    const response = await api.post('/company-docs/generate', payload);
+    return response.data;
+  },
+  
+  // Delete template
+  deleteTemplate: async (id) => {
+    const response = await api.delete(`/company-docs/templates/${id}`);
+    return response.data;
+  },
+  
+  // Update template
+  updateTemplate: async (id, data, file = null) => {
+    const form = new FormData();
+    if (data.name) form.append('name', data.name);
+    if (data.description !== undefined) form.append('description', data.description);
+    if (data.format) form.append('format', data.format);
+    if (data.section !== undefined) form.append('section', data.section);
+    if (data.fields !== undefined) {
+      const fieldsPayload = typeof data.fields === 'string' ? data.fields : JSON.stringify(data.fields);
+      form.append('fields', fieldsPayload);
+    }
+    if (file) form.append('file', file);
+    
+    const response = await api.patch(`/company-docs/templates/${id}`, form, { 
+      headers: { 'Content-Type': 'multipart/form-data' } 
+    });
     return response.data;
   }
 };

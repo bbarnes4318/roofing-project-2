@@ -18,6 +18,7 @@ import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import AlertsCalendarPage from './components/pages/AlertsCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
+import CompanyDocumentsPage from './components/pages/CompanyDocumentsPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -988,7 +989,7 @@ const apiUrl = window.location.hostname === 'localhost'
         { name: 'AI Estimate Analysis', icon: <DocumentTextIcon />, page: 'Estimator' },
         { name: 'AI Training Tools', icon: <ChartBarIcon />, page: 'AI Tools' },
         { name: 'Project Schedules', icon: <CalendarIcon />, page: 'Project Schedules', isDisabled: true },
-        { name: 'Project Documents', icon: <FolderIcon />, page: 'Project Documents', isDisabled: true },
+        { name: 'Company Documents', icon: <FolderIcon />, page: 'Company Documents' },
         { name: 'AI Knowledge Base', icon: <ChatBubbleLeftRightIcon />, page: 'Training & Knowledge Base' },
         { name: 'Archived Projects', icon: <ArchiveBoxIcon />, page: 'Archived Projects' },
     ];
@@ -1031,6 +1032,7 @@ const apiUrl = window.location.hostname === 'localhost'
             );
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
+            case 'Company Documents': return <CompanyDocumentsPage colorMode={colorMode} />;
             case 'Alerts Calendar': return <AlertsCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
             case 'Training & Knowledge Base':

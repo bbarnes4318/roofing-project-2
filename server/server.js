@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const morgan = require('morgan');
+const path = require('path');
 
 const xss = require('xss-clean');
 // Load environment variables with robust fallbacks
@@ -57,6 +58,7 @@ const messageRoutes = require('./routes/messages');
 const projectMessageRoutes = require('./routes/projectMessages');
 const documentRoutes = require('./routes/documents');
 const calendarRoutes = require('./routes/calendar');
+const companyDocumentsRoutes = require('./routes/companyDocuments');
 const aiRoutes = require('./routes/ai');
 let bubblesRoutes;
 try {
@@ -662,6 +664,9 @@ io.on('connection', async (socket) => {
 // Make io accessible to routes
 app.set('io', io);
 
+// Serve uploaded files (documents, company assets) safely
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/debug', debugRoutes);
@@ -677,6 +682,7 @@ app.use('/api/project-messages', projectMessageRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/calendar-events', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/company-docs', companyDocumentsRoutes);
 if (workflowRoutes) {
   app.use('/api/workflows', workflowRoutes);
   console.log('✅ SERVER: Workflow routes registered at /api/workflows');

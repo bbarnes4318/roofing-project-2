@@ -1,0 +1,66 @@
+
+Send Invoice Email
+Use this template for the first Invoice below this line.
+
+
+Hello [Recipient’s Name],
+
+
+Thank you for trusting us to complete your project!
+
+Attached is the final Invoice. You may kindly remit payment to the contact below.  
+Please, do not hesitate to reach out should you have any questions.
+
+We accept the following forms of payment: Personal Check, Cashier’s Check, or Money Order.
+
+
+
+Best Regards,
+Safe Haven Roofing and Restoration Team 
+719-799-3526
+
+
+
+Follow up Invoice Email 
+Use this template for the second Invoice below this line. Remember. 
+
+
+Hello [Recipient’s Name],
+
+
+Thank you again for trusting us to complete your project!
+
+We have yet to receive payment for the attached Invoice. You may kindly remit payment to the contact below. 
+Please, do not hesitate to reach out should you have any questions.
+
+We accept the following forms of payment: Personal Check, Cashier’s Check, or Money Order.
+
+
+ 
+Best Regards,
+Safe Haven Roofing and Restoration Team 
+719-799-3526
+
+
+
+Second Follow up Invoice Email before Collections 
+Use this template for the third Invoice below this line. Remember. 
+•	Note: If a customer has not paid by three weeks after receiving this Email is then moved into the collections process, i.e., Accounts Receivables. 
+
+
+Hello [Recipient’s Name],
+
+
+Thank you again for trusting us to complete your project!
+
+We have yet to receive payment for the attached Invoice. You may kindly remit payment to the contact below. 
+Please, do not hesitate to reach out should you have any questions.
+
+We accept the following forms of payment: Personal Check, Cashier’s Check, or Money Order.
+
+
+ 
+Best Regards,
+Safe Haven Roofing and Restoration Team 
+719-799-3526
+
