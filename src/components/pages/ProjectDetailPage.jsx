@@ -2361,7 +2361,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 </div>
                 
                 {/* Tabs Navigation */}
-                <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+                <div className="px-4 py-1.5 bg-gray-50 border-t border-gray-100">
                     <nav className="flex space-x-6" aria-label="Tabs">
                         {navItems.map(item => {
                             // Define which tabs are disabled/not ready
@@ -2472,7 +2472,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
             {/* Content Area */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white">
                 {/* Scrollable Content with proper spacing */}
-                <div className="p-6 bg-white">
+                <div className="p-3 bg-white">
                     <div className="min-h-[calc(100vh-200px)] bg-white">
                         {/* Compact Project Details header visible on Project Profile tab */}
                         {activeView === 'Project Profile' && (

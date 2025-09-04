@@ -10,6 +10,113 @@ class PDFGeneratorService {
         this.warningColor = '#f59e0b';
     }
 
+    async generateCertificateOfCompletionPDF(outputFilePath, data = {}, options = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo.png'),
+                        path.join(__dirname, '..', 'uploads', 'company-assets', 'upfront-red.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(18).fill('#111827');
+                doc.text('Certificate of Completion', 50, 60, { align: 'left' });
+
+                // Top fields row labels
+                doc.moveDown(2);
+                const startY = doc.y;
+                const labelFont = 'Helvetica';
+                doc.font(labelFont).fontSize(10).fill('#111827');
+                const col1X = 50, col2X = 220, col3X = 400;
+                const underline = (x, y, width) => {
+                    doc.moveTo(x, y + 12).lineTo(x + width, y + 12).stroke('#e11d48');
+                };
+
+                // Values
+                const jobNumber = data.project_number || data.projectNumber || '';
+                const customerName = data.customer_name || data.customerName || '';
+                const address = data.address || data.location || '';
+
+                doc.text('Job Number', col1X, startY);
+                underline(col1X, startY, 120);
+                doc.text('Customer Name', col2X, startY);
+                underline(col2X, startY, 150);
+                doc.text('Address', col3X, startY);
+                underline(col3X, startY, 150);
+
+                // Overlay values above lines
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(String(jobNumber || ''), col1X + 2, startY - 2, { width: 120 });
+                doc.text(String(customerName || ''), col2X + 2, startY - 2, { width: 150 });
+                doc.text(String(address || ''), col3X + 2, startY - 2, { width: 180 });
+
+                doc.moveDown(2);
+
+                // Completion section
+                doc.font('Helvetica-Bold').fontSize(11).fill('#111827');
+                doc.text('Completion', 50, doc.y);
+                doc.moveTo(50, doc.y + 2).lineTo(200, doc.y + 2).stroke('#e11d48');
+                doc.moveDown(0.8);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                const paragraphs = [
+                    'Thank you for the opportunity to serve you! If you have any additional questions or concerns, please contact us.',
+                    'The undersigned certifies, to the best of their knowledge, that the work covered by the "Customer Agreement", between Upfront Restoration & Roofing, Inc. and the homeowner or their representative, has been completed.',
+                    'The undersigned has reviewed all work performed and completed by Upfront Restoration & Roofing and certifies that materials supplied by the Contractor and the work performed have been done to their satisfaction.',
+                    'All contractors, subcontractors, and suppliers who provided labor or materials in connection with the repairs to this property are authorized to be paid in full from insurance proceeds.'
+                ];
+                paragraphs.forEach(p => {
+                    doc.text(p, 50, doc.y + 6, { width: 512, align: 'left' });
+                    doc.moveDown(0.6);
+                });
+
+                doc.moveDown(1.2);
+
+                // Signature section
+                doc.font('Helvetica-Bold').fontSize(11).fill('#111827');
+                doc.text('Signature', 50, doc.y);
+                doc.moveTo(50, doc.y + 2).lineTo(200, doc.y + 2).stroke('#e11d48');
+                doc.moveDown(1.5);
+
+                const sigY = doc.y;
+                // Lines
+                doc.moveTo(50, sigY).lineTo(260, sigY).stroke('#9ca3af'); // signature line
+                doc.moveTo(320, sigY).lineTo(562, sigY).stroke('#9ca3af'); // date line
+
+                // Captions
+                doc.font('Helvetica').fontSize(9).fill('#6b7280');
+                doc.text('Homeowner or Representative', 50, sigY + 4, { width: 210 });
+                doc.text('Date', 320, sigY + 4, { width: 210 });
+
+                // Filled values (optional)
+                const signature = data.signature || customerName || '';
+                const date = data.date || '';
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                if (signature) doc.text(String(signature), 52, sigY - 14, { width: 208 });
+                if (date) doc.text(String(date), 322, sigY - 14, { width: 208 });
+
+                doc.end();
+
+                writeStream.on('finish', () => resolve());
+                writeStream.on('error', reject);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    }
     async generateTranscriptPDF(summary) {
         return new Promise((resolve, reject) => {
             try {
@@ -573,6 +680,608 @@ class PDFGeneratorService {
         
         doc.y += 50;
         doc.moveDown();
+    }
+
+    // ========================================
+    // NEW TEMPLATE METHODS
+    // ========================================
+
+    async generate2YearWarrantyPDF(outputFilePath, data = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(24).fill('#111827');
+                doc.text('2-YEAR WARRANTY', 50, 60, { align: 'center', width: 512 });
+
+                // Company Info
+                doc.font('Helvetica').fontSize(14).fill('#111827');
+                doc.text('UPFRONT RESTORATION & ROOFING', 50, 90, { align: 'center', width: 512 });
+
+                doc.moveDown(3);
+
+                // Project Information Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Project Information:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                const startY = doc.y;
+                const labelFont = 'Helvetica';
+                doc.font(labelFont).fontSize(10).fill('#111827');
+
+                // Labels and underlines
+                doc.text('Project Number:', 50, startY);
+                doc.text('Customer Name:', 50, startY + 25);
+                doc.text('Property Address:', 50, startY + 50);
+
+                // Values
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(String(data.project_number || ''), 150, startY);
+                doc.text(String(data.customer_name || ''), 150, startY + 25);
+                doc.text(String(data.property_address || ''), 150, startY + 50);
+
+                // Underlines
+                doc.moveTo(150, startY + 12).lineTo(450, startY + 12).stroke('#e11d48');
+                doc.moveTo(150, startY + 37).lineTo(450, startY + 37).stroke('#e11d48');
+                doc.moveTo(150, startY + 62).lineTo(450, startY + 62).stroke('#e11d48');
+
+                doc.moveDown(2);
+
+                // Warranty Details Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Warranty Details:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(`Start Date: ${data.warranty_start_date || ''}`, 50, doc.y);
+                doc.text(`End Date: ${data.warranty_end_date || ''}`, 50, doc.y + 20);
+                doc.text(`Materials: ${data.roofing_materials || ''}`, 50, doc.y + 40);
+
+                doc.moveDown(2);
+
+                // Coverage Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Coverage:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.coverage_details || 'Standard 2-year warranty coverage for roofing materials and workmanship.', 50, doc.y, { width: 512 });
+
+                doc.moveDown(2);
+
+                // Signature Section
+                if (data.signature) {
+                    doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                    doc.text('Customer Signature:', 50, doc.y);
+                    doc.moveDown(0.5);
+
+                    doc.font('Helvetica').fontSize(10).fill('#111827');
+                    doc.text(data.signature, 50, doc.y);
+                    doc.moveTo(50, doc.y + 2).lineTo(250, doc.y + 2).stroke('#e11d48');
+                }
+
+                doc.end();
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async generate5YearWarrantyPDF(outputFilePath, data = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(24).fill('#111827');
+                doc.text('5-YEAR UPFRONT WARRANTY', 50, 60, { align: 'center', width: 512 });
+
+                // Company Info
+                doc.font('Helvetica').fontSize(14).fill('#111827');
+                doc.text('UPFRONT RESTORATION & ROOFING', 50, 90, { align: 'center', width: 512 });
+
+                doc.moveDown(3);
+
+                // Project Information Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Project Information:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                const startY = doc.y;
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+
+                // Labels and values
+                doc.text('Project Number:', 50, startY);
+                doc.text(String(data.project_number || ''), 150, startY);
+                doc.text('Customer Name:', 50, startY + 25);
+                doc.text(String(data.customer_name || ''), 150, startY + 25);
+                doc.text('Property Address:', 50, startY + 50);
+                doc.text(String(data.property_address || ''), 150, startY + 50);
+
+                // Underlines
+                doc.moveTo(150, startY + 12).lineTo(450, startY + 12).stroke('#e11d48');
+                doc.moveTo(150, startY + 37).lineTo(450, startY + 37).stroke('#e11d48');
+                doc.moveTo(150, startY + 62).lineTo(450, startY + 62).stroke('#e11d48');
+
+                doc.moveDown(2);
+
+                // Extended Warranty Details
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Extended Warranty Details:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(`Start Date: ${data.warranty_start_date || ''}`, 50, doc.y);
+                doc.text(`End Date: ${data.warranty_end_date || ''}`, 50, doc.y + 20);
+                doc.text(`Premium Amount: $${data.premium_amount || ''}`, 50, doc.y + 40);
+                doc.text(`Deductible: $${data.deductible_amount || ''}`, 50, doc.y + 60);
+
+                doc.moveDown(2);
+
+                // Coverage Limits
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Coverage Limits:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.coverage_limits || 'Extended coverage with premium payment.', 50, doc.y, { width: 512 });
+
+                doc.moveDown(2);
+
+                // Signature Section
+                if (data.signature) {
+                    doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                    doc.text('Customer Signature:', 50, doc.y);
+                    doc.moveDown(0.5);
+
+                    doc.font('Helvetica').fontSize(10).fill('#111827');
+                    doc.text(data.signature, 50, doc.y);
+                    doc.moveTo(50, doc.y + 2).lineTo(250, doc.y + 2).stroke('#e11d48');
+                }
+
+                doc.end();
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async generate3YearRoofCertificationPDF(outputFilePath, data = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(24).fill('#111827');
+                doc.text('3-YEAR ROOF CERTIFICATION', 50, 60, { align: 'center', width: 512 });
+
+                // Company Info
+                doc.font('Helvetica').fontSize(14).fill('#111827');
+                doc.text('UPFRONT RESTORATION & ROOFING', 50, 90, { align: 'center', width: 512 });
+
+                doc.moveDown(3);
+
+                // Certification Details Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Certification Details:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                const startY = doc.y;
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+
+                // Labels and values
+                doc.text('Project Number:', 50, startY);
+                doc.text(String(data.project_number || ''), 150, startY);
+                doc.text('Customer Name:', 50, startY + 25);
+                doc.text(String(data.customer_name || ''), 150, startY + 25);
+                doc.text('Property Address:', 50, startY + 50);
+                doc.text(String(data.property_address || ''), 150, startY + 50);
+                doc.text('Start Date:', 50, startY + 75);
+                doc.text(String(data.certification_start_date || ''), 150, startY + 75);
+                doc.text('End Date:', 50, startY + 100);
+                doc.text(String(data.certification_end_date || ''), 150, startY + 100);
+
+                // Underlines
+                doc.moveTo(150, startY + 12).lineTo(450, startY + 12).stroke('#e11d48');
+                doc.moveTo(150, startY + 37).lineTo(450, startY + 37).stroke('#e11d48');
+                doc.moveTo(150, startY + 62).lineTo(450, startY + 62).stroke('#e11d48');
+                doc.moveTo(150, startY + 87).lineTo(450, startY + 87).stroke('#e11d48');
+                doc.moveTo(150, startY + 112).lineTo(450, startY + 112).stroke('#e11d48');
+
+                doc.moveDown(2);
+
+                // Materials & Installation
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Materials & Installation:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(`Materials Used: ${data.roofing_materials || ''}`, 50, doc.y);
+                doc.text(`Installation Date: ${data.installation_date || ''}`, 50, doc.y + 20);
+
+                doc.moveDown(2);
+
+                // Quality Standards
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Quality Standards:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.quality_standards || 'Meets all industry quality standards and building codes.', 50, doc.y, { width: 512 });
+
+                doc.moveDown(2);
+
+                // Certifying Authority
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Certifying Authority:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.certifying_authority || 'UPFRONT RESTORATION & ROOFING', 50, doc.y);
+
+                doc.moveDown(2);
+
+                // Signature Section
+                if (data.signature) {
+                    doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                    doc.text('Authorized Signature:', 50, doc.y);
+                    doc.moveDown(0.5);
+
+                    doc.font('Helvetica').fontSize(10).fill('#111827');
+                    doc.text(data.signature, 50, doc.y);
+                    doc.moveTo(50, doc.y + 2).lineTo(250, doc.y + 2).stroke('#e11d48');
+                }
+
+                doc.end();
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async generateWarrantyTransferPDF(outputFilePath, data = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(24).fill('#111827');
+                doc.text('WARRANTY/CERTIFICATION TRANSFER', 50, 60, { align: 'center', width: 512 });
+
+                // Company Info
+                doc.font('Helvetica').fontSize(14).fill('#111827');
+                doc.text('UPFRONT RESTORATION & ROOFING', 50, 90, { align: 'center', width: 512 });
+
+                doc.moveDown(3);
+
+                // Transfer Details Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Transfer Details:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                const startY = doc.y;
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+
+                // Labels and values
+                doc.text('Original Owner:', 50, startY);
+                doc.text(String(data.original_owner_name || ''), 150, startY);
+                doc.text('New Owner:', 50, startY + 25);
+                doc.text(String(data.new_owner_name || ''), 150, startY + 25);
+                doc.text('Property Address:', 50, startY + 50);
+                doc.text(String(data.property_address || ''), 150, startY + 50);
+                doc.text('Transfer Date:', 50, startY + 75);
+                doc.text(String(data.transfer_date || ''), 150, startY + 75);
+
+                // Underlines
+                doc.moveTo(150, startY + 12).lineTo(450, startY + 12).stroke('#e11d48');
+                doc.moveTo(150, startY + 37).lineTo(450, startY + 37).stroke('#e11d48');
+                doc.moveTo(150, startY + 62).lineTo(450, startY + 62).stroke('#e11d48');
+                doc.moveTo(150, startY + 87).lineTo(450, startY + 87).stroke('#e11d48');
+
+                doc.moveDown(2);
+
+                // Warranty Information
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Warranty Information:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(`Warranty Type: ${data.warranty_type || ''}`, 50, doc.y);
+                doc.text(`Remaining Coverage: ${data.remaining_coverage || ''}`, 50, doc.y + 20);
+
+                doc.moveDown(2);
+
+                // Terms and Conditions
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Terms and Conditions:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.terms_conditions || 'Standard warranty transfer terms apply.', 50, doc.y, { width: 512 });
+
+                doc.moveDown(2);
+
+                // Signature Section
+                if (data.signature) {
+                    doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                    doc.text('Authorized Signature:', 50, doc.y);
+                    doc.moveDown(0.5);
+
+                    doc.font('Helvetica').fontSize(10).fill('#111827');
+                    doc.text(data.signature, 50, doc.y);
+                    doc.moveTo(50, doc.y + 2).lineTo(250, doc.y + 2).stroke('#e11d48');
+                }
+
+                doc.end();
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async generateInspectionReportPDF(outputFilePath, data = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(24).fill('#111827');
+                doc.text('ROOF INSPECTION REPORT', 50, 60, { align: 'center', width: 512 });
+
+                // Company Info
+                doc.font('Helvetica').fontSize(14).fill('#111827');
+                doc.text('UPFRONT RESTORATION & ROOFING', 50, 90, { align: 'center', width: 512 });
+
+                doc.moveDown(3);
+
+                // Inspection Details Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Inspection Details:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                const startY = doc.y;
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+
+                // Labels and values
+                doc.text('Inspection Date:', 50, startY);
+                doc.text(String(data.inspection_date || ''), 150, startY);
+                doc.text('Inspector Name:', 50, startY + 25);
+                doc.text(String(data.inspector_name || ''), 150, startY + 25);
+                doc.text('Property Address:', 50, startY + 50);
+                doc.text(String(data.property_address || ''), 150, startY + 50);
+                doc.text('Customer Name:', 50, startY + 75);
+                doc.text(String(data.customer_name || ''), 150, startY + 75);
+
+                // Underlines
+                doc.moveTo(150, startY + 12).lineTo(450, startY + 12).stroke('#e11d48');
+                doc.moveTo(150, startY + 37).lineTo(450, startY + 37).stroke('#e11d48');
+                doc.moveTo(150, startY + 62).lineTo(450, startY + 62).stroke('#e11d48');
+                doc.moveTo(150, startY + 87).lineTo(450, startY + 87).stroke('#e11d48');
+
+                doc.moveDown(2);
+
+                // Inspection Results
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Inspection Results:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(`Overall Condition: ${data.overall_condition || ''}`, 50, doc.y);
+                doc.text(`Issues Found: ${data.issues_found || ''}`, 50, doc.y + 20);
+                doc.text(`Recommendations: ${data.recommendations || ''}`, 50, doc.y + 40);
+
+                doc.moveDown(2);
+
+                // Next Steps
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Next Steps:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.next_steps || 'Schedule follow-up inspection if needed.', 50, doc.y, { width: 512 });
+
+                doc.moveDown(2);
+
+                // Signature Section
+                if (data.signature) {
+                    doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                    doc.text('Inspector Signature:', 50, doc.y);
+                    doc.moveDown(0.5);
+
+                    doc.font('Helvetica').fontSize(10).fill('#111827');
+                    doc.text(data.signature, 50, doc.y);
+                    doc.moveTo(50, doc.y + 2).lineTo(250, doc.y + 2).stroke('#e11d48');
+                }
+
+                doc.end();
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async generateLeadBasedPaintPDF(outputFilePath, data = {}) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+                const writeStream = fs.createWriteStream(outputFilePath);
+                doc.pipe(writeStream);
+
+                // Header Logo
+                try {
+                    const logoCandidates = [
+                        path.join(__dirname, '..', '..', 'public', 'upfront-red.png'),
+                        path.join(__dirname, '..', '..', 'public', 'upfront-logo-3.png'),
+                        path.join(__dirname, '..', 'public', 'upfront-logo.png')
+                    ];
+                    const logoPath = logoCandidates.find(p => fs.existsSync(p));
+                    if (logoPath) {
+                        doc.image(logoPath, 440, 40, { width: 120 });
+                    }
+                } catch (_) {}
+
+                // Title
+                doc.font('Helvetica-Bold').fontSize(24).fill('#111827');
+                doc.text('LEAD-BASED PAINT CERTIFICATION', 50, 60, { align: 'center', width: 512 });
+
+                // Company Info
+                doc.font('Helvetica').fontSize(14).fill('#111827');
+                doc.text('UPFRONT RESTORATION & ROOFING', 50, 90, { align: 'center', width: 512 });
+
+                doc.moveDown(3);
+
+                // Applicant Information Section
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Applicant Information:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                const startY = doc.y;
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+
+                // Labels and values
+                doc.text('First Name:', 50, startY);
+                doc.text(String(data.applicant_first_name || ''), 150, startY);
+                doc.text('Last Name:', 50, startY + 25);
+                doc.text(String(data.applicant_last_name || ''), 150, startY + 25);
+                doc.text('Certification Type:', 50, startY + 50);
+                doc.text(String(data.certification_type || ''), 150, startY + 50);
+                doc.text('Property Address:', 50, startY + 75);
+                doc.text(String(data.property_address || ''), 150, startY + 75);
+
+                // Underlines
+                doc.moveTo(150, startY + 12).lineTo(450, startY + 12).stroke('#e11d48');
+                doc.moveTo(150, startY + 37).lineTo(450, startY + 37).stroke('#e11d48');
+                doc.moveTo(150, startY + 62).lineTo(450, startY + 62).stroke('#e11d48');
+                doc.moveTo(150, startY + 87).lineTo(450, startY + 87).stroke('#e11d48');
+
+                doc.moveDown(2);
+
+                // Certification Details
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Certification Details:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(`Issue Date: ${data.issue_date || ''}`, 50, doc.y);
+                doc.text(`Expiration Date: ${data.expiration_date || ''}`, 50, doc.y + 20);
+                doc.text(`Certification Number: ${data.certification_number || ''}`, 50, doc.y + 40);
+
+                doc.moveDown(2);
+
+                // Compliance Information
+                doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                doc.text('Compliance Information:', 50, doc.y);
+                doc.moveDown(0.5);
+
+                doc.font('Helvetica').fontSize(10).fill('#111827');
+                doc.text(data.compliance_info || 'Meets all EPA and state requirements for lead-based paint work.', 50, doc.y, { width: 512 });
+
+                doc.moveDown(2);
+
+                // Signature Section
+                if (data.signature) {
+                    doc.font('Helvetica-Bold').fontSize(12).fill('#111827');
+                    doc.text('Authorized Signature:', 50, doc.y);
+                    doc.moveDown(0.5);
+
+                    doc.font('Helvetica').fontSize(10).fill('#111827');
+                    doc.text(data.signature, 50, doc.y);
+                    doc.moveTo(50, doc.y + 2).lineTo(250, doc.y + 2).stroke('#e11d48');
+                }
+
+                doc.end();
+                writeStream.on('finish', resolve);
+                writeStream.on('error', reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 }
 

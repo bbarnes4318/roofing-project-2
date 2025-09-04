@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
-import api, { projectsService, customersService } from '../../services/api';
+import api, { projectsService, customersService, documentsService, API_ORIGIN } from '../../services/api';
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
@@ -274,57 +274,46 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     );
   }
 
-  // Modern Header Section
+  // Compact Header Section
   const HeaderSection = () => (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 mb-6 shadow-soft">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        {/* Project Title and Number */}
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-gray-900">
+    <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+        {/* Left: Number, Name */}
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-sm font-bold text-blue-700">
+            {String(project.projectNumber || project.id || '')}
+          </span>
+          <h1 className="text-base font-semibold text-gray-900 truncate">
               {project.name || project.projectName || 'Project Profile'}
             </h1>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200">
-              #{String(project.projectNumber || project.id || '').padStart(5, '0')}
-            </span>
           </div>
-          
-          {/* Project Type Badge */}
+        {/* Right: Type */}
           {project.projectType && (
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getProjectTypeColor(project.projectType)}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${getProjectTypeColor(project.projectType)}`}>
                 {formatProjectType(project.projectType)}
               </span>
-            </div>
           )}
         </div>
-
-        {/* Address Section */}
-        <div className="flex-1">
-          <div className="flex items-start gap-3">
-            <MapPinIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <label className="text-sm font-medium text-gray-600 mb-1 block">Project Address</label>
+      {/* Address in single row */}
+      <div className="mt-2 flex items-center gap-2 text-xs text-gray-700 truncate">
+        <MapPinIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
               {!isEditingAddress ? (
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-900 font-medium">
+          <div className="flex items-center gap-2 min-w-0 w-full">
+            <span className="truncate">
                     {(project.address || project.customer?.address || 'Address not provided').trim()}
                   </span>
                   <button
                     onClick={handleEditAddress}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
-                  >
-                    <PencilIcon className="w-3 h-3" />
-                    Edit
-                  </button>
+              className="px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+            >Edit</button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full">
                   <input
                     type="text"
                     value={editFormData.address}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Project address"
                     autoFocus
                   />
@@ -343,24 +332,14 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                         toast.error('Failed to update address');
                       }
                     }}
-                    className="px-3 py-2 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Save
-                  </button>
+              className="px-2 py-1 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700"
+            >Save</button>
                   <button
-                    onClick={() => {
-                      setIsEditingAddress(false);
-                      setEditFormData(prev => ({ ...prev, address: project.customer?.address || project.address || '' }));
-                    }}
-                    className="px-3 py-2 text-xs font-medium bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
+              onClick={() => { setIsEditingAddress(false); setEditFormData(prev => ({ ...prev, address: project.customer?.address || project.address || '' })); }}
+              className="px-2 py-1 text-[11px] bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            >Cancel</button>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -504,103 +483,65 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     </div>
   );
 
-  // Contact Information Cards
+  // Compact Customer Information Panel (Primary + Secondary)
   const ContactCards = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      {/* Primary Customer Card */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-soft">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Primary Customer</h3>
-              <p className="text-sm text-gray-600">Main point of contact</p>
-            </div>
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <UserIcon className="w-4 h-4 text-blue-600" />
+          <h3 className="text-sm font-semibold text-gray-900">Customer Information</h3>
           </div>
           {!isEditingContact && (
-            <button
-              onClick={handleEditContact}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <PencilIcon className="w-4 h-4" />
+          <button onClick={handleEditContact} className="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded">
               Edit
             </button>
           )}
         </div>
-        
-        <div className="space-y-3">
-          <div className="font-semibold text-gray-900 text-lg">
-            {project.customer?.primaryName || project.customer?.name || 'Not Available'}
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <PhoneIcon className="w-4 h-4 text-green-600" />
-            <a 
-              href={`tel:${(project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`}
-              className="text-gray-700 hover:text-blue-600 transition-colors"
-            >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        {/* Primary */}
+        <div className="space-y-1">
+          <div className="font-semibold text-gray-900">Primary</div>
+          <div className="text-gray-800">{project.customer?.primaryName || project.customer?.name || 'Not Available'}</div>
+          <div className="flex items-center gap-2">
+            <PhoneIcon className="w-3 h-3 text-green-600" />
+            <a href={`tel:${(project.customer?.primaryPhone || '').replace(/[^\d+]/g, '')}`} className="text-gray-700 hover:text-blue-600">
               {project.customer?.primaryPhone ? formatPhoneNumber(project.customer.primaryPhone) : 'Not Available'}
             </a>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <EnvelopeIcon className="w-4 h-4 text-blue-600" />
-            <a 
-              href={`mailto:${project.customer?.primaryEmail || ''}`}
-              className="text-gray-700 hover:text-blue-600 transition-colors"
-            >
+          <div className="flex items-center gap-2">
+            <EnvelopeIcon className="w-3 h-3 text-blue-600" />
+            <a href={`mailto:${project.customer?.primaryEmail || ''}`} className="text-gray-700 hover:text-blue-600">
               {project.customer?.primaryEmail || 'Not Available'}
             </a>
           </div>
         </div>
-      </div>
-
-      {/* Project Manager Card */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-soft">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-            <UserGroupIcon className="w-5 h-5 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Project Manager</h3>
-            <p className="text-sm text-gray-600">Project oversight</p>
-          </div>
-        </div>
-        
-        <div className="space-y-3">
-          <div className="font-semibold text-gray-900 text-lg">
-            {project.projectManager?.firstName && project.projectManager?.lastName
-              ? `${project.projectManager.firstName} ${project.projectManager.lastName}`
-              : project.projectManager?.name || 'Not Assigned'}
-          </div>
-          
-          {project.projectManager?.phone && (
-            <div className="flex items-center gap-3">
-              <PhoneIcon className="w-4 h-4 text-green-600" />
-              <a 
-                href={`tel:${project.projectManager.phone.replace(/[^\d+]/g, '')}`}
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                {formatPhoneNumber(project.projectManager.phone)}
+        {/* Secondary */}
+        <div className="space-y-1">
+          <div className="font-semibold text-gray-900">Secondary</div>
+          <div className="text-gray-800">{project.customer?.secondaryName || 'Not Provided'}</div>
+          <div className="flex items-center gap-2">
+            <PhoneIcon className="w-3 h-3 text-green-600" />
+            {project.customer?.secondaryPhone ? (
+              <a href={`tel:${project.customer.secondaryPhone.replace(/[^\d+]/g, '')}`} className="text-gray-700 hover:text-blue-600">
+                {formatPhoneNumber(project.customer.secondaryPhone)}
               </a>
+            ) : (
+              <span className="text-gray-500">Not Provided</span>
+            )}
             </div>
-          )}
-          
-          {project.projectManager?.email && (
-            <div className="flex items-center gap-3">
-              <EnvelopeIcon className="w-4 h-4 text-blue-600" />
-              <a 
-                href={`mailto:${project.projectManager.email}`}
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                {project.projectManager.email}
+          <div className="flex items-center gap-2">
+            <EnvelopeIcon className="w-3 h-3 text-blue-600" />
+            {project.customer?.secondaryEmail ? (
+              <a href={`mailto:${project.customer.secondaryEmail}`} className="text-gray-700 hover:text-blue-600">
+                {project.customer.secondaryEmail}
               </a>
-            </div>
+            ) : (
+              <span className="text-gray-500">Not Provided</span>
           )}
         </div>
       </div>
+      </div>
+      <EditContactForm />
     </div>
   );
 
@@ -680,30 +621,41 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     const materialsProgress = Math.round((trades.filter(t=>t.materialsDelivered).length / trades.length) * 100);
     
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-soft">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
               <ChartBarIcon className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Project Progress</h3>
-              <p className="text-sm text-gray-600">Overall completion status</p>
+              <h3 className="text-sm font-semibold text-gray-900 leading-5">Project Progress</h3>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900">{overall}%</div>
-            <div className="text-sm text-gray-600">Complete</div>
+          {/* Integrated PM info */}
+          <div className="text-right text-xs text-gray-700 w-56 overflow-hidden">
+            <div className="font-semibold truncate" title={(project.projectManager?.firstName && project.projectManager?.lastName)
+                ? `${project.projectManager.firstName} ${project.projectManager.lastName}`
+                : (project.projectManager?.name || 'PM: Not Assigned')}>
+              {(project.projectManager?.firstName && project.projectManager?.lastName)
+                ? `${project.projectManager.firstName} ${project.projectManager.lastName}`
+                : (project.projectManager?.name || 'PM: Not Assigned')}
+            </div>
+            {project.projectManager?.email && (
+              <div className="truncate" title={project.projectManager.email}>{project.projectManager.email}</div>
+            )}
+            {project.projectManager?.phone && (
+              <div className="truncate" title={project.projectManager.phone}>{formatPhoneNumber(project.projectManager.phone)}</div>
+            )}
           </div>
         </div>
 
         {/* Overall Progress Bar */}
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Overall Progress</span>
-            <span className="text-sm font-bold text-gray-900">{overall}%</span>
+            <span className="text-xs font-medium text-gray-700">Overall Progress</span>
+            <span className="text-xs font-bold text-gray-900">{overall}%</span>
           </div>
-          <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
             <div 
               className={`h-full rounded-full transition-all duration-500 ease-out ${
                 overall === 100 
@@ -720,10 +672,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         </div>
 
         {/* Materials Progress */}
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Materials Delivered</span>
-            <span className="text-sm font-bold text-gray-900">{materialsProgress}%</span>
+            <span className="text-xs font-medium text-gray-700">Materials Delivered</span>
+            <span className="text-xs font-bold text-gray-900">{materialsProgress}%</span>
           </div>
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div 
@@ -790,6 +742,80 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             </div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  // Documents Panel (compact table)
+  const DocumentsPanel = () => {
+    const [docs, setDocs] = useState([]);
+    const [docsLoading, setDocsLoading] = useState(false);
+    const [docsError, setDocsError] = useState('');
+
+    useEffect(() => {
+      let cancelled = false;
+      const load = async () => {
+        if (!project?.id) return;
+        try {
+          setDocsLoading(true); setDocsError('');
+          const res = await documentsService.getByProject(project.id);
+          if (cancelled) return;
+          setDocs(Array.isArray(res?.data?.documents) ? res.data.documents : []);
+        } catch (e) {
+          if (!cancelled) setDocsError(e.message || 'Failed to load documents');
+        } finally {
+          if (!cancelled) setDocsLoading(false);
+        }
+      };
+      load();
+      return () => { cancelled = true; };
+    }, [project?.id]);
+
+    // Helpers
+    const formatBytes = (bytes) => {
+      const n = parseInt(bytes, 10) || 0;
+      if (n < 1024) return `${n} B`;
+      const kb = n / 1024;
+      if (kb < 1024) return `${Math.round(kb)} KB`;
+      const mb = kb / 1024;
+      return `${mb.toFixed(1)} MB`;
+    };
+
+    // Shared column template to align header and rows
+    const gridTemplate = 'minmax(240px,1fr) 140px 90px 120px 160px';
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-gray-900">Documents</h3>
+        </div>
+        {docsError && <div className="text-xs text-red-600 mb-2">{docsError}</div>}
+        {docsLoading ? (
+          <div className="text-xs text-gray-600">Loading…</div>
+        ) : docs.length === 0 ? (
+          <div className="text-xs text-gray-500">No documents yet</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <div className="min-w-[780px] grid gap-2 items-center px-2 py-1 border-b text-[11px] text-gray-500" style={{ gridTemplateColumns: gridTemplate }}>
+              <div>Name</div>
+              <div>Type</div>
+              <div>Size</div>
+              <div>Uploaded</div>
+              <div className="text-right pr-1">Actions</div>
+            </div>
+            {docs.map(d => (
+              <div key={d.id} className="min-w-[780px] grid gap-2 items-center px-2 py-2 border-b text-xs" style={{ gridTemplateColumns: gridTemplate }}>
+                <a href={`${API_ORIGIN}${d.fileUrl}`} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline whitespace-nowrap overflow-hidden text-ellipsis" title={d.originalName || d.fileName}>{d.originalName || d.fileName}</a>
+                <div className="text-gray-700 truncate" title={d.mimeType || d.fileType}>{d.mimeType || d.fileType}</div>
+                <div className="text-gray-700">{formatBytes(d.fileSize)}</div>
+                <div className="text-gray-700">{new Date(d.createdAt || d.updatedAt || Date.now()).toLocaleDateString()}</div>
+                <div className="text-right space-x-3">
+                  <a href={`${API_ORIGIN}${d.fileUrl}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Preview</a>
+                  <a href={`${API_ORIGIN}${d.fileUrl}`} target="_blank" rel="noreferrer" download className="text-blue-600 hover:underline">Download</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -941,20 +967,17 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       <HeaderSection />
       <WorkflowNavigation />
       
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left Column - Contact Information */}
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left Column - Compact customer + documents */}
+        <div className="lg:col-span-2 space-y-4">
           <ContactCards />
-          <SecondaryContactCard />
+          <DocumentsPanel />
         </div>
-        
-        {/* Right Column - Progress Chart */}
-        <div className="xl:col-span-1">
+        {/* Right Column - Progress with PM */}
+        <div className="lg:col-span-1">
           <ProgressChart />
         </div>
       </div>
-      
-      <EditContactForm />
     </div>
   );
 };

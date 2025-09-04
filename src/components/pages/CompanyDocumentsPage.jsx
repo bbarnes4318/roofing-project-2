@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { companyDocsService, API_ORIGIN } from '../../services/api';
+import { companyDocsService, API_ORIGIN, projectsService } from '../../services/api';
+import socketService from '../../services/socket';
+import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
+import toast from 'react-hot-toast';
 
 const TabButton = ({ active, onClick, children }) => (
   <button
@@ -66,7 +69,7 @@ export default function CompanyDocumentsPage({ colorMode }) {
 
   useEffect(() => {
     if (activeTab === 'Customer Assets') loadAssets();
-    if (activeTab === 'Project Templates') loadTemplates();
+    if (activeTab === 'Project Templates' || activeTab === 'Generate') loadTemplates();
   }, [activeTab]);
 
   const handleAssetUpload = async (ev) => {
@@ -85,19 +88,203 @@ export default function CompanyDocumentsPage({ colorMode }) {
   };
 
   const [generateForm, setGenerateForm] = useState({ templateId: '', projectId: '', title: '', data: '{}' });
+  const [generateFieldValues, setGenerateFieldValues] = useState({});
+  const [generateErrors, setGenerateErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [showAdvancedJSON, setShowAdvancedJSON] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [userEditedKeys, setUserEditedKeys] = useState({});
+  const [lastGeneratedDoc, setLastGeneratedDoc] = useState(null);
+
+  const selectedTemplate = React.useMemo(
+    () => (templates || []).find(t => String(t.id) === String(generateForm.templateId)) || null,
+    [templates, generateForm.templateId]
+  );
+
+  useEffect(() => {
+    if (selectedTemplate) {
+      const defaults = {};
+      (selectedTemplate.fields || []).forEach(f => {
+        defaults[f.key] = f.defaultValue ?? '';
+      });
+      setGenerateFieldValues(defaults);
+      setGenerateForm(prev => ({ ...prev, title: prev.title || selectedTemplate.name }));
+      setUserEditedKeys({});
+    } else {
+      setGenerateFieldValues({});
+    }
+    setGenerateErrors({});
+  }, [selectedTemplate]);
+
+  // Auto-fill common fields from selected project if template defines them
+  useEffect(() => {
+    if (!selectedProject || !selectedTemplate) return;
+    const updates = {};
+    const p = selectedProject;
+    const customer = p.customer || {};
+    const mapping = {
+      // Common identifiers
+      project_number: p.projectNumber,
+      projectNumber: p.projectNumber,
+      project_id: p.id,
+      projectId: p.id,
+      project_name: p.projectName || p.name,
+      projectName: p.projectName || p.name,
+      // Address/Location
+      address: p.address || customer.address,
+      location: p.address || customer.address,
+      // Customer primary contact
+      customer_name: customer.primaryName,
+      customerName: customer.primaryName,
+      owner_name: customer.primaryName, // For warranty documents
+      primary_customer_phone: customer.primaryPhone,
+      customer_phone: customer.primaryPhone,
+      customer_phone_primary: customer.primaryPhone,
+      customer_email: customer.primaryEmail,
+      // PM
+      pm_name: (p.projectManager && (p.projectManager.name || ((p.projectManager.firstName || '') + ' ' + (p.projectManager.lastName || '')).trim())) || '',
+      pm_phone: p.projectManager?.phone,
+      pm_email: p.projectManager?.email,
+      // Auto-populate today's date
+      todays_date: new Date().toISOString().split('T')[0]
+    };
+
+    (selectedTemplate.fields || []).forEach(f => {
+      const key = String(f.key || '').trim();
+      if (!key) return;
+      const mapped = mapping[key];
+      if (mapped === undefined || mapped === null || mapped === '') return;
+      // Update if user has NOT edited this key, or if current value is empty
+      const current = generateFieldValues[key];
+      if (!userEditedKeys[key] || current === '' || current === undefined || current === null) {
+        updates[key] = mapped;
+      }
+    });
+
+    if (Object.keys(updates).length > 0) {
+      setGenerateFieldValues(prev => ({ ...prev, ...updates }));
+    }
+  }, [selectedProject, selectedTemplate, userEditedKeys]);
+
+  // Debounced search for projects by Project Number or name
+  // Load projects for dropdown when entering Generate tab
+  useEffect(() => {
+    if (activeTab !== 'Generate') return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setProjectsLoading(true);
+        const res = await projectsService.getAll({ limit: 200 });
+        if (cancelled) return;
+        const list = (res.data?.projects || res.data || []).map(p => ({
+          ...p,
+          id: p.id || p._id
+        }));
+        setProjects(list);
+      } catch (e) {
+        // fail soft
+        setProjects([]);
+      } finally {
+        if (!cancelled) setProjectsLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab]);
+
+  const validateGenerate = () => {
+    const errs = {};
+    if (!generateForm.projectId) errs.projectId = 'Project Number is required';
+    if (selectedTemplate) {
+      (selectedTemplate.fields || []).forEach(f => {
+        if (f.required) {
+          const v = generateFieldValues[f.key];
+          if (v === undefined || v === null || String(v).trim() === '') {
+            errs[f.key] = 'Required';
+          }
+        }
+      });
+    }
+    setGenerateErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleGenerate = async () => {
+    setError('');
+    if (!validateGenerate()) {
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
+      return;
+    }
+    setSubmitting(true);
     try {
+      let advanced = {};
+      try { advanced = JSON.parse(generateForm.data || '{}'); } catch (_) {}
+
+      const dataFromFields = {};
+      (selectedTemplate?.fields || []).forEach(f => {
+        const raw = generateFieldValues[f.key];
+        let value = raw;
+        if (f.type === 'NUMBER') {
+          value = raw === '' || raw === null || raw === undefined ? null : Number(raw);
+        }
+        if (value !== null && value !== undefined && value !== '') {
+          dataFromFields[f.key] = value;
+        }
+      });
+
       const payload = {
         templateId: generateForm.templateId || undefined,
         projectId: generateForm.projectId,
-        title: generateForm.title || 'Generated Document',
-        data: JSON.parse(generateForm.data || '{}')
+        title: generateForm.title || (selectedTemplate?.name || 'Generated Document'),
+        data: { ...advanced, ...dataFromFields }
       };
       const res = await companyDocsService.generate(payload);
+      const doc = res?.data?.document || null;
+      if (doc) setLastGeneratedDoc(doc);
+      try {
+        // Notify via sockets so project views refresh
+        if (!socketService.getConnectionStatus().isConnected) {
+          socketService.connect();
+        }
+        if (generateForm.projectId) {
+          socketService.joinProject(generateForm.projectId);
+        }
+        socketService.sendDocumentUpdate({
+          projectId: generateForm.projectId,
+          documentId: doc?.id,
+          updateType: 'created',
+          documentData: doc
+        });
+      } catch (_) {}
+      if (doc) {
+        const url = `${API_ORIGIN}${doc.fileUrl}`;
+        toast.success((t) => (
+          <div className="text-xs">
+            <div className="font-semibold mb-1">Document generated</div>
+            <div className="flex items-center gap-3">
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Preview</a>
+              <a href={url} target="_blank" rel="noopener noreferrer" download className="text-blue-600 hover:underline">Download</a>
+              <button
+                onClick={() => { try { navigator.clipboard.writeText(url); } catch (_) {} }}
+                className="px-2 py-1 border rounded"
+              >Copy Link</button>
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="px-2 py-1 border rounded"
+              >Close</button>
+            </div>
+            <div className="mt-1 text-gray-600">Open the project profile to see it in Documents.</div>
+          </div>
+        ), { duration: Infinity });
+      } else {
       alert('Document generated');
-      // Optionally navigate to project documents area
+      }
     } catch (e) {
-      alert(e.message || 'Generation failed');
+      setError(e.message || 'Generation failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -435,7 +622,6 @@ export default function CompanyDocumentsPage({ colorMode }) {
                             <div className="text-gray-600">Fields: {t.fields?.length || 0}</div>
                           </div>
                           <div className="flex items-center gap-2 mt-2">
-                            <button onClick={() => handleExportTemplate(t)} className="text-blue-600 hover:underline text-xs">Export Blank Template</button>
                             <a href={`${API_ORIGIN}${t.templateFileUrl}`} download className="text-blue-600 hover:underline text-xs">Download</a>
                             <button
                               onClick={() => handleEditTemplate(t)}
@@ -482,20 +668,151 @@ export default function CompanyDocumentsPage({ colorMode }) {
               </select>
             </div>
             <div>
-              <label className="block text-gray-700 mb-1">Project ID</label>
-              <input className="w-full border rounded px-2 py-1" value={generateForm.projectId} onChange={e => setGenerateForm({ ...generateForm, projectId: e.target.value })} placeholder="project UUID" />
+              <label className="block text-gray-700 mb-1">Project</label>
+              <EnhancedProjectDropdown
+                projects={projects}
+                selectedProject={selectedProject}
+                onProjectSelect={(project) => {
+                  setSelectedProject(project);
+                  setGenerateForm(prev => ({ ...prev, projectId: project ? project.id : '' }));
+                  setGenerateErrors(prev => ({ ...prev, projectId: undefined }));
+                }}
+                placeholder={projectsLoading ? 'Loading projects…' : 'Select Project'}
+              />
+              {generateErrors.projectId && (
+                <div className="mt-1 text-[11px] text-red-600">{generateErrors.projectId}</div>
+              )}
             </div>
             <div>
               <label className="block text-gray-700 mb-1">Title</label>
               <input className="w-full border rounded px-2 py-1" value={generateForm.title} onChange={e => setGenerateForm({ ...generateForm, title: e.target.value })} placeholder="Generated Document" />
             </div>
-            <div>
-              <label className="block text-gray-700 mb-1">Data (JSON)</label>
-              <textarea className="w-full border rounded px-2 py-1 h-28" value={generateForm.data} onChange={e => setGenerateForm({ ...generateForm, data: e.target.value })} placeholder='{"client_name":"Acme"}' />
+          </div>
+
+          {selectedTemplate && (
+            <div className="mt-4 border rounded-md p-3 bg-gray-50">
+              <div className="text-xs font-semibold mb-2">Template Fields</div>
+              {(selectedTemplate.fields || []).length === 0 ? (
+                <div className="text-xs text-gray-600">No fields are defined for this template.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                  {(selectedTemplate.fields || []).map((f) => {
+                    const commonLabel = (
+                      <label className="block text-gray-700 mb-1 leading-5">
+                        {f.label || f.key}
+                        {f.required ? <span className="ml-1 text-red-600">*</span> : null}
+                      </label>
+                    );
+                    const errorMsg = generateErrors[f.key];
+                    const baseClass = `w-full border rounded px-2 py-1 ${errorMsg ? 'border-red-400' : ''}`;
+                    const handleChange = (val) => {
+                      setGenerateFieldValues(prev => ({ ...prev, [f.key]: val }));
+                      setUserEditedKeys(prev => ({ ...prev, [f.key]: true }));
+                    };
+                    if (String(f.type || 'TEXT').toUpperCase() === 'TEXTAREA') {
+                      return (
+                        <div key={f.key} className="md:col-span-2">
+                          {commonLabel}
+                          <textarea className={`${baseClass} h-24 break-words`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} placeholder={f.placeholder || ''} />
+                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
+                        </div>
+                      );
+                    }
+                    if (String(f.type || 'TEXT').toUpperCase() === 'NUMBER') {
+                      return (
+                        <div key={f.key}>
+                          {commonLabel}
+                          <input type="number" className={`${baseClass} align-middle`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} placeholder={f.placeholder || ''} />
+                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
+                        </div>
+                      );
+                    }
+                    if (String(f.type || 'TEXT').toUpperCase() === 'DATE') {
+                      return (
+                        <div key={f.key}>
+                          {commonLabel}
+                          <input type="date" className={`${baseClass} align-middle`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} />
+                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
+                        </div>
+                      );
+                    }
+                    if (String(f.type || 'TEXT').toUpperCase() === 'SELECT' && Array.isArray(f.options) && f.options.length > 0) {
+                      return (
+                        <div key={f.key}>
+                          {commonLabel}
+                          <select className={`${baseClass} align-middle max-w-full`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)}>
+                            <option value="">— Select —</option>
+                            {f.options.map(opt => (
+                              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
+                            ))}
+                          </select>
+                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
+                        </div>
+                      );
+                    }
+                    if (String(f.type || 'TEXT').toUpperCase() === 'CHECKBOX') {
+                      return (
+                        <div key={f.key} className="flex items-center gap-2">
+                          <input id={`fld_${f.key}`} type="checkbox" className="h-4 w-4" checked={!!generateFieldValues[f.key]} onChange={e => handleChange(e.target.checked)} />
+                          <label htmlFor={`fld_${f.key}`} className="text-xs text-gray-800">
+                            {f.label || f.key}
+                            {f.required ? <span className="ml-1 text-red-600">*</span> : null}
+                          </label>
+                          {errorMsg && <div className="ml-2 text-[11px] text-red-600">{errorMsg}</div>}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={f.key}>
+                        {commonLabel}
+                        <input className={`${baseClass} align-middle`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} placeholder={f.placeholder || ''} />
+                        {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
+          )}
+
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedJSON(v => !v)}
+              className="px-2 py-1 text-[11px] font-semibold rounded border border-gray-300 hover:bg-gray-50"
+            >
+              {showAdvancedJSON ? 'Hide' : 'Show'} Advanced JSON
+            </button>
+            {showAdvancedJSON && (
+              <div className="mt-2">
+                <label className="block text-gray-700 mb-1 text-xs">Data (JSON)</label>
+                <textarea className="w-full border rounded px-2 py-1 h-28 text-xs" value={generateForm.data} onChange={e => setGenerateForm({ ...generateForm, data: e.target.value })} placeholder='{"client_name":"Acme"}' />
+                <div className="mt-1 text-[11px] text-gray-500">Optional: merge additional key-values into the generated document.</div>
+            </div>
+            )}
           </div>
           <div className="mt-3">
-            <button onClick={handleGenerate} className="px-3 py-2 text-xs font-semibold rounded-md bg-blue-600 text-white">Generate PDF</button>
+            <button onClick={handleGenerate} disabled={submitting} className={`px-3 py-2 text-xs font-semibold rounded-md ${submitting ? 'bg-gray-300 text-gray-600' : 'bg-blue-600 text-white'}`}>{submitting ? 'Generating…' : 'Generate PDF'}</button>
+            {lastGeneratedDoc && (
+              <div className="mt-3 text-xs flex items-center gap-3">
+                <span className="text-gray-700">Last generated:</span>
+                <a
+                  className="text-blue-600 hover:underline"
+                  href={`${API_ORIGIN}${lastGeneratedDoc.fileUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Preview
+                </a>
+                <a
+                  className="text-blue-600 hover:underline"
+                  href={`${API_ORIGIN}${lastGeneratedDoc.fileUrl}`}
+                  download
+                >
+                  Download
+                </a>
+              </div>
+            )}
           </div>
         </div>
       )}

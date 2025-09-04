@@ -302,7 +302,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(customer);
 
-    sendSuccess(res, transformedCustomer, 'Customer retrieved successfully');
+    sendSuccess(res, 200, transformedCustomer, 'Customer retrieved successfully');
   } catch (error) {
     console.error('Error fetching customer:', error);
     return next(new AppError('Failed to fetch customer', 500));
@@ -482,7 +482,7 @@ router.put('/:id', customerUpdateValidation, asyncHandler(async (req, res, next)
       await cacheService.invalidateRelated('customer', req.params.id);
     }
     
-    sendSuccess(res, transformedCustomer, 'Customer updated successfully');
+    sendSuccess(res, 200, transformedCustomer, 'Customer updated successfully');
   } catch (error) {
     console.error('Error updating customer:', error);
     if (error.code === 'P2002') {
@@ -523,7 +523,7 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
       await cacheService.invalidateRelated('customer', req.params.id);
     }
     
-    sendSuccess(res, null, 'Customer deleted successfully');
+    sendSuccess(res, 200, null, 'Customer deleted successfully');
   } catch (error) {
     console.error('Error deleting customer:', error);
     return next(new AppError('Failed to delete customer', 500));

@@ -261,6 +261,49 @@ router.delete('/templates/:id', authenticateToken, asyncHandler(async (req, res)
 }));
 
 // =============================
+// Coordinate Finding Tools
+// =============================
+
+router.get('/coordinate-grid', authenticateToken, asyncHandler(async (req, res) => {
+  const PDFCoordinateFinder = require('../services/PDFCoordinateFinder');
+  const outputPath = path.join(uploadDir, `coordinate-grid-${Date.now()}.pdf`);
+  
+  await PDFCoordinateFinder.generateCoordinateGrid(outputPath);
+  
+  res.json({ 
+    success: true, 
+    message: 'Coordinate grid generated',
+    fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
+  });
+}));
+
+router.get('/test-positions', authenticateToken, asyncHandler(async (req, res) => {
+  const PDFCoordinateFinder = require('../services/PDFCoordinateFinder');
+  const outputPath = path.join(uploadDir, `test-positions-${Date.now()}.pdf`);
+  
+  await PDFCoordinateFinder.generateTestPositions(outputPath);
+  
+  res.json({ 
+    success: true, 
+    message: 'Test positions PDF generated',
+    fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
+  });
+}));
+
+router.get('/test-5year-warranty', authenticateToken, asyncHandler(async (req, res) => {
+  const PDFCoordinateFinder = require('../services/PDFCoordinateFinder');
+  const outputPath = path.join(uploadDir, `5year-warranty-test-${Date.now()}.pdf`);
+  
+  await PDFCoordinateFinder.generate5YearWarrantyTest(outputPath);
+  
+  res.json({ 
+    success: true, 
+    message: '5-Year Warranty test PDF generated',
+    fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
+  });
+}));
+
+// =============================
 // Generation (simple PDF placeholder)
 // =============================
 
@@ -273,34 +316,74 @@ router.post('/generate', authenticateToken, asyncHandler(async (req, res) => {
   const fileNameSafe = (title || 'Generated-Document').replace(/[^a-z0-9\-_\.]+/gi, '_');
   const outputFile = path.join(uploadDir, `${fileNameSafe}-${now}.pdf`);
 
-  // Use a super-simple PDF header/footer to avoid layout risk (we can replace with real engine later)
-  const PDFDocument = require('pdfkit');
-  const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
-  const writeStream = fs.createWriteStream(outputFile);
-  doc.pipe(writeStream);
-  doc.fontSize(18).fill('#111827').text(title || 'Generated Document', { align: 'left' });
-  doc.moveDown();
-  doc.fontSize(11).fill('#374151').text(`Generated: ${new Date().toLocaleString()}`);
-  doc.moveDown();
-  doc.fontSize(12).fill('#111827').text('Fields:', { underline: true });
-  try {
-    const entries = Object.entries(data || {});
-    if (entries.length === 0) {
-      doc.moveDown().fontSize(11).fill('#6B7280').text('No fields provided.');
-    } else {
-      entries.forEach(([k, v]) => {
-        doc.moveDown(0.2).fontSize(11).fill('#111827').text(`${k}: `, { continued: true }).fill('#1F2937').text(String(v ?? ''));
-      });
-    }
-  } catch (e) {
-    doc.moveDown().fontSize(11).fill('#B91C1C').text('Failed to render fields payload.');
+  // Get template information to determine rendering method
+  let template = null;
+  if (templateId) {
+    template = await prisma.documentTemplate.findUnique({ 
+      where: { id: templateId },
+      include: { fields: true }
+    });
   }
-  doc.end();
 
-  await new Promise((resolve, reject) => {
-    writeStream.on('finish', resolve);
-    writeStream.on('error', reject);
-  });
+    // For known templates, render with appropriate layout
+  if (template) {
+    try {
+      // Use PDFOverlayService to overlay text on your actual PDF templates
+      const PDFOverlayService = require('../services/PDFOverlayService');
+      console.log('Using PDF overlay service with template:', template.name);
+      console.log('Template file path:', template.templateFileUrl);
+      
+      await PDFOverlayService.generateDocument(templateId, outputFile, data || {});
+    } catch (error) {
+      console.error('Error using PDF form filler service:', error);
+      
+      // Fallback to PDFGeneratorService for templates that need custom layouts
+      try {
+        const PDFGeneratorService = require('../services/PDFGeneratorService');
+        console.log('Falling back to PDF generator service for:', template.name);
+        
+        if (template.name.toLowerCase().includes('certificate of completion')) {
+          await PDFGeneratorService.generateCertificateOfCompletionPDF(outputFile, data || {});
+        } else {
+          // For other templates, use the template service as last resort
+          const PDFTemplateService = require('../services/PDFTemplateService');
+          await PDFTemplateService.generateFromTemplate(template.templateFileUrl, outputFile, data || {});
+        }
+      } catch (fallbackError) {
+        console.error('All PDF generation methods failed:', fallbackError);
+        throw fallbackError;
+      }
+    }
+  } else {
+    // Fallback simple renderer for unknown templates
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+    const writeStream = fs.createWriteStream(outputFile);
+    doc.pipe(writeStream);
+    doc.fontSize(18).fill('#111827').text(title || 'Generated Document', { align: 'left' });
+    doc.moveDown();
+    doc.fontSize(11).fill('#374151').text(`Generated: ${new Date().toLocaleString()}`);
+    doc.moveDown();
+    doc.fontSize(12).fill('#111827').text('Fields:', { underline: true });
+    try {
+      const entries = Object.entries(data || {});
+      if (entries.length === 0) {
+        doc.moveDown().fontSize(11).fill('#6B7280').text('No fields provided.');
+      } else {
+        entries.forEach(([k, v]) => {
+          doc.moveDown(0.2).fontSize(11).fill('#111827').text(`${k}: `, { continued: true }).fill('#1F2937').text(String(v ?? ''));
+        });
+      }
+    } catch (e) {
+      doc.moveDown().fontSize(11).fill('#B91C1C').text('Failed to render fields payload.');
+    }
+    doc.end();
+
+    await new Promise((resolve, reject) => {
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+    });
+  }
 
   // Store as a project Document entry for consistency
   const stats = fs.statSync(outputFile);
@@ -324,7 +407,6 @@ router.post('/generate', authenticateToken, asyncHandler(async (req, res) => {
     data: {
       documentId: document.id,
       templateId: templateId || null,
-      outputFormat: 'PDF',
       sourceData: data || {},
       createdById: req.user?.id || null
     }
