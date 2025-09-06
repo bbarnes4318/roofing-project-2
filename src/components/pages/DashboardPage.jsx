@@ -3283,27 +3283,27 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <div className="flex items-center justify-between">
                           <div className="text-xs font-semibold text-gray-800 truncate">{item.subject}</div>
                           <div className="text-[10px] text-gray-500 ml-2 whitespace-nowrap">{new Date(item.timestamp).toLocaleString()}</div>
-                        </div>
+                </div>
                         <div className="text-[11px] text-gray-600 truncate">{item.content}</div>
                         {item.projectName && (
                           <div className="text-[10px] text-gray-500 mt-0.5">Project: {item.projectName}</div>
                         )}
-                      </div>
-                    </div>
+              </div>
+            </div>
                   );
                 })}
               {activityFeedItems.length === 0 && (
                 <div className="text-gray-400 text-center py-3 text-sm">No activity yet.</div>
               )}
 
-            </div>
+                </div>
           </div>
       {/* Draggable Contact Popups */}
       {Array.from(expandedContacts).map(projectId => {
         const project = projects?.find(p => p.id === projectId);
         if (!project) return null;
         
-        return (
+                  return (
           <DraggablePopup
             key={`contact-${projectId}`}
             isOpen={true}
@@ -3314,11 +3314,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="space-y-3">
               <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                 {project.client?.name || project.clientName || 'Primary Contact'}
-              </div>
+                            </div>
               <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} flex items-start gap-2`}>
                 <span>📍</span>
                 <span>{project.client?.address || project.clientAddress || project.address || '123 Main Street, City, State 12345'}</span>
-              </div>
+                          </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📞</span>
@@ -3328,7 +3328,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project.client?.phone || project.clientPhone || '(555) 123-4567'}
                   </a>
-                </div>
+                              </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">✉️</span>
                   <a 
@@ -3337,8 +3337,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project.client?.email || project.clientEmail || 'client@example.com'}
                   </a>
-                </div>
-              </div>
+                              </div>
+                            </div>
             </div>
           </DraggablePopup>
         );
@@ -3360,7 +3360,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="space-y-3">
               <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                 {project.projectManager?.name || project.projectManager?.firstName + ' ' + project.projectManager?.lastName || 'Project Manager'}
-                            </div>
+                              </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📞</span>
@@ -3370,7 +3370,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project.projectManager?.phone || '(555) 234-5678'}
                   </a>
-                          </div>
+                            </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">✉️</span>
                   <a 
@@ -3379,9 +3379,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project.projectManager?.email || 'mike.field@company.com'}
                   </a>
-                </div>
-              </div>
-            </div>
+                          </div>
+                        </div>
+                          </div>
           </DraggablePopup>
         );
       })}
@@ -3412,11 +3412,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="space-y-3">
               <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                 {project?.customer?.name || project?.clientName || 'Primary Contact'}
-              </div>
+                          </div>
               <div className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'} flex items-start gap-2`}>
                 <span>📍</span>
                 <span>{project?.customer?.address || project?.clientAddress || project?.address || '123 Main Street, City, State 12345'}</span>
-              </div>
+                        </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📞</span>
@@ -3435,7 +3435,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project?.customer?.email || project?.clientEmail || 'client@example.com'}
                   </a>
-                </div>
+                          </div>
                 {project?.customer?.secondaryPhone && (
                   <div className="flex items-center gap-1">
                     <span className="text-[8px]">📞</span>
@@ -3445,7 +3445,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     >
                       {project.customer.secondaryPhone}
                     </a>
-                              </div>
+                          </div>
                 )}
                 {project?.customer?.secondaryEmail && (
                   <div className="flex items-center gap-1">
@@ -3456,9 +3456,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     >
                       {project.customer.secondaryEmail}
                     </a>
-                  </div>
-                )}
-                              </div>
+                        </div>
+                      )}
+                    </div>
                             </div>
           </DraggablePopup>
         );
@@ -3490,7 +3490,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="space-y-3">
               <div className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                 {project?.projectManager?.name || project?.projectManager?.firstName + ' ' + project?.projectManager?.lastName || 'Project Manager'}
-                          </div>
+            </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📞</span>
@@ -3500,7 +3500,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project?.projectManager?.phone || '(555) 234-5678'}
                   </a>
-                        </div>
+          </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">✉️</span>
                   <a 
@@ -3509,8 +3509,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   >
                     {project?.projectManager?.email || 'mike.field@company.com'}
                   </a>
-                              </div>
-                            </div>
+        </div>
+      </div>
                           </div>
           </DraggablePopup>
         );
@@ -3535,8 +3535,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   setShowAddProjectModal(false);
           setProjectError('');
         }}
-        colorMode={colorMode}
-      />
+            colorMode={colorMode}
+          />
       {/* Project Cubes - Quick Access (hidden) */}
       <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>
       
@@ -4108,27 +4108,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </DraggablePopup>
         );
       })}
-      
-      {/* Add Project Modal - BEAUTIFUL & MODERN */}
-      <AddProjectModal
-        isOpen={showAddProjectModal}
-        onClose={() => {
-        setShowAddProjectModal(false);
-          setProjectError('');
-        }}
-        onProjectCreated={(newProject) => {
-          // Refresh projects data
-          queryClient.invalidateQueries(['projects']);
-          queryClient.invalidateQueries(['project-stats']);
-          
-          // Show success message
-          toast.success(`Project "${newProject.projectName}" created successfully!`);
-          
-          // Close modal
-                  setShowAddProjectModal(false);
-          setProjectError('');
-        }}
-      />
       
     </div>
   );
