@@ -689,6 +689,11 @@ export const notificationsService = {
   markAllAsRead: async () => {
     const response = await api.post('/notifications/read-all');
     return response.data;
+  },
+  // Create notification (manager and above)
+  create: async (payload) => {
+    const response = await api.post('/notifications', payload);
+    return response.data;
   }
 };
 
