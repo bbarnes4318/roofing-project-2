@@ -245,6 +245,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [alertPriority, setAlertPriority] = useState('low');
   // Tabs for communications section
   const [activeCommTab, setActiveCommTab] = useState('messages'); // 'messages' | 'tasks' | 'reminders'
+  const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   // Users/Project filters per tab
   const [messagesUserFilter, setMessagesUserFilter] = useState('');
   const [messagesProjectFilter, setMessagesProjectFilter] = useState('');
@@ -265,6 +266,133 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [quickTaskDue, setQuickTaskDue] = useState('');
   const [quickTaskAssignAll, setQuickTaskAssignAll] = useState(false);
   const [quickTaskAssigneeId, setQuickTaskAssigneeId] = useState('');
+  
+  // Completed tasks state
+  const [completedTasks, setCompletedTasks] = useState(new Set());
+  
+  // Task comments state - stores comments for each task
+  const [taskComments, setTaskComments] = useState(() => {
+    // Load comments from localStorage on initial mount as cache
+    const savedComments = localStorage.getItem('taskComments');
+    return savedComments ? JSON.parse(savedComments) : {};
+  });
+  const [newCommentText, setNewCommentText] = useState({});
+  const [loadingComments, setLoadingComments] = useState({});
+  
+  // Fetch comments from database when task is expanded
+  const fetchTaskComments = async (taskId) => {
+    if (loadingComments[taskId]) return; // Already loading
+    
+    setLoadingComments(prev => ({ ...prev, [taskId]: true }));
+    
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/comments`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Update state with fetched comments
+          setTaskComments(prev => ({
+            ...prev,
+            [taskId]: data.data.map(comment => ({
+              id: comment.id,
+              text: comment.content || comment.text,
+              user: comment.user ? `${comment.user.firstName} ${comment.user.lastName}` : 'Unknown User',
+              userId: comment.userId,
+              timestamp: comment.createdAt || comment.timestamp
+            }))
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      // Fall back to localStorage cache if available
+    } finally {
+      setLoadingComments(prev => ({ ...prev, [taskId]: false }));
+    }
+  };
+  
+  // Handle task completion toggle
+  const handleTaskToggle = (taskId) => {
+    setCompletedTasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
+  };
+  
+  // Handle adding a comment to a task
+  const handleAddComment = async (taskId) => {
+    const commentText = newCommentText[taskId];
+    if (!commentText?.trim()) return;
+    
+    const newComment = {
+      id: `comment_${Date.now()}`,
+      text: commentText.trim(),
+      user: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Unknown User',
+      userId: currentUser?.id,
+      timestamp: new Date().toISOString()
+    };
+    
+    try {
+      // Save to database via API
+      const response = await fetch('/api/tasks/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
+        },
+        body: JSON.stringify({
+          taskId: taskId,
+          comment: commentText.trim(),
+          userId: currentUser?.id
+        })
+      });
+      
+      if (response.ok) {
+        // Update local state immediately for responsive UI
+        setTaskComments(prev => {
+          const updated = {
+            ...prev,
+            [taskId]: [...(prev[taskId] || []), newComment]
+          };
+          // Still save to localStorage as a fallback/cache
+          localStorage.setItem('taskComments', JSON.stringify(updated));
+          return updated;
+        });
+        
+        toast.success('Comment added');
+      } else {
+        toast.error('Failed to save comment');
+      }
+    } catch (error) {
+      console.error('Error saving comment:', error);
+      toast.error('Failed to save comment');
+      
+      // Fallback to localStorage only if API fails
+      setTaskComments(prev => {
+        const updated = {
+          ...prev,
+          [taskId]: [...(prev[taskId] || []), newComment]
+        };
+        localStorage.setItem('taskComments', JSON.stringify(updated));
+        return updated;
+      });
+    }
+    
+    setNewCommentText(prev => ({
+      ...prev,
+      [taskId]: ''
+    }));
+  };
   // Reminder fields
   const [reminderTitle, setReminderTitle] = useState('');
   const [reminderDescription, setReminderDescription] = useState('');
@@ -289,8 +417,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [alertProjectFilter, setAlertProjectFilter] = useState('all');
   const [alertUserGroupFilter, setAlertUserGroupFilter] = useState('all');
   
-  // Feed and filtering state - use real messages data
-  const [feed, setFeed] = useState([]);
+  // Feed and filtering state - REMOVED: Now using activityFeedItems directly
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -630,7 +757,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           
           console.log('🔍 DASHBOARD: Fetched messages from API:', allMessages.length);
           setMessagesData(allMessages);
-          setFeed(allMessages); // Update feed with real messages
+          // activityFeedItems automatically updates when messagesData changes
         } else {
           // Fallback to activities prop if no messages found
           console.log('🔍 DASHBOARD: No messages from API, using activities fallback:', activities?.length || 0);
@@ -646,7 +773,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             : generateActivitiesFromProjects(projects); // Generate mock data if no activities
             
           setMessagesData(fallbackMessages);
-          setFeed(fallbackMessages);
+          // activityFeedItems automatically updates when messagesData changes
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -662,7 +789,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           : generateActivitiesFromProjects(projects);
           
         setMessagesData(fallbackMessages);
-        setFeed(fallbackMessages);
+        // activityFeedItems automatically updates when messagesData changes
       } finally {
         setMessagesLoading(false);
         messagesFetchedRef.current = true;
@@ -1289,6 +1416,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       newExpanded.delete(messageId);
     } else {
       newExpanded.add(messageId);
+      // Fetch comments from database when task is expanded
+      // Only fetch if we don't already have comments for this task
+      if (!taskComments[messageId] || taskComments[messageId].length === 0) {
+        fetchTaskComments(messageId);
+      }
     }
     setExpandedMessages(newExpanded);
     
@@ -3077,7 +3209,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       // Confirmation
                       toast.success('Task created successfully');
                       // Reset
-                      setQuickTaskSubject(''); setQuickTaskDescription(''); setQuickTaskDue(''); setQuickTaskAssignAll(false); setQuickTaskAssigneeId('');
+                      setQuickTaskSubject(''); setQuickTaskDescription(''); setQuickTaskDue(''); setQuickTaskAssignAll(false); setQuickTaskAssigneeId(''); setTasksProjectFilter('');
                     } catch (err) {
                       console.error('Failed to create task:', err);
                       toast.error('Failed to create task');
@@ -3085,19 +3217,30 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   }} className="space-y-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
+                        <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Project</label>
+                        <select 
+                          value={tasksProjectFilter || ''} 
+                          onChange={(e) => setTasksProjectFilter(e.target.value)} 
+                          className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
+                        >
+                          <option value="">General (No Project)</option>
+                          {(uiProjects || []).map(p => (
+                            <option key={p.id} value={p.id}>
+                              #{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
                         <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Subject <span className="text-red-500">*</span></label>
                         <input value={quickTaskSubject} onChange={(e)=>setQuickTaskSubject(e.target.value)} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} placeholder="Task subject" />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
                         <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Due <span className="text-red-500">*</span></label>
                         <input type="datetime-local" value={quickTaskDue} onChange={(e)=>setQuickTaskDue(e.target.value)} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} />
                       </div>
-                    </div>
-                    <div>
-                      <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Description</label>
-                      <textarea value={quickTaskDescription} onChange={(e)=>setQuickTaskDescription(e.target.value)} rows={2} className={`w-full px-2 py-1 border rounded text-xs resize-none ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
                         <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Assign To</label>
                         <select value={quickTaskAssigneeId} onChange={(e)=>{ setQuickTaskAssigneeId(e.target.value); setQuickTaskAssignAll(false); }} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}>
@@ -3107,14 +3250,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           ))}
                         </select>
                       </div>
-                      <div className="flex items-end">
-                        <label className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                          <input type="checkbox" className="mr-1" checked={quickTaskAssignAll} onChange={(e)=>{ setQuickTaskAssignAll(e.target.checked); if (e.target.checked) setQuickTaskAssigneeId(''); }} /> Send to all users
-                        </label>
-                      </div>
+                    </div>
+                    <div>
+                      <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Description</label>
+                      <textarea value={quickTaskDescription} onChange={(e)=>setQuickTaskDescription(e.target.value)} rows={2} className={`w-full px-2 py-1 border rounded text-xs resize-none ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} />
+                    </div>
+                    <div className="flex items-center">
+                      <label className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <input type="checkbox" className="mr-1" checked={quickTaskAssignAll} onChange={(e)=>{ setQuickTaskAssignAll(e.target.checked); if (e.target.checked) setQuickTaskAssigneeId(''); }} /> Send to all users
+                      </label>
                     </div>
                     <div className="flex justify-end gap-1.5 pt-1">
-                      <button type="button" onClick={()=>{ setShowMessageDropdown(false); setQuickTaskSubject(''); setQuickTaskDescription(''); setQuickTaskDue(''); setQuickTaskAssignAll(false); setQuickTaskAssigneeId(''); }} className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${colorMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+                      <button type="button" onClick={()=>{ setShowMessageDropdown(false); setQuickTaskSubject(''); setQuickTaskDescription(''); setQuickTaskDue(''); setQuickTaskAssignAll(false); setQuickTaskAssigneeId(''); setTasksProjectFilter(''); }} className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${colorMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
                       <button type="submit" disabled={!quickTaskSubject.trim() || !quickTaskDue} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${quickTaskSubject.trim() && quickTaskDue ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Task</button>
                     </div>
                   </form>
@@ -3256,10 +3403,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 })()
               )}
 
-              {/* Tasks Tab */}
+              {/* Tasks Tab - New Format */}
               {activeCommTab === 'tasks' && (
                 (() => {
-                  const taskItems = activityFeedItems
+                  const allTaskItems = activityFeedItems
                     .filter(i => i.type === 'task')
                     .filter(i => !tasksProjectFilter || String(i.projectId) === String(tasksProjectFilter))
                     .filter(i => {
@@ -3270,97 +3417,288 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       return isAssignee || isAuthor;
                     });
 
-                  if (taskItems.length === 0) {
-                    return (
-                      <div className="text-gray-400 text-center py-8 text-sm">
-                        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        <p className="font-medium">No tasks found</p>
-                        <p className="text-xs mt-1">Tasks assigned to you will appear here</p>
-                      </div>
-                    );
-                  }
-
-                  return taskItems.map(item => {
-                    // Find the associated project for this task
-                    const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
-                    
-                    // Get author and assignee information
-                    const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
-                    const assignees = Array.isArray(item.attendees) ? 
-                      item.attendees.map(id => availableUsers.find(u => String(u.id) === String(id))).filter(Boolean) : [];
-                    
-                    return (
-                      <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300">
-                        {/* Compact Header */}
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 flex-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                            <h4 className="text-sm font-semibold text-gray-900 truncate">
-                              {item.subject || 'Untitled Task'}
-                            </h4>
-                            {associatedProject && (
-                              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                #{String(associatedProject.projectNumber).padStart(5, '0')}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                            Task
-                          </span>
-                        </div>
-
-                        {/* Compact To/From on one line */}
-                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">From:</span>
-                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">To:</span>
-                            {assignees.length > 0 ? (
-                              <span className="text-gray-800">
-                                {assignees[0].firstName} {assignees[0].lastName}
-                                {assignees.length > 1 && <span className="text-blue-600"> +{assignees.length - 1}</span>}
-                              </span>
-                            ) : (
-                              <span className="text-gray-500 italic">Unassigned</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Compact Description */}
-                        {item.content && (
-                          <p className="text-xs text-gray-600 line-clamp-2 mb-2">
-                            {item.content}
-                          </p>
-                        )}
-                        
-                        {/* Compact Footer */}
-                        <div className="flex items-center justify-between text-[10px] text-gray-500">
-                          <span>
-                            Created: {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric'
-                            })}
-                          </span>
-                          {item.dueDate && (
-                            <span className="text-orange-600 font-medium">
-                              Due: {new Date(item.dueDate).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric'
-                              })}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
+                  // Filter based on completion status
+                  const taskItems = allTaskItems.filter(item => {
+                    const isCompleted = completedTasks.has(item.id);
+                    return showCompletedTasks ? isCompleted : !isCompleted;
                   });
+
+                  const completedCount = allTaskItems.filter(item => completedTasks.has(item.id)).length;
+                  const activeCount = allTaskItems.length - completedCount;
+
+                  return (
+                    <div>
+                      {/* Task Summary and Toggle - Compact */}
+                      <div className="flex items-center justify-between mb-3 text-xs text-gray-600">
+                        <div className="flex items-center gap-4">
+                          <span>{activeCount} active</span>
+                          <span>{completedCount} completed</span>
+                        </div>
+                        <button
+                          onClick={() => setShowCompletedTasks(!showCompletedTasks)}
+                          className="text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          {showCompletedTasks ? '← Show Active Tasks' : 'Show Completed Tasks →'}
+                        </button>
+                      </div>
+
+                      {taskItems.length === 0 ? (
+                        <div className="text-center py-16">
+                          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                            <svg className="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                            {showCompletedTasks ? 'No completed tasks' : 'No active tasks'}
+                          </h3>
+                          <p className="text-gray-500">
+                            {showCompletedTasks ? 'Completed tasks will appear here' : 'Tasks assigned to you will appear here'}
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Task List - EXACT SAME AS MESSAGES */}
+                          <div className="space-y-2">
+                            {taskItems.map(item => {
+                              const isCompleted = completedTasks.has(item.id);
+                              const project = projects?.find(p => p.id === item.projectId);
+                              const projectNumber = project?.projectNumber || item.projectNumber || '12345';
+                              const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
+                              const subject = item.subject || 'Task';
+                              
+                              return (
+                                <div key={item.id} className={`bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'opacity-75' : ''}`}>
+                                  {/* Main task header - Compact 2-row layout - EXACT SAME AS MESSAGES */}
+                                  <div 
+                                    className="flex items-center gap-1.5 p-1.5"
+                                    onClick={() => handleToggleMessage(item.id)}
+                                  >
+                                    {/* Checkbox - TOP LEFT CORNER */}
+                                    <input
+                                      type="checkbox"
+                                      checked={isCompleted}
+                                      onChange={() => handleTaskToggle(item.id)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0 self-start"
+                                    />
+                                    
+                                    {/* Phase Circle - Dynamic based on project association */}
+                                    {(() => {
+                                      // Check if task is tied to a project
+                                      const isProjectTask = item.projectId && project;
+                                      
+                                      if (isProjectTask) {
+                                        // Get project phase and colors
+                                        const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                                        const phaseProps = WorkflowProgressService.getPhaseButtonProps(projectPhase);
+                                        const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
+                                        const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
+                                        
+                                        return (
+                                          <div 
+                                            className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
+                                            style={{ backgroundColor: phaseColor }}
+                                          >
+                                            {phaseInitial}
+                                          </div>
+                                        );
+                                      } else {
+                                        // No project - use orange T
+                                        return (
+                                          <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
+                                            T
+                                          </div>
+                                        );
+                                      }
+                                    })()}
+                                    
+                                    <div className="flex-1 min-w-0">
+                                      {/* Row 1: Project# or General | Customer | Subject */}
+                                      <div className="flex items-center justify-between overflow-hidden relative">
+                                        <div className="flex items-center min-w-0 flex-1">
+                                          {/* Project Number or General - Fixed width for alignment */}
+                                          {item.projectId && project ? (
+                                            <button
+                                              className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
+                                              style={{ width: '46px', marginLeft: '-8px' }}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (onProjectSelect) {
+                                                  onProjectSelect(project, 'Project Profile', null, 'Messages, Tasks, & Reminders');
+                                                }
+                                              }}
+                                            >
+                                              {projectNumber}
+                                            </button>
+                                          ) : (
+                                            <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                              General
+                                            </span>
+                                          )}
+                                          
+                                          {/* Primary Customer - Only show if project exists */}
+                                          {item.projectId && project && (
+                                            <div className="flex items-center gap-1">
+                                              <span className="text-[9px] font-semibold transition-colors truncate text-gray-700 hover:text-gray-800" style={{ maxWidth: '80px' }}>
+                                                {primaryCustomer}
+                                              </span>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Subject - Fixed position for perfect alignment */}
+                                          <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                            <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
+                                              Subject: {subject}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Right side - Task indicator and actions */}
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                          {/* Task indicator - CLEARLY INDICATES IT IS A TASK */}
+                                          <div className="flex flex-col items-center">
+                                            <span className="text-[8px] font-bold text-orange-500">
+                                              Task
+                                            </span>
+                                          </div>
+                                          
+                                          {/* Dropdown arrow - visual indicator only */}
+                                          <div className={`p-1 rounded transition-colors transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''} text-gray-600`}>
+                                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Row 2: From, To, and Timestamp */}
+                                      <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
+                                        <div className="flex items-baseline gap-0">
+                                          {/* From - Fixed width container for consistent spacing */}
+                                          <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '0px' }}>
+                                            <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
+                                              From: {item.author}
+                                            </span>
+                                          </div>
+                                          
+                                          {/* To - Fixed position to match Subject exactly */}
+                                          <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                            <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
+                                              To: {item.assignedTo || item.recipient || item.author}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Timestamp - Far right */}
+                                        <div className="flex-shrink-0">
+                                          <span className="text-[8px] whitespace-nowrap text-gray-500">
+                                            {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                                              month: 'short', 
+                                              day: 'numeric'
+                                            }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
+                                              hour: 'numeric',
+                                              minute: '2-digit',
+                                              hour12: true
+                                            })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Dropdown section - Task content when expanded */}
+                                  {expandedMessages.has(item.id) && (
+                                    <div className="px-3 py-3 border-t bg-gray-50 border-gray-200">
+                                      <div className="space-y-3">
+                                        {/* Task content */}
+                                        {item.content && (
+                                          <div className="text-sm text-gray-800 leading-relaxed bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                            {item.content}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Comments Section */}
+                                        <div className="bg-white rounded-lg border border-gray-200 p-3">
+                                          <h4 className="text-xs font-semibold text-gray-700 mb-2">Comments</h4>
+                                          
+                                          {/* Existing Comments */}
+                                          <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                                            {taskComments[item.id] && taskComments[item.id].length > 0 ? (
+                                              taskComments[item.id].map(comment => (
+                                                <div key={comment.id} className="bg-gray-50 p-2 rounded border border-gray-100">
+                                                  <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                      <p className="text-[10px] font-semibold text-gray-700">
+                                                        Comment by: {comment.user}
+                                                      </p>
+                                                      <p className="text-xs text-gray-600 mt-1">
+                                                        {comment.text}
+                                                      </p>
+                                                    </div>
+                                                    <span className="text-[9px] text-gray-400 ml-2">
+                                                      {new Date(comment.timestamp).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: 'numeric',
+                                                        minute: '2-digit'
+                                                      })}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              ))
+                                            ) : (
+                                              <p className="text-xs text-gray-400 italic">No comments yet</p>
+                                            )}
+                                          </div>
+                                          
+                                          {/* Add Comment Form */}
+                                          <div className="border-t border-gray-200 pt-2">
+                                            <div className="flex gap-2">
+                                              <input
+                                                type="text"
+                                                value={newCommentText[item.id] || ''}
+                                                onChange={(e) => setNewCommentText(prev => ({
+                                                  ...prev,
+                                                  [item.id]: e.target.value
+                                                }))}
+                                                onKeyPress={(e) => {
+                                                  if (e.key === 'Enter') {
+                                                    handleAddComment(item.id);
+                                                  }
+                                                }}
+                                                placeholder="Add a comment..."
+                                                className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                              />
+                                              <button
+                                                onClick={() => handleAddComment(item.id)}
+                                                disabled={!newCommentText[item.id]?.trim()}
+                                                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                                                  newCommentText[item.id]?.trim()
+                                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                }`}
+                                              >
+                                                Add
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
                 })()
               )}
 
-              {/* Reminders Tab */}
+              {/* Reminders Tab - Redesigned */}
               {activeCommTab === 'reminders' && (
                 (() => {
                   const reminderItems = activityFeedItems
@@ -3376,102 +3714,226 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
                   if (reminderItems.length === 0) {
                     return (
-                      <div className="text-gray-400 text-center py-8 text-sm">
-                        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="font-medium">No reminders found</p>
-                        <p className="text-xs mt-1">Reminders you create or receive will appear here</p>
+                      <div className="text-center py-16">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center">
+                          <svg className="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">No reminders found</h3>
+                        <p className="text-gray-500">Reminders you create or receive will appear here</p>
                       </div>
                     );
                   }
 
-                  return reminderItems.map(item => {
-                    // Find the associated project for this reminder
-                    const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
-                    
-                    // Get author and recipient information
-                    const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
-                    const recipients = Array.isArray(item.recipients) ? 
-                      item.recipients.map(id => {
-                        if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
-                        return availableUsers.find(u => String(u.id) === String(id));
-                      }).filter(Boolean) : [];
-                    
-                    return (
-                      <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300">
-                        {/* Compact Header */}
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 flex-1">
-                            <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                            <h4 className="text-sm font-semibold text-gray-900 truncate">
-                              {item.subject || 'Untitled Reminder'}
-                            </h4>
-                            {associatedProject && (
-                              <span className="text-xs text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                #{String(associatedProject.projectNumber).padStart(5, '0')}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                            Reminder
-                          </span>
-                        </div>
+                  return (
+                    <div className="space-y-4">
+                      {reminderItems.map(item => {
+                        // Find the associated project for this reminder
+                        const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
+                        
+                        // Get author and recipient information
+                        const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
+                        const recipients = Array.isArray(item.recipients) ? 
+                          item.recipients.map(id => {
+                            if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
+                            return availableUsers.find(u => String(u.id) === String(id));
+                          }).filter(Boolean) : [];
+                        
+                        // Format timestamps with full date and time
+                        const formatDateTime = (timestamp) => {
+                          const date = new Date(timestamp);
+                          return {
+                            date: date.toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            }),
+                            time: date.toLocaleTimeString('en-US', { 
+                              hour: 'numeric', 
+                              minute: '2-digit',
+                              hour12: true
+                            })
+                          };
+                        };
 
-                        {/* Compact To/From on one line */}
-                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">From:</span>
-                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">To:</span>
-                            {recipients.length > 0 ? (
-                              <span className="text-gray-800">
-                                {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
-                                {recipients.length > 1 && <span className="text-orange-600"> +{recipients.length - 1}</span>}
-                              </span>
-                            ) : (
-                              <span className="text-gray-500 italic">No recipients</span>
-                            )}
-                          </div>
-                        </div>
+                        const createdDateTime = formatDateTime(item.timestamp);
+                        const reminderDateTime = item.reminderDate ? formatDateTime(item.reminderDate) : createdDateTime;
                         
-                        {/* Compact Description */}
-                        {item.content && (
-                          <p className="text-xs text-gray-600 line-clamp-2 mb-2">
-                            {item.content}
-                          </p>
-                        )}
+                        // Determine reminder status
+                        const now = new Date();
+                        const reminderDate = new Date(item.reminderDate || item.timestamp);
+                        const isOverdue = reminderDate < now;
+                        const isUpcoming = reminderDate > now && (reminderDate - now) < (24 * 60 * 60 * 1000); // Within 24 hours
                         
-                        {/* Compact Footer */}
-                        <div className="flex items-center justify-between text-[10px] text-gray-500">
-                          <span>
-                            Created: {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric'
-                            })}
-                          </span>
-                          <span className="text-orange-600 font-medium flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                            </svg>
-                            {new Date(item.reminderDate || item.timestamp).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  });
+                        // Get status styling
+                        const getStatusStyle = () => {
+                          if (isOverdue) {
+                            return {
+                              borderColor: 'border-red-300',
+                              bgColor: 'bg-red-50',
+                              iconColor: 'text-red-500',
+                              statusText: 'Overdue',
+                              statusColor: 'text-red-700',
+                              statusBg: 'bg-red-100'
+                            };
+                          } else if (isUpcoming) {
+                            return {
+                              borderColor: 'border-green-300',
+                              bgColor: 'bg-green-50',
+                              iconColor: 'text-green-500',
+                              statusText: 'Upcoming',
+                              statusColor: 'text-green-700',
+                              statusBg: 'bg-green-100'
+                            };
+                          } else {
+                            return {
+                              borderColor: 'border-amber-300',
+                              bgColor: 'bg-amber-50',
+                              iconColor: 'text-amber-500',
+                              statusText: 'Scheduled',
+                              statusColor: 'text-amber-700',
+                              statusBg: 'bg-amber-100'
+                            };
+                          }
+                        };
+
+                        const statusStyle = getStatusStyle();
+                        
+                        return (
+                          <div key={item.id} className={`group bg-white rounded-xl border-l-4 ${statusStyle.borderColor} ${statusStyle.bgColor} border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-hidden`}>
+                            <div className="p-6">
+                              {/* Header with title and status */}
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <div className={`w-10 h-10 rounded-full ${statusStyle.bgColor} flex items-center justify-center flex-shrink-0`}>
+                                    <svg className={`w-5 h-5 ${statusStyle.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-amber-600 transition-colors">
+                                      {item.subject || 'Untitled Reminder'}
+                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.statusBg} ${statusStyle.statusColor} border`}>
+                                        {isOverdue ? '🚨 Overdue' : isUpcoming ? '⏰ Upcoming' : '📅 Scheduled'}
+                                      </span>
+                                      {associatedProject && (
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                                          #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Project Information */}
+                              {associatedProject && (
+                                <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                  <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                  </svg>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-blue-900">
+                                      #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
+                                    </p>
+                                    <p className="text-xs text-blue-700 truncate">
+                                      {associatedProject.customer?.name || associatedProject.clientName || associatedProject.name}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Reminder Description */}
+                              {item.content && (
+                                <div className="mb-4">
+                                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                                    {item.content}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Assignment Info */}
+                              <div className="space-y-3 mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-gray-500 font-medium">Created by</p>
+                                    <p className="text-sm font-semibold text-gray-900">{author.firstName} {author.lastName}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-gray-500 font-medium">Recipients</p>
+                                    {recipients.length > 0 ? (
+                                      <div className="flex items-center gap-1">
+                                        <p className="text-sm font-semibold text-gray-900">
+                                          {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
+                                        </p>
+                                        {recipients.length > 1 && !recipients[0].isAll && (
+                                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                                            +{recipients.length - 1}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-gray-500 italic">No recipients</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Timestamps */}
+                              <div className="space-y-2 mb-6 text-xs">
+                                <div className="flex items-center gap-2 text-gray-500">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  <span>Created: {createdDateTime.date} at {createdDateTime.time}</span>
+                                </div>
+                                
+                                <div className={`flex items-center gap-2 ${isOverdue ? 'text-red-600 font-semibold' : isUpcoming ? 'text-green-600 font-semibold' : 'text-amber-600'}`}>
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                                  </svg>
+                                  <span>Reminder: {reminderDateTime.date} at {reminderDateTime.time}</span>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex gap-3">
+                                <button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm">
+                                  Dismiss
+                                </button>
+                                <button className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm">
+                                  Reschedule
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
                 })()
               )}
         </div>
           </div>
         </div>
 
-        {/* Project Workflow Tasks - Now positioned below Messages, Tasks, and Reminders */}
+        {/* Project Workflow Line Items - Now positioned below Messages, Tasks, and Reminders */}
         <div className="w-full mb-6" data-section="project-workflow-tasks">
           {/* Beautiful original alerts UI with new functionality */}
           <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
@@ -3479,7 +3941,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
-                    Project Workflow Tasks
+                    Project Workflow Line Items
                   </h2>
                   {expandedAlerts.size > 0 && (
                     <p className="text-sm text-gray-600 font-medium">
@@ -3638,11 +4100,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     const projectWithScrollId = {
                                       ...project,
                                       scrollToProjectId: String(project.id),
-                                      navigationSource: 'Project Workflow Tasks',
+                                      navigationSource: 'Project Workflow Line Items',
                                       returnToSection: 'project-workflow-tasks'
                                     };
-                                    console.log('🎯 PROJECT NUMBER CLICK: Navigating from Project Workflow Tasks to Profile');
-                                    handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Project Workflow Tasks');
+                                    console.log('🎯 PROJECT NUMBER CLICK: Navigating from Project Workflow Line Items to Profile');
+                                    handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Project Workflow Line Items');
                                   }
                                 }}
                                 title={`Go to project #${project?.projectNumber || actionData.projectNumber || 'N/A'}`}
@@ -3866,8 +4328,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             }
                                           };
                                           
-                                          // Enhanced navigation with comprehensive state tracking for Project Workflow Tasks
-                                          console.log('🎯 LINE ITEM CLICK: Navigating from Project Workflow Tasks to Workflow with targeting');
+                                          // Enhanced navigation with comprehensive state tracking for Project Workflow Line Items
+                                          console.log('🎯 LINE ITEM CLICK: Navigating from Project Workflow Line Items to Workflow with targeting');
                                           console.log('🎯 LINE ITEM CLICK: targetLineItemId:', targetLineItemId);
                                           console.log('🎯 LINE ITEM CLICK: targetSectionId:', targetSectionId);
                                           console.log('🎯 LINE ITEM CLICK: position data:', position);
@@ -3888,13 +4350,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             projectWithNavigation, 
                                             'Project Workflow', 
                                             null, 
-                                            'Project Workflow Tasks',
+                                            'Project Workflow Line Items',
                                             targetLineItemId,
                                             targetSectionId
                                           );
                                         } else {
                                           console.warn('🎯 ALERTS CLICK: No position data found, using fallback navigation');
-                                          // Fallback to enhanced static navigation with Project Workflow Tasks tracking
+                                          // Fallback to enhanced static navigation with Project Workflow Line Items tracking
                                           const projectWithStepInfo = {
                                             ...project,
                                             highlightStep: lineItemName,
@@ -3904,7 +4366,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             targetLineItem: lineItemName,
                                             scrollToCurrentLineItem: true,
                                             alertPhase: phase,
-                                            navigationSource: 'Project Workflow Tasks',
+                                            navigationSource: 'Project Workflow Line Items',
                                             returnToSection: 'project-workflow-tasks',
                                             navigationTarget: {
                                               phase: phase,
@@ -3927,7 +4389,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                         }
                                       } else {
                                         console.error('🎯 ALERTS CLICK: Failed to get project position, using fallback navigation');
-                                        // Fallback to basic navigation with Project Workflow Tasks source tracking
+                                        // Fallback to basic navigation with Project Workflow Line Items source tracking
                                         const projectWithStepInfo = {
                                           ...project,
                                           highlightStep: lineItemName,
@@ -3937,7 +4399,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           targetLineItem: lineItemName,
                                           scrollToCurrentLineItem: true,
                                           alertPhase: phase,
-                                          navigationSource: 'Project Workflow Tasks',
+                                          navigationSource: 'Project Workflow Line Items',
                                           returnToSection: 'project-workflow-tasks',
                                           navigationTarget: {
                                             phase: phase,
@@ -4125,28 +4587,235 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 .filter(item => !activityProjectFilter || String(item.projectId) === String(activityProjectFilter))
                 .filter(item => !activityTypeFilter || item.type === activityTypeFilter)
                 .map(item => {
-                  // Default visual for messages/tasks/reminders
-                  return (
-                    <div key={item.id} className="flex items-start gap-2 p-2 border rounded-lg bg-white">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                        item.type === 'message' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                        item.type === 'task' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                        'bg-purple-50 text-purple-700 border-purple-200'
-                      }`}>
-                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs font-semibold text-gray-800 truncate">{item.subject}</div>
-                          <div className="text-[10px] text-gray-500 ml-2 whitespace-nowrap">{new Date(item.timestamp).toLocaleString()}</div>
+                  // Use exact same styling as respective tabs
+                  const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
+                  const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
+                  
+                  // Format timestamps with full date and time
+                  const formatDateTime = (timestamp) => {
+                    const date = new Date(timestamp);
+                    return {
+                      date: date.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: 'numeric'
+                      }),
+                      time: date.toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true
+                      })
+                    };
+                  };
+
+                  const createdDateTime = formatDateTime(item.timestamp);
+                  const dueDateTime = item.dueDate ? formatDateTime(item.dueDate) : null;
+                  
+                  if (item.type === 'task') {
+                    // EXACT same styling as Tasks tab
+                    const assignees = Array.isArray(item.attendees) ? 
+                      item.attendees.map(id => availableUsers.find(u => String(u.id) === String(id))).filter(Boolean) : [];
+                    
+                    return (
+                      <div key={item.id} className="group bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                        {/* Single line with icon, subject, and badge */}
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                              </svg>
+                            </div>
+                            <h4 className="text-sm font-semibold text-gray-900 leading-tight group-hover:text-blue-700 transition-colors duration-200 truncate">
+                              {item.subject || 'Untitled Task'}
+                            </h4>
+                          </div>
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full shadow-sm flex-shrink-0">
+                            Task
+                          </span>
                         </div>
-                        <div className="text-[11px] text-gray-600 truncate">{item.content}</div>
-                        {item.projectName && (
-                          <div className="text-[10px] text-gray-500 mt-0.5">Project: {item.projectName}</div>
+
+                        {/* Project Information - When Selected */}
+                        {associatedProject && (
+                          <div className="flex items-center gap-2 mb-2 text-xs">
+                            <svg className="w-3 h-3 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <span className="font-medium text-blue-700">#{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}</span>
+                            <span className="text-gray-600">•</span>
+                            <span className="text-gray-700 truncate">
+                              {associatedProject.customer?.name || associatedProject.clientName || associatedProject.name}
+                            </span>
+                          </div>
                         )}
+
+                        {/* Compact Assignment Info - One Line */}
+                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                              <svg className="w-2.5 h-2.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 818 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <span className="text-gray-500">From:</span>
+                            <span className="text-gray-800 font-medium">{author.firstName} {author.lastName}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                              <svg className="w-2.5 h-2.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 919.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            </div>
+                            <span className="text-gray-500">To:</span>
+                            {assignees.length > 0 ? (
+                              <span className="text-gray-800 font-medium">
+                                {assignees[0].firstName} {assignees[0].lastName}
+                                {assignees.length > 1 && (
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded-full font-medium ml-1">
+                                    +{assignees.length - 1}
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 italic">Unassigned</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Task Description - Condensed */}
+                        {item.content && (
+                          <p className="text-xs text-gray-600 line-clamp-2 mb-2 leading-relaxed">
+                            {item.content}
+                          </p>
+                        )}
+                        
+                        {/* Compact Timestamp Footer */}
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100/50">
+                          <div className="flex items-center gap-3 text-[10px]">
+                            <div className="flex items-center gap-1">
+                              <svg className="w-2.5 h-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span className="text-gray-500">Created:</span>
+                              <span className="text-gray-700 font-semibold">{createdDateTime.date}</span>
+                              <span className="text-gray-500">at {createdDateTime.time}</span>
+                            </div>
+                            {dueDateTime && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-2.5 h-2.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                                </svg>
+                                <span className="text-orange-600 font-medium">Due:</span>
+                                <span className="text-orange-700 font-semibold">{dueDateTime.date}</span>
+                                <span className="text-orange-600">at {dueDateTime.time}</span>
+                              </div>
+                            )}
+                          </div>
+                          <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded border border-blue-200 hover:border-blue-300">
+                            Details
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
+                  } else if (item.type === 'reminder') {
+                    // EXACT same styling as Reminders tab
+                    const recipients = Array.isArray(item.recipients) ? 
+                      item.recipients.map(id => {
+                        if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
+                        return availableUsers.find(u => String(u.id) === String(id));
+                      }).filter(Boolean) : [];
+                    const reminderDateTime = item.reminderDate ? formatDateTime(item.reminderDate) : createdDateTime;
+
+                    return (
+                      <div key={item.id} className="group bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:border-amber-300">
+                        {/* Single line with icon, subject, and badge */}
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-4 h-4 bg-amber-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                            <h4 className="text-xs font-semibold text-gray-900 truncate">
+                              {item.subject || 'Untitled Reminder'}
+                            </h4>
+                            {associatedProject && (
+                              <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                                #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
+                            Reminder
+                          </span>
+                        </div>
+
+                        {/* Compact To/From on one line */}
+                        <div className="flex items-center gap-3 text-[10px] text-gray-600 mb-1">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">From:</span>
+                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">To:</span>
+                            {recipients.length > 0 ? (
+                              <span className="text-gray-800">
+                                {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
+                                {recipients.length > 1 && !recipients[0].isAll && <span className="text-amber-600"> +{recipients.length - 1}</span>}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 italic">No recipients</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Compact Description */}
+                        {item.content && (
+                          <p className="text-[10px] text-gray-600 line-clamp-1 mb-1">
+                            {item.content}
+                          </p>
+                        )}
+                        
+                        {/* Compact Footer */}
+                        <div className="flex items-center justify-between text-[9px] text-gray-500">
+                          <span>
+                            Created: {createdDateTime.date} at {createdDateTime.time}
+                          </span>
+                          <span className="text-amber-600 font-medium flex items-center gap-1">
+                            <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                            </svg>
+                            {reminderDateTime.date} at {reminderDateTime.time}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    // Messages - use same professional styling as messages tab
+                    return (
+                      <ProjectMessagesCard 
+                        key={item.id} 
+                        activity={{
+                          ...item,
+                          id: item.id,
+                          projectId: item.projectId,
+                          projectName: item.projectName,
+                          subject: item.subject,
+                          description: item.description || item.content,
+                          user: item.user,
+                          timestamp: item.timestamp,
+                          type: item.type,
+                          priority: item.priority,
+                          recipients: item.recipients
+                        }}
+                        onProjectSelect={() => {}}
+                        projects={projects}
+                        colorMode={false}
+                        useRealData={true}
+                        onQuickReply={() => {}}
+                        isExpanded={expandedMessages.has(item.id)}
+                        onToggleExpansion={handleToggleMessage}
+                        sourceSection="Activity Feed"
+                      />
+                    );
+                  }
                 })}
               {activityFeedItems.length === 0 && (
                 <div className="text-gray-400 text-center py-3 text-sm">No activity yet.</div>

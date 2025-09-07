@@ -475,4 +475,113 @@ router.get('/project/:projectId', asyncHandler(async (req, res, next) => {
   });
 }));
 
+// @desc    Get calendar events by project number (for AI assistant)
+// @route   GET /api/calendar/project-number/:projectNumber
+// @access  Private
+router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next) => {
+  const { projectNumber } = req.params;
+  const { 
+    start,
+    end,
+    eventType,
+    organizerId,
+    limit = 50
+  } = req.query;
+
+  // First find the project by project number
+  const project = await prisma.project.findFirst({
+    where: { projectNumber: projectNumber },
+    select: {
+      id: true,
+      projectNumber: true,
+      projectName: true,
+      status: true,
+      progress: true
+    }
+  });
+
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  const projectId = project.id;
+  
+  // Build filter conditions
+  let where = { projectId };
+  
+  if (eventType) {
+    where.eventType = eventType.toUpperCase();
+  }
+  
+  if (organizerId) {
+    where.organizerId = organizerId;
+  }
+  
+  if (start && end) {
+    where.AND = [
+      { startTime: { gte: new Date(start) } },
+      { endTime: { lte: new Date(end) } }
+    ];
+  } else if (start) {
+    where.startTime = { gte: new Date(start) };
+  } else if (end) {
+    where.endTime = { lte: new Date(end) };
+  }
+  
+  const events = await prisma.calendarEvent.findMany({
+    where,
+    include: {
+      organizer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      attendees: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatar: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: { startTime: 'asc' },
+    take: parseInt(limit)
+  });
+
+  const response = {
+    project: {
+      id: project.id,
+      projectNumber: project.projectNumber,
+      projectName: project.projectName,
+      status: project.status,
+      progress: project.progress
+    },
+    events
+  };
+
+  res.json({
+    success: true,
+    data: response,
+    message: `Found ${events.length} calendar events for project #${projectNumber}`
+  });
+}));
+
 module.exports = router; 

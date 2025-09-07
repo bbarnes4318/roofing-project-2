@@ -539,4 +539,150 @@ router.get('/:projectId/stats', asyncHandler(async (req, res, next) => {
   sendSuccess(res, 200, stats, 'Project message statistics retrieved successfully');
 }));
 
+// @desc    Get project messages by project number (for AI assistant)
+// @route   GET /api/project-messages/project-number/:projectNumber
+// @access  Private
+router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next) => {
+  const { projectNumber } = req.params;
+  const { 
+    page = 1, 
+    limit = 20,
+    includeReplies = 'true',
+    messageType,
+    priority,
+    search,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = req.query;
+
+  // First find the project by project number
+  const project = await prisma.project.findFirst({
+    where: { projectNumber: projectNumber },
+    select: {
+      id: true,
+      projectNumber: true,
+      projectName: true,
+      status: true,
+      progress: true
+    }
+  });
+
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  const projectId = project.id;
+
+  // Build filter conditions
+  let where = { projectId };
+
+  if (messageType) {
+    where.messageType = messageType;
+  }
+
+  if (priority) {
+    where.priority = priority.toUpperCase();
+  }
+
+  if (search) {
+    where.OR = [
+      { subject: { contains: search, mode: 'insensitive' } },
+      { content: { contains: search, mode: 'insensitive' } }
+    ];
+  }
+
+  // Calculate pagination
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const take = parseInt(limit);
+
+  // Get messages with full conversation context
+  const messages = await prisma.projectMessage.findMany({
+    where,
+    include: {
+      author: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      recipients: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      },
+      replies: includeReplies === 'true' ? {
+        include: {
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      } : false,
+      parentMessage: {
+        select: {
+          id: true,
+          subject: true,
+          authorName: true
+        }
+      }
+    },
+    orderBy: { [sortBy]: sortOrder.toLowerCase() },
+    skip,
+    take
+  });
+
+  // Get total count for pagination
+  const totalMessages = await prisma.projectMessage.count({ where });
+
+  // Transform data for consistent response
+  const transformedMessages = messages.map(message => ({
+    ...message,
+    replyCount: Array.isArray(message.replies) ? message.replies.length : 0,
+    isRead: message.recipients?.some(r => r.userId === req.user?.id && r.isRead) || false
+  }));
+
+  const response = {
+    project: {
+      id: project.id,
+      projectNumber: project.projectNumber,
+      projectName: project.projectName,
+      status: project.status,
+      progress: project.progress
+    },
+    messages: transformedMessages,
+    pagination: {
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalMessages / take),
+      totalMessages,
+      hasNextPage: skip + take < totalMessages,
+      hasPrevPage: parseInt(page) > 1
+    }
+  };
+
+  sendSuccess(res, 200, response, `Found ${transformedMessages.length} messages for project #${projectNumber}`);
+}));
+
 module.exports = router;

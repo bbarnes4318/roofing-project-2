@@ -281,7 +281,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </div>
                             
                             {/* Subject - Fixed position for perfect alignment */}
-                            <div style={{ position: 'absolute', left: '200px', width: '200px' }}>
+                            <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
                                 <span 
                                     className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                     style={{ 
@@ -374,7 +374,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </div>
                             
                             {/* To - Fixed position to match Subject exactly */}
-                            <div style={{ position: 'absolute', left: '200px', width: '200px' }}>
+                            <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
                                 <span 
                                     className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                     style={{ 
@@ -702,93 +702,78 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             
             {/* Dropdown section - Professional message thread */}
             {expanded && (
-                <div className={`px-2 py-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                    {/* Thread header */}
-                    <div className={`text-[9px] font-semibold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Message Thread ({conversation.length} messages)
-                    </div>
-                    <div className={`max-h-48 overflow-y-auto space-y-2 ${colorMode ? 'scrollbar-dark' : 'scrollbar-light'}`}>
-                        {conversation.map((message, index) => (
-                            <div key={message.id} className={`flex flex-col ${
-                                message.user === 'You' ? 'items-end' : 'items-start'
-                            }`}>
-                                {/* Message header with user and timestamp */}
-                                <div className={`flex items-center gap-1 mb-1 ${
-                                    message.user === 'You' ? 'flex-row-reverse' : 'flex-row'
-                                }`}>
-                                    {/* User avatar */}
-                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white font-bold text-[8px] shadow-sm ${
-                                        message.user === 'You' 
-                                            ? 'bg-gradient-to-br from-green-500 to-green-600' 
-                                            : 'bg-gradient-to-br from-blue-500 to-blue-600'
-                                    }`}>
-                                        {message.user.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                <div className={`px-3 py-3 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="space-y-3">
+                        {/* Thread header - More professional */}
+                        <div className={`flex items-center justify-between ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                                <span className="text-xs font-semibold">
+                                    {conversation.length} message{conversation.length !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {/* Message thread - Professional layout */}
+                        <div className={`max-h-48 overflow-y-auto space-y-3 ${colorMode ? 'scrollbar-dark' : 'scrollbar-light'}`}>
+                            {conversation.map((message, index) => (
+                                <div key={message.id} className={`${colorMode ? 'bg-[#374151]' : 'bg-white'} rounded-lg border ${colorMode ? 'border-gray-600' : 'border-gray-200'} p-3 shadow-sm`}>
+                                    {/* Message header */}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            {/* User avatar */}
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ${
+                                                message.user === 'You' 
+                                                    ? 'bg-gradient-to-br from-green-500 to-green-600' 
+                                                    : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                            }`}>
+                                                {message.user.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                            </div>
+                                            {/* User name */}
+                                            <span className={`text-sm font-semibold ${
+                                                colorMode ? 'text-gray-200' : 'text-gray-800'
+                                            }`}>
+                                                {message.user}
+                                            </span>
+                                        </div>
+                                        
+                                        {/* Timestamp and reply button */}
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-xs ${
+                                                colorMode ? 'text-gray-400' : 'text-gray-500'
+                                            }`}>
+                                                {formatTimestamp(message.timestamp)}
+                                            </span>
+                                            {/* Quick Reply Icon */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowQuickReply(true);
+                                                    setQuickReplyText(`@${message.user}: `);
+                                                }}
+                                                className={`p-1.5 rounded-full transition-colors ${
+                                                    colorMode 
+                                                        ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'
+                                                }`}
+                                                title={`Reply to ${message.user}`}
+                                            >
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                    {/* User name */}
-                                    <span className={`text-[9px] font-semibold ${
-                                        colorMode ? 'text-gray-200' : 'text-gray-700'
-                                    }`}>
-                                        {message.user}
-                                    </span>
-                                    {/* Timestamp */}
-                                    <span className={`text-[8px] ${
-                                        colorMode ? 'text-gray-400' : 'text-gray-500'
-                                    }`}>
-                                        {formatTimestamp(message.timestamp)}
-                                    </span>
-                                    {/* Quick Reply Icon for Individual Messages - Always visible */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowQuickReply(true);
-                                            setQuickReplyText(`@${message.user}: `);
-                                        }}
-                                        className={`ml-1 p-0.5 rounded transition-colors ${
-                                            colorMode 
-                                                ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
-                                                : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'
-                                        }`}
-                                        title={`Reply to ${message.user}`}
-                                    >
-                                        <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                
-                                {/* Message content - Compact bubble style */}
-                                <div className={`ml-5 p-1.5 rounded relative group shadow-sm max-w-[85%] border ${
-                                    message.user === 'You' 
-                                        ? colorMode 
-                                            ? 'bg-green-600 text-white ml-auto mr-0 border-green-500' 
-                                            : 'bg-green-500 text-white ml-auto mr-0 border-green-400'
-                                        : colorMode 
-                                            ? 'bg-[#374151] text-gray-100 border-gray-600' 
-                                            : 'bg-white text-gray-800 border-gray-200'
-                                }`}>
-                                    {/* Chat bubble tail - smaller */}
-                                    <div className={`absolute top-1 w-2 h-2 transform rotate-45 ${
-                                        message.user === 'You'
-                                            ? colorMode
-                                                ? 'bg-green-600 -right-0.5'
-                                                : 'bg-green-500 -right-0.5'
-                                            : colorMode
-                                                ? 'bg-[#374151] -left-0.5'
-                                                : 'bg-white -left-0.5'
-                                    }`}></div>
-                                    <div className={`text-[9px] leading-tight relative z-10 ${
-                                        message.user === 'You' ? 'text-white' : colorMode ? 'text-gray-100' : 'text-gray-800'
+                                    
+                                    {/* Message content */}
+                                    <div className={`text-sm leading-relaxed ${
+                                        colorMode ? 'text-gray-100' : 'text-gray-800'
                                     }`}>
                                         {message.comment}
                                     </div>
                                 </div>
-                                
-                                {/* Separator line except for last message */}
-                                {index < conversation.length - 1 && (
-                                    <div className={`mt-1 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
-                                )}
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

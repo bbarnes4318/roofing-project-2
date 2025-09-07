@@ -140,7 +140,7 @@ router.get('/', asyncHandler(async (req, res) => {
   let orderBy = {};
   orderBy[sortBy] = sortOrder.toLowerCase();
 
-  // Get tasks with relations
+  // Get tasks with relations including comments
   const tasks = await prisma.task.findMany({
     where,
     include: {
@@ -167,6 +167,20 @@ router.get('/', asyncHandler(async (req, res) => {
           projectNumber: true,
           projectName: true,
           status: true
+        }
+      },
+      comments: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'asc'
         }
       }
     },
@@ -253,6 +267,20 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
               status: true
             }
           }
+        }
+      },
+      comments: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'asc'
         }
       }
     }
@@ -590,12 +618,13 @@ router.get('/user/:userId', asyncHandler(async (req, res, next) => {
   const tasks = await prisma.task.findMany({
     where,
     include: {
-      project: {
+      assignedTo: {
         select: {
           id: true,
-          projectNumber: true,
-          projectName: true,
-          status: true
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
         }
       },
       createdBy: {
@@ -605,6 +634,28 @@ router.get('/user/:userId', asyncHandler(async (req, res, next) => {
           lastName: true,
           email: true
         }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true
+        }
+      },
+      comments: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'asc'
+        }
       }
     },
     orderBy: { dueDate: 'asc' }
@@ -613,6 +664,99 @@ router.get('/user/:userId', asyncHandler(async (req, res, next) => {
   res.json({
     success: true,
     data: { tasks }
+  });
+}));
+
+// @desc    Get tasks by project number (for AI assistant)
+// @route   GET /api/tasks/project-number/:projectNumber
+// @access  Private  
+router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next) => {
+  const { projectNumber } = req.params;
+  const { status, priority, assignedToId } = req.query;
+
+  // First find the project by project number
+  const project = await prisma.project.findFirst({
+    where: { projectNumber: projectNumber }
+  });
+
+  if (!project) {
+    throw new AppError('Project not found', 404);
+  }
+
+  let where = { projectId: project.id };
+
+  if (status) {
+    where.status = status.toUpperCase();
+  }
+
+  if (priority) {
+    where.priority = priority.toUpperCase();
+  }
+
+  if (assignedToId) {
+    where.assignedToId = assignedToId;
+  }
+
+  const tasks = await prisma.task.findMany({
+    where,
+    include: {
+      assignedTo: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      createdBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true
+        }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true,
+          status: true,
+          progress: true
+        }
+      },
+      comments: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'asc'
+        }
+      }
+    },
+    orderBy: { dueDate: 'asc' }
+  });
+
+  res.json({
+    success: true,
+    data: { 
+      project: {
+        id: project.id,
+        projectNumber: project.projectNumber,
+        projectName: project.projectName,
+        status: project.status,
+        progress: project.progress
+      },
+      tasks 
+    },
+    message: `Found ${tasks.length} tasks for project #${projectNumber}`
   });
 }));
 
@@ -676,6 +820,111 @@ router.get('/stats/overview', asyncHandler(async (req, res) => {
       tasksByCategory
     }
   });
+}));
+
+// @route   POST /api/tasks/comments
+// @desc    Create new task comment
+// @access  Private
+router.post('/comments', [
+  body('taskId')
+    .notEmpty()
+    .withMessage('Task ID is required'),
+  body('comment')
+    .trim()
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Comment must be between 1 and 2000 characters'),
+], asyncHandler(async (req, res) => {
+  // Validate input
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: formatValidationErrors(errors)
+    });
+  }
+
+  const { taskId, comment, userId } = req.body;
+
+  // Verify task exists
+  const task = await prisma.task.findUnique({
+    where: { id: taskId }
+  });
+
+  if (!task) {
+    throw new AppError('Task not found', 404);
+  }
+
+  // Create the comment
+  const taskComment = await prisma.taskComment.create({
+    data: {
+      content: comment,
+      taskId,
+      userId: userId || 'default-user-id' // Fallback if no userId provided
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true
+        }
+      }
+    }
+  });
+
+  res.status(201).json({
+    success: true,
+    data: taskComment,
+    message: 'Comment added successfully'
+  });
+}));
+
+// @route   GET /api/tasks/:taskId/comments
+// @desc    Get all comments for a specific task
+// @access  Private
+router.get('/:taskId/comments', asyncHandler(async (req, res) => {
+  const { taskId } = req.params;
+  const { page = 1, limit = 50 } = req.query;
+
+  // Verify task exists
+  const task = await prisma.task.findUnique({
+    where: { id: taskId }
+  });
+
+  if (!task) {
+    throw new AppError('Task not found', 404);
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  
+  const [comments, totalComments] = await Promise.all([
+    prisma.taskComment.findMany({
+      where: { taskId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'asc' },
+      skip,
+      take: parseInt(limit)
+    }),
+    prisma.taskComment.count({ where: { taskId } })
+  ]);
+
+  sendPaginatedResponse(
+    res,
+    comments,
+    totalComments,
+    parseInt(page),
+    parseInt(limit),
+    'Comments retrieved successfully'
+  );
 }));
 
 module.exports = router; 

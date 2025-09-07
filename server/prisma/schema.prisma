@@ -64,6 +64,7 @@ model User {
   securityEvents           SecurityEvent[]           @relation("SecurityEvents")
   assignedTasks            Task[]                    @relation("AssignedUser")
   createdTasks             Task[]                    @relation("CreatedByUser")
+  taskComments             TaskComment[]
   behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
   devices                  UserDevice[]              @relation("UserDevices")
   mfaSettings              UserMFA[]                 @relation("UserMFA")
@@ -228,6 +229,7 @@ model Task {
   createdById    String?          @map("created_by_id")
   dependents     TaskDependency[] @relation("DependentTask")
   dependencies   TaskDependency[] @relation("ParentTask")
+  comments       TaskComment[]
   assignedTo     User             @relation("AssignedUser", fields: [assignedToId], references: [id])
   createdBy      User?            @relation("CreatedByUser", fields: [createdById], references: [id])
   project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -245,6 +247,19 @@ model TaskDependency {
 
   @@unique([parentTaskId, dependentTaskId])
   @@map("task_dependencies")
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String   @db.Text
+  taskId    String   @map("task_id")
+  userId    String   @map("user_id")
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("task_comments")
 }
 
 model Document {

@@ -1,0 +1,43 @@
+                        {/* Compact To/From on one line */}
+                        <div className="flex items-center gap-3 text-[10px] text-gray-600 mb-1">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">From:</span>
+                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">To:</span>
+                            {recipients.length > 0 ? (
+                              <span className="text-gray-800">
+                                {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
+                                {recipients.length > 1 && !recipients[0].isAll && <span className="text-amber-600"> +{recipients.length - 1}</span>}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 italic">No recipients</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Compact Description */}
+                        {item.content && (
+                          <p className="text-[10px] text-gray-600 line-clamp-1 mb-1">
+                            {item.content}
+                          </p>
+                        )}
+                        
+                        {/* Compact Footer */}
+                        <div className="flex items-center justify-between text-[9px] text-gray-500">
+                          <span>
+                            Created: {createdDateTime.date} at {createdDateTime.time}
+                          </span>
+                          <span className="text-amber-600 font-medium flex items-center gap-1">
+                            <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                            </svg>
+                            {reminderDateTime.date} at {reminderDateTime.time}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()
+              )}
