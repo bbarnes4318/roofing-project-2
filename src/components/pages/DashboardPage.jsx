@@ -276,6 +276,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [showMessageDropdown, setShowMessageDropdown] = useState(false);
   const [newMessageProject, setNewMessageProject] = useState('');
   const [newMessageSubject, setNewMessageSubject] = useState('');
+  const [newMessageCustomSubject, setNewMessageCustomSubject] = useState('');
   const [newMessageText, setNewMessageText] = useState('');
   const [newMessageRecipients, setNewMessageRecipients] = useState([]);
 
@@ -1252,8 +1253,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   // Project Messages expansion control handlers
   const handleExpandAllMessages = () => {
-    const allMessageIds = new Set(currentActivities.map(activity => activity.id));
-    setExpandedMessages(allMessageIds);
+    // Get the currently visible items based on the active tab
+    let currentItems = [];
+    if (activeCommTab === 'messages') {
+      currentItems = activityFeedItems.filter(i => i.type === 'message');
+    } else if (activeCommTab === 'tasks') {
+      currentItems = activityFeedItems.filter(i => i.type === 'task');
+    } else if (activeCommTab === 'reminders') {
+      currentItems = activityFeedItems.filter(i => i.type === 'reminder');
+    }
+    
+    const allIds = new Set(currentItems.map(item => item.id));
+    setExpandedMessages(allIds);
     setAllMessagesExpanded(true);
   };
 
@@ -2629,24 +2640,79 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
-                    My Project Messages
+                    Messages, Tasks, & Reminders
                   </h2>
                   {expandedMessages.size > 0 && (
                     <p className="text-sm text-gray-600 font-medium">
-                      {expandedMessages.size} of {currentActivities.length} conversation{currentActivities.length !== 1 ? 's' : ''} expanded
+                      {expandedMessages.size} of {(() => {
+                        if (activeCommTab === 'messages') return activityFeedItems.filter(i => i.type === 'message').length;
+                        if (activeCommTab === 'tasks') return activityFeedItems.filter(i => i.type === 'task').length;
+                        if (activeCommTab === 'reminders') return activityFeedItems.filter(i => i.type === 'reminder').length;
+                        return 0;
+                      })()} {activeCommTab}{(() => {
+                        const count = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message').length :
+                                     activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task').length :
+                                     activityFeedItems.filter(i => i.type === 'reminder').length;
+                        return count !== 1 ? 's' : '';
+                      })()} expanded
                     </p>
                   )}
                 </div>
               </div>
               
-              {/* Tabs */}
-              <div className="flex items-center gap-2 mt-2">
-                <button onClick={() => setActiveCommTab('messages')} className={`px-2 py-1 rounded-md text-xs font-semibold ${activeCommTab === 'messages' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>Messages</button>
-                <button onClick={() => setActiveCommTab('tasks')} className={`px-2 py-1 rounded-md text-xs font-semibold ${activeCommTab === 'tasks' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>Tasks</button>
-                <button onClick={() => setActiveCommTab('reminders')} className={`px-2 py-1 rounded-md text-xs font-semibold ${activeCommTab === 'reminders' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>Reminders</button>
+              {/* Modern Tab Navigation */}
+              <div className="relative mt-4 mb-6">
+                <div className="flex bg-gray-100 rounded-xl p-1 shadow-inner">
+                  <button 
+                    onClick={() => setActiveCommTab('messages')} 
+                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                      activeCommTab === 'messages' 
+                        ? 'bg-white text-blue-600 shadow-md transform scale-[1.02]' 
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      Messages
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => setActiveCommTab('tasks')} 
+                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                      activeCommTab === 'tasks' 
+                        ? 'bg-white text-blue-600 shadow-md transform scale-[1.02]' 
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                      Tasks
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => setActiveCommTab('reminders')} 
+                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                      activeCommTab === 'reminders' 
+                        ? 'bg-white text-blue-600 shadow-md transform scale-[1.02]' 
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Reminders
+                    </div>
+                  </button>
+                </div>
               </div>
 
-              {/* Filter Controls - Optimized Layout for current tab */}
+
+              {/* Filter Controls with Expand/Collapse Controls */}
               <div className="flex items-center justify-between gap-2 mb-3 mt-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-700">Filter by:</span>
@@ -2657,7 +2723,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       else if (activeCommTab === 'tasks') setTasksProjectFilter(e.target.value);
                       else setRemindersProjectFilter(e.target.value);
                     }}
-                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px] max-w-[200px]"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
                   >
                     <option value="">All Projects</option>
                     {(projects || []).map(p => (
@@ -2665,49 +2731,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                     ))}
                   </select>
                   
-                  {activeCommTab === 'messages' && (
-                  <select 
-                    value={activitySubjectFilter} 
-                    onChange={(e) => setActivitySubjectFilter(e.target.value)} 
-                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[80px] max-w-[150px]"
-                  >
-                    <option value="">All Subjects</option>
-                    {subjects.map(subject => (
-                      <option key={subject} value={subject}>{subject}</option>
-                      ))}
-                    </select>
-                  )}
-                  {/* To/From toggles per tab */}
-                  {activeCommTab === 'messages' && (
-                    <div className="flex items-center gap-2 ml-2">
-                      <label className="text-[11px] text-gray-600 flex items-center gap-1">
-                        <input type="checkbox" checked={messagesToFilter} onChange={(e)=>setMessagesToFilter(e.target.checked)} /> To
-                      </label>
-                      <label className="text-[11px] text-gray-600 flex items-center gap-1">
-                        <input type="checkbox" checked={messagesFromFilter} onChange={(e)=>setMessagesFromFilter(e.target.checked)} /> From
-                      </label>
-                    </div>
-                  )}
-                  {activeCommTab === 'tasks' && (
-                    <div className="flex items-center gap-2 ml-2">
-                      <label className="text-[11px] text-gray-600 flex items-center gap-1">
-                        <input type="checkbox" checked={tasksToFilter} onChange={(e)=>setTasksToFilter(e.target.checked)} /> To
-                      </label>
-                      <label className="text-[11px] text-gray-600 flex items-center gap-1">
-                        <input type="checkbox" checked={tasksFromFilter} onChange={(e)=>setTasksFromFilter(e.target.checked)} /> From
-                      </label>
-                    </div>
-                  )}
-                  {activeCommTab === 'reminders' && (
-                    <div className="flex items-center gap-2 ml-2">
-                      <label className="text-[11px] text-gray-600 flex items-center gap-1">
-                        <input type="checkbox" checked={remindersToFilter} onChange={(e)=>setRemindersToFilter(e.target.checked)} /> To
-                      </label>
-                      <label className="text-[11px] text-gray-600 flex items-center gap-1">
-                        <input type="checkbox" checked={remindersFromFilter} onChange={(e)=>setRemindersFromFilter(e.target.checked)} /> From
-                      </label>
-                    </div>
-                  )}
                   <select
                     value={activeCommTab === 'messages' ? (messagesUserFilter || '') : activeCommTab === 'tasks' ? (tasksUserFilter || '') : (remindersUserFilter || '')}
                     onChange={(e) => {
@@ -2715,7 +2738,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       else if (activeCommTab === 'tasks') setTasksUserFilter(e.target.value);
                       else setRemindersUserFilter(e.target.value);
                     }}
-                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+                    className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
                   >
                     <option value="">All Users</option>
                     {availableUsers.map(u => (
@@ -2724,22 +2747,33 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   </select>
                 </div>
                 
-                {/* Expand/Collapse Controls - Positioned to the right */}
-                <div className="flex items-center gap-1.5">
+                {/* Condensed Expand/Collapse Controls - Right side */}
+                <div className="flex items-center gap-2">
                   <button
                     onClick={handleExpandAllMessages}
                     className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
-                      expandedMessages.size === currentActivities.length && currentActivities.length > 0
-                        ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                        : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
+                      (() => {
+                        const currentCount = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message').length :
+                                           activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task').length :
+                                           activityFeedItems.filter(i => i.type === 'reminder').length;
+                        return expandedMessages.size === currentCount && currentCount > 0
+                          ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
+                          : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
+                      })()
                     }`}
-                    title="Expand all message conversations"
-                    disabled={currentActivities.length === 0 || expandedMessages.size === currentActivities.length}
+                    title="Expand all alert details"
+                    disabled={(() => {
+                      const currentCount = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message').length :
+                                         activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task').length :
+                                         activityFeedItems.filter(i => i.type === 'reminder').length;
+                      return currentCount === 0 || expandedMessages.size === currentCount;
+                    })()}
                   >
                     <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
                   </button>
+                  
                   <button
                     onClick={handleCollapseAllMessages}
                     className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
@@ -2747,7 +2781,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
                         : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
                     }`}
-                    title="Collapse all message conversations"
+                    title="Collapse all alert details"
                     disabled={expandedMessages.size === 0}
                   >
                     <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2778,7 +2812,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                   <form onSubmit={(e) => {
                     e.preventDefault();
-                    if (newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
+                    const finalSubject = newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject;
+                    if (newMessageProject && finalSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
                       // Create new message activity
                       const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
                       
@@ -2796,7 +2831,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         try {
                           const response = await projectMessagesService.create(newMessageProject, {
                             content: newMessageText,
-                            subject: newMessageSubject,
+                            subject: finalSubject,
                             priority: 'MEDIUM'
                           });
                           
@@ -2822,7 +2857,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         projectId: parseInt(newMessageProject),
                         projectName: selectedProject?.projectName || selectedProject?.name || selectedProject?.customer?.primaryName || selectedProject?.client?.name || selectedProject?.address || 'Unknown Project',
                         projectNumber: selectedProject?.projectNumber || Math.floor(Math.random() * 90000) + 10000,
-                        subject: newMessageSubject,
+                        subject: finalSubject,
                         description: newMessageText,
                         user: 'You',
                         timestamp: new Date().toISOString(),
@@ -2839,6 +2874,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       setShowMessageDropdown(false);
                       setNewMessageProject('');
                       setNewMessageSubject('');
+                      setNewMessageCustomSubject('');
                       setNewMessageText('');
                       setNewMessageRecipients([]);
                     }
@@ -2914,20 +2950,41 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         Subject <span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={newMessageSubject}
-                        onChange={(e) => setNewMessageSubject(e.target.value)}
+                        value={newMessageSubject === 'CUSTOM_SUBJECT' ? 'CUSTOM_SUBJECT' : newMessageSubject}
+                        onChange={(e) => {
+                          if (e.target.value === 'CUSTOM_SUBJECT') {
+                            setNewMessageSubject('CUSTOM_SUBJECT');
+                          } else {
+                            setNewMessageSubject(e.target.value);
+                          }
+                        }}
                         required
-                        className={`w-full px-2 py-1 border rounded text-xs ${
+                        className={`w-full px-2 py-1 border rounded text-xs mb-2 ${
                           colorMode 
                             ? 'bg-[#232b4d] border-gray-600 text-white' 
                             : 'bg-white border-gray-300 text-gray-800'
                         }`}
                       >
                         <option value="">Select Subject</option>
+                        <option value="CUSTOM_SUBJECT">+ Add Custom Subject</option>
                         {subjects.map(subject => (
                           <option key={subject} value={subject}>{subject}</option>
                         ))}
                       </select>
+                      
+                      {newMessageSubject === 'CUSTOM_SUBJECT' && (
+                        <input
+                          type="text"
+                          placeholder="Enter custom subject..."
+                          value={newMessageCustomSubject || ''}
+                          onChange={(e) => setNewMessageCustomSubject(e.target.value)}
+                          className={`w-full px-2 py-1 border rounded text-xs ${
+                            colorMode 
+                              ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                              : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                          }`}
+                        />
+                      )}
                     </div>
                     
                     <div>
@@ -2957,6 +3014,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           setShowMessageDropdown(false);
                           setNewMessageProject('');
                           setNewMessageSubject('');
+                          setNewMessageCustomSubject('');
                           setNewMessageText('');
                           setNewMessageRecipients([]);
                         }}
@@ -2970,9 +3028,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       </button>
                       <button
                         type="submit"
-                        disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
+                        disabled={!newMessageProject || !(newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject) || !newMessageText.trim() || newMessageRecipients.length === 0}
                         className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                          newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
+                          newMessageProject && (newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject) && newMessageText.trim() && newMessageRecipients.length > 0
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
@@ -3141,154 +3199,280 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             </div>
             
             <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
-              {activeCommTab === 'messages' && currentActivities.length === 0 ? (
-                <div className="text-gray-400 text-center py-3 text-[9px]">
-                  No messages found.
-                </div>
-              ) : null}
-              {activeCommTab === 'messages' && currentActivities.length > 0 && (
-                currentActivities
-                  .filter(a => !messagesProjectFilter || String(a.projectId) === String(messagesProjectFilter))
-                  .filter(a => {
-                    if (!messagesUserFilter) return true;
-                    const uid = String(messagesUserFilter);
-                    const toCond = messagesToFilter && Array.isArray(a.recipients) && (a.recipients.includes('all') || a.recipients.some(r => String(r) === uid));
-                    const fromCond = messagesFromFilter && a.authorId && String(a.authorId) === uid;
-                    // If both toggles off, show none for a user-filter
-                    if (!messagesToFilter && !messagesFromFilter) return false;
-                    return toCond || fromCond;
-                  })
-                  .map(activity => (
-                  <ProjectMessagesCard 
-                    key={activity.id} 
-                    activity={activity} 
-                    onProjectSelect={handleProjectSelectWithScroll}
-                    projects={projects}
-                    colorMode={colorMode}
-                    useRealData={true}
-                    onQuickReply={handleQuickReply}
-                    isExpanded={expandedMessages.has(activity.id)}
-                    onToggleExpansion={handleToggleMessage}
-                    sourceSection="My Project Messages"
-                  />
-                ))
-              )}
+              {activeCommTab === 'messages' && (
+                (() => {
+                  // Use activityFeedItems for consistent data source across all tabs
+                  const messageItems = activityFeedItems
+                    .filter(i => i.type === 'message')
+                    .filter(i => !messagesProjectFilter || String(i.projectId) === String(messagesProjectFilter))
+                    .filter(i => {
+                      if (!messagesUserFilter) return true;
+                      const uid = String(messagesUserFilter);
+                      // Simplified user filtering - just check if the user is mentioned in recipients or is the author
+                      const isRecipient = Array.isArray(i.recipients) && (i.recipients.includes('all') || i.recipients.some(r => String(r) === uid));
+                      const isAuthor = i.authorId && String(i.authorId) === uid;
+                      return isRecipient || isAuthor;
+                    });
 
-              {/* Tasks list (calendar DEADLINE) */}
-              {activeCommTab === 'tasks' && (
-                activityFeedItems
-                  .filter(i => i.type === 'task')
-                  .filter(i => !tasksProjectFilter || String(i.projectId) === String(tasksProjectFilter))
-                  .filter(i => {
-                    if (!tasksUserFilter) return true;
-                    const uid = String(tasksUserFilter);
-                    const toCond = tasksToFilter && Array.isArray(i.attendees) && i.attendees.some(id => String(id) === uid);
-                    const fromCond = tasksFromFilter && i.authorId && String(i.authorId) === uid;
-                    if (!tasksToFilter && !tasksFromFilter) return false;
-                    return toCond || fromCond;
-                  })
-                  .map(item => (
-                    <div key={item.id} className={`p-2 border rounded ${colorMode ? 'bg-[#1e293b] border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-800'}`}>
-                      <div className="text-xs font-semibold">{item.subject}</div>
-                      <div className="text-[11px]">{item.content}</div>
-                      <div className="text-[10px] text-gray-500">Due: {new Date(item.timestamp).toLocaleString()}</div>
-                      {item.projectName && <div className="text-[10px]">Project: {item.projectName}</div>}
-            </div>
-                  ))
-              )}
-
-              {/* Reminders list (calendar REMINDER) */}
-              {activeCommTab === 'reminders' && (
-                activityFeedItems
-                  .filter(i => i.type === 'reminder')
-                  .filter(i => !remindersProjectFilter || String(i.projectId) === String(remindersProjectFilter))
-                  .filter(i => {
-                    if (!remindersUserFilter) return true;
-                    const uid = String(remindersUserFilter);
-                    const toCond = remindersToFilter && Array.isArray(i.attendees) && i.attendees.some(id => String(id) === uid);
-                    const fromCond = remindersFromFilter && i.authorId && String(i.authorId) === uid;
-                    if (!remindersToFilter && !remindersFromFilter) return false;
-                    return toCond || fromCond;
-                  })
-                  .map(item => (
-                    <div key={item.id} className={`p-2 border rounded ${colorMode ? 'bg-[#1e293b] border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-800'}`}>
-                      <div className="text-xs font-semibold">{item.subject}</div>
-                      <div className="text-[11px]">{item.content}</div>
-                      <div className="text-[10px] text-gray-500">When: {new Date(item.timestamp).toLocaleString()}</div>
-                      {item.projectName && <div className="text-[10px]">Project: {item.projectName}</div>}
-          </div>
-                  ))
-              )}
-        </div>
-          </div>
-        </div>
-        {/* Right Column - Activity Feed (top) and Project Workflow Tasks (below) */}
-        <div className="w-full" data-section="current-alerts">
-          {/* Activity Feed */}
-          <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible mb-6">
-            <div className="mb-3">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">Activity Feed</h2>
-              <p className="text-sm text-gray-600">Messages, Tasks, Reminders, and Project Workflow Tasks</p>
-            </div>
-            {/* Simple Filters */}
-            <div className="flex items-center gap-2 mb-3">
-              <select
-                value={activityProjectFilter}
-                onChange={(e) => setActivityProjectFilter(e.target.value)}
-                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
-              >
-                <option value="">All Projects</option>
-                {(projects || []).map(p => (
-                  <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
-                ))}
-              </select>
-              <select
-                value={activityTypeFilter || ''}
-                onChange={(e) => setActivityTypeFilter(e.target.value)}
-                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
-              >
-                <option value="">All Types</option>
-                <option value="message">Messages</option>
-                <option value="task">Tasks</option>
-                <option value="reminder">Reminders</option>
-                <option value="alert">Project Workflow Tasks</option>
-              </select>
-            </div>
-            {/* Feed List */}
-            <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
-              {activityFeedItems
-                .filter(item => !activityProjectFilter || String(item.projectId) === String(activityProjectFilter))
-                .filter(item => !activityTypeFilter || item.type === activityTypeFilter)
-                .map(item => {
-                  // Default visual for messages/tasks/reminders
-                  return (
-                    <div key={item.id} className="flex items-start gap-2 p-2 border rounded-lg bg-white">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                        item.type === 'message' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                        item.type === 'task' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                        'bg-purple-50 text-purple-700 border-purple-200'
-                      }`}>
-                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs font-semibold text-gray-800 truncate">{item.subject}</div>
-                          <div className="text-[10px] text-gray-500 ml-2 whitespace-nowrap">{new Date(item.timestamp).toLocaleString()}</div>
-                        </div>
-                        <div className="text-[11px] text-gray-600 truncate">{item.content}</div>
-                        {item.projectName && (
-                          <div className="text-[10px] text-gray-500 mt-0.5">Project: {item.projectName}</div>
-                        )}
+                  if (messageItems.length === 0) {
+                    return (
+                      <div className="text-gray-400 text-center py-8 text-sm">
+                        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p className="font-medium">No messages found</p>
+                        <p className="text-xs mt-1">Messages you send or receive will appear here</p>
                       </div>
-                    </div>
-                  );
-                })}
-              {activityFeedItems.length === 0 && (
-                <div className="text-gray-400 text-center py-3 text-sm">No activity yet.</div>
+                    );
+                  }
+
+                  return messageItems.map(item => (
+                    <ProjectMessagesCard 
+                      key={item.id} 
+                      activity={{
+                        ...item,
+                        // Ensure compatibility with the card component
+                        id: item.id,
+                        projectId: item.projectId,
+                        projectName: item.projectName,
+                        subject: item.subject,
+                        description: item.description || item.content,
+                        user: item.user,
+                        timestamp: item.timestamp,
+                        type: item.type,
+                        priority: item.priority,
+                        recipients: item.recipients
+                      }}
+                      onProjectSelect={handleProjectSelectWithScroll}
+                      projects={projects}
+                      colorMode={colorMode}
+                      useRealData={true}
+                      onQuickReply={handleQuickReply}
+                      isExpanded={expandedMessages.has(item.id)}
+                      onToggleExpansion={handleToggleMessage}
+                      sourceSection="Messages, Tasks, & Reminders"
+                    />
+                  ));
+                })()
               )}
 
-            </div>
+              {/* Tasks Tab */}
+              {activeCommTab === 'tasks' && (
+                (() => {
+                  const taskItems = activityFeedItems
+                    .filter(i => i.type === 'task')
+                    .filter(i => !tasksProjectFilter || String(i.projectId) === String(tasksProjectFilter))
+                    .filter(i => {
+                      if (!tasksUserFilter) return true;
+                      const uid = String(tasksUserFilter);
+                      const isAssignee = Array.isArray(i.attendees) && i.attendees.some(id => String(id) === uid);
+                      const isAuthor = i.authorId && String(i.authorId) === uid;
+                      return isAssignee || isAuthor;
+                    });
+
+                  if (taskItems.length === 0) {
+                    return (
+                      <div className="text-gray-400 text-center py-8 text-sm">
+                        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <p className="font-medium">No tasks found</p>
+                        <p className="text-xs mt-1">Tasks assigned to you will appear here</p>
+                      </div>
+                    );
+                  }
+
+                  return taskItems.map(item => {
+                    // Find the associated project for this task
+                    const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
+                    
+                    // Get author and assignee information
+                    const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
+                    const assignees = Array.isArray(item.attendees) ? 
+                      item.attendees.map(id => availableUsers.find(u => String(u.id) === String(id))).filter(Boolean) : [];
+                    
+                    return (
+                      <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                        {/* Compact Header */}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                            <h4 className="text-sm font-semibold text-gray-900 truncate">
+                              {item.subject || 'Untitled Task'}
+                            </h4>
+                            {associatedProject && (
+                              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                #{String(associatedProject.projectNumber).padStart(5, '0')}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                            Task
+                          </span>
+                        </div>
+
+                        {/* Compact To/From on one line */}
+                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">From:</span>
+                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">To:</span>
+                            {assignees.length > 0 ? (
+                              <span className="text-gray-800">
+                                {assignees[0].firstName} {assignees[0].lastName}
+                                {assignees.length > 1 && <span className="text-blue-600"> +{assignees.length - 1}</span>}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 italic">Unassigned</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Compact Description */}
+                        {item.content && (
+                          <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                            {item.content}
+                          </p>
+                        )}
+                        
+                        {/* Compact Footer */}
+                        <div className="flex items-center justify-between text-[10px] text-gray-500">
+                          <span>
+                            Created: {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric'
+                            })}
+                          </span>
+                          {item.dueDate && (
+                            <span className="text-orange-600 font-medium">
+                              Due: {new Date(item.dueDate).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric'
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()
+              )}
+
+              {/* Reminders Tab */}
+              {activeCommTab === 'reminders' && (
+                (() => {
+                  const reminderItems = activityFeedItems
+                    .filter(i => i.type === 'reminder')
+                    .filter(i => !remindersProjectFilter || String(i.projectId) === String(remindersProjectFilter))
+                    .filter(i => {
+                      if (!remindersUserFilter) return true;
+                      const uid = String(remindersUserFilter);
+                      const isRecipient = Array.isArray(i.recipients) && (i.recipients.includes('all') || i.recipients.some(r => String(r) === uid));
+                      const isAuthor = i.authorId && String(i.authorId) === uid;
+                      return isRecipient || isAuthor;
+                    });
+
+                  if (reminderItems.length === 0) {
+                    return (
+                      <div className="text-gray-400 text-center py-8 text-sm">
+                        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="font-medium">No reminders found</p>
+                        <p className="text-xs mt-1">Reminders you create or receive will appear here</p>
+                      </div>
+                    );
+                  }
+
+                  return reminderItems.map(item => {
+                    // Find the associated project for this reminder
+                    const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
+                    
+                    // Get author and recipient information
+                    const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
+                    const recipients = Array.isArray(item.recipients) ? 
+                      item.recipients.map(id => {
+                        if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
+                        return availableUsers.find(u => String(u.id) === String(id));
+                      }).filter(Boolean) : [];
+                    
+                    return (
+                      <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300">
+                        {/* Compact Header */}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                            <h4 className="text-sm font-semibold text-gray-900 truncate">
+                              {item.subject || 'Untitled Reminder'}
+                            </h4>
+                            {associatedProject && (
+                              <span className="text-xs text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                #{String(associatedProject.projectNumber).padStart(5, '0')}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                            Reminder
+                          </span>
+                        </div>
+
+                        {/* Compact To/From on one line */}
+                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">From:</span>
+                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">To:</span>
+                            {recipients.length > 0 ? (
+                              <span className="text-gray-800">
+                                {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
+                                {recipients.length > 1 && <span className="text-orange-600"> +{recipients.length - 1}</span>}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 italic">No recipients</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Compact Description */}
+                        {item.content && (
+                          <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                            {item.content}
+                          </p>
+                        )}
+                        
+                        {/* Compact Footer */}
+                        <div className="flex items-center justify-between text-[10px] text-gray-500">
+                          <span>
+                            Created: {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric'
+                            })}
+                          </span>
+                          <span className="text-orange-600 font-medium flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                            </svg>
+                            {new Date(item.reminderDate || item.timestamp).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()
+              )}
+        </div>
           </div>
+        </div>
+
+        {/* Project Workflow Tasks - Now positioned below Messages, Tasks, and Reminders */}
+        <div className="w-full mb-6" data-section="project-workflow-tasks">
           {/* Beautiful original alerts UI with new functionality */}
           <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
             <div className="mb-4">
@@ -3454,11 +3638,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     const projectWithScrollId = {
                                       ...project,
                                       scrollToProjectId: String(project.id),
-                                      navigationSource: 'Current Alerts',
-                                      returnToSection: 'current-alerts'
+                                      navigationSource: 'Project Workflow Tasks',
+                                      returnToSection: 'project-workflow-tasks'
                                     };
-                                    console.log('🎯 PROJECT NUMBER CLICK: Navigating from Current Alerts to Profile');
-                                    handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Current Alerts');
+                                    console.log('🎯 PROJECT NUMBER CLICK: Navigating from Project Workflow Tasks to Profile');
+                                    handleProjectSelectWithScroll(projectWithScrollId, 'Profile', null, 'Project Workflow Tasks');
                                   }
                                 }}
                                 title={`Go to project #${project?.projectNumber || actionData.projectNumber || 'N/A'}`}
@@ -3682,15 +3866,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             }
                                           };
                                           
-                                          // Enhanced navigation with comprehensive state tracking for Current Alerts
-                                          console.log('🎯 LINE ITEM CLICK: Navigating from Current Alerts to Workflow with targeting');
+                                          // Enhanced navigation with comprehensive state tracking for Project Workflow Tasks
+                                          console.log('🎯 LINE ITEM CLICK: Navigating from Project Workflow Tasks to Workflow with targeting');
                                           console.log('🎯 LINE ITEM CLICK: targetLineItemId:', targetLineItemId);
                                           console.log('🎯 LINE ITEM CLICK: targetSectionId:', targetSectionId);
                                           console.log('🎯 LINE ITEM CLICK: position data:', position);
                                           
                                           // Ensure project has all navigation metadata for proper back button behavior
-                                          projectWithNavigation.navigationSource = 'Current Alerts';
-                                          projectWithNavigation.returnToSection = 'current-alerts';
+                                          projectWithNavigation.navigationSource = 'Project Workflow Tasks';
+                                          projectWithNavigation.returnToSection = 'project-workflow-tasks';
                                           projectWithNavigation.highlightTarget = {
                                             lineItemId: targetLineItemId,
                                             sectionId: targetSectionId,
@@ -3704,13 +3888,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             projectWithNavigation, 
                                             'Project Workflow', 
                                             null, 
-                                            'Current Alerts',
+                                            'Project Workflow Tasks',
                                             targetLineItemId,
                                             targetSectionId
                                           );
                                         } else {
                                           console.warn('🎯 ALERTS CLICK: No position data found, using fallback navigation');
-                                          // Fallback to enhanced static navigation with Current Alerts tracking
+                                          // Fallback to enhanced static navigation with Project Workflow Tasks tracking
                                           const projectWithStepInfo = {
                                             ...project,
                                             highlightStep: lineItemName,
@@ -3720,8 +3904,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             targetLineItem: lineItemName,
                                             scrollToCurrentLineItem: true,
                                             alertPhase: phase,
-                                            navigationSource: 'Current Alerts',
-                                            returnToSection: 'current-alerts',
+                                            navigationSource: 'Project Workflow Tasks',
+                                            returnToSection: 'project-workflow-tasks',
                                             navigationTarget: {
                                               phase: phase,
                                               section: sectionName,
@@ -3739,11 +3923,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               scrollAndHighlight: true
                                             }
                                           };
-                                          handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                          handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Project Workflow Tasks');
                                         }
                                       } else {
                                         console.error('🎯 ALERTS CLICK: Failed to get project position, using fallback navigation');
-                                        // Fallback to basic navigation with Current Alerts source tracking
+                                        // Fallback to basic navigation with Project Workflow Tasks source tracking
                                         const projectWithStepInfo = {
                                           ...project,
                                           highlightStep: lineItemName,
@@ -3753,8 +3937,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           targetLineItem: lineItemName,
                                           scrollToCurrentLineItem: true,
                                           alertPhase: phase,
-                                          navigationSource: 'Current Alerts',
-                                          returnToSection: 'current-alerts',
+                                          navigationSource: 'Project Workflow Tasks',
+                                          returnToSection: 'project-workflow-tasks',
                                           navigationTarget: {
                                             phase: phase,
                                             section: sectionName,
@@ -3772,7 +3956,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                             scrollAndHighlight: true
                                           }
                                         };
-                                        handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                        handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Project Workflow Tasks');
                                       }
                                     } catch (error) {
                                       console.error('🎯 ALERTS CLICK: Error getting project position:', error);
@@ -3801,7 +3985,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           highlightDuration: 3000
                                         }
                                       };
-                                      handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Current Alerts');
+                                      handleProjectSelectWithScroll(projectWithStepInfo, 'Project Workflow', null, 'Project Workflow Tasks');
                                     }
                                   }
                                 }}
@@ -3901,6 +4085,73 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   );
                 })
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Activity Feed only */}
+        <div className="w-full" data-section="activity-feed">
+          {/* Activity Feed */}
+          <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible mb-6">
+            <div className="mb-3">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">Activity Feed</h2>
+            </div>
+            {/* Simple Filters */}
+            <div className="flex items-center gap-2 mb-3">
+              <select
+                value={activityProjectFilter}
+                onChange={(e) => setActivityProjectFilter(e.target.value)}
+                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+              >
+                <option value="">All Projects</option>
+                {(projects || []).map(p => (
+                  <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+                ))}
+              </select>
+              <select
+                value={activityTypeFilter || ''}
+                onChange={(e) => setActivityTypeFilter(e.target.value)}
+                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+              >
+                <option value="">All Types</option>
+                <option value="message">Messages</option>
+                <option value="task">Tasks</option>
+                <option value="reminder">Reminders</option>
+              </select>
+            </div>
+            {/* Feed List */}
+            <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
+              {activityFeedItems
+                .filter(item => !activityProjectFilter || String(item.projectId) === String(activityProjectFilter))
+                .filter(item => !activityTypeFilter || item.type === activityTypeFilter)
+                .map(item => {
+                  // Default visual for messages/tasks/reminders
+                  return (
+                    <div key={item.id} className="flex items-start gap-2 p-2 border rounded-lg bg-white">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                        item.type === 'message' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        item.type === 'task' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                        'bg-purple-50 text-purple-700 border-purple-200'
+                      }`}>
+                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs font-semibold text-gray-800 truncate">{item.subject}</div>
+                          <div className="text-[10px] text-gray-500 ml-2 whitespace-nowrap">{new Date(item.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div className="text-[11px] text-gray-600 truncate">{item.content}</div>
+                        {item.projectName && (
+                          <div className="text-[10px] text-gray-500 mt-0.5">Project: {item.projectName}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              {activityFeedItems.length === 0 && (
+                <div className="text-gray-400 text-center py-3 text-sm">No activity yet.</div>
+              )}
+
             </div>
           </div>
         </div>
