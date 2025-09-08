@@ -714,15 +714,15 @@ const DraggableTab = ({ tab, index, active, onClick, onRename, onDelete, moveTab
         <button
           onClick={onClick}
           onDoubleClick={() => !tab.protected && setIsEditing(true)}
-          className={`relative px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${
+          className={`relative px-2 py-1 text-xs font-medium rounded border transition-all ${
             active 
-              ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+              ? 'bg-blue-600 text-white border-blue-600' 
               : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-          } flex items-center gap-1.5`}
+          } flex items-center gap-1`}
         >
           <span>{tab.name}</span>
           {documentCount > 0 && (
-            <span className={`px-1.5 py-0.5 text-xs rounded ${
+            <span className={`px-1 py-0.5 text-xs rounded ${
               active ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
             }`}>
               {documentCount}
@@ -1472,22 +1472,22 @@ export default function CompanyDocumentsPage({ colorMode }) {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+      <div className="max-w-6xl mx-auto px-3 py-3 space-y-3">
         {/* Combined Search and Tab Bar */}
-        <div className="bg-white rounded-lg shadow-sm border p-3">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <div className="flex-1 max-w-md">
+        <div className="bg-white rounded shadow-sm border p-2">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex-1 max-w-sm">
               <SmartSearch documents={documents} onSearch={setSearchQuery} />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 px-2 py-1 bg-gray-50 rounded">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-gray-50 rounded text-xs">
                 {tabActivityCount} docs
               </span>
               <MagicOrganizer onOrganize={handleMagicOrganize} />
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {tabs.map((tab, index) => (
                 <DraggableTab
                   key={tab.id}
@@ -1503,9 +1503,9 @@ export default function CompanyDocumentsPage({ colorMode }) {
               ))}
               <button
                 onClick={addNewTab}
-                className="px-4 py-2 text-sm font-medium rounded-lg border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 flex items-center gap-2 transition-all"
+                className="px-2 py-1 text-xs font-medium rounded border border-dashed border-blue-300 text-blue-600 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 flex items-center gap-1 transition-all"
               >
-                <PlusIcon className="w-4 h-4" />
+                <PlusIcon className="w-3 h-3" />
                 Add Tab
               </button>
             </div>
@@ -1521,29 +1521,29 @@ export default function CompanyDocumentsPage({ colorMode }) {
 
         {/* Content Area */}
         {activeTabId === 'company-docs' && (
-          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="bg-white rounded shadow-sm border overflow-hidden">
             {/* Toolbar */}
-            <div className="bg-gray-50 p-3 border-b border-gray-200">
+            <div className="bg-gray-50 p-2 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-sm font-medium text-gray-900">
                   {activeTab?.name}
                 </h3>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   {/* View Toggle */}
                   <div className="flex items-center gap-0.5 bg-white rounded p-0.5 border">
                     <button
                       onClick={() => setViewMode('tree')}
-                      className={`p-1.5 rounded transition-colors ${viewMode === 'tree' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                      className={`p-1 rounded transition-colors ${viewMode === 'tree' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                       title="List View"
                     >
-                      <ListBulletIcon className="w-3.5 h-3.5" />
+                      <ListBulletIcon className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                      className={`p-1 rounded transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                       title="Grid View"
                     >
-                      <Squares2X2Icon className="w-3.5 h-3.5" />
+                      <Squares2X2Icon className="w-3 h-3" />
                     </button>
                   </div>
                   
@@ -1551,7 +1551,7 @@ export default function CompanyDocumentsPage({ colorMode }) {
                   <select
                     value={filterBy}
                     onChange={(e) => setFilterBy(e.target.value)}
-                    className="px-2 py-1.5 text-xs border rounded bg-white"
+                    className="px-1.5 py-1 text-xs border rounded bg-white"
                   >
                     <option value="all">All Files</option>
                     <option value="favorites">Favorites</option>
@@ -1561,14 +1561,14 @@ export default function CompanyDocumentsPage({ colorMode }) {
                   
                   <button
                     onClick={() => setShowNewItemModal(true)}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
+                    className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 flex items-center gap-1 transition-colors"
                   >
-                    <PlusIcon className="w-3.5 h-3.5" />
+                    <PlusIcon className="w-3 h-3" />
                     Create
                   </button>
                   
-                  <label className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 flex items-center gap-1.5 cursor-pointer transition-colors">
-                    <CloudArrowUpIcon className="w-3.5 h-3.5" />
+                  <label className="px-2 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 flex items-center gap-1 cursor-pointer transition-colors">
+                    <CloudArrowUpIcon className="w-3 h-3" />
                     {uploading ? 'Uploading...' : 'Upload'}
                     <input
                       type="file"
@@ -1583,12 +1583,20 @@ export default function CompanyDocumentsPage({ colorMode }) {
             </div>
 
             {/* Document Display Area */}
-            <div className="p-4">
+            <div className="p-3">
               {viewMode === 'tree' ? (
-                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 min-h-[500px] border-2 border-dashed border-blue-200">
+                <div className="bg-gray-50 rounded p-2 min-h-[300px] border border-dashed border-gray-300">
                   {documents[activeTabId]?.length > 0 ? (
                     <div className="space-y-1">
-                      {documents[activeTabId].map((item) => (
+                      {documents[activeTabId]
+                        .sort((a, b) => {
+                          // Folders first, then files
+                          if (a.type === 'folder' && b.type !== 'folder') return -1;
+                          if (a.type !== 'folder' && b.type === 'folder') return 1;
+                          // Within same type, sort alphabetically
+                          return a.name.localeCompare(b.name);
+                        })
+                        .map((item) => (
                         <DraggableItem
                           key={item.id}
                           item={item}
@@ -1603,20 +1611,20 @@ export default function CompanyDocumentsPage({ colorMode }) {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-16">
+                    <div className="text-center py-8">
                       <div className="animate-bounce">
-                        <SparklesIcon className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+                        <SparklesIcon className="w-8 h-8 mx-auto mb-2 text-blue-400" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">✨ Ready for Magic!</h3>
-                      <p className="text-gray-500 mb-4">Your AI-powered document workspace is ready</p>
-                      <div className="flex justify-center gap-3">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-1">✨ Ready for Magic!</h3>
+                      <p className="text-xs text-gray-500 mb-2">Your AI-powered document workspace is ready</p>
+                      <div className="flex justify-center gap-2">
                         <button
                           onClick={() => setShowNewItemModal(true)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
                         >
                           Create First Folder
                         </button>
-                        <label className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
+                        <label className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 cursor-pointer">
                           Upload Files
                           <input type="file" multiple onChange={handleFileUpload} className="hidden" />
                         </label>
@@ -1625,37 +1633,45 @@ export default function CompanyDocumentsPage({ colorMode }) {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 p-4 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl min-h-[500px] border-2 border-dashed border-blue-200">
-                  {documents[activeTabId]?.map((item) => (
+                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 p-2 bg-gradient-to-br from-gray-50 to-blue-50 rounded min-h-[300px] border border-dashed border-blue-200">
+                  {documents[activeTabId]
+                    ?.sort((a, b) => {
+                      // Folders first, then files
+                      if (a.type === 'folder' && b.type !== 'folder') return -1;
+                      if (a.type !== 'folder' && b.type === 'folder') return 1;
+                      // Within same type, sort alphabetically
+                      return a.name.localeCompare(b.name);
+                    })
+                    .map((item) => (
                     <div
                       key={item.id}
-                      className="relative group bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-blue-300"
+                      className="relative group bg-white rounded p-2 shadow hover:shadow-md transition-all duration-300 transform hover:scale-105 cursor-pointer border border-transparent hover:border-blue-300"
                       onDoubleClick={() => item.type === 'folder' && handleItemToggle(item, '')}
                     >
                       <div className="text-center">
-                        <div className="relative mb-3">
+                        <div className="relative mb-1">
                           {item.type === 'folder' ? (
-                            <FolderIcon className="w-16 h-16 text-blue-500 mx-auto" />
+                            <FolderIcon className="w-8 h-8 text-blue-500 mx-auto" />
                           ) : (
-                            <DocumentIcon className="w-16 h-16 text-gray-500 mx-auto" />
+                            <DocumentIcon className="w-8 h-8 text-gray-500 mx-auto" />
                           )}
                           {item.favorite && (
-                            <StarSolid className="absolute -top-2 -right-2 w-6 h-6 text-yellow-500" />
+                            <StarSolid className="absolute -top-1 -right-1 w-3 h-3 text-yellow-500" />
                           )}
                           {item.priority === 'critical' && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse flex items-center justify-center">
+                            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse flex items-center justify-center">
                               <span className="text-white text-xs font-bold">!</span>
                             </div>
                           )}
                         </div>
-                        <h4 className="font-semibold text-sm text-gray-900 mb-1 truncate">{item.name}</h4>
+                        <h4 className="font-medium text-xs text-gray-900 truncate">{item.name}</h4>
                         {item.type === 'file' && item.size && (
-                          <p className="text-xs text-gray-500 mb-2">{formatFileSize(item.size)}</p>
+                          <p className="text-xs text-gray-500">{formatFileSize(item.size)}</p>
                         )}
                         {item.tags && item.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 justify-center mb-2">
-                            {item.tags.slice(0, 2).map((tag, idx) => (
-                              <span key={idx} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                          <div className="flex flex-wrap gap-0.5 justify-center mt-1">
+                            {item.tags.slice(0, 1).map((tag, idx) => (
+                              <span key={idx} className="px-1 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
                                 {tag}
                               </span>
                             ))}
@@ -1664,25 +1680,25 @@ export default function CompanyDocumentsPage({ colorMode }) {
                       </div>
                       
                       {/* Quick Actions Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <div className="flex gap-2">
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 rounded flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="flex gap-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleFileProperties(item);
                             }}
-                            className="p-2 bg-white text-blue-600 rounded-full shadow-lg hover:bg-blue-50"
+                            className="p-1 bg-white text-blue-600 rounded shadow hover:bg-blue-50"
                           >
-                            <AdjustmentsHorizontalIcon className="w-4 h-4" />
+                            <AdjustmentsHorizontalIcon className="w-3 h-3" />
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleShareFile(item);
                             }}
-                            className="p-2 bg-white text-green-600 rounded-full shadow-lg hover:bg-green-50"
+                            className="p-1 bg-white text-green-600 rounded shadow hover:bg-green-50"
                           >
-                            <ShareIcon className="w-4 h-4" />
+                            <ShareIcon className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -1730,12 +1746,12 @@ export default function CompanyDocumentsPage({ colorMode }) {
 
         {/* Product Specific Templates Tab */}
         {activeTabId === 'project-templates' && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Product Specific Templates</h3>
-                <label className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 cursor-pointer flex items-center gap-2">
-                  <CloudArrowUpIcon className="w-4 h-4" />
+          <div className="bg-white rounded shadow">
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold">Product Specific Templates</h3>
+                <label className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 cursor-pointer flex items-center gap-1">
+                  <CloudArrowUpIcon className="w-3 h-3" />
                   Upload Template
                   <input
                     type="file"
@@ -1777,27 +1793,27 @@ export default function CompanyDocumentsPage({ colorMode }) {
               </div>
               
               {loading ? (
-                <div className="text-center py-8">Loading templates...</div>
+                <div className="text-center py-4 text-sm">Loading templates...</div>
               ) : templates.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                   {templates.map((template) => (
-                    <div key={template.id || template._id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-3">
-                        <DocumentIcon className="w-8 h-8 text-gray-400 flex-shrink-0 mt-1" />
+                    <div key={template.id || template._id} className="border rounded p-2 hover:shadow transition-shadow">
+                      <div className="flex items-start gap-2">
+                        <DocumentIcon className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">
+                          <h4 className="font-medium text-xs text-gray-900 truncate">
                             {template.name || template.filename}
                           </h4>
                           {template.description && (
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
                               {template.description}
                             </p>
                           )}
-                          <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center justify-between mt-2">
                             <span className="text-xs text-gray-400">
                               {template.format || 'Unknown format'}
                             </span>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1">
                               {template.url && (
                                 <a
                                   href={`${API_ORIGIN}${template.url}`}
@@ -1805,7 +1821,7 @@ export default function CompanyDocumentsPage({ colorMode }) {
                                   rel="noopener noreferrer"
                                   className="text-blue-600 hover:text-blue-700"
                                 >
-                                  <EyeIcon className="w-4 h-4" />
+                                  <EyeIcon className="w-3 h-3" />
                                 </a>
                               )}
                               <button
@@ -1825,7 +1841,7 @@ export default function CompanyDocumentsPage({ colorMode }) {
                                 }}
                                 className="text-red-600 hover:text-red-700"
                               >
-                                <TrashIcon className="w-4 h-4" />
+                                <TrashIcon className="w-3 h-3" />
                               </button>
                             </div>
                           </div>
@@ -1835,10 +1851,10 @@ export default function CompanyDocumentsPage({ colorMode }) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <DocumentIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No templates uploaded yet</p>
-                  <p className="text-sm text-gray-400 mt-1">Upload your first template to get started</p>
+                <div className="text-center py-6">
+                  <DocumentIcon className="w-6 h-6 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No templates uploaded yet</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Upload your first template to get started</p>
                 </div>
               )}
             </div>
@@ -1847,45 +1863,45 @@ export default function CompanyDocumentsPage({ colorMode }) {
         
         {/* Generate Tab */}
         {activeTabId === 'generate' && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Generate Documents</h3>
+          <div className="bg-white rounded shadow">
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold">Generate Documents</h3>
               </div>
               
               {loading ? (
-                <div className="text-center py-8">Loading templates...</div>
+                <div className="text-center py-4 text-sm">Loading templates...</div>
               ) : templates.length > 0 ? (
-                <div className="space-y-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DocumentDuplicateIcon className="w-5 h-5 text-blue-600" />
-                      <h4 className="font-medium text-blue-900">Generate Custom Documents</h4>
+                <div className="space-y-3">
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                    <div className="flex items-center gap-1 mb-1">
+                      <DocumentDuplicateIcon className="w-4 h-4 text-blue-600" />
+                      <h4 className="font-medium text-xs text-blue-900">Generate Custom Documents</h4>
                     </div>
-                    <p className="text-sm text-blue-700">Select a template below and fill in the required fields to generate a custom document.</p>
+                    <p className="text-xs text-blue-700">Select a template below and fill in the required fields to generate a custom document.</p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                     {templates.map((template) => (
-                      <div key={template.id || template._id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+                      <div key={template.id || template._id} className="border border-gray-200 rounded p-2 hover:border-blue-300 hover:shadow transition-all cursor-pointer"
                         onClick={() => handleGenerateFromTemplate(template)}
                       >
-                        <div className="flex items-start gap-3">
-                          <DocumentIcon className="w-8 h-8 text-blue-500 flex-shrink-0 mt-1" />
+                        <div className="flex items-start gap-2">
+                          <DocumentIcon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 truncate">
+                            <h4 className="font-medium text-xs text-gray-900 truncate">
                               {template.name}
                             </h4>
                             {template.description && (
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
                                 {template.description}
                               </p>
                             )}
-                            <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center justify-between mt-1">
                               <span className="text-xs text-gray-400">
                                 {template.format || 'PDF'} • {template.fields?.length || 0} fields
                               </span>
-                              <button className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                              <button className="px-1.5 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                                 Generate →
                               </button>
                             </div>
@@ -1896,13 +1912,13 @@ export default function CompanyDocumentsPage({ colorMode }) {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <DocumentDuplicateIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-2">No templates available</p>
-                  <p className="text-sm text-gray-400 mb-4">Upload templates in the "Product Specific Templates" tab to generate documents</p>
+                <div className="text-center py-6">
+                  <DocumentDuplicateIcon className="w-6 h-6 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500 mb-1">No templates available</p>
+                  <p className="text-xs text-gray-400 mb-2">Upload templates in the "Product Specific Templates" tab to generate documents</p>
                   <button
                     onClick={() => setActiveTabId('project-templates')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
                   >
                     Go to Templates
                   </button>
@@ -1914,25 +1930,25 @@ export default function CompanyDocumentsPage({ colorMode }) {
 
         {/* Custom Tab Content */}
         {activeTabId.startsWith('custom-') && (
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b">
+          <div className="bg-white rounded shadow overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-2 border-b">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <SparklesIcon className="w-6 h-6 text-purple-600" />
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1">
+                  <SparklesIcon className="w-4 h-4 text-purple-600" />
                   {activeTab?.name}
                 </h3>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowNewItemModal(true)}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 flex items-center gap-2 shadow-lg transform hover:scale-105 transition-all"
+                    className="px-2 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold rounded hover:from-purple-700 hover:to-pink-700 flex items-center gap-1 shadow transition-all"
                   >
-                    <PlusIcon className="w-4 h-4" />
-                    ✨ Create New
+                    <PlusIcon className="w-3 h-3" />
+                    Create New
                   </button>
                   
-                  <label className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 flex items-center gap-2 cursor-pointer shadow-lg transform hover:scale-105 transition-all">
-                    <CloudArrowUpIcon className="w-4 h-4" />
-                    🚀 Upload
+                  <label className="px-2 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold rounded hover:from-blue-700 hover:to-indigo-700 flex items-center gap-1 cursor-pointer shadow transition-all">
+                    <CloudArrowUpIcon className="w-3 h-3" />
+                    Upload
                     <input
                       type="file"
                       multiple
@@ -1945,10 +1961,18 @@ export default function CompanyDocumentsPage({ colorMode }) {
               </div>
             </div>
 
-            <div className="p-6">
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 min-h-[500px] border-2 border-dashed border-purple-200">
+            <div className="p-3">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded p-2 min-h-[300px] border border-dashed border-purple-200">
                 {documents[activeTabId]?.length > 0 ? (
-                  documents[activeTabId].map((item) => (
+                  documents[activeTabId]
+                    .sort((a, b) => {
+                      // Folders first, then files
+                      if (a.type === 'folder' && b.type !== 'folder') return -1;
+                      if (a.type !== 'folder' && b.type === 'folder') return 1;
+                      // Within same type, sort alphabetically
+                      return a.name.localeCompare(b.name);
+                    })
+                    .map((item) => (
                     <DraggableItem
                       key={item.id}
                       item={item}
@@ -1962,12 +1986,12 @@ export default function CompanyDocumentsPage({ colorMode }) {
                     />
                   ))
                 ) : (
-                  <div className="text-center py-16">
+                  <div className="text-center py-8">
                     <div className="animate-bounce">
-                      <SparklesIcon className="w-16 h-16 mx-auto mb-4 text-purple-400" />
+                      <SparklesIcon className="w-8 h-8 mx-auto mb-2 text-purple-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">🎨 Custom Workspace Ready!</h3>
-                    <p className="text-gray-500 mb-4">Build your personalized document organization</p>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-1">🎨 Custom Workspace Ready!</h3>
+                    <p className="text-xs text-gray-500 mb-2">Build your personalized document organization</p>
                   </div>
                 )}
               </div>
@@ -1978,21 +2002,21 @@ export default function CompanyDocumentsPage({ colorMode }) {
         {/* Enhanced Modals */}
         {showNewItemModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 9999 }}>
-            <div className="bg-white rounded-2xl p-8 w-96 shadow-2xl transform animate-scale-in" style={{ zIndex: 10000 }}>
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <SparklesIcon className="w-6 h-6 text-blue-600" />
-                ✨ Create New Item
+            <div className="bg-white rounded p-4 w-80 shadow-xl transform animate-scale-in" style={{ zIndex: 10000 }}>
+              <h3 className="text-sm font-bold mb-3 flex items-center gap-1">
+                <SparklesIcon className="w-4 h-4 text-blue-600" />
+                Create New Item
               </h3>
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">📁 Parent Folder (Optional)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Parent Folder (Optional)</label>
                   <select
                     value={selectedParentFolder?.id || ''}
                     onChange={(e) => {
                       const folderId = e.target.value;
                       setSelectedParentFolder(folderId ? availableFolders.find(f => f.id === folderId) : null);
                     }}
-                    className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Root Folder (Top Level)</option>
                     {availableFolders.map(folder => (
@@ -2001,7 +2025,7 @@ export default function CompanyDocumentsPage({ colorMode }) {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-0.5">
                     {selectedParentFolder 
                       ? `Will be created inside "${selectedParentFolder.displayName}"` 
                       : 'Will be created at the top level'
@@ -2009,38 +2033,38 @@ export default function CompanyDocumentsPage({ colorMode }) {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">🎯 Type</label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setNewItemType('folder')}
-                      className={`p-4 rounded-lg border-2 transition-all ${newItemType === 'folder' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                      className={`p-2 rounded border transition-all ${newItemType === 'folder' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
                     >
-                      <FolderIcon className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                      <div className="text-sm font-medium">Folder</div>
+                      <FolderIcon className="w-5 h-5 mx-auto mb-1 text-blue-500" />
+                      <div className="text-xs font-medium">Folder</div>
                     </button>
                     <button
                       onClick={() => setNewItemType('file')}
-                      className={`p-4 rounded-lg border-2 transition-all ${newItemType === 'file' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                      className={`p-2 rounded border transition-all ${newItemType === 'file' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
                     >
-                      <DocumentIcon className="w-8 h-8 mx-auto mb-2 text-gray-500" />
-                      <div className="text-sm font-medium">File</div>
+                      <DocumentIcon className="w-5 h-5 mx-auto mb-1 text-gray-500" />
+                      <div className="text-xs font-medium">File</div>
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">📝 Name</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
                   <input
                     type="text"
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                     placeholder={`Enter ${newItemType} name...`}
                     autoFocus
                     onKeyPress={(e) => e.key === 'Enter' && handleAddNewItem()}
                   />
                 </div>
               </div>
-              <div className="mt-8 flex justify-end gap-3">
+              <div className="mt-4 flex justify-end gap-2">
                 <button
                   onClick={() => {
                     setShowNewItemModal(false);
@@ -2048,15 +2072,15 @@ export default function CompanyDocumentsPage({ colorMode }) {
                     setNewItemType('folder');
                     setSelectedParentFolder(null);
                   }}
-                  className="px-6 py-3 text-sm text-gray-600 hover:text-gray-800 transition-colors font-medium"
+                  className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800 transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddNewItem}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+                  className="px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold rounded hover:from-blue-700 hover:to-indigo-700 transition-all shadow"
                 >
-                  ✨ Create
+                  Create
                 </button>
               </div>
             </div>
