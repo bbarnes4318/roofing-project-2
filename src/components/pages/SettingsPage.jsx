@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
@@ -39,12 +41,12 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const [uploadResult, setUploadResult] = useState(null);
   const [excelError, setExcelError] = useState('');
 
-  // Role assignments state
+  // Role assignments state - now supports multiple users per role
   const [roleAssignments, setRoleAssignments] = useState({
-    productManager: '',
-    fieldDirector: '',
-    officeStaff: '',
-    administration: ''
+    projectManager: [], // Changed from productManager to projectManager for consistency
+    fieldDirector: [],
+    officeStaff: [],
+    administration: []
   });
 
   // Available users for dropdowns (loaded from API)

@@ -540,9 +540,9 @@ const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onSho
   
   const [{ isDragging }, drag] = useDrag({
     type: item.type === 'folder' ? ItemTypes.FOLDER : ItemTypes.FILE,
-    item: { item, path },
-    begin: () => {
+    item: () => {
       if (onDragStart) onDragStart({ item, path });
+      return { item, path };
     },
     end: () => {
       if (onDragEnd) onDragEnd();

@@ -3303,11 +3303,25 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       // Invalidate events so the task appears
                       queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
                       // Add to activity feed immediately
+                      // Determine assigned user for display
+                      let assignedToDisplay = 'Unassigned';
+                      if (quickTaskAssignAll) {
+                        assignedToDisplay = 'All Users';
+                      } else if (quickTaskAssigneeId) {
+                        const assignedUser = availableUsers.find(u => String(u.id) === String(quickTaskAssigneeId));
+                        if (assignedUser) {
+                          assignedToDisplay = `${assignedUser.firstName} ${assignedUser.lastName}`;
+                        }
+                      }
+                      
                       setFeed(prev => [{
                         id: `cal_${Date.now()}`,
                         type: 'task',
                         authorId: currentUser?.id || null,
                         author: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You',
+                        assignedTo: assignedToDisplay,
+                        assigneeId: quickTaskAssigneeId || null,
+                        assignedToAll: quickTaskAssignAll || false,
                         projectId: tasksProjectFilter || null,
                         projectName: (projects.find(p => String(p.id) === String(tasksProjectFilter)) || {}).projectName || null,
                         subject: quickTaskSubject.trim(),
@@ -3706,7 +3720,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           {/* To - Fixed position to match Subject exactly */}
                                           <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
                                             <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
-                                              To: {item.assignedTo || item.recipient || item.author}
+                                              To: {item.assignedTo || item.recipient || 'Unassigned'}
                                             </span>
                                           </div>
                                         </div>
@@ -4015,13 +4029,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                 </div>
                               </div>
                               
-                              {/* Expand/Collapse icon */}
-                              <div className="flex-shrink-0 self-start">
-                                {expandedMessages.has(item.id) ? (
-                                  <ChevronDownIcon className="w-3 h-3 text-gray-400" />
-                                ) : (
-                                  <ChevronLeftIcon className="w-3 h-3 text-gray-400" />
-                                )}
+                              {/* Reminder indicator - CLEARLY INDICATES IT IS A REMINDER */}
+                              <div className="flex flex-col items-center">
+                                <span className="text-[8px] font-bold text-orange-500">
+                                  Reminder
+                                </span>
+                              </div>
+                              
+                              {/* Dropdown arrow - visual indicator only */}
+                              <div className={`p-1 rounded transition-colors transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''} text-gray-600`}>
+                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
                               </div>
                             </div>
                             
