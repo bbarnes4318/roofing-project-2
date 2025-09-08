@@ -584,4 +584,191 @@ router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next)
   });
 }));
 
+// @desc    Get comments for a calendar event (reminder)
+// @route   GET /api/calendar-events/:id/comments
+// @access  Private
+router.get('/:id/comments', asyncHandler(async (req, res) => {
+  const eventId = req.params.id;
+  
+  // Check if event exists
+  const event = await prisma.calendarEvent.findUnique({
+    where: { id: eventId }
+  });
+  
+  if (!event) {
+    return res.status(404).json({
+      success: false,
+      message: 'Calendar event not found'
+    });
+  }
+  
+  // Get all comments for this event
+  const comments = await prisma.calendarEventComment.findMany({
+    where: { eventId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+  
+  res.json({
+    success: true,
+    data: comments,
+    message: 'Comments retrieved successfully'
+  });
+}));
+
+// @desc    Add a comment to a calendar event (reminder)
+// @route   POST /api/calendar-events/:id/comments
+// @access  Private
+router.post('/:id/comments', asyncHandler(async (req, res) => {
+  const eventId = req.params.id;
+  const { content } = req.body;
+  const userId = req.user?.id || req.body.userId; // Get from auth middleware or request body
+  
+  // Validate input
+  if (!content || !content.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Comment content is required'
+    });
+  }
+  
+  // Check if event exists
+  const event = await prisma.calendarEvent.findUnique({
+    where: { id: eventId }
+  });
+  
+  if (!event) {
+    return res.status(404).json({
+      success: false,
+      message: 'Calendar event not found'
+    });
+  }
+  
+  // Create the comment
+  const comment = await prisma.calendarEventComment.create({
+    data: {
+      content: content.trim(),
+      eventId,
+      userId
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      }
+    }
+  });
+  
+  res.status(201).json({
+    success: true,
+    data: comment,
+    message: 'Comment added successfully'
+  });
+}));
+
+// @desc    Update a comment on a calendar event
+// @route   PUT /api/calendar-events/:eventId/comments/:commentId
+// @access  Private
+router.put('/:eventId/comments/:commentId', asyncHandler(async (req, res) => {
+  const { eventId, commentId } = req.params;
+  const { content } = req.body;
+  const userId = req.user?.id;
+  
+  // Validate input
+  if (!content || !content.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Comment content is required'
+    });
+  }
+  
+  // Check if comment exists and belongs to the user
+  const existingComment = await prisma.calendarEventComment.findFirst({
+    where: {
+      id: commentId,
+      eventId,
+      userId
+    }
+  });
+  
+  if (!existingComment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Comment not found or you do not have permission to edit it'
+    });
+  }
+  
+  // Update the comment
+  const comment = await prisma.calendarEventComment.update({
+    where: { id: commentId },
+    data: { content: content.trim() },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      }
+    }
+  });
+  
+  res.json({
+    success: true,
+    data: comment,
+    message: 'Comment updated successfully'
+  });
+}));
+
+// @desc    Delete a comment from a calendar event
+// @route   DELETE /api/calendar-events/:eventId/comments/:commentId
+// @access  Private
+router.delete('/:eventId/comments/:commentId', asyncHandler(async (req, res) => {
+  const { eventId, commentId } = req.params;
+  const userId = req.user?.id;
+  
+  // Check if comment exists and belongs to the user
+  const existingComment = await prisma.calendarEventComment.findFirst({
+    where: {
+      id: commentId,
+      eventId,
+      userId
+    }
+  });
+  
+  if (!existingComment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Comment not found or you do not have permission to delete it'
+    });
+  }
+  
+  // Delete the comment
+  await prisma.calendarEventComment.delete({
+    where: { id: commentId }
+  });
+  
+  res.json({
+    success: true,
+    message: 'Comment deleted successfully'
+  });
+}));
+
 module.exports = router; 

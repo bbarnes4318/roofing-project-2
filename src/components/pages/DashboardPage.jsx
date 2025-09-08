@@ -140,6 +140,13 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const { data: projectsData, isLoading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects({ limit: 100 });
   // Extract the projects array from the response object
   const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || []);
+  
+  // DEBUG: Log projects data
+  console.log('🔍 DASHBOARD DEBUG: projectsData:', projectsData);
+  console.log('🔍 DASHBOARD DEBUG: projectsData.data:', projectsData?.data);
+  console.log('🔍 DASHBOARD DEBUG: projectsData.success:', projectsData?.success);
+  console.log('🔍 DASHBOARD DEBUG: projects array:', projects);
+  console.log('🔍 DASHBOARD DEBUG: projects length:', projects?.length);
   // Enriched projects with canonical phase from workflow position when missing
   const [projectsEnriched, setProjectsEnriched] = useState(null);
   const uiProjects = projectsEnriched || projects;
@@ -277,6 +284,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     return savedComments ? JSON.parse(savedComments) : {};
   });
   const [newCommentText, setNewCommentText] = useState({});
+  
+  // Reminder comments state - stores comments for each reminder
+  const [reminderComments, setReminderComments] = useState({});
+  const [showCommentInput, setShowCommentInput] = useState({});
+  const [commentInputs, setCommentInputs] = useState({});
   const [loadingComments, setLoadingComments] = useState({});
   
   // Fetch comments from database when task is expanded
@@ -393,6 +405,73 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       [taskId]: ''
     }));
   };
+  // Fetch reminder comments from database
+  const fetchReminderComments = async (reminderId) => {
+    if (loadingComments[`reminder_${reminderId}`]) return; // Already loading
+    
+    setLoadingComments(prev => ({ ...prev, [`reminder_${reminderId}`]: true }));
+    
+    try {
+      const response = await api.get(`/calendar-events/${reminderId}/comments`);
+      
+      if (response.data.success && response.data.data) {
+        setReminderComments(prev => ({
+          ...prev,
+          [reminderId]: response.data.data.map(comment => ({
+            id: comment.id,
+            content: comment.content,
+            userName: comment.user ? `${comment.user.firstName} ${comment.user.lastName}` : 'Unknown User',
+            userId: comment.userId,
+            createdAt: comment.createdAt
+          }))
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching reminder comments:', error);
+    } finally {
+      setLoadingComments(prev => ({ ...prev, [`reminder_${reminderId}`]: false }));
+    }
+  };
+  
+  // Add comment to reminder
+  const handleAddReminderComment = async (reminderId) => {
+    const commentText = commentInputs[reminderId]?.trim();
+    if (!commentText) return;
+    
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const newComment = {
+      content: commentText,
+      userName: currentUser.firstName ? `${currentUser.firstName} ${currentUser.lastName}` : 'You',
+      userId: currentUser.id,
+      createdAt: new Date().toISOString()
+    };
+    
+    try {
+      const response = await api.post(`/calendar-events/${reminderId}/comments`, {
+        content: commentText
+      });
+      
+      if (response.data.success) {
+        // Update local state immediately for responsive UI
+        setReminderComments(prev => ({
+          ...prev,
+          [reminderId]: [...(prev[reminderId] || []), newComment]
+        }));
+        
+        // Clear input and hide form
+        setCommentInputs(prev => ({ ...prev, [reminderId]: '' }));
+        setShowCommentInput(prev => ({ ...prev, [reminderId]: false }));
+        
+        toast.success('Comment added to reminder');
+      } else {
+        toast.error('Failed to add comment');
+      }
+    } catch (error) {
+      console.error('Error adding reminder comment:', error);
+      toast.error('Failed to add comment');
+    }
+  };
+  
   // Reminder fields
   const [reminderTitle, setReminderTitle] = useState('');
   const [reminderDescription, setReminderDescription] = useState('');
@@ -417,7 +496,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [alertProjectFilter, setAlertProjectFilter] = useState('all');
   const [alertUserGroupFilter, setAlertUserGroupFilter] = useState('all');
   
-  // Feed and filtering state - REMOVED: Now using activityFeedItems directly
+  // Feed and filtering state - use real messages data
+  const [feed, setFeed] = useState([]);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -501,18 +581,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     ]
   }]);
   const { data: customersData } = useCustomers();
-  // Load team members for filters and recipients
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await usersService.getTeamMembers();
-        const team = res?.data?.teamMembers || res?.data || [];
-        setAvailableUsers(Array.isArray(team) ? team : []);
-      } catch (_) {
-        setAvailableUsers([]);
-      }
-    })();
-  }, []);
+  // Load team members for filters and recipients - handled in the more comprehensive useEffect below
   const { data: calendarEventsData = [] } = useCalendarEvents();
   
   // Create project mutation
@@ -646,6 +715,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         setMessagesLoading(true);
         const allMessages = [];
         
+        // DEBUG: Log projects being processed
+        console.log('🔍 DASHBOARD DEBUG: fetchMessages called with projects:', projects);
+        console.log('🔍 DASHBOARD DEBUG: projects length in fetchMessages:', projects?.length);
+        
         // Fetch project messages for each project
         for (const project of projects) {
           try {
@@ -756,8 +829,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           allMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
           
           console.log('🔍 DASHBOARD: Fetched messages from API:', allMessages.length);
+          console.log('🔍 DASHBOARD DEBUG: Setting messagesData and feed with:', allMessages);
           setMessagesData(allMessages);
-          // activityFeedItems automatically updates when messagesData changes
+         // activityFeedItems automatically updates when messagesData changes
         } else {
           // Fallback to activities prop if no messages found
           console.log('🔍 DASHBOARD: No messages from API, using activities fallback:', activities?.length || 0);
@@ -774,6 +848,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             
           setMessagesData(fallbackMessages);
           // activityFeedItems automatically updates when messagesData changes
+
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -1416,10 +1491,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       newExpanded.delete(messageId);
     } else {
       newExpanded.add(messageId);
-      // Fetch comments from database when task is expanded
-      // Only fetch if we don't already have comments for this task
-      if (!taskComments[messageId] || taskComments[messageId].length === 0) {
-        fetchTaskComments(messageId);
+      
+      // Check if this is a reminder and fetch comments if needed
+      const currentItem = activityFeedItems.find(item => item.id === messageId);
+      if (currentItem && currentItem.type === 'reminder') {
+        // Fetch reminder comments when expanded
+        if (!reminderComments[messageId] || reminderComments[messageId].length === 0) {
+          fetchReminderComments(messageId);
+        }
+      } else {
+        // Fetch task comments from database when task is expanded
+        // Only fetch if we don't already have comments for this task
+        if (!taskComments[messageId] || taskComments[messageId].length === 0) {
+          fetchTaskComments(messageId);
+        }
       }
     }
     setExpandedMessages(newExpanded);
@@ -3062,7 +3147,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
                           {availableUsers.map(user => (
                             <option key={user.id} value={user.id}>
-                              {user.firstName} {user.lastName} ({user.role || 'User'})
+                              {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`} ({user.role || 'User'})
                             </option>
                           ))}
                         </select>
@@ -3246,7 +3331,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                         <select value={quickTaskAssigneeId} onChange={(e)=>{ setQuickTaskAssigneeId(e.target.value); setQuickTaskAssignAll(false); }} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}>
                           <option value="">Unassigned</option>
                           {availableUsers.map(u => (
-                            <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                            <option key={u.id} value={u.id}>
+                              {u.firstName} {u.lastName || ''} {u.lastName ? '' : `(${u.email})`}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -3698,7 +3785,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 })()
               )}
 
-              {/* Reminders Tab - Redesigned */}
+              {/* Reminders Tab - Matching Tasks Tab Format */}
               {activeCommTab === 'reminders' && (
                 (() => {
                   const reminderItems = activityFeedItems
@@ -3727,12 +3814,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                   }
 
                   return (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {reminderItems.map(item => {
-                        // Find the associated project for this reminder
-                        const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
-                        
-                        // Get author and recipient information
+                        const project = projects?.find(p => String(p.id) === String(item.projectId));
+                        const projectNumber = project?.projectNumber || item.projectNumber || null;
+                        const primaryCustomer = project?.customer?.primaryName || project?.customer?.name || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Unknown Customer';
+                        const subject = item.subject || item.title || 'Reminder';
                         const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
                         const recipients = Array.isArray(item.recipients) ? 
                           item.recipients.map(id => {
@@ -3740,188 +3827,236 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                             return availableUsers.find(u => String(u.id) === String(id));
                           }).filter(Boolean) : [];
                         
-                        // Format timestamps with full date and time
-                        const formatDateTime = (timestamp) => {
+                        // Format timestamp for display
+                        const formatTimeAgo = (timestamp) => {
+                          const now = new Date();
                           const date = new Date(timestamp);
-                          return {
-                            date: date.toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric',
-                              year: 'numeric'
-                            }),
-                            time: date.toLocaleTimeString('en-US', { 
-                              hour: 'numeric', 
-                              minute: '2-digit',
-                              hour12: true
-                            })
-                          };
+                          const diffMs = now - date;
+                          const diffMins = Math.floor(diffMs / 60000);
+                          const diffHours = Math.floor(diffMs / 3600000);
+                          const diffDays = Math.floor(diffMs / 86400000);
+                          
+                          if (diffMins < 1) return 'Just now';
+                          if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+                          if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+                          if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+                          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
                         };
-
-                        const createdDateTime = formatDateTime(item.timestamp);
-                        const reminderDateTime = item.reminderDate ? formatDateTime(item.reminderDate) : createdDateTime;
-                        
-                        // Determine reminder status
-                        const now = new Date();
-                        const reminderDate = new Date(item.reminderDate || item.timestamp);
-                        const isOverdue = reminderDate < now;
-                        const isUpcoming = reminderDate > now && (reminderDate - now) < (24 * 60 * 60 * 1000); // Within 24 hours
-                        
-                        // Get status styling
-                        const getStatusStyle = () => {
-                          if (isOverdue) {
-                            return {
-                              borderColor: 'border-red-300',
-                              bgColor: 'bg-red-50',
-                              iconColor: 'text-red-500',
-                              statusText: 'Overdue',
-                              statusColor: 'text-red-700',
-                              statusBg: 'bg-red-100'
-                            };
-                          } else if (isUpcoming) {
-                            return {
-                              borderColor: 'border-green-300',
-                              bgColor: 'bg-green-50',
-                              iconColor: 'text-green-500',
-                              statusText: 'Upcoming',
-                              statusColor: 'text-green-700',
-                              statusBg: 'bg-green-100'
-                            };
-                          } else {
-                            return {
-                              borderColor: 'border-amber-300',
-                              bgColor: 'bg-amber-50',
-                              iconColor: 'text-amber-500',
-                              statusText: 'Scheduled',
-                              statusColor: 'text-amber-700',
-                              statusBg: 'bg-amber-100'
-                            };
-                          }
-                        };
-
-                        const statusStyle = getStatusStyle();
                         
                         return (
-                          <div key={item.id} className={`group bg-white rounded-xl border-l-4 ${statusStyle.borderColor} ${statusStyle.bgColor} border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-hidden`}>
-                            <div className="p-6">
-                              {/* Header with title and status */}
-                              <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <div className={`w-10 h-10 rounded-full ${statusStyle.bgColor} flex items-center justify-center flex-shrink-0`}>
-                                    <svg className={`w-5 h-5 ${statusStyle.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-amber-600 transition-colors">
-                                      {item.subject || 'Untitled Reminder'}
-                                    </h3>
-                                    <div className="flex items-center gap-2">
-                                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.statusBg} ${statusStyle.statusColor} border`}>
-                                        {isOverdue ? '🚨 Overdue' : isUpcoming ? '⏰ Upcoming' : '📅 Scheduled'}
+                          <div key={item.id} className="bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer">
+                            {/* Main reminder header - Compact 2-row layout matching tasks exactly */}
+                            <div 
+                              className="flex items-center gap-1.5 p-1.5"
+                              onClick={() => handleToggleMessage(item.id)}
+                            >
+                              {/* Phase Circle - Dynamic based on project association */}
+                              {(() => {
+                                // Check if reminder is tied to a project
+                                const isProjectReminder = item.projectId && project;
+                                
+                                if (isProjectReminder) {
+                                  // Get project phase and colors
+                                  const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                                  const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
+                                  const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
+                                  
+                                  return (
+                                    <div 
+                                      className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
+                                      style={{ backgroundColor: phaseColor }}
+                                    >
+                                      {phaseInitial}
+                                    </div>
+                                  );
+                                } else {
+                                  // No project - use orange R for reminder
+                                  return (
+                                    <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
+                                      R
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              
+                              <div className="flex-1 min-w-0">
+                                {/* Row 1: Project# or General | Customer | Subject */}
+                                <div className="flex items-center justify-between overflow-hidden relative">
+                                  <div className="flex items-center min-w-0 flex-1">
+                                    {/* Project Number or General Reminder - Fixed width for alignment */}
+                                    {item.projectId && project ? (
+                                      <button
+                                        className="text-[9px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex-shrink-0"
+                                        style={{ width: '46px' }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (onProjectSelect) {
+                                            onProjectSelect(project, 'Project Profile', null, 'Messages, Tasks, & Reminders');
+                                          }
+                                        }}
+                                      >
+                                        {projectNumber ? `#${String(projectNumber).padStart(5, '0')}` : '#00000'}
+                                      </button>
+                                    ) : (
+                                      <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                        General
                                       </span>
-                                      {associatedProject && (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                                          #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
-                                        </span>
+                                    )}
+                                    
+                                    {/* Customer Name and Subject - Dynamic width */}
+                                    <div className="flex items-center min-w-0 flex-1 mx-1.5">
+                                      {item.projectId && project && (
+                                        <>
+                                          <span className="text-[9px] font-bold text-gray-700 truncate flex-shrink-0" style={{ maxWidth: '120px' }}>
+                                            {primaryCustomer}
+                                          </span>
+                                          <span className="mx-1.5 text-[9px] text-gray-400 flex-shrink-0">|</span>
+                                        </>
                                       )}
+                                      <span className="text-[9px] font-semibold text-gray-800 truncate flex-1">
+                                        Subject: {subject}
+                                      </span>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-
-                              {/* Project Information */}
-                              {associatedProject && (
-                                <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                  <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                  </svg>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-blue-900">
-                                      #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
-                                    </p>
-                                    <p className="text-xs text-blue-700 truncate">
-                                      {associatedProject.customer?.name || associatedProject.clientName || associatedProject.name}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Reminder Description */}
-                              {item.content && (
-                                <div className="mb-4">
-                                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
-                                    {item.content}
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Assignment Info */}
-                              <div className="space-y-3 mb-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-gray-500 font-medium">Created by</p>
-                                    <p className="text-sm font-semibold text-gray-900">{author.firstName} {author.lastName}</p>
-                                  </div>
+                                  
+                                  {/* Type indicator - Far right */}
+                                  <span className="text-[8px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 px-1.5 py-0.5 rounded flex-shrink-0 ml-2">
+                                    Reminder
+                                  </span>
                                 </div>
                                 
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-gray-500 font-medium">Recipients</p>
-                                    {recipients.length > 0 ? (
-                                      <div className="flex items-center gap-1">
-                                        <p className="text-sm font-semibold text-gray-900">
-                                          {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
-                                        </p>
+                                {/* Row 2: From/To and Timestamp */}
+                                <div className="flex items-center justify-between mt-1">
+                                  <div className="flex items-center gap-3 text-[8px] text-gray-600">
+                                    <span className="flex items-center gap-1">
+                                      <span className="font-medium">From:</span>
+                                      <span className="font-semibold text-gray-700">
+                                        {author.firstName} {author.lastName}
+                                      </span>
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <span className="font-medium">To:</span>
+                                      <span className="font-semibold text-gray-700">
+                                        {recipients.length > 0 ? (
+                                          recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`
+                                        ) : 'No recipients'}
                                         {recipients.length > 1 && !recipients[0].isAll && (
-                                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                                          <span className="text-[7px] bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full font-medium ml-1">
                                             +{recipients.length - 1}
                                           </span>
                                         )}
-                                      </div>
-                                    ) : (
-                                      <p className="text-sm text-gray-500 italic">No recipients</p>
-                                    )}
+                                      </span>
+                                    </span>
                                   </div>
+                                  <span className="text-[8px] text-gray-500 font-medium flex-shrink-0">
+                                    {formatTimeAgo(item.timestamp)}
+                                  </span>
                                 </div>
                               </div>
-
-                              {/* Timestamps */}
-                              <div className="space-y-2 mb-6 text-xs">
-                                <div className="flex items-center gap-2 text-gray-500">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                  </svg>
-                                  <span>Created: {createdDateTime.date} at {createdDateTime.time}</span>
-                                </div>
-                                
-                                <div className={`flex items-center gap-2 ${isOverdue ? 'text-red-600 font-semibold' : isUpcoming ? 'text-green-600 font-semibold' : 'text-amber-600'}`}>
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                                  </svg>
-                                  <span>Reminder: {reminderDateTime.date} at {reminderDateTime.time}</span>
-                                </div>
-                              </div>
-
-                              {/* Action Buttons */}
-                              <div className="flex gap-3">
-                                <button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm">
-                                  Dismiss
-                                </button>
-                                <button className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm">
-                                  Reschedule
-                                </button>
+                              
+                              {/* Expand/Collapse icon */}
+                              <div className="flex-shrink-0 self-start">
+                                {expandedMessages.has(item.id) ? (
+                                  <ChevronDownIcon className="w-3 h-3 text-gray-400" />
+                                ) : (
+                                  <ChevronLeftIcon className="w-3 h-3 text-gray-400" />
+                                )}
                               </div>
                             </div>
+                            
+                            {/* Expanded content */}
+                            {expandedMessages.has(item.id) && (
+                              <div className="px-3 pb-3 pt-1 border-t border-gray-100">
+                                {/* Reminder content */}
+                                {item.content && (
+                                  <div className="mb-3">
+                                    <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                      {item.content}
+                                    </p>
+                                  </div>
+                                )}
+                                
+                                {/* Comments Section */}
+                                <div className="mt-3 pt-3 border-t border-gray-100">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4 className="text-[10px] font-semibold text-gray-700">Comments</h4>
+                                    <button 
+                                      onClick={() => setShowCommentInput(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                                      className="text-[9px] text-blue-600 hover:text-blue-700 font-medium"
+                                    >
+                                      {showCommentInput[item.id] ? 'Cancel' : 'Add Comment'}
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Comments list */}
+                                  {reminderComments[item.id] && reminderComments[item.id].length > 0 && (
+                                    <div className="space-y-2 mb-2 max-h-32 overflow-y-auto">
+                                      {reminderComments[item.id].map((comment, idx) => (
+                                        <div key={idx} className="bg-gray-50 rounded p-2">
+                                          <div className="flex items-center gap-1 mb-1">
+                                            <span className="text-[9px] font-semibold text-gray-700">
+                                              Comment by: {comment.userName || 'Unknown User'}
+                                            </span>
+                                            <span className="text-[8px] text-gray-500">
+                                              • {formatTimeAgo(comment.createdAt)}
+                                            </span>
+                                          </div>
+                                          <p className="text-[10px] text-gray-600">{comment.content}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Comment input */}
+                                  {showCommentInput[item.id] && (
+                                    <div className="mt-2">
+                                      <textarea
+                                        value={commentInputs[item.id] || ''}
+                                        onChange={(e) => setCommentInputs(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                        placeholder="Type your comment here..."
+                                        className="w-full px-2 py-1 text-[10px] border border-gray-200 rounded resize-none focus:outline-none focus:border-blue-400"
+                                        rows={2}
+                                      />
+                                      <div className="flex justify-end gap-1 mt-1">
+                                        <button
+                                          onClick={() => {
+                                            setShowCommentInput(prev => ({ ...prev, [item.id]: false }));
+                                            setCommentInputs(prev => ({ ...prev, [item.id]: '' }));
+                                          }}
+                                          className="px-2 py-1 text-[9px] text-gray-600 hover:text-gray-700 font-medium"
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          onClick={() => handleAddReminderComment(item.id)}
+                                          disabled={!commentInputs[item.id]?.trim()}
+                                          className="px-2 py-1 text-[9px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                                        >
+                                          Post Comment
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Action buttons */}
+                                {onProjectSelect && item.projectId && project && (
+                                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onProjectSelect) {
+                                          onProjectSelect(project, 'Project Profile', null, 'Messages, Tasks, & Reminders');
+                                        }
+                                      }}
+                                      className="text-[8px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                                    >
+                                      View Project
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -4581,214 +4716,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <option value="reminder">Reminders</option>
               </select>
             </div>
-            {/* Feed List */}
+            {/* Feed List - EXACT SAME AS RESPECTIVE SECTIONS */}
             <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
               {activityFeedItems
                 .filter(item => !activityProjectFilter || String(item.projectId) === String(activityProjectFilter))
                 .filter(item => !activityTypeFilter || item.type === activityTypeFilter)
                 .map(item => {
-                  // Use exact same styling as respective tabs
-                  const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
-                  const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
-                  
-                  // Format timestamps with full date and time
-                  const formatDateTime = (timestamp) => {
-                    const date = new Date(timestamp);
-                    return {
-                      date: date.toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric',
-                        year: 'numeric'
-                      }),
-                      time: date.toLocaleTimeString('en-US', { 
-                        hour: 'numeric', 
-                        minute: '2-digit',
-                        hour12: true
-                      })
-                    };
-                  };
-
-                  const createdDateTime = formatDateTime(item.timestamp);
-                  const dueDateTime = item.dueDate ? formatDateTime(item.dueDate) : null;
-                  
-                  if (item.type === 'task') {
-                    // EXACT same styling as Tasks tab
-                    const assignees = Array.isArray(item.attendees) ? 
-                      item.attendees.map(id => availableUsers.find(u => String(u.id) === String(id))).filter(Boolean) : [];
-                    
-                    return (
-                      <div key={item.id} className="group bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300">
-                        {/* Single line with icon, subject, and badge */}
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                              </svg>
-                            </div>
-                            <h4 className="text-sm font-semibold text-gray-900 leading-tight group-hover:text-blue-700 transition-colors duration-200 truncate">
-                              {item.subject || 'Untitled Task'}
-                            </h4>
-                          </div>
-                          <span className="inline-flex items-center text-[10px] font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full shadow-sm flex-shrink-0">
-                            Task
-                          </span>
-                        </div>
-
-                        {/* Project Information - When Selected */}
-                        {associatedProject && (
-                          <div className="flex items-center gap-2 mb-2 text-xs">
-                            <svg className="w-3 h-3 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span className="font-medium text-blue-700">#{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}</span>
-                            <span className="text-gray-600">•</span>
-                            <span className="text-gray-700 truncate">
-                              {associatedProject.customer?.name || associatedProject.clientName || associatedProject.name}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Compact Assignment Info - One Line */}
-                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-2.5 h-2.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 818 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                            <span className="text-gray-500">From:</span>
-                            <span className="text-gray-800 font-medium">{author.firstName} {author.lastName}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-2.5 h-2.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 919.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                              </svg>
-                            </div>
-                            <span className="text-gray-500">To:</span>
-                            {assignees.length > 0 ? (
-                              <span className="text-gray-800 font-medium">
-                                {assignees[0].firstName} {assignees[0].lastName}
-                                {assignees.length > 1 && (
-                                  <span className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded-full font-medium ml-1">
-                                    +{assignees.length - 1}
-                                  </span>
-                                )}
-                              </span>
-                            ) : (
-                              <span className="text-gray-500 italic">Unassigned</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Task Description - Condensed */}
-                        {item.content && (
-                          <p className="text-xs text-gray-600 line-clamp-2 mb-2 leading-relaxed">
-                            {item.content}
-                          </p>
-                        )}
-                        
-                        {/* Compact Timestamp Footer */}
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-100/50">
-                          <div className="flex items-center gap-3 text-[10px]">
-                            <div className="flex items-center gap-1">
-                              <svg className="w-2.5 h-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                              </svg>
-                              <span className="text-gray-500">Created:</span>
-                              <span className="text-gray-700 font-semibold">{createdDateTime.date}</span>
-                              <span className="text-gray-500">at {createdDateTime.time}</span>
-                            </div>
-                            {dueDateTime && (
-                              <div className="flex items-center gap-1">
-                                <svg className="w-2.5 h-2.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                                </svg>
-                                <span className="text-orange-600 font-medium">Due:</span>
-                                <span className="text-orange-700 font-semibold">{dueDateTime.date}</span>
-                                <span className="text-orange-600">at {dueDateTime.time}</span>
-                              </div>
-                            )}
-                          </div>
-                          <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded border border-blue-200 hover:border-blue-300">
-                            Details
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  } else if (item.type === 'reminder') {
-                    // EXACT same styling as Reminders tab
-                    const recipients = Array.isArray(item.recipients) ? 
-                      item.recipients.map(id => {
-                        if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
-                        return availableUsers.find(u => String(u.id) === String(id));
-                      }).filter(Boolean) : [];
-                    const reminderDateTime = item.reminderDate ? formatDateTime(item.reminderDate) : createdDateTime;
-
-                    return (
-                      <div key={item.id} className="group bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:border-amber-300">
-                        {/* Single line with icon, subject, and badge */}
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <div className="w-4 h-4 bg-amber-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                            <h4 className="text-xs font-semibold text-gray-900 truncate">
-                              {item.subject || 'Untitled Reminder'}
-                            </h4>
-                            {associatedProject && (
-                              <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                                #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
-                            Reminder
-                          </span>
-                        </div>
-
-                        {/* Compact To/From on one line */}
-                        <div className="flex items-center gap-3 text-[10px] text-gray-600 mb-1">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">From:</span>
-                            <span className="text-gray-800">{author.firstName} {author.lastName}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">To:</span>
-                            {recipients.length > 0 ? (
-                              <span className="text-gray-800">
-                                {recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`}
-                                {recipients.length > 1 && !recipients[0].isAll && <span className="text-amber-600"> +{recipients.length - 1}</span>}
-                              </span>
-                            ) : (
-                              <span className="text-gray-500 italic">No recipients</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Compact Description */}
-                        {item.content && (
-                          <p className="text-[10px] text-gray-600 line-clamp-1 mb-1">
-                            {item.content}
-                          </p>
-                        )}
-                        
-                        {/* Compact Footer */}
-                        <div className="flex items-center justify-between text-[9px] text-gray-500">
-                          <span>
-                            Created: {createdDateTime.date} at {createdDateTime.time}
-                          </span>
-                          <span className="text-amber-600 font-medium flex items-center gap-1">
-                            <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                            </svg>
-                            {reminderDateTime.date} at {reminderDateTime.time}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  } else {
-                    // Messages - use same professional styling as messages tab
+                  if (item.type === 'message') {
+                    // EXACT SAME AS MESSAGES TAB
                     return (
                       <ProjectMessagesCard 
                         key={item.id} 
@@ -4805,17 +4740,386 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           priority: item.priority,
                           recipients: item.recipients
                         }}
-                        onProjectSelect={() => {}}
+                        onProjectSelect={handleProjectSelectWithScroll}
                         projects={projects}
-                        colorMode={false}
+                        colorMode={colorMode}
                         useRealData={true}
-                        onQuickReply={() => {}}
+                        onQuickReply={handleQuickReply}
                         isExpanded={expandedMessages.has(item.id)}
                         onToggleExpansion={handleToggleMessage}
                         sourceSection="Activity Feed"
                       />
                     );
+                  } else if (item.type === 'task') {
+                    // EXACT SAME AS TASKS TAB
+                    const isCompleted = completedTasks.has(item.id);
+                    const project = projects?.find(p => p.id === item.projectId);
+                    const projectNumber = project?.projectNumber || item.projectNumber || '12345';
+                    const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
+                    const subject = item.subject || 'Task';
+                    
+                    return (
+                      <div key={item.id} className={`bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'opacity-75' : ''}`}>
+                        {/* Main task header - Compact 2-row layout - EXACT SAME AS MESSAGES */}
+                        <div 
+                          className="flex items-center gap-1.5 p-1.5"
+                          onClick={() => handleToggleMessage(item.id)}
+                        >
+                          {/* Checkbox - TOP LEFT CORNER */}
+                          <input
+                            type="checkbox"
+                            checked={isCompleted}
+                            onChange={() => handleTaskToggle(item.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0 self-start"
+                          />
+                          
+                          {/* Phase Circle - Dynamic based on project association */}
+                          {(() => {
+                            // Check if task is tied to a project
+                            const isProjectTask = item.projectId && project;
+                            
+                            if (isProjectTask) {
+                              // Get project phase and colors
+                              const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                              const phaseProps = WorkflowProgressService.getPhaseButtonProps(projectPhase);
+                              const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
+                              const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
+                              
+                              return (
+                                <div 
+                                  className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
+                                  style={{ backgroundColor: phaseColor }}
+                                >
+                                  {phaseInitial}
+                                </div>
+                              );
+                            } else {
+                              // No project - use orange T
+                              return (
+                                <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
+                                  T
+                                </div>
+                              );
+                            }
+                          })()}
+                          
+                          <div className="flex-1 min-w-0">
+                            {/* Row 1: Project# or General | Customer | Subject */}
+                            <div className="flex items-center justify-between overflow-hidden relative">
+                              <div className="flex items-center min-w-0 flex-1">
+                                {/* Project Number or General - Fixed width for alignment */}
+                                {item.projectId && project ? (
+                                  <button
+                                    className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
+                                    style={{ width: '46px', marginLeft: '-8px' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onProjectSelect) {
+                                        onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                      }
+                                    }}
+                                  >
+                                    {projectNumber}
+                                  </button>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                    General
+                                  </span>
+                                )}
+                                
+                                {/* Primary Customer - Only show if project exists */}
+                                {item.projectId && project && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[9px] font-semibold transition-colors truncate text-gray-700 hover:text-gray-800" style={{ maxWidth: '80px' }}>
+                                      {primaryCustomer}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Subject - Fixed position for perfect alignment */}
+                                <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                  <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
+                                    Subject: {subject}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Right side - Task indicator and actions */}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {/* Task indicator - CLEARLY INDICATES IT IS A TASK */}
+                                <div className="flex flex-col items-center">
+                                  <div className="w-3 h-3 bg-blue-500 rounded-sm flex items-center justify-center">
+                                    <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </div>
+                                  <span className="text-[7px] font-bold text-blue-600 mt-0.5">TASK</span>
+                                </div>
+                                
+                                {/* Expand/Collapse Button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleMessage(item.id);
+                                  }}
+                                  className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                                >
+                                  <svg className={`w-3 h-3 transition-transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* Row 2: From/To and Timestamp - EXACT SAME AS MESSAGES */}
+                            <div className="flex items-center justify-between mt-1">
+                              <div className="flex items-center gap-3 text-[8px] text-gray-500">
+                                <span>From: <span className="font-semibold text-gray-700">{item.author || 'System'}</span></span>
+                                {item.attendees && item.attendees.length > 0 && (
+                                  <span>To: <span className="font-semibold text-gray-700">
+                                    {item.attendees.length === 1 ? 
+                                      (availableUsers.find(u => String(u.id) === String(item.attendees[0]))?.firstName || 'User') : 
+                                      `${item.attendees.length} users`
+                                    }
+                                  </span></span>
+                                )}
+                              </div>
+                              <div className="text-[8px] text-gray-500">
+                                {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric',
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Expanded Content - EXACT SAME AS MESSAGES */}
+                        {expandedMessages.has(item.id) && (
+                          <div className="px-2 pb-2 border-t border-gray-100">
+                            <div className="pt-2">
+                              {item.content && (
+                                <p className="text-[9px] text-gray-600 leading-relaxed mb-2">
+                                  {item.content}
+                                </p>
+                              )}
+                              
+                              {/* Task Actions */}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTaskToggle(item.id);
+                                  }}
+                                  className={`text-[8px] font-medium px-2 py-1 rounded transition-colors ${
+                                    isCompleted 
+                                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
+                                      : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                  }`}
+                                >
+                                  {isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
+                                </button>
+                                
+                                {item.projectId && project && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onProjectSelect) {
+                                        onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                      }
+                                    }}
+                                    className="text-[8px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                                  >
+                                    View Project
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  } else if (item.type === 'reminder') {
+                    // EXACT SAME AS REMINDERS TAB
+                    const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
+                    const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
+                    const recipients = Array.isArray(item.recipients) ? 
+                      item.recipients.map(id => {
+                        if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
+                        return availableUsers.find(u => String(u.id) === String(id));
+                      }).filter(Boolean) : [];
+                    
+                    // Format timestamps with full date and time
+                    const formatDateTime = (timestamp) => {
+                      const date = new Date(timestamp);
+                      return {
+                        date: date.toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        }),
+                        time: date.toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          hour12: true
+                        })
+                      };
+                    };
+
+                    const createdDateTime = formatDateTime(item.timestamp);
+                    const reminderDateTime = item.reminderDate ? formatDateTime(item.reminderDate) : createdDateTime;
+                    
+                    // Determine reminder status
+                    const now = new Date();
+                    const reminderDate = new Date(item.reminderDate || item.timestamp);
+                    const isOverdue = reminderDate < now;
+                    const isUpcoming = reminderDate > now && (reminderDate - now) < (24 * 60 * 60 * 1000); // Within 24 hours
+                    
+                    // Get status styling
+                    const getStatusStyle = () => {
+                      if (isOverdue) {
+                        return {
+                          borderColor: 'border-red-300',
+                          bgColor: 'bg-red-50',
+                          iconColor: 'text-red-500',
+                          statusText: 'Overdue',
+                          statusColor: 'text-red-700',
+                          statusBg: 'bg-red-100'
+                        };
+                      } else if (isUpcoming) {
+                        return {
+                          borderColor: 'border-green-300',
+                          bgColor: 'bg-green-50',
+                          iconColor: 'text-green-500',
+                          statusText: 'Upcoming',
+                          statusColor: 'text-green-700',
+                          statusBg: 'bg-green-100'
+                        };
+                      } else {
+                        return {
+                          borderColor: 'border-amber-300',
+                          bgColor: 'bg-amber-50',
+                          iconColor: 'text-amber-500',
+                          statusText: 'Scheduled',
+                          statusColor: 'text-amber-700',
+                          statusBg: 'bg-amber-100'
+                        };
+                      }
+                    };
+
+                    const statusStyle = getStatusStyle();
+                    
+                    return (
+                      <div key={item.id} className={`group bg-white rounded-xl border-l-4 ${statusStyle.borderColor} ${statusStyle.bgColor} border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-hidden`}>
+                        <div className="p-6">
+                          {/* Header with title and status */}
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className={`w-10 h-10 rounded-full ${statusStyle.bgColor} flex items-center justify-center flex-shrink-0`}>
+                                <svg className={`w-5 h-5 ${statusStyle.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-amber-600 transition-colors">
+                                  {item.subject || 'Untitled Reminder'}
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.statusBg} ${statusStyle.statusColor} border`}>
+                                    {isOverdue ? '🚨 Overdue' : isUpcoming ? '⏰ Upcoming' : '📅 Scheduled'}
+                                  </span>
+                                  {associatedProject && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                                      #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          {item.content && (
+                            <div className="mb-4">
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                {item.content}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Metadata */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 818 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span className="text-gray-600">From:</span>
+                                <span className="font-medium text-gray-900">{author.firstName} {author.lastName}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 919.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <span className="text-gray-600">To:</span>
+                                <span className="font-medium text-gray-900">
+                                  {recipients.length > 0 ? (
+                                    recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`
+                                  ) : 'No recipients'}
+                                  {recipients.length > 1 && !recipients[0].isAll && (
+                                    <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium ml-1">
+                                      +{recipients.length - 1}
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span className="text-gray-600">Created:</span>
+                                <span className="font-medium text-gray-900">{createdDateTime.date} at {createdDateTime.time}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                                </svg>
+                                <span className="text-gray-600">Reminder:</span>
+                                <span className="font-medium text-gray-900">{reminderDateTime.date} at {reminderDateTime.time}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-200">
+                            {associatedProject && (
+                              <button
+                                onClick={() => {
+                                  if (onProjectSelect) {
+                                    onProjectSelect(associatedProject, 'Project Profile', null, 'Activity Feed');
+                                  }
+                                }}
+                                className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                              >
+                                View Project
+                              </button>
+                            )}
+                            <button className="text-sm font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
+                              Mark as Read
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
                   }
+                  
+                  return null;
                 })}
               {activityFeedItems.length === 0 && (
                 <div className="text-gray-400 text-center py-3 text-sm">No activity yet.</div>
@@ -4867,7 +5171,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <option value="">Select a user...</option>
                 {availableUsers.map(user => (
                   <option key={user.id} value={user.id}>
-                    {user.firstName} {user.lastName} ({user.role || 'User'})
+                    {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`} ({user.role || 'User'})
                   </option>
                 ))}
               </select>

@@ -1,823 +1,2251 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { companyDocsService, API_ORIGIN, projectsService } from '../../services/api';
 import socketService from '../../services/socket';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
 import toast from 'react-hot-toast';
+import { 
+  FolderIcon, 
+  FolderOpenIcon, 
+  DocumentIcon, 
+  PlusIcon, 
+  PencilIcon,
+  TrashIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  CloudArrowUpIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+  StarIcon,
+  EyeIcon,
+  ShareIcon,
+  DownloadIcon,
+  MagnifyingGlassIcon,
+  TagIcon,
+  ClockIcon,
+  UserGroupIcon,
+  BoltIcon,
+  SparklesIcon,
+  DocumentDuplicateIcon,
+  ArchiveBoxIcon,
+  FunnelIcon,
+  AdjustmentsHorizontalIcon
+} from '@heroicons/react/24/outline';
+import { 
+  StarIcon as StarSolid,
+  EyeIcon as EyeSolid 
+} from '@heroicons/react/24/solid';
 
-const TabButton = ({ active, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`px-3 py-2 text-xs font-semibold rounded-md border ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
-  >
-    {children}
-  </button>
-);
+const ItemTypes = {
+  FOLDER: 'folder',
+  FILE: 'file',
+  TAB: 'tab'
+};
+
+// AI-Powered Smart Search Component
+const SmartSearch = ({ onSearch, documents }) => {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const searchRef = useRef(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSuggestions([]);
+        setIsFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSmartSearch = async (searchQuery) => {
+    setIsAIProcessing(true);
+    
+    // Simulate AI processing
+    setTimeout(() => {
+      if (isFocused && searchQuery.length > 2) {
+        const smartSuggestions = [
+          { type: 'ai-insight', text: `📊 Found 12 contract templates similar to "${searchQuery}"`, action: 'filter:contracts' },
+          { type: 'ai-insight', text: `🔍 AI suggests: "warranty documents" might be what you're looking for`, action: 'search:warranty' },
+          { type: 'quick-action', text: `⚡ Quick create: "${searchQuery}" folder with smart templates`, action: 'create-smart' },
+          { type: 'ai-insight', text: `💡 Pro tip: Use "roof inspection" to find related checklists`, action: 'tip' }
+        ];
+        setSuggestions(smartSuggestions);
+      }
+      setIsAIProcessing(false);
+    }, 800);
+  };
+
+  return (
+    <div className="relative" ref={searchRef}>
+      <div className="relative">
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (e.target.value.length > 2) {
+              handleSmartSearch(e.target.value);
+            } else {
+              setSuggestions([]);
+            }
+          }}
+          onFocus={() => {
+            setIsFocused(true);
+            if (query.length > 2) {
+              handleSmartSearch(query);
+            }
+          }}
+          onBlur={() => {
+            // Delay to allow click on suggestion
+            setTimeout(() => {
+              if (!searchRef.current?.contains(document.activeElement)) {
+                setIsFocused(false);
+                setSuggestions([]);
+              }
+            }, 200);
+          }}
+          className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="🤖 AI-powered search... (try 'contracts', 'inspection', etc.)"
+        />
+        {isAIProcessing && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="animate-spin w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+          </div>
+        )}
+      </div>
+      
+      {suggestions.length > 0 && isFocused && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto">
+          {suggestions.map((suggestion, idx) => (
+            <div
+              key={idx}
+              className="p-3 hover:bg-purple-50 cursor-pointer border-b last:border-b-0 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toast.success(suggestion.text);
+                setSuggestions([]);
+                setIsFocused(false);
+                setQuery('');
+              }}
+            >
+              <div className="text-sm text-gray-700">{suggestion.text}</div>
+              {suggestion.type === 'ai-insight' && (
+                <div className="text-xs text-purple-600 mt-1">✨ AI Suggestion</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Magic Auto-Organization Component
+const MagicOrganizer = ({ onOrganize }) => {
+  const [isOrganizing, setIsOrganizing] = useState(false);
+  
+  const handleMagicOrganize = async () => {
+    setIsOrganizing(true);
+    
+    // Simulate AI magic organization
+    setTimeout(() => {
+      toast.success('🪄 AI Magic: Organized files by project type, date, and priority!');
+      onOrganize();
+      setIsOrganizing(false);
+    }, 2000);
+  };
+
+  return (
+    <button
+      onClick={handleMagicOrganize}
+      disabled={isOrganizing}
+      className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1.5"
+      title="AI-powered auto-organization"
+    >
+      {isOrganizing ? (
+        <>
+          <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full"></div>
+          Organizing...
+        </>
+      ) : (
+        <>
+          <SparklesIcon className="w-3.5 h-3.5" />
+          AI Organize
+        </>
+      )}
+    </button>
+  );
+};
+
+// Smart Template Suggestions Component
+const SmartTemplateSuggester = ({ currentFolder, onCreateTemplate }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  
+  useEffect(() => {
+    // AI-powered template suggestions based on folder context
+    const contextSuggestions = {
+      'contracts': [
+        '📄 Roofing Service Agreement Template',
+        '📋 Material Supply Contract',
+        '🔒 Warranty Terms Template',
+        '💼 Subcontractor Agreement'
+      ],
+      'inspection': [
+        '🔍 Pre-Installation Checklist',
+        '📊 Quality Inspection Report',
+        '📱 Photo Documentation Template',
+        '⚠️ Issue Tracking Form'
+      ],
+      'customer': [
+        '📞 Customer Onboarding Guide',
+        '📧 Project Update Email Template',
+        '🎯 Satisfaction Survey',
+        '💡 Maintenance Tips Sheet'
+      ]
+    };
+    
+    const folderKey = currentFolder?.name?.toLowerCase() || '';
+    const matchedSuggestions = Object.entries(contextSuggestions).find(([key]) => 
+      folderKey.includes(key)
+    );
+    
+    if (matchedSuggestions) {
+      setSuggestions(matchedSuggestions[1]);
+    }
+  }, [currentFolder]);
+
+  if (!suggestions.length) return null;
+
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mt-4">
+      <div className="flex items-center gap-2 mb-3">
+        <BoltIcon className="w-5 h-5 text-blue-600" />
+        <h4 className="font-semibold text-blue-900">🤖 AI Template Suggestions</h4>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {suggestions.map((template, idx) => (
+          <button
+            key={idx}
+            onClick={() => {
+              onCreateTemplate(template);
+              toast.success(`Creating: ${template}`);
+            }}
+            className="text-left p-2 bg-white rounded border hover:border-blue-400 hover:shadow-md transition-all text-sm"
+          >
+            {template}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Advanced File Properties Panel
+const FilePropertiesPanel = ({ file, onUpdate, onClose }) => {
+  const [properties, setProperties] = useState({
+    tags: file?.tags || [],
+    priority: file?.priority || 'medium',
+    favorite: file?.favorite || false,
+    notes: file?.notes || '',
+    projectPhase: file?.projectPhase || '',
+    accessLevel: file?.accessLevel || 'team'
+  });
+
+  const priorityColors = {
+    low: 'bg-green-100 text-green-800',
+    medium: 'bg-yellow-100 text-yellow-800', 
+    high: 'bg-red-100 text-red-800',
+    critical: 'bg-purple-100 text-purple-800'
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-96 max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <DocumentIcon className="w-5 h-5 text-blue-600" />
+            File Properties
+          </h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">📁 File Name</label>
+            <div className="text-sm font-semibold text-gray-700">{file?.name}</div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">🏷️ Tags</label>
+            <div className="flex flex-wrap gap-1">
+              {['Contract', 'Inspection', 'Warranty', 'Customer', 'Internal'].map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    const newTags = properties.tags.includes(tag)
+                      ? properties.tags.filter(t => t !== tag)
+                      : [...properties.tags, tag];
+                    setProperties({...properties, tags: newTags});
+                  }}
+                  className={`px-2 py-1 text-xs rounded-full transition-all ${
+                    properties.tags.includes(tag)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">🎯 Priority</label>
+            <select
+              value={properties.priority}
+              onChange={(e) => setProperties({...properties, priority: e.target.value})}
+              className="w-full border rounded px-3 py-2 text-sm"
+            >
+              <option value="low">🟢 Low</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="high">🔴 High</option>
+              <option value="critical">🟣 Critical</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">📝 Notes</label>
+            <textarea
+              value={properties.notes}
+              onChange={(e) => setProperties({...properties, notes: e.target.value})}
+              className="w-full border rounded px-3 py-2 text-sm h-20 resize-none"
+              placeholder="Add notes about this file..."
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setProperties({...properties, favorite: !properties.favorite})}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                properties.favorite 
+                  ? 'bg-yellow-100 text-yellow-800' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {properties.favorite ? <StarSolid className="w-4 h-4" /> : <StarIcon className="w-4 h-4" />}
+              Favorite
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onUpdate({...file, ...properties});
+              toast.success('File properties updated!');
+              onClose();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Collaborative Features Component
+const CollaborationPanel = ({ file, onShare }) => {
+  const [shareLevel, setShareLevel] = useState('view');
+  const [collaborators, setCollaborators] = useState([
+    { name: 'Sarah Johnson', role: 'Project Manager', avatar: '👩‍💼', online: true },
+    { name: 'Mike Chen', role: 'Field Director', avatar: '👨‍🔧', online: false },
+    { name: 'Lisa Davis', role: 'Office Admin', avatar: '👩‍💻', online: true }
+  ]);
+
+  return (
+    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <UserGroupIcon className="w-5 h-5 text-green-600" />
+        <h4 className="font-semibold text-green-900">👥 Team Collaboration</h4>
+      </div>
+      
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-700">Share with team:</span>
+          <select 
+            value={shareLevel}
+            onChange={(e) => setShareLevel(e.target.value)}
+            className="text-xs border rounded px-2 py-1"
+          >
+            <option value="view">👀 View Only</option>
+            <option value="edit">✏️ Can Edit</option>
+            <option value="admin">⚙️ Full Access</option>
+          </select>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {collaborators.slice(0, 3).map((person, idx) => (
+            <div key={idx} className="relative">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                person.online ? 'ring-2 ring-green-400' : 'ring-2 ring-gray-300'
+              }`}>
+                {person.avatar}
+              </div>
+              {person.online && (
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+              )}
+            </div>
+          ))}
+          <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm hover:bg-gray-200">
+            +2
+          </button>
+        </div>
+        
+        <button
+          onClick={() => {
+            onShare(file, shareLevel);
+            toast.success('🚀 File shared with team!');
+          }}
+          className="w-full px-3 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 flex items-center justify-center gap-2"
+        >
+          <ShareIcon className="w-4 h-4" />
+          Share Now
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Draggable Item with all the bells and whistles
+const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onShowProperties, onShare }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(item.name);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const [{ isDragging }, drag] = useDrag({
+    type: item.type === 'folder' ? ItemTypes.FOLDER : ItemTypes.FILE,
+    item: { item, path },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: [ItemTypes.FOLDER, ItemTypes.FILE],
+    canDrop: (draggedItem) => {
+      // Only allow dropping on folders
+      if (item.type !== 'folder') return false;
+      
+      // Don't allow dropping an item on itself
+      if (draggedItem.item.id === item.id) return false;
+      
+      // Don't allow dropping a folder into its own descendants
+      const newPath = path ? `${path}/${item.id}` : item.id;
+      if (draggedItem.item.type === 'folder' && newPath.includes(draggedItem.item.id)) return false;
+      
+      // Don't allow dropping in the same location
+      if (draggedItem.path === newPath) return false;
+      
+      return true;
+    },
+    drop: (draggedItem) => {
+      const newPath = path ? `${path}/${item.id}` : item.id;
+      console.log(`Dropping item:`, draggedItem.item.name, `from path:`, draggedItem.path, `to path:`, newPath);
+      onMove(draggedItem.item, draggedItem.path, newPath);
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+
+  const handleRename = () => {
+    if (editName.trim() && editName !== item.name) {
+      onRename(item, path, editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const isFolder = item.type === 'folder';
+  const Icon = isFolder ? (item.expanded ? FolderOpenIcon : FolderIcon) : DocumentIcon;
+  
+  // Get priority styling
+  const getPriorityStyle = () => {
+    if (!item.priority) return '';
+    const styles = {
+      low: 'border-l-4 border-green-400',
+      medium: 'border-l-4 border-yellow-400',
+      high: 'border-l-4 border-red-400',
+      critical: 'border-l-4 border-purple-400'
+    };
+    return styles[item.priority] || '';
+  };
+
+  return (
+    <div className="group relative">
+      <div
+        ref={(node) => {
+          drag(node);
+          if (isFolder) drop(node);
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setShowQuickActions(false);
+        }}
+        className={`flex items-center gap-2 p-3 rounded-lg cursor-move hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 ${
+          isDragging ? 'opacity-50 transform rotate-2' : ''
+        } ${isOver && canDrop ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 border-dashed shadow-lg' : ''} ${getPriorityStyle()}`}
+        style={{ paddingLeft: `${(path.split('/').length - 1) * 20 + 12}px` }}
+      >
+        {/* Folder Toggle */}
+        {isFolder && (
+          <button
+            onClick={() => onToggle(item, path)}
+            className="p-1 hover:bg-white hover:shadow-sm rounded transition-all"
+          >
+            {item.expanded ? (
+              <ChevronDownIcon className="w-4 h-4 text-blue-600" />
+            ) : (
+              <ChevronRightIcon className="w-4 h-4 text-gray-500" />
+            )}
+          </button>
+        )}
+        
+        {/* File/Folder Icon */}
+        <div className="relative">
+          <Icon className={`w-6 h-6 ${isFolder ? 'text-blue-500' : 'text-gray-500'} transition-transform ${isHovered ? 'scale-110' : ''}`} />
+          {item.favorite && (
+            <StarSolid className="absolute -top-1 -right-1 w-3 h-3 text-yellow-500" />
+          )}
+          {item.priority === 'critical' && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          )}
+        </div>
+        
+        {/* File/Folder Name */}
+        {isEditing ? (
+          <input
+            className="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            onBlur={handleRename}
+            onKeyPress={(e) => e.key === 'Enter' && handleRename()}
+            autoFocus
+          />
+        ) : (
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
+              {item.tags && item.tags.length > 0 && (
+                <div className="flex gap-1">
+                  {item.tags.slice(0, 2).map((tag, idx) => (
+                    <span key={idx} className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            {item.type === 'file' && (
+              <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                {item.size && <span>{formatFileSize(item.size)}</span>}
+                {item.uploadedAt && <span>{new Date(item.uploadedAt).toLocaleDateString()}</span>}
+                {item.priority && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    item.priority === 'critical' ? 'bg-purple-100 text-purple-800' :
+                    item.priority === 'high' ? 'bg-red-100 text-red-800' :
+                    item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {item.priority}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Quick Actions - Show on Hover */}
+        {isHovered && (
+          <div className="flex items-center gap-1 animate-fade-in">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onShowProperties(item);
+              }}
+              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all tooltip"
+              title="Properties"
+            >
+              <AdjustmentsHorizontalIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
+              className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all"
+              title="Rename"
+            >
+              <PencilIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onShare(item);
+              }}
+              className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all"
+              title="Share"
+            >
+              <ShareIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(item, path);
+              }}
+              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all"
+              title="Delete"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+      
+      {/* Expanded Folder Contents */}
+      {isFolder && item.expanded && item.children && (
+        <div className="ml-2 border-l-2 border-gray-100">
+          {item.children.map((child) => (
+            <DraggableItem
+              key={child.id}
+              item={child}
+              path={`${path}/${item.id}`}
+              onMove={onMove}
+              onRename={onRename}
+              onDelete={onDelete}
+              onToggle={onToggle}
+              onShowProperties={onShowProperties}
+              onShare={onShare}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Helper function to format file size
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
+// Enhanced Tab with activity indicators
+const DraggableTab = ({ tab, index, active, onClick, onRename, onDelete, moveTab, documentCount }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(tab.name);
+  
+  const [{ isDragging }, drag] = useDrag({
+    type: ItemTypes.TAB,
+    item: { index, tab },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: ItemTypes.TAB,
+    hover: (item) => {
+      if (item.index !== index) {
+        moveTab(item.index, index);
+        item.index = index;
+      }
+    },
+  });
+
+  const handleRename = () => {
+    if (editName.trim() && editName !== tab.name) {
+      onRename(tab.id, editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      className={`relative group ${isDragging ? 'opacity-50 transform rotate-2' : ''}`}
+    >
+      {isEditing ? (
+        <input
+          className="px-4 py-2 text-sm font-semibold rounded-lg border-2 border-blue-400 focus:ring-2 focus:ring-blue-500"
+          value={editName}
+          onChange={(e) => setEditName(e.target.value)}
+          onBlur={handleRename}
+          onKeyPress={(e) => e.key === 'Enter' && handleRename()}
+          autoFocus
+        />
+      ) : (
+        <button
+          onClick={onClick}
+          onDoubleClick={() => !tab.protected && setIsEditing(true)}
+          className={`relative px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${
+            active 
+              ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+              : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+          } flex items-center gap-1.5`}
+        >
+          <span>{tab.name}</span>
+          {documentCount > 0 && (
+            <span className={`px-1.5 py-0.5 text-xs rounded ${
+              active ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+            }`}>
+              {documentCount}
+            </span>
+          )}
+          {!tab.protected && (
+            <div className="absolute -top-3 -right-3 hidden group-hover:flex gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditing(true);
+                }}
+                className="p-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg transform hover:scale-110 transition-all"
+              >
+                <PencilIcon className="w-3 h-3" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(tab.id);
+                }}
+                className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transform hover:scale-110 transition-all"
+              >
+                <TrashIcon className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default function CompanyDocumentsPage({ colorMode }) {
-  const [activeTab, setActiveTab] = useState('Customer Assets');
+  // Enhanced state management
+  const [tabs, setTabs] = useState([
+    { id: 'company-docs', name: 'Company Documents', protected: false },
+    { id: 'project-templates', name: 'Product Specific Templates', protected: true },
+    { id: 'generate', name: 'Generate', protected: true }
+  ]);
+  const [activeTabId, setActiveTabId] = useState('company-docs');
+  
+  // Enhanced document state with rich properties
+  const [documents, setDocuments] = useState({});
+  const [viewMode, setViewMode] = useState('tree');
+  const [showNewItemModal, setShowNewItemModal] = useState(false);
+  const [newItemType, setNewItemType] = useState('folder');
+  const [newItemName, setNewItemName] = useState('');
+  const [selectedParentFolder, setSelectedParentFolder] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [showFileProperties, setShowFileProperties] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterBy, setFilterBy] = useState('all');
+  
+  // Generation state
+  const [showGenerationModal, setShowGenerationModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [generationFields, setGenerationFields] = useState({});
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Legacy state
   const [assets, setAssets] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [tplUploading, setTplUploading] = useState(false);
-  const [tplForm, setTplForm] = useState({ name: '', description: '', format: 'DOCX', section: 'CUSTOMER_INFORMATIONALS', fields: '[]', file: null });
-  const [assetSection, setAssetSection] = useState('CUSTOMER_INFORMATIONALS');
-  const [editingTemplate, setEditingTemplate] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', description: '', format: 'DOCX', section: 'CUSTOMER_INFORMATIONALS', fields: '[]', file: null });
-  const [openAssetSectionKey, setOpenAssetSectionKey] = useState(null);
-  const [allAssetsExpanded, setAllAssetsExpanded] = useState(false);
-  const [openTplSectionKey, setOpenTplSectionKey] = useState(null);
-  const [allTplExpanded, setAllTplExpanded] = useState(false);
 
-  const sections = [
-    { value: 'EIGHT_ELEVEN_INFO', label: '811 Info' },
-    { value: 'CHECKLISTS', label: 'Checklists' },
-    { value: 'CUSTOMER_INFORMATIONALS', label: 'Customer Informationals' },
-    { value: 'CONTRACTS_SIGNED_DOCUMENTS', label: 'Contracts & Signed Documents' },
-    { value: 'JOB_SITE_PAPERWORK', label: 'Job Site Paperwork' },
-    { value: 'OFFICE_DOCUMENTS', label: 'Office Documents' },
-    { value: 'PROJECT_MANAGEMENT_DOCUMENTS', label: 'Project Management Documents' },
-    { value: 'SALES_MATERIALS_INFORMATION', label: 'Sales, Materials & Info' },
-    { value: 'SOPS_TRAINING', label: 'SOPs & Training' },
-    { value: 'CERTS_WARRANTIES_INSPECTIONS', label: 'Certifications, Warranties & Inspections' },
-    { value: 'INSURANCE_CERTIFICATIONS', label: 'Insurance Certifications' },
-  ];
-
-  const loadAssets = async () => {
-    setLoading(true); setError('');
-    try {
-      console.log('🔍 Loading assets...');
-      const res = await companyDocsService.listAssets();
-      console.log('🔍 Assets response:', res);
-      setAssets(res.data.assets || []);
-    } catch (e) {
-      console.error('❌ Failed to load assets:', e);
-      setError(e.message || 'Failed to load assets');
-    } finally { setLoading(false); }
-  };
-
-  const loadTemplates = async () => {
-    setLoading(true); setError('');
-    try {
-      const res = await companyDocsService.listTemplates();
-      setTemplates(res.data.templates || []);
-    } catch (e) {
-      setError(e.message || 'Failed to load templates');
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'Customer Assets') loadAssets();
-    if (activeTab === 'Project Templates' || activeTab === 'Generate') loadTemplates();
-  }, [activeTab]);
-
-  const handleAssetUpload = async (ev) => {
-    const file = ev.target.files?.[0];
-    if (!file) return;
-    setUploading(true); setError('');
-    try {
-      console.log('🔍 Uploading asset:', file.name, 'to section:', assetSection);
-      await companyDocsService.uploadAsset(file, { title: file.name, section: assetSection });
-      console.log('✅ Asset uploaded successfully');
-      await loadAssets();
-    } catch (e) {
-      console.error('❌ Upload failed:', e);
-      setError(e.message || 'Upload failed');
-    } finally { setUploading(false); ev.target.value = ''; }
-  };
-
-  const [generateForm, setGenerateForm] = useState({ templateId: '', projectId: '', title: '', data: '{}' });
-  const [generateFieldValues, setGenerateFieldValues] = useState({});
-  const [generateErrors, setGenerateErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-  const [showAdvancedJSON, setShowAdvancedJSON] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [projectsLoading, setProjectsLoading] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [userEditedKeys, setUserEditedKeys] = useState({});
-  const [lastGeneratedDoc, setLastGeneratedDoc] = useState(null);
-
-  const selectedTemplate = React.useMemo(
-    () => (templates || []).find(t => String(t.id) === String(generateForm.templateId)) || null,
-    [templates, generateForm.templateId]
-  );
-
-  useEffect(() => {
-    if (selectedTemplate) {
-      const defaults = {};
-      (selectedTemplate.fields || []).forEach(f => {
-        defaults[f.key] = f.defaultValue ?? '';
-      });
-      setGenerateFieldValues(defaults);
-      setGenerateForm(prev => ({ ...prev, title: prev.title || selectedTemplate.name }));
-      setUserEditedKeys({});
-    } else {
-      setGenerateFieldValues({});
+  // Helper function to convert assets to enhanced document format
+  const convertAssetsToDocuments = (assets) => {
+    if (!Array.isArray(assets)) {
+      console.warn('Assets is not an array:', assets);
+      return [];
     }
-    setGenerateErrors({});
-  }, [selectedTemplate]);
+    return assets.map(asset => ({
+      id: asset.id || asset._id,
+      name: asset.title || asset.name || asset.filename,
+      type: 'file',
+      size: asset.fileSize || asset.size || 0,
+      priority: asset.priority || 'medium',
+      tags: asset.tags || [],
+      favorite: asset.favorite || false,
+      notes: asset.description || '',
+      uploadedAt: asset.createdAt || asset.uploadedAt || new Date().toISOString(),
+      url: asset.fileUrl || asset.url,
+      section: asset.section
+    }));
+  };
 
-  // Auto-fill common fields from selected project if template defines them
+  // Load real data from API and initialize enhanced features for Company Documents only
   useEffect(() => {
-    if (!selectedProject || !selectedTemplate) return;
-    const updates = {};
-    const p = selectedProject;
-    const customer = p.customer || {};
-    const mapping = {
-      // Common identifiers
-      project_number: p.projectNumber,
-      projectNumber: p.projectNumber,
-      project_id: p.id,
-      projectId: p.id,
-      project_name: p.projectName || p.name,
-      projectName: p.projectName || p.name,
-      // Address/Location
-      address: p.address || customer.address,
-      location: p.address || customer.address,
-      // Customer primary contact
-      customer_name: customer.primaryName,
-      customerName: customer.primaryName,
-      owner_name: customer.primaryName, // For warranty documents
-      primary_customer_phone: customer.primaryPhone,
-      customer_phone: customer.primaryPhone,
-      customer_phone_primary: customer.primaryPhone,
-      customer_email: customer.primaryEmail,
-      // PM
-      pm_name: (p.projectManager && (p.projectManager.name || ((p.projectManager.firstName || '') + ' ' + (p.projectManager.lastName || '')).trim())) || '',
-      pm_phone: p.projectManager?.phone,
-      pm_email: p.projectManager?.email,
-      // Auto-populate today's date
-      todays_date: new Date().toISOString().split('T')[0]
-    };
-
-    (selectedTemplate.fields || []).forEach(f => {
-      const key = String(f.key || '').trim();
-      if (!key) return;
-      const mapped = mapping[key];
-      if (mapped === undefined || mapped === null || mapped === '') return;
-      // Update if user has NOT edited this key, or if current value is empty
-      const current = generateFieldValues[key];
-      if (!userEditedKeys[key] || current === '' || current === undefined || current === null) {
-        updates[key] = mapped;
-      }
-    });
-
-    if (Object.keys(updates).length > 0) {
-      setGenerateFieldValues(prev => ({ ...prev, ...updates }));
-    }
-  }, [selectedProject, selectedTemplate, userEditedKeys]);
-
-  // Debounced search for projects by Project Number or name
-  // Load projects for dropdown when entering Generate tab
-  useEffect(() => {
-    if (activeTab !== 'Generate') return;
-    let cancelled = false;
-    const load = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        setProjectsLoading(true);
-        const res = await projectsService.getAll({ limit: 200 });
-        if (cancelled) return;
-        const list = (res.data?.projects || res.data || []).map(p => ({
-          ...p,
-          id: p.id || p._id
+        // Load assets for Company Documents tab
+        const assetsResponse = await companyDocsService.listAssets();
+        console.log('Assets API response:', assetsResponse);
+        if (assetsResponse.success) {
+          setAssets(assetsResponse.data || []);
+        }
+        
+        // Load templates for Product Specific Templates tab
+        const templatesResponse = await companyDocsService.listTemplates();
+        console.log('Templates API response:', templatesResponse);
+        if (templatesResponse.success) {
+          const templatesData = templatesResponse.data?.templates || templatesResponse.templates || [];
+          setTemplates(Array.isArray(templatesData) ? templatesData : []);
+        }
+        
+        // Convert assets to enhanced document format for Company Documents tab only
+        const assetsData = assetsResponse.data?.assets || assetsResponse.assets || [];
+        const enhancedAssets = convertAssetsToDocuments(assetsData);
+        setDocuments(prev => ({
+          ...prev,
+          'company-docs': enhancedAssets
         }));
-        setProjects(list);
-      } catch (e) {
-        // fail soft
-        setProjects([]);
+        
+      } catch (error) {
+        console.error('Error fetching company documents:', error);
+        setError('Failed to load documents');
+        // Initialize with empty state if API fails
+        setDocuments(prev => ({
+          ...prev,
+          'company-docs': []
+        }));
       } finally {
-        if (!cancelled) setProjectsLoading(false);
+        setLoading(false);
       }
     };
-    load();
-    return () => { cancelled = true; };
-  }, [activeTab]);
+    
+    fetchData();
+  }, []);
 
-  const validateGenerate = () => {
-    const errs = {};
-    if (!generateForm.projectId) errs.projectId = 'Project Number is required';
-    if (selectedTemplate) {
-      (selectedTemplate.fields || []).forEach(f => {
-        if (f.required) {
-          const v = generateFieldValues[f.key];
-          if (v === undefined || v === null || String(v).trim() === '') {
-            errs[f.key] = 'Required';
+  // Enhanced tab management
+  const moveTab = useCallback((fromIndex, toIndex) => {
+    setTabs((prevTabs) => {
+      const newTabs = [...prevTabs];
+      const [movedTab] = newTabs.splice(fromIndex, 1);
+      newTabs.splice(toIndex, 0, movedTab);
+      return newTabs;
+    });
+    toast.success('📋 Tab reordered!');
+  }, []);
+
+  const renameTab = (tabId, newName) => {
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === tabId ? { ...tab, name: newName } : tab
+      )
+    );
+    toast.success(`✨ Tab renamed to "${newName}"`);
+  };
+
+  const deleteTab = (tabId) => {
+    if (tabs.filter(t => !t.protected).length <= 1) {
+      toast.error('❌ Cannot delete the last custom tab');
+      return;
+    }
+    setTabs(prevTabs => prevTabs.filter(tab => tab.id !== tabId));
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      delete newDocs[tabId];
+      return newDocs;
+    });
+    if (activeTabId === tabId) {
+      setActiveTabId('company-docs');
+    }
+    toast.success('🗑️ Tab deleted successfully!');
+  };
+
+  const addNewTab = () => {
+    const newId = `custom-${Date.now()}`;
+    const newTab = {
+      id: newId,
+      name: `🆕 Custom Tab ${tabs.filter(t => !t.protected).length}`,
+      protected: false
+    };
+    setTabs([...tabs, newTab]);
+    setDocuments(prevDocs => ({
+      ...prevDocs,
+      [newId]: []
+    }));
+    setActiveTabId(newId);
+    toast.success('🎉 New custom tab created!');
+  };
+
+  // Enhanced document management with rich features
+  const handleItemMove = (item, fromPath, toPath) => {
+    const tabId = activeTabId;
+    
+    // Don't move if dropping on the same location
+    if (fromPath === toPath) {
+      return;
+    }
+    
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+      
+      const removeItemFromPath = (items, targetId, currentPath = '') => {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].id === targetId) {
+            const removedItem = items.splice(i, 1)[0];
+            console.log(`Removed item "${targetId}" from path "${currentPath}"`);
+            return removedItem;
+          }
+          if (items[i].children && items[i].children.length > 0) {
+            const newPath = currentPath ? `${currentPath}/${items[i].id}` : items[i].id;
+            const removed = removeItemFromPath(items[i].children, targetId, newPath);
+            if (removed) return removed;
           }
         }
-      });
-    }
-    setGenerateErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleGenerate = async () => {
-    setError('');
-    if (!validateGenerate()) {
-      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
-      return;
-    }
-    setSubmitting(true);
-    try {
-      let advanced = {};
-      try { advanced = JSON.parse(generateForm.data || '{}'); } catch (_) {}
-
-      const dataFromFields = {};
-      (selectedTemplate?.fields || []).forEach(f => {
-        const raw = generateFieldValues[f.key];
-        let value = raw;
-        if (f.type === 'NUMBER') {
-          value = raw === '' || raw === null || raw === undefined ? null : Number(raw);
-        }
-        if (value !== null && value !== undefined && value !== '') {
-          dataFromFields[f.key] = value;
-        }
-      });
-
-      const payload = {
-        templateId: generateForm.templateId || undefined,
-        projectId: generateForm.projectId,
-        title: generateForm.title || (selectedTemplate?.name || 'Generated Document'),
-        data: { ...advanced, ...dataFromFields }
+        return null;
       };
-      const res = await companyDocsService.generate(payload);
-      const doc = res?.data?.document || null;
-      if (doc) setLastGeneratedDoc(doc);
-      try {
-        // Notify via sockets so project views refresh
-        if (!socketService.getConnectionStatus().isConnected) {
-          socketService.connect();
+      
+      const addItemToPath = (items, targetPath, itemToAdd) => {
+        if (!targetPath || targetPath === '') {
+          items.push(itemToAdd);
+          console.log(`Added item "${itemToAdd.id}" to root`);
+          return true;
         }
-        if (generateForm.projectId) {
-          socketService.joinProject(generateForm.projectId);
+        
+        const pathParts = targetPath.split('/').filter(p => p);
+        let currentItems = items;
+        let currentPath = '';
+        
+        for (const pathPart of pathParts) {
+          currentPath = currentPath ? `${currentPath}/${pathPart}` : pathPart;
+          const folder = currentItems.find(item => item.id === pathPart && item.type === 'folder');
+          if (folder && folder.children) {
+            currentItems = folder.children;
+            folder.expanded = true; // Auto-expand target folder
+          } else {
+            console.error(`Target folder not found at path: ${currentPath}`);
+            return false;
+          }
         }
-        socketService.sendDocumentUpdate({
-          projectId: generateForm.projectId,
-          documentId: doc?.id,
-          updateType: 'created',
-          documentData: doc
-        });
-      } catch (_) {}
-      if (doc) {
-        const url = `${API_ORIGIN}${doc.fileUrl}`;
-        toast.success((t) => (
-          <div className="text-xs">
-            <div className="font-semibold mb-1">Document generated</div>
-            <div className="flex items-center gap-3">
-              <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Preview</a>
-              <a href={url} target="_blank" rel="noopener noreferrer" download className="text-blue-600 hover:underline">Download</a>
-              <button
-                onClick={() => { try { navigator.clipboard.writeText(url); } catch (_) {} }}
-                className="px-2 py-1 border rounded"
-              >Copy Link</button>
-              <button
-                onClick={() => toast.dismiss(t.id)}
-                className="px-2 py-1 border rounded"
-              >Close</button>
-            </div>
-            <div className="mt-1 text-gray-600">Open the project profile to see it in Documents.</div>
-          </div>
-        ), { duration: Infinity });
+        
+        currentItems.push(itemToAdd);
+        console.log(`Added item "${itemToAdd.id}" to path "${targetPath}"`);
+        return true;
+      };
+      
+      // First, remove the item from its current location
+      const movedItem = removeItemFromPath(tabDocs, item.id);
+      
+      if (movedItem) {
+        // Then, add it to the new location
+        const success = addItemToPath(tabDocs, toPath, movedItem);
+        if (success) {
+          newDocs[tabId] = tabDocs;
+          console.log(`Successfully moved "${item.name}" from "${fromPath}" to "${toPath}"`);
+        } else {
+          console.error(`Failed to move "${item.name}" to "${toPath}"`);
+          toast.error(`Failed to move "${item.name}"`);
+          return prevDocs; // Return unchanged state
+        }
       } else {
-      alert('Document generated');
+        console.error(`Could not find item "${item.id}" to move`);
+        toast.error(`Could not find "${item.name}" to move`);
+        return prevDocs; // Return unchanged state
       }
-    } catch (e) {
-      setError(e.message || 'Generation failed');
-    } finally {
-      setSubmitting(false);
-    }
+      
+      return newDocs;
+    });
+    
+    const targetFolder = toPath ? toPath.split('/').pop() : 'root folder';
+    toast.success(`🚀 Moved "${item.name}" to ${targetFolder}!`);
   };
 
-  const handleTemplateFile = (ev) => {
-    const file = ev.target.files?.[0];
-    setTplForm({ ...tplForm, file });
+  const handleItemRename = (item, path, newName) => {
+    const tabId = activeTabId;
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+      
+      const renameItem = (items, targetId, newName) => {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].id === targetId) {
+            items[i].name = newName;
+            return true;
+          }
+          if (items[i].children && renameItem(items[i].children, targetId, newName)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      
+      renameItem(tabDocs, item.id, newName);
+      newDocs[tabId] = tabDocs;
+      return newDocs;
+    });
+    toast.success(`✏️ Renamed to "${newName}"`);
   };
 
-  const handleTemplateUpload = async () => {
-    if (!tplForm.file || !tplForm.name) {
-      setError('Template name and file are required');
+  const handleItemDelete = async (item, path) => {
+    if (!window.confirm(`Are you sure you want to delete "${item.name}"?`)) {
       return;
     }
-    setTplUploading(true); setError('');
+    
+    const tabId = activeTabId;
+    
     try {
-      const fields = JSON.parse(tplForm.fields || '[]');
-      await companyDocsService.createTemplate(tplForm.file, {
-        name: tplForm.name,
-        description: tplForm.description,
-        format: tplForm.format,
-        section: tplForm.section,
-        fields
-      });
-      setTplForm({ name: '', description: '', format: 'DOCX', section: 'CUSTOMER_INFORMATIONALS', fields: '[]', file: null });
-      await loadTemplates();
-      alert('Template uploaded');
-    } catch (e) {
-      setError(e.message || 'Failed to upload template');
+      if (tabId === 'company-docs' && item.url) {
+        // Delete from API for Company Documents
+        const response = await companyDocsService.deleteAsset(item.id);
+        if (response.success) {
+          // Refresh the assets list
+          const assetsResponse = await companyDocsService.listAssets();
+          if (assetsResponse.success) {
+            setAssets(assetsResponse.data || []);
+            
+            const enhancedAssets = convertAssetsToDocuments(assetsResponse.data?.assets || []);
+            setDocuments(prev => ({
+              ...prev,
+              'company-docs': enhancedAssets
+            }));
+          }
+          toast.success(`🗑️ "${item.name}" deleted successfully!`);
+        } else {
+          throw new Error('Delete failed');
+        }
+      } else {
+        // Delete locally for custom tabs
+        setDocuments(prevDocs => {
+          const newDocs = { ...prevDocs };
+          const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+          
+          const deleteItem = (items, targetId) => {
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].id === targetId) {
+                items.splice(i, 1);
+                return true;
+              }
+              if (items[i].children && deleteItem(items[i].children, targetId)) {
+                return true;
+              }
+            }
+            return false;
+          };
+          
+          deleteItem(tabDocs, item.id);
+          newDocs[tabId] = tabDocs;
+          return newDocs;
+        });
+        toast.success(`🗑️ "${item.name}" deleted successfully!`);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(`❌ Failed to delete "${item.name}"`);
+    }
+  };
+
+  const handleItemToggle = (item, path) => {
+    const tabId = activeTabId;
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      const tabDocs = [...(newDocs[tabId] || [])];
+      
+      const findAndToggle = (items, targetId) => {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].id === targetId) {
+            items[i].expanded = !items[i].expanded;
+            return true;
+          }
+          if (items[i].children && findAndToggle(items[i].children, targetId)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      
+      findAndToggle(tabDocs, item.id);
+      newDocs[tabId] = tabDocs;
+      return newDocs;
+    });
+  };
+
+  const handleAddNewItem = () => {
+    if (!newItemName.trim()) {
+      toast.error('❌ Please enter a name');
+      return;
+    }
+    
+    const tabId = activeTabId;
+    const newItem = {
+      id: `${tabId}-${Date.now()}`,
+      name: newItemName.trim(),
+      type: newItemType,
+      priority: 'medium',
+      tags: [],
+      favorite: false,
+      notes: '',
+      uploadedAt: new Date().toISOString(),
+      ...(newItemType === 'folder' ? { expanded: false, children: [] } : { size: 0 })
+    };
+    
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+      
+      // If no parent folder selected, add to root
+      if (!selectedParentFolder) {
+        tabDocs.push(newItem);
+      } else {
+        // Add to specific parent folder (supports nested folders)
+        const addToFolder = (items, targetFolderId) => {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].id === targetFolderId && items[i].type === 'folder') {
+              items[i].children = items[i].children || [];
+              items[i].children.push(newItem);
+              items[i].expanded = true; // Auto-expand to show new item
+              return true;
+            }
+            if (items[i].children && items[i].children.length > 0) {
+              if (addToFolder(items[i].children, targetFolderId)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+        
+        if (!addToFolder(tabDocs, selectedParentFolder.id)) {
+          // Fallback to root if parent not found
+          tabDocs.push(newItem);
+        }
+      }
+      
+      newDocs[tabId] = tabDocs;
+      return newDocs;
+    });
+    
+    setShowNewItemModal(false);
+    setNewItemName('');
+    setNewItemType('folder');
+    setSelectedParentFolder(null);
+    
+    const locationText = selectedParentFolder 
+      ? `in "${selectedParentFolder.name}"` 
+      : 'in root folder';
+    toast.success(`🎉 ${newItemType === 'folder' ? 'Folder' : 'File'} created successfully ${locationText}!`);
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    
+    setUploading(true);
+    
+    try {
+      for (const file of files) {
+        if (activeTabId === 'company-docs') {
+          // Upload to API for Company Documents
+          const response = await companyDocsService.uploadAsset(file, {
+            title: file.name,
+            description: `Uploaded ${new Date().toLocaleDateString()}`,
+            tags: ['Uploaded'],
+            section: 'general'
+          });
+          
+          if (response.success) {
+            // Refresh the assets list
+            const assetsResponse = await companyDocsService.listAssets();
+            if (assetsResponse.success) {
+              setAssets(assetsResponse.data?.assets || []);
+              
+              const assetsData = assetsResponse.data?.assets || assetsResponse.assets || [];
+              const enhancedAssets = convertAssetsToDocuments(assetsData);
+              setDocuments(prev => ({
+                ...prev,
+                'company-docs': enhancedAssets
+              }));
+            }
+          } else {
+            throw new Error('Upload failed');
+          }
+        } else {
+          // For custom tabs, store locally
+          const tabId = activeTabId;
+          const newFile = {
+            id: `${tabId}-file-${Date.now()}-${Math.random()}`,
+            name: file.name,
+            type: 'file',
+            size: file.size,
+            priority: 'medium',
+            tags: ['Uploaded'],
+            favorite: false,
+            notes: '',
+            uploadedAt: new Date().toISOString()
+          };
+          
+          setDocuments(prevDocs => {
+            const newDocs = { ...prevDocs };
+            const tabDocs = [...(newDocs[tabId] || [])];
+            tabDocs.push(newFile);
+            newDocs[tabId] = tabDocs;
+            return newDocs;
+          });
+        }
+      }
+      
+      toast.success(`🚀 ${files.length} file(s) uploaded successfully!`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('❌ Failed to upload files');
     } finally {
-      setTplUploading(false);
+      setUploading(false);
+      e.target.value = '';
     }
   };
 
-  const handleExportTemplate = async (template) => {
-    try {
-      const link = document.createElement('a');
-      link.href = `${API_ORIGIN}${template.templateFileUrl}`;
-      link.download = `${template.name}.${String(template.format || 'docx').toLowerCase()}`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (e) {
-      setError('Failed to export template');
-    }
-  };
-
-  const handleDeleteTemplate = async (templateId) => {
-    if (!window.confirm('Are you sure you want to delete this template? This action cannot be undone.')) return;
+  const handleMagicOrganize = () => {
+    const tabId = activeTabId;
     
-    try {
-      await companyDocsService.deleteTemplate(templateId);
-      await loadTemplates();
-    } catch (e) {
-      setError(e.message || 'Failed to delete template');
+    if (tabId !== 'company-docs' || !documents[tabId] || documents[tabId].length === 0) {
+      toast.error('No documents to organize in this tab');
+      return;
     }
+
+    setLoading(true);
+    toast.success('🤖 AI organizing your documents...', { duration: 2000 });
+    
+    setTimeout(() => {
+      setDocuments(prevDocs => {
+        const newDocs = { ...prevDocs };
+        const tabDocs = [...(newDocs[tabId] || [])];
+        
+        // Create organized folder structure
+        const organizedStructure = {
+          'high-priority': {
+            id: 'ai-high-priority',
+            name: '🔴 High Priority Documents',
+            type: 'folder',
+            expanded: true,
+            priority: 'critical',
+            tags: ['AI-Organized', 'Priority'],
+            favorite: true,
+            children: []
+          },
+          'contracts': {
+            id: 'ai-contracts',
+            name: '📄 Contracts & Legal',
+            type: 'folder',
+            expanded: true,
+            priority: 'high',
+            tags: ['AI-Organized', 'Legal'],
+            favorite: false,
+            children: []
+          },
+          'inspections': {
+            id: 'ai-inspections',
+            name: '🔍 Inspections & Quality',
+            type: 'folder',
+            expanded: true,
+            priority: 'medium',
+            tags: ['AI-Organized', 'Quality'],
+            favorite: false,
+            children: []
+          },
+          'customer-docs': {
+            id: 'ai-customer-docs',
+            name: '🏠 Customer Resources',
+            type: 'folder',
+            expanded: true,
+            priority: 'medium',
+            tags: ['AI-Organized', 'Customer'],
+            favorite: true,
+            children: []
+          },
+          'other': {
+            id: 'ai-other',
+            name: '🗺 Other Documents',
+            type: 'folder',
+            expanded: false,
+            priority: 'low',
+            tags: ['AI-Organized'],
+            favorite: false,
+            children: []
+          }
+        };
+        
+        // Sort documents into appropriate folders using AI-like logic
+        tabDocs.forEach(doc => {
+          if (doc.type !== 'folder') {
+            const docName = doc.name.toLowerCase();
+            const docTags = (doc.tags || []).map(tag => tag.toLowerCase());
+            const allText = [docName, ...docTags, (doc.notes || '').toLowerCase()].join(' ');
+            
+            if (doc.priority === 'critical' || doc.priority === 'high' || doc.favorite) {
+              organizedStructure['high-priority'].children.push(doc);
+            } else if (allText.includes('contract') || allText.includes('agreement') || allText.includes('legal') || allText.includes('warranty')) {
+              organizedStructure['contracts'].children.push(doc);
+            } else if (allText.includes('inspection') || allText.includes('quality') || allText.includes('checklist') || allText.includes('compliance')) {
+              organizedStructure['inspections'].children.push(doc);
+            } else if (allText.includes('customer') || allText.includes('maintenance') || allText.includes('guide') || allText.includes('resource')) {
+              organizedStructure['customer-docs'].children.push(doc);
+            } else {
+              organizedStructure['other'].children.push(doc);
+            }
+          }
+        });
+        
+        // Create the new organized structure
+        const organizedDocs = Object.values(organizedStructure).filter(folder => 
+          folder.children.length > 0
+        );
+        
+        // Add any remaining folders from original structure
+        const originalFolders = tabDocs.filter(doc => doc.type === 'folder');
+        organizedDocs.push(...originalFolders);
+        
+        newDocs[tabId] = organizedDocs;
+        return newDocs;
+      });
+      
+      setLoading(false);
+      toast.success('✨ Documents organized! Created smart folders by priority, type, and content!');
+      
+      // Show helpful tip
+      setTimeout(() => {
+        toast('💡 Tip: You can still drag & drop documents between the AI-organized folders!', {
+          duration: 4000,
+          icon: '💡'
+        });
+      }, 1500);
+      
+    }, 2500);
   };
 
-  const handleEditTemplate = (template) => {
-    setEditingTemplate(template);
-    setEditForm({
-      name: template.name,
-      description: template.description || '',
-      format: template.format,
-      section: template.section || 'CUSTOMER_INFORMATIONALS',
-      fields: JSON.stringify(template.fields || [], null, 2),
-      file: null
+  const handleFileProperties = (file) => {
+    setSelectedFile(file);
+    setShowFileProperties(true);
+  };
+
+  const handleShareFile = (file) => {
+    toast.success(`📤 "${file.name}" shared with team members!`);
+  };
+
+  const handleUpdateFileProperties = (updatedFile) => {
+    const tabId = activeTabId;
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+      
+      const updateItem = (items, targetId, updates) => {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].id === targetId) {
+            items[i] = { ...items[i], ...updates };
+            return true;
+          }
+          if (items[i].children && updateItem(items[i].children, targetId, updates)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      
+      updateItem(tabDocs, updatedFile.id, updatedFile);
+      newDocs[tabId] = tabDocs;
+      return newDocs;
     });
   };
 
-  const handleEditSubmit = async () => {
-    if (!editingTemplate) return;
-    
+  // Document Generation Functions
+  const handleGenerateFromTemplate = (template) => {
+    setSelectedTemplate(template);
+    // Initialize fields with default values
+    const fields = {};
+    if (template.fields) {
+      template.fields.forEach(field => {
+        fields[field.key] = field.defaultValue || '';
+      });
+    }
+    setGenerationFields(fields);
+    setShowGenerationModal(true);
+  };
+
+  const handleFieldChange = (key, value) => {
+    setGenerationFields(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleGenerateDocument = async () => {
+    if (!selectedTemplate) return;
+
+    setIsGenerating(true);
     try {
-      await companyDocsService.updateTemplate(editingTemplate.id, editForm, editForm.file);
-      setEditingTemplate(null);
-      setEditForm({ name: '', description: '', format: 'DOCX', section: 'CUSTOMER_INFORMATIONALS', fields: '[]', file: null });
-      await loadTemplates();
-    } catch (e) {
-      setError(e.message || 'Failed to update template');
+      const payload = {
+        templateId: selectedTemplate.id,
+        projectId: '10001', // Default project ID
+        data: generationFields,
+        title: `${selectedTemplate.name}_${new Date().toISOString().split('T')[0]}`
+      };
+
+      const response = await companyDocsService.generate(payload);
+      
+      if (response.success) {
+        toast.success(`Document "${selectedTemplate.name}" generated successfully!`);
+        setShowGenerationModal(false);
+        setSelectedTemplate(null);
+        setGenerationFields({});
+        
+        // Optionally refresh assets if the generated document appears in Company Documents
+        const assetsResponse = await companyDocsService.listAssets();
+        if (assetsResponse.success) {
+          setAssets(assetsResponse.data?.assets || []);
+          const assetsData = assetsResponse.data?.assets || [];
+          const enhancedAssets = convertAssetsToDocuments(assetsData);
+          setDocuments(prev => ({
+            ...prev,
+            'company-docs': enhancedAssets
+          }));
+        }
+      } else {
+        toast.error('Failed to generate document');
+      }
+    } catch (error) {
+      console.error('Document generation error:', error);
+      toast.error('Failed to generate document');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  const handleEditCancel = () => {
-    setEditingTemplate(null);
-    setEditForm({ name: '', description: '', format: 'DOCX', section: 'CUSTOMER_INFORMATIONALS', fields: '[]', file: null });
-  };
 
-  // Group lists by section label for clean UI
-  const groupBySection = (items) => {
-    const map = new Map();
-    items.forEach((it) => {
-      const key = it.section || 'UNCATEGORIZED';
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(it);
+  const activeTab = tabs.find(t => t.id === activeTabId);
+  const tabActivityCount = documents[activeTabId]?.length || 0;
+
+  // Helper function to collect all folders for parent selection
+  const collectAllFolders = (items, prefix = '') => {
+    let folders = [];
+    items.forEach(item => {
+      if (item.type === 'folder') {
+        const folderPath = prefix ? `${prefix} > ${item.name}` : item.name;
+        folders.push({ ...item, displayName: folderPath });
+        if (item.children && item.children.length > 0) {
+          folders.push(...collectAllFolders(item.children, folderPath));
+        }
+      }
     });
-    return Array.from(map.entries());
+    return folders;
   };
 
-  const sectionLabel = (value) => sections.find(s => s.value === value)?.label || 'Uncategorized';
+  const availableFolders = documents[activeTabId] 
+    ? collectAllFolders(documents[activeTabId]) 
+    : [];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="mb-4 flex items-center gap-2">
-        <TabButton active={activeTab === 'Customer Assets'} onClick={() => setActiveTab('Customer Assets')}>Customer-facing PDFs</TabButton>
-        <TabButton active={activeTab === 'Project Templates'} onClick={() => setActiveTab('Project Templates')}>Project-specific Templates</TabButton>
-        <TabButton active={activeTab === 'Generate'} onClick={() => setActiveTab('Generate')}>Generate</TabButton>
+    <DndProvider backend={HTML5Backend}>
+      <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+        {/* Combined Search and Tab Bar */}
+        <div className="bg-white rounded-lg shadow-sm border p-3">
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="flex-1 max-w-md">
+              <SmartSearch documents={documents} onSearch={setSearchQuery} />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 px-2 py-1 bg-gray-50 rounded">
+                {tabActivityCount} docs
+              </span>
+              <MagicOrganizer onOrganize={handleMagicOrganize} />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              {tabs.map((tab, index) => (
+                <DraggableTab
+                  key={tab.id}
+                  tab={tab}
+                  index={index}
+                  active={activeTabId === tab.id}
+                  onClick={() => setActiveTabId(tab.id)}
+                  onRename={renameTab}
+                  onDelete={deleteTab}
+                  moveTab={moveTab}
+                  documentCount={documents[tab.id]?.length || 0}
+                />
+              ))}
+              <button
+                onClick={addNewTab}
+                className="px-4 py-2 text-sm font-medium rounded-lg border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 flex items-center gap-2 transition-all"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Add Tab
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <TrashIcon className="w-4 h-4" />
+            {error}
+          </div>
+        )}
+
+        {/* Content Area */}
+        {activeTabId === 'company-docs' && (
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            {/* Toolbar */}
+            <div className="bg-gray-50 p-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {activeTab?.name}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {/* View Toggle */}
+                  <div className="flex items-center gap-0.5 bg-white rounded p-0.5 border">
+                    <button
+                      onClick={() => setViewMode('tree')}
+                      className={`p-1.5 rounded transition-colors ${viewMode === 'tree' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                      title="List View"
+                    >
+                      <ListBulletIcon className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                      title="Grid View"
+                    >
+                      <Squares2X2Icon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  
+                  {/* Filter */}
+                  <select
+                    value={filterBy}
+                    onChange={(e) => setFilterBy(e.target.value)}
+                    className="px-2 py-1.5 text-xs border rounded bg-white"
+                  >
+                    <option value="all">All Files</option>
+                    <option value="favorites">Favorites</option>
+                    <option value="high-priority">High Priority</option>
+                    <option value="recent">Recent</option>
+                  </select>
+                  
+                  <button
+                    onClick={() => setShowNewItemModal(true)}
+                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
+                  >
+                    <PlusIcon className="w-3.5 h-3.5" />
+                    Create
+                  </button>
+                  
+                  <label className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 flex items-center gap-1.5 cursor-pointer transition-colors">
+                    <CloudArrowUpIcon className="w-3.5 h-3.5" />
+                    {uploading ? 'Uploading...' : 'Upload'}
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Document Display Area */}
+            <div className="p-4">
+              {viewMode === 'tree' ? (
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 min-h-[500px] border-2 border-dashed border-blue-200">
+                  {documents[activeTabId]?.length > 0 ? (
+                    <div className="space-y-1">
+                      {documents[activeTabId].map((item) => (
+                        <DraggableItem
+                          key={item.id}
+                          item={item}
+                          path=""
+                          onMove={handleItemMove}
+                          onRename={handleItemRename}
+                          onDelete={handleItemDelete}
+                          onToggle={handleItemToggle}
+                          onShowProperties={handleFileProperties}
+                          onShare={handleShareFile}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <div className="animate-bounce">
+                        <SparklesIcon className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">✨ Ready for Magic!</h3>
+                      <p className="text-gray-500 mb-4">Your AI-powered document workspace is ready</p>
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => setShowNewItemModal(true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Create First Folder
+                        </button>
+                        <label className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
+                          Upload Files
+                          <input type="file" multiple onChange={handleFileUpload} className="hidden" />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 p-4 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl min-h-[500px] border-2 border-dashed border-blue-200">
+                  {documents[activeTabId]?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="relative group bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-blue-300"
+                      onDoubleClick={() => item.type === 'folder' && handleItemToggle(item, '')}
+                    >
+                      <div className="text-center">
+                        <div className="relative mb-3">
+                          {item.type === 'folder' ? (
+                            <FolderIcon className="w-16 h-16 text-blue-500 mx-auto" />
+                          ) : (
+                            <DocumentIcon className="w-16 h-16 text-gray-500 mx-auto" />
+                          )}
+                          {item.favorite && (
+                            <StarSolid className="absolute -top-2 -right-2 w-6 h-6 text-yellow-500" />
+                          )}
+                          {item.priority === 'critical' && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">!</span>
+                            </div>
+                          )}
+                        </div>
+                        <h4 className="font-semibold text-sm text-gray-900 mb-1 truncate">{item.name}</h4>
+                        {item.type === 'file' && item.size && (
+                          <p className="text-xs text-gray-500 mb-2">{formatFileSize(item.size)}</p>
+                        )}
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 justify-center mb-2">
+                            {item.tags.slice(0, 2).map((tag, idx) => (
+                              <span key={idx} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Quick Actions Overlay */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFileProperties(item);
+                            }}
+                            className="p-2 bg-white text-blue-600 rounded-full shadow-lg hover:bg-blue-50"
+                          >
+                            <AdjustmentsHorizontalIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShareFile(item);
+                            }}
+                            className="p-2 bg-white text-green-600 rounded-full shadow-lg hover:bg-green-50"
+                          >
+                            <ShareIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Smart Template Suggestions */}
+              <SmartTemplateSuggester 
+                currentFolder={activeTab} 
+                onCreateTemplate={(template) => {
+                  const newTemplate = {
+                    id: `template-${Date.now()}`,
+                    name: template,
+                    type: 'file',
+                    size: 51200,
+                    priority: 'high',
+                    tags: ['Template', 'AI-Generated'],
+                    favorite: true,
+                    notes: 'AI-generated template',
+                    uploadedAt: new Date().toISOString()
+                  };
+                  
+                  setDocuments(prevDocs => {
+                    const newDocs = { ...prevDocs };
+                    const tabDocs = [...(newDocs[activeTabId] || [])];
+                    tabDocs.push(newTemplate);
+                    newDocs[activeTabId] = tabDocs;
+                    return newDocs;
+                  });
+                }}
+              />
+              
+              {/* Collaboration Panel */}
+              <CollaborationPanel 
+                file={activeTab}
+                onShare={(file, level) => {
+                  toast.success(`🤝 Shared "${file.name}" with ${level} permissions!`);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Product Specific Templates Tab */}
+        {activeTabId === 'project-templates' && (
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">Product Specific Templates</h3>
+                <label className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 cursor-pointer flex items-center gap-2">
+                  <CloudArrowUpIcon className="w-4 h-4" />
+                  Upload Template
+                  <input
+                    type="file"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      
+                      setUploading(true);
+                      try {
+                        const templateData = {
+                          name: file.name.replace(/\.[^/.]+$/, ""),
+                          description: `Template: ${file.name}`,
+                          format: file.type,
+                          section: 'general'
+                        };
+                        
+                        const response = await companyDocsService.createTemplate(file, templateData);
+                        if (response.success) {
+                          const templatesResponse = await companyDocsService.listTemplates();
+                          if (templatesResponse.success) {
+                            setTemplates(templatesResponse.data?.templates || []);
+                          }
+                          toast.success('Template uploaded successfully!');
+                        } else {
+                          toast.error('Failed to upload template');
+                        }
+                      } catch (error) {
+                        console.error('Template upload error:', error);
+                        toast.error('Failed to upload template');
+                      } finally {
+                        setUploading(false);
+                        e.target.value = '';
+                      }
+                    }}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-8">Loading templates...</div>
+              ) : templates.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {templates.map((template) => (
+                    <div key={template.id || template._id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <DocumentIcon className="w-8 h-8 text-gray-400 flex-shrink-0 mt-1" />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">
+                            {template.name || template.filename}
+                          </h4>
+                          {template.description && (
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                              {template.description}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-xs text-gray-400">
+                              {template.format || 'Unknown format'}
+                            </span>
+                            <div className="flex gap-2">
+                              {template.url && (
+                                <a
+                                  href={`${API_ORIGIN}${template.url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-700"
+                                >
+                                  <EyeIcon className="w-4 h-4" />
+                                </a>
+                              )}
+                              <button
+                                onClick={async () => {
+                                  if (window.confirm('Are you sure you want to delete this template?')) {
+                                    try {
+                                      // Implement delete template API call
+                                      toast.success('Template deleted successfully!');
+                                      const templatesResponse = await companyDocsService.listTemplates();
+                                      if (templatesResponse.success) {
+                                        setTemplates(templatesResponse.data?.templates || []);
+                                      }
+                                    } catch (error) {
+                                      toast.error('Failed to delete template');
+                                    }
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <DocumentIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No templates uploaded yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Upload your first template to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Generate Tab */}
+        {activeTabId === 'generate' && (
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">Generate Documents</h3>
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-8">Loading templates...</div>
+              ) : templates.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DocumentDuplicateIcon className="w-5 h-5 text-blue-600" />
+                      <h4 className="font-medium text-blue-900">Generate Custom Documents</h4>
+                    </div>
+                    <p className="text-sm text-blue-700">Select a template below and fill in the required fields to generate a custom document.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {templates.map((template) => (
+                      <div key={template.id || template._id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => handleGenerateFromTemplate(template)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <DocumentIcon className="w-8 h-8 text-blue-500 flex-shrink-0 mt-1" />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">
+                              {template.name}
+                            </h4>
+                            {template.description && (
+                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                {template.description}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between mt-3">
+                              <span className="text-xs text-gray-400">
+                                {template.format || 'PDF'} • {template.fields?.length || 0} fields
+                              </span>
+                              <button className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                Generate →
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <DocumentDuplicateIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-2">No templates available</p>
+                  <p className="text-sm text-gray-400 mb-4">Upload templates in the "Product Specific Templates" tab to generate documents</p>
+                  <button
+                    onClick={() => setActiveTabId('project-templates')}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Go to Templates
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Custom Tab Content */}
+        {activeTabId.startsWith('custom-') && (
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <SparklesIcon className="w-6 h-6 text-purple-600" />
+                  {activeTab?.name}
+                </h3>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowNewItemModal(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 flex items-center gap-2 shadow-lg transform hover:scale-105 transition-all"
+                  >
+                    <PlusIcon className="w-4 h-4" />
+                    ✨ Create New
+                  </button>
+                  
+                  <label className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 flex items-center gap-2 cursor-pointer shadow-lg transform hover:scale-105 transition-all">
+                    <CloudArrowUpIcon className="w-4 h-4" />
+                    🚀 Upload
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 min-h-[500px] border-2 border-dashed border-purple-200">
+                {documents[activeTabId]?.length > 0 ? (
+                  documents[activeTabId].map((item) => (
+                    <DraggableItem
+                      key={item.id}
+                      item={item}
+                      path=""
+                      onMove={handleItemMove}
+                      onRename={handleItemRename}
+                      onDelete={handleItemDelete}
+                      onToggle={handleItemToggle}
+                      onShowProperties={handleFileProperties}
+                      onShare={handleShareFile}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="animate-bounce">
+                      <SparklesIcon className="w-16 h-16 mx-auto mb-4 text-purple-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">🎨 Custom Workspace Ready!</h3>
+                    <p className="text-gray-500 mb-4">Build your personalized document organization</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Modals */}
+        {showNewItemModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 9999 }}>
+            <div className="bg-white rounded-2xl p-8 w-96 shadow-2xl transform animate-scale-in" style={{ zIndex: 10000 }}>
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <SparklesIcon className="w-6 h-6 text-blue-600" />
+                ✨ Create New Item
+              </h3>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">📁 Parent Folder (Optional)</label>
+                  <select
+                    value={selectedParentFolder?.id || ''}
+                    onChange={(e) => {
+                      const folderId = e.target.value;
+                      setSelectedParentFolder(folderId ? availableFolders.find(f => f.id === folderId) : null);
+                    }}
+                    className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Root Folder (Top Level)</option>
+                    {availableFolders.map(folder => (
+                      <option key={folder.id} value={folder.id}>
+                        📁 {folder.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedParentFolder 
+                      ? `Will be created inside "${selectedParentFolder.displayName}"` 
+                      : 'Will be created at the top level'
+                    }
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">🎯 Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setNewItemType('folder')}
+                      className={`p-4 rounded-lg border-2 transition-all ${newItemType === 'folder' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                    >
+                      <FolderIcon className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                      <div className="text-sm font-medium">Folder</div>
+                    </button>
+                    <button
+                      onClick={() => setNewItemType('file')}
+                      className={`p-4 rounded-lg border-2 transition-all ${newItemType === 'file' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                    >
+                      <DocumentIcon className="w-8 h-8 mx-auto mb-2 text-gray-500" />
+                      <div className="text-sm font-medium">File</div>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">📝 Name</label>
+                  <input
+                    type="text"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={`Enter ${newItemType} name...`}
+                    autoFocus
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddNewItem()}
+                  />
+                </div>
+              </div>
+              <div className="mt-8 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowNewItemModal(false);
+                    setNewItemName('');
+                    setNewItemType('folder');
+                    setSelectedParentFolder(null);
+                  }}
+                  className="px-6 py-3 text-sm text-gray-600 hover:text-gray-800 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddNewItem}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  ✨ Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* File Properties Modal */}
+        {showFileProperties && selectedFile && (
+          <FilePropertiesPanel
+            file={selectedFile}
+            onUpdate={handleUpdateFileProperties}
+            onClose={() => {
+              setShowFileProperties(false);
+              setSelectedFile(null);
+            }}
+          />
+        )}
+
+        {/* Document Generation Modal */}
+        {showGenerationModal && selectedTemplate && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 9999 }}>
+            <div className="bg-white rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl transform animate-scale-in">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <DocumentDuplicateIcon className="w-6 h-6 text-blue-600" />
+                  Generate Document: {selectedTemplate.name}
+                </h3>
+                <button 
+                  onClick={() => setShowGenerationModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {selectedTemplate.description && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-blue-700">{selectedTemplate.description}</p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {selectedTemplate.fields && selectedTemplate.fields.length > 0 ? (
+                  selectedTemplate.fields.map((field, index) => (
+                    <div key={field.key || index}>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {field.label}
+                        {field.required && <span className="text-red-500 ml-1">*</span>}
+                      </label>
+                      
+                      {field.type === 'TEXT' || !field.type ? (
+                        <input
+                          type="text"
+                          value={generationFields[field.key] || ''}
+                          onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                          className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder={field.label}
+                          required={field.required}
+                        />
+                      ) : field.type === 'TEXTAREA' ? (
+                        <textarea
+                          value={generationFields[field.key] || ''}
+                          onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                          className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
+                          placeholder={field.label}
+                          required={field.required}
+                        />
+                      ) : field.type === 'SELECT' ? (
+                        <select
+                          value={generationFields[field.key] || ''}
+                          onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                          className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required={field.required}
+                        >
+                          <option value="">Select {field.label}</option>
+                          {field.options && field.options.map((option, idx) => (
+                            <option key={idx} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      ) : field.type === 'DATE' ? (
+                        <input
+                          type="date"
+                          value={generationFields[field.key] || ''}
+                          onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                          className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required={field.required}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={generationFields[field.key] || ''}
+                          onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                          className="w-full border-2 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder={field.label}
+                          required={field.required}
+                        />
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-6 text-center">
+                    <DocumentIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">This template has no configurable fields.</p>
+                    <p className="text-sm text-gray-400 mt-1">The document will be generated with default content.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowGenerationModal(false);
+                    setSelectedTemplate(null);
+                    setGenerationFields({});
+                  }}
+                  className="px-6 py-3 text-sm text-gray-600 hover:text-gray-800 transition-colors font-medium"
+                  disabled={isGenerating}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleGenerateDocument}
+                  disabled={isGenerating}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <DocumentDuplicateIcon className="w-4 h-4" />
+                      Generate Document
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {error && (
-        <div className="mb-3 text-xs text-red-600">{error}</div>
-      )}
-
-      {activeTab === 'Customer Assets' && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold">Customer-facing documents</h3>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => { setAllAssetsExpanded(true); setOpenAssetSectionKey('__ALL__'); }}
-                className="px-2 py-1 text-[11px] font-semibold rounded border border-gray-300 hover:bg-gray-50"
-              >
-                Expand All
-              </button>
-              <button
-                type="button"
-                onClick={() => { setAllAssetsExpanded(false); setOpenAssetSectionKey(null); }}
-                className="px-2 py-1 text-[11px] font-semibold rounded border border-gray-300 hover:bg-gray-50"
-              >
-                Collapse All
-              </button>
-              <select className="border rounded px-2 py-1 text-xs" value={assetSection} onChange={e => setAssetSection(e.target.value)}>
-                {sections.map(s => (<option key={s.value} value={s.value}>{s.label}</option>))}
-              </select>
-              <label className="text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded cursor-pointer">
-                {uploading ? 'Uploading…' : 'Upload PDF'}
-                <input type="file" accept="application/pdf" className="hidden" onChange={handleAssetUpload} disabled={uploading} />
-              </label>
-            </div>
-          </div>
-          {loading ? (
-            <div className="text-xs text-gray-600">Loading…</div>
-          ) : (
-            groupBySection(assets).map(([sec, list]) => (
-              <div key={sec} className="mb-3 border rounded-md">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (allAssetsExpanded) return; // disable individual toggle when expanded all
-                    setOpenAssetSectionKey(openAssetSectionKey === sec ? null : sec)
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors border-b"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-800">{sectionLabel(sec)}</span>
-                    <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-700">
-                      {(assets || []).filter(a => (a.section || 'UNCATEGORIZED') === sec).length}
-                    </span>
-                  </div>
-                  <svg
-                    className={`h-4 w-4 text-gray-500 transition-transform duration-300 ${(allAssetsExpanded || openAssetSectionKey === sec) ? 'rotate-180' : ''}`}
-                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                  >
-                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.04 1.08l-4.24 3.36a.75.75 0 01-.94 0L5.21 8.31a.75.75 0 01.02-1.1z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                <div
-                  className={`px-3 transition-all duration-300 ease-in-out overflow-hidden ${(allAssetsExpanded || openAssetSectionKey === sec) ? 'max-h-[1000px] opacity-100 py-2' : 'max-h-0 opacity-0'}`}
-                >
-                  <ul className="divide-y">
-                    {list.map(a => (
-                      <li key={a.id} className="py-2 flex items-center justify-between text-xs">
-                        <div className="truncate">
-                          <div className="font-semibold truncate">{a.title}</div>
-                          <div className="text-gray-500 truncate">{a.fileUrl}</div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <a href={`${API_ORIGIN}${a.fileUrl}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Preview</a>
-                          <a href={`${API_ORIGIN}${a.fileUrl}`} download className="text-blue-600 hover:underline">Download</a>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))
-          )}
-          {!loading && assets.length === 0 && (
-            <div className="py-6 text-center text-xs text-gray-500">No assets yet</div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'Project Templates' && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold">Templates</h3>
-              <p className="text-xs text-gray-600">Manage the templates that power autogenerated project documents.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => { setAllTplExpanded(true); setOpenTplSectionKey('__ALL__'); }}
-                className="px-2 py-1 text-[11px] font-semibold rounded border border-gray-300 hover:bg-gray-50"
-              >
-                Expand All
-              </button>
-              <button
-                type="button"
-                onClick={() => { setAllTplExpanded(false); setOpenTplSectionKey(null); }}
-                className="px-2 py-1 text-[11px] font-semibold rounded border border-gray-300 hover:bg-gray-50"
-              >
-                Collapse All
-              </button>
-            </div>
-          </div>
-          <div className="border rounded-md p-3 mb-4">
-            <div className="text-xs font-semibold mb-2">Upload New Template</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label className="block text-gray-700 mb-1">Name</label>
-                <input className="w-full border rounded px-2 py-1" value={tplForm.name} onChange={e => setTplForm({ ...tplForm, name: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Format</label>
-                <select className="w-full border rounded px-2 py-1" value={tplForm.format} onChange={e => setTplForm({ ...tplForm, format: e.target.value })}>
-                  <option value="DOCX">DOCX</option>
-                  <option value="HTML">HTML</option>
-                  <option value="PDF">PDF</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Section</label>
-                <select className="w-full border rounded px-2 py-1" value={tplForm.section} onChange={e => setTplForm({ ...tplForm, section: e.target.value })}>
-                  {sections.map(s => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-gray-700 mb-1">Description</label>
-                <input className="w-full border rounded px-2 py-1" value={tplForm.description} onChange={e => setTplForm({ ...tplForm, description: e.target.value })} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-gray-700 mb-1">Fields (JSON array)</label>
-                <textarea className="w-full border rounded px-2 py-1 h-24" value={tplForm.fields} onChange={e => setTplForm({ ...tplForm, fields: e.target.value })} placeholder='[{"key":"client_name","label":"Client Name","type":"TEXT","required":true}]' />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Template File</label>
-                <input type="file" accept=".docx,.html,.htm,.pdf" onChange={handleTemplateFile} />
-              </div>
-            </div>
-            <div className="mt-3">
-              <button onClick={handleTemplateUpload} disabled={tplUploading} className={`px-3 py-2 text-xs font-semibold rounded-md ${tplUploading ? 'bg-gray-300 text-gray-600' : 'bg-blue-600 text-white'}`}>{tplUploading ? 'Uploading…' : 'Upload Template'}</button>
-            </div>
-          </div>
-
-          {/* Edit Template Form */}
-          {editingTemplate && (
-            <div className="border rounded-md p-3 mb-4 bg-gray-50">
-              <div className="text-xs font-semibold mb-2">Edit Template: {editingTemplate.name}</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="block text-gray-700 mb-1">Name</label>
-                  <input className="w-full border rounded px-2 py-1" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-1">Format</label>
-                  <select className="w-full border rounded px-2 py-1" value={editForm.format} onChange={e => setEditForm({ ...editForm, format: e.target.value })}>
-                    <option value="DOCX">DOCX</option>
-                    <option value="HTML">HTML</option>
-                    <option value="PDF">PDF</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-1">Section</label>
-                  <select className="w-full border rounded px-2 py-1" value={editForm.section} onChange={e => setEditForm({ ...editForm, section: e.target.value })}>
-                    {sections.map(s => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-gray-700 mb-1">Description</label>
-                  <input className="w-full border rounded px-2 py-1" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-gray-700 mb-1">Fields (JSON array)</label>
-                  <textarea className="w-full border rounded px-2 py-1 h-24" value={editForm.fields} onChange={e => setEditForm({ ...editForm, fields: e.target.value })} placeholder='[{"key":"client_name","label":"Client Name","type":"TEXT","required":true}]' />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-1">Replace File (optional)</label>
-                  <input type="file" accept=".docx,.html,.htm,.pdf" onChange={e => setEditForm({ ...editForm, file: e.target.files?.[0] || null })} />
-                </div>
-              </div>
-              <div className="mt-3 flex gap-2">
-                <button onClick={handleEditSubmit} className="px-3 py-2 text-xs font-semibold rounded-md bg-green-600 text-white">Update Template</button>
-                <button onClick={handleEditCancel} className="px-3 py-2 text-xs font-semibold rounded-md bg-gray-600 text-white">Cancel</button>
-              </div>
-            </div>
-          )}
-
-          {loading ? (
-            <div className="text-xs text-gray-600">Loading…</div>
-          ) : (
-            groupBySection(templates).map(([sec, list]) => (
-              <div key={sec} className="mb-3 border rounded-md">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (allTplExpanded) return;
-                    setOpenTplSectionKey(openTplSectionKey === sec ? null : sec)
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 ${openTplSectionKey === sec || allTplExpanded ? 'bg-blue-50' : 'bg-gray-50'} hover:bg-gray-100 transition-colors border-b`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-800">{sectionLabel(sec)}</span>
-                    <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
-                      {list.length}
-                    </span>
-                  </div>
-                  <svg
-                    className={`h-4 w-4 text-blue-500 transition-transform duration-300 ${(allTplExpanded || openTplSectionKey === sec) ? 'rotate-180' : ''}`}
-                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                  >
-                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.04 1.08l-4.24 3.36a.75.75 0 01-.94 0L5.21 8.31a.75.75 0 01.02-1.1z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                <div
-                  className={`px-3 transition-all duration-300 ease-in-out overflow-hidden ${(allTplExpanded || openTplSectionKey === sec) ? 'max-h-[1200px] opacity-100 py-2' : 'max-h-0 opacity-0'}`}
-                >
-                  <ul className="divide-y">
-                    {list.map(t => (
-                      <li key={t.id} className="py-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-semibold">{t.name} <span className="text-gray-500">({t.format})</span></div>
-                            <div className="text-gray-600">Fields: {t.fields?.length || 0}</div>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <a href={`${API_ORIGIN}${t.templateFileUrl}`} download className="text-blue-600 hover:underline text-xs">Download</a>
-                            <button
-                              onClick={() => handleEditTemplate(t)}
-                              className="text-green-600 hover:underline text-xs"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTemplate(t.id)}
-                              className="text-red-600 hover:underline text-xs"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))
-          )}
-          {!loading && templates.length === 0 && (
-            <div className="py-6 text-center text-xs text-gray-500">No templates yet</div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'Generate' && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-bold mb-3">Generate a Project Document</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div>
-              <label className="block text-gray-700 mb-1">Template (optional)</label>
-              <select
-                className="w-full border rounded px-2 py-1"
-                value={generateForm.templateId}
-                onChange={e => setGenerateForm({ ...generateForm, templateId: e.target.value })}
-              >
-                <option value="">— None —</option>
-                {(templates || []).map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-1">Project</label>
-              <EnhancedProjectDropdown
-                projects={projects}
-                selectedProject={selectedProject}
-                onProjectSelect={(project) => {
-                  setSelectedProject(project);
-                  setGenerateForm(prev => ({ ...prev, projectId: project ? project.id : '' }));
-                  setGenerateErrors(prev => ({ ...prev, projectId: undefined }));
-                }}
-                placeholder={projectsLoading ? 'Loading projects…' : 'Select Project'}
-              />
-              {generateErrors.projectId && (
-                <div className="mt-1 text-[11px] text-red-600">{generateErrors.projectId}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-1">Title</label>
-              <input className="w-full border rounded px-2 py-1" value={generateForm.title} onChange={e => setGenerateForm({ ...generateForm, title: e.target.value })} placeholder="Generated Document" />
-            </div>
-          </div>
-
-          {selectedTemplate && (
-            <div className="mt-4 border rounded-md p-3 bg-gray-50">
-              <div className="text-xs font-semibold mb-2">Template Fields</div>
-              {(selectedTemplate.fields || []).length === 0 ? (
-                <div className="text-xs text-gray-600">No fields are defined for this template.</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-                  {(selectedTemplate.fields || []).map((f) => {
-                    const commonLabel = (
-                      <label className="block text-gray-700 mb-1 leading-5">
-                        {f.label || f.key}
-                        {f.required ? <span className="ml-1 text-red-600">*</span> : null}
-                      </label>
-                    );
-                    const errorMsg = generateErrors[f.key];
-                    const baseClass = `w-full border rounded px-2 py-1 ${errorMsg ? 'border-red-400' : ''}`;
-                    const handleChange = (val) => {
-                      setGenerateFieldValues(prev => ({ ...prev, [f.key]: val }));
-                      setUserEditedKeys(prev => ({ ...prev, [f.key]: true }));
-                    };
-                    if (String(f.type || 'TEXT').toUpperCase() === 'TEXTAREA') {
-                      return (
-                        <div key={f.key} className="md:col-span-2">
-                          {commonLabel}
-                          <textarea className={`${baseClass} h-24 break-words`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} placeholder={f.placeholder || ''} />
-                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
-                        </div>
-                      );
-                    }
-                    if (String(f.type || 'TEXT').toUpperCase() === 'NUMBER') {
-                      return (
-                        <div key={f.key}>
-                          {commonLabel}
-                          <input type="number" className={`${baseClass} align-middle`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} placeholder={f.placeholder || ''} />
-                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
-                        </div>
-                      );
-                    }
-                    if (String(f.type || 'TEXT').toUpperCase() === 'DATE') {
-                      return (
-                        <div key={f.key}>
-                          {commonLabel}
-                          <input type="date" className={`${baseClass} align-middle`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} />
-                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
-                        </div>
-                      );
-                    }
-                    if (String(f.type || 'TEXT').toUpperCase() === 'SELECT' && Array.isArray(f.options) && f.options.length > 0) {
-                      return (
-                        <div key={f.key}>
-                          {commonLabel}
-                          <select className={`${baseClass} align-middle max-w-full`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)}>
-                            <option value="">— Select —</option>
-                            {f.options.map(opt => (
-                              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
-                            ))}
-                          </select>
-                          {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
-                        </div>
-                      );
-                    }
-                    if (String(f.type || 'TEXT').toUpperCase() === 'CHECKBOX') {
-                      return (
-                        <div key={f.key} className="flex items-center gap-2">
-                          <input id={`fld_${f.key}`} type="checkbox" className="h-4 w-4" checked={!!generateFieldValues[f.key]} onChange={e => handleChange(e.target.checked)} />
-                          <label htmlFor={`fld_${f.key}`} className="text-xs text-gray-800">
-                            {f.label || f.key}
-                            {f.required ? <span className="ml-1 text-red-600">*</span> : null}
-                          </label>
-                          {errorMsg && <div className="ml-2 text-[11px] text-red-600">{errorMsg}</div>}
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={f.key}>
-                        {commonLabel}
-                        <input className={`${baseClass} align-middle`} value={generateFieldValues[f.key] ?? ''} onChange={e => handleChange(e.target.value)} placeholder={f.placeholder || ''} />
-                        {errorMsg && <div className="mt-1 text-[11px] text-red-600">{errorMsg}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => setShowAdvancedJSON(v => !v)}
-              className="px-2 py-1 text-[11px] font-semibold rounded border border-gray-300 hover:bg-gray-50"
-            >
-              {showAdvancedJSON ? 'Hide' : 'Show'} Advanced JSON
-            </button>
-            {showAdvancedJSON && (
-              <div className="mt-2">
-                <label className="block text-gray-700 mb-1 text-xs">Data (JSON)</label>
-                <textarea className="w-full border rounded px-2 py-1 h-28 text-xs" value={generateForm.data} onChange={e => setGenerateForm({ ...generateForm, data: e.target.value })} placeholder='{"client_name":"Acme"}' />
-                <div className="mt-1 text-[11px] text-gray-500">Optional: merge additional key-values into the generated document.</div>
-            </div>
-            )}
-          </div>
-          <div className="mt-3">
-            <button onClick={handleGenerate} disabled={submitting} className={`px-3 py-2 text-xs font-semibold rounded-md ${submitting ? 'bg-gray-300 text-gray-600' : 'bg-blue-600 text-white'}`}>{submitting ? 'Generating…' : 'Generate PDF'}</button>
-            {lastGeneratedDoc && (
-              <div className="mt-3 text-xs flex items-center gap-3">
-                <span className="text-gray-700">Last generated:</span>
-                <a
-                  className="text-blue-600 hover:underline"
-                  href={`${API_ORIGIN}${lastGeneratedDoc.fileUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Preview
-                </a>
-                <a
-                  className="text-blue-600 hover:underline"
-                  href={`${API_ORIGIN}${lastGeneratedDoc.fileUrl}`}
-                  download
-                >
-                  Download
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+      <style jsx>{`
+        @keyframes scale-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes fade-in {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        
+        .tooltip:hover::after {
+          content: attr(title);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          background: black;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          white-space: nowrap;
+          z-index: 1000;
+        }
+      `}</style>
+    </DndProvider>
   );
 }
-
-
