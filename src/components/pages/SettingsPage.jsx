@@ -3,7 +3,7 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
-import RolesTabComponent from './RolesTabComponent';
+import RolesTabComponentFixed from './RolesTabComponentFixed';
 import { API_BASE_URL } from '../../services/api';
 
 // Removed mock user; use real authenticated user via props
@@ -160,32 +160,54 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       console.log('💾 Saving role assignments:', newRoleAssignments);
 
-      // Transform to API format - send user IDs instead of full user objects
-      const apiPayload = {};
+      // Save each role assignment individually using the correct API endpoint
+      const promises = [];
+      
       Object.keys(newRoleAssignments).forEach(roleType => {
         const users = newRoleAssignments[roleType] || [];
+        
+        // If role has users, assign the first one (for now, single user per role)
         if (users.length > 0) {
-          // For compatibility, send both new array format and old single user format
-          apiPayload[roleType] = users.map(user => ({ userId: user.id, ...user }));
-          // Also send old format for backwards compatibility
-          const apiRoleType = roleType === 'projectManager' ? 'productManager' : roleType;
-          apiPayload[apiRoleType] = users[0] ? { userId: users[0].id } : null;
+          const user = users[0]; // Take first user for single-assignment compatibility
+          promises.push(
+            fetch(`${API_BASE_URL}/roles/assign`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+              },
+              body: JSON.stringify({
+                roleType: roleType,
+                userId: user.id
+              })
+            })
+          );
+        } else {
+          // If no users, unassign the role
+          promises.push(
+            fetch(`${API_BASE_URL}/roles/unassign`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+              },
+              body: JSON.stringify({
+                roleType: roleType
+              })
+            })
+          );
         }
       });
 
-      const response = await fetch(`${API_BASE_URL}/roles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify(apiPayload)
-      });
+      // Wait for all API calls to complete
+      const responses = await Promise.all(promises);
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      // Check if any failed
+      for (const response of responses) {
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        }
       }
       
       console.log('✅ Role assignments saved successfully');
@@ -841,7 +863,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   };
 
   const renderRolesTab = () => (
-    <RolesTabComponent
+    <RolesTabComponentFixed
       colorMode={colorMode}
       roleAssignments={roleAssignments}
       setRoleAssignments={setRoleAssignments}
