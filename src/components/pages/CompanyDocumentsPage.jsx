@@ -30,7 +30,9 @@ import {
   DocumentDuplicateIcon,
   ArchiveBoxIcon,
   FunnelIcon,
-  AdjustmentsHorizontalIcon
+  AdjustmentsHorizontalIcon,
+  XMarkIcon,
+  FolderPlusIcon
 } from '@heroicons/react/24/outline';
 import { 
   StarIcon as StarSolid,
