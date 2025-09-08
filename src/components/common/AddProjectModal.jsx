@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import api, { API_BASE_URL } from '../../services/api';
 
 const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [formData, setFormData] = useState({
@@ -23,6 +23,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [errors, setErrors] = useState({});
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [projectManagers, setProjectManagers] = useState([]);
   const [showSecondaryCustomer, setShowSecondaryCustomer] = useState(false);
   const [showSecondHousehold, setShowSecondHousehold] = useState(false);
 
@@ -58,12 +59,57 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   // Fetch users for project manager assignment and handle form reset
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsersAndRoles = async () => {
       try {
         const { usersService } = await import('../../services/api');
         const result = await usersService.getTeamMembers();
         const teamMembers = Array.isArray(result?.data?.teamMembers) ? result.data.teamMembers : [];
         setUsers(teamMembers);
+
+        // Fetch role assignments to get Project Managers
+        try {
+          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token && { 'Authorization': `Bearer ${token}` })
+            }
+          });
+
+          if (rolesResponse.ok) {
+            const rolesData = await rolesResponse.json();
+            if (rolesData.success && rolesData.data) {
+              // Extract project managers from role assignments
+              const projectManagerUsers = [];
+              
+              // Handle both old single-user format and new multi-user format
+              if (rolesData.data.projectManager) {
+                if (Array.isArray(rolesData.data.projectManager)) {
+                  projectManagerUsers.push(...rolesData.data.projectManager);
+                } else if (rolesData.data.projectManager.userId) {
+                  // Find user by ID
+                  const manager = teamMembers.find(u => u.id === rolesData.data.projectManager.userId);
+                  if (manager) projectManagerUsers.push(manager);
+                }
+              }
+              
+              // Also check productManager for backwards compatibility
+              if (rolesData.data.productManager && rolesData.data.productManager.userId) {
+                const manager = teamMembers.find(u => u.id === rolesData.data.productManager.userId);
+                if (manager && !projectManagerUsers.find(pm => pm.id === manager.id)) {
+                  projectManagerUsers.push(manager);
+                }
+              }
+
+              setProjectManagers(projectManagerUsers);
+            }
+          }
+        } catch (roleError) {
+          console.error('Error fetching role assignments:', roleError);
+          // Fallback to all users if roles fetch fails
+          setProjectManagers(teamMembers);
+        }
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {
@@ -72,7 +118,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     };
 
     if (isOpen) {
-      fetchUsers();
+      fetchUsersAndRoles();
     } else {
       // Reset form and secondary customer state when modal is closed
       resetForm();
@@ -735,11 +781,19 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     disabled={usersLoading}
                   >
                     <option value="">Select a project manager</option>
-                    {users.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName} - {user.role || 'No role'}
-                      </option>
-                    ))}
+                    {projectManagers.length > 0 ? (
+                      projectManagers.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} - {user.role || 'Project Manager'}
+                        </option>
+                      ))
+                    ) : (
+                      users.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} - {user.role || 'No role'}
+                        </option>
+                      ))
+                    )}
                   </select>
                   {usersLoading && (
                     <p className="mt-2 text-sm text-gray-500">Loading users...</p>
@@ -860,8 +914,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           <span className="text-sm text-gray-500">Project Manager:</span>
                           <p className="font-medium">
                             {formData.projectManagerId 
-                              ? users.find(u => u.id === formData.projectManagerId)?.firstName + ' ' + 
-                                users.find(u => u.id === formData.projectManagerId)?.lastName
+                              ? (() => {
+                                  const manager = [...projectManagers, ...users].find(u => u.id === formData.projectManagerId);
+                                  return manager ? `${manager.firstName} ${manager.lastName}` : 'Not found';
+                                })()
                               : 'Not assigned'}
                           </p>
                         </div>

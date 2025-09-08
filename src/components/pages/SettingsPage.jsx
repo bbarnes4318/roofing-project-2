@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
+import RolesTabComponent from './RolesTabComponent';
 import { API_BASE_URL } from '../../services/api';
 
 // Removed mock user; use real authenticated user via props
@@ -155,6 +154,47 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   };
 
   // Role assignment functions
+  // New function to save array-based role assignments
+  const saveRoleAssignments = async (newRoleAssignments) => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      console.log('💾 Saving role assignments:', newRoleAssignments);
+
+      // Transform to API format - send user IDs instead of full user objects
+      const apiPayload = {};
+      Object.keys(newRoleAssignments).forEach(roleType => {
+        const users = newRoleAssignments[roleType] || [];
+        if (users.length > 0) {
+          // For compatibility, send both new array format and old single user format
+          apiPayload[roleType] = users.map(user => ({ userId: user.id, ...user }));
+          // Also send old format for backwards compatibility
+          const apiRoleType = roleType === 'projectManager' ? 'productManager' : roleType;
+          apiPayload[apiRoleType] = users[0] ? { userId: users[0].id } : null;
+        }
+      });
+
+      const response = await fetch(`${API_BASE_URL}/roles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(apiPayload)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      console.log('✅ Role assignments saved successfully');
+    } catch (error) {
+      console.error('❌ Error saving role assignments:', error);
+      throw error;
+    }
+  };
+
   const handleRoleAssignment = async (roleType, userId) => {
     try {
       console.log(`🔄 DEBUGGING: Assigning ${roleType} to user ${userId}`);
@@ -267,14 +307,34 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         const rolesData = await rolesResponse.json();
         console.log('📊 Role assignments received:', rolesData);
         if (rolesData.success) {
-          // Transform API data to expected format
+          // Transform API data to new array-based format
           const formattedRoles = {
-            productManager: rolesData.data.productManager?.userId || '',
-            fieldDirector: rolesData.data.fieldDirector?.userId || '',
-            officeStaff: rolesData.data.officeStaff?.userId || '',
-            administration: rolesData.data.administration?.userId || ''
+            projectManager: [], // Changed from productManager to projectManager
+            fieldDirector: [],
+            officeStaff: [],
+            administration: []
           };
-          console.log('✅ Setting role assignments:', formattedRoles);
+
+          // Handle existing assignments if they exist
+          Object.keys(formattedRoles).forEach(roleType => {
+            const apiRoleType = roleType === 'projectManager' ? 'productManager' : roleType;
+            const roleData = rolesData.data[apiRoleType] || rolesData.data[roleType];
+            
+            if (roleData) {
+              if (Array.isArray(roleData)) {
+                // New format - array of user objects
+                formattedRoles[roleType] = roleData;
+              } else if (roleData.userId) {
+                // Old format - single user with userId
+                const user = availableUsers.find(u => u.id === roleData.userId);
+                if (user) {
+                  formattedRoles[roleType] = [user];
+                }
+              }
+            }
+          });
+
+          console.log('✅ Setting role assignments (new format):', formattedRoles);
           setRoleAssignments(formattedRoles);
         }
       } else {
@@ -753,7 +813,44 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     </div>
   );
 
+  const handleAddUserToRole = (roleType, user) => {
+    setRoleAssignments(prev => {
+      const currentUsers = prev[roleType] || [];
+      if (!currentUsers.find(u => u.id === user.id)) {
+        return {
+          ...prev,
+          [roleType]: [...currentUsers, user]
+        };
+      }
+      return prev;
+    });
+  };
+
+  const handleRemoveUserFromRole = (roleType, userId) => {
+    setRoleAssignments(prev => ({
+      ...prev,
+      [roleType]: (prev[roleType] || []).filter(user => user.id !== userId)
+    }));
+  };
+
+  const getUnassignedUsers = () => {
+    const assignedUserIds = Object.values(roleAssignments)
+      .flat()
+      .map(user => user.id);
+    return availableUsers.filter(user => !assignedUserIds.includes(user.id));
+  };
+
   const renderRolesTab = () => (
+    <RolesTabComponent
+      colorMode={colorMode}
+      roleAssignments={roleAssignments}
+      setRoleAssignments={setRoleAssignments}
+      availableUsers={availableUsers}
+      saveRoleAssignments={saveRoleAssignments}
+    />
+  );
+
+  const renderRolesTabOld = () => (
     <div className="space-y-6">
       {/* Header */}
       <div className={`border rounded-lg p-4 ${
