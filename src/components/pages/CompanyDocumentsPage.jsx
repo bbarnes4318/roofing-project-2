@@ -45,9 +45,18 @@ const ItemTypes = {
   TAB: 'tab'
 };
 
-// Quick Move Panel for off-screen folder targeting
+// Quick Move Panel for off-screen folder targeting with drag & drop support
 const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) => {
   if (!isVisible || !draggedItem) return null;
+
+  // Add drop zone functionality to the entire panel
+  const [{ isOver }, drop] = useDrop({
+    accept: [ItemTypes.FOLDER, ItemTypes.FILE],
+    drop: () => {}, // Handled by individual folder buttons
+    collect: (monitor) => ({
+      isOver: monitor.isOver({ shallow: true }),
+    }),
+  });
 
   // Recursively collect all folders with their paths
   const collectFolders = (items, currentPath = '') => {
@@ -80,7 +89,12 @@ const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) =>
   };
 
   return (
-    <div className="fixed top-20 right-4 w-80 max-h-96 bg-white rounded-lg shadow-2xl border-2 border-blue-300 z-50 overflow-hidden">
+    <div 
+      ref={drop}
+      className={`fixed top-20 right-4 w-80 max-h-96 bg-white rounded-lg shadow-2xl border-2 z-50 overflow-hidden transition-colors ${
+        isOver ? 'border-green-400 bg-green-50' : 'border-blue-300'
+      }`}
+    >
       <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -106,20 +120,60 @@ const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) =>
           </div>
         ) : (
           <div className="py-2">
-            {allFolders.map((folder) => (
-              <button
-                key={folder.path}
-                onClick={() => handleFolderSelect(folder)}
-                className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2 border-b border-gray-100 last:border-b-0"
-                style={{ paddingLeft: `${16 + folder.level * 20}px` }}
-              >
-                <FolderIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                <span className="text-sm font-medium text-gray-700 truncate">{folder.name}</span>
-                <span className="text-xs text-gray-400 ml-auto">
-                  {folder.level > 0 ? `Level ${folder.level + 1}` : 'Root'}
-                </span>
-              </button>
-            ))}
+            {allFolders.map((folder) => {
+              // Create drop zone component for each folder
+              const FolderDropZone = () => {
+                const [{ isOver: isFolderOver, canDrop }, folderDrop] = useDrop({
+                  accept: [ItemTypes.FOLDER, ItemTypes.FILE],
+                  canDrop: (draggedItem) => {
+                    // Don't allow dropping an item on itself
+                    if (draggedItem.item.id === folder.id) return false;
+                    
+                    // Don't allow dropping a folder into its own descendants
+                    if (draggedItem.item.type === 'folder' && folder.path.includes(draggedItem.item.id)) return false;
+                    
+                    // Don't allow dropping in the same location
+                    if (draggedItem.path === folder.path) return false;
+                    
+                    return true;
+                  },
+                  drop: () => {
+                    handleFolderSelect(folder);
+                  },
+                  collect: (monitor) => ({
+                    isOver: monitor.isOver(),
+                    canDrop: monitor.canDrop(),
+                  }),
+                });
+
+                return (
+                  <button
+                    ref={folderDrop}
+                    key={folder.path}
+                    onClick={() => handleFolderSelect(folder)}
+                    className={`w-full text-left px-4 py-2 transition-colors flex items-center gap-2 border-b border-gray-100 last:border-b-0 ${
+                      isFolderOver && canDrop 
+                        ? 'bg-green-100 border-green-300' 
+                        : 'hover:bg-blue-50'
+                    }`}
+                    style={{ paddingLeft: `${16 + folder.level * 20}px` }}
+                  >
+                    <FolderIcon className={`w-4 h-4 flex-shrink-0 ${
+                      isFolderOver && canDrop ? 'text-green-500' : 'text-blue-500'
+                    }`} />
+                    <span className="text-sm font-medium text-gray-700 truncate">{folder.name}</span>
+                    <span className="text-xs text-gray-400 ml-auto">
+                      {folder.level > 0 ? `Level ${folder.level + 1}` : 'Root'}
+                    </span>
+                    {isFolderOver && canDrop && (
+                      <div className="absolute left-0 top-0 right-0 bottom-0 border-2 border-green-400 border-dashed rounded bg-green-50/50" />
+                    )}
+                  </button>
+                );
+              };
+
+              return <FolderDropZone key={folder.path} />;
+            })}
           </div>
         )}
       </div>
@@ -129,7 +183,7 @@ const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) =>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Drag to any folder in the main view or click here for off-screen folders</span>
+          <span>Drag files directly to folders below or click to move</span>
         </div>
       </div>
     </div>
@@ -1099,7 +1153,7 @@ export default function CompanyDocumentsPage({ colorMode }) {
           const folder = currentItems.find(item => item.id === pathPart && item.type === 'folder');
           if (folder && folder.children) {
             currentItems = folder.children;
-            folder.expanded = true; // Auto-expand target folder
+            // folder.expanded = true; // Removed auto-expand to keep folders closed when dropping
           } else {
             console.error(`Target folder not found at path: ${currentPath}`);
             return false;
