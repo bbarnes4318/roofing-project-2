@@ -1,69 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
-  const [documents, setDocuments] = useState([
-    {
-      id: 1,
-      name: 'Contract Agreement.pdf',
-      type: 'contract',
-      category: 'Legal',
-      size: '2.4 MB',
-      uploadedBy: 'Sarah Owner',
-      uploadDate: '2024-06-01',
-      lastModified: '2024-06-01',
-      status: 'approved',
-      description: 'Signed contract agreement with client'
-    },
-    {
-      id: 2,
-      name: 'Site Survey Report.docx',
-      type: 'report',
-      category: 'Technical',
-      size: '1.8 MB',
-      uploadedBy: 'Mike Field',
-      uploadDate: '2024-06-02',
-      lastModified: '2024-06-02',
-      status: 'pending',
-      description: 'Initial site survey and assessment report'
-    },
-    {
-      id: 3,
-      name: 'Material Specifications.xlsx',
-      type: 'specs',
-      category: 'Technical',
-      size: '856 KB',
-      uploadedBy: 'John Supervisor',
-      uploadDate: '2024-06-03',
-      lastModified: '2024-06-03',
-      status: 'approved',
-      description: 'Detailed material specifications and requirements'
-    },
-    {
-      id: 4,
-      name: 'Safety Inspection Checklist.pdf',
-      type: 'checklist',
-      category: 'Safety',
-      size: '1.2 MB',
-      uploadedBy: 'Emily Project Manager',
-      uploadDate: '2024-06-04',
-      lastModified: '2024-06-04',
-      status: 'approved',
-      description: 'Safety inspection checklist and compliance documents'
-    },
-    {
-      id: 5,
-      name: 'Progress Photos.zip',
-      type: 'photos',
-      category: 'Visual',
-      size: '15.7 MB',
-      uploadedBy: 'Carlos Crew Lead',
-      uploadDate: '2024-06-05',
-      lastModified: '2024-06-05',
-      status: 'pending',
-      description: 'Weekly progress photos and site documentation'
-    }
-  ]);
-
+  const queryClient = useQueryClient();
+  
+  // Local state for UI
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -71,6 +14,56 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
   const [uploadCategory, setUploadCategory] = useState('Technical');
   const [uploadDescription, setUploadDescription] = useState('');
   const fileInputRef = useRef(null);
+  
+  // Fetch documents from database
+  const { data: documentsData, isLoading, error } = useQuery({
+    queryKey: ['projectDocuments', project?.id],
+    queryFn: async () => {
+      if (!project?.id) return [];
+      const response = await api.get(`/documents/project/${project.id}`);
+      return response.data?.data || [];
+    },
+    enabled: !!project?.id
+  });
+  
+  // Use real documents from database instead of mock data
+  const documents = documentsData || [];
+  
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (formData) => {
+      const response = await api.post('/documents/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projectDocuments', project?.id]);
+      toast.success('Documents uploaded successfully!');
+      setUploadModalOpen(false);
+      setSelectedFiles([]);
+      setUploadCategory('Technical');
+      setUploadDescription('');
+    },
+    onError: (error) => {
+      toast.error(`Upload failed: ${error.response?.data?.message || error.message}`);
+    }
+  });
+  
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (documentId) => {
+      const response = await api.delete(`/documents/${documentId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projectDocuments', project?.id]);
+      toast.success('Document deleted successfully!');
+    },
+    onError: (error) => {
+      toast.error(`Delete failed: ${error.response?.data?.message || error.message}`);
+    }
+  });
 
   const categories = [
     { id: 'All', name: 'All Documents', icon: '📁', count: documents.length },
@@ -82,48 +75,48 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
     { id: 'Communication', name: 'Communication', icon: '💬', count: documents.filter(d => d.category === 'Communication').length }
   ];
 
-  const getFileIcon = (fileName) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'pdf': return '📄';
-      case 'doc':
-      case 'docx': return '📝';
-      case 'xls':
-      case 'xlsx': return '📊';
-      case 'jpg':
-      case 'jpeg':
-      case 'png': return '🖼️';
-      case 'zip':
-      case 'rar': return '📦';
-      case 'mp4':
-      case 'avi': return '🎥';
-      default: return '📄';
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800 border-green-300';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'approved': return 'Approved';
-      case 'pending': return 'Pending Review';
-      case 'rejected': return 'Rejected';
-      default: return 'Unknown';
+      case 'approved': return '✅ Approved';
+      case 'pending': return '⏳ Pending';
+      case 'rejected': return '❌ Rejected';
+      default: return '❓ Unknown';
+    }
+  };
+
+  const getFileIcon = (filename) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf': return '📄';
+      case 'doc':
+      case 'docx': return '📝';
+      case 'xls':
+      case 'xlsx': return '📊';
+      case 'ppt':
+      case 'pptx': return '📑';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif': return '🖼️';
+      case 'zip':
+      case 'rar': return '📦';
+      default: return '📎';
     }
   };
 
   const filteredDocuments = documents.filter(doc => {
     const matchesCategory = selectedCategory === 'All' || doc.category === selectedCategory;
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase());
+                         doc.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -134,33 +127,24 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
 
   const handleUpload = () => {
     if (selectedFiles.length === 0) return;
-
-    const newDocuments = selectedFiles.map((file, index) => ({
-      id: documents.length + index + 1,
-      name: file.name,
-      type: file.type.split('/')[0],
-      category: uploadCategory,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      uploadedBy: 'Sarah Owner',
-      uploadDate: new Date().toISOString().split('T')[0],
-      lastModified: new Date().toISOString().split('T')[0],
-      status: 'pending',
-      description: uploadDescription || `Uploaded ${file.name}`
-    }));
-
-    setDocuments([...documents, ...newDocuments]);
-    setSelectedFiles([]);
-    setUploadDescription('');
-    setUploadCategory('Technical');
-    setUploadModalOpen(false);
+    
+    const formData = new FormData();
+    selectedFiles.forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('projectId', project.id);
+    formData.append('category', uploadCategory);
+    formData.append('description', uploadDescription || 'No description provided');
+    
+    uploadMutation.mutate(formData);
   };
 
   const handleDelete = (documentId) => {
-    setDocuments(documents.filter(doc => doc.id !== documentId));
+    deleteMutation.mutate(documentId);
   };
 
   return (
-    <div className={`min-h-screen ${colorMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`h-screen flex flex-col overflow-hidden ${colorMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       {/* Header */}
       <div className={`sticky top-0 z-10 ${colorMode ? 'bg-gray-800 border-b border-gray-700' : 'bg-white border-b border-gray-200'} shadow-sm`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -188,7 +172,8 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Search and Filters */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -264,9 +249,33 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <span className={`ml-4 text-lg ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Loading documents...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className={`text-center py-12 ${colorMode ? 'text-red-400' : 'text-red-600'}`}>
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-lg font-semibold mb-2">Error Loading Documents</h3>
+            <p className="mb-4">{error.response?.data?.message || error.message || 'Failed to load documents'}</p>
+            <button
+              onClick={() => queryClient.invalidateQueries(['projectDocuments', project?.id])}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"
+            >
+              🔄 Retry
+            </button>
+          </div>
+        )}
+
         {/* Documents Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocuments.map(doc => (
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredDocuments.map(doc => (
             <div
               key={doc.id}
               className={`group relative rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] overflow-hidden ${
@@ -316,36 +325,28 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
               </div>
 
               {/* Document Actions */}
-              <div className={`p-3 ${colorMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <button
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        colorMode
-                          ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
-                          : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
-                      }`}
-                      title="View Document"
-                    >
-                      👁️
-                    </button>
-                    <button
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        colorMode
-                          ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700'
-                          : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
-                      }`}
-                      title="Download Document"
-                    >
-                      ⬇️
-                    </button>
-                  </div>
+              <div className={`p-4 ${colorMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                <div className="flex gap-2">
+                  <button className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
+                    colorMode
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}>
+                    📥 Download
+                  </button>
+                  <button className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
+                    colorMode
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}>
+                    👁️ View
+                  </button>
                   <button
                     onClick={() => handleDelete(doc.id)}
-                    className={`p-2 rounded-lg transition-colors duration-200 ${
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
                       colorMode
-                        ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700'
-                        : 'text-gray-600 hover:text-red-600 hover:bg-gray-100'
+                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
                     }`}
                     title="Delete Document"
                   >
@@ -355,26 +356,28 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredDocuments.length === 0 && (
-          <div className={`text-center py-12 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            <div className="text-6xl mb-4">📁</div>
-            <h3 className="text-lg font-semibold mb-2">No documents found</h3>
-            <p className="mb-4">No documents match your current search criteria.</p>
-            <button
-              onClick={() => setUploadModalOpen(true)}
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 ${
-                colorMode
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              📤 Upload Your First Document
-            </button>
+            
+            {/* Empty State */}
+            {filteredDocuments.length === 0 && (
+              <div className={`col-span-full text-center py-12 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className="text-6xl mb-4">📁</div>
+                <h3 className="text-lg font-semibold mb-2">No documents found</h3>
+                <p className="mb-4">No documents match your current search criteria.</p>
+                <button
+                  onClick={() => setUploadModalOpen(true)}
+                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 ${
+                    colorMode
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  📤 Upload Your First Document
+                </button>
+              </div>
+            )}
           </div>
         )}
+        </div>
       </div>
 
       {/* Upload Modal */}
@@ -449,7 +452,7 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
                 >
                   {categories.slice(1).map(category => (
                     <option key={category.id} value={category.id}>
-                      {category.icon} {category.name}
+                      {category.name}
                     </option>
                   ))}
                 </select>
@@ -463,9 +466,9 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
                 <textarea
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
-                  rows="3"
-                  placeholder="Add a description for the uploaded files..."
-                  className={`w-full px-3 py-2 border rounded-lg transition-colors duration-200 ${
+                  placeholder="Brief description of the documents..."
+                  rows={3}
+                  className={`w-full px-3 py-2 border rounded-lg transition-colors duration-200 resize-none ${
                     colorMode
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500'
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
@@ -487,14 +490,24 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
                 </button>
                 <button
                   onClick={handleUpload}
-                  disabled={selectedFiles.length === 0}
+                  disabled={selectedFiles.length === 0 || uploadMutation.isPending}
                   className={`flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 ${
-                    selectedFiles.length === 0
+                    selectedFiles.length === 0 || uploadMutation.isPending
                       ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                 >
-                  Upload {selectedFiles.length > 0 && `(${selectedFiles.length})`}
+                  {uploadMutation.isPending ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Uploading...
+                    </span>
+                  ) : (
+                    `Upload ${selectedFiles.length > 0 ? `(${selectedFiles.length})` : ''}`
+                  )}
                 </button>
               </div>
             </div>
@@ -505,4 +518,4 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
   );
 };
 
-export default ProjectDocumentsPage; 
+export default ProjectDocumentsPage;

@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
-// import { teamMembers } from '../../data/mockData';
+import { useProjects, useWorkflowAlerts, useRecentActivities } from '../../hooks/useQueryApi';
+import { useQueryClient } from '@tanstack/react-query';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
+import WorkflowProgressService from '../../services/workflowProgress';
 import { ACTIVITY_FEED_SUBJECTS } from '../../data/constants';
 
 const mockCoworkers = [
@@ -38,6 +42,7 @@ const initialChats = {
 };
 
 const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity, colorMode }) => {
+    const queryClient = useQueryClient();
     const [tab, setTab] = useState('feed');
     const [message, setMessage] = useState('');
     const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -52,16 +57,164 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     const [selectedCoworkerId, setSelectedCoworkerId] = useState(mockCoworkers[0].id);
     const [dmInput, setDmInput] = useState('');
     const [chats, setChats] = useState(initialChats);
+    
+    // New state for unified activity feed
+    const [currentUser, setCurrentUser] = useState({ firstName: 'Sarah', lastName: 'Owner' });
+    const [expandedAlerts, setExpandedAlerts] = useState(new Set());
+    const [expandedContacts, setExpandedContacts] = useState(new Set());
+    const [actionLoading, setActionLoading] = useState({});
+    
+    // Fetch real data for unified feed
+    const { data: projectsData } = useProjects();
+    const realProjects = projectsData?.data || projects || [];
+    
+    const { data: recentActivities } = useRecentActivities(50);
+    const { alerts: workflowAlerts, loading: alertsLoading } = useWorkflowAlerts({ status: 'active' });
 
+
+    // Create unified activities list combining Messages, Tasks, and Reminders
+    const unifiedActivities = useMemo(() => {
+        const allActivities = [];
+        
+        // Add Messages (from activities prop and recent activities)
+        if (activities?.length > 0) {
+            activities.forEach(activity => {
+                allActivities.push({
+                    id: `message-${activity.id}`,
+                    type: 'message',
+                    projectId: activity.projectId,
+                    subject: activity.subject || 'Project Update',
+                    author: activity.author || 'Team Member',
+                    timestamp: activity.timestamp || new Date().toISOString(),
+                    content: activity.description || activity.message,
+                    priority: activity.priority || 'medium',
+                    projectName: activity.projectName,
+                    projectNumber: activity.projectNumber,
+                    originalData: activity
+                });
+            });
+        }
+        
+        // Add recent activities from API
+        if (recentActivities?.length > 0) {
+            recentActivities.forEach(activity => {
+                allActivities.push({
+                    id: `api-message-${activity.id}`,
+                    type: 'message',
+                    projectId: activity.projectId,
+                    subject: activity.subject || 'Project Update',
+                    author: activity.author || 'Team Member',
+                    timestamp: activity.timestamp || new Date().toISOString(),
+                    content: activity.description || activity.message,
+                    priority: activity.priority || 'medium',
+                    projectName: activity.projectName,
+                    projectNumber: activity.projectNumber,
+                    originalData: activity
+                });
+            });
+        }
+        
+        // Add Tasks/Alerts (from workflow alerts)
+        if (workflowAlerts?.length > 0) {
+            workflowAlerts.forEach(alert => {
+                const actionData = alert.actionData || alert.metadata || {};
+                const project = realProjects?.find(p => p.id === (actionData.projectId || alert.projectId));
+                
+                allActivities.push({
+                    id: `alert-${alert._id || alert.id}`,
+                    type: 'alert',
+                    projectId: actionData.projectId || alert.projectId,
+                    subject: actionData.stepName || alert.title || 'Workflow Alert',
+                    author: 'System',
+                    timestamp: alert.createdAt || new Date().toISOString(),
+                    content: alert.description || actionData.description || 'Workflow item needs attention',
+                    priority: actionData.priority || alert.priority || 'medium',
+                    projectName: project?.name || alert.projectName,
+                    projectNumber: project?.projectNumber || alert.projectNumber,
+                    phase: actionData.phase || alert.phase,
+                    lineItem: actionData.stepName || alert.title,
+                    originalData: alert
+                });
+            });
+        }
+        
+        // Sort by timestamp (newest first)
+        return allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }, [activities, recentActivities, workflowAlerts, realProjects]);
 
     // Filter activities to show only user-assigned activities (assuming current user is 'Sarah Owner')
-    const currentUser = 'Sarah Owner';
-    const userAssignedActivities = activities.filter(activity => 
-        activity.author === currentUser || 
-        activity.assignedTo === currentUser ||
-        activity.projectManager === currentUser ||
-        activity.accountManager === currentUser
+    const currentUserName = 'Sarah Owner';
+    const userAssignedActivities = unifiedActivities.filter(activity => 
+        activity.author === currentUserName || 
+        activity.assignedTo === currentUserName ||
+        activity.projectManager === currentUserName ||
+        activity.accountManager === currentUserName ||
+        activity.type === 'alert' // Include all alerts/tasks
     );
+
+    // Format user role for alerts
+    const formatUserRole = (role) => {
+        if (!role) return 'OFFICE';
+        
+        switch (role.toUpperCase()) {
+            case 'PROJECT_MANAGER': return 'PM';
+            case 'FIELD_DIRECTOR': return 'FIELD';
+            case 'ADMINISTRATION': return 'ADMIN';
+            case 'OFFICE': return 'OFFICE';
+            default: return role.toUpperCase();
+        }
+    };
+    
+    // Handle alert completion (same as TasksAndAlertsPage)
+    const handleCompleteAlert = async (alert) => {
+        const alertId = alert._id || alert.id;
+        setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: true }));
+        
+        try {
+            const projectId = alert.relatedProject?._id || alert.projectId || alert.project?._id;
+            const stepName = alert.metadata?.stepName || alert.metadata?.cleanTaskName || alert.stepName || alert.title;
+            
+            let lineItemId = alert.lineItemId || alert.metadata?.lineItemId || alert.stepId || alert.id;
+            
+            const response = await api.post('/workflows/complete-item', {
+                projectId: projectId,
+                lineItemId: lineItemId,
+                notes: `Completed via activity feed by ${currentUser?.firstName || 'User'} ${currentUser?.lastName || ''}`,
+                alertId: alertId
+            });
+
+            if (response.status >= 200 && response.status < 300) {
+                toast.success('✅ Task completed successfully!', {
+                    duration: 4000,
+                    style: { background: '#10B981', color: '#ffffff', fontWeight: '600' }
+                });
+                
+                // Refresh data
+                queryClient.invalidateQueries(['workflowAlerts']);
+                queryClient.invalidateQueries(['projects']);
+                
+                // Dispatch global event
+                const globalEvent = new CustomEvent('workflowStepCompleted', {
+                    detail: {
+                        projectId: projectId,
+                        lineItemId: lineItemId,
+                        stepName: stepName,
+                        source: 'Activity Feed',
+                        timestamp: new Date().toISOString()
+                    }
+                });
+                window.dispatchEvent(globalEvent);
+            }
+        } catch (error) {
+            console.error('Failed to complete alert:', error);
+            toast.error(`Failed to complete task: ${error.message}`, {
+                duration: 4000,
+                style: { background: '#EF4444', color: '#ffffff', fontWeight: '600' }
+            });
+        } finally {
+            setActionLoading(prev => ({ ...prev, [`${alertId}-complete`]: false }));
+        }
+    };
 
     const handlePost = () => {
         if (!message) return;
@@ -177,9 +330,9 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
               <>
                 <div className={`${colorMode ? 'bg-[#0f172a] text-white' : 'bg-white text-gray-800'} shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] px-4 py-3 mb-4`}>
                     <div>
-                        <h1 className={`font-bold text-[9px] leading-tight ${colorMode ? 'text-white' : 'text-[#2D3748]'}`}>My Project Messages</h1>
+                        <h1 className={`font-bold text-[9px] leading-tight ${colorMode ? 'text-white' : 'text-[#2D3748]'}`}>Activity Feed</h1>
                         <div className={`border-b mt-1 mb-2 ${colorMode ? 'border-gray-600' : 'border-[#E2E8F0]'}`} />
-                        <p className={`mt-1 mb-2 text-[7px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>Your project conversations and updates from all projects.</p>
+                        <p className={`mt-1 mb-2 text-[7px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>All your messages, tasks, and reminders in one unified view.</p>
                     </div>
 
                     {/* Filter Controls */}
@@ -196,7 +349,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                 }`}
                             >
                                 <option value="">All Projects</option>
-                                {(projects || []).map(p => (
+                                {(realProjects || []).map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
                             </select>
@@ -219,30 +372,164 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                     </div>
 
                     {/* Activity Count */}
-                    {filteredActivities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length > 0 && (
+                    {filteredActivities.length > 0 && (
                         <div className={`mb-2 p-1 rounded ${colorMode ? 'bg-blue-900/20 border border-blue-700/30' : 'bg-blue-50 border border-blue-200'}`}>
                             <p className={`text-[7px] ${colorMode ? 'text-blue-300' : 'text-blue-700'}`}>
-                                <strong>{filteredActivities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}</strong> new activities in the last 24 hours
+                                <strong>{filteredActivities.length}</strong> total activities 
+                                ({filteredActivities.filter(a => a.type === 'message').length} messages, {filteredActivities.filter(a => a.type === 'alert').length} tasks)
+                                {filteredActivities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length > 0 && 
+                                    ` • ${filteredActivities.filter(a => new Date(a.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length} recent`
+                                }
                             </p>
                         </div>
                     )}
 
                     {/* Activity List */}
                     <div className="space-y-1">
-                        {filteredActivities.length === 0 ? (
+                        {alertsLoading ? (
+                            <div className="text-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                                <p className={`mt-2 text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading activities...</p>
+                            </div>
+                        ) : filteredActivities.length === 0 ? (
                             <div className={`text-center py-3 text-[7px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                 No assigned activities found. {selectedSubject && `Try selecting a different subject or project.`}
                             </div>
-                        ) : filteredActivities.map((activity) => (
-                            <ProjectMessagesCard 
-                                key={activity.id} 
-                                activity={activity} 
-                                onProjectSelect={onProjectSelect}
-                                projects={projects}
-                                colorMode={colorMode}
-                                onQuickReply={handleQuickReply}
-                            />
-                        ))}
+                        ) : filteredActivities.map((activity) => {
+                            if (activity.type === 'message') {
+                                // Render as ProjectMessagesCard for messages
+                                return (
+                                    <ProjectMessagesCard 
+                                        key={activity.id} 
+                                        activity={activity.originalData} 
+                                        onProjectSelect={onProjectSelect}
+                                        projects={realProjects}
+                                        colorMode={colorMode}
+                                        onQuickReply={handleQuickReply}
+                                        sourceSection="Activity Feed"
+                                    />
+                                );
+                            } else if (activity.type === 'alert') {
+                                // Render as Alert Card for tasks/alerts (same as TasksAndAlertsPage)
+                                const alert = activity.originalData;
+                                const alertId = alert._id || alert.id;
+                                const actionData = alert.actionData || alert.metadata || {};
+                                const project = realProjects?.find(p => p.id === activity.projectId);
+                                const projectNumber = project?.projectNumber || activity.projectNumber || '12345';
+                                const primaryContact = project?.customer?.name || project?.clientName || 'Unknown Customer';
+                                const isExpanded = expandedAlerts.has(alertId);
+                                const phase = actionData.phase || alert.phase || 'LEAD';
+                                
+                                const getPhaseCircleColors = (phase) => {
+                                    const normalizedPhase = WorkflowProgressService.normalizePhase(phase || 'LEAD');
+                                    return WorkflowProgressService.getPhaseColor(normalizedPhase);
+                                };
+
+                                return (
+                                    <div key={activity.id} className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d]' : 'bg-white hover:bg-[#F8F9FA]'} rounded-[20px] shadow-sm border transition-all duration-200 cursor-pointer`}>
+                                        {/* Alert header */}
+                                        <div 
+                                            className="p-3 cursor-pointer"
+                                            onClick={() => {
+                                                setExpandedAlerts(prev => {
+                                                    const newSet = new Set(prev);
+                                                    if (newSet.has(alertId)) newSet.delete(alertId);
+                                                    else newSet.add(alertId);
+                                                    return newSet;
+                                                });
+                                            }}
+                                        >
+                                            <div className="flex items-center justify-between gap-6">
+                                                {/* Phase Circle */}
+                                                <div className="relative flex-shrink-0">
+                                                    <div className={`w-7 h-7 ${getPhaseCircleColors(phase).bg} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm`}>
+                                                        {phase.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    {activity.priority === 'high' && (
+                                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-[10px] font-bold">!</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                {/* Project Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-3 mb-1">
+                                                        <button 
+                                                            className={`text-[10px] font-bold cursor-pointer hover:underline flex-shrink-0 ${colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (project && onProjectSelect) {
+                                                                    onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                                                }
+                                                            }}
+                                                        >
+                                                            {projectNumber}
+                                                        </button>
+                                                        <span className={`text-[10px] font-semibold ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                                            {primaryContact}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Task:</span>
+                                                        <span className={`text-[10px] font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                                            {activity.lineItem}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Dropdown Arrow */}
+                                                <div className="flex-shrink-0">
+                                                    <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''} ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Expandable section */}
+                                        {isExpanded && (
+                                            <div className={`px-3 py-2 border-t ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                                <div className="flex gap-2 mb-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCompleteAlert(alert);
+                                                        }}
+                                                        disabled={actionLoading[`${alertId}-complete`]}
+                                                        className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
+                                                            actionLoading[`${alertId}-complete`] 
+                                                                ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed' 
+                                                                : 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md'
+                                                        }`}
+                                                    >
+                                                        {actionLoading[`${alertId}-complete`] ? (
+                                                            <span className="flex items-center justify-center">
+                                                                <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                Completing...
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center justify-center">
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                Complete
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+                            
+                            return null;
+                        })}
                     </div>
 
                     {/* Composer always at the bottom with full height allowance */}

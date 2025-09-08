@@ -1375,9 +1375,32 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         attendees: attendeesIds,
       });
     });
+    // Workflow Alerts: Add as tasks
+    if (workflowAlerts?.length > 0) {
+      workflowAlerts.forEach(alert => {
+        const actionData = alert.actionData || alert.metadata || {};
+        const project = projects?.find(p => p.id === (actionData.projectId || alert.projectId));
+        
+        items.push({
+          id: `alert_${alert._id || alert.id}`,
+          type: 'task',
+          authorId: null,
+          author: 'System',
+          projectId: actionData.projectId || alert.projectId,
+          projectName: project?.name || alert.projectName,
+          subject: actionData.stepName || alert.title || 'Workflow Alert',
+          content: alert.description || actionData.description || 'Workflow item needs attention',
+          timestamp: alert.createdAt || new Date().toISOString(),
+          priority: actionData.priority || alert.priority || 'medium',
+          phase: actionData.phase || alert.phase,
+          lineItem: actionData.stepName || alert.title,
+          originalAlert: alert
+        });
+      });
+    }
     // Sort newest first
     return items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [messagesData, calendarEvents]);
+  }, [messagesData, calendarEvents, workflowAlerts, projects]);
 
   // Group projects by phase
   const projectsByPhase = useMemo(() => {
@@ -4944,177 +4967,179 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       </div>
                     );
                   } else if (item.type === 'reminder') {
-                    // EXACT SAME AS REMINDERS TAB
-                    const associatedProject = projects?.find(p => String(p.id) === String(item.projectId));
-                    const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
-                    const recipients = Array.isArray(item.recipients) ? 
-                      item.recipients.map(id => {
-                        if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
-                        return availableUsers.find(u => String(u.id) === String(id));
-                      }).filter(Boolean) : [];
-                    
-                    // Format timestamps with full date and time
-                    const formatDateTime = (timestamp) => {
-                      const date = new Date(timestamp);
-                      return {
-                        date: date.toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric',
-                          year: 'numeric'
-                        }),
-                        time: date.toLocaleTimeString('en-US', { 
-                          hour: 'numeric', 
-                          minute: '2-digit',
-                          hour12: true
-                        })
-                      };
-                    };
-
-                    const createdDateTime = formatDateTime(item.timestamp);
-                    const reminderDateTime = item.reminderDate ? formatDateTime(item.reminderDate) : createdDateTime;
-                    
-                    // Determine reminder status
-                    const now = new Date();
-                    const reminderDate = new Date(item.reminderDate || item.timestamp);
-                    const isOverdue = reminderDate < now;
-                    const isUpcoming = reminderDate > now && (reminderDate - now) < (24 * 60 * 60 * 1000); // Within 24 hours
-                    
-                    // Get status styling
-                    const getStatusStyle = () => {
-                      if (isOverdue) {
-                        return {
-                          borderColor: 'border-red-300',
-                          bgColor: 'bg-red-50',
-                          iconColor: 'text-red-500',
-                          statusText: 'Overdue',
-                          statusColor: 'text-red-700',
-                          statusBg: 'bg-red-100'
-                        };
-                      } else if (isUpcoming) {
-                        return {
-                          borderColor: 'border-green-300',
-                          bgColor: 'bg-green-50',
-                          iconColor: 'text-green-500',
-                          statusText: 'Upcoming',
-                          statusColor: 'text-green-700',
-                          statusBg: 'bg-green-100'
-                        };
-                      } else {
-                        return {
-                          borderColor: 'border-amber-300',
-                          bgColor: 'bg-amber-50',
-                          iconColor: 'text-amber-500',
-                          statusText: 'Scheduled',
-                          statusColor: 'text-amber-700',
-                          statusBg: 'bg-amber-100'
-                        };
-                      }
-                    };
-
-                    const statusStyle = getStatusStyle();
+                    // EXACT SAME AS REMINDERS TAB - Compact format
+                    const project = projects?.find(p => String(p.id) === String(item.projectId));
+                    const projectNumber = project?.projectNumber || item.projectNumber || null;
+                    const primaryCustomer = project?.customer?.primaryName || project?.customer?.name || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Unknown Customer';
+                    const subject = item.subject || item.title || 'Reminder';
                     
                     return (
-                      <div key={item.id} className={`group bg-white rounded-xl border-l-4 ${statusStyle.borderColor} ${statusStyle.bgColor} border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-hidden`}>
-                        <div className="p-6">
-                          {/* Header with title and status */}
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <div className={`w-10 h-10 rounded-full ${statusStyle.bgColor} flex items-center justify-center flex-shrink-0`}>
-                                <svg className={`w-5 h-5 ${statusStyle.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-amber-600 transition-colors">
-                                  {item.subject || 'Untitled Reminder'}
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.statusBg} ${statusStyle.statusColor} border`}>
-                                    {isOverdue ? '🚨 Overdue' : isUpcoming ? '⏰ Upcoming' : '📅 Scheduled'}
+                      <div key={item.id} className="bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer">
+                        {/* Main reminder header - Compact 2-row layout matching tasks exactly */}
+                        <div 
+                          className="flex items-center gap-1.5 p-1.5"
+                          onClick={() => handleToggleMessage(item.id)}
+                        >
+                          {/* Phase Circle - Dynamic based on project association */}
+                          {(() => {
+                            // Check if reminder is tied to a project
+                            const isProjectReminder = item.projectId && project;
+                            
+                            if (isProjectReminder) {
+                              // Get project phase and colors
+                              const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                              const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
+                              const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
+                              
+                              return (
+                                <div 
+                                  className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
+                                  style={{ backgroundColor: phaseColor }}
+                                >
+                                  {phaseInitial}
+                                </div>
+                              );
+                            } else {
+                              // No project - use orange R for reminder
+                              return (
+                                <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
+                                  R
+                                </div>
+                              );
+                            }
+                          })()}
+                          
+                          <div className="flex-1 min-w-0">
+                            {/* Row 1: Project# or General | Customer | Subject */}
+                            <div className="flex items-center justify-between overflow-hidden relative">
+                              <div className="flex items-center min-w-0 flex-1">
+                                {/* Project Number or General Reminder - Fixed width for alignment */}
+                                {item.projectId && project ? (
+                                  <button
+                                    className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
+                                    style={{ width: '46px', marginLeft: '-8px' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onProjectSelect) {
+                                        onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                      }
+                                    }}
+                                  >
+                                    {projectNumber}
+                                  </button>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                    General
                                   </span>
-                                  {associatedProject && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                                      #{String(associatedProject.projectNumber || associatedProject.id).padStart(5, '0')}
-                                    </span>
-                                  )}
+                                )}
+                                
+                                {/* Primary Customer */}
+                                <div className="flex items-center gap-1">
+                                  <span 
+                                    className="text-[9px] font-semibold text-gray-700 truncate"
+                                    style={{ maxWidth: '80px' }}
+                                    title={primaryCustomer}
+                                  >
+                                    {primaryCustomer}
+                                  </span>
+                                </div>
+                                
+                                {/* Subject - Fixed position for perfect alignment */}
+                                <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                  <span 
+                                    className="text-[9px] font-medium text-gray-600 whitespace-nowrap"
+                                    style={{ 
+                                      display: 'inline-block',
+                                      verticalAlign: 'baseline',
+                                      lineHeight: '1'
+                                    }}
+                                  >
+                                    Subject: {subject}
+                                  </span>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-
-                          {/* Content */}
-                          {item.content && (
-                            <div className="mb-4">
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {item.content}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Metadata */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 818 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span className="text-gray-600">From:</span>
-                                <span className="font-medium text-gray-900">{author.firstName} {author.lastName}</span>
+                              
+                              {/* Right side - Reminder indicator and actions */}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {/* Clock icon for reminders */}
+                                <div className="flex items-center gap-1">
+                                  <svg className="w-2.5 h-2.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                
+                                {/* Dropdown arrow */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleMessage(item.id);
+                                  }}
+                                  className="p-1 rounded transition-colors text-gray-600 hover:bg-gray-200"
+                                  title={expandedMessages.has(item.id) ? "Collapse reminder" : "Expand reminder"}
+                                >
+                                  <svg className={`w-2.5 h-2.5 transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 919.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                                <span className="text-gray-600">To:</span>
-                                <span className="font-medium text-gray-900">
-                                  {recipients.length > 0 ? (
-                                    recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`
-                                  ) : 'No recipients'}
-                                  {recipients.length > 1 && !recipients[0].isAll && (
-                                    <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium ml-1">
-                                      +{recipients.length - 1}
-                                    </span>
-                                  )}
+                            </div>
+                            
+                            {/* Row 2: From, To, and Timestamp */}
+                            <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
+                              <div className="flex items-baseline gap-0">
+                                {/* From - Fixed width container for consistent spacing */}
+                                <div 
+                                  className="flex-shrink-0"
+                                  style={{ width: '100px', marginLeft: '8px' }}
+                                >
+                                  <span className="text-[9px] font-medium text-gray-600 whitespace-nowrap">
+                                    From: {item.author || 'System'}
+                                  </span>
+                                </div>
+                                
+                                {/* To - Fixed position to match Subject exactly */}
+                                <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                  <span 
+                                    className="text-[9px] font-medium text-gray-600 whitespace-nowrap"
+                                    style={{ 
+                                      display: 'inline-block',
+                                      verticalAlign: 'baseline',
+                                      lineHeight: '1'
+                                    }}
+                                  >
+                                    To: All Users
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Timestamp - Far right */}
+                              <div className="flex-shrink-0">
+                                <span className="text-[8px] text-gray-500 whitespace-nowrap">
+                                  {(() => {
+                                    const date = new Date(item.timestamp);
+                                    return date.toLocaleDateString('en-US', { 
+                                      month: 'short', 
+                                      day: 'numeric'
+                                    }) + ', ' + date.toLocaleTimeString('en-US', {
+                                      hour: 'numeric',
+                                      minute: '2-digit',
+                                      hour12: true
+                                    });
+                                  })()}
                                 </span>
                               </div>
                             </div>
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                <span className="text-gray-600">Created:</span>
-                                <span className="font-medium text-gray-900">{createdDateTime.date} at {createdDateTime.time}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-                                </svg>
-                                <span className="text-gray-600">Reminder:</span>
-                                <span className="font-medium text-gray-900">{reminderDateTime.date} at {reminderDateTime.time}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-200">
-                            {associatedProject && (
-                              <button
-                                onClick={() => {
-                                  if (onProjectSelect) {
-                                    onProjectSelect(associatedProject, 'Project Profile', null, 'Activity Feed');
-                                  }
-                                }}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
-                              >
-                                View Project
-                              </button>
-                            )}
-                            <button className="text-sm font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                              Mark as Read
-                            </button>
                           </div>
                         </div>
+                        
+                        {/* Expandable content (if needed) */}
+                        {expandedMessages.has(item.id) && item.content && (
+                          <div className="px-3 py-2 border-t bg-gray-50 border-gray-200">
+                            <div className="text-[8px] text-gray-700">
+                              {item.content}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   }
