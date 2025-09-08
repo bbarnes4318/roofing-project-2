@@ -83,10 +83,10 @@ const EnhancedProjectDropdown = ({
 
   // Phase configuration
   const PHASES = {
-    LEAD: { name: "Lead", color: '#3B82F6', initial: 'L' },
-    PROSPECT: { name: "Prospect", color: '#F59E0B', initial: 'P' },
+    LEAD: { name: "Lead", color: '#EAB308', initial: 'L' },
+    PROSPECT: { name: "Prospect", color: '#F97316', initial: 'P' },
     APPROVED: { name: "Approved", color: '#10B981', initial: 'A' },
-    EXECUTION: { name: "Execution", color: '#EF4444', initial: 'E' },
+    EXECUTION: { name: "Execution", color: '#D946EF', initial: 'E' },
     SECOND_SUPPLEMENT: { name: "2nd Supplement", color: '#8B5CF6', initial: 'S' },
     COMPLETION: { name: "Completion", color: '#0EA5E9', initial: 'C' }
   };

@@ -370,14 +370,14 @@ class WorkflowProgressService {
     static getPhaseColor(phase) {
         const normalizedPhase = this.normalizePhase(phase);
         const colors = {
-            LEAD: '#3B82F6',           // Blue
-            PROSPECT: '#F59E0B',       // Amber/Yellow
-            APPROVED: '#10B981',       // Emerald Green
-            EXECUTION: '#EF4444',      // Red
-            SECOND_SUPPLEMENT: '#8B5CF6', // Vivid Violet
-            COMPLETION: '#0EA5E9'      // Bright Cyan-Teal
+            LEAD: '#EAB308',           // Yellow
+            PROSPECT: '#F97316',       // Orange
+            APPROVED: '#10B981',       // Emerald Green (stays the same)
+            EXECUTION: '#D946EF',      // Fuchsia
+            SECOND_SUPPLEMENT: '#8B5CF6', // Vivid Violet (stays the same)
+            COMPLETION: '#0EA5E9'      // Bright Cyan-Teal (stays the same)
         };
-        return colors[normalizedPhase] || '#3B82F6';
+        return colors[normalizedPhase] || '#EAB308';
     }
 
     /**
@@ -407,8 +407,8 @@ class WorkflowProgressService {
         // Remove # if present
         const hex = backgroundColor.replace('#', '').toUpperCase();
         
-        // Prospect override: ensure text uses #111827 on Prospect background
-        if (hex === 'F59E0B') {
+        // Yellow (Lead) and Orange (Prospect) need dark text for better contrast
+        if (hex === 'EAB308' || hex === 'F97316') {
             return '#111827';
         }
         
@@ -430,22 +430,22 @@ class WorkflowProgressService {
         
         // Convert hex colors to Tailwind background classes
         const colorToBg = {
-            '#3B82F6': 'bg-blue-500',      // Lead - Blue
-            '#F59E0B': 'bg-amber-500',     // Prospect - Amber/Yellow
-            '#10B981': 'bg-emerald-500',   // Approved - Emerald Green
-            '#EF4444': 'bg-red-500',       // Execution - Red
-            '#8B5CF6': 'bg-violet-500',    // Second Supplement - Vivid Violet
-            '#0EA5E9': 'bg-sky-500'        // Completion - Bright Cyan-Teal
+            '#EAB308': 'bg-yellow-500',    // Lead - Yellow
+            '#F97316': 'bg-orange-500',    // Prospect - Orange
+            '#10B981': 'bg-emerald-500',   // Approved - Emerald Green (stays the same)
+            '#D946EF': 'bg-fuchsia-500',   // Execution - Fuchsia
+            '#8B5CF6': 'bg-violet-500',    // Second Supplement - Vivid Violet (stays the same)
+            '#0EA5E9': 'bg-sky-500'        // Completion - Bright Cyan-Teal (stays the same)
         };
         
-        // Prospect override for Tailwind text class to match #111827
-        const tailwindTextColor = normalizedPhase === 'PROSPECT'
+        // Lead and Prospect need dark text for better contrast
+        const tailwindTextColor = (normalizedPhase === 'LEAD' || normalizedPhase === 'PROSPECT')
             ? 'text-gray-900'
             : (textColor === 'white' ? 'text-white' : 'text-black');
         
         return {
             initials,
-            bgColor: colorToBg[phaseColor] || 'bg-blue-500',
+            bgColor: colorToBg[phaseColor] || 'bg-yellow-500',
             textColor: tailwindTextColor,
             fullName: phaseName,
             hexColor: phaseColor,

@@ -43,6 +43,97 @@ const ItemTypes = {
   TAB: 'tab'
 };
 
+// Quick Move Panel for off-screen folder targeting
+const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) => {
+  if (!isVisible || !draggedItem) return null;
+
+  // Recursively collect all folders with their paths
+  const collectFolders = (items, currentPath = '') => {
+    const allFolders = [];
+    
+    items.forEach(item => {
+      if (item.type === 'folder') {
+        const folderPath = currentPath ? `${currentPath}/${item.id}` : item.id;
+        allFolders.push({
+          id: item.id,
+          name: item.name,
+          path: folderPath,
+          level: currentPath.split('/').filter(p => p).length
+        });
+        
+        if (item.children) {
+          allFolders.push(...collectFolders(item.children, folderPath));
+        }
+      }
+    });
+    
+    return allFolders;
+  };
+
+  const allFolders = collectFolders(folders);
+
+  const handleFolderSelect = (folder) => {
+    onMove(draggedItem.item, draggedItem.path, folder.path);
+    onClose();
+  };
+
+  return (
+    <div className="fixed top-20 right-4 w-80 max-h-96 bg-white rounded-lg shadow-2xl border-2 border-blue-300 z-50 overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FolderIcon className="w-5 h-5" />
+            <h3 className="font-semibold">Quick Move: {draggedItem?.item?.name}</h3>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-1 hover:bg-white/20 rounded"
+          >
+            <XMarkIcon className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-sm opacity-90 mt-1">Click any folder to move here</p>
+      </div>
+      
+      <div className="max-h-64 overflow-y-auto">
+        {allFolders.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">
+            <FolderPlusIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No folders available</p>
+            <p className="text-xs">Create a folder first</p>
+          </div>
+        ) : (
+          <div className="py-2">
+            {allFolders.map((folder) => (
+              <button
+                key={folder.path}
+                onClick={() => handleFolderSelect(folder)}
+                className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2 border-b border-gray-100 last:border-b-0"
+                style={{ paddingLeft: `${16 + folder.level * 20}px` }}
+              >
+                <FolderIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">{folder.name}</span>
+                <span className="text-xs text-gray-400 ml-auto">
+                  {folder.level > 0 ? `Level ${folder.level + 1}` : 'Root'}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      <div className="p-3 bg-gray-50 border-t">
+        <div className="flex items-center gap-2 text-xs text-gray-600">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Drag to any folder in the main view or click here for off-screen folders</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // AI-Powered Smart Search Component
 const SmartSearch = ({ onSearch, documents }) => {
   const [query, setQuery] = useState('');
@@ -438,15 +529,22 @@ const CollaborationPanel = ({ file, onShare }) => {
 };
 
 // Enhanced Draggable Item with all the bells and whistles
-const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onShowProperties, onShare }) => {
+const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onShowProperties, onShare, onReorder, onDragStart, onDragEnd }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [dropPosition, setDropPosition] = useState(null); // 'above' or 'below'
   
   const [{ isDragging }, drag] = useDrag({
     type: item.type === 'folder' ? ItemTypes.FOLDER : ItemTypes.FILE,
     item: { item, path },
+    begin: () => {
+      if (onDragStart) onDragStart({ item, path });
+    },
+    end: () => {
+      if (onDragEnd) onDragEnd();
+    },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -455,28 +553,57 @@ const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onSho
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: [ItemTypes.FOLDER, ItemTypes.FILE],
     canDrop: (draggedItem) => {
-      // Only allow dropping on folders
-      if (item.type !== 'folder') return false;
-      
       // Don't allow dropping an item on itself
       if (draggedItem.item.id === item.id) return false;
       
-      // Don't allow dropping a folder into its own descendants
-      const newPath = path ? `${path}/${item.id}` : item.id;
-      if (draggedItem.item.type === 'folder' && newPath.includes(draggedItem.item.id)) return false;
+      // For folder dropping (existing functionality)
+      if (item.type === 'folder') {
+        // Don't allow dropping a folder into its own descendants
+        const newPath = path ? `${path}/${item.id}` : item.id;
+        if (draggedItem.item.type === 'folder' && newPath.includes(draggedItem.item.id)) return false;
+        
+        // Don't allow dropping in the same location
+        if (draggedItem.path === newPath) return false;
+        
+        return true;
+      }
       
-      // Don't allow dropping in the same location
-      if (draggedItem.path === newPath) return false;
+      // For file reordering (new functionality)
+      // Allow reordering files within the same folder level
+      return draggedItem.path === path;
+    },
+    hover: (draggedItem, monitor) => {
+      if (!monitor.isOver({ shallow: true })) return;
       
-      return true;
+      // Calculate drop position for file reordering
+      if (item.type !== 'folder' && draggedItem.path === path) {
+        const hoverBoundingRect = monitor.getDropTargetMonitor().getClientBoundingRect();
+        const clientOffset = monitor.getClientOffset();
+        const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+        
+        setDropPosition(hoverClientY < hoverMiddleY ? 'above' : 'below');
+      } else {
+        setDropPosition(null);
+      }
     },
     drop: (draggedItem) => {
-      const newPath = path ? `${path}/${item.id}` : item.id;
-      console.log(`Dropping item:`, draggedItem.item.name, `from path:`, draggedItem.path, `to path:`, newPath);
-      onMove(draggedItem.item, draggedItem.path, newPath);
+      if (item.type === 'folder') {
+        // Existing folder drop functionality
+        const newPath = path ? `${path}/${item.id}` : item.id;
+        console.log(`Dropping item:`, draggedItem.item.name, `from path:`, draggedItem.path, `to path:`, newPath);
+        onMove(draggedItem.item, draggedItem.path, newPath);
+      } else {
+        // New file reordering functionality
+        if (onReorder && draggedItem.path === path) {
+          console.log(`Reordering item:`, draggedItem.item.name, `${dropPosition} item:`, item.name);
+          onReorder(draggedItem.item, item, dropPosition);
+        }
+      }
+      setDropPosition(null);
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
+      isOver: monitor.isOver({ shallow: true }),
       canDrop: monitor.canDrop(),
     }),
   });
@@ -505,10 +632,15 @@ const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onSho
 
   return (
     <div className="group relative">
+      {/* Drop zone indicator for file reordering */}
+      {dropPosition === 'above' && (
+        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-lg z-10" />
+      )}
+      
       <div
         ref={(node) => {
           drag(node);
-          if (isFolder) drop(node);
+          drop(node); // Now all items can be drop targets
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
@@ -517,9 +649,16 @@ const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onSho
         }}
         className={`flex items-center gap-2 p-3 rounded-lg cursor-move hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 ${
           isDragging ? 'opacity-50 transform rotate-2' : ''
-        } ${isOver && canDrop ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 border-dashed shadow-lg' : ''} ${getPriorityStyle()}`}
+        } ${isOver && canDrop && item.type === 'folder' ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 border-dashed shadow-lg' : ''} ${
+          isOver && canDrop && item.type !== 'folder' && dropPosition ? 'bg-blue-50' : ''
+        } ${getPriorityStyle()}`}
         style={{ paddingLeft: `${(path.split('/').length - 1) * 20 + 12}px` }}
       >
+      
+      {/* Drop zone indicator for file reordering */}
+      {dropPosition === 'below' && (
+        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-lg z-10" />
+      )}
         {/* Folder Toggle */}
         {isFolder && (
           <button
@@ -644,11 +783,14 @@ const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onSho
               item={child}
               path={`${path}/${item.id}`}
               onMove={onMove}
+              onReorder={onReorder}
               onRename={onRename}
               onDelete={onDelete}
               onToggle={onToggle}
               onShowProperties={onShowProperties}
               onShare={onShare}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
             />
           ))}
         </div>
@@ -774,6 +916,8 @@ export default function CompanyDocumentsPage({ colorMode }) {
   const [selectedParentFolder, setSelectedParentFolder] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showFileProperties, setShowFileProperties] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState('all');
   
@@ -990,6 +1134,85 @@ export default function CompanyDocumentsPage({ colorMode }) {
     
     const targetFolder = toPath ? toPath.split('/').pop() : 'root folder';
     toast.success(`🚀 Moved "${item.name}" to ${targetFolder}!`);
+  };
+
+  // Handle file reordering within the same folder level
+  const handleItemReorder = (draggedItem, targetItem, position) => {
+    const tabId = activeTabId;
+    
+    setDocuments(prevDocs => {
+      const newDocs = { ...prevDocs };
+      const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+      
+      const reorderItemsAtPath = (items, path, draggedId, targetId, position) => {
+        // Helper function to find items at a specific path
+        const getItemsAtPath = (items, currentPath) => {
+          if (!path || path === '' || path === currentPath) {
+            return items;
+          }
+          
+          const pathParts = path.split('/').filter(p => p);
+          let targetItems = items;
+          
+          for (const pathPart of pathParts) {
+            const folder = targetItems.find(item => item.id === pathPart && item.type === 'folder');
+            if (folder && folder.children) {
+              targetItems = folder.children;
+            } else {
+              return null; // Path not found
+            }
+          }
+          
+          return targetItems;
+        };
+        
+        const targetItems = getItemsAtPath(items, '');
+        if (!targetItems) return false;
+        
+        // Find both items
+        const draggedIndex = targetItems.findIndex(item => item.id === draggedId);
+        const targetIndex = targetItems.findIndex(item => item.id === targetId);
+        
+        if (draggedIndex === -1 || targetIndex === -1) return false;
+        
+        // Remove dragged item
+        const [draggedItem] = targetItems.splice(draggedIndex, 1);
+        
+        // Calculate new insertion position
+        const newTargetIndex = targetItems.findIndex(item => item.id === targetId);
+        const insertIndex = position === 'above' ? newTargetIndex : newTargetIndex + 1;
+        
+        // Insert at new position
+        targetItems.splice(insertIndex, 0, draggedItem);
+        
+        return true;
+      };
+      
+      const success = reorderItemsAtPath(tabDocs, draggedItem.path, draggedItem.id, targetItem.id, position);
+      
+      if (success) {
+        newDocs[tabId] = tabDocs;
+        console.log(`Reordered "${draggedItem.name}" ${position} "${targetItem.name}"`);
+      } else {
+        console.error(`Failed to reorder items`);
+        return prevDocs;
+      }
+      
+      return newDocs;
+    });
+    
+    toast.success(`📝 Reordered "${draggedItem.name}" ${position} "${targetItem.name}"!`);
+  };
+
+  // Global drag state handlers for Quick Move Panel
+  const handleDragStart = (dragInfo) => {
+    setIsDragging(true);
+    setDraggedItem(dragInfo);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setDraggedItem(null);
   };
 
   const handleItemRename = (item, path, newName) => {
@@ -1602,11 +1825,14 @@ export default function CompanyDocumentsPage({ colorMode }) {
                           item={item}
                           path=""
                           onMove={handleItemMove}
+                          onReorder={handleItemReorder}
                           onRename={handleItemRename}
                           onDelete={handleItemDelete}
                           onToggle={handleItemToggle}
                           onShowProperties={handleFileProperties}
                           onShare={handleShareFile}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
                         />
                       ))}
                     </div>
@@ -1978,11 +2204,14 @@ export default function CompanyDocumentsPage({ colorMode }) {
                       item={item}
                       path=""
                       onMove={handleItemMove}
+                      onReorder={handleItemReorder}
                       onRename={handleItemRename}
                       onDelete={handleItemDelete}
                       onToggle={handleItemToggle}
                       onShowProperties={handleFileProperties}
                       onShare={handleShareFile}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
                     />
                   ))
                 ) : (
@@ -2223,6 +2452,15 @@ export default function CompanyDocumentsPage({ colorMode }) {
           </div>
         )}
       </div>
+
+      {/* Quick Move Panel for off-screen folder targeting */}
+      <QuickMovePanel 
+        isVisible={isDragging}
+        folders={documents[activeTabId] || []}
+        onMove={handleItemMove}
+        draggedItem={draggedItem}
+        onClose={handleDragEnd}
+      />
 
       <style jsx>{`
         @keyframes scale-in {

@@ -3584,15 +3584,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                     className="flex items-center gap-1.5 p-1.5"
                                     onClick={() => handleToggleMessage(item.id)}
                                   >
-                                    {/* Checkbox - TOP LEFT CORNER */}
-                                    <input
-                                      type="checkbox"
-                                      checked={isCompleted}
-                                      onChange={() => handleTaskToggle(item.id)}
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0 self-start"
-                                    />
-                                    
                                     {/* Phase Circle - Dynamic based on project association */}
                                     {(() => {
                                       // Check if task is tied to a project
@@ -3664,8 +3655,29 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           </div>
                                         </div>
                                         
-                                        {/* Right side - Task indicator and actions */}
+                                        {/* Right side - Timestamp, Checkbox and actions */}
                                         <div className="flex items-center gap-1.5 flex-shrink-0">
+                                          {/* Timestamp - moved to left of checkbox */}
+                                          <span className="text-[8px] whitespace-nowrap text-gray-500">
+                                            {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                                              month: 'short', 
+                                              day: 'numeric'
+                                            }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
+                                              hour: 'numeric',
+                                              minute: '2-digit',
+                                              hour12: true
+                                            })}
+                                          </span>
+                                          
+                                          {/* Checkbox - moved to where timestamp was */}
+                                          <input
+                                            type="checkbox"
+                                            checked={isCompleted}
+                                            onChange={() => handleTaskToggle(item.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                          />
+                                          
                                           {/* Task indicator - CLEARLY INDICATES IT IS A TASK */}
                                           <div className="flex flex-col items-center">
                                             <span className="text-[8px] font-bold text-orange-500">
@@ -3682,7 +3694,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                         </div>
                                       </div>
                                       
-                                      {/* Row 2: From, To, and Timestamp */}
+                                      {/* Row 2: From and To */}
                                       <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
                                         <div className="flex items-baseline gap-0">
                                           {/* From - Fixed width container for consistent spacing */}
@@ -3698,20 +3710,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                               To: {item.assignedTo || item.recipient || item.author}
                                             </span>
                                           </div>
-                                        </div>
-                                        
-                                        {/* Timestamp - Far right */}
-                                        <div className="flex-shrink-0">
-                                          <span className="text-[8px] whitespace-nowrap text-gray-500">
-                                            {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                                              month: 'short', 
-                                              day: 'numeric'
-                                            }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
-                                              hour: 'numeric',
-                                              minute: '2-digit',
-                                              hour12: true
-                                            })}
-                                          </span>
                                         </div>
                                       </div>
                                     </div>
@@ -3948,7 +3946,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                   </span>
                                 </div>
                                 
-                                {/* Row 2: From/To and Timestamp */}
+                                {/* Row 2: From/To, Timestamp and Checkbox */}
                                 <div className="flex items-center justify-between mt-1">
                                   <div className="flex items-center gap-3 text-[8px] text-gray-600">
                                     <span className="flex items-center gap-1">
@@ -3971,9 +3969,27 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       </span>
                                     </span>
                                   </div>
-                                  <span className="text-[8px] text-gray-500 font-medium flex-shrink-0">
-                                    {formatTimeAgo(item.timestamp)}
-                                  </span>
+                                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    {/* Timestamp - moved to left of checkbox, using same format as Tasks tab */}
+                                    <span className="text-[8px] whitespace-nowrap text-gray-500">
+                                      {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric'
+                                      }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })}
+                                    </span>
+                                    {/* Checkbox for marking reminder as completed */}
+                                    <input
+                                      type="checkbox"
+                                      checked={completedTasks.has(item.id)}
+                                      onChange={() => handleTaskToggle(item.id)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                               

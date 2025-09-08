@@ -178,9 +178,9 @@
 
 .global-search-input.dark-mode:focus {
   background: #111827;
-  border-color: #3B82F6;
+  border-color: #EAB308;
   box-shadow: 
-    0 0 0 1px rgba(59, 130, 246, 0.4),
+    0 0 0 1px rgba(234, 179, 8, 0.4),
     0 4px 6px -1px rgba(0, 0, 0, 0.3),
     0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
@@ -429,10 +429,10 @@
 
 /* Phase Colors */
 .phase-indicator.phase-not-started {
-  background: #EF4444;
+  background: #D946EF;
 }
 .phase-indicator.phase-in-progress {
-  background: #F59E0B;
+  background: #F97316;
 }
 .phase-indicator.phase-completed {
   background: #10B981;
@@ -610,7 +610,7 @@
 /* ACCESSIBILITY */
 /* ========================= */
 .global-search-input:focus-visible {
-  outline: 2px solid #3B82F6;
+  outline: 2px solid #EAB308;
   outline-offset: 2px;
 }
 
@@ -698,7 +698,7 @@
 
 /* Primary Action Buttons */
 .action-btn.primary {
-  background: #3B82F6;
+  background: #EAB308;
   color: white;
   border-color: #2563EB;
 }
@@ -771,13 +771,13 @@
 }
 
 .action-btn.secondary.send-message-btn:hover {
-  color: #3B82F6;
+  color: #EAB308;
   border-color: #93C5FD;
   background: #EFF6FF;
 }
 
 .action-btn.secondary.alerts-btn:hover {
-  color: #F59E0B;
+  color: #F97316;
   border-color: #FCD34D;
   background: #FFFBEB;
 }
@@ -795,7 +795,7 @@
 }
 
 .action-btn.secondary.text-btn:hover {
-  color: #3B82F6;
+  color: #EAB308;
   border-color: #93C5FD;
   background: #EFF6FF;
 }
@@ -855,7 +855,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #3B82F6;
+  background: #EAB308;
   animation: pulse 2s infinite;
 }
 
@@ -886,7 +886,7 @@
 }
 
 .bg-\[\#1e293b\] .action-btn.primary {
-  background: #3B82F6;
+  background: #EAB308;
   color: white;
   border-color: #2563EB;
 }
