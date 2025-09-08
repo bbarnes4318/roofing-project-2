@@ -515,11 +515,29 @@ export const companyDocsService = {
     if (meta.description) form.append('description', meta.description);
     if (meta.tags) form.append('tags', JSON.stringify(meta.tags));
     if (meta.section) form.append('section', meta.section);
+    if (meta.parentId) form.append('parentId', meta.parentId);
+    if (meta.sortOrder !== undefined) form.append('sortOrder', meta.sortOrder.toString());
     const response = await api.post('/company-docs/assets/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
     return response.data;
   },
   deleteAsset: async (id) => {
     const response = await api.delete(`/company-docs/assets/${id}`);
+    return response.data;
+  },
+  
+  // Folder operations
+  createFolder: async (folderData) => {
+    const response = await api.post('/company-docs/folders', folderData);
+    return response.data;
+  },
+  
+  updateAsset: async (id, updateData) => {
+    const response = await api.patch(`/company-docs/assets/${id}`, updateData);
+    return response.data;
+  },
+  
+  reorderAssets: async (updates) => {
+    const response = await api.patch('/company-docs/assets/reorder', { updates });
     return response.data;
   },
   // Templates

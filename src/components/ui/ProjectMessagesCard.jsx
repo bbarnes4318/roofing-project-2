@@ -10,7 +10,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     const [quickReplyText, setQuickReplyText] = useState('');
 
     // Get project data
-    const project = projects?.find(p => p.id === activity.projectId);
+    const project = projects?.find(p => p && p.id === activity.projectId);
     
     // Fetch real project messages if enabled
     const { 

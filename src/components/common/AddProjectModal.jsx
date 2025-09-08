@@ -56,7 +56,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     { id: 3, title: 'Review & Create', description: 'Final review and submission' }
   ];
 
-  // Fetch users for project manager assignment
+  // Fetch users for project manager assignment and handle form reset
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -73,6 +73,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
     if (isOpen) {
       fetchUsers();
+    } else {
+      // Reset form and secondary customer state when modal is closed
+      resetForm();
+      setShowSecondaryCustomer(false);
+      setShowSecondHousehold(false);
     }
   }, [isOpen]);
 
@@ -580,20 +585,23 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         </select>
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">
-                          Primary Contact
-                        </label>
-                        <select
-                          name="primaryContact"
-                          value={formData.primaryContact}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
-                        >
-                          <option value="PRIMARY">Primary Customer</option>
-                          <option value="SECONDARY">Secondary Customer</option>
-                        </select>
-                      </div>
+                      {/* Hide Primary Contact field when secondary customer is added */}
+                      {!showSecondaryCustomer && (
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Primary Contact
+                          </label>
+                          <select
+                            name="primaryContact"
+                            value={formData.primaryContact}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                          >
+                            <option value="PRIMARY">Primary Customer</option>
+                            <option value="SECONDARY">Secondary Customer</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

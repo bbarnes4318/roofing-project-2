@@ -1379,25 +1379,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     // Workflow Alerts: Keep separate from tasks - they are workflow line items, not manual tasks
     // Do not add workflow alerts to the activity feed as "tasks" 
     // Workflow line items have their own dedicated alerts section and should not be mixed with user-created tasks
-    
-    // If no items found, generate some mock activity data for demonstration
-    if (items.length === 0 && projects && projects.length > 0) {
-      const mockActivities = generateActivitiesFromProjects(projects);
-      mockActivities.forEach(activity => {
-        items.push({
-          id: activity.id,
-          type: 'message',
-          authorId: null,
-          author: activity.author,
-          projectId: activity.projectId,
-          projectName: activity.projectName,
-          subject: activity.subject,
-          content: activity.description,
-          timestamp: activity.timestamp,
-        });
-      });
-    }
-    
     // Sort newest first
     return items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   }, [messagesData, calendarEvents, workflowAlerts, projects]);
@@ -3572,7 +3553,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <div className="space-y-2">
                             {taskItems.map(item => {
                               const isCompleted = completedTasks.has(item.id);
-                              const project = projects?.find(p => p && p.id === item.projectId);
+                              const project = projects?.find(p => p.id === item.projectId);
                               const projectNumber = project?.projectNumber || item.projectNumber || '12345';
                               const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
                               const subject = item.subject || 'Task';
@@ -4747,78 +4728,41 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </div>
         </div>
 
-        {/* Right Column - Activity Feed */}
+        {/* Right Column - Activity Feed using ActivityFeedPage component */}
         <div className="w-full" data-section="activity-feed">
-          <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible mb-6">
-            <div className="mb-3">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
-                Activity Feed
-              </h2>
-              <div className="text-xs text-gray-500">
-                {activityFeedItems.length} items total
-              </div>
-            </div>
-            
-            {/* Simple Filters */}
-            <div className="flex items-center gap-2 mb-3">
-              <select
-                value={activityProjectFilter}
-                onChange={(e) => setActivityProjectFilter(e.target.value)}
-                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
-              >
-                <option value="">All Projects</option>
-                {(projects || []).map(p => (
-                  <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
-                ))}
-              </select>
-              <select
-                value={activityTypeFilter || ''}
-                onChange={(e) => setActivityTypeFilter(e.target.value)}
-                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
-              >
-                <option value="">All Types</option>
-                <option value="message">Messages</option>
-                <option value="task">Tasks</option>
-                <option value="reminder">Reminders</option>
-              </select>
-            </div>
-            
-            <div className="space-y-3">
-              {(() => {
-                // Get ALL items from Messages, Tasks, and Reminders tabs - EXACT SAME DATA
-                const allTabItems = [];
-                
-                // Messages from Messages tab
-                const messagesTabItems = activityFeedItems.filter(i => i.type === 'message');
-                allTabItems.push(...messagesTabItems);
-                
-                // Tasks from Tasks tab
-                const tasksTabItems = activityFeedItems.filter(i => i.type === 'task');
-                allTabItems.push(...tasksTabItems);
-                
-                // Reminders from Reminders tab
-                const remindersTabItems = activityFeedItems.filter(i => i.type === 'reminder');
-                allTabItems.push(...remindersTabItems);
-                
-                // Apply Activity Feed filters
-                const activityFeedFiltered = allTabItems.filter(item => {
-                  const projectMatch = !activityProjectFilter || String(item.projectId) === String(activityProjectFilter);
-                  const typeMatch = !activityTypeFilter || item.type === activityTypeFilter;
-                  return projectMatch && typeMatch;
-                });
-                
-                // Sort by timestamp (newest first)
-                const sortedItems = activityFeedFiltered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                return sortedItems.map(item => {
+          <ActivityFeedPage
+            activities={activityFeedItems}
+            projects={projects}
+            onProjectSelect={handleProjectSelectWithScroll}
+            colorMode={colorMode}
+            onAddActivity={() => {}}
+          />
+            {/* Feed List - EXACT SAME AS RESPECTIVE SECTIONS */}
+            <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
+              {activityFeedItems
+                .filter(item => !activityProjectFilter || String(item.projectId) === String(activityProjectFilter))
+                .filter(item => !activityTypeFilter || item.type === activityTypeFilter)
+                .map(item => {
                   if (item.type === 'message') {
                     // EXACT SAME AS MESSAGES TAB
                     return (
-                      <ProjectMessagesCard
-                        key={item.id}
-                        activity={item}
+                      <ProjectMessagesCard 
+                        key={item.id} 
+                        activity={{
+                          ...item,
+                          id: item.id,
+                          projectId: item.projectId,
+                          projectName: item.projectName,
+                          subject: item.subject,
+                          description: item.description || item.content,
+                          user: item.user,
+                          timestamp: item.timestamp,
+                          type: item.type,
+                          priority: item.priority,
+                          recipients: item.recipients
+                        }}
                         onProjectSelect={handleProjectSelectWithScroll}
-                        projects={projects || []}
+                        projects={projects}
                         colorMode={colorMode}
                         useRealData={true}
                         onQuickReply={handleQuickReply}
@@ -4828,448 +4772,403 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                       />
                     );
                   } else if (item.type === 'task') {
-                    // RENDER TASKS EXACTLY AS THEY APPEAR IN TASKS TAB
-                    return (() => {
-                      const isCompleted = completedTasks.has(item.id);
-                      const project = projects?.find(p => p && p.id === item.projectId);
-                      const projectNumber = project?.projectNumber || item.projectNumber || '12345';
-                      const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
-                      const subject = item.subject || 'Task';
-                      
-                      return (
-                        <div key={item.id} className={`bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'opacity-75' : ''}`}>
-                          {/* Main task header - Compact 2-row layout - EXACT SAME AS MESSAGES */}
-                          <div 
-                            className="flex items-center gap-1.5 p-1.5"
-                            onClick={() => handleToggleMessage(item.id)}
-                          >
-                            {/* Phase Circle - Dynamic based on project association */}
-                            {(() => {
-                              // Check if task is tied to a project
-                              const isProjectTask = item.projectId && project;
-                              
-                              if (isProjectTask) {
-                                // Get project phase and colors
-                                const projectPhase = WorkflowProgressService.getProjectPhase(project);
-                                const phaseProps = WorkflowProgressService.getPhaseButtonProps(projectPhase);
-                                const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
-                                const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
-                                
-                                return (
-                                  <div 
-                                    className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
-                                    style={{ backgroundColor: phaseColor }}
-                                  >
-                                    {phaseInitial}
-                                  </div>
-                                );
-                              } else {
-                                // No project - use orange T
-                                return (
-                                  <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
-                                    T
-                                  </div>
-                                );
-                              }
-                            })()}
+                    // EXACT SAME AS TASKS TAB
+                    const isCompleted = completedTasks.has(item.id);
+                    const project = projects?.find(p => p.id === item.projectId);
+                    const projectNumber = project?.projectNumber || item.projectNumber || '12345';
+                    const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
+                    const subject = item.subject || 'Task';
+                    
+                    return (
+                      <div key={item.id} className={`bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'opacity-75' : ''}`}>
+                        {/* Main task header - Compact 2-row layout - EXACT SAME AS MESSAGES */}
+                        <div 
+                          className="flex items-center gap-1.5 p-1.5"
+                          onClick={() => handleToggleMessage(item.id)}
+                        >
+                          {/* Phase Circle - Dynamic based on project association */}
+                          {(() => {
+                            // Check if task is tied to a project
+                            const isProjectTask = item.projectId && project;
                             
-                            <div className="flex-1 min-w-0">
-                              {/* Row 1: Project# or General | Customer | Subject */}
-                              <div className="flex items-center justify-between overflow-hidden relative">
-                                <div className="flex items-center min-w-0 flex-1">
-                                  {/* Project Number or General - Fixed width for alignment */}
-                                  {item.projectId && project ? (
-                                    <button
-                                      className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
-                                      style={{ width: '46px', marginLeft: '-8px' }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onProjectSelect) {
-                                          onProjectSelect(project, 'Project Profile', null, 'Messages, Tasks, & Reminders');
-                                        }
-                                      }}
-                                    >
-                                      {projectNumber}
-                                    </button>
-                                  ) : (
-                                    <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
-                                      General
-                                    </span>
-                                  )}
-                                  
-                                  {/* Primary Customer - Only show if project exists */}
-                                  {item.projectId && project && (
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-[9px] font-semibold transition-colors truncate text-gray-700 hover:text-gray-800" style={{ maxWidth: '80px' }}>
-                                        {primaryCustomer}
-                                      </span>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Subject - Fixed position with proper truncation */}
-                                  <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
-                                    <span 
-                                      className="text-[9px] font-medium text-gray-600 truncate"
-                                      style={{ 
-                                        display: 'inline-block',
-                                        verticalAlign: 'baseline',
-                                        lineHeight: '1',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        maxWidth: '100%'
-                                      }}
-                                    >
-                                      Subject: {subject}
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                {/* Right side - Checkbox and actions */}
-                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  {/* Checkbox */}
-                                  <input
-                                    type="checkbox"
-                                    checked={isCompleted}
-                                    onChange={() => handleTaskToggle(item.id)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
-                                  />
-                                  
-                                  {/* Task indicator - CLEARLY INDICATES IT IS A TASK */}
-                                  <div className="flex flex-col items-center">
-                                    <span className="text-[8px] font-bold text-orange-500">
-                                      Task
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Dropdown arrow - visual indicator only */}
-                                  <div className={`p-1 rounded transition-colors transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''} text-gray-600`}>
-                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
+                            if (isProjectTask) {
+                              // Get project phase and colors
+                              const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                              const phaseProps = WorkflowProgressService.getPhaseButtonProps(projectPhase);
+                              const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
+                              const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
                               
-                              {/* Row 2: From, To and Timestamp */}
-                              <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
-                                <div className="flex items-baseline gap-0">
-                                  {/* From - Fixed width container for consistent spacing */}
-                                  <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '0px' }}>
-                                    <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
-                                      From: {item.author}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* To - Fixed position to match Subject exactly */}
-                                  <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
-                                    <span 
-                                      className="text-[9px] font-medium text-gray-600 truncate"
-                                      style={{ 
-                                        display: 'inline-block', 
-                                        verticalAlign: 'baseline', 
-                                        lineHeight: '1',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        maxWidth: '100%'
-                                      }}
-                                    >
-                                      To: {item.assignedTo || item.recipient || item.author}
-                                    </span>
-                                  </div>
+                              return (
+                                <div 
+                                  className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
+                                  style={{ backgroundColor: phaseColor }}
+                                >
+                                  {phaseInitial}
                                 </div>
-                                
-                                {/* Timestamp - Bottom right */}
-                                <div className="flex-shrink-0">
-                                  <span className="text-[8px] whitespace-nowrap text-gray-500">
-                                    {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                                      month: 'short', 
-                                      day: 'numeric'
-                                    }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                      hour12: true
-                                    })}
-                                  </span>
+                              );
+                            } else {
+                              // No project - use orange T
+                              return (
+                                <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
+                                  T
                                 </div>
-                              </div>
-                            </div>
-                          </div>
+                              );
+                            }
+                          })()}
                           
-                          {/* Dropdown section - Task content when expanded */}
-                          {expandedMessages.has(item.id) && (
-                            <div className="px-3 py-3 border-t bg-gray-50 border-gray-200">
-                              <div className="space-y-3">
-                                {/* Task content */}
-                                {item.content && (
-                                  <div className="text-sm text-gray-800 leading-relaxed bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                    {item.content}
+                          <div className="flex-1 min-w-0">
+                            {/* Row 1: Project# or General | Customer | Subject */}
+                            <div className="flex items-center justify-between overflow-hidden relative">
+                              <div className="flex items-center min-w-0 flex-1">
+                                {/* Project Number or General - Fixed width for alignment */}
+                                {item.projectId && project ? (
+                                  <button
+                                    className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
+                                    style={{ width: '46px', marginLeft: '-8px' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onProjectSelect) {
+                                        onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                      }
+                                    }}
+                                  >
+                                    {projectNumber}
+                                  </button>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                    General
+                                  </span>
+                                )}
+                                
+                                {/* Primary Customer - Only show if project exists */}
+                                {item.projectId && project && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[9px] font-semibold transition-colors truncate text-gray-700 hover:text-gray-800" style={{ maxWidth: '80px' }}>
+                                      {primaryCustomer}
+                                    </span>
                                   </div>
                                 )}
                                 
-                                {/* Comments Section */}
-                                <div className="bg-white rounded-lg border border-gray-200 p-3">
-                                  <h4 className="text-xs font-semibold text-gray-700 mb-2">Comments</h4>
-                                  
-                                  {/* Existing Comments */}
-                                  <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
-                                    {taskComments[item.id] && taskComments[item.id].length > 0 ? (
-                                      taskComments[item.id].map(comment => (
-                                        <div key={comment.id} className="bg-gray-50 p-2 rounded border border-gray-100">
-                                          <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                              <p className="text-[10px] font-semibold text-gray-700">
-                                                Comment by: {comment.user}
-                                              </p>
-                                              <p className="text-xs text-gray-600 mt-1">
-                                                {comment.text}
-                                              </p>
-                                            </div>
-                                            <span className="text-[9px] text-gray-400 ml-2">
-                                              {new Date(comment.timestamp).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                hour: 'numeric',
-                                                minute: '2-digit'
-                                              })}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <p className="text-xs text-gray-400 italic">No comments yet</p>
-                                    )}
-                                  </div>
-                                  
-                                  {/* Add Comment Form */}
-                                  <div className="border-t border-gray-200 pt-2">
-                                    <div className="flex gap-2">
-                                      <input
-                                        type="text"
-                                        value={newCommentText[item.id] || ''}
-                                        onChange={(e) => setNewCommentText(prev => ({
-                                          ...prev,
-                                          [item.id]: e.target.value
-                                        }))}
-                                        onKeyPress={(e) => {
-                                          if (e.key === 'Enter') {
-                                            handleAddComment(item.id);
-                                          }
-                                        }}
-                                        placeholder="Add a comment..."
-                                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                      />
-                                      <button
-                                        onClick={() => handleAddComment(item.id)}
-                                        disabled={!newCommentText[item.id]?.trim()}
-                                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                                          newCommentText[item.id]?.trim()
-                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        }`}
-                                      >
-                                        Add
-                                      </button>
-                                    </div>
-                                  </div>
+                                {/* Subject - Fixed position with proper truncation */}
+                                <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
+                                  <span 
+                                    className="text-[9px] font-medium text-gray-600 truncate"
+                                    style={{ 
+                                      display: 'inline-block', 
+                                      verticalAlign: 'baseline', 
+                                      lineHeight: '1',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      maxWidth: '100%'
+                                    }}
+                                  >
+                                    Subject: {subject}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Right side - Checkbox and actions */}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {/* Checkbox */}
+                                <input
+                                  type="checkbox"
+                                  checked={isCompleted}
+                                  onChange={() => handleTaskToggle(item.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                />
+                                
+                                {/* Task indicator - CLEARLY INDICATES IT IS A TASK */}
+                                <div className="flex flex-col items-center">
+                                  <span className="text-[8px] font-bold text-orange-500">
+                                    Task
+                                  </span>
                                 </div>
                                 
-                                {/* Action Buttons */}
-                                <div className="flex items-center gap-2 pt-3 border-t border-gray-200">
-                                  {item.projectId && project && (
-                                    <button
-                                      onClick={() => {
-                                        if (onProjectSelect) {
-                                          onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
-                                        }
-                                      }}
-                                      className="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition-colors flex items-center gap-1"
-                                    >
-                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                      </svg>
-                                      View Project
-                                    </button>
-                                  )}
+                                {/* Dropdown arrow - visual indicator only */}
+                                <div className={`p-1 rounded transition-colors transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''} text-gray-600`}>
+                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
                                 </div>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })();
-                  } else if (item.type === 'reminder') {
-                    // RENDER REMINDERS EXACTLY AS THEY APPEAR IN REMINDERS TAB
-                    return (() => {
-                      const project = projects?.find(p => p && p.id === item.projectId);
-                      const projectNumber = project?.projectNumber || item.projectNumber || '12345';
-                      const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
-                      const subject = item.subject || 'Reminder';
-                      
-                      return (
-                        <div key={item.id} className="bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer">
-                          {/* Main reminder header - Compact 2-row layout */}
-                          <div 
-                            className="flex items-center gap-1.5 p-1.5"
-                            onClick={() => handleToggleMessage(item.id)}
-                          >
-                            {/* Phase Circle - Dynamic based on project association */}
-                            {(() => {
-                              const isProjectReminder = item.projectId && project;
-                              
-                              if (isProjectReminder) {
-                                const projectPhase = WorkflowProgressService.getProjectPhase(project);
-                                const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
-                                const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
-                                
-                                return (
-                                  <div 
-                                    className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
-                                    style={{ backgroundColor: phaseColor }}
-                                  >
-                                    {phaseInitial}
-                                  </div>
-                                );
-                              } else {
-                                // No project - use orange R for reminder
-                                return (
-                                  <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
-                                    R
-                                  </div>
-                                );
-                              }
-                            })()}
                             
-                            <div className="flex-1 min-w-0">
-                              {/* Row 1: Project# or General | Customer | Subject */}
-                              <div className="flex items-center justify-between overflow-hidden relative">
-                                <div className="flex items-center min-w-0 flex-1">
-                                  {/* Project Number or General Reminder - Fixed width for alignment */}
-                                  {item.projectId && project ? (
-                                    <button
-                                      className="text-[9px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex-shrink-0"
-                                      style={{ width: '46px' }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onProjectSelect) {
-                                          onProjectSelect(project, 'Project Profile', null, 'Messages, Tasks, & Reminders');
-                                        }
-                                      }}
-                                    >
-                                      {projectNumber ? `#${String(projectNumber).padStart(5, '0')}` : '#00000'}
-                                    </button>
-                                  ) : (
-                                    <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
-                                      General
-                                    </span>
-                                  )}
-                                  
-                                  {/* Customer Name and Subject - Dynamic width */}
-                                  <div className="flex items-center min-w-0 flex-1 mx-1.5">
-                                    {item.projectId && project && (
-                                      <>
-                                        <span className="text-[9px] font-bold text-gray-700 truncate flex-shrink-0" style={{ maxWidth: '120px' }}>
-                                          {primaryCustomer}
-                                        </span>
-                                        <span className="mx-1.5 text-[9px] text-gray-400 flex-shrink-0">|</span>
-                                      </>
-                                    )}
-                                    <span 
-                                      className="text-[9px] font-semibold text-gray-800 truncate"
-                                      style={{ 
-                                        maxWidth: '180px',
-                                        display: 'inline-block',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap'
-                                      }}
-                                    >
-                                      Subject: {subject}
-                                    </span>
-                                  </div>
+                            {/* Row 2: From, To and Timestamp */}
+                            <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
+                              <div className="flex items-baseline gap-0">
+                                {/* From - Fixed width container for consistent spacing */}
+                                <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '0px' }}>
+                                  <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
+                                    From: {item.author}
+                                  </span>
                                 </div>
                                 
-                                {/* Type indicator - Far right */}
-                                <span className="text-[8px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 px-1.5 py-0.5 rounded flex-shrink-0 ml-2">
-                                  Reminder
-                                </span>
+                                {/* To - Fixed position to match Subject exactly */}
+                                <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                  <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
+                                    To: {item.assignedTo || item.recipient || item.author}
+                                  </span>
+                                </div>
                               </div>
                               
-                              {/* Row 2: From/To, Timestamp */}
-                              <div className="flex items-center justify-between mt-1">
-                                <div className="flex items-center gap-3 text-[8px] text-gray-600">
-                                  <span className="flex items-center gap-1">
-                                    <span className="font-medium">From:</span>
-                                    <span className="font-semibold text-gray-700">
-                                      {item.author || 'System'}
-                                    </span>
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <span className="font-medium">To:</span>
-                                    <span className="font-semibold text-gray-700">
-                                      All Users
-                                    </span>
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  {/* Timestamp - moved to left of checkbox, using same format as Tasks tab */}
-                                  <span className="text-[8px] whitespace-nowrap text-gray-500">
-                                    {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                                      month: 'short', 
-                                      day: 'numeric'
-                                    }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                      hour12: true
-                                    })}
-                                  </span>
-                                </div>
+                              {/* Timestamp - Bottom right */}
+                              <div className="flex-shrink-0">
+                                <span className="text-[8px] whitespace-nowrap text-gray-500">
+                                  {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric'
+                                  }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </span>
                               </div>
                             </div>
                           </div>
-
-                          {/* Expandable Content */}
-                          {expandedMessages.has(item.id) && (
-                            <div className="border-t bg-gray-50 p-3">
-                              <p className="text-xs text-gray-700 mb-3">
-                                {item.content}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {item.projectId && project && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onProjectSelect) {
-                                          onProjectSelect(project, 'Project Profile', null, 'Messages, Tasks, & Reminders');
-                                        }
-                                      }}
-                                      className="text-[8px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
-                                    >
-                                      View Project
-                                    </button>
-                                  )}
-                                </div>
+                        </div>
+                        
+                        {/* Expanded Content - EXACT SAME AS MESSAGES */}
+                        {expandedMessages.has(item.id) && (
+                          <div className="px-2 pb-2 border-t border-gray-100">
+                            <div className="pt-2">
+                              {item.content && (
+                                <p className="text-[9px] text-gray-600 leading-relaxed mb-2">
+                                  {item.content}
+                                </p>
+                              )}
+                              
+                              {/* Task Actions */}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTaskToggle(item.id);
+                                  }}
+                                  className={`text-[8px] font-medium px-2 py-1 rounded transition-colors ${
+                                    isCompleted 
+                                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
+                                      : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                  }`}
+                                >
+                                  {isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
+                                </button>
+                                
+                                {item.projectId && project && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onProjectSelect) {
+                                        onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                      }
+                                    }}
+                                    className="text-[8px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                                  >
+                                    View Project
+                                  </button>
+                                )}
                               </div>
                             </div>
-                          )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  } else if (item.type === 'reminder') {
+                    // EXACT SAME AS REMINDERS TAB - Compact format
+                    const project = projects?.find(p => String(p.id) === String(item.projectId));
+                    const projectNumber = project?.projectNumber || item.projectNumber || null;
+                    const primaryCustomer = project?.customer?.primaryName || project?.customer?.name || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Unknown Customer';
+                    const subject = item.subject || item.title || 'Reminder';
+                    
+                    return (
+                      <div key={item.id} className="bg-white hover:bg-gray-50 border-gray-200 rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer">
+                        {/* Main reminder header - Compact 2-row layout matching tasks exactly */}
+                        <div 
+                          className="flex items-center gap-1.5 p-1.5"
+                          onClick={() => handleToggleMessage(item.id)}
+                        >
+                          {/* Phase Circle - Dynamic based on project association */}
+                          {(() => {
+                            // Check if reminder is tied to a project
+                            const isProjectReminder = item.projectId && project;
+                            
+                            if (isProjectReminder) {
+                              // Get project phase and colors
+                              const projectPhase = WorkflowProgressService.getProjectPhase(project);
+                              const phaseInitial = WorkflowProgressService.getPhaseInitials(projectPhase);
+                              const phaseColor = WorkflowProgressService.getPhaseColor(projectPhase);
+                              
+                              return (
+                                <div 
+                                  className="w-5 h-5 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start"
+                                  style={{ backgroundColor: phaseColor }}
+                                >
+                                  {phaseInitial}
+                                </div>
+                              );
+                            } else {
+                              // No project - use orange R for reminder
+                              return (
+                                <div className="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm flex-shrink-0 self-start">
+                                  R
+                                </div>
+                              );
+                            }
+                          })()}
+                          
+                          <div className="flex-1 min-w-0">
+                            {/* Row 1: Project# or General | Customer | Subject */}
+                            <div className="flex items-center justify-between overflow-hidden relative">
+                              <div className="flex items-center min-w-0 flex-1">
+                                {/* Project Number or General Reminder - Fixed width for alignment */}
+                                {item.projectId && project ? (
+                                  <button
+                                    className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
+                                    style={{ width: '46px', marginLeft: '-8px' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onProjectSelect) {
+                                        onProjectSelect(project, 'Project Profile', null, 'Activity Feed');
+                                      }
+                                    }}
+                                  >
+                                    {projectNumber}
+                                  </button>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                    General
+                                  </span>
+                                )}
+                                
+                                {/* Primary Customer */}
+                                <div className="flex items-center gap-1">
+                                  <span 
+                                    className="text-[9px] font-semibold text-gray-700 truncate"
+                                    style={{ maxWidth: '80px' }}
+                                    title={primaryCustomer}
+                                  >
+                                    {primaryCustomer}
+                                  </span>
+                                </div>
+                                
+                                {/* Subject - Fixed position with proper truncation */}
+                                <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
+                                  <span 
+                                    className="text-[9px] font-medium text-gray-600 truncate"
+                                    style={{ 
+                                      display: 'inline-block',
+                                      verticalAlign: 'baseline',
+                                      lineHeight: '1',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      maxWidth: '100%'
+                                    }}
+                                  >
+                                    Subject: {subject}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Right side - Reminder indicator and actions */}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {/* Clock icon for reminders */}
+                                <div className="flex items-center gap-1">
+                                  <svg className="w-2.5 h-2.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                
+                                {/* Dropdown arrow */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleMessage(item.id);
+                                  }}
+                                  className="p-1 rounded transition-colors text-gray-600 hover:bg-gray-200"
+                                  title={expandedMessages.has(item.id) ? "Collapse reminder" : "Expand reminder"}
+                                >
+                                  <svg className={`w-2.5 h-2.5 transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* Row 2: From, To, and Timestamp */}
+                            <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
+                              <div className="flex items-baseline gap-0">
+                                {/* From - Fixed width container for consistent spacing */}
+                                <div 
+                                  className="flex-shrink-0"
+                                  style={{ width: '100px', marginLeft: '8px' }}
+                                >
+                                  <span className="text-[9px] font-medium text-gray-600 whitespace-nowrap">
+                                    From: {item.author || 'System'}
+                                  </span>
+                                </div>
+                                
+                                {/* To - Fixed position to match Subject exactly */}
+                                <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                  <span 
+                                    className="text-[9px] font-medium text-gray-600 whitespace-nowrap"
+                                    style={{ 
+                                      display: 'inline-block',
+                                      verticalAlign: 'baseline',
+                                      lineHeight: '1'
+                                    }}
+                                  >
+                                    To: All Users
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Timestamp and Checkbox - Far right */}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {/* Timestamp - moved to left of checkbox, using same format as Tasks tab */}
+                                <span className="text-[8px] whitespace-nowrap text-gray-500">
+                                  {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric'
+                                  }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </span>
+                                {/* Checkbox for marking reminder as completed */}
+                                <input
+                                  type="checkbox"
+                                  checked={completedTasks.has(item.id)}
+                                  onChange={() => handleTaskToggle(item.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      );
-                    })();
+                        
+                        {/* Expandable content (if needed) */}
+                        {expandedMessages.has(item.id) && item.content && (
+                          <div className="px-3 py-2 border-t bg-gray-50 border-gray-200">
+                            <div className="text-[8px] text-gray-700">
+                              {item.content}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
                   }
                   
                   return null;
-                });
-              })()}
-              
+                })}
               {activityFeedItems.length === 0 && (
-                <div className="text-gray-400 text-center py-8 text-sm">
-                  No activity yet.
-                </div>
+                <div className="text-gray-400 text-center py-3 text-sm">No activity yet.</div>
               )}
+
             </div>
           </div>
         </div>

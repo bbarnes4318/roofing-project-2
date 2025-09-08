@@ -33,7 +33,7 @@ const upload = multer({
 // =============================
 
 router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
-  const { search, tag, section } = req.query;
+  const { search, tag, section, parentId } = req.query;
   const where = {};
   if (search) {
     where.OR = [
@@ -47,17 +47,24 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   if (section) {
     where.section = section;
   }
+  if (parentId !== undefined) {
+    where.parentId = parentId === 'null' ? null : parentId;
+  }
 
   const assets = await prisma.companyAsset.findMany({
     where,
-    orderBy: { createdAt: 'desc' }
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    include: {
+      children: true,
+      parent: true
+    }
   });
   res.json({ success: true, data: { assets } });
 }));
 
 router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) throw new AppError('No file uploaded', 400);
-  const { title, description, tags, section } = req.body;
+  const { title, description, tags, section, parentId, sortOrder } = req.body;
 
   const asset = await prisma.companyAsset.create({
     data: {
@@ -68,6 +75,9 @@ router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHan
       fileSize: req.file.size,
       tags: tags ? JSON.parse(tags) : [],
       section: section || null,
+      type: 'FILE',
+      parentId: parentId || null,
+      sortOrder: sortOrder ? parseInt(sortOrder) : 0,
       uploadedById: req.user?.id || null
     }
   });
@@ -93,6 +103,73 @@ router.delete('/assets/:id', authenticateToken, asyncHandler(async (req, res) =>
 
   await prisma.companyAsset.delete({ where: { id } });
   res.json({ success: true, message: 'Asset deleted' });
+}));
+
+// Create a new folder
+router.post('/folders', authenticateToken, asyncHandler(async (req, res) => {
+  const { name, description, section, parentId, sortOrder } = req.body;
+  if (!name) throw new AppError('Folder name is required', 400);
+
+  const folder = await prisma.companyAsset.create({
+    data: {
+      title: name,
+      description: description || null,
+      type: 'FOLDER',
+      section: section || null,
+      parentId: parentId || null,
+      sortOrder: sortOrder ? parseInt(sortOrder) : 0,
+      uploadedById: req.user?.id || null
+    }
+  });
+  res.status(201).json({ success: true, data: { folder } });
+}));
+
+// Update asset/folder (for moving, renaming, reordering)
+router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { title, description, parentId, sortOrder, section } = req.body;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+
+  const updateData = {};
+  if (title !== undefined) updateData.title = title;
+  if (description !== undefined) updateData.description = description;
+  if (parentId !== undefined) updateData.parentId = parentId;
+  if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
+  if (section !== undefined) updateData.section = section;
+
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: updateData,
+    include: {
+      children: true,
+      parent: true
+    }
+  });
+
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Bulk reorder assets
+router.patch('/assets/reorder', authenticateToken, asyncHandler(async (req, res) => {
+  const { updates } = req.body; // Array of { id, sortOrder, parentId? }
+  if (!Array.isArray(updates)) throw new AppError('Updates must be an array', 400);
+
+  // Use transaction to ensure consistency
+  const results = await prisma.$transaction(
+    updates.map(update => 
+      prisma.companyAsset.update({
+        where: { id: update.id },
+        data: {
+          sortOrder: update.sortOrder,
+          ...(update.parentId !== undefined && { parentId: update.parentId })
+        }
+      })
+    )
+  );
+
+  res.json({ success: true, data: { updated: results.length } });
 }));
 
 // =============================

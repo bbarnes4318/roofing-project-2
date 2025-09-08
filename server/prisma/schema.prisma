@@ -793,9 +793,9 @@ model CompanyAsset {
   updatedAt        DateTime         @updatedAt
   title            String           @db.VarChar(255)
   description      String?          @db.VarChar(1000)
-  fileUrl          String           @db.VarChar(2000)
-  mimeType         String           @db.VarChar(100)
-  fileSize         Int
+  fileUrl          String?          @db.VarChar(2000)  // Optional for folders
+  mimeType         String?          @db.VarChar(100)   // Optional for folders
+  fileSize         Int?                                 // Optional for folders
   tags             String[]
   section          DocumentSection?
   version          Int              @default(1)
@@ -803,6 +803,14 @@ model CompanyAsset {
   downloadCount    Int              @default(0)
   lastDownloadedAt DateTime?
   uploadedById     String?          @map("uploaded_by_id")
+  
+  // Folder hierarchy support
+  type             AssetType        @default(FILE)
+  parentId         String?          @map("parent_id")
+  parent           CompanyAsset?    @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children         CompanyAsset[]   @relation("FolderHierarchy")
+  path             String?          @db.VarChar(1000)  // Full path for easier queries
+  sortOrder        Int              @default(0)        // For custom ordering within folders
   uploadedBy       User?            @relation(fields: [uploadedById], references: [id])
 
   @@map("company_assets")
@@ -1180,6 +1188,11 @@ enum DocumentSection {
   SOPS_TRAINING
   CERTS_WARRANTIES_INSPECTIONS
   INSURANCE_CERTIFICATIONS
+}
+
+enum AssetType {
+  FILE
+  FOLDER
 }
 
 enum TemplateFormat {
