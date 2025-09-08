@@ -283,8 +283,9 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                     </div>
                                                 </div>
                                                 
-                                                {/* Right side - Checkbox and actions for Tasks tab */}
+                                                {/* Right side - Checkbox and actions - MATCHING REMINDERS TAB EXACTLY */}
                                                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                    {/* Tasks: Timestamp + Checkbox */}
                                                     {activeCommTab === 'tasks' && (
                                                         <>
                                                             {/* Timestamp - moved to left of checkbox for Tasks */}
@@ -307,15 +308,45 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                 onClick={(e) => e.stopPropagation()}
                                                                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
                                                             />
+                                                            
+                                                            {/* Task indicator */}
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-[8px] font-bold text-orange-500">
+                                                                    Task
+                                                                </span>
+                                                            </div>
                                                         </>
                                                     )}
                                                     
-                                                    {/* Type indicator */}
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-[8px] font-bold text-orange-500">
-                                                            {item.type === 'message' ? 'Message' : item.type === 'task' ? 'Task' : 'Reminder'}
-                                                        </span>
-                                                    </div>
+                                                    {/* Reminders: Checkbox + Reminder text - EXACTLY LIKE REMINDERS TAB */}
+                                                    {item.type === 'reminder' && (
+                                                        <>
+                                                            {/* Checkbox */}
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={completedTasks.has(item.id)}
+                                                                onChange={() => handleTaskToggle(item.id)}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                                            />
+                                                            
+                                                            {/* Reminder indicator - CLEARLY INDICATES IT IS A REMINDER */}
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-[8px] font-bold text-orange-500">
+                                                                    Reminder
+                                                                </span>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    
+                                                    {/* Messages: Just type indicator */}
+                                                    {item.type === 'message' && (
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-[8px] font-bold text-orange-500">
+                                                                Message
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     
                                                     {/* Dropdown arrow */}
                                                     <div className={`p-1 rounded transition-colors transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''} text-gray-600`}>
@@ -345,7 +376,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                 </div>
                                                 
                                                 {/* Timestamp for Messages and Reminders (bottom right) */}
-                                                {activeCommTab !== 'tasks' && (
+                                                {item.type !== 'task' && (
                                                     <div className="flex items-center gap-1.5 flex-shrink-0">
                                                         {/* Timestamp - using same format as Tasks tab */}
                                                         <span className="text-[8px] whitespace-nowrap text-gray-500">
@@ -358,17 +389,6 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                 hour12: true
                                                             })}
                                                         </span>
-                                                        
-                                                        {/* Checkbox for Reminders */}
-                                                        {activeCommTab === 'reminders' && (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={completedTasks.has(item.id)}
-                                                                onChange={() => handleTaskToggle(item.id)}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
-                                                            />
-                                                        )}
                                                     </div>
                                                 )}
                                             </div>

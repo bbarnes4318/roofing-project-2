@@ -3170,7 +3170,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                           <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
                           {availableUsers.map(user => (
                             <option key={user.id} value={user.id}>
-                              {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`} ({user.role || 'User'})
+                              {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`}
                             </option>
                           ))}
                         </select>
@@ -3951,8 +3951,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       </span>
                                     )}
                                     
-                                    {/* Customer Name and Subject - Dynamic width */}
-                                    <div className="flex items-center min-w-0 flex-1 mx-1.5">
+                                    {/* Customer Name - Dynamic width */}
+                                    <div className="flex items-center min-w-0 mx-1.5">
                                       {item.projectId && project && (
                                         <>
                                           <span className="text-[9px] font-bold text-gray-700 truncate flex-shrink-0" style={{ maxWidth: '120px' }}>
@@ -3961,18 +3961,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                           <span className="mx-1.5 text-[9px] text-gray-400 flex-shrink-0">|</span>
                                         </>
                                       )}
-                                      <span 
-                                        className="text-[9px] font-semibold text-gray-800 truncate"
-                                        style={{ 
-                                          maxWidth: '180px',
-                                          display: 'inline-block',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          whiteSpace: 'nowrap'
-                                        }}
-                                      >
-                                        Subject: {subject}
-                                      </span>
+                                      
+                                      {/* Subject - Fixed position to align with To field */}
+                                      <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
+                                        <span 
+                                          className="text-[9px] font-medium text-gray-600 truncate"
+                                          style={{ 
+                                            display: 'inline-block',
+                                            verticalAlign: 'baseline',
+                                            lineHeight: '1',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            maxWidth: '100%'
+                                          }}
+                                        >
+                                          Subject: {subject}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                   
@@ -5246,6 +5252,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                                       hour12: true
                                     })}
                                   </span>
+                                  
+                                  {/* Checkbox - matching Reminders tab */}
+                                  <input
+                                    type="checkbox"
+                                    checked={completedTasks.has(item.id)}
+                                    onChange={() => handleTaskToggle(item.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -5336,7 +5351,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 <option value="">Select a user...</option>
                 {availableUsers.map(user => (
                   <option key={user.id} value={user.id}>
-                    {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`} ({user.role || 'User'})
+                    {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`}
                   </option>
                 ))}
               </select>

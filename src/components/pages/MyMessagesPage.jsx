@@ -621,7 +621,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                         <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
                         {availableUsers.map(user => (
                           <option key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName} ({user.role || 'User'})
+                            {user.firstName} {user.lastName}
                           </option>
                         ))}
                       </select>
@@ -683,7 +683,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                           <option value="">Assign Task To...</option>
                           {availableUsers.map(user => (
                             <option key={user.id} value={user.id}>
-                              {user.firstName} {user.lastName} ({user.role || 'User'})
+                              {user.firstName} {user.lastName}
                             </option>
                           ))}
                         </select>

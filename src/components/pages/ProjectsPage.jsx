@@ -1109,7 +1109,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             </option>
                                             {availableUsers.map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.name} ({user.role})
+                                                    {user.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -1154,7 +1154,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             <option value="">👷 Select Field Director (Optional)</option>
                                             {availableUsers.filter(user => user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.name} ({user.role})
+                                                    {user.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -1175,7 +1175,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             <option value="">💼 Select Sales Rep (Optional)</option>
                                             {availableUsers.filter(user => user.role === 'SALES' || user.role === 'PROJECT_MANAGER').map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.name} ({user.role})
+                                                    {user.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -1196,7 +1196,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             <option value="">🔍 Select Quality Inspector (Optional)</option>
                                             {availableUsers.filter(user => user.role === 'QUALITY' || user.role === 'FIELD_DIRECTOR' || user.role === 'PROJECT_MANAGER').map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.name} ({user.role})
+                                                    {user.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -1217,7 +1217,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             <option value="">📋 Select Admin Assistant (Optional)</option>
                                             {availableUsers.filter(user => user.role === 'ADMINISTRATION' || user.role === 'OFFICE').map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.name} ({user.role})
+                                                    {user.name}
                                                 </option>
                                             ))}
                                         </select>

@@ -1225,7 +1225,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                         <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
                                                         {availableUsers.map(user => (
                                                             <option key={user.id} value={user.id}>
-                                                                {user.firstName} {user.lastName} ({user.role || 'User'})
+                                                                {user.firstName} {user.lastName}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -1267,7 +1267,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                         {!usersLoading && availableUsers.length > 0 ? (
                                                             availableUsers.map(user => (
                                                                 <option key={user.id} value={user.id}>
-                                                                    {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                                    {user.firstName} {user.lastName}
                                                                 </option>
                                                             ))
                                                         ) : !usersLoading ? (
@@ -1445,7 +1445,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             Showing alerts for project: #{String(project.projectNumber || project.id).padStart(5, '0')} - {project.name || project.projectName}
                                         </p>
                                         <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            User: {currentUser.name} ({currentUser.role})
+                                            User: {currentUser.name}
                                         </p>
                                         {expandedAlerts.size > 0 && (
                                             <p className={`text-[9px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -2054,7 +2054,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             <option value="">Select a user...</option>
                                             {Array.isArray(users) && users.map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.name} - {user.role}
+                                                    {user.name}
                                                 </option>
                                             ))}
                                         </select>

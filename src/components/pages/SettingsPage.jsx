@@ -933,7 +933,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <option value="">Select Project Manager...</option>
             {availableUsers.map(user => (
               <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
+                {user.name}
               </option>
             ))}
           </select>
@@ -981,7 +981,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <option value="">Select Field Director...</option>
             {availableUsers.map(user => (
               <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
+                {user.name}
               </option>
             ))}
           </select>
@@ -1029,7 +1029,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <option value="">Select Office Staff...</option>
             {availableUsers.map(user => (
               <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
+                {user.name}
               </option>
             ))}
           </select>
@@ -1077,7 +1077,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <option value="">Select Administrator...</option>
             {availableUsers.map(user => (
               <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
+                {user.name}
               </option>
             ))}
           </select>

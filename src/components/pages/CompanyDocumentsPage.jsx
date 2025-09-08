@@ -47,9 +47,7 @@ const ItemTypes = {
 
 // Quick Move Panel for off-screen folder targeting with drag & drop support
 const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) => {
-  if (!isVisible || !draggedItem) return null;
-
-  // Add drop zone functionality to the entire panel
+  // Add drop zone functionality to the entire panel - must be called before early return
   const [{ isOver }, drop] = useDrop({
     accept: [ItemTypes.FOLDER, ItemTypes.FILE],
     drop: () => {}, // Handled by individual folder buttons
@@ -57,6 +55,8 @@ const QuickMovePanel = ({ isVisible, folders, onMove, draggedItem, onClose }) =>
       isOver: monitor.isOver({ shallow: true }),
     }),
   });
+
+  if (!isVisible || !draggedItem) return null;
 
   // Recursively collect all folders with their paths
   const collectFolders = (items, currentPath = '') => {
@@ -633,8 +633,10 @@ const DraggableItem = ({ item, path, onMove, onRename, onDelete, onToggle, onSho
       
       // Calculate drop position for file reordering
       if (item.type !== 'folder' && draggedItem.path === path) {
-        const hoverBoundingRect = monitor.getDropTargetMonitor().getClientBoundingRect();
         const clientOffset = monitor.getClientOffset();
+        if (!clientOffset || !drop.current) return;
+        
+        const hoverBoundingRect = drop.current.getBoundingClientRect();
         const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
         const hoverClientY = clientOffset.y - hoverBoundingRect.top;
         
@@ -957,9 +959,7 @@ const DraggableTab = ({ tab, index, active, onClick, onRename, onDelete, moveTab
 export default function CompanyDocumentsPage({ colorMode }) {
   // Enhanced state management
   const [tabs, setTabs] = useState([
-    { id: 'company-docs', name: 'Company Documents', protected: false },
-    { id: 'project-templates', name: 'Product Specific Templates', protected: true },
-    { id: 'generate', name: 'Generate', protected: true }
+    { id: 'company-docs', name: 'Company Documents', protected: false }
   ]);
   const [activeTabId, setActiveTabId] = useState('company-docs');
   
@@ -1011,11 +1011,34 @@ export default function CompanyDocumentsPage({ colorMode }) {
     }));
   };
 
+  // Save documents structure to localStorage
+  const saveDocumentsToStorage = (docs) => {
+    try {
+      localStorage.setItem('companyDocuments', JSON.stringify(docs));
+    } catch (error) {
+      console.error('Error saving documents to localStorage:', error);
+    }
+  };
+
+  // Load documents structure from localStorage
+  const loadDocumentsFromStorage = () => {
+    try {
+      const saved = localStorage.getItem('companyDocuments');
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('Error loading documents from localStorage:', error);
+      return {};
+    }
+  };
+
   // Load real data from API and initialize enhanced features for Company Documents only
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Load saved documents structure from localStorage first
+        const savedDocs = loadDocumentsFromStorage();
+        
         // Load assets for Company Documents tab
         const assetsResponse = await companyDocsService.listAssets();
         console.log('Assets API response:', assetsResponse);
@@ -1023,18 +1046,13 @@ export default function CompanyDocumentsPage({ colorMode }) {
           setAssets(assetsResponse.data || []);
         }
         
-        // Load templates for Product Specific Templates tab
-        const templatesResponse = await companyDocsService.listTemplates();
-        console.log('Templates API response:', templatesResponse);
-        if (templatesResponse.success) {
-          const templatesData = templatesResponse.data?.templates || templatesResponse.templates || [];
-          setTemplates(Array.isArray(templatesData) ? templatesData : []);
-        }
-        
         // Convert assets to enhanced document format for Company Documents tab only
         const assetsData = assetsResponse.data?.assets || assetsResponse.assets || [];
         const enhancedAssets = convertAssetsToDocuments(assetsData);
+        
+        // Merge with saved structure and API data
         setDocuments(prev => ({
+          ...savedDocs,
           ...prev,
           'company-docs': enhancedAssets
         }));
@@ -1054,6 +1072,13 @@ export default function CompanyDocumentsPage({ colorMode }) {
     
     fetchData();
   }, []);
+
+  // Auto-save documents structure whenever it changes
+  useEffect(() => {
+    if (Object.keys(documents).length > 0) {
+      saveDocumentsToStorage(documents);
+    }
+  }, [documents]);
 
   // Enhanced tab management
   const moveTab = useCallback((fromIndex, toIndex) => {
@@ -1305,9 +1330,14 @@ export default function CompanyDocumentsPage({ colorMode }) {
     const tabId = activeTabId;
     
     try {
-      if (tabId === 'company-docs' && item.url) {
-        // Delete from API for Company Documents
-        const response = await companyDocsService.deleteAsset(item.id);
+      if (tabId === 'company-docs' && (item.url || item.assetId || item._id)) {
+        // Delete from API for Company Documents - try different ID formats
+        const deleteId = item.assetId || item._id || item.id;
+        console.log('Attempting to delete asset with ID:', deleteId, 'Full item:', item);
+        
+        const response = await companyDocsService.deleteAsset(deleteId);
+        console.log('Delete response:', response);
+        
         if (response.success) {
           // Refresh the assets list
           const assetsResponse = await companyDocsService.listAssets();
@@ -1322,10 +1352,10 @@ export default function CompanyDocumentsPage({ colorMode }) {
           }
           toast.success(`🗑️ "${item.name}" deleted successfully!`);
         } else {
-          throw new Error('Delete failed');
+          throw new Error(response.message || 'Delete failed - API returned failure');
         }
       } else {
-        // Delete locally for custom tabs
+        // Delete locally for custom tabs or items without API backing
         setDocuments(prevDocs => {
           const newDocs = { ...prevDocs };
           const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
@@ -1350,8 +1380,16 @@ export default function CompanyDocumentsPage({ colorMode }) {
         toast.success(`🗑️ "${item.name}" deleted successfully!`);
       }
     } catch (error) {
-      console.error('Delete error:', error);
-      toast.error(`❌ Failed to delete "${item.name}"`);
+      console.error('Delete error details:', {
+        error: error,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        item: item
+      });
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      toast.error(`❌ Failed to delete "${item.name}": ${errorMessage}`);
     }
   };
 
@@ -1380,60 +1418,97 @@ export default function CompanyDocumentsPage({ colorMode }) {
     });
   };
 
-  const handleAddNewItem = () => {
+  const handleAddNewItem = async () => {
     if (!newItemName.trim()) {
       toast.error('❌ Please enter a name');
       return;
     }
     
     const tabId = activeTabId;
-    const newItem = {
-      id: `${tabId}-${Date.now()}`,
-      name: newItemName.trim(),
-      type: newItemType,
-      priority: 'medium',
-      tags: [],
-      favorite: false,
-      notes: '',
-      uploadedAt: new Date().toISOString(),
-      ...(newItemType === 'folder' ? { expanded: false, children: [] } : { size: 0 })
-    };
     
-    setDocuments(prevDocs => {
-      const newDocs = { ...prevDocs };
-      const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
-      
-      // If no parent folder selected, add to root
-      if (!selectedParentFolder) {
-        tabDocs.push(newItem);
-      } else {
-        // Add to specific parent folder (supports nested folders)
-        const addToFolder = (items, targetFolderId) => {
-          for (let i = 0; i < items.length; i++) {
-            if (items[i].id === targetFolderId && items[i].type === 'folder') {
-              items[i].children = items[i].children || [];
-              items[i].children.push(newItem);
-              items[i].expanded = true; // Auto-expand to show new item
-              return true;
-            }
-            if (items[i].children && items[i].children.length > 0) {
-              if (addToFolder(items[i].children, targetFolderId)) {
-                return true;
-              }
-            }
-          }
-          return false;
+    try {
+      if (newItemType === 'folder' && tabId === 'company-docs') {
+        // Create folder via API for Company Documents
+        const folderData = {
+          name: newItemName.trim(),
+          parentId: selectedParentFolder?.id || null,
+          description: `Created ${new Date().toLocaleDateString()}`,
+          tags: []
         };
         
-        if (!addToFolder(tabDocs, selectedParentFolder.id)) {
-          // Fallback to root if parent not found
-          tabDocs.push(newItem);
+        const response = await companyDocsService.createFolder(folderData);
+        if (response.success) {
+          // Refresh the assets list to get the new folder structure
+          const assetsResponse = await companyDocsService.listAssets();
+          if (assetsResponse.success) {
+            setAssets(assetsResponse.data || []);
+            
+            const enhancedAssets = convertAssetsToDocuments(assetsResponse.data?.assets || []);
+            setDocuments(prev => ({
+              ...prev,
+              'company-docs': enhancedAssets
+            }));
+          }
+          toast.success(`📁 Folder "${newItemName.trim()}" created successfully!`);
+        } else {
+          throw new Error('Failed to create folder via API');
         }
+      } else {
+        // Fallback to local storage for custom tabs or files
+        const newItem = {
+          id: `${tabId}-${Date.now()}`,
+          name: newItemName.trim(),
+          type: newItemType,
+          priority: 'medium',
+          tags: [],
+          favorite: false,
+          notes: '',
+          uploadedAt: new Date().toISOString(),
+          ...(newItemType === 'folder' ? { expanded: false, children: [] } : { size: 0 })
+        };
+        
+        setDocuments(prevDocs => {
+          const newDocs = { ...prevDocs };
+          const tabDocs = JSON.parse(JSON.stringify(newDocs[tabId] || []));
+          
+          // If no parent folder selected, add to root
+          if (!selectedParentFolder) {
+            tabDocs.push(newItem);
+          } else {
+            // Add to specific parent folder (supports nested folders)
+            const addToFolder = (items, targetFolderId) => {
+              for (let i = 0; i < items.length; i++) {
+                if (items[i].id === targetFolderId && items[i].type === 'folder') {
+                  items[i].children = items[i].children || [];
+                  items[i].children.push(newItem);
+                  items[i].expanded = true; // Auto-expand to show new item
+                  return true;
+                }
+                if (items[i].children && items[i].children.length > 0) {
+                  if (addToFolder(items[i].children, targetFolderId)) {
+                    return true;
+                  }
+                }
+              }
+              return false;
+            };
+            
+            if (!addToFolder(tabDocs, selectedParentFolder.id)) {
+              // Fallback to root if parent not found
+              tabDocs.push(newItem);
+            }
+          }
+          
+          newDocs[tabId] = tabDocs;
+          return newDocs;
+        });
+        
+        toast.success(`${newItemType === 'folder' ? '📁' : '📄'} "${newItemName.trim()}" created successfully!`);
       }
-      
-      newDocs[tabId] = tabDocs;
-      return newDocs;
-    });
+    } catch (error) {
+      console.error('Error creating item:', error);
+      toast.error(`❌ Failed to create ${newItemType}: ${error.message || 'Unknown error'}`);
+    }
     
     setShowNewItemModal(false);
     setNewItemName('');
@@ -2015,13 +2090,15 @@ export default function CompanyDocumentsPage({ colorMode }) {
                 }}
               />
               
-              {/* Collaboration Panel */}
-              <CollaborationPanel 
-                file={activeTab}
-                onShare={(file, level) => {
-                  toast.success(`🤝 Shared "${file.name}" with ${level} permissions!`);
-                }}
-              />
+              {/* Collaboration Panel - HIDDEN FOR NOW */}
+              {false && (
+                <CollaborationPanel 
+                  file={activeTab}
+                  onShare={(file, level) => {
+                    toast.success(`🤝 Shared "${file.name}" with ${level} permissions!`);
+                  }}
+                />
+              )}
             </div>
           </div>
         )}

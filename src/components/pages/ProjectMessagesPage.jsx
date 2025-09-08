@@ -472,7 +472,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                         {!usersLoading && availableUsers.length > 0 ? (
                                                             availableUsers.map(user => (
                                                                 <option key={user.id} value={user.id}>
-                                                                    {user.firstName} {user.lastName} - {user.role || 'User'}
+                                                                    {user.firstName} {user.lastName}
                                                                 </option>
                                                             ))
                                                         ) : !usersLoading ? (

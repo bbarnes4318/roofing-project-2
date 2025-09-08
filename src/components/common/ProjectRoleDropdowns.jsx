@@ -204,7 +204,7 @@ const ProjectRoleDropdowns = ({ project, colorMode, onRoleAssignmentUpdate, isEx
                             <option value="">Select user for {getRoleDisplayName(roleType)}</option>
                             {availableUsers.map(user => (
                                 <option key={user.id} value={user.id}>
-                                    {user.name} ({user.role})
+                                    {user.name}
                                 </option>
                             ))}
                         </select>

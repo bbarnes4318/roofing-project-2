@@ -890,7 +890,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   </option>
                   {users.map(user => (
                     <option key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName} ({user.role || 'No role'})
+                      {user.firstName} {user.lastName}
                     </option>
                   ))}
                 </select>

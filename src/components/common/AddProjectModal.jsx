@@ -127,11 +127,38 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     }
   }, [isOpen]);
 
+  // Phone number formatting function
+  const formatPhoneNumber = (value) => {
+    if (!value) return value;
+    
+    // Remove all non-numeric characters
+    const phoneNumber = value.replace(/[^\d]/g, '');
+    
+    // Don't format if there are no digits
+    if (phoneNumber.length === 0) return '';
+    
+    // Format based on length
+    if (phoneNumber.length < 4) {
+      return phoneNumber;
+    } else if (phoneNumber.length < 7) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Apply phone formatting to phone fields
+    let formattedValue = value;
+    if (name === 'customerPhone' || name === 'secondaryPhone') {
+      formattedValue = formatPhoneNumber(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: formattedValue
     }));
     // Clear error when user starts typing
     if (errors[name]) {
@@ -784,13 +811,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     {projectManagers.length > 0 ? (
                       projectManagers.map(user => (
                         <option key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName} - {user.role || 'Project Manager'}
+                          {user.firstName} {user.lastName}
                         </option>
                       ))
                     ) : (
                       users.map(user => (
                         <option key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName} - {user.role || 'No role'}
+                          {user.firstName} {user.lastName}
                         </option>
                       ))
                     )}
