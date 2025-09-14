@@ -720,6 +720,7 @@ const Breadcrumb = ({ path, onNavigate }) => {
 
 // Main Enhanced Component
 const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
+  console.log('EnhancedCompanyDocumentsPage is rendering!', { colorMode });
   // Core state
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1256,6 +1257,10 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-full flex bg-white">
+        {/* DEBUG: This should be visible if EnhancedCompanyDocumentsPage is rendering */}
+        <div className="fixed top-0 left-0 z-50 bg-red-500 text-white p-2 text-xs">
+          ENHANCED COMPANY DOCUMENTS PAGE IS RENDERING!
+        </div>
         {/* Enhanced Sidebar */}
         <Sidebar
           documents={documents}
