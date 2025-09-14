@@ -88,7 +88,7 @@ const TaskItem = ({
               {item.projectId && project ? (
                 <button
                   className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
-                  style={{ width: '46px', marginLeft: '-6px' }}
+                  style={{ width: '46px', marginLeft: '0px' }}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (onProjectSelect) {
@@ -99,7 +99,7 @@ const TaskItem = ({
                   {projectNumber}
                 </button>
               ) : (
-                <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '2px' }}>
+                <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '6px' }}>
                   General
                 </span>
               )}
@@ -137,7 +137,7 @@ const TaskItem = ({
           <div className="flex items-baseline gap-0 -mt-0.5 overflow-hidden relative">
             <div className="flex items-baseline gap-0">
               {/* From - Fixed width container for consistent spacing */}
-              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '2px' }}>
+              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '6px' }}>
                 <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                   From: {item.author}
                 </span>
@@ -165,9 +165,9 @@ const TaskItem = ({
         </div>
 
         {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
-        <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px', marginRight: '20px' }}>
+        <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px', marginRight: '15px' }}>
           {/* Row 1: Checkbox and Task label */}
-          <div className="flex items-center gap-1" style={{ marginRight: '20px' }}>
+          <div className="flex items-center gap-1" style={{ marginRight: '10px' }}>
             {/* Checkbox */}
             <input
               type="checkbox"

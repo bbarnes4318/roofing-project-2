@@ -201,31 +201,31 @@ input, textarea, select {
 
 /* Force proper font sizing for main content */
 main {
-  font-size: 12px !important;
+  font-size: 12px;
 }
 
 /* Override any conflicting font sizes */
-.text-xs { font-size: 0.625rem !important; }
-.text-sm { font-size: 0.75rem !important; }
-.text-base { font-size: 0.875rem !important; }
-.text-lg { font-size: 1rem !important; }
-.text-xl { font-size: 1.125rem !important; }
-.text-2xl { font-size: 1.375rem !important; }
-.text-3xl { font-size: 1.625rem !important; }
+.text-xs { font-size: 0.625rem; }
+.text-sm { font-size: 0.75rem; }
+.text-base { font-size: 0.875rem; }
+.text-lg { font-size: 1rem; }
+.text-xl { font-size: 1.125rem; }
+.text-2xl { font-size: 1.375rem; }
+.text-3xl { font-size: 1.625rem; }
 
 /* Mobile-specific overrides */
 @media (max-width: 640px) {
   main {
-    font-size: 11px !important;
+    font-size: 11px;
   }
   
-  .text-xs { font-size: 0.625rem !important; }
-  .text-sm { font-size: 0.6875rem !important; }
-  .text-base { font-size: 0.75rem !important; }
-  .text-lg { font-size: 0.8125rem !important; }
-  .text-xl { font-size: 0.875rem !important; }
-  .text-2xl { font-size: 1rem !important; }
-  .text-3xl { font-size: 1.125rem !important; }
+  .text-xs { font-size: 0.625rem; }
+  .text-sm { font-size: 0.6875rem; }
+  .text-base { font-size: 0.75rem; }
+  .text-lg { font-size: 0.8125rem; }
+  .text-xl { font-size: 0.875rem; }
+  .text-2xl { font-size: 1rem; }
+  .text-3xl { font-size: 1.125rem; }
 }
 
 /* Custom scrollbar styles */
