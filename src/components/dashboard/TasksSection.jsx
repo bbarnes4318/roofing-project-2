@@ -13,7 +13,8 @@ const TasksSection = ({
   showCompletedTasks,
   setShowCompletedTasks,
   handleProjectSelectWithScroll,
-  availableUsers = []
+  availableUsers = [],
+  currentUser = null
 }) => {
   const { state } = useActivity();
   
@@ -86,6 +87,7 @@ const TasksSection = ({
                       colorMode={colorMode}
                       onProjectSelect={handleProjectSelectWithScroll}
                       availableUsers={availableUsers}
+                      currentUser={currentUser}
                     />
                   ))}
                 </div>

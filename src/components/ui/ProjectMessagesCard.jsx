@@ -80,14 +80,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             const realMessages = projectMessagesData.data.flatMap(message => {
                 const mainMessage = {
                     id: message.id,
-                    user: message.authorName,
+                    user: message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User',
                     comment: message.content,
                     timestamp: message.createdAt
                 };
                 
                 const replies = message.replies?.map(reply => ({
                     id: reply.id,
-                    user: reply.authorName,
+                    user: reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : reply.authorName || 'Unknown User',
                     comment: reply.content,
                     timestamp: reply.createdAt
                 })) || [];

@@ -26,6 +26,7 @@ import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../h
 import api, { authService, messagesService, customersService, usersService, projectMessagesService, calendarService } from '../../services/api';
 import toast from 'react-hot-toast';
 import WorkflowProgressService from '../../services/workflowProgress';
+import { getUserFullName } from '../../utils/userUtils';
 import { ALERT_SUBJECTS } from '../../data/constants';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
@@ -1223,7 +1224,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       const alertActivity = {
         id: Date.now(),
-        author: 'Sarah Owner',
+        author: getUserFullName(currentUser)
         avatar: 'S',
         content: `🚨 ALERT: ${message}`,
         timestamp: new Date().toISOString(),
@@ -1240,7 +1241,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       // Create regular activity post
       const newActivity = {
         id: Date.now(),
-        author: 'Sarah Owner',
+        author: getUserFullName(currentUser)
         avatar: 'S',
         content: message,
         timestamp: new Date().toISOString(),
@@ -2978,6 +2979,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 handleTaskToggle={handleTaskToggle}
                 handleProjectSelectWithScroll={handleProjectSelectWithScroll}
                 availableUsers={availableUsers}
+                currentUser={currentUser}
                 taskComments={taskComments}
                 newCommentText={newCommentText}
                 setNewCommentText={setNewCommentText}
@@ -2994,6 +2996,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 remindersProjectFilter={remindersProjectFilter}
                 remindersUserFilter={remindersUserFilter}
                 availableUsers={availableUsers}
+                currentUser={currentUser}
                 handleToggleMessage={handleToggleMessage}
                 handleTaskToggle={handleTaskToggle}
                 handleProjectSelectWithScroll={handleProjectSelectWithScroll}
@@ -3012,7 +3015,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         <ActivityFeedSection
           activityFeedItems={activityFeedItems}
           projects={projects}
-                        colorMode={colorMode}
+          colorMode={colorMode}
           expandedMessages={expandedMessages}
           completedTasks={completedTasks}
           activityProjectFilter={activityProjectFilter}
@@ -3022,6 +3025,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           handleToggleMessage={handleToggleMessage}
           handleTaskToggle={handleTaskToggle}
           handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+          availableUsers={availableUsers}
+          currentUser={currentUser}
           taskComments={taskComments}
           newCommentText={newCommentText}
           setNewCommentText={setNewCommentText}

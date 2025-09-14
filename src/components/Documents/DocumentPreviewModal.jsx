@@ -265,14 +265,16 @@ const DocumentPreviewModal = ({ document, onClose, onDownload }) => {
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-gray-700">
-                      {comment.author?.name?.charAt(0) || 'U'}
+                      {comment.author?.firstName?.charAt(0) || comment.author?.name?.charAt(0) || 'U'}
                     </span>
                   </div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium text-gray-900">
-                      {comment.author?.name || 'Unknown'}
+                      {comment.author?.firstName && comment.author?.lastName 
+                        ? `${comment.author.firstName} ${comment.author.lastName}`
+                        : comment.author?.name || 'Unknown'}
                     </p>
                     <span className="text-xs text-gray-500">
                       {formatDate(comment.createdAt)}
@@ -290,7 +292,9 @@ const DocumentPreviewModal = ({ document, onClose, onDownload }) => {
                         <div key={reply.id} className="bg-white rounded p-3">
                           <div className="flex items-center space-x-2">
                             <p className="text-sm font-medium text-gray-900">
-                              {reply.author?.name || 'Unknown'}
+                              {reply.author?.firstName && reply.author?.lastName 
+                                ? `${reply.author.firstName} ${reply.author.lastName}`
+                                : reply.author?.name || 'Unknown'}
                             </p>
                             <span className="text-xs text-gray-500">
                               {formatDate(reply.createdAt)}

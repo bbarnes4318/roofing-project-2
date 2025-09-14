@@ -11,7 +11,8 @@ const RemindersSection = ({
   remindersProjectFilter,
   remindersUserFilter,
   availableUsers,
-  handleProjectSelectWithScroll
+  handleProjectSelectWithScroll,
+  currentUser = null
 }) => {
   const { state } = useActivity();
   
@@ -57,6 +58,7 @@ const RemindersSection = ({
                 colorMode={colorMode}
                 onProjectSelect={handleProjectSelectWithScroll}
                 availableUsers={availableUsers}
+                currentUser={currentUser}
               />
             ))}
           </div>

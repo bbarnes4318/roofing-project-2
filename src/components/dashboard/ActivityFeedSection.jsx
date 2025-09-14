@@ -14,7 +14,8 @@ const ActivityFeedSection = ({
   setActivityProjectFilter,
   setActivityTypeFilter,
   handleProjectSelectWithScroll,
-  availableUsers = []
+  availableUsers = [],
+  currentUser = null
 }) => {
   const { state, actions } = useActivity();
   
@@ -198,6 +199,7 @@ const ActivityFeedSection = ({
                     colorMode={colorMode}
                     onProjectSelect={handleProjectSelectWithScroll}
                     availableUsers={availableUsers}
+                    currentUser={currentUser}
                   />
                 );
               } else if (item.type === 'reminder') {
@@ -210,6 +212,7 @@ const ActivityFeedSection = ({
                     colorMode={colorMode}
                     onProjectSelect={handleProjectSelectWithScroll}
                     availableUsers={availableUsers}
+                    currentUser={currentUser}
                   />
                 );
               }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
+import { getUserFullName, getUserInitials } from './utils/userUtils';
 import {
   ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, FolderIcon, ArchiveBoxIcon
 } from './components/common/Icons';
@@ -272,7 +273,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         projectId: activity.projectId || activity.project_id, // Normalize project reference
                         subject: activity.subject || activity.title, // Ensure subject field
                         content: activity.content || activity.description || activity.message,
-                        author: activity.author || activity.user || activity.createdBy || 'Unknown User',
+                        author: activity.author || activity.user || activity.createdBy || 'Unknown User', // TODO: Update to use first/last name
                         timestamp: activity.timestamp || activity.createdAt || activity.date || new Date().toISOString()
                     }));
                     setActivities(normalizedActivities);
@@ -294,24 +295,14 @@ const apiUrl = window.location.hostname === 'localhost'
     const getGreeting = () => {
         if (!currentUser) return "Good afternoon!";
         const hour = new Date().getHours();
-        const firstName = currentUser.firstName || "User";
+        const firstName = currentUser.firstName || currentUser.user_metadata?.first_name || "User";
         
         if (hour < 12) return `Good morning, ${firstName}!`;
         if (hour < 17) return `Good afternoon, ${firstName}!`;
         return `Good evening, ${firstName}!`;
     };
 
-    const getUserFullName = () => {
-        if (!currentUser) return "User";
-        return `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim();
-    };
-
-    const getUserInitials = () => {
-        if (!currentUser) return "U";
-        const firstName = currentUser.firstName || "";
-        const lastName = currentUser.lastName || "";
-        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    };
+    // getUserInitials is now imported from utils/userUtils
 
     const getUserPosition = () => {
         if (!currentUser) return "User";
@@ -866,7 +857,7 @@ const apiUrl = window.location.hostname === 'localhost'
             // Fallback to local state if API fails
             const newActivity = { 
                 id: Date.now(), 
-                author: getUserFullName(), 
+                author: getUserFullName(currentUser),
                 avatar: 'I', // Default to Lead phase initial
                 content: content, 
                 timestamp: new Date().toISOString(), 
@@ -1342,7 +1333,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                 className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
                             >
                                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                    {getUserInitials()}
+                                    {getUserInitials(currentUser)}
                                 </div>
                             </button>
                             

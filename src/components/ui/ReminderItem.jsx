@@ -2,13 +2,15 @@ import React from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import MentionInput from './MentionInput';
+import { getUserFullName } from '../../utils/userUtils';
 
 const ReminderItem = ({ 
   item, 
   projects, 
   colorMode, 
   onProjectSelect,
-  availableUsers = []
+  availableUsers = [],
+  currentUser = null
 }) => {
   const { state, actions } = useActivity();
   
@@ -40,7 +42,7 @@ const ReminderItem = ({
       const comment = {
         id: Date.now(),
         content: commentText.trim(),
-        userName: 'Current User', // This should come from auth context
+        userName: getUserFullName(currentUser),
         createdAt: new Date().toISOString()
       };
       actions.addComment(item.id, comment);

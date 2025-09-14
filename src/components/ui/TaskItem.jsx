@@ -2,13 +2,15 @@ import React from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import MentionInput from './MentionInput';
+import { getUserFullName } from '../../utils/userUtils';
 
 const TaskItem = ({ 
   item, 
   projects, 
   colorMode, 
   onProjectSelect,
-  availableUsers = []
+  availableUsers = [],
+  currentUser = null
 }) => {
   const { state, actions } = useActivity();
   
@@ -34,7 +36,7 @@ const TaskItem = ({
       const comment = {
         id: Date.now(),
         text: commentText.trim(),
-        user: 'Current User', // This should come from auth context
+        user: getUserFullName(currentUser),
         timestamp: new Date().toISOString()
       };
       actions.addComment(item.id, comment);

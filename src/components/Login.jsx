@@ -6,6 +6,8 @@ const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [user, setUser] = useState(null);
@@ -35,6 +37,11 @@ const Login = ({ onLoginSuccess }) => {
       return;
     }
 
+    if (!firstName.trim() || !lastName.trim()) {
+      setMessage({ type: 'error', text: 'Please provide both first and last name' });
+      return;
+    }
+
     setLoading(true);
     setMessage({ type: '', text: '' });
 
@@ -44,6 +51,10 @@ const Login = ({ onLoginSuccess }) => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          }
         },
       });
 
@@ -57,6 +68,8 @@ const Login = ({ onLoginSuccess }) => {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setFirstName('');
+        setLastName('');
         setTimeout(() => setMode('login'), 3000);
       }
     } catch (error) {
@@ -153,7 +166,14 @@ const Login = ({ onLoginSuccess }) => {
           
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-600 mb-1">Logged in as:</p>
-            <p className="text-lg font-semibold text-gray-800">{user.email}</p>
+            <p className="text-lg font-semibold text-gray-800">
+              {user.user_metadata?.first_name && user.user_metadata?.last_name 
+                ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                : user.email}
+            </p>
+            {user.user_metadata?.first_name && user.user_metadata?.last_name && (
+              <p className="text-sm text-gray-500">{user.email}</p>
+            )}
           </div>
 
           <button
@@ -202,6 +222,40 @@ const Login = ({ onLoginSuccess }) => {
           handleForgotPassword
         }>
           <div className="space-y-4">
+            {mode === 'signup' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name
+                    </label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name
+                    </label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
