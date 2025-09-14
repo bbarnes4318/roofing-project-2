@@ -47,6 +47,7 @@ model User {
   eventAttendees           CalendarEventAttendee[]
   calendarEvents           CalendarEvent[]           @relation("Organizer")
   companyAssets            CompanyAsset[]
+  companyAssetVersions     CompanyAssetVersion[]
   completedWorkflowItems   CompletedWorkflowItem[]
   conversationParticipants ConversationParticipant[]
   downloadedDocuments      DocumentDownload[]
@@ -788,32 +789,67 @@ model VoiceTranscript {
 }
 
 model CompanyAsset {
-  id               String           @id @default(cuid())
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  title            String           @db.VarChar(255)
-  description      String?          @db.VarChar(1000)
-  fileUrl          String?          @db.VarChar(2000)  // Optional for folders
-  mimeType         String?          @db.VarChar(100)   // Optional for folders
-  fileSize         Int?                                 // Optional for folders
+  id               String                  @id @default(cuid())
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  title            String                  @db.VarChar(255)
+  description      String?                 @db.VarChar(1000)
+  fileUrl          String?                 @db.VarChar(2000)  // Optional for folders
+  mimeType         String?                 @db.VarChar(100)   // Optional for folders
+  fileSize         Int?                                        // Optional for folders
   tags             String[]
   section          DocumentSection?
-  version          Int              @default(1)
-  isActive         Boolean          @default(true)
-  downloadCount    Int              @default(0)
+  version          Int                     @default(1)
+  isActive         Boolean                 @default(true)
+  downloadCount    Int                     @default(0)
   lastDownloadedAt DateTime?
-  uploadedById     String?          @map("uploaded_by_id")
+  uploadedById     String?                 @map("uploaded_by_id")
+  
+  // Enhanced fields for redesign
+  folderName       String?                 @db.VarChar(255)   // Human-readable folder name
+  isPublic         Boolean                 @default(false)    // Public/private access
+  thumbnailUrl     String?                 @db.VarChar(2000)  // Preview thumbnail
+  checksum         String?                 @db.VarChar(255)   // File integrity check
+  metadata         Json?                                      // Flexible metadata (icon, color, etc)
+  accessLevel      String?                 @default("private") @db.VarChar(50)
   
   // Folder hierarchy support
-  type             AssetType        @default(FILE)
-  parentId         String?          @map("parent_id")
-  parent           CompanyAsset?    @relation("FolderHierarchy", fields: [parentId], references: [id])
-  children         CompanyAsset[]   @relation("FolderHierarchy")
-  path             String?          @db.VarChar(1000)  // Full path for easier queries
-  sortOrder        Int              @default(0)        // For custom ordering within folders
-  uploadedBy       User?            @relation(fields: [uploadedById], references: [id])
+  type             AssetType               @default(FILE)
+  parentId         String?                 @map("parent_id")
+  parent           CompanyAsset?           @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children         CompanyAsset[]          @relation("FolderHierarchy")
+  path             String?                 @db.VarChar(1000)  // Full path for easier queries
+  sortOrder        Int                     @default(0)        // For custom ordering within folders
+  
+  // Relations
+  uploadedBy       User?                   @relation(fields: [uploadedById], references: [id])
+  versions         CompanyAssetVersion[]   @relation("AssetVersions")
 
+  @@index([folderName])
+  @@index([isPublic])
+  @@index([parentId, type])
   @@map("company_assets")
+}
+
+model CompanyAssetVersion {
+  id                String        @id @default(cuid())
+  createdAt         DateTime      @default(now())
+  assetId           String        @map("asset_id")
+  versionNumber     Int           @map("version_number")
+  fileUrl           String        @db.VarChar(2000)
+  fileSize          Int
+  checksum          String?       @db.VarChar(255)
+  changeDescription String?       @db.VarChar(1000)
+  uploadedById      String?       @map("uploaded_by_id")
+  isCurrent         Boolean       @default(false)
+  
+  // Relations
+  asset             CompanyAsset  @relation("AssetVersions", fields: [assetId], references: [id], onDelete: Cascade)
+  uploadedBy        User?         @relation(fields: [uploadedById], references: [id])
+
+  @@index([assetId])
+  @@index([assetId, isCurrent])
+  @@map("company_asset_versions")
 }
 
 model DocumentTemplate {

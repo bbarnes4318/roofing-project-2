@@ -3,6 +3,8 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { companyDocsService } from '../../services/api';
 import toast from 'react-hot-toast';
+import DocumentPreviewModal from '../ui/DocumentPreviewModal';
+import DocumentUploadZone from '../ui/DocumentUploadZone';
 import { 
   FolderIcon, 
   FolderOpenIcon, 
@@ -473,15 +475,26 @@ const DraggableItem = ({
               <PencilIcon className="w-4 h-4 text-gray-600" />
             </button>
             {!isFolder && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDownload(item.id, item.title);
-                }}
-                className="p-2 bg-white rounded-xl shadow-lg hover:bg-gray-50 border border-gray-200 transition-colors"
-              >
-                <ArrowDownTrayIcon className="w-4 h-4 text-blue-500" />
-              </button>
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPreview?.(item);
+                  }}
+                  className="p-2 bg-white rounded-xl shadow-lg hover:bg-gray-50 border border-gray-200 transition-colors"
+                >
+                  <EyeIcon className="w-4 h-4 text-green-500" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownload(item.id, item.title);
+                  }}
+                  className="p-2 bg-white rounded-xl shadow-lg hover:bg-gray-50 border border-gray-200 transition-colors"
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4 text-blue-500" />
+                </button>
+              </>
             )}
             <button
               onClick={(e) => {
@@ -634,15 +647,26 @@ const DraggableItem = ({
             <PencilIcon className="w-4 h-4 text-gray-600" />
           </button>
           {!isFolder && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDownload(item.id, item.title);
-              }}
-              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 text-blue-500" />
-            </button>
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPreview?.(item);
+                }}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <EyeIcon className="w-4 h-4 text-green-500" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(item.id, item.title);
+                }}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4 text-blue-500" />
+              </button>
+            </>
           )}
           <button
             onClick={(e) => {
@@ -716,6 +740,8 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [previewDocument, setPreviewDocument] = useState(null);
+  const [showUploadZone, setShowUploadZone] = useState(false);
   
   // Refs
   const fileInputRef = useRef(null);
@@ -1120,6 +1146,18 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
     }
   };
 
+  const handlePreview = (item) => {
+    if (item.type === 'FILE') {
+      setPreviewDocument(item);
+    }
+  };
+
+  const handleUploadComplete = (newAsset) => {
+    // Refresh the documents list
+    loadDocuments();
+    setShowUploadZone(false);
+  };
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -1272,7 +1310,7 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
                   </button>
                   
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setShowUploadZone(true)}
                     className="flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <CloudArrowUpIcon className="w-5 h-5 mr-2" />
@@ -1404,7 +1442,7 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
                       Create Folder
                     </button>
                     <button
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => setShowUploadZone(true)}
                       className="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       <CloudArrowUpIcon className="w-5 h-5 mr-2" />
@@ -1448,6 +1486,7 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
                           onToggle={handleToggleFolder}
                           onToggleFavorite={handleToggleFavorite}
                           onDownload={handleDownload}
+                          onPreview={handlePreview}
                           viewMode={viewMode}
                           isSelected={selectedItems.find(selected => selected.id === item.id)}
                           onSelect={handleSelect}
@@ -1503,6 +1542,7 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
                             onToggle={handleToggleFolder}
                             onToggleFavorite={handleToggleFavorite}
                             onDownload={handleDownload}
+                            onPreview={handlePreview}
                             viewMode={viewMode}
                             isSelected={selectedItems.find(selected => selected.id === item.id)}
                             onSelect={handleSelect}
@@ -1566,6 +1606,43 @@ const EnhancedCompanyDocumentsPage = ({ colorMode }) => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Upload Zone Modal */}
+        {showUploadZone && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-gray-900">Upload Documents</h3>
+                  <button
+                    onClick={() => setShowUploadZone(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <XMarkIcon className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <DocumentUploadZone
+                  onUploadComplete={handleUploadComplete}
+                  parentId={currentPath.length > 0 ? currentPath[currentPath.length - 1] : null}
+                  colorMode={colorMode}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Document Preview Modal */}
+        {previewDocument && (
+          <DocumentPreviewModal
+            isOpen={!!previewDocument}
+            onClose={() => setPreviewDocument(null)}
+            documentId={previewDocument.id}
+            documentTitle={previewDocument.title}
+            colorMode={colorMode}
+          />
         )}
       </div>
     </DndProvider>

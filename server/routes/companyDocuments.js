@@ -33,14 +33,34 @@ const upload = multer({
 // =============================
 
 router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
-  const { search, tag, section, parentId } = req.query;
+  const { search, tag, section, parentId, type, isPublic, accessLevel, sortBy, sortOrder } = req.query;
   const where = {};
+  
+  // Enhanced search across multiple fields
   if (search) {
     where.OR = [
       { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } }
+      { description: { contains: search, mode: 'insensitive' } },
+      { folderName: { contains: search, mode: 'insensitive' } },
+      { tags: { hasSome: search.split(' ').filter(s => s.length > 0) } }
     ];
   }
+  
+  // Filter by type (FOLDER, FILE)
+  if (type) {
+    where.type = type;
+  }
+  
+  // Filter by public/private
+  if (isPublic !== undefined) {
+    where.isPublic = isPublic === 'true';
+  }
+  
+  // Filter by access level
+  if (accessLevel) {
+    where.accessLevel = accessLevel;
+  }
+  
   if (tag) {
     where.tags = { has: tag };
   }
@@ -51,12 +71,27 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
     where.parentId = parentId === 'null' ? null : parentId;
   }
 
+  // Enhanced sorting
+  const orderBy = [];
+  if (sortBy === 'title') {
+    orderBy.push({ title: sortOrder === 'desc' ? 'desc' : 'asc' });
+  } else if (sortBy === 'size') {
+    orderBy.push({ fileSize: sortOrder === 'desc' ? 'desc' : 'asc' });
+  } else if (sortBy === 'modified') {
+    orderBy.push({ updatedAt: sortOrder === 'desc' ? 'desc' : 'asc' });
+  } else {
+    orderBy.push({ sortOrder: 'asc' }, { createdAt: 'desc' });
+  }
+
   const assets = await prisma.companyAsset.findMany({
     where,
-    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    orderBy,
     include: {
       children: true,
-      parent: true
+      parent: true,
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      }
     }
   });
   res.json({ success: true, data: { assets } });
@@ -465,6 +500,247 @@ router.get('/test-5year-warranty', authenticateToken, asyncHandler(async (req, r
     message: '5-Year Warranty test PDF generated',
     fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
   });
+}));
+
+// =============================
+// Enhanced Document Management
+// =============================
+
+// Get document preview with metadata
+router.get('/assets/:id/preview', authenticateToken, asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const asset = await prisma.companyAsset.findUnique({ 
+    where: { id },
+    include: {
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      },
+      parent: true,
+      children: true
+    }
+  });
+  
+  if (!asset) throw new AppError('Asset not found', 404);
+  if (asset.type !== 'FILE') throw new AppError('Cannot preview folders', 400);
+
+  // Get version history
+  const versions = await prisma.documentVersion.findMany({
+    where: { documentId: id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      }
+    }
+  });
+
+  res.json({ 
+    success: true, 
+    data: { 
+      asset,
+      versions,
+      previewUrl: asset.thumbnailUrl || asset.fileUrl
+    } 
+  });
+}));
+
+// Generate thumbnail for document
+router.post('/assets/:id/thumbnail', authenticateToken, asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  
+  if (!asset) throw new AppError('Asset not found', 404);
+  if (asset.type !== 'FILE') throw new AppError('Cannot generate thumbnail for folders', 400);
+
+  try {
+    // For now, return a placeholder thumbnail URL
+    // In production, you'd generate actual thumbnails using libraries like sharp or pdf-poppler
+    const thumbnailUrl = `/uploads/company-assets/thumbnails/${asset.id}.png`;
+    
+    // Update asset with thumbnail URL
+    await prisma.companyAsset.update({
+      where: { id },
+      data: { thumbnailUrl }
+    });
+
+    res.json({ 
+      success: true, 
+      data: { 
+        thumbnailUrl,
+        message: 'Thumbnail generated successfully' 
+      } 
+    });
+  } catch (error) {
+    console.error('Error generating thumbnail:', error);
+    throw new AppError('Failed to generate thumbnail', 500);
+  }
+}));
+
+// Get document version history
+router.get('/assets/:id/versions', authenticateToken, asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const versions = await prisma.documentVersion.findMany({
+    where: { documentId: id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      }
+    }
+  });
+
+  res.json({ success: true, data: { versions } });
+}));
+
+// Create new version of document
+router.post('/assets/:id/versions', authenticateToken, upload.single('file'), asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const { description, versionNumber } = req.body;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  if (asset.type !== 'FILE') throw new AppError('Cannot version folders', 400);
+
+  if (!req.file) throw new AppError('No file uploaded', 400);
+
+  // Create new version
+  const version = await prisma.documentVersion.create({
+    data: {
+      documentId: id,
+      fileUrl: `/uploads/company-assets/${req.file.filename}`,
+      versionNumber: versionNumber || '1.0',
+      description: description || 'New version',
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+      uploadedById: req.user?.id || null
+    }
+  });
+
+  // Update main asset with new file
+  await prisma.companyAsset.update({
+    where: { id },
+    data: {
+      fileUrl: `/uploads/company-assets/${req.file.filename}`,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+      updatedAt: new Date()
+    }
+  });
+
+  res.status(201).json({ success: true, data: { version } });
+}));
+
+// Get document statistics
+router.get('/assets/stats', authenticateToken, asyncHandler(async (req, res) => {
+  const stats = await prisma.$queryRaw`
+    SELECT 
+      COUNT(*) as total_assets,
+      COUNT(CASE WHEN type = 'FILE' THEN 1 END) as total_files,
+      COUNT(CASE WHEN type = 'FOLDER' THEN 1 END) as total_folders,
+      COUNT(CASE WHEN "isPublic" = true THEN 1 END) as public_assets,
+      COUNT(CASE WHEN "isPublic" = false THEN 1 END) as private_assets,
+      SUM(CASE WHEN type = 'FILE' THEN "fileSize" ELSE 0 END) as total_size
+    FROM "CompanyAsset"
+  `;
+
+  const recentUploads = await prisma.companyAsset.findMany({
+    where: { type: 'FILE' },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+    include: {
+      uploadedBy: {
+        select: { firstName: true, lastName: true }
+      }
+    }
+  });
+
+  res.json({ 
+    success: true, 
+    data: { 
+      stats: stats[0],
+      recentUploads
+    } 
+  });
+}));
+
+// Search with advanced filters
+router.get('/assets/search', authenticateToken, asyncHandler(async (req, res) => {
+  const { 
+    q, 
+    type, 
+    isPublic, 
+    accessLevel, 
+    dateFrom, 
+    dateTo, 
+    sizeMin, 
+    sizeMax,
+    tags,
+    uploadedBy
+  } = req.query;
+  
+  const where = {};
+  
+  // Text search
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+      { folderName: { contains: q, mode: 'insensitive' } }
+    ];
+  }
+  
+  // Type filter
+  if (type) {
+    where.type = type;
+  }
+  
+  // Public/private filter
+  if (isPublic !== undefined) {
+    where.isPublic = isPublic === 'true';
+  }
+  
+  // Access level filter
+  if (accessLevel) {
+    where.accessLevel = accessLevel;
+  }
+  
+  // Date range filter
+  if (dateFrom || dateTo) {
+    where.createdAt = {};
+    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+    if (dateTo) where.createdAt.lte = new Date(dateTo);
+  }
+  
+  // Size range filter
+  if (sizeMin || sizeMax) {
+    where.fileSize = {};
+    if (sizeMin) where.fileSize.gte = parseInt(sizeMin);
+    if (sizeMax) where.fileSize.lte = parseInt(sizeMax);
+  }
+  
+  // Tags filter
+  if (tags) {
+    const tagArray = tags.split(',').map(t => t.trim());
+    where.tags = { hasSome: tagArray };
+  }
+  
+  // Uploaded by filter
+  if (uploadedBy) {
+    where.uploadedById = uploadedBy;
+  }
+
+  const assets = await prisma.companyAsset.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      },
+      parent: true
+    }
+  });
+
+  res.json({ success: true, data: { assets } });
 }));
 
 // =============================

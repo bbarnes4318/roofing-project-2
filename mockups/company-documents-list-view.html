@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Documents - List View Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles for roofing/contractor branding */
+        :root {
+            --primary-blue: #1e40af; /* Blueprint blue */
+            --accent-red: #dc2626;
+        }
+        
+        .table-row-hover:hover {
+            background-color: #f8fafc;
+        }
+        
+        .checkbox-custom {
+            accent-color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- List View Content (Main area only - sidebar same as grid view) -->
+    <div class="bg-white rounded-lg border border-gray-200">
+        <!-- Table Header -->
+        <div class="px-6 py-3 border-b border-gray-200 bg-gray-50">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <input type="checkbox" class="checkbox-custom rounded">
+                    <span class="text-sm text-gray-600">Select all</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50" disabled>
+                        <i class="fas fa-download mr-1"></i> Download
+                    </button>
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50" disabled>
+                        <i class="fas fa-share mr-1"></i> Share
+                    </button>
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:text-red-600 disabled:opacity-50" disabled>
+                        <i class="fas fa-trash mr-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Table -->
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="px-6 py-3 text-left">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</span>
+                    </th>
+                    <th class="px-6 py-3 text-left">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Modified</span>
+                    </th>
+                    <th class="px-6 py-3 text-left">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Size</span>
+                    </th>
+                    <th class="px-6 py-3 text-left">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Type</span>
+                    </th>
+                    <th class="px-6 py-3 text-left">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</span>
+                    </th>
+                    <th class="px-6 py-3 text-left">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</span>
+                    </th>
+                    <th class="px-6 py-3 text-center">
+                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                <!-- Folder Row -->
+                <tr class="table-row-hover">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" class="checkbox-custom rounded mr-3">
+                            <i class="fas fa-folder text-blue-500 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Residential Projects</p>
+                                <p class="text-xs text-gray-500">24 documents</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">2 hours ago</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">—</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">Folder</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <img class="h-8 w-8 rounded-full mr-2" src="https://ui-avatars.com/api/?name=John+Smith&background=3b82f6&color=fff" alt="">
+                            <span class="text-sm text-gray-600">John Smith</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">—</td>
+                    <td class="px-6 py-4 text-center">
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </td>
+                </tr>
+                
+                <!-- Document Row -->
+                <tr class="table-row-hover">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" class="checkbox-custom rounded mr-3">
+                            <i class="fas fa-file-pdf text-red-500 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">5-Year Warranty Certificate</p>
+                                <p class="text-xs text-gray-500">Standard 5-year roofing warranty template</p>
+                            </div>
+                            <div class="ml-3 flex items-center space-x-2">
+                                <i class="fas fa-star text-yellow-500 text-xs" title="Favorite"></i>
+                                <i class="fas fa-globe text-green-500 text-xs" title="Public"></i>
+                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">v2.1</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">3 days ago</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">2.1 MB</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">PDF</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <img class="h-8 w-8 rounded-full mr-2" src="https://ui-avatars.com/api/?name=John+Smith&background=3b82f6&color=fff" alt="">
+                            <span class="text-sm text-gray-600">John Smith</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Warranty</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">5-Year</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <button class="text-gray-400 hover:text-blue-600" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-blue-600" title="Download">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-gray-600" title="More">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- More rows... -->
+                <tr class="table-row-hover">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" class="checkbox-custom rounded mr-3">
+                            <i class="fas fa-file-word text-blue-500 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Colorado Springs Permits Guide</p>
+                                <p class="text-xs text-gray-500">Complete guide for obtaining roofing permits</p>
+                            </div>
+                            <div class="ml-3 flex items-center space-x-2">
+                                <i class="fas fa-lock text-gray-400 text-xs" title="Private"></i>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">v1.0</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">1 week ago</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">856 KB</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">DOCX</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <img class="h-8 w-8 rounded-full mr-2" src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=10b981&color=fff" alt="">
+                            <span class="text-sm text-gray-600">Sarah Johnson</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Permits</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Colorado</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <button class="text-gray-400 hover:text-blue-600" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-blue-600" title="Download">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-gray-600" title="More">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                <tr class="table-row-hover">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" class="checkbox-custom rounded mr-3">
+                            <i class="fas fa-file-pdf text-red-500 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Inspection Report Template</p>
+                                <p class="text-xs text-gray-500">Standard roof inspection checklist and report</p>
+                            </div>
+                            <div class="ml-3 flex items-center space-x-2">
+                                <i class="fas fa-globe text-green-500 text-xs" title="Public"></i>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">v3.2</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">2 weeks ago</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">1.5 MB</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">PDF</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <img class="h-8 w-8 rounded-full mr-2" src="https://ui-avatars.com/api/?name=Mike+Davis&background=f59e0b&color=fff" alt="">
+                            <span class="text-sm text-gray-600">Mike Davis</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Inspection</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Template</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <button class="text-gray-400 hover:text-blue-600" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-blue-600" title="Download">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-gray-600" title="More">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">45</span> results
+            </div>
+            <nav class="flex items-center space-x-2">
+                <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded">1</button>
+                <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900">2</button>
+                <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900">3</button>
+                <span class="px-2 text-gray-400">...</span>
+                <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900">5</button>
+                <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Empty State Example -->
+    <div class="bg-white rounded-lg border border-gray-200 p-16 text-center mt-8">
+        <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No documents in this folder</h3>
+        <p class="text-sm text-gray-600 mb-6">Get started by uploading a document or creating a subfolder</p>
+        <div class="flex items-center justify-center space-x-3">
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-upload mr-2"></i>
+                Upload Document
+            </button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                <i class="fas fa-folder-plus mr-2"></i>
+                New Folder
+            </button>
+        </div>
+    </div>
+</body>
+</html>

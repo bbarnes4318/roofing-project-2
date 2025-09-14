@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Documents - Before vs After Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Company Documents Redesign - Key Improvements</h1>
+        
+        <!-- Comparison Grid -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Before -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4 text-red-600">❌ Before (Current Issues)</h2>
+                <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-red-200">
+                    <!-- Cryptic Folder Names -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-800 mb-2">Cryptic Folder IDs</h3>
+                        <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                            <div class="text-sm text-gray-600">
+                                <span class="text-gray-400">Path:</span> All Documents > Folder {folderId}
+                            </div>
+                            <div class="mt-2 space-y-1">
+                                <div>📁 folder_5802615</div>
+                                <div>📁 folder_7354502</div>
+                                <div>📁 folder_4590239</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- No Visual Distinction -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-800 mb-2">Poor File/Folder Distinction</h3>
+                        <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                            <div class="space-y-1 text-sm">
+                                <div>📄 warranty_document</div>
+                                <div>📄 contracts_folder</div>
+                                <div>📄 inspection_file</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Missing Metadata -->
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-2">No Metadata Visible</h3>
+                        <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                            <div class="text-sm">
+                                <div>5-year-warranty.pdf</div>
+                                <div class="text-gray-400 text-xs mt-1">No size, date, or version info</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- After -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4 text-green-600">✅ After (Redesigned)</h2>
+                <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-green-200">
+                    <!-- Clear Folder Names -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-800 mb-2">Meaningful Folder Names</h3>
+                        <div class="bg-green-50 p-3 rounded border border-green-200">
+                            <div class="text-sm text-gray-600">
+                                <span class="text-gray-400">Path:</span> All Documents > Contracts & Agreements > Customer Contracts
+                            </div>
+                            <div class="mt-2 space-y-1">
+                                <div><i class="fas fa-folder text-blue-500 mr-2"></i>Contracts & Agreements</div>
+                                <div><i class="fas fa-folder text-yellow-500 mr-2"></i>Warranties & Certifications</div>
+                                <div><i class="fas fa-folder text-green-500 mr-2"></i>Inspection Reports</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Distinction -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-800 mb-2">Clear File/Folder Icons</h3>
+                        <div class="bg-green-50 p-3 rounded border border-green-200">
+                            <div class="space-y-1 text-sm">
+                                <div><i class="fas fa-file-pdf text-red-500 mr-2"></i>5-Year Warranty.pdf</div>
+                                <div><i class="fas fa-folder text-blue-500 mr-2"></i>Customer Contracts</div>
+                                <div><i class="fas fa-file-word text-blue-500 mr-2"></i>Inspection Checklist.docx</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rich Metadata -->
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Complete Metadata</h3>
+                        <div class="bg-green-50 p-3 rounded border border-green-200">
+                            <div class="text-sm">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                    <div class="flex-1">
+                                        <div class="font-medium">5-Year Warranty Certificate</div>
+                                        <div class="text-xs text-gray-600">
+                                            2.1 MB • v2.1 • Modified 3 days ago by John Smith
+                                        </div>
+                                        <div class="flex gap-1 mt-1">
+                                            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Warranty</span>
+                                            <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">5-Year</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Features -->
+        <div class="mt-12 bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">🚀 New Features</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-th text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Grid & List Views</h3>
+                    <p class="text-sm text-gray-600">Toggle between visual grid with previews and detailed list view</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-search text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Smart Search</h3>
+                    <p class="text-sm text-gray-600">Search by name, content, tags, and metadata</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-cloud-upload-alt text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Drag & Drop</h3>
+                    <p class="text-sm text-gray-600">Easy file upload with progress indicators</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-history text-yellow-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Version Control</h3>
+                    <p class="text-sm text-gray-600">Track document versions and changes</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-lock text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Permissions</h3>
+                    <p class="text-sm text-gray-600">Public/private access controls</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-mobile-alt text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Mobile Ready</h3>
+                    <p class="text-sm text-gray-600">Fully responsive design for all devices</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -531,6 +531,43 @@ export const companyDocsService = {
     return response;
   },
   
+  // Enhanced document management
+  getAssetPreview: async (id) => {
+    const response = await api.get(`/company-docs/assets/${id}/preview`);
+    return response.data;
+  },
+  
+  generateThumbnail: async (id) => {
+    const response = await api.post(`/company-docs/assets/${id}/thumbnail`);
+    return response.data;
+  },
+  
+  getAssetVersions: async (id) => {
+    const response = await api.get(`/company-docs/assets/${id}/versions`);
+    return response.data;
+  },
+  
+  createAssetVersion: async (id, file, meta = {}) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (meta.description) form.append('description', meta.description);
+    if (meta.versionNumber) form.append('versionNumber', meta.versionNumber);
+    const response = await api.post(`/company-docs/assets/${id}/versions`, form, { 
+      headers: { 'Content-Type': 'multipart/form-data' } 
+    });
+    return response.data;
+  },
+  
+  getAssetStats: async () => {
+    const response = await api.get('/company-docs/assets/stats');
+    return response.data;
+  },
+  
+  searchAssets: async (searchParams = {}) => {
+    const response = await api.get('/company-docs/assets/search', { params: searchParams });
+    return response.data;
+  },
+  
   // Folder operations
   createFolder: async (folderData) => {
     const response = await api.post('/company-docs/folders', folderData);

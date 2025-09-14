@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Documents - Redesigned UI Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles for roofing/contractor branding */
+        :root {
+            --primary-blue: #1e40af; /* Blueprint blue */
+            --accent-red: #dc2626;
+            --sidebar-bg: #f8fafc;
+            --hover-bg: #f1f5f9;
+        }
+        
+        .sidebar-item:hover {
+            background-color: var(--hover-bg);
+        }
+        
+        .folder-tree-line {
+            border-left: 2px solid #e2e8f0;
+        }
+        
+        .document-card {
+            transition: all 0.2s;
+        }
+        
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .drag-over {
+            background-color: #dbeafe;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Container -->
+    <div class="h-screen flex">
+        <!-- Enhanced Sidebar -->
+        <aside class="w-72 bg-white border-r border-gray-200 flex flex-col">
+            <!-- Sidebar Header -->
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-folder-open text-blue-600 mr-2"></i>
+                    Documents
+                </h2>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="p-4 space-y-2">
+                <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i>
+                    New Folder
+                </button>
+                <button class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
+                    <i class="fas fa-upload mr-2"></i>
+                    Upload Files
+                </button>
+            </div>
+            
+            <!-- Folder Tree Navigation -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <!-- Quick Access -->
+                <div class="mb-6">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Quick Access</h3>
+                    <div class="space-y-1">
+                        <a href="#" class="sidebar-item flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-star text-yellow-500 mr-3 text-sm"></i>
+                            <span class="text-sm">Favorites</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-clock text-gray-400 mr-3 text-sm"></i>
+                            <span class="text-sm">Recent</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-share-alt text-gray-400 mr-3 text-sm"></i>
+                            <span class="text-sm">Shared with Me</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Folder Structure -->
+                <div>
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Folders</h3>
+                    <div class="space-y-1">
+                        <!-- Root Level Folders -->
+                        <div>
+                            <button class="sidebar-item w-full flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                                <i class="fas fa-chevron-down text-gray-400 mr-2 text-xs"></i>
+                                <i class="fas fa-folder text-blue-500 mr-2"></i>
+                                <span class="text-sm font-medium">Contracts & Agreements</span>
+                            </button>
+                            <!-- Subfolder -->
+                            <div class="ml-4 folder-tree-line">
+                                <a href="#" class="sidebar-item flex items-center px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 ml-2">
+                                    <i class="fas fa-folder text-gray-400 mr-2 text-sm"></i>
+                                    <span class="text-sm">Customer Contracts</span>
+                                </a>
+                                <a href="#" class="sidebar-item flex items-center px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 ml-2">
+                                    <i class="fas fa-folder text-gray-400 mr-2 text-sm"></i>
+                                    <span class="text-sm">Vendor Agreements</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <button class="sidebar-item w-full flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-chevron-right text-gray-400 mr-2 text-xs"></i>
+                            <i class="fas fa-folder text-yellow-500 mr-2"></i>
+                            <span class="text-sm font-medium">Warranties & Certifications</span>
+                        </button>
+                        
+                        <button class="sidebar-item w-full flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-chevron-right text-gray-400 mr-2 text-xs"></i>
+                            <i class="fas fa-folder text-green-500 mr-2"></i>
+                            <span class="text-sm font-medium">Inspection Reports</span>
+                        </button>
+                        
+                        <button class="sidebar-item w-full flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-chevron-right text-gray-400 mr-2 text-xs"></i>
+                            <i class="fas fa-folder text-purple-500 mr-2"></i>
+                            <span class="text-sm font-medium">Permits & Compliance</span>
+                        </button>
+                        
+                        <button class="sidebar-item w-full flex items-center px-3 py-2 rounded-lg text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-chevron-right text-gray-400 mr-2 text-xs"></i>
+                            <i class="fas fa-folder text-red-500 mr-2"></i>
+                            <span class="text-sm font-medium">Safety Documentation</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tags/Categories -->
+                <div class="mt-6">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Categories</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Roofing</span>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Gutters</span>
+                        <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">Colorado</span>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">5-Year</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header Bar -->
+            <header class="bg-white border-b border-gray-200 px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Breadcrumb Navigation -->
+                    <nav class="flex items-center space-x-2 text-sm">
+                        <a href="#" class="text-gray-600 hover:text-blue-600 flex items-center">
+                            <i class="fas fa-home mr-1"></i>
+                            All Documents
+                        </a>
+                        <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+                        <a href="#" class="text-gray-600 hover:text-blue-600">Contracts & Agreements</a>
+                        <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+                        <span class="text-gray-900 font-medium">Customer Contracts</span>
+                    </nav>
+                    
+                    <!-- Search Bar -->
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" 
+                                   placeholder="Search documents, folders, tags..." 
+                                   class="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        
+                        <!-- View Toggle -->
+                        <div class="flex border border-gray-300 rounded-lg">
+                            <button class="px-3 py-2 bg-blue-600 text-white rounded-l-lg" title="Grid View">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button class="px-3 py-2 hover:bg-gray-100 rounded-r-lg" title="List View">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Bar -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="flex items-center space-x-4">
+                        <!-- Filter Dropdown -->
+                        <div class="relative">
+                            <button class="flex items-center px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm">
+                                <i class="fas fa-filter mr-2"></i>
+                                Filters
+                                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Sort Dropdown -->
+                        <div class="relative">
+                            <button class="flex items-center px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm">
+                                <i class="fas fa-sort mr-2"></i>
+                                Sort: Last Modified
+                                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Active Filters -->
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
+                                Type: Contract
+                                <button class="ml-2 hover:text-blue-900">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Count -->
+                    <div class="text-sm text-gray-600">
+                        Showing 12 of 45 documents
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Main Content (Grid View) -->
+            <main class="flex-1 overflow-y-auto p-8">
+                <!-- Drag & Drop Zone -->
+                <div class="mb-6 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-600 mb-2">Drag and drop files here to upload</p>
+                    <p class="text-sm text-gray-500 mb-4">or</p>
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Browse Files
+                    </button>
+                    <p class="text-xs text-gray-500 mt-3">Maximum file size: 50MB. Supported formats: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG</p>
+                </div>
+                
+                <!-- Document Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Folder Card -->
+                    <div class="document-card bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-blue-300">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-folder text-blue-600 text-xl"></i>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Residential Projects</h3>
+                        <p class="text-sm text-gray-600 mb-3">24 documents</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>Modified 2 hours ago</span>
+                            <i class="fas fa-lock" title="Private"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Card with Preview -->
+                    <div class="document-card bg-white rounded-lg border border-gray-200 overflow-hidden cursor-pointer hover:border-blue-300">
+                        <!-- Document Preview Thumbnail -->
+                        <div class="h-32 bg-gray-100 flex items-center justify-center relative">
+                            <i class="fas fa-file-pdf text-red-500 text-3xl"></i>
+                            <span class="absolute top-2 right-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded">v2.1</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 mb-1 truncate">5-Year Warranty Certificate</h3>
+                            <p class="text-xs text-gray-600 mb-3">Standard 5-year roofing warranty template with...</p>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500">2.1 MB • PDF</span>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-star text-yellow-500 text-xs" title="Favorite"></i>
+                                    <i class="fas fa-globe text-green-500 text-xs" title="Public"></i>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                <p>Modified 3 days ago by John Smith</p>
+                            </div>
+                            <div class="mt-2 flex flex-wrap gap-1">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Warranty</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">5-Year</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- More document cards... -->
+                    <div class="document-card bg-white rounded-lg border border-gray-200 overflow-hidden cursor-pointer hover:border-blue-300">
+                        <div class="h-32 bg-gray-100 flex items-center justify-center relative">
+                            <i class="fas fa-file-word text-blue-500 text-3xl"></i>
+                            <span class="absolute top-2 right-2 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">v1.0</span>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 mb-1 truncate">Colorado Springs Permits Guide</h3>
+                            <p class="text-xs text-gray-600 mb-3">Complete guide for obtaining roofing permits in...</p>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500">856 KB • DOCX</span>
+                                <i class="fas fa-lock text-gray-400 text-xs" title="Private"></i>
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                <p>Modified 1 week ago by Sarah Johnson</p>
+                            </div>
+                            <div class="mt-2 flex flex-wrap gap-1">
+                                <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Permits</span>
+                                <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Colorado</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Empty state for new folder -->
+                    <div class="document-card bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 min-h-[200px]">
+                        <i class="fas fa-plus-circle text-gray-400 text-3xl mb-3"></i>
+                        <p class="text-gray-600 text-sm">Create New Document</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Document Preview Modal (Hidden by default) -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">5-Year Warranty Certificate</h2>
+                    <p class="text-sm text-gray-600 mt-1">Version 2.1 • Last modified 3 days ago</p>
+                </div>
+                <button class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="flex-1 flex">
+                <!-- Preview Area -->
+                <div class="flex-1 bg-gray-100 p-8 overflow-y-auto">
+                    <div class="bg-white rounded-lg shadow-lg mx-auto" style="max-width: 600px; min-height: 800px;">
+                        <div class="p-8">
+                            <h1 class="text-2xl font-bold mb-4">5-Year Roofing Warranty</h1>
+                            <p class="text-gray-600 mb-4">This document certifies that...</p>
+                            <!-- Document preview content -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="w-80 border-l border-gray-200 p-6">
+                    <!-- Document Info -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">Document Information</h3>
+                        <dl class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Type:</dt>
+                                <dd class="text-gray-900">PDF Document</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Size:</dt>
+                                <dd class="text-gray-900">2.1 MB</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Uploaded by:</dt>
+                                <dd class="text-gray-900">John Smith</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Created:</dt>
+                                <dd class="text-gray-900">Jan 15, 2024</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Downloads:</dt>
+                                <dd class="text-gray-900">47</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">Tags</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Warranty</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">5-Year</span>
+                            <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Roofing</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Version History -->
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">Version History</h3>
+                        <div class="space-y-3">
+                            <div class="text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium">v2.1</span>
+                                    <span class="text-xs text-gray-500">Current</span>
+                                </div>
+                                <p class="text-xs text-gray-600">Updated warranty terms • 3 days ago</p>
+                            </div>
+                            <div class="text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium">v2.0</span>
+                                    <button class="text-xs text-blue-600 hover:underline">View</button>
+                                </div>
+                                <p class="text-xs text-gray-600">Added coverage details • 2 weeks ago</p>
+                            </div>
+                            <div class="text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium">v1.0</span>
+                                    <button class="text-xs text-blue-600 hover:underline">View</button>
+                                </div>
+                                <p class="text-xs text-gray-600">Initial version • 1 month ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="space-y-2">
+                        <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                        <button class="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
+                            <i class="fas fa-share mr-2"></i>
+                            Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -367,6 +367,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </span>
                         
                         {/* Action buttons */}
+                        <div className="flex items-center gap-1">
                             {/* Quick Reply Button */}
                             <button
                                 onClick={(e) => {
@@ -779,6 +780,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         </div>
                     </div>
                 </div>
+            )}
             )}
         </div>
     );

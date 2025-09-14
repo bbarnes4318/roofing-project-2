@@ -68,6 +68,7 @@ const projectMessageRoutes = require('./routes/projectMessages');
 const documentRoutes = require('./routes/documents');
 const calendarRoutes = require('./routes/calendar');
 const companyDocumentsRoutes = require('./routes/companyDocuments');
+const companyDocumentsEnhancedRoutes = require('./routes/companyDocumentsEnhanced');
 const aiRoutes = require('./routes/ai');
 let bubblesRoutes;
 try {
@@ -693,6 +694,7 @@ app.use('/api/documents-enhanced', require('./routes/documents-enhanced'));
 app.use('/api/calendar-events', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/company-docs', companyDocumentsRoutes);
+app.use('/api/company-docs-enhanced', companyDocumentsEnhancedRoutes);
 if (workflowRoutes) {
   app.use('/api/workflows', workflowRoutes);
   console.log('✅ SERVER: Workflow routes registered at /api/workflows');
