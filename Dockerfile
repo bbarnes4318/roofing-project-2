@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy frontend package files
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy frontend source
 COPY src ./src
@@ -37,7 +37,7 @@ WORKDIR /app
 # Copy backend package files
 COPY server/package*.json ./
 # Install server deps including dev so prisma generate can run
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy backend source
 COPY server ./
