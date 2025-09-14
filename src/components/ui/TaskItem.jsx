@@ -99,7 +99,7 @@ const TaskItem = ({
                   {projectNumber}
                 </button>
               ) : (
-                <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '6px' }}>
+                <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '7px' }}>
                   General
                 </span>
               )}
@@ -137,7 +137,7 @@ const TaskItem = ({
           <div className="flex items-baseline gap-0 -mt-0.5 overflow-hidden relative">
             <div className="flex items-baseline gap-0">
               {/* From - Fixed width container for consistent spacing */}
-              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '6px' }}>
+              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '7px' }}>
                 <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                   From: {item.author}
                 </span>

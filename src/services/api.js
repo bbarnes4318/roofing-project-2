@@ -591,6 +591,24 @@ export const companyDocsService = {
     const response = await api.patch('/company-docs/assets/bulk-move', { ids, parentId });
     return response.data;
   },
+  
+  // Rename asset
+  renameAsset: async (id, newName) => {
+    const response = await api.patch(`/company-docs/assets/${id}`, { title: newName });
+    return response.data;
+  },
+  
+  // Move asset to different folder
+  moveAsset: async (id, parentId) => {
+    const response = await api.patch(`/company-docs/assets/${id}`, { parentId });
+    return response.data;
+  },
+  
+  // Toggle favorite
+  toggleFavorite: async (id) => {
+    const response = await api.post(`/company-docs/assets/${id}/favorite`);
+    return response.data;
+  },
   // Templates
   listTemplates: async () => {
     const response = await api.get('/company-docs/templates');

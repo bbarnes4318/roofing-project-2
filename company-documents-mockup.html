@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Documents Redesign - Before & After</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@heroicons/react@2.0.18/24/outline/index.js" type="module"></script>
+    <style>
+        .before-after-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .comparison-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .old-design {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+        }
+        .new-design {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .file-card {
+            transition: all 0.3s ease;
+        }
+        .file-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .feature-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+    <div class="before-after-container">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-bold text-white mb-4">Company Documents Redesign</h1>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    Transform your document management from basic internal tool to professional SaaS experience
+                </p>
+            </div>
+
+            <!-- Before & After Comparison -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+                <!-- Before -->
+                <div class="comparison-card rounded-2xl p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+                        <h2 class="text-2xl font-bold text-gray-800">Before (Current)</h2>
+                    </div>
+                    
+                    <div class="old-design rounded-xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-700">Company Documents</h3>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 bg-gray-200 text-gray-600 rounded text-sm">Grid</button>
+                                <button class="px-3 py-1 bg-gray-200 text-gray-600 rounded text-sm">List</button>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <div class="flex items-center p-3 bg-white border border-gray-200 rounded">
+                                <div class="w-8 h-8 bg-blue-100 rounded mr-3 flex items-center justify-center">
+                                    📁
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-700">Project Files</div>
+                                    <div class="text-sm text-gray-500">5 items</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center p-3 bg-white border border-gray-200 rounded">
+                                <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center">
+                                    📄
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-700">contract.pdf</div>
+                                    <div class="text-sm text-gray-500">2.3 MB</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center p-3 bg-white border border-gray-200 rounded">
+                                <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center">
+                                    📄
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-700">estimate.xlsx</div>
+                                    <div class="text-sm text-gray-500">1.8 MB</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            Basic folder icons and layout
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            Poor mobile responsiveness
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            Limited search functionality
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            No bulk actions or modern interactions
+                        </div>
+                    </div>
+                </div>
+
+                <!-- After -->
+                <div class="comparison-card rounded-2xl p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <h2 class="text-2xl font-bold text-gray-800">After (Redesigned)</h2>
+                    </div>
+                    
+                    <div class="new-design rounded-xl p-6 mb-6">
+                        <!-- Modern Header -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center space-x-4">
+                                <button class="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors">
+                                    📁 New Folder
+                                </button>
+                                <button class="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors">
+                                    ⬆️ Upload
+                                </button>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="flex border border-white/30 rounded-lg overflow-hidden">
+                                    <button class="px-3 py-1 bg-white text-blue-600 text-sm">Grid</button>
+                                    <button class="px-3 py-1 bg-white/20 text-white text-sm">List</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Bar -->
+                        <div class="mb-6">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    placeholder="Search documents..." 
+                                    class="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                                >
+                                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70">🔍</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modern Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="file-card bg-white/20 rounded-xl p-4 border border-white/30">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 bg-blue-500/30 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                                        📁
+                                    </div>
+                                    <div class="text-white font-medium text-sm">Project Files</div>
+                                    <div class="text-white/70 text-xs">5 items</div>
+                                </div>
+                            </div>
+                            
+                            <div class="file-card bg-white/20 rounded-xl p-4 border border-white/30">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 bg-red-500/30 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                                        📄
+                                    </div>
+                                    <div class="text-white font-medium text-sm">contract.pdf</div>
+                                    <div class="text-white/70 text-xs">2.3 MB</div>
+                                </div>
+                            </div>
+                            
+                            <div class="file-card bg-white/20 rounded-xl p-4 border border-white/30">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 bg-green-500/30 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                                        📊
+                                    </div>
+                                    <div class="text-white font-medium text-sm">estimate.xlsx</div>
+                                    <div class="text-white/70 text-xs">1.8 MB</div>
+                                </div>
+                            </div>
+                            
+                            <div class="file-card bg-white/20 rounded-xl p-4 border border-white/30">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 bg-orange-500/30 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                                        📈
+                                    </div>
+                                    <div class="text-white font-medium text-sm">presentation.pptx</div>
+                                    <div class="text-white/70 text-xs">4.2 MB</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Modern card-based design with hover effects
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Fully responsive across all devices
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Real-time search with smart filtering
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Bulk actions, drag & drop, context menus
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Features -->
+            <div class="comparison-card rounded-2xl p-8 mb-16">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Key Features</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl">
+                            🎨
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Modern Design</h3>
+                        <p class="text-sm text-gray-600">Clean, polished interface inspired by top SaaS tools</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl">
+                            📱
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Fully Responsive</h3>
+                        <p class="text-sm text-gray-600">Optimized for mobile, tablet, and desktop</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl">
+                            🔍
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Smart Search</h3>
+                        <p class="text-sm text-gray-600">Real-time search with instant filtering</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl">
+                            ⚡
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Enhanced UX</h3>
+                        <p class="text-sm text-gray-600">Drag & drop, bulk actions, context menus</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <div class="comparison-card rounded-2xl p-8">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Technical Implementation</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Technologies</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-blue-100 rounded-lg mr-3 flex items-center justify-center">
+                                    ⚛️
+                                </div>
+                                <span class="font-medium">React 18 with Hooks</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-cyan-100 rounded-lg mr-3 flex items-center justify-center">
+                                    🎨
+                                </div>
+                                <span class="font-medium">TailwindCSS for styling</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-purple-100 rounded-lg mr-3 flex items-center justify-center">
+                                    🎯
+                                </div>
+                                <span class="font-medium">Heroicons for icons</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-8 h-8 bg-green-100 rounded-lg mr-3 flex items-center justify-center">
+                                    🔄
+                                </div>
+                                <span class="font-medium">React DnD for drag & drop</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Key Features</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span>Modular component architecture</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span>Responsive grid/list view toggle</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span>Real-time search and filtering</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span>Breadcrumb navigation</span>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span>Bulk selection and actions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="text-center mt-16">
+                <h2 class="text-3xl font-bold text-white mb-4">Ready to Transform Your Document Management?</h2>
+                <p class="text-xl text-white/90 mb-8">Get the modern, professional interface your construction team deserves</p>
+                <div class="flex justify-center space-x-4">
+                    <button class="px-8 py-4 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+                        View Live Demo
+                    </button>
+                    <button class="px-8 py-4 bg-white/20 text-white font-semibold rounded-xl hover:bg-white/30 transition-colors border border-white/30">
+                        Download Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
