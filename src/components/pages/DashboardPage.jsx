@@ -1241,7 +1241,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       // Create regular activity post
       const newActivity = {
         id: Date.now(),
-        author: getUserFullName(currentUser)
+        author: getUserFullName(currentUser),
         avatar: 'S',
         content: message,
         timestamp: new Date().toISOString(),
