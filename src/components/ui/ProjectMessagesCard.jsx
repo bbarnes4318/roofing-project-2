@@ -196,7 +196,16 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     }, [showContactInfo]);
 
     return (
-        <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
+        <div 
+            className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer`}
+            onClick={() => {
+                if (onToggleExpansion) {
+                    onToggleExpansion(activity.id);
+                } else {
+                    setInternalExpanded(!internalExpanded);
+                }
+            }}
+        >
             {/* Main message header - Strict Two-Column Layout */}
             <div className="flex items-start gap-1.5 p-1.5">
                 {/* Phase Circle - Align to top */}
@@ -390,27 +399,19 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </svg>
                             </button>
                             
-                            {/* Dropdown arrow - now clickable */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (onToggleExpansion) {
-                                        onToggleExpansion(activity.id);
-                                    } else {
-                                        setInternalExpanded(!internalExpanded);
-                                    }
-                                }}
+                            {/* Dropdown arrow - visual indicator only */}
+                            <div
                                 className={`p-1 rounded transition-colors transform duration-200 ${expanded ? 'rotate-180' : ''} ${
                                     colorMode 
-                                        ? 'hover:bg-gray-700 text-gray-300' 
-                                        : 'hover:bg-gray-200 text-gray-600'
+                                        ? 'text-gray-300' 
+                                        : 'text-gray-600'
                                 }`}
                                 title={expanded ? "Collapse message" : "Expand message"}
                             >
                                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>

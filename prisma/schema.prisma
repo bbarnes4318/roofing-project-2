@@ -94,6 +94,8 @@ model User {
   modifiedWorkflows     ProjectWorkflow[] @relation("LastModifiedBy")
   assignedAlerts        WorkflowAlert[]   @relation("AlertAssignedTo")
   createdAlerts         WorkflowAlert[]   @relation("AlertCreatedBy")
+  companyAssets         CompanyAsset[]
+  companyAssetVersions  CompanyAssetVersion[]
 
   @@map("users")
 }
@@ -798,9 +800,6 @@ model DocumentAccess {
   userId String? @map("user_id")
   user   User?   @relation("DocumentAccessUser", fields: [userId], references: [id])
   
-  roleId String? @map("role_id")
-  role   Role?   @relation("DocumentAccessRole", fields: [roleId], references: [id])
-  
   @@map("document_access")
 }
 
@@ -1081,4 +1080,80 @@ enum NotificationType {
   REMINDER
 
   @@map("notification_types")
-} 
+}
+
+// ===============================
+// COMPANY DOCUMENTS SYSTEM
+// ===============================
+
+model CompanyAsset {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basic Information
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  fileName    String  @db.VarChar(255)
+  originalName String @db.VarChar(255)
+  fileUrl     String  @db.VarChar(1000)
+  mimeType    String  @db.VarChar(100)
+  fileSize    Int
+  checksum    String? @db.VarChar(255)
+
+  // Organization
+  type        AssetType @default(FILE)
+  section     String?   @db.VarChar(100)
+  tags        String[]
+  folderName  String?   @db.VarChar(255)
+  sortOrder   Int       @default(0)
+
+  // Access Control
+  isPublic    Boolean     @default(false)
+  accessLevel AccessLevel @default(PRIVATE)
+  isActive    Boolean     @default(true)
+
+  // Hierarchy
+  parentId String? @map("parent_id")
+  parent   CompanyAsset? @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children CompanyAsset[] @relation("FolderHierarchy")
+
+  // Relationships
+  uploadedById String @map("uploaded_by_id")
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  // Versions
+  versions CompanyAssetVersion[] @relation("AssetVersions")
+
+  @@map("company_assets")
+}
+
+model CompanyAssetVersion {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  versionNumber Int
+  fileName      String @db.VarChar(255)
+  fileUrl       String @db.VarChar(1000)
+  fileSize      Int
+  mimeType      String @db.VarChar(100)
+  checksum      String? @db.VarChar(255)
+  changeLog     String? @db.Text
+  isActive      Boolean @default(true)
+
+  assetId String      @map("asset_id")
+  asset   CompanyAsset @relation("AssetVersions", fields: [assetId], references: [id], onDelete: Cascade)
+
+  uploadedById String @map("uploaded_by_id")
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  @@unique([assetId, versionNumber])
+  @@map("company_asset_versions")
+}
+
+enum AssetType {
+  FILE
+  FOLDER
+
+  @@map("asset_types")
+}
