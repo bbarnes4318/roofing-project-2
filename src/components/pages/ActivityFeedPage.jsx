@@ -239,7 +239,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                     {item.projectId && project ? (
                                                         <button
                                                             className="text-[9px] font-bold transition-colors hover:underline flex-shrink-0 text-blue-600 hover:text-blue-800"
-                                                            style={{ width: '46px', marginLeft: '-8px' }}
+                                                            style={{ width: '46px', marginLeft: '10px' }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 if (onProjectSelect) {
@@ -250,7 +250,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                             #{String(projectNumber).padStart(5, '0')}
                                                         </button>
                                                     ) : (
-                                                        <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px' }}>
+                                                        <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '10px' }}>
                                                             General
                                                         </span>
                                                     )}
@@ -319,7 +319,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                             <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
                                                 <div className="flex items-baseline gap-0">
                                                     {/* From */}
-                                                    <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '0px' }}>
+                                                    <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '10px' }}>
                                                         <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                                                             From: {item.author}
                                                         </span>
@@ -335,7 +335,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                 
                                                 {/* Checkbox and type indicator for Tasks and Reminders (bottom right) */}
                                                 {item.type === 'task' && (
-                                                    <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '-16px' }}>
+                                                    <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '-50px' }}>
                                                         {/* Checkbox for Tasks */}
                                                         <input
                                                             type="checkbox"

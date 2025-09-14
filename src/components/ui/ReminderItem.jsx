@@ -99,7 +99,7 @@ const ReminderItem = ({
               {item.projectId && project ? (
                 <button
                   className="text-[9px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex-shrink-0"
-                  style={{ width: '46px' }}
+                  style={{ width: '46px', marginLeft: '2px' }}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (onProjectSelect) {
@@ -110,7 +110,7 @@ const ReminderItem = ({
                   {projectNumber ? `#${String(projectNumber).padStart(5, '0')}` : '#00000'}
                 </button>
               ) : (
-                <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '8px' }}>
+                <span className="text-[9px] font-bold text-gray-600" style={{ width: '46px', marginLeft: '10px' }}>
                   General
                 </span>
               )}
@@ -151,7 +151,7 @@ const ReminderItem = ({
           <div className="flex items-baseline gap-0 -mt-0.5 overflow-hidden relative">
             <div className="flex items-baseline gap-0">
               {/* From - Fixed width container for consistent spacing */}
-              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '8px' }}>
+              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '10px' }}>
                 <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                   From: {author.firstName} {author.lastName}
                 </span>
@@ -175,9 +175,9 @@ const ReminderItem = ({
         </div>
 
         {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
-        <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
+        <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px', marginRight: '20px' }}>
           {/* Row 1: Checkbox and Reminder label */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" style={{ marginRight: '20px' }}>
             {/* Checkbox */}
             <input
               type="checkbox"
