@@ -458,6 +458,8 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
 - Reply in under 80 words
 - Use proper formatting with bullet points and bold text
 - Be natural and conversational
+- NEVER use numbered lists (1., 2., 3.) - use bullet points (-) or bold headings instead
+- If you need to list items, use bullet points (-) or bold headings (**Heading:**)
 
 ## PROJECT CONTEXT RULES
 ${projectContext && projectContext.projectName ? `
