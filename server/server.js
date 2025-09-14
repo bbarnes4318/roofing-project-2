@@ -2,9 +2,13 @@ console.log('🚀 Starting Kenstruction server...');
 console.log(`📅 Startup time: ${new Date().toISOString()}`);
 
 // CRITICAL: Set DATABASE_URL before any Prisma imports
-// Force correct DATABASE_URL (env file has line break issue)
-process.env.DATABASE_URL = 'postgresql://doadmin:AVNS_QWHenVspY4X3NmNVS6N@kenstruction-claude-done-sep-7-backup-do-user-23063858-0.d.db.ondigitalocean.com:25060/defaultdb?sslmode=require';
-console.log('✅ DATABASE_URL set correctly');
+// Use environment variable or fallback for development
+if (!process.env.DATABASE_URL) {
+  console.warn('⚠️ DATABASE_URL not found in environment variables');
+  // For development only - in production this should be set via environment
+  process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/kenstruction_dev';
+}
+console.log('✅ DATABASE_URL configured');
 
 const express = require('express');
 const http = require('http');
