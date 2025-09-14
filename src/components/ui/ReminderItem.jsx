@@ -177,19 +177,19 @@ const ReminderItem = ({
         {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
         <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px', marginRight: '20px' }}>
           {/* Row 1: Reminder label and Checkbox - Checkbox moved to top right */}
-          <div className="flex items-center gap-1" style={{ marginRight: '5px' }}>
+          <div className="flex items-center gap-1" style={{ marginRight: '3px' }}>
             {/* Type Label */}
             <span className="text-[8px] font-bold text-orange-500">
               Reminder
             </span>
             
-            {/* Checkbox - moved to top right corner */}
+            {/* Checkbox - moved to top right corner, smaller size, moved 2 spaces right */}
             <input
               type="checkbox"
               checked={isCompleted}
               onChange={handleToggleCompleted}
               onClick={handleToggleCompleted}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+              className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 flex-shrink-0"
             />
           </div>
           

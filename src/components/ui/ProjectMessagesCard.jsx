@@ -781,7 +781,6 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                 </div>
             )}
-            )}
         </div>
     );
 };
