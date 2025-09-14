@@ -303,7 +303,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             {/* From - Fixed width container for consistent spacing */}
                             <div 
                                 className="flex-shrink-0"
-                                style={{ width: '100px', marginLeft: '8px' }}
+                                style={{ width: '100px', marginLeft: '9px' }}
                             >
                                 <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                     From: {lastMessage.user}
@@ -311,7 +311,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             </div>
                             
                             {/* To - Fixed position to match Subject exactly */}
-                            <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                            <div style={{ position: 'absolute', left: '141px', width: '200px' }}>
                                 <span 
                                     className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
                                     style={{ 

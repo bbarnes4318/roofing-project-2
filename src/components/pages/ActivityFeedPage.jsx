@@ -319,14 +319,14 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                             <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
                                                 <div className="flex items-baseline gap-0">
                                                     {/* From */}
-                                                    <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '10px' }}>
+                                                    <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '11px' }}>
                                                         <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                                                             From: {item.author}
                                                         </span>
                                                     </div>
                                                     
                                                     {/* To */}
-                                                    <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                                    <div style={{ position: 'absolute', left: '141px', width: '200px' }}>
                                                         <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
                                                             To: {item.assignedTo || item.recipient || 'You'}
                                                         </span>

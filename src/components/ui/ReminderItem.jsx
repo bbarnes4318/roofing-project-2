@@ -151,14 +151,14 @@ const ReminderItem = ({
           <div className="flex items-baseline gap-0 -mt-0.5 overflow-hidden relative">
             <div className="flex items-baseline gap-0">
               {/* From - Fixed width container for consistent spacing */}
-              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '10px' }}>
+              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '11px' }}>
                 <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                   From: {author.firstName} {author.lastName}
                 </span>
               </div>
               
               {/* To - Fixed position to match Subject exactly */}
-              <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+              <div style={{ position: 'absolute', left: '141px', width: '200px' }}>
                 <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
                   To: {recipients.length > 0 ? (
                     recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`

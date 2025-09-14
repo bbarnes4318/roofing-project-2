@@ -114,7 +114,7 @@ const TaskItem = ({
               )}
               
               {/* Subject - Fixed position with proper truncation */}
-              <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
+              <div style={{ position: 'absolute', left: '141px', width: '160px' }}>
                 <span 
                   className="text-[9px] font-medium text-gray-600 truncate"
                   style={{ 
@@ -137,14 +137,14 @@ const TaskItem = ({
           <div className="flex items-baseline gap-0 -mt-0.5 overflow-hidden relative">
             <div className="flex items-baseline gap-0">
               {/* From - Fixed width container for consistent spacing */}
-              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '7px' }}>
+              <div className="flex-shrink-0" style={{ width: '100px', marginLeft: '8px' }}>
                 <span className="text-[9px] font-medium whitespace-nowrap text-gray-600">
                   From: {item.author}
                 </span>
               </div>
               
               {/* To - Fixed position to match Subject exactly */}
-              <div style={{ position: 'absolute', left: '140px', width: '160px' }}>
+              <div style={{ position: 'absolute', left: '141px', width: '160px' }}>
                 <span 
                   className="text-[9px] font-medium text-gray-600 truncate"
                   style={{ 

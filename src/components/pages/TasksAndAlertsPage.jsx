@@ -635,7 +635,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                                         </button>
                                                         
                                                         {/* Customer with dropdown arrow */}
-                                                        <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '10px'}}>
+                                                        <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '11px'}}>
                                                             <button 
                                                                 className={`text-[10px] font-semibold cursor-pointer hover:underline truncate max-w-[80px] ${
                                                                     colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'
