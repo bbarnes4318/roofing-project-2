@@ -1224,7 +1224,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       const alertActivity = {
         id: Date.now(),
-        author: getUserFullName(currentUser)
+        author: getUserFullName(currentUser),
         avatar: 'S',
         content: `🚨 ALERT: ${message}`,
         timestamp: new Date().toISOString(),
