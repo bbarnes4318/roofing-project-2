@@ -77,6 +77,10 @@ model User {
   createdTasks          Task[]            @relation("CreatedByUser")
   uploadedDocuments     Document[]        @relation("UploadedBy")
   downloadedDocuments   DocumentDownload[]
+  documentVersions      DocumentVersion[] @relation("DocumentVersionUploadedBy")
+  documentAccess        DocumentAccess[]  @relation("DocumentAccessUser")
+  documentComments      DocumentComment[] @relation("DocumentCommentAuthor")
+  documentFavorites     DocumentFavorite[] @relation("DocumentFavoriteUser")
   sentMessages          Message[]         @relation("Sender")
   readMessages          MessageRead[]
   createdProjects       Project[]         @relation("CreatedBy")
@@ -651,15 +655,41 @@ model Document {
   checksum       String? @db.VarChar(255)
   isPublic       Boolean @default(false)
 
+  // Enhanced Document Management Fields
+  title           String?  @db.VarChar(200)
+  category        DocumentCategory @default(OTHER)
+  accessLevel     AccessLevel @default(PRIVATE)
+  region          String?  @db.VarChar(100)
+  state           String?  @db.VarChar(50)
+  language        String?  @db.VarChar(10) @default("en")
+  thumbnailUrl    String?  @db.VarChar(1000)
+  previewUrl      String?  @db.VarChar(1000)
+  isTemplate      Boolean  @default(false)
+  isArchived      Boolean  @default(false)
+  archivedAt      DateTime?
+  expiryDate      DateTime?
+  requiresSignature Boolean @default(false)
+  signatureRequiredBy DateTime?
+  
+  // Search and Organization
+  searchVector    String?  @db.Text
+  keywords        String[] // For enhanced search
+  relatedDocuments String[] // Array of document IDs
+  
   // Relationships
-  projectId    String @map("project_id")
-  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId    String? @map("project_id")
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   uploadedById String  @map("uploaded_by_id")
   uploadedBy   User    @relation("UploadedBy", fields: [uploadedById], references: [id])
 
+  // Enhanced relationships
   downloads            DocumentDownload[]
   workflowAttachments  WorkflowStepAttachment[]
+  documentVersions     DocumentVersion[]
+  documentAccess       DocumentAccess[]
+  documentComments     DocumentComment[]
+  documentFavorites    DocumentFavorite[]
 
   @@map("documents")
 }
@@ -686,9 +716,138 @@ enum DocumentType {
   REPORT
   SPECIFICATION
   CORRESPONDENCE
+  WARRANTY
+  CHECKLIST
+  FORM
+  MANUAL
+  GUIDE
+  TEMPLATE
+  CERTIFICATE
   OTHER
 
   @@map("document_types")
+}
+
+enum DocumentCategory {
+  CONTRACTS
+  WARRANTIES
+  PERMITS
+  INSPECTIONS
+  ESTIMATES
+  INVOICES
+  PHOTOS
+  REPORTS
+  FORMS
+  CHECKLISTS
+  MANUALS
+  TRAINING
+  COMPLIANCE
+  LEGAL
+  MARKETING
+  OTHER
+
+  @@map("document_categories")
+}
+
+enum AccessLevel {
+  PUBLIC
+  AUTHENTICATED
+  PRIVATE
+  INTERNAL
+  ADMIN
+
+  @@map("access_levels")
+}
+
+// Enhanced Document Management Models
+model DocumentVersion {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  versionNumber Int
+  fileName      String @db.VarChar(255)
+  fileUrl       String @db.VarChar(1000)
+  fileSize      Int
+  mimeType      String @db.VarChar(100)
+  checksum      String? @db.VarChar(255)
+  changeLog     String? @db.Text
+  isActive      Boolean @default(true)
+  
+  documentId String   @map("document_id")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  uploadedById String @map("uploaded_by_id")
+  uploadedBy   User   @relation("DocumentVersionUploadedBy", fields: [uploadedById], references: [id])
+  
+  @@unique([documentId, versionNumber])
+  @@map("document_versions")
+}
+
+model DocumentAccess {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  accessType AccessType @default(VIEW)
+  grantedAt  DateTime @default(now())
+  expiresAt  DateTime?
+  isActive   Boolean @default(true)
+  
+  documentId String   @map("document_id")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  userId String? @map("user_id")
+  user   User?   @relation("DocumentAccessUser", fields: [userId], references: [id])
+  
+  roleId String? @map("role_id")
+  role   Role?   @relation("DocumentAccessRole", fields: [roleId], references: [id])
+  
+  @@map("document_access")
+}
+
+model DocumentComment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  content   String @db.Text
+  isInternal Boolean @default(false)
+  isResolved Boolean @default(false)
+  
+  documentId String   @map("document_id")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  authorId String @map("author_id")
+  author   User   @relation("DocumentCommentAuthor", fields: [authorId], references: [id])
+  
+  parentCommentId String? @map("parent_comment_id")
+  parentComment   DocumentComment? @relation("ParentComment", fields: [parentCommentId], references: [id])
+  replies         DocumentComment[] @relation("ParentComment")
+  
+  @@map("document_comments")
+}
+
+model DocumentFavorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  documentId String   @map("document_id")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  userId String @map("user_id")
+  user   User   @relation("DocumentFavoriteUser", fields: [userId], references: [id])
+  
+  @@unique([documentId, userId])
+  @@map("document_favorites")
+}
+
+enum AccessType {
+  VIEW
+  DOWNLOAD
+  EDIT
+  DELETE
+  MANAGE
+
+  @@map("access_types")
 }
 
 // ===============================

@@ -1,6 +1,11 @@
 console.log('🚀 Starting Kenstruction server...');
 console.log(`📅 Startup time: ${new Date().toISOString()}`);
 
+// CRITICAL: Set DATABASE_URL before any Prisma imports
+// Force correct DATABASE_URL (env file has line break issue)
+process.env.DATABASE_URL = 'postgresql://doadmin:AVNS_QWHenVspY4X3NmNVS6N@kenstruction-claude-done-sep-7-backup-do-user-23063858-0.d.db.ondigitalocean.com:25060/defaultdb?sslmode=require';
+console.log('✅ DATABASE_URL set correctly');
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -680,6 +685,7 @@ app.use('/api/activities', activityRoutes); // Re-added - now uses Message model
 app.use('/api/messages', messageRoutes);
 app.use('/api/project-messages', projectMessageRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/documents-enhanced', require('./routes/documents-enhanced'));
 app.use('/api/calendar-events', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/company-docs', companyDocumentsRoutes);
@@ -903,7 +909,7 @@ const OverdueAlertService = require('./services/OverdueAlertService');
 OverdueAlertService.startOverdueAlertScheduler(30); // Check every 30 minutes
 
 // Start server with comprehensive logging
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 console.log(`🔧 Debug: PORT from env = ${process.env.PORT}, final PORT = ${PORT}`);
 console.log(`🔧 Debug: NODE_ENV = ${process.env.NODE_ENV}`);
 console.log(`🔧 Debug: DATABASE_URL present = ${!!process.env.DATABASE_URL}`);

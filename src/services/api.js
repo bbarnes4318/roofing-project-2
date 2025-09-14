@@ -524,6 +524,12 @@ export const companyDocsService = {
     const response = await api.delete(`/company-docs/assets/${id}`);
     return response.data;
   },
+  downloadAsset: async (id) => {
+    const response = await api.get(`/company-docs/assets/${id}/download`, {
+      responseType: 'blob',
+    });
+    return response;
+  },
   
   // Folder operations
   createFolder: async (folderData) => {
@@ -538,6 +544,14 @@ export const companyDocsService = {
   
   reorderAssets: async (updates) => {
     const response = await api.patch('/company-docs/assets/reorder', { updates });
+    return response.data;
+  },
+  bulkDeleteAssets: async (ids) => {
+    const response = await api.delete('/company-docs/assets/bulk', { data: { ids } });
+    return response.data;
+  },
+  bulkMoveAssets: async (ids, parentId) => {
+    const response = await api.patch('/company-docs/assets/bulk-move', { ids, parentId });
     return response.data;
   },
   // Templates

@@ -84,6 +84,28 @@ router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHan
   res.status(201).json({ success: true, data: { asset } });
 }));
 
+// Download a company asset
+router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  if (asset.type !== 'FILE') throw new AppError('Cannot download folders', 400);
+
+  // asset.fileUrl is like "/uploads/company-assets/<file>"; map to server path
+  const filePath = path.join(__dirname, '..', asset.fileUrl);
+  
+  if (!fs.existsSync(filePath)) {
+    throw new AppError('File not found on disk', 404);
+  }
+
+  // Set appropriate headers for download
+  res.setHeader('Content-Disposition', `attachment; filename="${asset.title || 'download'}"`);
+  res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
+  
+  // Stream the file
+  res.download(filePath, asset.title || path.basename(filePath));
+}));
+
 // Delete a company asset (customer-facing PDF or other file)
 router.delete('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
   const id = req.params.id;
@@ -170,6 +192,71 @@ router.patch('/assets/reorder', authenticateToken, asyncHandler(async (req, res)
   );
 
   res.json({ success: true, data: { updated: results.length } });
+}));
+
+// Bulk delete assets
+router.delete('/assets/bulk', authenticateToken, asyncHandler(async (req, res) => {
+  const { ids } = req.body; // Array of asset IDs
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new AppError('IDs array is required', 400);
+  }
+
+  // Get all assets to delete for file cleanup
+  const assets = await prisma.companyAsset.findMany({
+    where: { id: { in: ids } }
+  });
+
+  // Use transaction to delete all assets
+  await prisma.$transaction(
+    ids.map(id => prisma.companyAsset.delete({ where: { id } }))
+  );
+
+  // Clean up files from disk (best-effort)
+  assets.forEach(asset => {
+    if (asset.fileUrl) {
+      try {
+        const filePath = path.join(__dirname, '..', asset.fileUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (err) {
+        console.error('Error deleting asset file:', err);
+      }
+    }
+  });
+
+  res.json({ success: true, message: `Deleted ${ids.length} asset(s)` });
+}));
+
+// Bulk move assets
+router.patch('/assets/bulk-move', authenticateToken, asyncHandler(async (req, res) => {
+  const { ids, parentId } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new AppError('IDs array is required', 400);
+  }
+  if (parentId === undefined) {
+    throw new AppError('parentId is required', 400);
+  }
+
+  // Validate parent folder exists if provided
+  if (parentId !== null) {
+    const parent = await prisma.companyAsset.findUnique({ where: { id: parentId } });
+    if (!parent || parent.type !== 'FOLDER') {
+      throw new AppError('Invalid parent folder', 400);
+    }
+  }
+
+  // Use transaction to move all assets
+  const results = await prisma.$transaction(
+    ids.map(id => 
+      prisma.companyAsset.update({
+        where: { id },
+        data: { parentId }
+      })
+    )
+  );
+
+  res.json({ success: true, message: `Moved ${ids.length} asset(s)` });
 }));
 
 // =============================

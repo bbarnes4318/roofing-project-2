@@ -1,3 +1,23 @@
+// Load environment variables before initializing Prisma
+const path = require('path');
+const fs = require('fs');
+
+// Load .env files in order of priority
+const envPaths = [
+  path.resolve(__dirname, '..', '.env'),
+  path.resolve(__dirname, '..', '..', '.env')
+];
+
+// Load each env file if it exists
+envPaths.forEach(envPath => {
+  if (fs.existsSync(envPath)) {
+    require('dotenv').config({ path: envPath });
+    console.log(`📋 Loaded env from: ${envPath}`);
+  }
+});
+
+// Database URL is already set correctly in server.js
+
 const { PrismaClient } = require('@prisma/client');
 
 // Initialize Prisma Client with logging and error handling

@@ -2,14 +2,45 @@ const OpenAI = require('openai');
 
 class TranscriptAIService {
     constructor() {
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
+        this.isEnabled = false;
+        this.openai = null;
+        this.apiKey = null;
+        
+        // Check for API key
+        const rawKey = process.env.OPENAI_API_KEY;
+        const sanitizedKey = typeof rawKey === 'string' 
+            ? rawKey.trim().replace(/^['\"]|['\"]$/g, '')
+            : null;
+        this.apiKey = sanitizedKey || null;
+        
+        if (this.apiKey) {
+            try {
+                this.openai = new OpenAI({
+                    apiKey: this.apiKey
+                });
+                this.isEnabled = true;
+                console.log('✅ TranscriptAIService: OpenAI initialized successfully');
+            } catch (error) {
+                console.error('❌ TranscriptAIService: Failed to initialize OpenAI:', error.message);
+                console.log('⚠️ TranscriptAIService: Using fallback summary generation');
+                this.isEnabled = false;
+            }
+        } else {
+            console.log('⚠️ TranscriptAIService: OpenAI API key not provided, using fallback summary generation');
+        }
     }
 
     async generateProfessionalSummary(transcriptData) {
         try {
             console.log('🔍 TranscriptAIService: Starting generateProfessionalSummary');
+            console.log('🔍 TranscriptAIService: OpenAI enabled:', this.isEnabled);
+            
+            // If OpenAI is not enabled, use fallback immediately
+            if (!this.isEnabled) {
+                console.log('⚠️ TranscriptAIService: OpenAI not available, using fallback summary');
+                return this.generateFallbackSummary(transcriptData);
+            }
+            
             console.log('🔍 TranscriptAIService: Input data:', JSON.stringify(transcriptData, null, 2));
             const { fullTranscript, metadata, projectInfo } = transcriptData;
             

@@ -284,11 +284,8 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                 </div>
                                                 
                                                 {/* Right side - Checkbox and actions - MATCHING REMINDERS TAB EXACTLY */}
-                                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                    {/* Tasks: Timestamp + Checkbox */}
-                                                    {activeCommTab === 'tasks' && (
-                                                        <>
-                                                            {/* Timestamp - moved to left of checkbox for Tasks */}
+                                                <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '-16px' }}>
+                                                    {/* Timestamp for ALL types - Messages, Tasks, Reminders */}
                                                             <span className="text-[8px] whitespace-nowrap text-gray-500">
                                                                 {new Date(item.timestamp).toLocaleDateString('en-US', { 
                                                                     month: 'short', 
@@ -299,45 +296,6 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                     hour12: true
                                                                 })}
                                                             </span>
-                                                            
-                                                            {/* Checkbox for Tasks */}
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isCompleted}
-                                                                onChange={() => handleTaskToggle(item.id)}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
-                                                            />
-                                                            
-                                                            {/* Task indicator */}
-                                                            <div className="flex flex-col items-center">
-                                                                <span className="text-[8px] font-bold text-orange-500">
-                                                                    Task
-                                                                </span>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                    
-                                                    {/* Reminders: Checkbox + Reminder text - EXACTLY LIKE REMINDERS TAB */}
-                                                    {item.type === 'reminder' && (
-                                                        <>
-                                                            {/* Checkbox */}
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={completedTasks.has(item.id)}
-                                                                onChange={() => handleTaskToggle(item.id)}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
-                                                            />
-                                                            
-                                                            {/* Reminder indicator - CLEARLY INDICATES IT IS A REMINDER */}
-                                                            <div className="flex flex-col items-center">
-                                                                <span className="text-[8px] font-bold text-orange-500">
-                                                                    Reminder
-                                                                </span>
-                                                            </div>
-                                                        </>
-                                                    )}
                                                     
                                                     {/* Messages: Just type indicator */}
                                                     {item.type === 'message' && (
@@ -375,20 +333,44 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                     </div>
                                                 </div>
                                                 
-                                                {/* Timestamp for Messages and Reminders (bottom right) */}
-                                                {item.type !== 'task' && (
-                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                        {/* Timestamp - using same format as Tasks tab */}
-                                                        <span className="text-[8px] whitespace-nowrap text-gray-500">
-                                                            {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                                                                month: 'short', 
-                                                                day: 'numeric'
-                                                            }) + ', ' + new Date(item.timestamp).toLocaleTimeString('en-US', {
-                                                                hour: 'numeric',
-                                                                minute: '2-digit',
-                                                                hour12: true
-                                                            })}
+                                                {/* Checkbox and type indicator for Tasks and Reminders (bottom right) */}
+                                                {item.type === 'task' && (
+                                                    <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '-16px' }}>
+                                                        {/* Checkbox for Tasks */}
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isCompleted}
+                                                            onChange={() => handleTaskToggle(item.id)}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                                        />
+                                                        
+                                                        {/* Task indicator */}
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-[8px] font-bold text-orange-500">
+                                                                Task
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {item.type === 'reminder' && (
+                                                    <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '-16px' }}>
+                                                        {/* Checkbox for Reminders */}
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={completedTasks.has(item.id)}
+                                                            onChange={() => handleTaskToggle(item.id)}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                                                        />
+                                                        
+                                                        {/* Reminder indicator */}
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-[8px] font-bold text-orange-500">
+                                                                Reminder
                                                         </span>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

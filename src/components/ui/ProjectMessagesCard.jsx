@@ -197,8 +197,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
 
     return (
         <div className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md`}>
-            {/* Main message header - Compact 2-row layout */}
-            <div className="flex items-center gap-1.5 p-1.5">
+            {/* Main message header - Strict Two-Column Layout */}
+            <div className="flex items-start gap-1.5 p-1.5">
                 {/* Phase Circle - Align to top */}
                 {(() => {
                     const phaseProps = getPhaseButton(projectPhase);
@@ -209,9 +209,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     );
                 })()}
                 
+                {/* COLUMN 1: Main content (flexible width) */}
                 <div className="flex-1 min-w-0">
                     {/* Row 1: Project# | Customer | Subject */}
-                    <div className="flex items-center justify-between overflow-hidden relative">
+                    <div className="flex items-center overflow-hidden relative">
                         <div className="flex items-center min-w-0 flex-1">
                             {/* Project Number - Fixed width for alignment */}
                             <button
@@ -294,26 +295,81 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </span>
                             </div>
                         </div>
-                        
-                        {/* Right side - Message indicator and actions */}
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                            {/* New message indicator */}
-                            <div className="flex items-center gap-1">
-                                <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
-                                <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                    {conversation.length}
+                    </div>
+                    
+                    {/* Row 2: From, To */}
+                    <div className="flex items-baseline gap-0 mt-0 overflow-hidden relative">
+                        <div className="flex items-baseline gap-0">
+                            {/* From - Fixed width container for consistent spacing */}
+                            <div 
+                                className="flex-shrink-0"
+                                style={{ width: '100px', marginLeft: '8px' }}
+                            >
+                                <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    From: {lastMessage.user}
                                 </span>
                             </div>
                             
-                            {/* Task indicator - shows when message has a task */}
-                            {activity.hasTask && (
-                                <div className="flex flex-col items-center">
-                                    <span className="text-[8px] font-bold text-red-500">
-                                        Task
-                                    </span>
-                                </div>
-                            )}
-                            
+                            {/* To - Fixed position to match Subject exactly */}
+                            <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
+                                <span 
+                                    className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
+                                    style={{ 
+                                        display: 'inline-block',
+                                        verticalAlign: 'baseline',
+                                        lineHeight: '1'
+                                    }}
+                                >
+                                    {(() => {
+                                        // Dynamic To field based on message participants
+                                        const allParticipants = [...new Set(conversation.map(msg => msg.user))];
+                                        const recipients = allParticipants.filter(user => user !== lastMessage.user);
+                                        
+                                        if (recipients.length === 0) {
+                                            return `To: ${primaryCustomer}`;
+                                        } else if (recipients.length === 1) {
+                                            return `To: ${recipients[0]}`;
+                                        } else if (recipients.length === 2) {
+                                            return `To: ${recipients.join(', ')}`;
+                                        } else {
+                                            return `To: ${recipients[0]} +${recipients.length - 1} others`;
+                                        }
+                                    })()}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* COLUMN 2: Fixed width, right-aligned elements */}
+                <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
+                    {/* Top: Message indicators */}
+                    <div className="flex flex-col items-center gap-1">
+                        {/* New message indicator */}
+                        <div className="flex items-center gap-1">
+                            <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {conversation.length}
+                            </span>
+                        </div>
+                        
+                        {/* Task indicator - shows when message has a task */}
+                        {activity.hasTask && (
+                            <span className="text-[8px] font-bold text-red-500">
+                                Task
+                            </span>
+                        )}
+                    </div>
+                    
+                    {/* Bottom: Timestamp and Actions */}
+                    <div className="flex flex-col items-center gap-1">
+                        {/* Timestamp */}
+                        <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            {formatTimestamp(lastMessage.timestamp)}
+                        </span>
+                        
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-1">
                             {/* Quick Reply Button */}
                             <button
                                 onClick={(e) => {
@@ -357,56 +413,6 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
-                        </div>
-                    </div>
-                    
-                    {/* Row 2: From, To, and Timestamp */}
-                    <div className="flex items-baseline justify-between gap-0 mt-0 overflow-hidden relative">
-                        <div className="flex items-baseline gap-0">
-                            {/* From - Fixed width container for consistent spacing */}
-                            <div 
-                                className="flex-shrink-0"
-                                style={{ width: '100px', marginLeft: '8px' }}
-                            >
-                                <span className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                    From: {lastMessage.user}
-                                </span>
-                            </div>
-                            
-                            {/* To - Fixed position to match Subject exactly */}
-                            <div style={{ position: 'absolute', left: '140px', width: '200px' }}>
-                                <span 
-                                    className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                                    style={{ 
-                                        display: 'inline-block',
-                                        verticalAlign: 'baseline',
-                                        lineHeight: '1'
-                                    }}
-                                >
-                                    {(() => {
-                                        // Dynamic To field based on message participants
-                                        const allParticipants = [...new Set(conversation.map(msg => msg.user))];
-                                        const recipients = allParticipants.filter(user => user !== lastMessage.user);
-                                        
-                                        if (recipients.length === 0) {
-                                            return `To: ${primaryCustomer}`;
-                                        } else if (recipients.length === 1) {
-                                            return `To: ${recipients[0]}`;
-                                        } else if (recipients.length === 2) {
-                                            return `To: ${recipients.join(', ')}`;
-                                        } else {
-                                            return `To: ${recipients[0]} +${recipients.length - 1} others`;
-                                        }
-                                    })()}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        {/* Timestamp - Far right */}
-                        <div className="flex-shrink-0">
-                            <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                                {formatTimestamp(lastMessage.timestamp)}
-                            </span>
                         </div>
                     </div>
                 </div>
