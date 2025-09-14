@@ -166,9 +166,14 @@ const TaskItem = ({
 
         {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
         <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px', marginRight: '15px' }}>
-          {/* Row 1: Checkbox and Task label */}
-          <div className="flex items-center gap-1" style={{ marginRight: '10px' }}>
-            {/* Checkbox */}
+          {/* Row 1: Task label and Checkbox - Checkbox moved to top right */}
+          <div className="flex items-center gap-1" style={{ marginRight: '5px' }}>
+            {/* Type Label */}
+            <span className="text-[8px] font-bold text-orange-500">
+              Task
+            </span>
+            
+            {/* Checkbox - moved to top right corner */}
             <input
               type="checkbox"
               checked={isCompleted}
@@ -176,15 +181,10 @@ const TaskItem = ({
               onClick={handleToggleCompleted}
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
             />
-            
-            {/* Type Label */}
-            <span className="text-[8px] font-bold text-orange-500">
-              Task
-            </span>
           </div>
           
-          {/* Row 2: Timestamp and dropdown arrow */}
-          <div className="flex items-center gap-1">
+          {/* Row 2: Timestamp and dropdown arrow - Timestamp moved 2 spaces left */}
+          <div className="flex items-center gap-1" style={{ marginRight: '2px' }}>
             {/* Timestamp */}
             <span className="text-[8px] whitespace-nowrap text-gray-500">
               {new Date(item.timestamp).toLocaleDateString('en-US', { 
