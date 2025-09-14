@@ -2977,6 +2977,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 handleToggleMessage={handleToggleMessage}
                 handleTaskToggle={handleTaskToggle}
                 handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+                availableUsers={availableUsers}
                 taskComments={taskComments}
                 newCommentText={newCommentText}
                 setNewCommentText={setNewCommentText}

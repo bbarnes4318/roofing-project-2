@@ -1,12 +1,14 @@
 import React from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
+import MentionInput from './MentionInput';
 
 const TaskItem = ({ 
   item, 
   projects, 
   colorMode, 
-  onProjectSelect 
+  onProjectSelect,
+  availableUsers = []
 }) => {
   const { state, actions } = useActivity();
   
@@ -254,30 +256,34 @@ const TaskItem = ({
               
               {/* Add Comment Form */}
               <div className="border-t border-gray-200 pt-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
+                <div className="space-y-2">
+                  <MentionInput
                     value={state.newCommentText[item.id] || ''}
                     onChange={handleCommentTextChange}
+                    placeholder="Add a comment... Use @ to mention users"
+                    availableUsers={availableUsers}
+                    className="w-full"
+                    rows={2}
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
                         handleAddComment();
                       }
                     }}
-                    placeholder="Add a comment..."
-                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
-                  <button
-                    onClick={handleAddComment}
-                    disabled={!state.newCommentText[item.id]?.trim()}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      state.newCommentText[item.id]?.trim()
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Add
-                  </button>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleAddComment}
+                      disabled={!state.newCommentText[item.id]?.trim()}
+                      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                        state.newCommentText[item.id]?.trim()
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Add Comment
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

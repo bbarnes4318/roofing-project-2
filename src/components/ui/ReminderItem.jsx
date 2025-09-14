@@ -1,6 +1,7 @@
 import React from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
+import MentionInput from './MentionInput';
 
 const ReminderItem = ({ 
   item, 
@@ -268,11 +269,12 @@ const ReminderItem = ({
             {/* Comment input */}
             {state.showCommentInput[item.id] && (
               <div className="mt-2">
-                <textarea
+                <MentionInput
                   value={state.commentInputs[item.id] || ''}
                   onChange={handleCommentTextChange}
-                  placeholder="Type your comment here..."
-                  className="w-full px-2 py-1 text-[10px] border border-gray-200 rounded resize-none focus:outline-none focus:border-blue-400"
+                  placeholder="Type your comment here... Use @ to mention users"
+                  availableUsers={availableUsers}
+                  className="w-full"
                   rows={2}
                 />
                 <div className="flex justify-end gap-1 mt-1">

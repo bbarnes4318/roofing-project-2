@@ -197,6 +197,7 @@ const ActivityFeedSection = ({
                     projects={projects || []}
                     colorMode={colorMode}
                     onProjectSelect={handleProjectSelectWithScroll}
+                    availableUsers={availableUsers}
                   />
                 );
               } else if (item.type === 'reminder') {
