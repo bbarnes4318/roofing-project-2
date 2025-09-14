@@ -164,10 +164,10 @@ const TaskItem = ({
           </div>
         </div>
 
-        {/* COLUMN 2: Fixed width, right-aligned elements */}
+        {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
         <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
-          {/* Top: Checkbox and Type Label */}
-          <div className="flex flex-col items-center gap-1">
+          {/* Row 1: Checkbox and Task label */}
+          <div className="flex items-center gap-1">
             {/* Checkbox */}
             <input
               type="checkbox"
@@ -183,8 +183,8 @@ const TaskItem = ({
             </span>
           </div>
           
-          {/* Bottom: Timestamp */}
-          <div className="flex flex-col items-center">
+          {/* Row 2: Timestamp and dropdown arrow */}
+          <div className="flex items-center gap-1">
             {/* Timestamp */}
             <span className="text-[8px] whitespace-nowrap text-gray-500">
               {new Date(item.timestamp).toLocaleDateString('en-US', { 

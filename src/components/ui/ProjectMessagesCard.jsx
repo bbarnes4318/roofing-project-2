@@ -341,17 +341,15 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                 </div>
 
-                {/* COLUMN 2: Fixed width, right-aligned elements */}
+                {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
                 <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
-                    {/* Top: Message indicators */}
-                    <div className="flex flex-col items-center gap-1">
+                    {/* Row 1: New message indicator and number */}
+                    <div className="flex items-center gap-1">
                         {/* New message indicator */}
-                        <div className="flex items-center gap-1">
-                            <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
-                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {conversation.length}
-                            </span>
-                        </div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                        <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {conversation.length}
+                        </span>
                         
                         {/* Task indicator - shows when message has a task */}
                         {activity.hasTask && (
@@ -361,15 +359,14 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         )}
                     </div>
                     
-                    {/* Bottom: Timestamp and Actions */}
-                    <div className="flex flex-col items-center gap-1">
+                    {/* Row 2: Timestamp and Actions */}
+                    <div className="flex items-center gap-1">
                         {/* Timestamp */}
                         <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
                             {formatTimestamp(lastMessage.timestamp)}
                         </span>
                         
                         {/* Action buttons */}
-                        <div className="flex items-center gap-1">
                             {/* Quick Reply Button */}
                             <button
                                 onClick={(e) => {
