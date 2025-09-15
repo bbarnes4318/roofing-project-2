@@ -41,7 +41,8 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
     where.OR = [
       { title: { contains: search, mode: 'insensitive' } },
       { description: { contains: search, mode: 'insensitive' } },
-      { folderName: { contains: search, mode: 'insensitive' } },
+      // Temporarily remove folderName search until column is added
+      // { folderName: { contains: search, mode: 'insensitive' } },
       { tags: { hasSome: search.split(' ').filter(s => s.length > 0) } }
     ];
   }
@@ -86,7 +87,31 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   const assets = await prisma.companyAsset.findMany({
     where,
     orderBy,
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      fileUrl: true,
+      mimeType: true,
+      fileSize: true,
+      tags: true,
+      section: true,
+      version: true,
+      isActive: true,
+      downloadCount: true,
+      lastDownloadedAt: true,
+      uploadedById: true,
+      parentId: true,
+      path: true,
+      sortOrder: true,
+      type: true,
+      isPublic: true,
+      thumbnail_url: true,
+      checksum: true,
+      metadata: true,
+      accessLevel: true,
+      createdAt: true,
+      updatedAt: true,
       children: true,
       parent: true,
       uploadedBy: {
@@ -685,7 +710,8 @@ router.get('/assets/search', authenticateToken, asyncHandler(async (req, res) =>
     where.OR = [
       { title: { contains: q, mode: 'insensitive' } },
       { description: { contains: q, mode: 'insensitive' } },
-      { folderName: { contains: q, mode: 'insensitive' } }
+      // Temporarily remove folderName search until column is added
+      // { folderName: { contains: q, mode: 'insensitive' } }
     ];
   }
   
@@ -732,7 +758,31 @@ router.get('/assets/search', authenticateToken, asyncHandler(async (req, res) =>
   const assets = await prisma.companyAsset.findMany({
     where,
     orderBy: { createdAt: 'desc' },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      fileUrl: true,
+      mimeType: true,
+      fileSize: true,
+      tags: true,
+      section: true,
+      version: true,
+      isActive: true,
+      downloadCount: true,
+      lastDownloadedAt: true,
+      uploadedById: true,
+      parentId: true,
+      path: true,
+      sortOrder: true,
+      type: true,
+      isPublic: true,
+      thumbnail_url: true,
+      checksum: true,
+      metadata: true,
+      accessLevel: true,
+      createdAt: true,
+      updatedAt: true,
       uploadedBy: {
         select: { id: true, firstName: true, lastName: true, email: true }
       },

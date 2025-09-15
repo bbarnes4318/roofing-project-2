@@ -352,14 +352,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
 
                 {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
                 <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
-                    {/* Row 1: New message indicator and number */}
+                    {/* Row 1: Task indicator only */}
                     <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
-                        {/* New message indicator */}
-                        <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
-                        <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {conversation.length}
-                        </span>
-                        
                         {/* Task indicator - shows when message has a task */}
                         {activity.hasTask && (
                             <span className="text-[8px] font-bold text-red-500">
@@ -372,7 +366,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* Action buttons */}
                         <div className="flex items-center gap-1">
-                            {/* Quick Reply Button */}
+                            {/* New message indicator - moved one space to the left */}
+                            <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {conversation.length}
+                            </span>
+                            
+                            {/* Quick Reply Button - moved to left of blue dot */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -393,12 +393,6 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                 </svg>
                             </button>
-                            
-                            {/* New message indicator - moved to left of reply button */}
-                            <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
-                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {conversation.length}
-                            </span>
                             
                             {/* Dropdown arrow - visual indicator only */}
                             <div
