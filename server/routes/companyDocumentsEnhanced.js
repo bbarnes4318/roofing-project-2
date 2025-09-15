@@ -130,6 +130,11 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
   const take = parseInt(limit);
   
+  // Validate sortBy field - only allow valid CompanyAsset fields
+  const validSortFields = ['title', 'createdAt', 'updatedAt', 'fileSize', 'downloadCount', 'sortOrder'];
+  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'sortOrder';
+  const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
+  
   // Get total count for pagination
   const totalCount = await prisma.companyAsset.count({ where });
   
@@ -138,7 +143,7 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
     where,
     orderBy: [
       { type: 'asc' }, // Folders first
-      { [sortBy]: sortOrder },
+      { [safeSortBy]: safeSortOrder },
       { createdAt: 'desc' }
     ],
     skip,
