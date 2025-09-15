@@ -3003,7 +3003,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </div>
         </div>
 
-        {/* Activity Feed Section - Moved to left column */}
+        {/* Left Column - Activity Feed */}
         <div className="w-full" data-section="activity-feed">
           <ActivityFeedSection
             activityFeedItems={activityFeedItems}
