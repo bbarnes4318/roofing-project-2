@@ -3034,15 +3034,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           handleAddComment={handleAddComment}
         />
 
-      {/* Project Workflow Line Items Section - Full Width Below Messages/Tasks/Reminders */}
-      <div className="mb-6" data-section="workflow-line-items">
-        <WorkflowLineItemsSection
-          projects={projects}
-          colorMode={colorMode}
-          onProjectSelect={handleProjectSelectWithScroll}
-        />
-      </div>
-
       {/* Project Cubes - Quick Access (hidden) */}
       <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>
       

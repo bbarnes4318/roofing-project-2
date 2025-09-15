@@ -432,7 +432,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                     <div className="mb-3">
                         <div className="flex items-center justify-between mb-2">
                             <div>
-                                <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Current Alerts</h1>
+                                <h1 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Project Workflow Line Items</h1>
                             </div>
                         </div>
                         
@@ -473,46 +473,109 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                         </div>
                     </div>
                     
-                    {/* Scrollable content area with fixed height */}
+                    {/* Workflow Line Items Content */}
                     <div className="h-[650px] overflow-y-auto space-y-2 mt-3">
-                        {alertsLoading ? (
-                            <div className="text-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                                <p className={`mt-2 text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading alerts...</p>
-                            </div>
-                        ) : alertsError ? (
-                            <div className="text-center py-8">
-                                <p className="text-red-500 text-sm">Error loading alerts: {alertsError}</p>
-                            </div>
-                        ) : getPaginatedAlerts().length === 0 ? (
-                            <div className="text-center py-8">
-                                <div className={`text-6xl mb-4 ${colorMode ? 'text-gray-600' : 'text-gray-300'}`}>🎉</div>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    No alerts found
+                        <div className="text-center py-8">
+                            <div className={`text-6xl mb-4 ${colorMode ? 'text-gray-600' : 'text-gray-300'}`}>🏗️</div>
+                            <p className={`text-sm font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Project Workflow Line Items
+                            </p>
+                            <p className={`text-xs mt-1 ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                Track progress through workflow phases and line items
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Assignment Modal */}
+            {showAssignModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`bg-white rounded-[20px] p-6 w-96 max-w-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white'}`}>
+                        <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                            Assign Alert to User
+                        </h3>
+                        
+                        {/* Alert Information */}
+                        {selectedAlertForAssign && (
+                            <div className={`mb-4 p-3 rounded border ${colorMode ? 'bg-[#232b4d] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                    Alert: {selectedAlertForAssign.title || 'Unknown Alert'}
                                 </p>
-                                <p className={`text-xs mt-1 ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                    All workflow items are up to date!
+                                <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    Project: {selectedAlertForAssign.metadata?.projectName || selectedAlertForAssign.relatedProject?.projectName || 'Unknown Project'}
                                 </p>
                             </div>
-                        ) : (
-                            getPaginatedAlerts().map(alert => {
-                                // Extract data from alert - matching Current Alerts implementation
-                                const alertId = alert._id || alert.id;
-                                const actionData = alert.actionData || alert.metadata || {};
-                                const phase = actionData.phase || alert.phase || 'UNKNOWN';
-                                const priority = actionData.priority || 'medium';
-                                
-                                // Find associated project
-                                const projectId = actionData.projectId || alert.projectId;
-                                const project = projects?.find(p => p.id === projectId || p._id === projectId);
-                                const projectNumber = project?.projectNumber || alert.projectNumber || '12345';
-                                const projectName = project?.name || alert.projectName || 'Unknown Project';
-                                const primaryContact = project?.client?.name || project?.customer?.name || project?.clientName || alert.customerName || 'Unknown Customer';
-                                const alertTitle = actionData.stepName || alert.title || 'Unknown Alert';
-                                const isExpanded = expandedAlerts.has(alertId);
-                                
-                                // ENHANCED: Create direct mapping for reliable navigation
-                                const createDirectMapping = (alertTitle, phase) => {
+                        )}
+                        
+                        {/* User Selection Dropdown */}
+                        <div className="mb-6">
+                            <label className={`block text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Assign to User:
+                            </label>
+                            <select
+                                value={assignToUser}
+                                onChange={(e) => setAssignToUser(e.target.value)}
+                                className={`w-full p-3 border rounded-lg text-sm transition-colors ${
+                                    colorMode 
+                                        ? 'bg-[#1e293b] border-gray-600 text-white focus:border-brand-500 focus:ring-1 focus:ring-blue-500' 
+                                        : 'bg-white border-gray-300 text-gray-800 focus:border-brand-500 focus:ring-1 focus:ring-blue-500'
+                                }`}
+                            >
+                                <option value="">Select a user...</option>
+                                {availableUsers.map(user => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => {
+                                    setShowAssignModal(false);
+                                    setSelectedAlertForAssign(null);
+                                    setAssignToUser('');
+                                }}
+                                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                    colorMode 
+                                        ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAssignConfirm}
+                                disabled={!assignToUser || actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]}
+                                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                                    assignToUser && !actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-gray-400 text-white cursor-not-allowed'
+                                }`}
+                            >
+                                {actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`] ? (
+                                    <span className="flex items-center">
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Assigning...
+                                    </span>
+                                ) : (
+                                    'Assign'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default TasksAndAlertsPage;
                                     // Direct mapping based on known alert patterns
                                     const directMappings = {
                                         // LEAD Phase
