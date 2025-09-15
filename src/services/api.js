@@ -598,17 +598,18 @@ export const companyDocsService = {
     return response.data;
   },
   
-  // Move asset to different folder
+  // Toggle favorite
+  toggleFavorite: async (id) => {
+    const response = await api.patch(`/company-docs/assets/${id}/favorite`);
+    return response.data;
+  },
+  
+  // Move asset to folder
   moveAsset: async (id, parentId) => {
     const response = await api.patch(`/company-docs/assets/${id}`, { parentId });
     return response.data;
   },
   
-  // Toggle favorite
-  toggleFavorite: async (id) => {
-    const response = await api.post(`/company-docs/assets/${id}/favorite`);
-    return response.data;
-  },
   // Templates
   listTemplates: async () => {
     const response = await api.get('/company-docs/templates');

@@ -124,7 +124,7 @@ const DocumentCard = ({
   });
 
   const isFolder = item.type === 'FOLDER';
-  const fileSize = item.size ? formatFileSize(item.size) : '';
+  const fileSize = item.fileSize ? formatFileSize(item.fileSize) : '';
   const lastModified = item.updatedAt ? formatDate(item.updatedAt) : '';
 
   const handleRename = async (e) => {

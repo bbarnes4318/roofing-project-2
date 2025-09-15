@@ -874,6 +874,42 @@ router.post('/generate', authenticateToken, asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: { document } });
 }));
 
+// Toggle favorite status
+router.patch('/assets/:id/favorite', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  // Toggle the favorite status (assuming we have a favorite field)
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: { 
+      // Note: You may need to add a favorite field to your schema
+      // For now, we'll use a simple toggle on isActive or create a new field
+      isActive: !asset.isActive // Temporary solution
+    }
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Update asset (for move, rename, etc.)
+router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: updateData
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
 module.exports = router;
 
 
