@@ -208,7 +208,7 @@ app.use(helmet({
         "https://*.daily.co"   // Daily.co subdomains for Vapi
       ],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:", "ws:", "https://*.vapi.ai", "https://*.daily.co"],
+      connectSrc: ["'self'", "https:", "wss:", "ws:", "https://*.vapi.ai", "https://*.daily.co", "https://goldfish-app-4yuma.ondigitalocean.app"],
       mediaSrc: ["'self'", "https://*.daily.co", "blob:"],  // For audio/video streams
       frameSrc: ["'self'", "https://*.daily.co"],  // For Daily.co iframe if needed
       workerSrc: ["'self'", "blob:"]  // For web workers that Daily.co might use
