@@ -115,13 +115,18 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   }
   // For other roles, show all documents
 
+  // Validate sortBy field - only allow valid Document fields
+  const validSortFields = ['createdAt', 'updatedAt', 'fileName', 'originalName', 'fileSize', 'downloadCount', 'lastDownloadedAt'];
+  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+  const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
+
   // Get documents with pagination
   const [documents, total] = await Promise.all([
     prisma.document.findMany({
       where,
       skip,
       take,
-      orderBy: { [sortBy]: sortOrder },
+      orderBy: { [safeSortBy]: safeSortOrder },
       include: {
         uploadedBy: {
           select: { id: true, firstName: true, lastName: true, email: true }
@@ -577,21 +582,20 @@ router.post('/:id/favorite', authenticateToken, asyncHandler(async (req, res) =>
 // GET /api/documents/categories - Get document categories with counts
 router.get('/categories', authenticateToken, asyncHandler(async (req, res) => {
   const categories = await prisma.document.groupBy({
-    by: ['category'],
+    by: ['fileType'],
     where: {
-      isActive: true,
-      isArchived: false
+      isActive: true
     },
     _count: {
       id: true
     },
     orderBy: {
-      category: 'asc'
+      fileType: 'asc'
     }
   });
 
   const formattedCategories = categories.map(cat => ({
-    category: cat.category,
+    category: cat.fileType,
     count: cat._count.id
   }));
 
