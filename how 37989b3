@@ -1,0 +1,3 @@
+[33m37989b3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelopment[m[33m, [m[1;31morigin/development[m[33m)[m Fix Company Documents API error - correct Prisma query for relations
+[33mc7489fd[m Fix company-docs/assets endpoint - remove folderName references and fix blue circle positioning in messages
+[33m086884f[m Fix company-docs/assets endpoint 500 error - resolve database schema mismatch and remove folderName references

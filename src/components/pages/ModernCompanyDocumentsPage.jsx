@@ -730,28 +730,55 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
           toast.info('Click on the item to rename');
           break;
         case 'duplicate':
-          // Implement duplication
-          toast.success(`Duplicated ${item.title}`);
+          try {
+            await companyDocsService.duplicateAsset(item.id, `${item.title} (Copy)`);
+            toast.success(`Duplicated ${item.title}`);
+            loadDocuments();
+          } catch (error) {
+            console.error('Error duplicating:', error);
+            toast.error('Failed to duplicate item');
+          }
           break;
         case 'toggle-favorite':
           await companyDocsService.toggleFavorite(item.id);
           handleToggleFavorite(item.id);
           break;
         case 'share':
-          // Implement sharing
-          toast.success(`Shared ${item.title}`);
+          try {
+            await companyDocsService.shareAsset(item.id, [], 'public');
+            toast.success(`Shared ${item.title}`);
+            loadDocuments();
+          } catch (error) {
+            console.error('Error sharing:', error);
+            toast.error('Failed to share item');
+          }
           break;
         case 'move':
           // Implement move to folder
           toast.info('Drag the item to move it');
           break;
         case 'tag':
-          // Implement tagging
-          toast.info('Tagging feature coming soon');
+          const newTag = prompt('Enter tag name:');
+          if (newTag && newTag.trim()) {
+            try {
+              await companyDocsService.addTag(item.id, newTag.trim());
+              toast.success(`Added tag "${newTag}" to ${item.title}`);
+              loadDocuments();
+            } catch (error) {
+              console.error('Error adding tag:', error);
+              toast.error('Failed to add tag');
+            }
+          }
           break;
         case 'archive':
-          // Implement archiving
-          toast.success(`Archived ${item.title}`);
+          try {
+            await companyDocsService.archiveAsset(item.id);
+            toast.success(`Archived ${item.title}`);
+            loadDocuments();
+          } catch (error) {
+            console.error('Error archiving:', error);
+            toast.error('Failed to archive item');
+          }
           break;
         case 'delete':
           setDeleteConfirm(item);
@@ -768,11 +795,14 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
 
   // Handle favorite toggle
   const handleToggleFavorite = (itemId) => {
+    // Update local state immediately for UI responsiveness
     setFavorites(prev => 
       prev.includes(itemId) 
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     );
+    // Reload documents to get updated data from server
+    loadDocuments();
   };
 
   // Handle bulk actions
@@ -802,17 +832,26 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
           });
           break;
         case 'favorite':
-          // Toggle favorite for each item
-          for (const itemId of selectedItems) {
-            if (!favorites.includes(itemId)) {
-              await companyDocsService.toggleFavorite(itemId);
-              handleToggleFavorite(itemId);
-            }
+          try {
+            await companyDocsService.bulkFavorite(selectedItems, true);
+            toast.success(`Added ${selectedItems.length} items to favorites`);
+            loadDocuments();
+          } catch (error) {
+            console.error('Error adding to favorites:', error);
+            toast.error('Failed to add items to favorites');
           }
-          toast.success(`Added ${selectedItems.length} items to favorites`);
           break;
         case 'archive':
-          toast.success(`Archived ${selectedItems.length} items`);
+          try {
+            for (const itemId of selectedItems) {
+              await companyDocsService.archiveAsset(itemId);
+            }
+            toast.success(`Archived ${selectedItems.length} items`);
+            loadDocuments();
+          } catch (error) {
+            console.error('Error archiving:', error);
+            toast.error('Failed to archive items');
+          }
           break;
         default:
           console.log('Unknown bulk action:', action);
@@ -1059,7 +1098,7 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
                     onDoubleClick={() => handleItemDoubleClick(item)}
                     onContextMenu={(e) => handleContextMenu(e, item)}
                     onToggleFavorite={handleToggleFavorite}
-                    isFavorite={favorites.includes(item.id)}
+                    isFavorite={item.isFavorite || favorites.includes(item.id)}
                     viewMode={viewMode}
                     colorMode={colorMode}
                     onMoveItem={handleMoveItem}
@@ -1171,7 +1210,7 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
             onClose={() => setContextMenu(null)}
             item={contextMenu.item}
             onAction={handleContextMenuAction}
-            isFavorite={favorites.includes(contextMenu.item.id)}
+            isFavorite={contextMenu.item.isFavorite || favorites.includes(contextMenu.item.id)}
             colorMode={colorMode}
           />
         )}

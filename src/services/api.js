@@ -610,6 +610,60 @@ export const companyDocsService = {
     return response.data;
   },
   
+  // Duplicate asset
+  duplicateAsset: async (id, title, parentId) => {
+    const response = await api.post(`/company-docs/assets/${id}/duplicate`, { title, parentId });
+    return response.data;
+  },
+  
+  // Share asset
+  shareAsset: async (id, sharedWith, accessLevel) => {
+    const response = await api.post(`/company-docs/assets/${id}/share`, { sharedWith, accessLevel });
+    return response.data;
+  },
+  
+  // Archive asset
+  archiveAsset: async (id) => {
+    const response = await api.post(`/company-docs/assets/${id}/archive`);
+    return response.data;
+  },
+  
+  // Unarchive asset
+  unarchiveAsset: async (id) => {
+    const response = await api.post(`/company-docs/assets/${id}/unarchive`);
+    return response.data;
+  },
+  
+  // Add tag to asset
+  addTag: async (id, tag) => {
+    const response = await api.post(`/company-docs/assets/${id}/tag`, { tag });
+    return response.data;
+  },
+  
+  // Remove tag from asset
+  removeTag: async (id, tag) => {
+    const response = await api.delete(`/company-docs/assets/${id}/tag`, { data: { tag } });
+    return response.data;
+  },
+  
+  // Get asset metadata
+  getAssetMetadata: async (id) => {
+    const response = await api.get(`/company-docs/assets/${id}/metadata`);
+    return response.data;
+  },
+  
+  // Bulk favorite operations
+  bulkFavorite: async (ids, isFavorite) => {
+    const response = await api.post('/company-docs/assets/bulk-favorite', { ids, isFavorite });
+    return response.data;
+  },
+  
+  // Track asset view
+  trackView: async (id) => {
+    const response = await api.post(`/company-docs/assets/${id}/view`);
+    return response.data;
+  },
+  
   // Templates
   listTemplates: async () => {
     const response = await api.get('/company-docs/templates');

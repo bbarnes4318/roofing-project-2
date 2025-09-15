@@ -881,13 +881,11 @@ router.patch('/assets/:id/favorite', authenticateToken, asyncHandler(async (req,
   const asset = await prisma.companyAsset.findUnique({ where: { id } });
   if (!asset) throw new AppError('Asset not found', 404);
   
-  // Toggle the favorite status (assuming we have a favorite field)
+  // Toggle the favorite status
   const updatedAsset = await prisma.companyAsset.update({
     where: { id },
     data: { 
-      // Note: You may need to add a favorite field to your schema
-      // For now, we'll use a simple toggle on isActive or create a new field
-      isActive: !asset.isActive // Temporary solution
+      isFavorite: !asset.isFavorite
     }
   });
   
@@ -905,6 +903,196 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   const updatedAsset = await prisma.companyAsset.update({
     where: { id },
     data: updateData
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Duplicate asset
+router.post('/assets/:id/duplicate', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { title, parentId } = req.body;
+  
+  const originalAsset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!originalAsset) throw new AppError('Asset not found', 404);
+  
+  const duplicatedAsset = await prisma.companyAsset.create({
+    data: {
+      title: title || `${originalAsset.title} (Copy)`,
+      description: originalAsset.description,
+      fileUrl: originalAsset.fileUrl,
+      mimeType: originalAsset.mimeType,
+      fileSize: originalAsset.fileSize,
+      tags: originalAsset.tags,
+      section: originalAsset.section,
+      type: originalAsset.type,
+      parentId: parentId || originalAsset.parentId,
+      sortOrder: originalAsset.sortOrder,
+      uploadedById: req.user?.id || originalAsset.uploadedById,
+      duplicateOf: originalAsset.id,
+      isPublic: originalAsset.isPublic,
+      accessLevel: originalAsset.accessLevel
+    }
+  });
+  
+  res.status(201).json({ success: true, data: { asset: duplicatedAsset } });
+}));
+
+// Share asset
+router.post('/assets/:id/share', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { sharedWith, accessLevel } = req.body;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: {
+      sharedWith: sharedWith || [],
+      accessLevel: accessLevel || 'shared',
+      isPublic: accessLevel === 'public'
+    }
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Archive asset
+router.post('/assets/:id/archive', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: { isArchived: true }
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Unarchive asset
+router.post('/assets/:id/unarchive', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: { isArchived: false }
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Add tag to asset
+router.post('/assets/:id/tag', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { tag } = req.body;
+  
+  if (!tag) throw new AppError('Tag is required', 400);
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const currentTags = asset.tags || [];
+  const updatedTags = currentTags.includes(tag) ? currentTags : [...currentTags, tag];
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: { tags: updatedTags }
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Remove tag from asset
+router.delete('/assets/:id/tag', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { tag } = req.body;
+  
+  if (!tag) throw new AppError('Tag is required', 400);
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const currentTags = asset.tags || [];
+  const updatedTags = currentTags.filter(t => t !== tag);
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: { tags: updatedTags }
+  });
+  
+  res.json({ success: true, data: { asset: updatedAsset } });
+}));
+
+// Get asset metadata
+router.get('/assets/:id/metadata', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const asset = await prisma.companyAsset.findUnique({ 
+    where: { id },
+    include: {
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      },
+      parent: {
+        select: { id: true, title: true, type: true }
+      },
+      children: {
+        select: { id: true, title: true, type: true, createdAt: true }
+      },
+      versions: {
+        orderBy: { created_at: 'desc' },
+        take: 5
+      }
+    }
+  });
+  
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  res.json({ success: true, data: { asset } });
+}));
+
+// Bulk favorite operations
+router.post('/assets/bulk-favorite', authenticateToken, asyncHandler(async (req, res) => {
+  const { ids, isFavorite } = req.body;
+  
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new AppError('Asset IDs array is required', 400);
+  }
+  
+  const updatedAssets = await prisma.companyAsset.updateMany({
+    where: { id: { in: ids } },
+    data: { isFavorite: isFavorite === true }
+  });
+  
+  res.json({ 
+    success: true, 
+    data: { 
+      updatedCount: updatedAssets.count,
+      message: `${updatedAssets.count} assets ${isFavorite ? 'added to' : 'removed from'} favorites`
+    } 
+  });
+}));
+
+// Track asset view
+router.post('/assets/:id/view', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  const asset = await prisma.companyAsset.findUnique({ where: { id } });
+  if (!asset) throw new AppError('Asset not found', 404);
+  
+  const updatedAsset = await prisma.companyAsset.update({
+    where: { id },
+    data: { 
+      viewCount: { increment: 1 },
+      lastAccessedAt: new Date()
+    }
   });
   
   res.json({ success: true, data: { asset: updatedAsset } });
