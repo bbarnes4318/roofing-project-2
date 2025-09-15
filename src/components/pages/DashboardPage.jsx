@@ -3004,38 +3004,40 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         </div>
 
         {/* Right Column - Activity Feed */}
-        <ActivityFeedSection
-          activityFeedItems={activityFeedItems}
-          projects={projects}
-          colorMode={colorMode}
-          expandedMessages={expandedMessages}
-          completedTasks={completedTasks}
-          activityProjectFilter={activityProjectFilter}
-          activityTypeFilter={activityTypeFilter}
-          setActivityProjectFilter={setActivityProjectFilter}
-          setActivityTypeFilter={setActivityTypeFilter}
-          handleToggleMessage={handleToggleMessage}
-          handleTaskToggle={handleTaskToggle}
-          handleProjectSelectWithScroll={handleProjectSelectWithScroll}
-          availableUsers={availableUsers}
-          currentUser={currentUser}
-          taskComments={taskComments}
-          newCommentText={newCommentText}
-          setNewCommentText={setNewCommentText}
-          handleAddComment={handleAddComment}
-        />
+        <div className="w-full space-y-6" data-section="activity-feed">
+          <ActivityFeedSection
+            activityFeedItems={activityFeedItems}
+            projects={projects}
+            colorMode={colorMode}
+            expandedMessages={expandedMessages}
+            completedTasks={completedTasks}
+            activityProjectFilter={activityProjectFilter}
+            activityTypeFilter={activityTypeFilter}
+            setActivityProjectFilter={setActivityProjectFilter}
+            setActivityTypeFilter={setActivityTypeFilter}
+            handleToggleMessage={handleToggleMessage}
+            handleTaskToggle={handleTaskToggle}
+            handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+            availableUsers={availableUsers}
+            currentUser={currentUser}
+            taskComments={taskComments}
+            newCommentText={newCommentText}
+            setNewCommentText={setNewCommentText}
+            handleAddComment={handleAddComment}
+          />
 
-      {/* Project Workflow Line Items Section */}
-      <ProjectWorkflowLineItemsSection
-        projects={projects}
-        colorMode={colorMode}
-        onProjectSelect={onProjectSelect}
-        workflowAlerts={workflowAlerts}
-        alertsLoading={alertsLoading}
-        availableUsers={availableUsers}
-        currentUser={currentUser}
-        handleProjectSelectWithScroll={handleProjectSelectWithScroll}
-      />
+          {/* Project Workflow Line Items Section */}
+          <ProjectWorkflowLineItemsSection
+            projects={projects}
+            colorMode={colorMode}
+            onProjectSelect={onProjectSelect}
+            workflowAlerts={workflowAlerts}
+            alertsLoading={alertsLoading}
+            availableUsers={availableUsers}
+            currentUser={currentUser}
+            handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+          />
+        </div>
 
       {/* Project Cubes - Quick Access (hidden) */}
       <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>
