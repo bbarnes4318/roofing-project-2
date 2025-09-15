@@ -33,70 +33,74 @@ const upload = multer({
 // =============================
 
 router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
-  const { search, tag, section, parentId, type, isPublic, accessLevel, sortBy, sortOrder } = req.query;
-  const where = {};
-  
-  // Enhanced search across multiple fields
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-      // Temporarily remove folderName search until column is added
-      // { folderName: { contains: search, mode: 'insensitive' } },
-      { tags: { hasSome: search.split(' ').filter(s => s.length > 0) } }
-    ];
-  }
-  
-  // Filter by type (FOLDER, FILE)
-  if (type) {
-    where.type = type;
-  }
-  
-  // Filter by public/private
-  if (isPublic !== undefined) {
-    where.isPublic = isPublic === 'true';
-  }
-  
-  // Filter by access level
-  if (accessLevel) {
-    where.accessLevel = accessLevel;
-  }
-  
-  if (tag) {
-    where.tags = { has: tag };
-  }
-  if (section) {
-    where.section = section;
-  }
-  if (parentId !== undefined) {
-    where.parentId = parentId === 'null' ? null : parentId;
-  }
-
-  // Enhanced sorting
-  const orderBy = [];
-  if (sortBy === 'title') {
-    orderBy.push({ title: sortOrder === 'desc' ? 'desc' : 'asc' });
-  } else if (sortBy === 'size') {
-    orderBy.push({ fileSize: sortOrder === 'desc' ? 'desc' : 'asc' });
-  } else if (sortBy === 'modified') {
-    orderBy.push({ updatedAt: sortOrder === 'desc' ? 'desc' : 'asc' });
-  } else {
-    orderBy.push({ createdAt: 'desc' });
-  }
-
-  const assets = await prisma.companyAsset.findMany({
-    where,
-    orderBy,
-    include: {
-      uploadedBy: {
-        select: { id: true, firstName: true, lastName: true, email: true }
-      },
-      parent: {
-        select: { id: true, title: true, type: true }
-      }
+  try {
+    const { search, tag, section, parentId, type, isPublic, accessLevel, sortBy, sortOrder } = req.query;
+    const where = {};
+    
+    // Enhanced search across multiple fields
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { tags: { hasSome: search.split(' ').filter(s => s.length > 0) } }
+      ];
     }
-  });
-  res.json({ success: true, data: { assets } });
+    
+    // Filter by type (FOLDER, FILE)
+    if (type) {
+      where.type = type;
+    }
+    
+    // Filter by public/private
+    if (isPublic !== undefined) {
+      where.isPublic = isPublic === 'true';
+    }
+    
+    // Filter by access level
+    if (accessLevel) {
+      where.accessLevel = accessLevel;
+    }
+    
+    if (tag) {
+      where.tags = { has: tag };
+    }
+    if (section) {
+      where.section = section;
+    }
+    if (parentId !== undefined) {
+      where.parentId = parentId === 'null' ? null : parentId;
+    }
+
+    // Enhanced sorting - fix the orderBy structure
+    let orderBy = {};
+    if (sortBy === 'title') {
+      orderBy = { title: sortOrder === 'desc' ? 'desc' : 'asc' };
+    } else if (sortBy === 'size') {
+      orderBy = { fileSize: sortOrder === 'desc' ? 'desc' : 'asc' };
+    } else if (sortBy === 'modified') {
+      orderBy = { updatedAt: sortOrder === 'desc' ? 'desc' : 'asc' };
+    } else {
+      orderBy = { createdAt: 'desc' };
+    }
+
+    const assets = await prisma.companyAsset.findMany({
+      where,
+      orderBy,
+      include: {
+        uploadedBy: {
+          select: { id: true, firstName: true, lastName: true, email: true }
+        },
+        parent: {
+          select: { id: true, title: true, type: true }
+        }
+      }
+    });
+    
+    res.json({ success: true, data: { assets } });
+  } catch (error) {
+    console.error('Error in /assets endpoint:', error);
+    throw new AppError(`Database error: ${error.message}`, 500);
+  }
 }));
 
 router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHandler(async (req, res) => {
