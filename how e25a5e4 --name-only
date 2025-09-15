@@ -1,0 +1,10 @@
+[33m16398d7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelopment[m[33m, [m[1;31morigin/development[m[33m)[m Fix Company Documents API endpoints - use company-docs-enhanced instead of company-docs
+[33m9c33b54[m Fix Documents & Resources page CSP error - use same API config as main app
+[33me25a5e4[m Correctly swap Activity Feed and Project Workflow positions within two-column grid layout
+[33m400eb94[m Swap Activity Feed and Project Workflow positions in dashboard layout
+[33m56aa4ae[m Fix syntax error in ActivityFeedSection.jsx - remove semicolon from template literal
+[33mbb15f0f[m Fix company docs API endpoint - fix Prisma orderBy validation error
+[33ma3f8113[m Fix company-docs assets endpoint 400 error
+[33m4859523[m Fix ProjectWorkflowLineItemsSection positioning - CORRECT LOCATION
+[33m0ac8510[m Fix 500 error in company-docs/assets endpoint
+[33mc8540e6[m Fix ProjectWorkflowLineItemsSection positioning

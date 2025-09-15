@@ -3003,7 +3003,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </div>
         </div>
 
-        {/* Left Column - Activity Feed */}
+        {/* Left Column - Project Workflow Line Items Section */}
+        <ProjectWorkflowLineItemsSection
+          projects={projects}
+          colorMode={colorMode}
+          onProjectSelect={onProjectSelect}
+          workflowAlerts={workflowAlerts}
+          alertsLoading={alertsLoading}
+          availableUsers={availableUsers}
+          currentUser={currentUser}
+          handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+        />
+
+        {/* Right Column - Activity Feed */}
         <div className="w-full" data-section="activity-feed">
           <ActivityFeedSection
             activityFeedItems={activityFeedItems}
@@ -3026,18 +3038,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             handleAddComment={handleAddComment}
           />
         </div>
-
-        {/* Right Column - Project Workflow Line Items Section */}
-        <ProjectWorkflowLineItemsSection
-          projects={projects}
-          colorMode={colorMode}
-          onProjectSelect={onProjectSelect}
-          workflowAlerts={workflowAlerts}
-          alertsLoading={alertsLoading}
-          availableUsers={availableUsers}
-          currentUser={currentUser}
-          handleProjectSelectWithScroll={handleProjectSelectWithScroll}
-        />
 
       {/* Project Cubes - Quick Access (hidden) */}
       <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>
