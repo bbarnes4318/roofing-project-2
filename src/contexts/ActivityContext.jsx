@@ -111,10 +111,10 @@ function activityReducer(state, action) {
       };
       
     case ACTIVITY_ACTIONS.EXPAND_ALL:
-      const allItemIds = new Set(state.items.map(item => item.id));
+      const expandAllItemIds = new Set(state.items.map(item => item.id));
       return {
         ...state,
-        expandedItems: allItemIds
+        expandedItems: expandAllItemIds
       };
       
     case ACTIVITY_ACTIONS.COLLAPSE_ALL:
