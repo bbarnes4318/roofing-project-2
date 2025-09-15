@@ -352,7 +352,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
 
                 {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
                 <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
-                    {/* Row 1: Task indicator only */}
+                    {/* Row 1: Task indicator and blue circle with number */}
                     <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* Task indicator - shows when message has a task */}
                         {activity.hasTask && (
@@ -360,19 +360,22 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 Task
                             </span>
                         )}
+                        
+                        {/* Spacing to move blue circle to the right 9 spaces */}
+                        <div style={{ width: '36px' }}></div>
+                        
+                        {/* New message indicator - moved up from Row 2 */}
+                        <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                        <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {conversation.length}
+                        </span>
                     </div>
                     
                     {/* Row 2: Timestamp and Actions */}
                     <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* Action buttons */}
                         <div className="flex items-center gap-1">
-                            {/* New message indicator - moved one space to the left */}
-                            <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
-                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {conversation.length}
-                            </span>
-                            
-                            {/* Quick Reply Button - moved to left of blue dot */}
+                            {/* Quick Reply Button */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
