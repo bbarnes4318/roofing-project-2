@@ -12,6 +12,7 @@ import ActivityFeedSection from '../dashboard/ActivityFeedSection';
 import MessagesSection from '../dashboard/MessagesSection';
 import TasksSection from '../dashboard/TasksSection';
 import RemindersSection from '../dashboard/RemindersSection';
+import WorkflowLineItemsSection from '../dashboard/WorkflowLineItemsSection';
 import MTRHeader from '../dashboard/mtrHeader';
 import MTRFilters from '../dashboard/mtrFilters';
 import MTRForm from '../dashboard/mtrForm';
@@ -3032,6 +3033,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           setNewCommentText={setNewCommentText}
           handleAddComment={handleAddComment}
         />
+
+      {/* Project Workflow Line Items Section - Full Width Below Messages/Tasks/Reminders */}
+      <div className="mb-6" data-section="workflow-line-items">
+        <WorkflowLineItemsSection
+          projects={projects}
+          colorMode={colorMode}
+          onProjectSelect={handleProjectSelectWithScroll}
+        />
+      </div>
 
       {/* Project Cubes - Quick Access (hidden) */}
       <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>
