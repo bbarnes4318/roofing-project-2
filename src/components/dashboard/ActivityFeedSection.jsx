@@ -62,7 +62,7 @@ const ActivityFeedSection = ({
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                   isActivityFeedExpanded
                     ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                    : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
+                    : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
                 }`}
                 title="Expand all activity details"
                 disabled={isActivityFeedExpanded}
