@@ -81,37 +81,13 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   } else if (sortBy === 'modified') {
     orderBy.push({ updatedAt: sortOrder === 'desc' ? 'desc' : 'asc' });
   } else {
-    orderBy.push({ sortOrder: 'asc' }, { createdAt: 'desc' });
+    orderBy.push({ createdAt: 'desc' });
   }
 
   const assets = await prisma.companyAsset.findMany({
     where,
     orderBy,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      fileUrl: true,
-      mimeType: true,
-      fileSize: true,
-      tags: true,
-      section: true,
-      version: true,
-      isActive: true,
-      downloadCount: true,
-      lastDownloadedAt: true,
-      uploadedById: true,
-      parentId: true,
-      path: true,
-      sortOrder: true,
-      type: true,
-      isPublic: true,
-      thumbnail_url: true,
-      checksum: true,
-      metadata: true,
-      accessLevel: true,
-      createdAt: true,
-      updatedAt: true,
+    include: {
       children: true,
       parent: true,
       uploadedBy: {
