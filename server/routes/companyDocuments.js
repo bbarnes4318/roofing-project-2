@@ -86,7 +86,46 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
 
   const assets = await prisma.companyAsset.findMany({
     where,
-    orderBy
+    orderBy,
+    select: {
+      id: true,
+      createdAt: true,
+      updatedAt: true,
+      title: true,
+      description: true,
+      fileUrl: true,
+      mimeType: true,
+      fileSize: true,
+      tags: true,
+      section: true,
+      version: true,
+      isActive: true,
+      downloadCount: true,
+      lastDownloadedAt: true,
+      uploadedById: true,
+      parentId: true,
+      path: true,
+      sortOrder: true,
+      type: true,
+      folderName: true,
+      isPublic: true,
+      thumbnail_url: true,
+      checksum: true,
+      metadata: true,
+      accessLevel: true,
+      isFavorite: true,
+      isArchived: true,
+      sharedWith: true,
+      lastAccessedAt: true,
+      viewCount: true,
+      duplicateOf: true,
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true }
+      },
+      parent: {
+        select: { id: true, title: true, type: true }
+      }
+    }
   });
   res.json({ success: true, data: { assets } });
 }));
