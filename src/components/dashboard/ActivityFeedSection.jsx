@@ -31,21 +31,11 @@ const ActivityFeedSection = ({
 
   // Expand/Collapse handlers
   const handleExpandAllActivity = () => {
-    const allItemIds = new Set((state.items || []).map(item => item.id));
-    allItemIds.forEach(id => {
-      if (!state.expandedItems.has(id)) {
-        actions.toggleExpanded(id);
-      }
-    });
+    actions.expandAll();
   };
 
   const handleCollapseAllActivity = () => {
-    const allItemIds = new Set((state.items || []).map(item => item.id));
-    allItemIds.forEach(id => {
-      if (state.expandedItems.has(id)) {
-        actions.toggleExpanded(id);
-      }
-    });
+    actions.collapseAll();
   };
   return (
     <div className="w-full" data-section="activity-feed">
