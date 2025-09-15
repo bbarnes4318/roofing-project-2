@@ -505,7 +505,7 @@ export const activitiesService = {
 export const companyDocsService = {
   // Customer-facing assets
   listAssets: async (params = {}) => {
-    const response = await api.get('/company-docs/assets', { params });
+    const response = await api.get('/company-docs-enhanced/assets', { params });
     return response.data;
   },
   uploadAsset: async (file, meta = {}) => {
@@ -517,15 +517,15 @@ export const companyDocsService = {
     if (meta.section) form.append('section', meta.section);
     if (meta.parentId) form.append('parentId', meta.parentId);
     if (meta.sortOrder !== undefined) form.append('sortOrder', meta.sortOrder.toString());
-    const response = await api.post('/company-docs/assets/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const response = await api.post('/company-docs-enhanced/assets/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
     return response.data;
   },
   deleteAsset: async (id) => {
-    const response = await api.delete(`/company-docs/assets/${id}`);
+    const response = await api.delete(`/company-docs-enhanced/assets/${id}`);
     return response.data;
   },
   downloadAsset: async (id) => {
-    const response = await api.get(`/company-docs/assets/${id}/download`, {
+    const response = await api.get(`/company-docs-enhanced/assets/${id}/download`, {
       responseType: 'blob',
     });
     return response;
@@ -533,17 +533,17 @@ export const companyDocsService = {
   
   // Enhanced document management
   getAssetPreview: async (id) => {
-    const response = await api.get(`/company-docs/assets/${id}/preview`);
+    const response = await api.get(`/company-docs-enhanced/assets/${id}/preview`);
     return response.data;
   },
   
   generateThumbnail: async (id) => {
-    const response = await api.post(`/company-docs/assets/${id}/thumbnail`);
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/thumbnail`);
     return response.data;
   },
   
   getAssetVersions: async (id) => {
-    const response = await api.get(`/company-docs/assets/${id}/versions`);
+    const response = await api.get(`/company-docs-enhanced/assets/${id}/versions`);
     return response.data;
   },
   
@@ -552,115 +552,115 @@ export const companyDocsService = {
     form.append('file', file);
     if (meta.description) form.append('description', meta.description);
     if (meta.versionNumber) form.append('versionNumber', meta.versionNumber);
-    const response = await api.post(`/company-docs/assets/${id}/versions`, form, { 
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/versions`, form, { 
       headers: { 'Content-Type': 'multipart/form-data' } 
     });
     return response.data;
   },
   
   getAssetStats: async () => {
-    const response = await api.get('/company-docs/assets/stats');
+    const response = await api.get('/company-docs-enhanced/assets/stats');
     return response.data;
   },
   
   searchAssets: async (searchParams = {}) => {
-    const response = await api.get('/company-docs/assets/search', { params: searchParams });
+    const response = await api.get('/company-docs-enhanced/assets/search', { params: searchParams });
     return response.data;
   },
   
   // Folder operations
   createFolder: async (folderData) => {
-    const response = await api.post('/company-docs/folders', folderData);
+    const response = await api.post('/company-docs-enhanced/folders', folderData);
     return response.data;
   },
   
   updateAsset: async (id, updateData) => {
-    const response = await api.patch(`/company-docs/assets/${id}`, updateData);
+    const response = await api.patch(`/company-docs-enhanced/assets/${id}`, updateData);
     return response.data;
   },
   
   reorderAssets: async (updates) => {
-    const response = await api.patch('/company-docs/assets/reorder', { updates });
+    const response = await api.patch('/company-docs-enhanced/assets/reorder', { updates });
     return response.data;
   },
   bulkDeleteAssets: async (ids) => {
-    const response = await api.delete('/company-docs/assets/bulk', { data: { ids } });
+    const response = await api.delete('/company-docs-enhanced/assets/bulk', { data: { ids } });
     return response.data;
   },
   bulkMoveAssets: async (ids, parentId) => {
-    const response = await api.patch('/company-docs/assets/bulk-move', { ids, parentId });
+    const response = await api.patch('/company-docs-enhanced/assets/bulk-move', { ids, parentId });
     return response.data;
   },
   
   // Rename asset
   renameAsset: async (id, newName) => {
-    const response = await api.patch(`/company-docs/assets/${id}`, { title: newName });
+    const response = await api.patch(`/company-docs-enhanced/assets/${id}`, { title: newName });
     return response.data;
   },
   
   // Toggle favorite
   toggleFavorite: async (id) => {
-    const response = await api.patch(`/company-docs/assets/${id}/favorite`);
+    const response = await api.patch(`/company-docs-enhanced/assets/${id}/favorite`);
     return response.data;
   },
   
   // Move asset to folder
   moveAsset: async (id, parentId) => {
-    const response = await api.patch(`/company-docs/assets/${id}`, { parentId });
+    const response = await api.patch(`/company-docs-enhanced/assets/${id}`, { parentId });
     return response.data;
   },
   
   // Duplicate asset
   duplicateAsset: async (id, title, parentId) => {
-    const response = await api.post(`/company-docs/assets/${id}/duplicate`, { title, parentId });
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/duplicate`, { title, parentId });
     return response.data;
   },
   
   // Share asset
   shareAsset: async (id, sharedWith, accessLevel) => {
-    const response = await api.post(`/company-docs/assets/${id}/share`, { sharedWith, accessLevel });
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/share`, { sharedWith, accessLevel });
     return response.data;
   },
   
   // Archive asset
   archiveAsset: async (id) => {
-    const response = await api.post(`/company-docs/assets/${id}/archive`);
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/archive`);
     return response.data;
   },
   
   // Unarchive asset
   unarchiveAsset: async (id) => {
-    const response = await api.post(`/company-docs/assets/${id}/unarchive`);
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/unarchive`);
     return response.data;
   },
   
   // Add tag to asset
   addTag: async (id, tag) => {
-    const response = await api.post(`/company-docs/assets/${id}/tag`, { tag });
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/tag`, { tag });
     return response.data;
   },
   
   // Remove tag from asset
   removeTag: async (id, tag) => {
-    const response = await api.delete(`/company-docs/assets/${id}/tag`, { data: { tag } });
+    const response = await api.delete(`/company-docs-enhanced/assets/${id}/tag`, { data: { tag } });
     return response.data;
   },
   
   // Get asset metadata
   getAssetMetadata: async (id) => {
-    const response = await api.get(`/company-docs/assets/${id}/metadata`);
+    const response = await api.get(`/company-docs-enhanced/assets/${id}/metadata`);
     return response.data;
   },
   
   // Bulk favorite operations
   bulkFavorite: async (ids, isFavorite) => {
-    const response = await api.post('/company-docs/assets/bulk-favorite', { ids, isFavorite });
+    const response = await api.post('/company-docs-enhanced/assets/bulk-favorite', { ids, isFavorite });
     return response.data;
   },
   
   // Track asset view
   trackView: async (id) => {
-    const response = await api.post(`/company-docs/assets/${id}/view`);
+    const response = await api.post(`/company-docs-enhanced/assets/${id}/view`);
     return response.data;
   },
   
