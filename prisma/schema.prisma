@@ -422,19 +422,19 @@ model CompanyAsset {
   path             String?               @db.VarChar(1000)
   sortOrder        Int                   @default(0)
   type             AssetType             @default(FILE)
-  folder_name      String?               @db.VarChar(255)
-  is_public        Boolean?              @default(false)
+  folderName       String?               @db.VarChar(255) @map("folder_name")
+  isPublic         Boolean?              @default(false) @map("is_public")
   thumbnail_url    String?               @db.VarChar(2000)
   checksum         String?               @db.VarChar(255)
   metadata         Json?
-  access_level     String?               @default("private") @db.VarChar(50)
+  accessLevel      String?               @default("private") @db.VarChar(50) @map("access_level")
   versions         CompanyAssetVersion[] @relation("AssetVersions")
   parent           CompanyAsset?         @relation("FolderHierarchy", fields: [parentId], references: [id])
   children         CompanyAsset[]        @relation("FolderHierarchy")
   uploadedBy       User?                 @relation(fields: [uploadedById], references: [id])
 
-  @@index([folder_name], map: "idx_company_assets_folder_name")
-  @@index([is_public], map: "idx_company_assets_is_public")
+  @@index([folderName], map: "idx_company_assets_folder_name")
+  @@index([isPublic], map: "idx_company_assets_is_public")
   @@index([parentId, type], map: "idx_company_assets_parent_type")
   @@map("company_assets")
 }
@@ -1104,7 +1104,7 @@ enum NotificationType {
   REMINDER
 
   @@map("notification_types")
-}
+} 
 
 enum AssetType {
   FILE
