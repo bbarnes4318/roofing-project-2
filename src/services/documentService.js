@@ -1,6 +1,31 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Use the same API configuration as the main app
+const getApiBaseUrl = () => {
+  // FORCE production URL for DigitalOcean to override any caching issues
+  if (typeof window !== 'undefined') {
+    const host = window.location.host;
+    console.log('🔍 DOCUMENT SERVICE API CONFIG: Current host:', host);
+    
+    if (host.includes('ondigitalocean.app')) {
+      const apiUrl = `${window.location.protocol}//${host}/api`;
+      console.log('🔍 DOCUMENT SERVICE API CONFIG: Using production API:', apiUrl);
+      return apiUrl;
+    }
+  }
+  
+  // Use environment variable if set
+  if (process.env.REACT_APP_API_URL) {
+    console.log('🔍 DOCUMENT SERVICE API CONFIG: Using env var API:', process.env.REACT_APP_API_URL);
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Fallback for local development
+  console.log('🔍 DOCUMENT SERVICE API CONFIG: Using localhost fallback');
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Create axios instance with default config
 const api = axios.create({
@@ -12,7 +37,7 @@ const api = axios.create({
 
 // Add auth token to requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
