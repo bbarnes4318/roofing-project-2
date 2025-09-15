@@ -41,7 +41,7 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
     where.OR = [
       { title: { contains: search, mode: 'insensitive' } },
       { description: { contains: search, mode: 'insensitive' } },
-      { folderName: { contains: search, mode: 'insensitive' } },
+      { folder_name: { contains: search, mode: 'insensitive' } },
       { tags: { hasSome: search.split(' ').filter(s => s.length > 0) } }
     ];
   }
@@ -53,12 +53,12 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   
   // Filter by public/private
   if (isPublic !== undefined) {
-    where.isPublic = isPublic === 'true';
+    where.is_public = isPublic === 'true';
   }
   
   // Filter by access level
   if (accessLevel) {
-    where.accessLevel = accessLevel;
+    where.access_level = accessLevel;
   }
   
   if (tag) {
