@@ -180,7 +180,7 @@ const ReminderItem = ({
         {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
         <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px', marginRight: '20px' }}>
           {/* Row 1: Reminder label and Checkbox - Checkbox moved to top right */}
-          <div className="flex items-center gap-1" style={{ marginRight: '3px' }}>
+          <div className="flex items-center gap-1" style={{ marginRight: '1px' }}>
             {/* Type Label */}
             <span className="text-[8px] font-bold text-orange-500">
               Reminder

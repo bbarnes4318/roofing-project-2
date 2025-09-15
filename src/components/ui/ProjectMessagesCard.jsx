@@ -353,7 +353,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 {/* COLUMN 2: Fixed width, right-aligned elements - 2 ROWS ONLY */}
                 <div className="flex flex-col justify-between items-end" style={{ width: '80px', minHeight: '32px' }}>
                     {/* Row 1: New message indicator and number */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* New message indicator */}
                         <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
                         <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -369,12 +369,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                     
                     {/* Row 2: Timestamp and Actions */}
-                    <div className="flex items-center gap-1">
-                        {/* Timestamp */}
-                        <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                            {formatTimestamp(lastMessage.timestamp)}
-                        </span>
-                        
+                    <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* Action buttons */}
                         <div className="flex items-center gap-1">
                             {/* Quick Reply Button */}
@@ -399,11 +394,17 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </svg>
                             </button>
                             
+                            {/* New message indicator - moved to left of reply button */}
+                            <div className={`w-1.5 h-1.5 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {conversation.length}
+                            </span>
+                            
                             {/* Dropdown arrow - visual indicator only */}
                             <div
                                 className={`p-1 rounded transition-colors transform duration-200 ${expanded ? 'rotate-180' : ''} ${
-                                    colorMode 
-                                        ? 'text-gray-300' 
+                                    colorMode
+                                        ? 'text-gray-300'
                                         : 'text-gray-600'
                                 }`}
                                 title={expanded ? "Collapse message" : "Expand message"}
@@ -413,6 +414,11 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </svg>
                             </div>
                         </div>
+                        
+                        {/* Timestamp */}
+                        <span className={`text-[8px] whitespace-nowrap ${colorMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            {formatTimestamp(lastMessage.timestamp)}
+                        </span>
                     </div>
                 </div>
             </div>
