@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }
+  limits: { file_size: 50 * 1024 * 1024 }
 });
 
 // =============================
@@ -34,7 +34,7 @@ const upload = multer({
 
 router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   try {
-    const { search, tag, section, parentId, type, isPublic, accessLevel, sortBy, sortOrder } = req.query;
+    const { search, tag, section, parent_id, type, is_public, access_level, sortBy, sort_order } = req.query;
     const where = {};
     
     // Enhanced search across multiple fields
@@ -52,13 +52,13 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
     }
     
     // Filter by public/private
-    if (isPublic !== undefined) {
-      where.isPublic = isPublic === 'true';
+    if (is_public !== undefined) {
+      where.is_public = is_public === 'true';
     }
     
     // Filter by access level
-    if (accessLevel) {
-      where.accessLevel = accessLevel;
+    if (access_level) {
+      where.access_level = access_level;
     }
     
     if (tag) {
@@ -67,20 +67,20 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
     if (section) {
       where.section = section;
     }
-    if (parentId !== undefined) {
-      where.parentId = parentId === 'null' ? null : parentId;
+    if (parent_id !== undefined) {
+      where.parent_id = parent_id === 'null' ? null : parent_id;
     }
 
     // Enhanced sorting - fix the orderBy structure
     let orderBy = {};
     if (sortBy === 'title') {
-      orderBy = { title: sortOrder === 'desc' ? 'desc' : 'asc' };
+      orderBy = { title: sort_order === 'desc' ? 'desc' : 'asc' };
     } else if (sortBy === 'size') {
-      orderBy = { fileSize: sortOrder === 'desc' ? 'desc' : 'asc' };
+      orderBy = { file_size: sort_order === 'desc' ? 'desc' : 'asc' };
     } else if (sortBy === 'modified') {
-      orderBy = { updatedAt: sortOrder === 'desc' ? 'desc' : 'asc' };
+      orderBy = { updated_at: sort_order === 'desc' ? 'desc' : 'asc' };
     } else {
-      orderBy = { createdAt: 'desc' };
+      orderBy = { created_at: 'desc' };
     }
 
     const assets = await prisma.companyAsset.findMany({
@@ -105,21 +105,21 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
 
 router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) throw new AppError('No file uploaded', 400);
-  const { title, description, tags, section, parentId, sortOrder } = req.body;
+  const { title, description, tags, section, parent_id, sort_order } = req.body;
 
   const asset = await prisma.companyAsset.create({
     data: {
       title: title || req.file.originalname,
       description: description || null,
-      fileUrl: `/uploads/company-assets/${req.file.filename}`,
-      mimeType: req.file.mimetype,
-      fileSize: req.file.size,
+      file_url: `/uploads/company-assets/${req.file.filename}`,
+      mime_type: req.file.mimetype,
+      file_size: req.file.size,
       tags: tags ? JSON.parse(tags) : [],
       section: section || null,
       type: 'FILE',
-      parentId: parentId || null,
-      sortOrder: sortOrder ? parseInt(sortOrder) : 0,
-      uploadedById: req.user?.id || null
+      parent_id: parent_id || null,
+      sort_order: sort_order ? parseInt(sort_order) : 0,
+      uploaded_by_id: req.user?.id || null
     }
   });
   res.status(201).json({ success: true, data: { asset } });
@@ -132,8 +132,8 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
   if (!asset) throw new AppError('Asset not found', 404);
   if (asset.type !== 'FILE') throw new AppError('Cannot download folders', 400);
 
-  // asset.fileUrl is like "/uploads/company-assets/<file>"; map to server path
-  const filePath = path.join(__dirname, '..', asset.fileUrl);
+  // asset.file_url is like "/uploads/company-assets/<file>"; map to server path
+  const filePath = path.join(__dirname, '..', asset.file_url);
   
   if (!fs.existsSync(filePath)) {
     throw new AppError('File not found on disk', 404);
@@ -141,7 +141,7 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
 
   // Set appropriate headers for download
   res.setHeader('Content-Disposition', `attachment; filename="${asset.title || 'download'}"`);
-  res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
+  res.setHeader('Content-Type', asset.mime_type || 'application/octet-stream');
   
   // Stream the file
   res.download(filePath, asset.title || path.basename(filePath));
@@ -155,8 +155,8 @@ router.delete('/assets/:id', authenticateToken, asyncHandler(async (req, res) =>
 
   // Attempt to remove file from disk (best-effort)
   try {
-    // asset.fileUrl is like "/uploads/company-assets/<file>"; map to server path
-    const absolutePath = path.join(__dirname, '..', asset.fileUrl);
+    // asset.file_url is like "/uploads/company-assets/<file>"; map to server path
+    const absolutePath = path.join(__dirname, '..', asset.file_url);
     if (fs.existsSync(absolutePath)) {
       fs.unlinkSync(absolutePath);
     }
@@ -170,7 +170,7 @@ router.delete('/assets/:id', authenticateToken, asyncHandler(async (req, res) =>
 
 // Create a new folder
 router.post('/folders', authenticateToken, asyncHandler(async (req, res) => {
-  const { name, description, section, parentId, sortOrder } = req.body;
+  const { name, description, section, parent_id, sort_order } = req.body;
   if (!name) throw new AppError('Folder name is required', 400);
 
   const folder = await prisma.companyAsset.create({
@@ -179,9 +179,9 @@ router.post('/folders', authenticateToken, asyncHandler(async (req, res) => {
       description: description || null,
       type: 'FOLDER',
       section: section || null,
-      parentId: parentId || null,
-      sortOrder: sortOrder ? parseInt(sortOrder) : 0,
-      uploadedById: req.user?.id || null
+      parent_id: parent_id || null,
+      sort_order: sort_order ? parseInt(sort_order) : 0,
+      uploaded_by_id: req.user?.id || null
     }
   });
   res.status(201).json({ success: true, data: { folder } });
@@ -190,7 +190,7 @@ router.post('/folders', authenticateToken, asyncHandler(async (req, res) => {
 // Update asset/folder (for moving, renaming, reordering)
 router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, description, parentId, sortOrder, section } = req.body;
+  const { title, description, parent_id, sort_order, section } = req.body;
   
   const asset = await prisma.companyAsset.findUnique({ where: { id } });
   if (!asset) throw new AppError('Asset not found', 404);
@@ -198,8 +198,8 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   const updateData = {};
   if (title !== undefined) updateData.title = title;
   if (description !== undefined) updateData.description = description;
-  if (parentId !== undefined) updateData.parentId = parentId;
-  if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
+  if (parent_id !== undefined) updateData.parent_id = parent_id;
+  if (sort_order !== undefined) updateData.sort_order = parseInt(sort_order);
   if (section !== undefined) updateData.section = section;
 
   const updatedAsset = await prisma.companyAsset.update({
@@ -216,7 +216,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
 
 // Bulk reorder assets
 router.patch('/assets/reorder', authenticateToken, asyncHandler(async (req, res) => {
-  const { updates } = req.body; // Array of { id, sortOrder, parentId? }
+  const { updates } = req.body; // Array of { id, sort_order, parent_id? }
   if (!Array.isArray(updates)) throw new AppError('Updates must be an array', 400);
 
   // Use transaction to ensure consistency
@@ -225,8 +225,8 @@ router.patch('/assets/reorder', authenticateToken, asyncHandler(async (req, res)
       prisma.companyAsset.update({
         where: { id: update.id },
         data: {
-          sortOrder: update.sortOrder,
-          ...(update.parentId !== undefined && { parentId: update.parentId })
+          sort_order: update.sort_order,
+          ...(update.parent_id !== undefined && { parent_id: update.parent_id })
         }
       })
     )
@@ -254,9 +254,9 @@ router.delete('/assets/bulk', authenticateToken, asyncHandler(async (req, res) =
 
   // Clean up files from disk (best-effort)
   assets.forEach(asset => {
-    if (asset.fileUrl) {
+    if (asset.file_url) {
       try {
-        const filePath = path.join(__dirname, '..', asset.fileUrl);
+        const filePath = path.join(__dirname, '..', asset.file_url);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
@@ -271,17 +271,17 @@ router.delete('/assets/bulk', authenticateToken, asyncHandler(async (req, res) =
 
 // Bulk move assets
 router.patch('/assets/bulk-move', authenticateToken, asyncHandler(async (req, res) => {
-  const { ids, parentId } = req.body;
+  const { ids, parent_id } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
     throw new AppError('IDs array is required', 400);
   }
-  if (parentId === undefined) {
-    throw new AppError('parentId is required', 400);
+  if (parent_id === undefined) {
+    throw new AppError('parent_id is required', 400);
   }
 
   // Validate parent folder exists if provided
-  if (parentId !== null) {
-    const parent = await prisma.companyAsset.findUnique({ where: { id: parentId } });
+  if (parent_id !== null) {
+    const parent = await prisma.companyAsset.findUnique({ where: { id: parent_id } });
     if (!parent || parent.type !== 'FOLDER') {
       throw new AppError('Invalid parent folder', 400);
     }
@@ -292,7 +292,7 @@ router.patch('/assets/bulk-move', authenticateToken, asyncHandler(async (req, re
     ids.map(id => 
       prisma.companyAsset.update({
         where: { id },
-        data: { parentId }
+        data: { parent_id }
       })
     )
   );
@@ -306,11 +306,11 @@ router.patch('/assets/bulk-move', authenticateToken, asyncHandler(async (req, re
 
 router.get('/templates', authenticateToken, asyncHandler(async (req, res) => {
   const { section } = req.query;
-  const where = { isActive: true };
+  const where = { is_active: true };
   if (section) where.section = section;
   const templates = await prisma.documentTemplate.findMany({
     where,
-    orderBy: { updatedAt: 'desc' },
+    orderBy: { updated_at: 'desc' },
     include: { fields: true }
   });
   res.json({ success: true, data: { templates } });
@@ -478,7 +478,7 @@ router.get('/coordinate-grid', authenticateToken, asyncHandler(async (req, res) 
   res.json({ 
     success: true, 
     message: 'Coordinate grid generated',
-    fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
+    file_url: `/uploads/company-assets/${path.basename(outputPath)}`
   });
 }));
 
@@ -491,7 +491,7 @@ router.get('/test-positions', authenticateToken, asyncHandler(async (req, res) =
   res.json({ 
     success: true, 
     message: 'Test positions PDF generated',
-    fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
+    file_url: `/uploads/company-assets/${path.basename(outputPath)}`
   });
 }));
 
@@ -504,7 +504,7 @@ router.get('/test-5year-warranty', authenticateToken, asyncHandler(async (req, r
   res.json({ 
     success: true, 
     message: '5-Year Warranty test PDF generated',
-    fileUrl: `/uploads/company-assets/${path.basename(outputPath)}`
+    file_url: `/uploads/company-assets/${path.basename(outputPath)}`
   });
 }));
 
@@ -532,7 +532,7 @@ router.get('/assets/:id/preview', authenticateToken, asyncHandler(async (req, re
   // Get version history
   const versions = await prisma.documentVersion.findMany({
     where: { documentId: id },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { created_at: 'desc' },
     include: {
       uploadedBy: {
         select: { id: true, firstName: true, lastName: true, email: true }
@@ -545,7 +545,7 @@ router.get('/assets/:id/preview', authenticateToken, asyncHandler(async (req, re
     data: { 
       asset,
       versions,
-      previewUrl: asset.thumbnailUrl || asset.fileUrl
+      previewUrl: asset.thumbnailUrl || asset.file_url
     } 
   });
 }));
@@ -587,7 +587,7 @@ router.get('/assets/:id/versions', authenticateToken, asyncHandler(async (req, r
   const id = req.params.id;
   const versions = await prisma.documentVersion.findMany({
     where: { documentId: id },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { created_at: 'desc' },
     include: {
       uploadedBy: {
         select: { id: true, firstName: true, lastName: true, email: true }
@@ -613,12 +613,12 @@ router.post('/assets/:id/versions', authenticateToken, upload.single('file'), as
   const version = await prisma.documentVersion.create({
     data: {
       documentId: id,
-      fileUrl: `/uploads/company-assets/${req.file.filename}`,
+      file_url: `/uploads/company-assets/${req.file.filename}`,
       versionNumber: versionNumber || '1.0',
       description: description || 'New version',
-      fileSize: req.file.size,
-      mimeType: req.file.mimetype,
-      uploadedById: req.user?.id || null
+      file_size: req.file.size,
+      mime_type: req.file.mimetype,
+      uploaded_by_id: req.user?.id || null
     }
   });
 
@@ -626,10 +626,10 @@ router.post('/assets/:id/versions', authenticateToken, upload.single('file'), as
   await prisma.companyAsset.update({
     where: { id },
     data: {
-      fileUrl: `/uploads/company-assets/${req.file.filename}`,
-      fileSize: req.file.size,
-      mimeType: req.file.mimetype,
-      updatedAt: new Date()
+      file_url: `/uploads/company-assets/${req.file.filename}`,
+      file_size: req.file.size,
+      mime_type: req.file.mimetype,
+      updated_at: new Date()
     }
   });
 
@@ -643,15 +643,15 @@ router.get('/assets/stats', authenticateToken, asyncHandler(async (req, res) => 
       COUNT(*) as total_assets,
       COUNT(CASE WHEN type = 'FILE' THEN 1 END) as total_files,
       COUNT(CASE WHEN type = 'FOLDER' THEN 1 END) as total_folders,
-      COUNT(CASE WHEN "isPublic" = true THEN 1 END) as public_assets,
-      COUNT(CASE WHEN "isPublic" = false THEN 1 END) as private_assets,
-      SUM(CASE WHEN type = 'FILE' THEN "fileSize" ELSE 0 END) as total_size
+      COUNT(CASE WHEN "is_public" = true THEN 1 END) as public_assets,
+      COUNT(CASE WHEN "is_public" = false THEN 1 END) as private_assets,
+      SUM(CASE WHEN type = 'FILE' THEN "file_size" ELSE 0 END) as total_size
     FROM "CompanyAsset"
   `;
 
   const recentUploads = await prisma.companyAsset.findMany({
     where: { type: 'FILE' },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { created_at: 'desc' },
     take: 5,
     include: {
       uploadedBy: {
@@ -674,8 +674,8 @@ router.get('/assets/search', authenticateToken, asyncHandler(async (req, res) =>
   const { 
     q, 
     type, 
-    isPublic, 
-    accessLevel, 
+    is_public, 
+    access_level, 
     dateFrom, 
     dateTo, 
     sizeMin, 
@@ -702,27 +702,27 @@ router.get('/assets/search', authenticateToken, asyncHandler(async (req, res) =>
   }
   
   // Public/private filter
-  if (isPublic !== undefined) {
-    where.isPublic = isPublic === 'true';
+  if (is_public !== undefined) {
+    where.is_public = is_public === 'true';
   }
   
   // Access level filter
-  if (accessLevel) {
-    where.accessLevel = accessLevel;
+  if (access_level) {
+    where.access_level = access_level;
   }
   
   // Date range filter
   if (dateFrom || dateTo) {
-    where.createdAt = {};
-    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
-    if (dateTo) where.createdAt.lte = new Date(dateTo);
+    where.created_at = {};
+    if (dateFrom) where.created_at.gte = new Date(dateFrom);
+    if (dateTo) where.created_at.lte = new Date(dateTo);
   }
   
   // Size range filter
   if (sizeMin || sizeMax) {
-    where.fileSize = {};
-    if (sizeMin) where.fileSize.gte = parseInt(sizeMin);
-    if (sizeMax) where.fileSize.lte = parseInt(sizeMax);
+    where.file_size = {};
+    if (sizeMin) where.file_size.gte = parseInt(sizeMin);
+    if (sizeMax) where.file_size.lte = parseInt(sizeMax);
   }
   
   // Tags filter
@@ -733,37 +733,37 @@ router.get('/assets/search', authenticateToken, asyncHandler(async (req, res) =>
   
   // Uploaded by filter
   if (uploadedBy) {
-    where.uploadedById = uploadedBy;
+    where.uploaded_by_id = uploadedBy;
   }
 
   const assets = await prisma.companyAsset.findMany({
     where,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { created_at: 'desc' },
     select: {
       id: true,
       title: true,
       description: true,
-      fileUrl: true,
-      mimeType: true,
-      fileSize: true,
+      file_url: true,
+      mime_type: true,
+      file_size: true,
       tags: true,
       section: true,
       version: true,
-      isActive: true,
-      downloadCount: true,
-      lastDownloadedAt: true,
-      uploadedById: true,
-      parentId: true,
+      is_active: true,
+      download_count: true,
+      last_downloaded_at: true,
+      uploaded_by_id: true,
+      parent_id: true,
       path: true,
-      sortOrder: true,
+      sort_order: true,
       type: true,
-      isPublic: true,
+      is_public: true,
       thumbnail_url: true,
       checksum: true,
       metadata: true,
-      accessLevel: true,
-      createdAt: true,
-      updatedAt: true,
+      access_level: true,
+      created_at: true,
+      updated_at: true,
       uploadedBy: {
         select: { id: true, firstName: true, lastName: true, email: true }
       },
@@ -862,15 +862,15 @@ router.post('/generate', authenticateToken, asyncHandler(async (req, res) => {
     data: {
       fileName: path.basename(outputFile),
       originalName: path.basename(outputFile),
-      fileUrl: `/uploads/company-assets/${path.basename(outputFile)}`,
-      mimeType: 'application/pdf',
-      fileSize: stats.size,
+      file_url: `/uploads/company-assets/${path.basename(outputFile)}`,
+      mime_type: 'application/pdf',
+      file_size: stats.size,
       fileType: 'REPORT',
       description: 'Auto-generated PDF',
       tags: [],
-      isPublic: false,
+      is_public: false,
       projectId,
-      uploadedById: req.user?.id || undefined
+      uploaded_by_id: req.user?.id || undefined
     }
   });
 
@@ -897,7 +897,7 @@ router.patch('/assets/:id/favorite', authenticateToken, asyncHandler(async (req,
   const updatedAsset = await prisma.companyAsset.update({
     where: { id },
     data: { 
-      isFavorite: !asset.isFavorite
+      is_favorite: !asset.is_favorite
     }
   });
   
@@ -923,7 +923,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
 // Duplicate asset
 router.post('/assets/:id/duplicate', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, parentId } = req.body;
+  const { title, parent_id } = req.body;
   
   const originalAsset = await prisma.companyAsset.findUnique({ where: { id } });
   if (!originalAsset) throw new AppError('Asset not found', 404);
@@ -932,18 +932,18 @@ router.post('/assets/:id/duplicate', authenticateToken, asyncHandler(async (req,
     data: {
       title: title || `${originalAsset.title} (Copy)`,
       description: originalAsset.description,
-      fileUrl: originalAsset.fileUrl,
-      mimeType: originalAsset.mimeType,
-      fileSize: originalAsset.fileSize,
+      file_url: originalAsset.file_url,
+      mime_type: originalAsset.mime_type,
+      file_size: originalAsset.file_size,
       tags: originalAsset.tags,
       section: originalAsset.section,
       type: originalAsset.type,
-      parentId: parentId || originalAsset.parentId,
-      sortOrder: originalAsset.sortOrder,
-      uploadedById: req.user?.id || originalAsset.uploadedById,
+      parent_id: parent_id || originalAsset.parent_id,
+      sort_order: originalAsset.sort_order,
+      uploaded_by_id: req.user?.id || originalAsset.uploaded_by_id,
       duplicateOf: originalAsset.id,
-      isPublic: originalAsset.isPublic,
-      accessLevel: originalAsset.accessLevel
+      is_public: originalAsset.is_public,
+      access_level: originalAsset.access_level
     }
   });
   
@@ -953,7 +953,7 @@ router.post('/assets/:id/duplicate', authenticateToken, asyncHandler(async (req,
 // Share asset
 router.post('/assets/:id/share', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { sharedWith, accessLevel } = req.body;
+  const { sharedWith, access_level } = req.body;
   
   const asset = await prisma.companyAsset.findUnique({ where: { id } });
   if (!asset) throw new AppError('Asset not found', 404);
@@ -962,8 +962,8 @@ router.post('/assets/:id/share', authenticateToken, asyncHandler(async (req, res
     where: { id },
     data: {
       sharedWith: sharedWith || [],
-      accessLevel: accessLevel || 'shared',
-      isPublic: accessLevel === 'public'
+      access_level: access_level || 'shared',
+      is_public: access_level === 'public'
     }
   });
   
@@ -1056,7 +1056,7 @@ router.get('/assets/:id/metadata', authenticateToken, asyncHandler(async (req, r
         select: { id: true, title: true, type: true }
       },
       children: {
-        select: { id: true, title: true, type: true, createdAt: true }
+        select: { id: true, title: true, type: true, created_at: true }
       },
       versions: {
         orderBy: { created_at: 'desc' },
@@ -1072,7 +1072,7 @@ router.get('/assets/:id/metadata', authenticateToken, asyncHandler(async (req, r
 
 // Bulk favorite operations
 router.post('/assets/bulk-favorite', authenticateToken, asyncHandler(async (req, res) => {
-  const { ids, isFavorite } = req.body;
+  const { ids, is_favorite } = req.body;
   
   if (!Array.isArray(ids) || ids.length === 0) {
     throw new AppError('Asset IDs array is required', 400);
@@ -1080,14 +1080,14 @@ router.post('/assets/bulk-favorite', authenticateToken, asyncHandler(async (req,
   
   const updatedAssets = await prisma.companyAsset.updateMany({
     where: { id: { in: ids } },
-    data: { isFavorite: isFavorite === true }
+    data: { is_favorite: is_favorite === true }
   });
   
   res.json({ 
     success: true, 
     data: { 
       updatedCount: updatedAssets.count,
-      message: `${updatedAssets.count} assets ${isFavorite ? 'added to' : 'removed from'} favorites`
+      message: `${updatedAssets.count} assets ${is_favorite ? 'added to' : 'removed from'} favorites`
     } 
   });
 }));

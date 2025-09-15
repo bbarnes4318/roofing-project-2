@@ -85,13 +85,13 @@ async function removeUsers() {
 
     // Delete documents
     const deletedDocuments = await prisma.document.deleteMany({
-      where: { uploadedById: { in: userIds } }
+      where: { uploaded_by_id: { in: userIds } }
     });
     console.log(`  - Deleted ${deletedDocuments.count} documents`);
 
     // Delete company assets
     const deletedAssets = await prisma.companyAsset.deleteMany({
-      where: { uploadedById: { in: userIds } }
+      where: { uploaded_by_id: { in: userIds } }
     });
     console.log(`  - Deleted ${deletedAssets.count} company assets`);
 

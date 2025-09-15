@@ -38,7 +38,7 @@ const bcrypt = require('bcryptjs');
           email: userData.email,
           password: hashedPassword,
           role: userData.role,
-          isActive: true,
+          is_active: true,
           isVerified: false
         }
       });

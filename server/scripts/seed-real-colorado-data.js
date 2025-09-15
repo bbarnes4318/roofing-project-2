@@ -97,7 +97,7 @@ async function getNextProjectNumber() {
 
 async function findAvailableUsers() {
   const users = await prisma.user.findMany({
-    where: { isActive: true },
+    where: { is_active: true },
     select: { id: true, firstName: true, lastName: true, role: true }
   });
   
@@ -231,7 +231,7 @@ async function createUsers() {
         create: {
           ...userData,
           password: "hashedpassword123",
-          isActive: true,
+          is_active: true,
           isVerified: true,
           theme: "LIGHT",
           language: "en",
@@ -297,7 +297,7 @@ async function main() {
         secondaryPhone,
         address,
         primaryContact: "PRIMARY",
-        isActive: true,
+        is_active: true,
         primaryRole: "Homeowner",
         secondaryRole: hasSecondary ? "Spouse" : null,
         notes: hasSecondary ? `Family project - ${primaryName} and ${secondaryName}` : `Single customer - ${primaryName}`

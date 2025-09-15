@@ -50,8 +50,8 @@ class DocumentService {
       
       if (!asset || asset.type !== 'FILE') return null;
       
-      const filePath = path.join(__dirname, '..', asset.fileUrl);
-      const ext = path.extname(asset.fileUrl);
+      const filePath = path.join(__dirname, '..', asset.file_url);
+      const ext = path.extname(asset.file_url);
       const thumbnailName = `thumb_${assetId}${ext}`;
       const thumbnailDir = path.join(__dirname, '..', 'uploads', 'thumbnails');
       
@@ -64,9 +64,9 @@ class DocumentService {
       let success = false;
       
       // Generate based on mime type
-      if (asset.mimeType && asset.mimeType.startsWith('image/')) {
+      if (asset.mime_type && asset.mime_type.startsWith('image/')) {
         success = await this.generateImageThumbnail(filePath, thumbnailPath);
-      } else if (asset.mimeType === 'application/pdf') {
+      } else if (asset.mime_type === 'application/pdf') {
         success = await this.generatePDFThumbnail(filePath, thumbnailPath);
       }
       
@@ -94,22 +94,22 @@ class DocumentService {
     try {
       const stats = await prisma.companyAsset.aggregate({
         where: {
-          parentId: folderId,
-          isActive: true
+          parent_id: folderId,
+          is_active: true
         },
         _count: {
           id: true
         },
         _sum: {
-          fileSize: true
+          file_size: true
         }
       });
       
       const breakdown = await prisma.companyAsset.groupBy({
         by: ['type'],
         where: {
-          parentId: folderId,
-          isActive: true
+          parent_id: folderId,
+          is_active: true
         },
         _count: {
           id: true
@@ -118,7 +118,7 @@ class DocumentService {
       
       return {
         totalItems: stats._count.id || 0,
-        totalSize: stats._sum.fileSize || 0,
+        totalSize: stats._sum.file_size || 0,
         folders: breakdown.find(b => b.type === 'FOLDER')?._count.id || 0,
         files: breakdown.find(b => b.type === 'FILE')?._count.id || 0
       };
@@ -140,12 +140,12 @@ class DocumentService {
     try {
       const stats = await prisma.companyAsset.aggregate({
         where: {
-          uploadedById: userId,
+          uploaded_by_id: userId,
           type: 'FILE',
-          isActive: true
+          is_active: true
         },
         _sum: {
-          fileSize: true
+          file_size: true
         },
         _count: {
           id: true
@@ -154,8 +154,8 @@ class DocumentService {
       
       return {
         totalFiles: stats._count.id || 0,
-        totalSize: stats._sum.fileSize || 0,
-        formattedSize: this.formatFileSize(stats._sum.fileSize || 0)
+        totalSize: stats._sum.file_size || 0,
+        formattedSize: this.formatFileSize(stats._sum.file_size || 0)
       };
     } catch (error) {
       console.error('Error getting user storage:', error);
@@ -183,16 +183,16 @@ class DocumentService {
   /**
    * Get file type category
    */
-  static getFileCategory(mimeType) {
-    if (!mimeType) return 'other';
+  static getFileCategory(mime_type) {
+    if (!mime_type) return 'other';
     
-    if (mimeType.includes('pdf')) return 'pdf';
-    if (mimeType.includes('word') || mimeType.includes('document')) return 'document';
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'spreadsheet';
-    if (mimeType.includes('image')) return 'image';
-    if (mimeType.includes('video')) return 'video';
-    if (mimeType.includes('audio')) return 'audio';
-    if (mimeType.includes('zip') || mimeType.includes('rar')) return 'archive';
+    if (mime_type.includes('pdf')) return 'pdf';
+    if (mime_type.includes('word') || mime_type.includes('document')) return 'document';
+    if (mime_type.includes('excel') || mime_type.includes('spreadsheet')) return 'spreadsheet';
+    if (mime_type.includes('image')) return 'image';
+    if (mime_type.includes('video')) return 'video';
+    if (mime_type.includes('audio')) return 'audio';
+    if (mime_type.includes('zip') || mime_type.includes('rar')) return 'archive';
     
     return 'other';
   }
@@ -206,7 +206,7 @@ class DocumentService {
         where: { id: assetId },
         select: {
           isPublic: true,
-          uploadedById: true,
+          uploaded_by_id: true,
           accessLevel: true,
           metadata: true
         }
@@ -221,7 +221,7 @@ class DocumentService {
       if (asset.isPublic) return true;
       
       // Owner has access
-      if (asset.uploadedById === userId) return true;
+      if (asset.uploaded_by_id === userId) return true;
       
       // Check specific access rules in metadata
       if (asset.metadata?.allowedUsers?.includes(userId)) return true;
@@ -247,12 +247,12 @@ class DocumentService {
         where: {
           id: { in: assetIds },
           OR: [
-            { uploadedById: userId },
+            { uploaded_by_id: userId },
             { uploadedBy: { role: 'ADMIN' } }
           ]
         },
         data: {
-          isActive: false,
+          is_active: false,
           metadata: {
             trashedAt: new Date().toISOString(),
             trashedBy: userId
@@ -275,10 +275,10 @@ class DocumentService {
       const result = await prisma.companyAsset.updateMany({
         where: {
           id: { in: assetIds },
-          isActive: false
+          is_active: false
         },
         data: {
-          isActive: true,
+          is_active: true,
           metadata: {
             restoredAt: new Date().toISOString(),
             restoredBy: userId
@@ -302,7 +302,7 @@ class DocumentService {
       const assets = await prisma.companyAsset.findMany({
         where: {
           id: { in: assetIds },
-          isActive: false // Only delete trashed items
+          is_active: false // Only delete trashed items
         },
         include: {
           versions: true
@@ -313,15 +313,15 @@ class DocumentService {
       const result = await prisma.companyAsset.deleteMany({
         where: {
           id: { in: assetIds },
-          isActive: false
+          is_active: false
         }
       });
       
       // Clean up files
       for (const asset of assets) {
         // Delete main file
-        if (asset.fileUrl) {
-          const filePath = path.join(__dirname, '..', asset.fileUrl);
+        if (asset.file_url) {
+          const filePath = path.join(__dirname, '..', asset.file_url);
           try {
             await fs.unlink(filePath);
           } catch (err) {
@@ -341,8 +341,8 @@ class DocumentService {
         
         // Delete version files
         for (const version of asset.versions) {
-          if (version.fileUrl && version.fileUrl !== asset.fileUrl) {
-            const versionPath = path.join(__dirname, '..', version.fileUrl);
+          if (version.file_url && version.file_url !== asset.file_url) {
+            const versionPath = path.join(__dirname, '..', version.file_url);
             try {
               await fs.unlink(versionPath);
             } catch (err) {
@@ -365,12 +365,12 @@ class DocumentService {
   static async getTrashItems(userId, userRole) {
     try {
       const where = {
-        isActive: false
+        is_active: false
       };
       
       // Non-admins only see their own trashed items
       if (userRole !== 'ADMIN') {
-        where.uploadedById = userId;
+        where.uploaded_by_id = userId;
       }
       
       const items = await prisma.companyAsset.findMany({
@@ -407,7 +407,7 @@ class DocumentService {
       
       const oldItems = await prisma.companyAsset.findMany({
         where: {
-          isActive: false,
+          is_active: false,
           updatedAt: {
             lt: thirtyDaysAgo
           }
