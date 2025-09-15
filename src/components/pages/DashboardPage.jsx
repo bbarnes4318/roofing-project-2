@@ -7,12 +7,12 @@ import CurrentAlertsSection from '../dashboard/CurrentAlertsSection';
 import DraggablePopup from '../ui/DraggablePopup';
 import Modal from '../common/Modal';
 import AddProjectModal from '../common/AddProjectModal';
-import ActivityFeedPage from './ActivityFeedPage';
 import ActivityFeedSection from '../dashboard/ActivityFeedSection';
 import MessagesSection from '../dashboard/MessagesSection';
 import TasksSection from '../dashboard/TasksSection';
 import RemindersSection from '../dashboard/RemindersSection';
 import WorkflowLineItemsSection from '../dashboard/WorkflowLineItemsSection';
+import ProjectWorkflowLineItemsSection from '../dashboard/ProjectWorkflowLineItemsSection';
 import MTRHeader from '../dashboard/mtrHeader';
 import MTRFilters from '../dashboard/mtrFilters';
 import MTRForm from '../dashboard/mtrForm';
@@ -548,7 +548,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Refs for alert popups
   const alertContactButtonRefs = useRef({});
   const alertPmButtonRefs = useRef({});
-  const [isDarkMode, setIsDarkMode] = useState(colorMode);
   const [alertExpanded, setAlertExpanded] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   
@@ -2241,7 +2240,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   return (
     <ActivityProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 text-gray-900 overflow-hidden">
       {/* Full Width - Project Overview by Phase - AT THE TOP */}
       <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="project-phases">
         <div className="flex items-center justify-between mb-6">
@@ -2264,14 +2263,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               <span>Add Project</span>
             </button>
             
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-3 rounded-xl transition-all duration-300 bg-white/80 hover:bg-white border border-gray-200/50 hover:shadow-medium hover:-translate-y-0.5"
-              aria-label="Toggle dark mode"
-            >
-              {isDarkMode ? '☀️' : '🌙'}
-            </button>
           </div>
         </div>
         
@@ -3033,6 +3024,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           setNewCommentText={setNewCommentText}
           handleAddComment={handleAddComment}
         />
+
+      {/* Project Workflow Line Items Section */}
+      <ProjectWorkflowLineItemsSection
+        projects={projects}
+        colorMode={colorMode}
+        onProjectSelect={onProjectSelect}
+        workflowAlerts={workflowAlerts}
+        alertsLoading={alertsLoading}
+        availableUsers={availableUsers}
+        currentUser={currentUser}
+        handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+      />
 
       {/* Project Cubes - Quick Access (hidden) */}
       <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>

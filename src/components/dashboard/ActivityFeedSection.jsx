@@ -61,25 +61,8 @@ const ActivityFeedSection = ({
               </div>
             </div>
             
-            {/* Activity Feed Toggle and Controls */}
+            {/* Activity Feed Controls */}
             <div className="flex items-center gap-2">
-              {/* Main Activity Feed Toggle */}
-              <button
-                onClick={() => setIsActivityFeedExpanded(!isActivityFeedExpanded)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
-                  isActivityFeedExpanded
-                    ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
-                    : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
-                }`}
-                title={isActivityFeedExpanded ? "Collapse Activity Feed" : "Expand Activity Feed"}
-              >
-                <div className="flex items-center gap-1">
-                  <svg className={`w-2.5 h-2.5 transition-transform duration-200 ${isActivityFeedExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  <span>{isActivityFeedExpanded ? 'Collapse' : 'Expand'}</span>
-                </div>
-              </button>
               
               {/* Expand All Items Button */}
               <button

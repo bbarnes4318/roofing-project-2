@@ -999,7 +999,6 @@ const apiUrl = window.location.hostname === 'localhost'
                     activities={activities}
                     onProjectSelect={handleProjectSelect}
                     onAddActivity={addActivity}
-                    colorMode={colorMode}
                     dashboardState={navigationState.dashboardState}
                 />
             );
@@ -1085,7 +1084,6 @@ const apiUrl = window.location.hostname === 'localhost'
                     activities={activities}
                     onProjectSelect={handleProjectSelect}
                     onAddActivity={addActivity}
-                    colorMode={colorMode}
                     dashboardState={navigationState.dashboardState}
                 />
             );
@@ -1136,7 +1134,9 @@ const apiUrl = window.location.hostname === 'localhost'
             <SubjectsProvider>
             <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
                 ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
-                : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
+                : activePage === 'Overview' 
+                    ? 'bg-gradient-to-br from-green-50 via-white to-green-50 text-gray-900'
+                    : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
             {/* Mobile menu overlay */}
             {sidebarOpen && (
                 <div 

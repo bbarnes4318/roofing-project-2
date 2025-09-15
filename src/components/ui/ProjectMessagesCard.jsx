@@ -8,6 +8,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     const expanded = isExpanded !== undefined ? isExpanded : internalExpanded;
     const [showQuickReply, setShowQuickReply] = useState(false);
     const [quickReplyText, setQuickReplyText] = useState('');
+    const quickReplyTextareaRef = useRef(null);
 
     // Get project data
     const project = projects?.find(p => p && p.id === activity.projectId);
@@ -379,7 +380,19 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    // Ensure message is expanded when reply is clicked
+                                    if (!expanded && onToggleExpansion) {
+                                        onToggleExpansion();
+                                    }
                                     setShowQuickReply(!showQuickReply);
+                                    // Focus on textarea after a short delay to ensure it's rendered
+                                    if (!showQuickReply) {
+                                        setTimeout(() => {
+                                            if (quickReplyTextareaRef.current) {
+                                                quickReplyTextareaRef.current.focus();
+                                            }
+                                        }, 100);
+                                    }
                                 }}
                                 className={`p-1 rounded transition-colors ${
                                     showQuickReply 
@@ -659,6 +672,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         {/* Quick Reply Input */}
                         <div className="flex gap-2">
                             <textarea
+                                ref={quickReplyTextareaRef}
                                 value={quickReplyText}
                                 onChange={(e) => setQuickReplyText(e.target.value)}
                                 placeholder="Type your quick reply..."
@@ -756,8 +770,18 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    // Ensure message is expanded when reply is clicked
+                                                    if (!expanded && onToggleExpansion) {
+                                                        onToggleExpansion();
+                                                    }
                                                     setShowQuickReply(true);
                                                     setQuickReplyText(`@${message.user}: `);
+                                                    // Focus on textarea after a short delay to ensure it's rendered
+                                                    setTimeout(() => {
+                                                        if (quickReplyTextareaRef.current) {
+                                                            quickReplyTextareaRef.current.focus();
+                                                        }
+                                                    }, 100);
                                                 }}
                                                 className={`p-1.5 rounded-full transition-colors ${
                                                     colorMode 
