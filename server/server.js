@@ -695,6 +695,7 @@ app.use('/api/calendar-events', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/company-docs', companyDocumentsRoutes);
 app.use('/api/company-docs-enhanced', companyDocumentsEnhancedRoutes);
+app.use('/api/migration', require('./routes/migration'));
 if (workflowRoutes) {
   app.use('/api/workflows', workflowRoutes);
   console.log('✅ SERVER: Workflow routes registered at /api/workflows');
