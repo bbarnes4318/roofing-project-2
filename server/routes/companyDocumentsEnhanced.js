@@ -110,7 +110,7 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   if (search) {
     where.OR = [
       { title: { contains: search, mode: 'insensitive' } },
-      { folderName: { contains: search, mode: 'insensitive' } },
+      { folder_name: { contains: search, mode: 'insensitive' } },
       { description: { contains: search, mode: 'insensitive' } },
       { tags: { has: search } }
     ];
@@ -180,7 +180,7 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
       breadcrumbs.unshift({
         id: currentFolder.id,
         title: currentFolder.title,
-        folder_name: currentFolder.folderName || currentFolder.title
+        folder_name: currentFolder.folder_name || currentFolder.title
       });
       
       if (currentFolder.parentId) {
@@ -405,7 +405,7 @@ router.post('/folders', authenticateToken, [
   const folder = await prisma.companyAsset.create({
     data: {
       title: name,
-      folderName: name,
+      folder_name: name,
       description: description || null,
       type: 'FOLDER',
       section: section || null,
@@ -511,7 +511,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   
   // Update other fields
   if (title !== undefined) updateData.title = title;
-  if (folderName !== undefined && asset.type === 'FOLDER') updateData.folderName = folderName;
+  if (folderName !== undefined && asset.type === 'FOLDER') updateData.folder_name = folderName;
   if (description !== undefined) updateData.description = description;
   if (parentId !== undefined) updateData.parentId = parentId;
   if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
@@ -688,7 +688,7 @@ router.post('/search', authenticateToken, asyncHandler(async (req, res) => {
   if (query) {
     where.OR = [
       { title: { contains: query, mode: 'insensitive' } },
-      { folderName: { contains: query, mode: 'insensitive' } },
+      { folder_name: { contains: query, mode: 'insensitive' } },
       { description: { contains: query, mode: 'insensitive' } },
       { tags: { has: query } }
     ];
