@@ -50,8 +50,8 @@ class DocumentService {
       
       if (!asset || asset.type !== 'FILE') return null;
       
-      const filePath = path.join(__dirname, '..', asset.file_url);
-      const ext = path.extname(asset.file_url);
+      const filePath = path.join(__dirname, '..', asset.fileUrl);
+      const ext = path.extname(asset.fileUrl);
       const thumbnailName = `thumb_${assetId}${ext}`;
       const thumbnailDir = path.join(__dirname, '..', 'uploads', 'thumbnails');
       
@@ -320,8 +320,8 @@ class DocumentService {
       // Clean up files
       for (const asset of assets) {
         // Delete main file
-        if (asset.file_url) {
-          const filePath = path.join(__dirname, '..', asset.file_url);
+        if (asset.fileUrl) {
+          const filePath = path.join(__dirname, '..', asset.fileUrl);
           try {
             await fs.unlink(filePath);
           } catch (err) {
@@ -341,8 +341,8 @@ class DocumentService {
         
         // Delete version files
         for (const version of asset.versions) {
-          if (version.file_url && version.file_url !== asset.file_url) {
-            const versionPath = path.join(__dirname, '..', version.file_url);
+          if (version.fileUrl && version.fileUrl !== asset.fileUrl) {
+            const versionPath = path.join(__dirname, '..', version.fileUrl);
             try {
               await fs.unlink(versionPath);
             } catch (err) {

@@ -298,12 +298,12 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
   } = req.body;
 
   // Generate file URL
-  const file_url = `/uploads/documents/${req.file.filename}`;
+  const fileUrl = `/uploads/documents/${req.file.filename}`;
   
   // Generate thumbnail for images
   let thumbnailUrl = null;
   if (req.file.mimetype.startsWith('image/')) {
-    thumbnailUrl = file_url; // For now, use the same URL
+    thumbnailUrl = fileUrl; // For now, use the same URL
   }
 
   // Create document using existing fields only
@@ -311,7 +311,7 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
     data: {
       fileName: req.file.filename,
       originalName: req.file.originalname,
-      file_url,
+      fileUrl,
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
       fileType,
@@ -493,7 +493,7 @@ router.post('/:id/download', authenticateToken, asyncHandler(async (req, res) =>
 
   res.json({
     success: true,
-    data: { downloadUrl: document.file_url },
+    data: { downloadUrl: document.fileUrl },
     message: 'Download recorded'
   });
 }));

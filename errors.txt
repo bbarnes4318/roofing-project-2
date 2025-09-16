@@ -1,435 +1,310 @@
-api.js:8 🔍 API CONFIG: Current host: goldfish-app-4yuma.ondigitalocean.app
-api.js:12 🔍 API CONFIG: Using production API: https://goldfish-app-4yuma.ondigitalocean.app/api
-documentService.js:8 🔍 DOCUMENT SERVICE API CONFIG: Current host: goldfish-app-4yuma.ondigitalocean.app
-documentService.js:12 🔍 DOCUMENT SERVICE API CONFIG: Using production API: https://goldfish-app-4yuma.ondigitalocean.app/api
-App.jsx:442 🔍 NAV_STATE_CHANGE: navigationState updated: Object
-App.jsx:443 🔍 NAV_STATE_CHANGE: activePage: Overview
-read.js:2530 READ - Host validation failed: Object
-content.js:2524 Host is not supported
-content.js:2526 Host is not valid or supported
-content.js:2526 Host is not in insights whitelist
-App.jsx:129 🔍 ONBOARDING: Checking status for user: Object
-App.jsx:130 🔍 ONBOARDING: User role: WORKER
-App.jsx:131 🔍 ONBOARDING: User ID: cmfld60ef0000bi0d8ky8hlot
-App.jsx:132 🔍 ONBOARDING: hasCompletedOnboarding: undefined
-App.jsx:133 🔍 ONBOARDING: needsOnboarding result: false
-App.jsx:264 🔍 Fetching activities from API...
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Overview
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Overview
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:623 🔍 INITIAL USER FROM STORAGE: Object
-DashboardPage.jsx:633 🔍 FETCHING CURRENT USER FROM SERVER...
-DashboardPage.jsx:684 🔍 DASHBOARD: Fetching workflow phases for Add Project dropdown...
-DashboardPage.jsx:955 🔍 DASHBOARD: URL params restoration: Object
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-App.jsx:242 ✅ Fetched projects from API: 0
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Overview
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Overview
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:695 ✅ DASHBOARD: Loaded workflow phases from database: Array(6)
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: true
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: true
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: undefined
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 0
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-App.jsx:280 ✅ Fetched activities from API: 0
-DashboardPage.jsx:635 🔍 SERVER RESPONSE: Object
-DashboardPage.jsx:637 🔍 EXTRACTED USER: Object
-DashboardPage.jsx:640 ✅ CURRENT USER SET TO: jimbosky35  ID: cmfld60ef0000bi0d8ky8hlot
-DashboardPage.jsx:657 🔍 API Response for users: Object
-DashboardPage.jsx:662 ✅ Loaded users for assignment: 19
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Overview
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Overview
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Overview
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Overview
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-App.jsx:129 🔍 ONBOARDING: Checking status for user: Object
-App.jsx:130 🔍 ONBOARDING: User role: WORKER
-App.jsx:131 🔍 ONBOARDING: User ID: cmfld60ef0000bi0d8ky8hlot
-App.jsx:132 🔍 ONBOARDING: hasCompletedOnboarding: undefined
-App.jsx:133 🔍 ONBOARDING: needsOnboarding result: false
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Overview
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Overview
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: all Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: all Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: all Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: all Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: all Filtered Projects Count: 0
-DashboardPage.jsx:147 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData: Object
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.data: Array(0)
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects array: Array(0)
-DashboardPage.jsx:160 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:222 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:223 🔍 DASHBOARD: Projects error: null
-DashboardPage.jsx:224 🔍 DASHBOARD: Projects data: Object
-DashboardPage.jsx:225 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:604 🔍 DASHBOARD: Alerts loading state: false
-DashboardPage.jsx:605 🔍 DASHBOARD: Alerts error: null
-DashboardPage.jsx:606 🔍 DASHBOARD: Alerts data: Array(14)0: {_id: 'cmflomlmw0002a00du0s9kztw', id: 'cmflomlmw0002a00du0s9kztw', type: 'Work Flow Line Item', title: 'Answer phone call - Nancy Lewis', message: 'Answer phone call is now ready to be completed for project: 1234 N Colorado Springs - ROOFING', …}1: {_id: 'cmflomlmw0001a00dk9rqyfjn', id: 'cmflomlmw0001a00dk9rqyfjn', type: 'Work Flow Line Item', title: 'Answer phone call - Jennifer Hall', message: 'Answer phone call is now ready to be completed for project: 5678 E Colorado Springs - ROOFING', …}2: {_id: 'cmflomlmv0000a00dr0c48am8', id: 'cmflomlmv0000a00dr0c48am8', type: 'Work Flow Line Item', title: 'Answer phone call - Barbara Scott', message: 'Answer phone call is now ready to be completed for project: 9012 S Colorado Springs - ROOFING', …}3: {_id: 'cmflomlmx0005a00daz6pvl9w', id: 'cmflomlmx0005a00daz6pvl9w', type: 'Work Flow Line Item', title: 'Take site photos - Timothy Brown', message: 'Take site photos is now ready to be completed for project: 3456 W Colorado Springs - ROOFING', …}4: {_id: 'cmflomlmx0004a00d4cm2ilga', id: 'cmflomlmx0004a00d4cm2ilga', type: 'Work Flow Line Item', title: 'Take site photos - Sandra Carter', message: 'Take site photos is now ready to be completed for project: 7890 N Colorado Springs - ROOFING', …}5: {_id: 'cmflomlmw0003a00dg4nu3bz8', id: 'cmflomlmw0003a00dg4nu3bz8', type: 'Work Flow Line Item', title: 'Take site photos - Donald Nguyen', message: 'Take site photos is now ready to be completed for project: 1234 E Colorado Springs - ROOFING', …}6: {_id: 'cmflomlmx0008a00d1qctqy2s', id: 'cmflomlmx0008a00d1qctqy2s', type: 'Work Flow Line Item', title: 'Confirm shingle choice - David Sanchez', message: 'Confirm shingle choice is now ready to be completed for project: 5678 S Colorado Springs - ROOFING', …}7: {_id: 'cmflomlmx0007a00dtwsol4ra', id: 'cmflomlmx0007a00dtwsol4ra', type: 'Work Flow Line Item', title: 'Confirm shingle choice - Thomas Green', message: 'Confirm shingle choice is now ready to be completed for project: 9012 W Colorado Springs - ROOFING', …}8: {_id: 'cmflomlmx0006a00dvx89sgc7', id: 'cmflomlmx0006a00dvx89sgc7', type: 'Work Flow Line Item', title: 'Confirm shingle choice - Jessica Rodriguez', message: 'Confirm shingle choice is now ready to be completed for project: 3456 N Colorado Springs - ROOFING', …}9: {_id: 'cmflomlmy000ba00da213nsvw', id: 'cmflomlmy000ba00da213nsvw', type: 'Work Flow Line Item', title: 'Document work start - Ashley Roberts', message: 'Document work start is now ready to be completed for project: 7890 E Colorado Springs - ROOFING', …}10: {_id: 'cmflomlmx000aa00dikr0fd7p', id: 'cmflomlmx000aa00dikr0fd7p', type: 'Work Flow Line Item', title: 'Document work start - John Allen', message: 'Document work start is now ready to be completed for project: 1234 S Colorado Springs - ROOFING', …}11: {_id: 'cmflomlmx0009a00dwu6hw78w', id: 'cmflomlmx0009a00dwu6hw78w', type: 'Work Flow Line Item', title: 'Document work start - Nancy King', message: 'Document work start is now ready to be completed for project: 5678 W Colorado Springs - ROOFING', …}12: {_id: 'cmflomlmy000da00djlfx8487', id: 'cmflomlmy000da00djlfx8487', type: 'Work Flow Line Item', title: 'Assess additional damage - Nancy Wilson', message: 'Assess additional damage is now ready to be completed for project: 9012 N Colorado Springs - ROOFING', …}13: {_id: 'cmflomlmy000ca00dtwh4bxvw', id: 'cmflomlmy000ca00dtwh4bxvw', type: 'Work Flow Line Item', title: 'Assess additional damage - Michelle Torres', message: 'Assess additional damage is now ready to be completed for project: 3456 E Colorado Springs - ROOFING', …}length: 14[[Prototype]]: Array(0)
-DashboardPage.jsx:607 🔍 DASHBOARD: Alerts array length: 14
-DashboardPage.jsx:2334 Selected Phase: null Filtered Projects Count: 0
-App.jsx:468 🔍 APP: navigate called with page: Company Documents
-App.jsx:469 🔍 APP: Current activePage: Overview
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Company Documents
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Company Documents
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-App.jsx:442 🔍 NAV_STATE_CHANGE: navigationState updated: Object
-App.jsx:443 🔍 NAV_STATE_CHANGE: activePage: Company Documents
-/api/company-docs-enhanced/assets:1   Failed to load resource: the server responded with a status of 500 ()
-api.js:145  🚨 API ERROR: Objectdata: message: "Something went wrong on our end. Please try again later."success: falsetimestamp: "2025-09-16T13:20:10.143Z"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()message: "Request failed with status code 500"method: "get"status: 500statusText: ""url: "/company-docs-enhanced/assets"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
-(anonymous) @ api.js:145
-ModernCompanyDocumentsPage.jsx:638  Error loading documents: qcode: "ERR_BAD_RESPONSE"config: adapter: (3) ['xhr', 'http', 'fetch']allowAbsoluteUrls: truebaseURL: "https://goldfish-app-4yuma.ondigitalocean.app/api"data: undefinedenv: {FormData: ƒ, Blob: ƒ}headers: Ne {Accept: 'application/json, text/plain, */*', Content-Type: 'application/json', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZC…BpIn0._vdnWbZVeb1iaonuWpUvm-QwuVcsjCAJfyl_eCDImFQ'}maxBodyLength: -1maxContentLength: -1method: "get"params: {}timeout: 20000transformRequest: [ƒ]transformResponse: [ƒ]transitional: {silentJSONParsing: true, forcedJSONParsing: true, clarifyTimeoutError: false}url: "/company-docs-enhanced/assets"validateStatus: ƒ (e)xsrfCookieName: "XSRF-TOKEN"xsrfHeaderName: "X-XSRF-TOKEN"[[Prototype]]: Objectmessage: "Server error: The server is experiencing issues. Please try again later."name: "AxiosError"request: XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 20000, withCredentials: false, upload: XMLHttpRequestUpload, …}response: config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 20000, …}data: message: "Something went wrong on our end. Please try again later."success: falsetimestamp: "2025-09-16T13:20:10.143Z"[[Prototype]]: Objectheaders: Ne {access-control-allow-credentials: 'true', alt-svc: 'h3=":443"; ma=86400', cache-control: 'private', cf-cache-status: 'MISS', cf-ray: '9800a8ddcdfffb27-BNA', …}access-control-allow-credentials: "true"alt-svc: "h3=\":443\"; ma=86400"cache-control: "private"cf-cache-status: "MISS"cf-ray: "9800a8ddcdfffb27-BNA"content-length: "125"content-security-policy: "default-src 'self';style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;font-src 'self' data: https://fonts.gstatic.com;script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://sc.lfeeder.com https://cdn.jsdelivr.net https://c.daily.co https://*.daily.co;img-src 'self' data: https:;connect-src 'self' https: wss: ws: https://*.vapi.ai https://*.daily.co https://goldfish-app-4yuma.ondigitalocean.app;media-src 'self' https://*.daily.co blob:;frame-src 'self' https://*.daily.co;worker-src 'self' blob:;base-uri 'self';form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests"content-type: "application/json; charset=utf-8"cross-origin-opener-policy: "same-origin"cross-origin-resource-policy: "same-origin"date: "Tue, 16 Sep 2025 13:20:10 GMT"etag: "W/\"7d-jX1d2o+10UXFIKp7Zq5vwP1cw8I\""origin-agent-cluster: "?1"priority: "u=1,i"referrer-policy: "no-referrer"server: "cloudflare"server-timing: "cfExtPri"strict-transport-security: "max-age=15552000; includeSubDomains"vary: "Origin, Accept-Encoding"x-content-type-options: "nosniff"x-dns-prefetch-control: "off"x-do-app-origin: "edf924d8-6fc4-4919-9a80-7c0b2dfbd910"x-do-orig-status: "500"x-download-options: "noopen"x-frame-options: "SAMEORIGIN"x-permitted-cross-domain-policies: "none"x-xss-protection: "0"clear: (...)concat: (...)constructor: (...)delete: (...)get: (...)getAccept: (...)getAcceptEncoding: (...)getAuthorization: (...)getContentLength: (...)getContentType: (...)getSetCookie: (...)getUserAgent: (...)has: (...)hasAccept: (...)hasAcceptEncoding: (...)hasAuthorization: (...)hasContentLength: (...)hasContentType: (...)hasUserAgent: (...)normalize: (...)set: (...)setAccept: (...)setAcceptEncoding: (...)setAuthorization: (...)setContentLength: (...)setContentType: (...)setUserAgent: (...)toJSON: (...)toString: (...)Symbol(Symbol.toStringTag): (...)[[Prototype]]: Objectrequest: XMLHttpRequestonabort: ƒ ()onerror: ƒ ()onload: nullonloadend: ƒ f()onloadstart: nullonprogress: nullonreadystatechange: nullontimeout: ƒ ()readyState: 4response: "{\"success\":false,\"message\":\"Something went wrong on our end. Please try again later.\",\"timestamp\":\"2025-09-16T13:20:10.143Z\"}"responseText: "{\"success\":false,\"message\":\"Something went wrong on our end. Please try again later.\",\"timestamp\":\"2025-09-16T13:20:10.143Z\"}"responseType: ""responseURL: "https://goldfish-app-4yuma.ondigitalocean.app/api/company-docs-enhanced/assets"responseXML: nullstatus: 500statusText: ""timeout: 20000upload: XMLHttpRequestUpload {onloadstart: null, onprogress: null, onabort: null, onerror: null, onload: null, …}withCredentials: false[[Prototype]]: XMLHttpRequeststatus: 500statusText: ""[[Prototype]]: Objectstatus: 500stack: "AxiosError: Server error: The server is experiencing issues. Please try again later.\n    at Pe (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.e62f1cb4.js:2:58799)\n    at XMLHttpRequest.f (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.e62f1cb4.js:2:63399)\n    at jt.request (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.e62f1cb4.js:2:74541)\n    at async Object.listAssets (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.e62f1cb4.js:2:23026)\n    at async https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.e62f1cb4.js:2:1297598"[[Prototype]]: Error
-(anonymous) @ ModernCompanyDocumentsPage.jsx:638
-App.jsx:468 🔍 APP: navigate called with page: Documents & Resources
-App.jsx:469 🔍 APP: Current activePage: Company Documents
-App.jsx:1394 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1395 🔍 MAIN_RENDER: activePage: Documents & Resources
-App.jsx:1420 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:992 🔍 RENDER: renderPage called with activePage: Documents & Resources
-App.jsx:993 🔍 RENDER: navigationState.selectedProject: null
-App.jsx:442 🔍 NAV_STATE_CHANGE: navigationState updated: Object
-App.jsx:443 🔍 NAV_STATE_CHANGE: activePage: Documents & Resources
-/api/documents-enhanced/categories:1   Failed to load resource: the server responded with a status of 400 ()
-/api/documents-enhanced/categories:1   Failed to load resource: the server responded with a status of 400 ()
-/api/documents-enhanced/categories:1   Failed to load resource: the server responded with a status of 400 ()
-[NEW] Explain Console errors by using Copilot in Edge: click
-         
-         to explain an error. 
-        Learn more
-        Don't show again
-categories:1   Failed to load resource: the server responded with a status of 400 ()
+**Company Documents logs**
+
+Sep 16 16:45:24  }
+Sep 16 16:45:24  🔍 ACTIVITIES: Fetching messages as activities...
+Sep 16 16:45:25  ✅ ACTIVITIES: Found 0 messages
+Sep 16 16:45:25  📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
+Sep 16 16:45:25  10.244.26.231 - - [16/Sep/2025:16:45:25 +0000] "GET /api/activities HTTP/1.1" 200 262 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:25  10.244.3.89 - - [16/Sep/2025:16:45:25 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:25  10.244.45.120 - - [16/Sep/2025:16:45:25 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 16:45:25  10.244.0.217 - - [16/Sep/2025:16:45:25 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:35  10.244.45.120 - - [16/Sep/2025:16:45:35 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 16:45:24      '?   priority?: SortOrder,\n' +
+Sep 16 16:45:24      '?   budget?: SortOrder,\n' +
+Sep 16 16:45:24      '?   estimatedCost?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   actualCost?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   startDate?: SortOrder,\n' +
+Sep 16 16:45:24      '?   endDate?: SortOrder,\n' +
+Sep 16 16:45:24      '?   notes?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   pmPhone?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   pmEmail?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   customerId?: SortOrder,\n' +
+Sep 16 16:45:24      '?   projectManagerId?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   createdById?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   phase?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   searchVector?: SortOrder | SortOrderInput,\n' +
+Sep 16 16:45:24      '?   calendarEvents?: CalendarEventOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   documents?: DocumentOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   projectMessages?: ProjectMessageOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   phaseOverrides?: ProjectPhaseOverrideOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   teamMembers?: ProjectTeamMemberOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   workflowTrackers?: ProjectWorkflowTrackerOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   createdBy?: UserOrderByWithRelationInput,\n' +
+Sep 16 16:45:24      '?   customer?: CustomerOrderByWithRelationInput,\n' +
+Sep 16 16:45:24      '?   projectManager?: UserOrderByWithRelationInput,\n' +
+Sep 16 16:45:24      '?   tasks?: TaskOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   voiceTranscripts?: VoiceTranscriptOrderByRelationAggregateInput,\n' +
+Sep 16 16:45:24      '?   workflowAlerts?: WorkflowAlertOrderByRelationAggregateInput\n' +
+Sep 16 16:45:24      '  },\n' +
+Sep 16 16:45:24      '  skip: 0,\n' +
+Sep 16 16:45:24      '  take: 50,\n' +
+Sep 16 16:45:24      '  include: {\n' +
+Sep 16 16:45:24      '    customer: {\n' +
+Sep 16 16:45:24      '      select: {\n' +
+Sep 16 16:45:24      '        id: true,\n' +
+Sep 16 16:45:24      '        primaryName: true,\n' +
+Sep 16 16:45:24      '        primaryEmail: true,\n' +
+Sep 16 16:45:24      '        primaryPhone: true,\n' +
+Sep 16 16:45:24      '        secondaryName: true,\n' +
+Sep 16 16:45:24      '        secondaryEmail: true,\n' +
+Sep 16 16:45:24      '        secondaryPhone: true,\n' +
+Sep 16 16:45:24      '        address: true\n' +
+Sep 16 16:45:24      '      }\n' +
+Sep 16 16:45:24      '    },\n' +
+Sep 16 16:45:24      '    projectManager: {\n' +
+Sep 16 16:45:24      '      select: {\n' +
+Sep 16 16:45:24      '        id: true,\n' +
+Sep 16 16:45:24      '        firstName: true,\n' +
+Sep 16 16:45:24      '        lastName: true,\n' +
+Sep 16 16:45:24      '        email: true,\n' +
+Sep 16 16:45:24      '        phone: true,\n' +
+Sep 16 16:45:24      '        role: true\n' +
+Sep 16 16:45:24      '      }\n' +
+Sep 16 16:45:24      '    },\n' +
+Sep 16 16:45:24      '    teamMembers: {\n' +
+Sep 16 16:45:24      '      select: {\n' +
+Sep 16 16:45:24      '        id: true,\n' +
+Sep 16 16:45:24      '        role: true,\n' +
+Sep 16 16:45:24      '        user: {\n' +
+Sep 16 16:45:24      '          select: {\n' +
+Sep 16 16:45:24      '            id: true,\n' +
+Sep 16 16:45:24      '            firstName: true,\n' +
+Sep 16 16:45:24      '            lastName: true,\n' +
+Sep 16 16:45:24      '            email: true,\n' +
+Sep 16 16:45:24      '            role: true\n' +
+Sep 16 16:45:24      '          }\n' +
+Sep 16 16:45:24      '        }\n' +
+Sep 16 16:45:24      '      },\n' +
+Sep 16 16:45:24      '      take: 10\n' +
+Sep 16 16:45:24      '    },\n' +
+Sep 16 16:45:24      '    _count: {\n' +
+Sep 16 16:45:24      '      select: {\n' +
+Sep 16 16:45:24      '        tasks: true,\n' +
+Sep 16 16:45:24      '        documents: true,\n' +
+Sep 16 16:45:24      '        workflowAlerts: true\n' +
+Sep 16 16:45:24      '      }\n' +
+Sep 16 16:45:24      '    },\n' +
+Sep 16 16:45:24      '    workflowTrackers: {\n' +
+Sep 16 16:45:24      '      include: {\n' +
+Sep 16 16:45:24      '        currentPhase: {\n' +
+Sep 16 16:45:24      '          select: {\n' +
+Sep 16 16:45:24      '            id: true,\n' +
+Sep 16 16:45:24      '            phaseType: true,\n' +
+Sep 16 16:45:24      '            phaseName: true\n' +
+Sep 16 16:45:24      '          }\n' +
+Sep 16 16:45:24      '        },\n' +
+Sep 16 16:45:24      '        currentSection: {\n' +
+Sep 16 16:45:24      '          select: {\n' +
+Sep 16 16:45:24      '            id: true,\n' +
+Sep 16 16:45:24      '            displayName: true\n' +
+Sep 16 16:45:24      '          }\n' +
+Sep 16 16:45:24      '        },\n' +
+Sep 16 16:45:24      '        currentLineItem: {\n' +
+Sep 16 16:45:24      '          select: {\n' +
+Sep 16 16:45:24      '            id: true,\n' +
+Sep 16 16:45:24      '            itemName: true,\n' +
+Sep 16 16:45:24      '            section: {\n' +
+Sep 16 16:45:24      '              select: {\n' +
+Sep 16 16:45:24      '                displayName: true,\n' +
+Sep 16 16:45:24      '                phase: {\n' +
+Sep 16 16:45:24      '                  select: {\n' +
+Sep 16 16:45:24      '                    phaseType: true,\n' +
+Sep 16 16:45:24      '                    phaseName: true\n' +
+Sep 16 16:45:24      '                  }\n' +
+Sep 16 16:45:24      '                }\n' +
+Sep 16 16:45:24      '              }\n' +
+Sep 16 16:45:24      '            }\n' +
+Sep 16 16:45:24      '          }\n' +
+Sep 16 16:45:24      '        },\n' +
+Sep 16 16:45:24      '        completedItems: {\n' +
+Sep 16 16:45:24      '          select: {\n' +
+Sep 16 16:45:24      '            id: true,\n' +
+Sep 16 16:45:24      '            lineItemId: true,\n' +
+Sep 16 16:45:24      '            phaseId: true,\n' +
+Sep 16 16:45:24      '            sectionId: true,\n' +
+Sep 16 16:45:24      '            completedAt: true,\n' +
+Sep 16 16:45:24      '            completedById: true\n' +
+Sep 16 16:45:24      '          }\n' +
+Sep 16 16:45:24      '        }\n' +
+Sep 16 16:45:24      '      }\n' +
+Sep 16 16:45:24      '    }\n' +
+Sep 16 16:45:24      '  }\n' +
+Sep 16 16:45:24      '}\n' +
+Sep 16 16:45:24      '\n' +
+Sep 16 16:45:24      'Unknown argument `created_at`. Did you mean `createdAt`? Available options are listed in green.\n' +
+Sep 16 16:45:24      '    at _n (/app/node_modules/@prisma/client/runtime/library.js:29:1363)\n' +
+Sep 16 16:45:24      '    at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6926)\n' +
+Sep 16 16:45:24      '    at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)\n' +
+Sep 16 16:45:24      '    at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)\n' +
+Sep 16 16:45:24      '    at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)\n' +
+Sep 16 16:45:24      '    at async Promise.all (index 0)\n' +
+Sep 16 16:45:24      '    at async /app/routes/projects.js:358:31'
+Sep 16 16:45:24  }
+Sep 16 16:45:24  10.244.3.89 - - [16/Sep/2025:16:45:24 +0000] "GET /api/projects HTTP/1.1" 200 266 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:24  10.244.3.89 - - [16/Sep/2025:16:45:24 +0000] "GET /api/calendar-events HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:25  10.244.19.36 - - [16/Sep/2025:16:45:25 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:45:34  prisma:error 
+Sep 16 16:45:34  Invalid `prisma.companyAsset.findMany()` invocation:
+Sep 16 16:45:34  
+Sep 16 16:45:34  
+Sep 16 16:45:34  The column `company_assets.folderName` does not exist in the current database.
+Sep 16 16:45:34  🚨 SERVER ERROR: {
+Sep 16 16:45:34    "timestamp": "2025-09-16T16:45:34.444Z",
+Sep 16 16:45:34    "method": "GET",
+Sep 16 16:45:34    "url": "/api/company-docs-enhanced/assets",
+Sep 16 16:45:34    "ip": "10.244.26.231",
+Sep 16 16:45:34    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:45:34    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:45:34    "error": {
+Sep 16 16:45:34      "name": "PrismaClientKnownRequestError",
+Sep 16 16:45:34      "message": "\nInvalid `prisma.companyAsset.findMany()` invocation:\n\n\nThe column `company_assets.folderName` does not exist in the current database.",
+Sep 16 16:45:34      "statusCode": 500
+Sep 16 16:45:34    }
+Sep 16 16:45:34  }
+Sep 16 16:45:34  ERROR 💥 {
+Sep 16 16:45:34    code: 'P2022',
+Sep 16 16:45:34    meta: { modelName: 'CompanyAsset', column: 'company_assets.folderName' },
+Sep 16 16:45:34    clientVersion: '6.14.0',
+Sep 16 16:45:34    name: 'PrismaClientKnownRequestError',
+Sep 16 16:45:34    message: '\n' +
+Sep 16 16:45:34      'Invalid `prisma.companyAsset.findMany()` invocation:\n' +
+Sep 16 16:45:34      '\n' +
+Sep 16 16:45:34      '\n' +
+Sep 16 16:45:34      'The column `company_assets.folderName` does not exist in the current database.',
+Sep 16 16:45:34    statusCode: 500
+Sep 16 16:45:34  }
+Sep 16 16:45:34  10.244.26.231 - - [16/Sep/2025:16:45:34 +0000] "GET /api/company-docs-enhanced/assets HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:35  10.244.19.36 - - [16/Sep/2025:16:45:35 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:45:35  prisma:error 
+Sep 16 16:45:35  Invalid `prisma.companyAsset.findMany()` invocation:
+Sep 16 16:45:35  
+Sep 16 16:45:35  
+Sep 16 16:45:35  The column `company_assets.folderName` does not exist in the current database.
+Sep 16 16:45:35  🚨 SERVER ERROR: {
+Sep 16 16:45:35    "timestamp": "2025-09-16T16:45:35.690Z",
+Sep 16 16:45:35    "method": "GET",
+Sep 16 16:45:35    "url": "/api/company-docs-enhanced/assets",
+Sep 16 16:45:35    "ip": "10.244.26.231",
+Sep 16 16:45:35    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:45:35    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:45:35    "error": {
+Sep 16 16:45:35      "name": "PrismaClientKnownRequestError",
+Sep 16 16:45:35      "message": "\nInvalid `prisma.companyAsset.findMany()` invocation:\n\n\nThe column `company_assets.folderName` does not exist in the current database.",
+Sep 16 16:45:35      "statusCode": 500
+Sep 16 16:45:35    }
+Sep 16 16:45:35  }
+Sep 16 16:45:35  ERROR 💥 {
+Sep 16 16:45:35    code: 'P2022',
+Sep 16 16:45:35    meta: { modelName: 'CompanyAsset', column: 'company_assets.folderName' },
+Sep 16 16:45:35    clientVersion: '6.14.0',
+Sep 16 16:45:35    name: 'PrismaClientKnownRequestError',
+Sep 16 16:45:35    message: '\n' +
+Sep 16 16:45:35      'Invalid `prisma.companyAsset.findMany()` invocation:\n' +
+Sep 16 16:45:35      '\n' +
+Sep 16 16:45:35      '\n' +
+Sep 16 16:45:35      'The column `company_assets.folderName` does not exist in the current database.',
+Sep 16 16:45:35    statusCode: 500
+Sep 16 16:45:35  }
+Sep 16 16:45:35  10.244.26.231 - - [16/Sep/2025:16:45:35 +0000] "GET /api/company-docs-enhanced/assets HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:45:45  10.244.19.36 - - [16/Sep/2025:16:45:45 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+
+
+**Documents and Resources logs**
+
+Sep 16 16:50:01  🚨 SERVER ERROR: {
+Sep 16 16:50:01    "timestamp": "2025-09-16T16:50:01.163Z",
+Sep 16 16:50:01    "method": "GET",
+Sep 16 16:50:01    "url": "/api/documents-enhanced/categories",
+Sep 16 16:50:01    "ip": "10.244.0.217",
+Sep 16 16:50:01    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:50:01    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:50:01    "error": {
+Sep 16 16:50:01      "name": "PrismaClientValidationError",
+Sep 16 16:50:01      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 16:50:01      "statusCode": 500
+Sep 16 16:50:01    }
+Sep 16 16:50:01  }
+Sep 16 16:50:01  10.244.0.217 - - [16/Sep/2025:16:50:01 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:01  10.244.30.98 - - [16/Sep/2025:16:50:01 +0000] "GET /api/documents-enhanced?search=&category=&fileType=&accessLevel=&region=&state=&sortBy=createdAt&sortOrder=desc&page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:05  10.244.19.36 - - [16/Sep/2025:16:50:05 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:05  10.244.45.120 - - [16/Sep/2025:16:50:05 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:15  10.244.19.36 - - [16/Sep/2025:16:50:15 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 16:50:15  10.244.45.120 - - [16/Sep/2025:16:50:15 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:16  🚨 SERVER ERROR: {
+Sep 16 16:50:16    "timestamp": "2025-09-16T16:50:16.382Z",
+Sep 16 16:50:16    "method": "GET",
+Sep 16 16:50:16    "url": "/api/documents-enhanced/categories",
+Sep 16 16:50:16    "ip": "10.244.0.217",
+Sep 16 16:50:16    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:50:16    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:50:16    "error": {
+Sep 16 16:50:16      "name": "PrismaClientValidationError",
+Sep 16 16:50:16      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 16:50:16      "statusCode": 500
+Sep 16 16:50:16    }
+Sep 16 16:50:16  }
+Sep 16 16:50:16  10.244.0.217 - - [16/Sep/2025:16:50:16 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:18  🚨 SERVER ERROR: {
+Sep 16 16:50:18    "timestamp": "2025-09-16T16:50:18.630Z",
+Sep 16 16:50:18    "method": "GET",
+Sep 16 16:50:18    "url": "/api/documents-enhanced/categories",
+Sep 16 16:50:18    "ip": "10.244.0.217",
+Sep 16 16:50:18    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:50:18    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:50:18    "error": {
+Sep 16 16:50:18      "name": "PrismaClientValidationError",
+Sep 16 16:50:18      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 16:50:18      "statusCode": 500
+Sep 16 16:50:18    }
+Sep 16 16:50:18  }
+Sep 16 16:50:18  10.244.0.217 - - [16/Sep/2025:16:50:18 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:22  🚨 SERVER ERROR: {
+Sep 16 16:50:22    "timestamp": "2025-09-16T16:50:22.837Z",
+Sep 16 16:50:22    "method": "GET",
+Sep 16 16:50:22    "url": "/api/documents-enhanced/categories",
+Sep 16 16:50:22    "ip": "10.244.0.217",
+Sep 16 16:50:22    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:50:22    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:50:22    "error": {
+Sep 16 16:50:22      "name": "PrismaClientValidationError",
+Sep 16 16:50:22      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 16:50:22      "statusCode": 500
+Sep 16 16:50:22    }
+Sep 16 16:50:22  }
+Sep 16 16:50:22  10.244.0.217 - - [16/Sep/2025:16:50:22 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:25  10.244.19.36 - - [16/Sep/2025:16:50:25 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:25  10.244.45.120 - - [16/Sep/2025:16:50:25 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:35  10.244.19.36 - - [16/Sep/2025:16:50:35 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:35  10.244.45.120 - - [16/Sep/2025:16:50:35 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:45  10.244.19.36 - - [16/Sep/2025:16:50:45 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:45  🚨 SERVER ERROR: {
+Sep 16 16:50:45    "timestamp": "2025-09-16T16:50:45.601Z",
+Sep 16 16:50:45    "method": "POST",
+Sep 16 16:50:45    "url": "/api/documents-enhanced",
+Sep 16 16:50:45    "ip": "10.244.3.89",
+Sep 16 16:50:45    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:50:45    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:50:45    "error": {
+Sep 16 16:50:45      "name": "PrismaClientValidationError",
+Sep 16 16:50:45      "message": "\nInvalid `prisma.document.create()` invocation:\n\n{\n  data: {\n    fileName: \"file-1758041445235-99956036.pdf\",\n    originalName: \"EMK385_1221.pdf\",\n    file_url: \"/uploads/documents/file-1758041445235-99956036.pdf\",\n    mimeType: \"application/pdf\",\n    fileSize: 2178609,\n    fileType: \"OTHER\",\n    description: undefined,\n    tags: [],\n    isPublic: \"true\",\n    projectId: null,\n    uploadedById: \"cmfld60ef0000bi0d8ky8hlot\",\n+   fileUrl: String\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectName: true,\n        projectNumber: true\n      }\n    }\n  }\n}\n\nArgument `fileUrl` is missing.",
+Sep 16 16:50:45      "statusCode": 500
+Sep 16 16:50:45    }
+Sep 16 16:50:45  }
+Sep 16 16:50:45  10.244.3.89 - - [16/Sep/2025:16:50:45 +0000] "POST /api/documents-enhanced HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:45  10.244.45.120 - - [16/Sep/2025:16:50:45 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:47  🚨 SERVER ERROR: {
+Sep 16 16:50:47    "timestamp": "2025-09-16T16:50:47.136Z",
+Sep 16 16:50:47    "method": "POST",
+Sep 16 16:50:47    "url": "/api/documents-enhanced",
+Sep 16 16:50:47    "ip": "10.244.3.89",
+Sep 16 16:50:47    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 16:50:47    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 16:50:47    "error": {
+Sep 16 16:50:47      "name": "PrismaClientValidationError",
+Sep 16 16:50:47      "message": "\nInvalid `prisma.document.create()` invocation:\n\n{\n  data: {\n    fileName: \"file-1758041447066-626527727.pdf\",\n    originalName: \"EMK385_1221.pdf\",\n    file_url: \"/uploads/documents/file-1758041447066-626527727.pdf\",\n    mimeType: \"application/pdf\",\n    fileSize: 2178609,\n    fileType: \"OTHER\",\n    description: undefined,\n    tags: [],\n    isPublic: \"true\",\n    projectId: null,\n    uploadedById: \"cmfld60ef0000bi0d8ky8hlot\",\n+   fileUrl: String\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectName: true,\n        projectNumber: true\n      }\n    }\n  }\n}\n\nArgument `fileUrl` is missing.",
+Sep 16 16:50:47      "statusCode": 500
+Sep 16 16:50:47    }
+Sep 16 16:50:47  }
+Sep 16 16:50:47  10.244.3.89 - - [16/Sep/2025:16:50:47 +0000] "POST /api/documents-enhanced HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 16:50:55  10.244.19.36 - - [16/Sep/2025:16:50:55 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 16:50:55  10.244.45.120 - - [16/Sep/2025:16:50:55 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
