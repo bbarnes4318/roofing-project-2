@@ -1,310 +1,136 @@
-**Company Documents logs**
+**Company Documents**
 
-Sep 16 16:45:24  }
-Sep 16 16:45:24  🔍 ACTIVITIES: Fetching messages as activities...
-Sep 16 16:45:25  ✅ ACTIVITIES: Found 0 messages
-Sep 16 16:45:25  📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
-Sep 16 16:45:25  10.244.26.231 - - [16/Sep/2025:16:45:25 +0000] "GET /api/activities HTTP/1.1" 200 262 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:25  10.244.3.89 - - [16/Sep/2025:16:45:25 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:25  10.244.45.120 - - [16/Sep/2025:16:45:25 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Sep 16 16:45:25  10.244.0.217 - - [16/Sep/2025:16:45:25 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:35  10.244.45.120 - - [16/Sep/2025:16:45:35 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Sep 16 16:45:24      '?   priority?: SortOrder,\n' +
-Sep 16 16:45:24      '?   budget?: SortOrder,\n' +
-Sep 16 16:45:24      '?   estimatedCost?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   actualCost?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   startDate?: SortOrder,\n' +
-Sep 16 16:45:24      '?   endDate?: SortOrder,\n' +
-Sep 16 16:45:24      '?   notes?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   pmPhone?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   pmEmail?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   customerId?: SortOrder,\n' +
-Sep 16 16:45:24      '?   projectManagerId?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   createdById?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   phase?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   searchVector?: SortOrder | SortOrderInput,\n' +
-Sep 16 16:45:24      '?   calendarEvents?: CalendarEventOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   documents?: DocumentOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   projectMessages?: ProjectMessageOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   phaseOverrides?: ProjectPhaseOverrideOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   teamMembers?: ProjectTeamMemberOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   workflowTrackers?: ProjectWorkflowTrackerOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   createdBy?: UserOrderByWithRelationInput,\n' +
-Sep 16 16:45:24      '?   customer?: CustomerOrderByWithRelationInput,\n' +
-Sep 16 16:45:24      '?   projectManager?: UserOrderByWithRelationInput,\n' +
-Sep 16 16:45:24      '?   tasks?: TaskOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   voiceTranscripts?: VoiceTranscriptOrderByRelationAggregateInput,\n' +
-Sep 16 16:45:24      '?   workflowAlerts?: WorkflowAlertOrderByRelationAggregateInput\n' +
-Sep 16 16:45:24      '  },\n' +
-Sep 16 16:45:24      '  skip: 0,\n' +
-Sep 16 16:45:24      '  take: 50,\n' +
-Sep 16 16:45:24      '  include: {\n' +
-Sep 16 16:45:24      '    customer: {\n' +
-Sep 16 16:45:24      '      select: {\n' +
-Sep 16 16:45:24      '        id: true,\n' +
-Sep 16 16:45:24      '        primaryName: true,\n' +
-Sep 16 16:45:24      '        primaryEmail: true,\n' +
-Sep 16 16:45:24      '        primaryPhone: true,\n' +
-Sep 16 16:45:24      '        secondaryName: true,\n' +
-Sep 16 16:45:24      '        secondaryEmail: true,\n' +
-Sep 16 16:45:24      '        secondaryPhone: true,\n' +
-Sep 16 16:45:24      '        address: true\n' +
-Sep 16 16:45:24      '      }\n' +
-Sep 16 16:45:24      '    },\n' +
-Sep 16 16:45:24      '    projectManager: {\n' +
-Sep 16 16:45:24      '      select: {\n' +
-Sep 16 16:45:24      '        id: true,\n' +
-Sep 16 16:45:24      '        firstName: true,\n' +
-Sep 16 16:45:24      '        lastName: true,\n' +
-Sep 16 16:45:24      '        email: true,\n' +
-Sep 16 16:45:24      '        phone: true,\n' +
-Sep 16 16:45:24      '        role: true\n' +
-Sep 16 16:45:24      '      }\n' +
-Sep 16 16:45:24      '    },\n' +
-Sep 16 16:45:24      '    teamMembers: {\n' +
-Sep 16 16:45:24      '      select: {\n' +
-Sep 16 16:45:24      '        id: true,\n' +
-Sep 16 16:45:24      '        role: true,\n' +
-Sep 16 16:45:24      '        user: {\n' +
-Sep 16 16:45:24      '          select: {\n' +
-Sep 16 16:45:24      '            id: true,\n' +
-Sep 16 16:45:24      '            firstName: true,\n' +
-Sep 16 16:45:24      '            lastName: true,\n' +
-Sep 16 16:45:24      '            email: true,\n' +
-Sep 16 16:45:24      '            role: true\n' +
-Sep 16 16:45:24      '          }\n' +
-Sep 16 16:45:24      '        }\n' +
-Sep 16 16:45:24      '      },\n' +
-Sep 16 16:45:24      '      take: 10\n' +
-Sep 16 16:45:24      '    },\n' +
-Sep 16 16:45:24      '    _count: {\n' +
-Sep 16 16:45:24      '      select: {\n' +
-Sep 16 16:45:24      '        tasks: true,\n' +
-Sep 16 16:45:24      '        documents: true,\n' +
-Sep 16 16:45:24      '        workflowAlerts: true\n' +
-Sep 16 16:45:24      '      }\n' +
-Sep 16 16:45:24      '    },\n' +
-Sep 16 16:45:24      '    workflowTrackers: {\n' +
-Sep 16 16:45:24      '      include: {\n' +
-Sep 16 16:45:24      '        currentPhase: {\n' +
-Sep 16 16:45:24      '          select: {\n' +
-Sep 16 16:45:24      '            id: true,\n' +
-Sep 16 16:45:24      '            phaseType: true,\n' +
-Sep 16 16:45:24      '            phaseName: true\n' +
-Sep 16 16:45:24      '          }\n' +
-Sep 16 16:45:24      '        },\n' +
-Sep 16 16:45:24      '        currentSection: {\n' +
-Sep 16 16:45:24      '          select: {\n' +
-Sep 16 16:45:24      '            id: true,\n' +
-Sep 16 16:45:24      '            displayName: true\n' +
-Sep 16 16:45:24      '          }\n' +
-Sep 16 16:45:24      '        },\n' +
-Sep 16 16:45:24      '        currentLineItem: {\n' +
-Sep 16 16:45:24      '          select: {\n' +
-Sep 16 16:45:24      '            id: true,\n' +
-Sep 16 16:45:24      '            itemName: true,\n' +
-Sep 16 16:45:24      '            section: {\n' +
-Sep 16 16:45:24      '              select: {\n' +
-Sep 16 16:45:24      '                displayName: true,\n' +
-Sep 16 16:45:24      '                phase: {\n' +
-Sep 16 16:45:24      '                  select: {\n' +
-Sep 16 16:45:24      '                    phaseType: true,\n' +
-Sep 16 16:45:24      '                    phaseName: true\n' +
-Sep 16 16:45:24      '                  }\n' +
-Sep 16 16:45:24      '                }\n' +
-Sep 16 16:45:24      '              }\n' +
-Sep 16 16:45:24      '            }\n' +
-Sep 16 16:45:24      '          }\n' +
-Sep 16 16:45:24      '        },\n' +
-Sep 16 16:45:24      '        completedItems: {\n' +
-Sep 16 16:45:24      '          select: {\n' +
-Sep 16 16:45:24      '            id: true,\n' +
-Sep 16 16:45:24      '            lineItemId: true,\n' +
-Sep 16 16:45:24      '            phaseId: true,\n' +
-Sep 16 16:45:24      '            sectionId: true,\n' +
-Sep 16 16:45:24      '            completedAt: true,\n' +
-Sep 16 16:45:24      '            completedById: true\n' +
-Sep 16 16:45:24      '          }\n' +
-Sep 16 16:45:24      '        }\n' +
-Sep 16 16:45:24      '      }\n' +
-Sep 16 16:45:24      '    }\n' +
-Sep 16 16:45:24      '  }\n' +
-Sep 16 16:45:24      '}\n' +
-Sep 16 16:45:24      '\n' +
-Sep 16 16:45:24      'Unknown argument `created_at`. Did you mean `createdAt`? Available options are listed in green.\n' +
-Sep 16 16:45:24      '    at _n (/app/node_modules/@prisma/client/runtime/library.js:29:1363)\n' +
-Sep 16 16:45:24      '    at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6926)\n' +
-Sep 16 16:45:24      '    at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)\n' +
-Sep 16 16:45:24      '    at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)\n' +
-Sep 16 16:45:24      '    at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)\n' +
-Sep 16 16:45:24      '    at async Promise.all (index 0)\n' +
-Sep 16 16:45:24      '    at async /app/routes/projects.js:358:31'
-Sep 16 16:45:24  }
-Sep 16 16:45:24  10.244.3.89 - - [16/Sep/2025:16:45:24 +0000] "GET /api/projects HTTP/1.1" 200 266 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:24  10.244.3.89 - - [16/Sep/2025:16:45:24 +0000] "GET /api/calendar-events HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:25  10.244.19.36 - - [16/Sep/2025:16:45:25 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:45:34  prisma:error 
-Sep 16 16:45:34  Invalid `prisma.companyAsset.findMany()` invocation:
-Sep 16 16:45:34  
-Sep 16 16:45:34  
-Sep 16 16:45:34  The column `company_assets.folderName` does not exist in the current database.
-Sep 16 16:45:34  🚨 SERVER ERROR: {
-Sep 16 16:45:34    "timestamp": "2025-09-16T16:45:34.444Z",
-Sep 16 16:45:34    "method": "GET",
-Sep 16 16:45:34    "url": "/api/company-docs-enhanced/assets",
-Sep 16 16:45:34    "ip": "10.244.26.231",
-Sep 16 16:45:34    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:45:34    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:45:34    "error": {
-Sep 16 16:45:34      "name": "PrismaClientKnownRequestError",
-Sep 16 16:45:34      "message": "\nInvalid `prisma.companyAsset.findMany()` invocation:\n\n\nThe column `company_assets.folderName` does not exist in the current database.",
-Sep 16 16:45:34      "statusCode": 500
-Sep 16 16:45:34    }
-Sep 16 16:45:34  }
-Sep 16 16:45:34  ERROR 💥 {
-Sep 16 16:45:34    code: 'P2022',
-Sep 16 16:45:34    meta: { modelName: 'CompanyAsset', column: 'company_assets.folderName' },
-Sep 16 16:45:34    clientVersion: '6.14.0',
-Sep 16 16:45:34    name: 'PrismaClientKnownRequestError',
-Sep 16 16:45:34    message: '\n' +
-Sep 16 16:45:34      'Invalid `prisma.companyAsset.findMany()` invocation:\n' +
-Sep 16 16:45:34      '\n' +
-Sep 16 16:45:34      '\n' +
-Sep 16 16:45:34      'The column `company_assets.folderName` does not exist in the current database.',
-Sep 16 16:45:34    statusCode: 500
-Sep 16 16:45:34  }
-Sep 16 16:45:34  10.244.26.231 - - [16/Sep/2025:16:45:34 +0000] "GET /api/company-docs-enhanced/assets HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:35  10.244.19.36 - - [16/Sep/2025:16:45:35 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:45:35  prisma:error 
-Sep 16 16:45:35  Invalid `prisma.companyAsset.findMany()` invocation:
-Sep 16 16:45:35  
-Sep 16 16:45:35  
-Sep 16 16:45:35  The column `company_assets.folderName` does not exist in the current database.
-Sep 16 16:45:35  🚨 SERVER ERROR: {
-Sep 16 16:45:35    "timestamp": "2025-09-16T16:45:35.690Z",
-Sep 16 16:45:35    "method": "GET",
-Sep 16 16:45:35    "url": "/api/company-docs-enhanced/assets",
-Sep 16 16:45:35    "ip": "10.244.26.231",
-Sep 16 16:45:35    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:45:35    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:45:35    "error": {
-Sep 16 16:45:35      "name": "PrismaClientKnownRequestError",
-Sep 16 16:45:35      "message": "\nInvalid `prisma.companyAsset.findMany()` invocation:\n\n\nThe column `company_assets.folderName` does not exist in the current database.",
-Sep 16 16:45:35      "statusCode": 500
-Sep 16 16:45:35    }
-Sep 16 16:45:35  }
-Sep 16 16:45:35  ERROR 💥 {
-Sep 16 16:45:35    code: 'P2022',
-Sep 16 16:45:35    meta: { modelName: 'CompanyAsset', column: 'company_assets.folderName' },
-Sep 16 16:45:35    clientVersion: '6.14.0',
-Sep 16 16:45:35    name: 'PrismaClientKnownRequestError',
-Sep 16 16:45:35    message: '\n' +
-Sep 16 16:45:35      'Invalid `prisma.companyAsset.findMany()` invocation:\n' +
-Sep 16 16:45:35      '\n' +
-Sep 16 16:45:35      '\n' +
-Sep 16 16:45:35      'The column `company_assets.folderName` does not exist in the current database.',
-Sep 16 16:45:35    statusCode: 500
-Sep 16 16:45:35  }
-Sep 16 16:45:35  10.244.26.231 - - [16/Sep/2025:16:45:35 +0000] "GET /api/company-docs-enhanced/assets HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:45:45  10.244.19.36 - - [16/Sep/2025:16:45:45 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 17:35:36  10.244.0.217 - - [16/Sep/2025:17:35:36 +0000] "GET /api/alerts?status=ACTIVE HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:35:38  prisma:error 
+Sep 16 17:35:38  Invalid `prisma.companyAsset.findMany()` invocation:
+Sep 16 17:35:38  
+Sep 16 17:35:38  
+Sep 16 17:35:38  The column `company_assets.folderName` does not exist in the current database.
+Sep 16 17:35:38  🚨 SERVER ERROR: {
+Sep 16 17:35:38    "timestamp": "2025-09-16T17:35:38.957Z",
+Sep 16 17:35:38    "method": "GET",
+Sep 16 17:35:38    "url": "/api/company-docs-enhanced/assets",
+Sep 16 17:35:38    "ip": "10.244.3.89",
+Sep 16 17:35:38    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:35:38    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:35:38    "error": {
+Sep 16 17:35:38      "name": "PrismaClientKnownRequestError",
+Sep 16 17:35:38      "message": "\nInvalid `prisma.companyAsset.findMany()` invocation:\n\n\nThe column `company_assets.folderName` does not exist in the current database.",
+Sep 16 17:35:38      "statusCode": 500
+Sep 16 17:35:38    }
+Sep 16 17:35:38  }
+Sep 16 17:35:38  ERROR 💥 {
+Sep 16 17:35:38    code: 'P2022',
+Sep 16 17:35:38    meta: { modelName: 'CompanyAsset', column: 'company_assets.folderName' },
+Sep 16 17:35:38    clientVersion: '6.14.0',
+Sep 16 17:35:38    name: 'PrismaClientKnownRequestError',
+Sep 16 17:35:38    message: '\n' +
+Sep 16 17:35:38      'Invalid `prisma.companyAsset.findMany()` invocation:\n' +
+Sep 16 17:35:38      '\n' +
+Sep 16 17:35:38      '\n' +
+Sep 16 17:35:38      'The column `company_assets.folderName` does not exist in the current database.',
+Sep 16 17:35:38    statusCode: 500
+Sep 16 17:35:38  }
+Sep 16 17:35:38  10.244.3.89 - - [16/Sep/2025:17:35:38 +0000] "GET /api/company-docs-enhanced/assets HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:35:41  10.244.43.233 - - [16/Sep/2025:17:35:41 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
 
 
-**Documents and Resources logs**
+**Documents and Resources**
 
-Sep 16 16:50:01  🚨 SERVER ERROR: {
-Sep 16 16:50:01    "timestamp": "2025-09-16T16:50:01.163Z",
-Sep 16 16:50:01    "method": "GET",
-Sep 16 16:50:01    "url": "/api/documents-enhanced/categories",
-Sep 16 16:50:01    "ip": "10.244.0.217",
-Sep 16 16:50:01    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:50:01    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:50:01    "error": {
-Sep 16 16:50:01      "name": "PrismaClientValidationError",
-Sep 16 16:50:01      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
-Sep 16 16:50:01      "statusCode": 500
-Sep 16 16:50:01    }
-Sep 16 16:50:01  }
-Sep 16 16:50:01  10.244.0.217 - - [16/Sep/2025:16:50:01 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:01  10.244.30.98 - - [16/Sep/2025:16:50:01 +0000] "GET /api/documents-enhanced?search=&category=&fileType=&accessLevel=&region=&state=&sortBy=createdAt&sortOrder=desc&page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:05  10.244.19.36 - - [16/Sep/2025:16:50:05 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:05  10.244.45.120 - - [16/Sep/2025:16:50:05 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:15  10.244.19.36 - - [16/Sep/2025:16:50:15 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Sep 16 16:50:15  10.244.45.120 - - [16/Sep/2025:16:50:15 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:16  🚨 SERVER ERROR: {
-Sep 16 16:50:16    "timestamp": "2025-09-16T16:50:16.382Z",
-Sep 16 16:50:16    "method": "GET",
-Sep 16 16:50:16    "url": "/api/documents-enhanced/categories",
-Sep 16 16:50:16    "ip": "10.244.0.217",
-Sep 16 16:50:16    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:50:16    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:50:16    "error": {
-Sep 16 16:50:16      "name": "PrismaClientValidationError",
-Sep 16 16:50:16      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
-Sep 16 16:50:16      "statusCode": 500
-Sep 16 16:50:16    }
-Sep 16 16:50:16  }
-Sep 16 16:50:16  10.244.0.217 - - [16/Sep/2025:16:50:16 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:18  🚨 SERVER ERROR: {
-Sep 16 16:50:18    "timestamp": "2025-09-16T16:50:18.630Z",
-Sep 16 16:50:18    "method": "GET",
-Sep 16 16:50:18    "url": "/api/documents-enhanced/categories",
-Sep 16 16:50:18    "ip": "10.244.0.217",
-Sep 16 16:50:18    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:50:18    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:50:18    "error": {
-Sep 16 16:50:18      "name": "PrismaClientValidationError",
-Sep 16 16:50:18      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
-Sep 16 16:50:18      "statusCode": 500
-Sep 16 16:50:18    }
-Sep 16 16:50:18  }
-Sep 16 16:50:18  10.244.0.217 - - [16/Sep/2025:16:50:18 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:22  🚨 SERVER ERROR: {
-Sep 16 16:50:22    "timestamp": "2025-09-16T16:50:22.837Z",
-Sep 16 16:50:22    "method": "GET",
-Sep 16 16:50:22    "url": "/api/documents-enhanced/categories",
-Sep 16 16:50:22    "ip": "10.244.0.217",
-Sep 16 16:50:22    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:50:22    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:50:22    "error": {
-Sep 16 16:50:22      "name": "PrismaClientValidationError",
-Sep 16 16:50:22      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
-Sep 16 16:50:22      "statusCode": 500
-Sep 16 16:50:22    }
-Sep 16 16:50:22  }
-Sep 16 16:50:22  10.244.0.217 - - [16/Sep/2025:16:50:22 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:25  10.244.19.36 - - [16/Sep/2025:16:50:25 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:25  10.244.45.120 - - [16/Sep/2025:16:50:25 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:35  10.244.19.36 - - [16/Sep/2025:16:50:35 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:35  10.244.45.120 - - [16/Sep/2025:16:50:35 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:45  10.244.19.36 - - [16/Sep/2025:16:50:45 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:45  🚨 SERVER ERROR: {
-Sep 16 16:50:45    "timestamp": "2025-09-16T16:50:45.601Z",
-Sep 16 16:50:45    "method": "POST",
-Sep 16 16:50:45    "url": "/api/documents-enhanced",
-Sep 16 16:50:45    "ip": "10.244.3.89",
-Sep 16 16:50:45    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:50:45    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:50:45    "error": {
-Sep 16 16:50:45      "name": "PrismaClientValidationError",
-Sep 16 16:50:45      "message": "\nInvalid `prisma.document.create()` invocation:\n\n{\n  data: {\n    fileName: \"file-1758041445235-99956036.pdf\",\n    originalName: \"EMK385_1221.pdf\",\n    file_url: \"/uploads/documents/file-1758041445235-99956036.pdf\",\n    mimeType: \"application/pdf\",\n    fileSize: 2178609,\n    fileType: \"OTHER\",\n    description: undefined,\n    tags: [],\n    isPublic: \"true\",\n    projectId: null,\n    uploadedById: \"cmfld60ef0000bi0d8ky8hlot\",\n+   fileUrl: String\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectName: true,\n        projectNumber: true\n      }\n    }\n  }\n}\n\nArgument `fileUrl` is missing.",
-Sep 16 16:50:45      "statusCode": 500
-Sep 16 16:50:45    }
-Sep 16 16:50:45  }
-Sep 16 16:50:45  10.244.3.89 - - [16/Sep/2025:16:50:45 +0000] "POST /api/documents-enhanced HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:45  10.244.45.120 - - [16/Sep/2025:16:50:45 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:47  🚨 SERVER ERROR: {
-Sep 16 16:50:47    "timestamp": "2025-09-16T16:50:47.136Z",
-Sep 16 16:50:47    "method": "POST",
-Sep 16 16:50:47    "url": "/api/documents-enhanced",
-Sep 16 16:50:47    "ip": "10.244.3.89",
-Sep 16 16:50:47    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
-Sep 16 16:50:47    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Sep 16 16:50:47    "error": {
-Sep 16 16:50:47      "name": "PrismaClientValidationError",
-Sep 16 16:50:47      "message": "\nInvalid `prisma.document.create()` invocation:\n\n{\n  data: {\n    fileName: \"file-1758041447066-626527727.pdf\",\n    originalName: \"EMK385_1221.pdf\",\n    file_url: \"/uploads/documents/file-1758041447066-626527727.pdf\",\n    mimeType: \"application/pdf\",\n    fileSize: 2178609,\n    fileType: \"OTHER\",\n    description: undefined,\n    tags: [],\n    isPublic: \"true\",\n    projectId: null,\n    uploadedById: \"cmfld60ef0000bi0d8ky8hlot\",\n+   fileUrl: String\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectName: true,\n        projectNumber: true\n      }\n    }\n  }\n}\n\nArgument `fileUrl` is missing.",
-Sep 16 16:50:47      "statusCode": 500
-Sep 16 16:50:47    }
-Sep 16 16:50:47  }
-Sep 16 16:50:47  10.244.3.89 - - [16/Sep/2025:16:50:47 +0000] "POST /api/documents-enhanced HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-Sep 16 16:50:55  10.244.19.36 - - [16/Sep/2025:16:50:55 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
-Sep 16 16:50:55  10.244.45.120 - - [16/Sep/2025:16:50:55 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Sep 16 17:36:41  10.244.19.36 - - [16/Sep/2025:17:36:41 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:36:45  🚨 SERVER ERROR: {
+Sep 16 17:36:45    "timestamp": "2025-09-16T17:36:45.729Z",
+Sep 16 17:36:45    "method": "GET",
+Sep 16 17:36:45    "url": "/api/documents-enhanced/categories",
+Sep 16 17:36:45    "ip": "10.244.0.217",
+Sep 16 17:36:45    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:36:45    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:36:45    "error": {
+Sep 16 17:36:45      "name": "PrismaClientValidationError",
+Sep 16 17:36:45      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 17:36:45      "statusCode": 500
+Sep 16 17:36:45    }
+Sep 16 17:36:45  }
+Sep 16 17:36:45  10.244.0.217 - - [16/Sep/2025:17:36:45 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:36:45  10.244.30.98 - - [16/Sep/2025:17:36:45 +0000] "GET /api/documents-enhanced?search=&category=&fileType=&accessLevel=&region=&state=&sortBy=createdAt&sortOrder=desc&page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:36:51  10.244.43.233 - - [16/Sep/2025:17:36:51 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:36:51  10.244.19.36 - - [16/Sep/2025:17:36:51 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+
+Sep 16 17:37:01  10.244.43.233 - - [16/Sep/2025:17:37:01 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:37:01  10.244.19.36 - - [16/Sep/2025:17:37:01 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:37:10  🚨 SERVER ERROR: {
+Sep 16 17:37:10    "timestamp": "2025-09-16T17:37:10.133Z",
+Sep 16 17:37:10    "method": "GET",
+Sep 16 17:37:10    "url": "/api/documents-enhanced/categories",
+Sep 16 17:37:10    "ip": "10.244.0.217",
+Sep 16 17:37:10    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:37:10    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:37:10    "error": {
+Sep 16 17:37:10      "name": "PrismaClientValidationError",
+Sep 16 17:37:10      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 17:37:10      "statusCode": 500
+Sep 16 17:37:10    }
+Sep 16 17:37:10  }
+Sep 16 17:37:10  10.244.0.217 - - [16/Sep/2025:17:37:10 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:37:11  10.244.43.233 - - [16/Sep/2025:17:37:11 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:37:11  10.244.19.36 - - [16/Sep/2025:17:37:11 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 17:37:12  🚨 SERVER ERROR: {
+Sep 16 17:37:12    "timestamp": "2025-09-16T17:37:12.468Z",
+Sep 16 17:37:12    "method": "GET",
+Sep 16 17:37:12    "url": "/api/documents-enhanced/categories",
+Sep 16 17:37:12    "ip": "10.244.0.217",
+Sep 16 17:37:12    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:37:12    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:37:12    "error": {
+Sep 16 17:37:12      "name": "PrismaClientValidationError",
+Sep 16 17:37:12      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 17:37:12      "statusCode": 500
+Sep 16 17:37:12    }
+Sep 16 17:37:12  }
+Sep 16 17:37:12  10.244.0.217 - - [16/Sep/2025:17:37:12 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:37:16  🚨 SERVER ERROR: {
+Sep 16 17:37:16    "timestamp": "2025-09-16T17:37:16.668Z",
+Sep 16 17:37:16    "method": "GET",
+Sep 16 17:37:16    "url": "/api/documents-enhanced/categories",
+Sep 16 17:37:16    "ip": "10.244.0.217",
+Sep 16 17:37:16    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:37:16    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:37:16    "error": {
+Sep 16 17:37:16      "name": "PrismaClientValidationError",
+Sep 16 17:37:16      "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 17:37:16      "statusCode": 500
+Sep 16 17:37:16    }
+Sep 16 17:37:16  }
+Sep 16 17:37:16  10.244.0.217 - - [16/Sep/2025:17:37:16 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:37:21  10.244.43.233 - - [16/Sep/2025:17:37:21 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:37:21  10.244.19.36 - - [16/Sep/2025:17:37:21 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:37:23  🚨 SERVER ERROR: {
+Sep 16 17:37:23    "timestamp": "2025-09-16T17:37:23.975Z",
+Sep 16 17:37:23    "method": "POST",
+Sep 16 17:37:23    "url": "/api/documents-enhanced",
+Sep 16 17:37:23    "ip": "10.244.0.217",
+Sep 16 17:37:23    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:37:23    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:37:23    "error": {
+Sep 16 17:37:23      "name": "PrismaClientValidationError",
+Sep 16 17:37:23      "message": "\nInvalid `prisma.document.create()` invocation:\n\n{\n  data: {\n    fileName: \"file-1758044243795-467363342.pdf\",\n    originalName: \"EMK385_1221.pdf\",\n    fileUrl: \"/uploads/documents/file-1758044243795-467363342.pdf\",\n    mimeType: \"application/pdf\",\n    fileSize: 2178609,\n    fileType: \"OTHER\",\n    description: undefined,\n    tags: [],\n    isPublic: \"true\",\n              ~~~~~~\n    projectId: null,\n    uploadedById: \"cmfld60ef0000bi0d8ky8hlot\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectName: true,\n        projectNumber: true\n      }\n    }\n  }\n}\n\nArgument `isPublic`: Invalid value provided. Expected Boolean, provided String.",
+Sep 16 17:37:23      "statusCode": 500
+Sep 16 17:37:23    }
+Sep 16 17:37:23  }
+Sep 16 17:37:23  10.244.0.217 - - [16/Sep/2025:17:37:23 +0000] "POST /api/documents-enhanced HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:37:25  🚨 SERVER ERROR: {
+Sep 16 17:37:25    "timestamp": "2025-09-16T17:37:25.649Z",
+Sep 16 17:37:25    "method": "POST",
+Sep 16 17:37:25    "url": "/api/documents-enhanced",
+Sep 16 17:37:25    "ip": "10.244.0.217",
+Sep 16 17:37:25    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+Sep 16 17:37:25    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Sep 16 17:37:25    "error": {
+Sep 16 17:37:25      "name": "PrismaClientValidationError",
+Sep 16 17:37:25      "message": "\nInvalid `prisma.document.create()` invocation:\n\n{\n  data: {\n    fileName: \"file-1758044245551-67160724.pdf\",\n    originalName: \"EMK385_1221.pdf\",\n    fileUrl: \"/uploads/documents/file-1758044245551-67160724.pdf\",\n    mimeType: \"application/pdf\",\n    fileSize: 2178609,\n    fileType: \"OTHER\",\n    description: undefined,\n    tags: [],\n    isPublic: \"true\",\n              ~~~~~~\n    projectId: null,\n    uploadedById: \"cmfld60ef0000bi0d8ky8hlot\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectName: true,\n        projectNumber: true\n      }\n    }\n  }\n}\n\nArgument `isPublic`: Invalid value provided. Expected Boolean, provided String.",
+Sep 16 17:37:25      "statusCode": 500
+Sep 16 17:37:25    }
+Sep 16 17:37:25  }
+Sep 16 17:37:25  10.244.0.217 - - [16/Sep/2025:17:37:25 +0000] "POST /api/documents-enhanced HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 17:37:31  10.244.43.233 - - [16/Sep/2025:17:37:31 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Sep 16 17:37:31  10.244.19.36 - - [16/Sep/2025:17:37:31 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
