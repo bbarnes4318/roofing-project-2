@@ -1,0 +1,31 @@
+
+Sep 16 03:27:31
+     "message": "\nInvalid `prisma.document.findUnique()` invocation:\n\n{\n  where: {\n    id: \"categories\"\n  },\n  include: {\n    uploadedBy: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        name: true,\n        ~~~~\n        projectNumber: true,\n        customer: {\n          select: {\n            firstName: true,\n            lastName: true,\n            company: true\n          }\n        },\n?       createdAt?: true,\n?       updatedAt?: true,\n?       projectName?: true,\n?       projectType?: true,\n?       status?: true,\n?       archived?: true,\n?       archivedAt?: true,\n?       progress?: true,\n?       description?: true,\n?       priority?: true,\n?       budget?: true,\n?       estimatedCost?: true,\n?       actualCost?: true,\n?       startDate?: true,\n?       endDate?: true,\n?       notes?: true,\n?       pmPhone?: true,\n?       pmEmail?: true,\n?       customerId?: true,\n?       projectManagerId?: true,\n?       createdById?: true,\n?       phase?: true,\n?       searchVector?: true,\n?       calendarEvents?: true,\n?       documents?: true,\n?       projectMessages?: true,\n?       phaseOverrides?: true,\n?       teamMembers?: true,\n?       workflowTrackers?: true,\n?       createdBy?: true,\n?       projectManager?: true,\n?       tasks?: true,\n?       voiceTranscripts?: true,\n?       workflowAlerts?: true,\n?       _count?: true\n      }\n    },\n    documentVersions: {\n      orderBy: {\n        versionNumber: \"desc\"\n      },\n      include: {\n        uploadedBy: {\n          select: {\n            firstName: true,\n            lastName: true\n          }\n        }\n      }\n    },\n    documentComments: {\n      orderBy: {\n        created_at: \"desc\"\n      },\n      include: {\n        author: {\n          select: {\n            firstName: true,\n            lastName: true,\n            avatar: true\n          }\n        },\n        replies: {\n          include: {\n            author: {\n              select: {\n                firstName: true,\n                lastName: true,\n                avatar: true\n              }\n            }\n          }\n        }\n      }\n    },\n    documentAccess: {\n      include: {\n        user: {\n          select: {\n            firstName: true,\n            lastName: true,\n            email: true\n          }\n        },\n        role: {\n          select: {\n            name: true\n          }\n        }\n      }\n    },\n    _count: {\n      select: {\n        downloads: true,\n        documentComments: true,\n        documentFavorites: true\n      }\n    }\n  }\n}\n\nUnknown field `name` for select statement on model `Project`. Available options are marked with ?.",
+Sep 16 03:27:31
+     "statusCode": 500
+Sep 16 03:27:31
+   }
+Sep 16 03:27:31
+ }
+Sep 16 03:27:31
+ 10.244.30.98 - - [16/Sep/2025:03:27:31 +0000] "GET /api/documents-enhanced/categories HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+Sep 16 03:27:41
+ 10.244.13.161 - - [16/Sep/2025:03:27:41 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:27:41
+ 10.244.31.96 - - [16/Sep/2025:03:27:41 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:27:51
+ 10.244.13.161 - - [16/Sep/2025:03:27:51 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Sep 16 03:27:51
+ 10.244.31.96 - - [16/Sep/2025:03:27:51 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:28:01
+ 10.244.13.161 - - [16/Sep/2025:03:28:01 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:28:01
+ 10.244.31.96 - - [16/Sep/2025:03:28:01 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:28:11
+ 10.244.13.161 - - [16/Sep/2025:03:28:11 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:28:11
+ 10.244.31.96 - - [16/Sep/2025:03:28:11 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:28:21
+ 10.244.13.161 - - [16/Sep/2025:03:28:21 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Sep 16 03:28:21
+ 10.244.31.96 - - [16/Sep/2025:03:28:21 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"

@@ -132,7 +132,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
           select: { id: true, firstName: true, lastName: true, email: true }
         },
         project: {
-          select: { id: true, name: true, projectNumber: true }
+          select: { id: true, projectName: true, projectNumber: true }
         },
         downloads: {
           select: { id: true, createdAt: true, user: { select: { firstName: true, lastName: true } } },
@@ -213,28 +213,9 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
           uploadedBy: { select: { firstName: true, lastName: true } }
         }
       },
-      documentComments: {
-        orderBy: { createdAt: 'desc' },
-        include: {
-          author: { select: { firstName: true, lastName: true, avatar: true } },
-          replies: {
-            include: {
-              author: { select: { firstName: true, lastName: true, avatar: true } }
-            }
-          }
-        }
-      },
-      documentAccess: {
-        include: {
-          user: { select: { firstName: true, lastName: true, email: true } },
-          role: { select: { name: true } }
-        }
-      },
       _count: {
         select: {
-          downloads: true,
-          documentComments: true,
-          documentFavorites: true
+          downloads: true
         }
       }
     }
@@ -279,32 +260,8 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
       file_sizeFormatted: formatFileSize(v.fileSize),
       uploadedBy: v.uploadedBy ? `${v.uploadedBy.firstName} ${v.uploadedBy.lastName}` : null
     })),
-    comments: document.documentComments.map(c => ({
-      ...c,
-      author: c.author ? {
-        name: `${c.author.firstName} ${c.author.lastName}`,
-        avatar: c.author.avatar
-      } : null,
-      replies: c.replies.map(r => ({
-        ...r,
-        author: r.author ? {
-          name: `${r.author.firstName} ${r.author.lastName}`,
-          avatar: r.author.avatar
-        } : null
-      }))
-    })),
-    access: document.documentAccess.map(a => ({
-      ...a,
-      user: a.user ? {
-        name: `${a.user.firstName} ${a.user.lastName}`,
-        email: a.user.email
-      } : null,
-      role: a.role ? { name: a.role.name } : null
-    })),
     stats: {
-      download_count: document._count.downloads,
-      commentCount: document._count.documentComments,
-      favoriteCount: document._count.documentFavorites
+      download_count: document._count.downloads
     }
   };
 
@@ -369,7 +326,7 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
         select: { id: true, firstName: true, lastName: true, email: true }
       },
       project: {
-        select: { id: true, name: true, projectNumber: true }
+        select: { id: true, projectName: true, projectNumber: true }
       }
     }
   });
@@ -441,7 +398,7 @@ router.put('/:id', authenticateToken, validateDocument, asyncHandler(async (req,
         select: { id: true, firstName: true, lastName: true, email: true }
       },
       project: {
-        select: { id: true, name: true, projectNumber: true }
+        select: { id: true, projectName: true, projectNumber: true }
       }
     }
   });
