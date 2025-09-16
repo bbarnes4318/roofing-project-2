@@ -28,7 +28,7 @@ const transformMessageToActivity = (message, currentUserId) => {
     content: message.content,
     user: authorName,
     author: authorName,
-    timestamp: message.created_at,
+    timestamp: message.createdAt,
     projectId: message.projectId,
     projectName: projectName,
     projectNumber: message.projectNumber,
@@ -61,7 +61,7 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   const {
     page = 1,
     limit = 50,
-    sortBy = 'created_at',
+    sortBy = 'createdAt',
     sortOrder = 'desc',
     projectId,
     conversationId
@@ -186,7 +186,7 @@ router.get('/recent', asyncHandler(async (req, res) => {
     // Get recent project messages with author and project information
     const messages = await prisma.projectMessage.findMany({
       where,
-      orderBy: { created_at: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: limitNum,
       include: {
         author: {
@@ -317,7 +317,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
   const {
     page = 1,
     limit = 50,
-    sortBy = 'created_at',
+    sortBy = 'createdAt',
     sortOrder = 'desc'
   } = req.query;
 

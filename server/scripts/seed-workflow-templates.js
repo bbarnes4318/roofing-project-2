@@ -29,7 +29,7 @@ const { prisma } = require('../config/prisma');
       const phase = await prisma.workflowPhase.create({
       data: {
           ...phaseData,
-        is_active: true,
+        isActive: true,
         isCurrent: true,
           workflowType: 'ROOFING',
           description: `${phaseData.phaseName} phase for roofing projects`
@@ -144,7 +144,7 @@ const { prisma } = require('../config/prisma');
           sectionName: sectionData.sectionName,
           displayName: sectionData.sectionName,
           displayOrder: sectionData.displayOrder,
-        is_active: true,
+        isActive: true,
         isCurrent: true,
         workflowType: 'ROOFING',
           phase: {
@@ -165,7 +165,7 @@ const { prisma } = require('../config/prisma');
               connect: { id: section.id }
             },
             responsibleRole: lineItemData.responsibleRole,
-        is_active: true,
+        isActive: true,
         isCurrent: true,
         workflowType: 'ROOFING',
             estimatedMinutes: 60,

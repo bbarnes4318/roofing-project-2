@@ -23,14 +23,14 @@ router.get('/', authenticateToken, authorize('ADMIN', 'MANAGER'), asyncHandler(a
       position: true,
       department: true,
       bio: true,
-      is_active: true,
+      isActive: true,
       isVerified: true,
       theme: true,
       language: true,
       timezone: true,
       skills: true,
       experience: true,
-      created_at: true,
+      createdAt: true,
       last_login: true
     },
     orderBy: [
@@ -53,7 +53,7 @@ router.get('/team-members', authenticateToken, asyncHandler(async (req, res) => 
   // Get all active users except clients
   const teamMembers = await prisma.user.findMany({
     where: {
-      is_active: true,
+      isActive: true,
       role: { not: 'CLIENT' }
     },
     select: {
@@ -95,14 +95,14 @@ router.get('/:id', asyncHandler(async (req, res) => {
       position: true,
       department: true,
       bio: true,
-      is_active: true,
+      isActive: true,
       isVerified: true,
       theme: true,
       language: true,
       timezone: true,
       skills: true,
       experience: true,
-      created_at: true,
+      createdAt: true,
       last_login: true,
       projectsAsManager: {
         select: {
