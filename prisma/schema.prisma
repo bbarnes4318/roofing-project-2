@@ -254,7 +254,7 @@ model Document {
   lastDownloadedAt        DateTime?
   checksum                String?                   @db.VarChar(255)
   isPublic                Boolean                   @default(false)
-  projectId               String                    @map("project_id")
+  projectId               String?                   @map("project_id")
   uploadedById            String                    @map("uploaded_by_id")
   searchVector            String?
   downloads               DocumentDownload[]
