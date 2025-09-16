@@ -315,13 +315,13 @@ router.post('/assets/upload',
           // Create initial version
           versions: {
             create: {
-              version_number: 1,
+              versionNumber: 1,
               fileUrl: fileUrl,
               fileSize: file.size,
               checksum,
               change_description: 'Initial upload',
               uploadedById: req.user.id,
-              is_current: true
+              isCurrent: true
             }
           }
         },
@@ -457,7 +457,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   
   const asset = await prisma.companyAsset.findUnique({ 
     where: { id },
-    include: { versions: { orderBy: { version_number: 'desc' }, take: 1 } }
+    include: { versions: { orderBy: { versionNumber: 'desc' }, take: 1 } }
   });
   
   if (!asset) throw new AppError('Asset not found', 404);
@@ -482,27 +482,27 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
     updateData.checksum = checksum;
     
     // Create new version
-    const currentVersion = asset.versions[0]?.version_number || 0;
+    const currentVersion = asset.versions[0]?.versionNumber || 0;
     await prisma.companyAssetVersion.create({
       data: {
-        asset_id: id,
-        version_number: currentVersion + 1,
+        assetId: id,
+        versionNumber: currentVersion + 1,
         fileUrl,
         fileSize: req.file.size,
         checksum,
         change_description: req.body.change_description || 'File updated',
         uploadedById: req.user.id,
-        is_current: true
+        isCurrent: true
       }
     });
     
     // Mark previous versions as not current
     await prisma.companyAssetVersion.updateMany({
       where: {
-        asset_id: id,
-        version_number: { lt: currentVersion + 1 }
+        assetId: id,
+        versionNumber: { lt: currentVersion + 1 }
       },
-      data: { is_current: false }
+      data: { isCurrent: false }
     });
     
     // Update version number
@@ -547,7 +547,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
         where: { isActive: true }
       },
       versions: {
-        orderBy: { version_number: 'desc' }
+        orderBy: { versionNumber: 'desc' }
       }
     }
   });
@@ -572,7 +572,7 @@ router.get('/assets/:id/versions', authenticateToken, asyncHandler(async (req, r
   
   const versions = await prisma.companyAssetVersion.findMany({
     where: { assetId: id },
-    orderBy: { version_number: 'desc' },
+    orderBy: { versionNumber: 'desc' },
     include: {
       uploadedBy: {
         select: {
@@ -597,7 +597,7 @@ router.get('/assets/:id/versions/:versionId/download', authenticateToken, asyncH
     include: { asset: true }
   });
   
-  if (!version || version.asset_id !== id) {
+  if (!version || version.assetId !== id) {
     throw new AppError('Version not found', 404);
   }
   
@@ -622,21 +622,21 @@ router.post('/assets/:id/versions/:versionId/restore', authenticateToken, asyncH
     include: { asset: true }
   });
   
-  if (!version || version.asset_id !== id) {
+  if (!version || version.assetId !== id) {
     throw new AppError('Version not found', 404);
   }
   
   // Create new version that's a copy of the old one
   const newVersion = await prisma.companyAssetVersion.create({
     data: {
-      asset_id: id,
-      version_number: version.asset.version + 1,
+      assetId: id,
+      versionNumber: version.asset.version + 1,
       fileUrl: version.fileUrl,
       fileSize: version.fileSize,
       checksum: version.checksum,
-      change_description: `Restored from version ${version.version_number}`,
+      change_description: `Restored from version ${version.versionNumber}`,
       uploadedById: req.user.id,
-      is_current: true
+      isCurrent: true
     }
   });
   
@@ -647,22 +647,22 @@ router.post('/assets/:id/versions/:versionId/restore', authenticateToken, asyncH
       fileUrl: version.fileUrl,
       fileSize: version.fileSize,
       checksum: version.checksum,
-      version: newVersion.version_number
+      version: newVersion.versionNumber
     }
   });
   
   // Mark all other versions as not current
   await prisma.companyAssetVersion.updateMany({
     where: {
-      asset_id: id,
+      assetId: id,
       id: { not: newVersion.id }
     },
-    data: { is_current: false }
+    data: { isCurrent: false }
   });
   
   res.json({ 
     success: true, 
-    message: `Restored version ${version.version_number}`,
+    message: `Restored version ${version.versionNumber}`,
     data: { version: newVersion }
   });
 }));
@@ -850,7 +850,7 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
     where: { id },
     include: {
       versions: {
-        where: { is_current: true },
+        where: { isCurrent: true },
         take: 1
       }
     }

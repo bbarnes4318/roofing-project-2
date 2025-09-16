@@ -95,7 +95,7 @@ class DocumentService {
       const stats = await prisma.companyAsset.aggregate({
         where: {
           parent_id: folderId,
-          is_active: true
+          isActive: true
         },
         _count: {
           id: true
@@ -109,7 +109,7 @@ class DocumentService {
         by: ['type'],
         where: {
           parent_id: folderId,
-          is_active: true
+          isActive: true
         },
         _count: {
           id: true
@@ -142,7 +142,7 @@ class DocumentService {
         where: {
           uploaded_by_id: userId,
           type: 'FILE',
-          is_active: true
+          isActive: true
         },
         _sum: {
           file_size: true
@@ -252,7 +252,7 @@ class DocumentService {
           ]
         },
         data: {
-          is_active: false,
+          isActive: false,
           metadata: {
             trashedAt: new Date().toISOString(),
             trashedBy: userId
@@ -275,10 +275,10 @@ class DocumentService {
       const result = await prisma.companyAsset.updateMany({
         where: {
           id: { in: assetIds },
-          is_active: false
+          isActive: false
         },
         data: {
-          is_active: true,
+          isActive: true,
           metadata: {
             restoredAt: new Date().toISOString(),
             restoredBy: userId
@@ -302,7 +302,7 @@ class DocumentService {
       const assets = await prisma.companyAsset.findMany({
         where: {
           id: { in: assetIds },
-          is_active: false // Only delete trashed items
+          isActive: false // Only delete trashed items
         },
         include: {
           versions: true
@@ -313,7 +313,7 @@ class DocumentService {
       const result = await prisma.companyAsset.deleteMany({
         where: {
           id: { in: assetIds },
-          is_active: false
+          isActive: false
         }
       });
       
@@ -365,7 +365,7 @@ class DocumentService {
   static async getTrashItems(userId, userRole) {
     try {
       const where = {
-        is_active: false
+        isActive: false
       };
       
       // Non-admins only see their own trashed items
@@ -407,7 +407,7 @@ class DocumentService {
       
       const oldItems = await prisma.companyAsset.findMany({
         where: {
-          is_active: false,
+          isActive: false,
           updatedAt: {
             lt: thirtyDaysAgo
           }
