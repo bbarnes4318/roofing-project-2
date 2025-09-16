@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    file_size: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -54,10 +54,10 @@ const validateDocument = [
   body('title').optional().isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
   body('description').optional().isLength({ max: 1000 }).withMessage('Description must be less than 1000 characters'),
   body('category').optional().isIn(['CONTRACTS', 'WARRANTIES', 'PERMITS', 'INSPECTIONS', 'ESTIMATES', 'INVOICES', 'PHOTOS', 'REPORTS', 'FORMS', 'CHECKLISTS', 'MANUALS', 'TRAINING', 'COMPLIANCE', 'LEGAL', 'MARKETING', 'OTHER']),
-  body('accessLevel').optional().isIn(['PUBLIC', 'AUTHENTICATED', 'PRIVATE', 'INTERNAL', 'ADMIN']),
+  body('access_level').optional().isIn(['PUBLIC', 'AUTHENTICATED', 'PRIVATE', 'INTERNAL', 'ADMIN']),
   body('fileType').optional().isIn(['BLUEPRINT', 'PERMIT', 'INVOICE', 'PHOTO', 'CONTRACT', 'REPORT', 'SPECIFICATION', 'CORRESPONDENCE', 'WARRANTY', 'CHECKLIST', 'FORM', 'MANUAL', 'GUIDE', 'TEMPLATE', 'CERTIFICATE', 'OTHER']),
   body('tags').optional().isArray().withMessage('Tags must be an array'),
-  body('isPublic').optional().isBoolean(),
+  body('is_public').optional().isBoolean(),
   body('isTemplate').optional().isBoolean(),
   body('requiresSignature').optional().isBoolean(),
   body('expiryDate').optional().isISO8601().withMessage('Expiry date must be a valid ISO 8601 date'),
@@ -72,12 +72,12 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     search,
     category,
     fileType,
-    accessLevel,
-    isPublic,
+    access_level,
+    is_public,
     isTemplate,
     projectId,
     tags,
-    sortBy = 'createdAt',
+    sortBy = 'created_at',
     sortOrder = 'desc',
     region,
     state
@@ -88,7 +88,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
 
   // Build where clause using existing fields only
   const where = {
-    isActive: true
+    is_active: true
   };
 
   // Apply filters using existing fields only
@@ -101,23 +101,23 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   }
 
   if (fileType) where.fileType = fileType;
-  if (isPublic !== undefined) where.isPublic = isPublic === 'true';
+  if (is_public !== undefined) where.is_public = is_public === 'true';
   if (projectId) where.projectId = projectId;
   if (tags) {
     const tagArray = Array.isArray(tags) ? tags : [tags];
     where.tags = { hasSome: tagArray };
   }
 
-  // Apply access control based on user role using existing isPublic field
+  // Apply access control based on user role using existing is_public field
   const user = req.user;
   if (user.role === 'CUSTOMER') {
-    where.isPublic = true;
+    where.is_public = true;
   }
   // For other roles, show all documents
 
   // Validate sortBy field - only allow valid Document fields
-  const validSortFields = ['createdAt', 'updatedAt', 'fileName', 'originalName', 'fileSize', 'downloadCount', 'lastDownloadedAt'];
-  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+  const validSortFields = ['created_at', 'updatedAt', 'fileName', 'originalName', 'file_size', 'download_count', 'last_downloaded_at'];
+  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'created_at';
   const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
 
   // Get documents with pagination
@@ -135,8 +135,8 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
           select: { id: true, name: true, projectNumber: true }
         },
         downloads: {
-          select: { id: true, createdAt: true, user: { select: { firstName: true, lastName: true } } },
-          orderBy: { createdAt: 'desc' },
+          select: { id: true, created_at: true, user: { select: { firstName: true, lastName: true } } },
+          orderBy: { created_at: 'desc' },
           take: 5
         },
         _count: {
@@ -152,11 +152,11 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   // Format response using existing fields
   const formattedDocuments = documents.map(doc => ({
     ...doc,
-    isFavorite: false, // Will be false for now
-    downloadCount: doc._count.downloads,
+    is_favorite: false, // Will be false for now
+    download_count: doc._count.downloads,
     commentCount: 0, // Will be 0 for now
     favoriteCount: 0, // Will be 0 for now
-    fileSizeFormatted: formatFileSize(doc.fileSize),
+    file_sizeFormatted: formatFileSize(doc.file_size),
     uploadedBy: doc.uploadedBy ? {
       id: doc.uploadedBy.id,
       name: `${doc.uploadedBy.firstName} ${doc.uploadedBy.lastName}`,
@@ -169,7 +169,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     } : null,
     recentDownloads: doc.downloads.map(d => ({
       id: d.id,
-      downloadedAt: d.createdAt,
+      downloadedAt: d.created_at,
       downloadedBy: `${d.user.firstName} ${d.user.lastName}`
     }))
   }));
@@ -214,7 +214,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
         }
       },
       documentComments: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { created_at: 'desc' },
         include: {
           author: { select: { firstName: true, lastName: true, avatar: true } },
           replies: {
@@ -258,7 +258,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
   // Format response
   const formattedDocument = {
     ...document,
-    fileSizeFormatted: formatFileSize(document.fileSize),
+    file_sizeFormatted: formatFileSize(document.file_size),
     uploadedBy: document.uploadedBy ? {
       id: document.uploadedBy.id,
       name: `${document.uploadedBy.firstName} ${document.uploadedBy.lastName}`,
@@ -276,7 +276,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     } : null,
     versions: document.documentVersions.map(v => ({
       ...v,
-      fileSizeFormatted: formatFileSize(v.fileSize),
+      file_sizeFormatted: formatFileSize(v.file_size),
       uploadedBy: v.uploadedBy ? `${v.uploadedBy.firstName} ${v.uploadedBy.lastName}` : null
     })),
     comments: document.documentComments.map(c => ({
@@ -302,7 +302,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
       role: a.role ? { name: a.role.name } : null
     })),
     stats: {
-      downloadCount: document._count.downloads,
+      download_count: document._count.downloads,
       commentCount: document._count.documentComments,
       favoriteCount: document._count.documentFavorites
     }
@@ -336,17 +336,17 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
     description,
     fileType = 'OTHER',
     tags = [],
-    isPublic = false,
+    is_public = false,
     projectId
   } = req.body;
 
   // Generate file URL
-  const fileUrl = `/uploads/documents/${req.file.filename}`;
+  const file_url = `/uploads/documents/${req.file.filename}`;
   
   // Generate thumbnail for images
   let thumbnailUrl = null;
   if (req.file.mimetype.startsWith('image/')) {
-    thumbnailUrl = fileUrl; // For now, use the same URL
+    thumbnailUrl = file_url; // For now, use the same URL
   }
 
   // Create document using existing fields only
@@ -354,15 +354,15 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
     data: {
       fileName: req.file.filename,
       originalName: req.file.originalname,
-      fileUrl,
-      mimeType: req.file.mimetype,
-      fileSize: req.file.size,
+      file_url,
+      mime_type: req.file.mimetype,
+      file_size: req.file.size,
       fileType,
       description,
       tags: Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim()),
-      isPublic,
+      is_public,
       projectId: projectId || null,
-      uploadedById: req.user.id
+      uploaded_by_id: req.user.id
     },
     include: {
       uploadedBy: {
@@ -399,7 +399,7 @@ router.put('/:id', authenticateToken, validateDocument, asyncHandler(async (req,
   }
 
   // Check permissions
-  if (document.uploadedById !== user.id && !['ADMIN', 'MANAGER'].includes(user.role)) {
+  if (document.uploaded_by_id !== user.id && !['ADMIN', 'MANAGER'].includes(user.role)) {
     return res.status(403).json({
       success: false,
       message: 'Access denied'
@@ -471,7 +471,7 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
   }
 
   // Check permissions
-  if (document.uploadedById !== user.id && !['ADMIN', 'MANAGER'].includes(user.role)) {
+  if (document.uploaded_by_id !== user.id && !['ADMIN', 'MANAGER'].includes(user.role)) {
     return res.status(403).json({
       success: false,
       message: 'Access denied'
@@ -529,14 +529,14 @@ router.post('/:id/download', authenticateToken, asyncHandler(async (req, res) =>
   await prisma.document.update({
     where: { id },
     data: {
-      downloadCount: { increment: 1 },
-      lastDownloadedAt: new Date()
+      download_count: { increment: 1 },
+      last_downloaded_at: new Date()
     }
   });
 
   res.json({
     success: true,
-    data: { downloadUrl: document.fileUrl },
+    data: { downloadUrl: document.file_url },
     message: 'Download recorded'
   });
 }));
@@ -561,7 +561,7 @@ router.post('/:id/favorite', authenticateToken, asyncHandler(async (req, res) =>
     });
     res.json({
       success: true,
-      data: { isFavorite: false },
+      data: { is_favorite: false },
       message: 'Document removed from favorites'
     });
   } else {
@@ -573,7 +573,7 @@ router.post('/:id/favorite', authenticateToken, asyncHandler(async (req, res) =>
     });
     res.json({
       success: true,
-      data: { isFavorite: true },
+      data: { is_favorite: true },
       message: 'Document added to favorites'
     });
   }
@@ -584,7 +584,7 @@ router.get('/categories', authenticateToken, asyncHandler(async (req, res) => {
   const categories = await prisma.document.groupBy({
     by: ['fileType'],
     where: {
-      isActive: true
+      is_active: true
     },
     _count: {
       id: true
@@ -630,22 +630,22 @@ async function getUserProjectIds(userId) {
 
 function hasDocumentAccess(document, user) {
   // Public documents
-  if (document.accessLevel === 'PUBLIC') return true;
+  if (document.access_level === 'PUBLIC') return true;
   
   // Authenticated users
-  if (document.accessLevel === 'AUTHENTICATED' && user) return true;
+  if (document.access_level === 'AUTHENTICATED' && user) return true;
   
   // Private documents - check if user has access to the project
-  if (document.accessLevel === 'PRIVATE' && document.projectId) {
+  if (document.access_level === 'PRIVATE' && document.projectId) {
     // This would need to be enhanced with actual project access check
     return true; // Simplified for now
   }
   
   // Internal documents
-  if (document.accessLevel === 'INTERNAL' && ['ADMIN', 'MANAGER', 'WORKER'].includes(user.role)) return true;
+  if (document.access_level === 'INTERNAL' && ['ADMIN', 'MANAGER', 'WORKER'].includes(user.role)) return true;
   
   // Admin documents
-  if (document.accessLevel === 'ADMIN' && user.role === 'ADMIN') return true;
+  if (document.access_level === 'ADMIN' && user.role === 'ADMIN') return true;
   
   return false;
 }

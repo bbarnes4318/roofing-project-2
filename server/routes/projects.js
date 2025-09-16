@@ -91,12 +91,12 @@ const getTotalLineItemsCount = async (workflowType = 'ROOFING') => {
   try {
     const count = await prisma.workflowLineItem.count({
       where: {
-        isActive: true,
+        is_active: true,
         workflowType: workflowType,
         section: {
-          isActive: true,
+          is_active: true,
           phase: {
-            isActive: true
+            is_active: true
           }
         }
       }
@@ -142,8 +142,8 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
     // Dates
     startDate: project.startDate,
     endDate: project.endDate,
-    createdAt: project.createdAt,
-    updatedAt: project.updatedAt,
+    created_at: project.created_at,
+    updated_at: project.updated_at,
     
     // Address - use customer's address as the single source of truth
     address: project.customer?.address || null,
@@ -166,7 +166,7 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
       secondaryPhone: project.customer.secondaryPhone,
       primaryContact: project.customer.primaryContact,
       address: project.customer.address,
-      createdAt: project.customer.createdAt
+      created_at: project.customer.created_at
     } : null,
     
     // Also provide client alias for compatibility
@@ -299,7 +299,7 @@ router.get('/', asyncHandler(async (req, res) => {
     search, 
     page: pageRaw = 1, 
     limit: limitRaw = 50, // Increased default limit for better performance
-    sortBy: sortByRaw = 'createdAt',
+    sortBy: sortByRaw = 'created_at',
     sortOrder: sortOrderRaw = 'desc',
     includeArchived = false
   } = req.query;
@@ -311,10 +311,10 @@ router.get('/', asyncHandler(async (req, res) => {
 
   // Sanitize sorting - whitelist sortable fields
   const allowedSortFields = new Set([
-    'createdAt', 'updatedAt', 'projectNumber', 'projectName',
+    'created_at', 'updated_at', 'projectNumber', 'projectName',
     'status', 'priority', 'startDate', 'endDate'
   ]);
-  const sortBy = allowedSortFields.has(String(sortByRaw)) ? String(sortByRaw) : 'createdAt';
+  const sortBy = allowedSortFields.has(String(sortByRaw)) ? String(sortByRaw) : 'created_at';
   const sortOrder = String(sortOrderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
   // Build filter object for Prisma
@@ -644,7 +644,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     let resolvedProjectManagerId = validatedProjectManagerId;
     if (!resolvedProjectManagerId && process.env.DEFAULT_PM_USER_ID) {
       const envUser = await prisma.user.findUnique({ where: { id: process.env.DEFAULT_PM_USER_ID } });
-      if (envUser && envUser.isActive) {
+      if (envUser && envUser.is_active) {
         resolvedProjectManagerId = envUser.id;
       }
     }

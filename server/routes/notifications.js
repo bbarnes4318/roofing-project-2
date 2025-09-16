@@ -24,7 +24,7 @@ router.get('/', asyncHandler(async (req, res) => {
     type, 
     page = 1, 
     limit = 20,
-    sortBy = 'createdAt',
+    sortBy = 'created_at',
     sortOrder = 'desc'
   } = req.query;
 
@@ -313,7 +313,7 @@ router.get('/stats', asyncHandler(async (req, res) => {
     }),
     prisma.notification.findMany({
       where: { recipientId: req.user.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       take: 5
     })
   ]);

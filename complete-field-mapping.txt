@@ -1,0 +1,811 @@
+COMPLETE FIELD MAPPING: API FIELDS → PRISMA FIELDS
+
+==========================================
+COMPANY ASSET MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+title                 → title
+description           → description
+fileUrl               → fileUrl
+mimeType              → mimeType
+fileSize              → fileSize
+tags                  → tags
+section               → section
+version               → version
+isActive              → isActive
+downloadCount         → downloadCount
+lastDownloadedAt      → lastDownloadedAt
+uploadedById          → uploadedById
+parentId              → parentId
+path                  → path
+sortOrder             → sortOrder
+type                  → type
+folderName            → folderName
+isPublic              → isPublic
+thumbnail_url         → thumbnail_url
+checksum              → checksum
+metadata              → metadata
+accessLevel           → accessLevel
+duplicateOf           → duplicateOf
+isArchived            → isArchived
+isFavorite            → isFavorite
+lastAccessedAt        → lastAccessedAt
+sharedWith            → sharedWith
+viewCount             → viewCount
+
+==========================================
+COMPANY ASSET VERSION MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+created_at            → created_at
+assetId               → assetId
+version_number        → version_number
+file_url              → file_url
+file_size             → file_size
+checksum              → checksum
+change_description    → change_description
+uploadedById          → uploadedById
+is_current            → is_current
+
+==========================================
+DOCUMENT MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+fileName              → fileName
+originalName          → originalName
+fileUrl               → fileUrl
+mimeType              → mimeType
+fileSize              → fileSize
+fileType              → fileType
+description           → description
+tags                  → tags
+version               → version
+isActive              → isActive
+downloadCount         → downloadCount
+lastDownloadedAt      → lastDownloadedAt
+checksum              → checksum
+isPublic              → isPublic
+projectId             → projectId
+uploadedById          → uploadedById
+searchVector          → searchVector
+
+==========================================
+PROJECT MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+projectNumber         → projectNumber
+projectName           → projectName
+projectType           → projectType
+status                → status
+archived              → archived
+archivedAt            → archivedAt
+progress              → progress
+description           → description
+priority              → priority
+budget                → budget
+estimatedCost         → estimatedCost
+actualCost            → actualCost
+startDate             → startDate
+endDate               → endDate
+notes                 → notes
+pmPhone               → pmPhone
+pmEmail               → pmEmail
+customerId            → customerId
+projectManagerId      → projectManagerId
+createdById           → createdById
+phase                 → phase
+searchVector          → searchVector
+
+==========================================
+USER MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+firstName             → firstName
+lastName              → lastName
+email                 → email
+password              → password
+avatar                → avatar
+phone                 → phone
+position              → position
+department            → department
+bio                   → bio
+role                  → role
+permissions           → permissions
+isActive              → isActive
+isVerified            → isVerified
+emailVerificationToken → emailVerificationToken
+emailVerificationExpires → emailVerificationExpires
+passwordResetToken    → passwordResetToken
+passwordResetExpires  → passwordResetExpires
+passwordChangedAt     → passwordChangedAt
+loginAttempts         → loginAttempts
+lockUntil             → lockUntil
+lastLogin             → lastLogin
+lastLoginIP           → lastLoginIP
+twoFactorSecret       → twoFactorSecret
+twoFactorEnabled      → twoFactorEnabled
+theme                 → theme
+notificationPreferences → notificationPreferences
+language              → language
+timezone              → timezone
+skills                → skills
+certifications        → certifications
+experience            → experience
+emergencyContact      → emergencyContact
+address               → address
+
+==========================================
+TASK MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+title                 → title
+description           → description
+dueDate               → dueDate
+status                → status
+priority              → priority
+estimatedHours        → estimatedHours
+actualHours           → actualHours
+category              → category
+tags                  → tags
+notes                 → notes
+completedAt           → completedAt
+projectId             → projectId
+assignedToId          → assignedToId
+createdById           → createdById
+
+==========================================
+PROJECT MESSAGES MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+content               → content
+subject               → subject
+messageType           → messageType
+priority              → priority
+author_id             → author_id
+authorName            → authorName
+authorRole            → authorRole
+project_id            → project_id
+projectNumber         → projectNumber
+workflow_id           → workflow_id
+step_id               → step_id
+stepName              → stepName
+phase                 → phase
+section               → section
+lineItem              → lineItem
+isSystemGenerated     → isSystemGenerated
+isWorkflowMessage     → isWorkflowMessage
+parent_message_id     → parent_message_id
+readBy                → readBy
+readCount             → readCount
+metadata              → metadata
+searchVector          → searchVector
+
+==========================================
+CUSTOMER MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+primaryName           → primaryName
+primaryEmail          → primaryEmail
+primaryPhone          → primaryPhone
+secondaryName         → secondaryName
+secondaryEmail        → secondaryEmail
+secondaryPhone        → secondaryPhone
+primaryContact        → primaryContact
+address               → address
+notes                 → notes
+isActive              → isActive
+primaryRole           → primaryRole
+secondaryRole         → secondaryRole
+
+==========================================
+WORKFLOW ALERT MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+type                  → type
+priority              → priority
+status                → status
+title                 → title
+message               → message
+stepName              → stepName
+isRead                → isRead
+readAt                → readAt
+acknowledged          → acknowledged
+acknowledgedAt        → acknowledgedAt
+dueDate               → dueDate
+projectId             → projectId
+assignedToId          → assignedToId
+createdById           → createdById
+metadata              → metadata
+responsibleRole       → responsibleRole
+line_item_id          → line_item_id
+phase_id              → phase_id
+section_id            → section_id
+
+==========================================
+CALENDAR EVENT MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+title                 → title
+description           → description
+startTime             → startTime
+endTime               → endTime
+location              → location
+isAllDay              → isAllDay
+eventType             → eventType
+status                → status
+isRecurring           → isRecurring
+recurrenceRule        → recurrenceRule
+parentEventId         → parentEventId
+organizerId           → organizerId
+projectId             → projectId
+
+==========================================
+NOTIFICATION MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+title                 → title
+message               → message
+type                  → type
+isRead                → isRead
+readAt                → readAt
+actionUrl             → actionUrl
+actionData            → actionData
+recipientId           → recipientId
+
+==========================================
+CONVERSATION MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+title                 → title
+description           → description
+isGroup               → isGroup
+isActive              → isActive
+
+==========================================
+MESSAGE MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+text                  → text
+messageType           → messageType
+isEdited              → isEdited
+editedAt              → editedAt
+isDeleted             → isDeleted
+deletedAt             → deletedAt
+conversationId        → conversationId
+senderId              → senderId
+replyToId             → replyToId
+attachments           → attachments
+reactions             → reactions
+systemData            → systemData
+
+==========================================
+PROJECT TEAM MEMBER MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+projectId             → projectId
+userId                → userId
+role                  → role
+
+==========================================
+TASK DEPENDENCY MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+parentTaskId          → parentTaskId
+dependentTaskId       → dependentTaskId
+
+==========================================
+DOCUMENT DOWNLOAD MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+documentId            → documentId
+userId                → userId
+
+==========================================
+CONVERSATION PARTICIPANT MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+conversationId        → conversationId
+userId                → userId
+joinedAt              → joinedAt
+leftAt                → leftAt
+role                  → role
+
+==========================================
+MESSAGE READ MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+messageId             → messageId
+userId                → userId
+readAt                → readAt
+
+==========================================
+CALENDAR EVENT ATTENDEE MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+eventId               → eventId
+userId                → userId
+status                → status
+response              → response
+
+==========================================
+PERMISSION MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+name                  → name
+description           → description
+resource              → resource
+action                → action
+conditions            → conditions
+
+==========================================
+WORKFLOW PHASE MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+phaseName             → phaseName
+phaseType             → phaseType
+displayOrder          → displayOrder
+description           → description
+isActive              → isActive
+isCurrent             → isCurrent
+version               → version
+workflowType          → workflowType
+
+==========================================
+WORKFLOW SECTION MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+sectionNumber         → sectionNumber
+sectionName           → sectionName
+displayName           → displayName
+displayOrder          → displayOrder
+description           → description
+isActive              → isActive
+phase_id              → phase_id
+isCurrent             → isCurrent
+version               → version
+workflowType          → workflowType
+
+==========================================
+WORKFLOW LINE ITEM MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+itemLetter            → itemLetter
+itemName              → itemName
+responsibleRole       → responsibleRole
+displayOrder          → displayOrder
+description           → description
+isActive              → isActive
+estimatedMinutes      → estimatedMinutes
+alertDays             → alertDays
+section_id            → section_id
+isCurrent             → isCurrent
+searchVector          → searchVector
+version               → version
+days_to_complete      → days_to_complete
+workflowType          → workflowType
+
+==========================================
+PROJECT WORKFLOW TRACKER MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+project_id            → project_id
+current_phase_id      → current_phase_id
+current_section_id    → current_section_id
+current_line_item_id  → current_line_item_id
+last_completed_item_id → last_completed_item_id
+phaseStartedAt        → phaseStartedAt
+sectionStartedAt      → sectionStartedAt
+lineItemStartedAt     → lineItemStartedAt
+is_main_workflow      → is_main_workflow
+trade_name            → trade_name
+workflowType          → workflowType
+totalLineItems        → totalLineItems
+
+==========================================
+COMPLETED WORKFLOW ITEMS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+tracker_id            → tracker_id
+phase_id              → phase_id
+section_id            → section_id
+line_item_id          → line_item_id
+completedAt           → completedAt
+completed_by_id       → completed_by_id
+notes                 → notes
+
+==========================================
+ROLE ASSIGNMENTS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+role_type             → role_type
+user_id               → user_id
+assigned_at           → assigned_at
+assigned_by_id        → assigned_by_id
+isActive              → isActive
+
+==========================================
+SECURITY EVENTS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+user_id               → user_id
+event_type            → event_type
+risk_score            → risk_score
+details               → details
+ip_address            → ip_address
+user_agent            → user_agent
+device_id             → device_id
+resolved              → resolved
+resolved_at           → resolved_at
+resolved_by           → resolved_by
+response              → response
+
+==========================================
+TASK COMMENTS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+content               → content
+task_id               → task_id
+user_id               → user_id
+
+==========================================
+TEMPLATE FIELDS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+key                   → key
+label                 → label
+type                  → type
+required              → required
+defaultValue          → defaultValue
+options               → options
+validation            → validation
+order                 → order
+template_id           → template_id
+
+==========================================
+USER BEHAVIOR PATTERNS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+user_id               → user_id
+keystroke_patterns    → keystroke_patterns
+mouse_patterns        → mouse_patterns
+touch_patterns        → touch_patterns
+usage_patterns        → usage_patterns
+voice_pattern         → voice_pattern
+risk_baseline         → risk_baseline
+anomaly_threshold     → anomaly_threshold
+last_analysis         → last_analysis
+
+==========================================
+USER DEVICES MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+user_id               → user_id
+device_fingerprint    → device_fingerprint
+device_name           → device_name
+device_type           → device_type
+user_agent            → user_agent
+ip_address            → ip_address
+location              → location
+trusted               → trusted
+biometric_enabled     → biometric_enabled
+last_used             → last_used
+is_active             → is_active
+
+==========================================
+USER MFA MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+user_id               → user_id
+method                → method
+secret                → secret
+backup_codes          → backup_codes
+phone_number          → phone_number
+enabled               → enabled
+last_used             → last_used
+
+==========================================
+VOICE TRANSCRIPTS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+session_id            → session_id
+project_id            → project_id
+user_id               → user_id
+call_date             → call_date
+start_time            → start_time
+end_time              → end_time
+duration              → duration
+participant_count     → participant_count
+executiveSummary      → executiveSummary
+projectStatus         → projectStatus
+key_decisions         → key_decisions
+action_items          → action_items
+materials_list        → materials_list
+schedule_timeline     → schedule_timeline
+risks_issues          → risks_issues
+budget_costs          → budget_costs
+technical_details     → technical_details
+client_concerns       → client_concerns
+next_steps            → next_steps
+communication_items   → communication_items
+full_transcript       → full_transcript
+ai_model              → ai_model
+ai_processed_at       → ai_processed_at
+is_ai_enhanced        → is_ai_enhanced
+generated_files       → generated_files
+
+==========================================
+WEBAUTHN CREDENTIALS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+user_id               → user_id
+credential_id         → credential_id
+credential_public_key → credential_public_key
+counter               → counter
+device_type           → device_type
+backed_up             → backed_up
+transports            → transports
+nickname              → nickname
+last_used             → last_used
+is_active             → is_active
+
+==========================================
+CALENDAR EVENT COMMENTS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+content               → content
+event_id              → event_id
+user_id               → user_id
+
+==========================================
+DOCUMENT TEMPLATES MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+name                  → name
+description           → description
+format                → format
+section               → section
+templateFileUrl       → templateFileUrl
+isActive              → isActive
+version               → version
+created_by_id         → created_by_id
+
+==========================================
+GENERATED DOCUMENT META MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+document_id           → document_id
+template_id           → template_id
+sourceData            → sourceData
+generated_by          → generated_by
+created_by_id         → created_by_id
+
+==========================================
+PROJECT MESSAGE RECIPIENTS MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+message_id            → message_id
+user_id               → user_id
+
+==========================================
+PROJECT MESSAGES MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+content               → content
+subject               → subject
+messageType           → messageType
+priority              → priority
+author_id             → author_id
+authorName            → authorName
+authorRole            → authorRole
+project_id            → project_id
+projectNumber         → projectNumber
+workflow_id           → workflow_id
+step_id               → step_id
+stepName              → stepName
+phase                 → phase
+section               → section
+lineItem              → lineItem
+isSystemGenerated     → isSystemGenerated
+isWorkflowMessage     → isWorkflowMessage
+parent_message_id     → parent_message_id
+readBy                → readBy
+readCount             → readCount
+metadata              → metadata
+searchVector          → searchVector
+
+==========================================
+PROJECT PHASE OVERRIDES MODEL
+==========================================
+API Field              → Prisma Field (in schema.prisma)
+------------------------------------------
+id                    → id
+createdAt             → createdAt
+updatedAt             → updatedAt
+project_id            → project_id
+from_phase            → from_phase
+to_phase              → to_phase
+suppressAlertsFor     → suppressAlertsFor
+isActive              → isActive
+
+==========================================
+ENUMS
+==========================================
+UserRole              → UserRole
+Permission            → Permission
+Theme                 → Theme
+ContactType           → ContactType
+ProjectType           → ProjectType
+ProjectStatus         → ProjectStatus
+Priority              → Priority
+ProjectPhase          → ProjectPhase
+WorkflowType          → WorkflowType
+WorkflowStatus        → WorkflowStatus
+ResponsibleRole       → ResponsibleRole
+AlertPriority         → AlertPriority
+AlertMethod           → AlertMethod
+AlertStatus           → AlertStatus
+TaskStatus            → TaskStatus
+TaskCategory          → TaskCategory
+DocumentType          → DocumentType
+ConversationRole      → ConversationRole
+MessageType           → MessageType
+EventType             → EventType
+EventStatus           → EventStatus
+AttendeeStatus        → AttendeeStatus
+AttendeeResponse      → AttendeeResponse
+NotificationType      → NotificationType
+AssetType             → AssetType
+DocumentSection       → DocumentSection
+MFAMethod             → MFAMethod
+OutputFormat          → OutputFormat
+SecurityEventType     → SecurityEventType
+TemplateFieldType     → TemplateFieldType
+TemplateFormat        → TemplateFormat
+message_priorities    → message_priorities
+project_message_types → project_message_types
+role_types            → role_types
+workflow_states       → workflow_states

@@ -73,8 +73,8 @@ function getFileIcon(mime_type) {
 }
 
 // Helper function to get folder color based on name
-function getFolderColor(folder_name) {
-  const name = folder_name.toLowerCase();
+function getFolderColor(folderName) {
+  const name = folderName.toLowerCase();
   if (name.includes('contract')) return 'blue';
   if (name.includes('warrant') || name.includes('certif')) return 'yellow';
   if (name.includes('inspect')) return 'green';
@@ -110,7 +110,7 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   if (search) {
     where.OR = [
       { title: { contains: search, mode: 'insensitive' } },
-      { folder_name: { contains: search, mode: 'insensitive' } },
+      { folderName: { contains: search, mode: 'insensitive' } },
       { description: { contains: search, mode: 'insensitive' } },
       { tags: { has: search } }
     ];
@@ -180,7 +180,7 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
       breadcrumbs.unshift({
         id: currentFolder.id,
         title: currentFolder.title,
-        folder_name: currentFolder.folder_name || currentFolder.title
+        folder_name: currentFolder.folderName || currentFolder.title
       });
       
       if (currentFolder.parentId) {
@@ -405,7 +405,7 @@ router.post('/folders', authenticateToken, [
   const folder = await prisma.companyAsset.create({
     data: {
       title: name,
-      folder_name: name,
+      folderName: name,
       description: description || null,
       type: 'FOLDER',
       section: section || null,
@@ -444,7 +444,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   const { id } = req.params;
   const { 
     title, 
-    folder_name,
+    folderName,
     description, 
     parentId, 
     sortOrder, 
@@ -511,7 +511,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   
   // Update other fields
   if (title !== undefined) updateData.title = title;
-  if (folder_name !== undefined && asset.type === 'FOLDER') updateData.folder_name = folder_name;
+  if (folderName !== undefined && asset.type === 'FOLDER') updateData.folderName = folderName;
   if (description !== undefined) updateData.description = description;
   if (parentId !== undefined) updateData.parentId = parentId;
   if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
@@ -688,7 +688,7 @@ router.post('/search', authenticateToken, asyncHandler(async (req, res) => {
   if (query) {
     where.OR = [
       { title: { contains: query, mode: 'insensitive' } },
-      { folder_name: { contains: query, mode: 'insensitive' } },
+      { folderName: { contains: query, mode: 'insensitive' } },
       { description: { contains: query, mode: 'insensitive' } },
       { tags: { has: query } }
     ];

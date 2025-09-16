@@ -56,7 +56,7 @@ router.get('/', asyncHandler(async (req, res) => {
     search, 
     page = 1, 
     limit = 20,
-    sortBy = 'createdAt',
+    sortBy = 'created_at',
     sortOrder = 'desc',
     unreadOnly = false
   } = req.query;
@@ -159,12 +159,12 @@ router.get('/conversations', asyncHandler(async (req, res) => {
           }
         },
         orderBy: {
-          createdAt: 'desc'
+          created_at: 'desc'
         }
       }
     },
     orderBy: {
-      updatedAt: 'desc'
+      updated_at: 'desc'
     }
   });
 
@@ -331,7 +331,7 @@ router.put('/:id', [
     where: { id: req.params.id },
     data: { 
       ...req.body, 
-      updatedAt: new Date(),
+      updated_at: new Date(),
       isEdited: true 
     },
     include: {
@@ -438,7 +438,7 @@ router.get('/conversation/:userId', asyncHandler(async (req, res) => {
   const [messages, total] = await Promise.all([
     prisma.message.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       skip,
       take: limitNum,
       include: {
@@ -502,7 +502,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
   const [messages, total] = await Promise.all([
     prisma.message.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       skip,
       take: limitNum,
       include: {
@@ -567,7 +567,7 @@ router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => 
   const stats = await prisma.message.groupBy({
     by: ['type'],
     where: {
-      createdAt: { gte: dateThreshold }
+      created_at: { gte: dateThreshold }
     },
     _count: {
       id: true
@@ -577,7 +577,7 @@ router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => 
   const priorityStats = await prisma.message.groupBy({
     by: ['priority'],
     where: {
-      createdAt: { gte: dateThreshold }
+      created_at: { gte: dateThreshold }
     },
     _count: {
       id: true
@@ -586,14 +586,14 @@ router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => 
 
   const totalMessages = await prisma.message.count({
     where: {
-      createdAt: { gte: dateThreshold }
+      created_at: { gte: dateThreshold }
     }
   });
 
   const uniqueSenders = await prisma.message.groupBy({
     by: ['senderId'],
     where: {
-      createdAt: { gte: dateThreshold }
+      created_at: { gte: dateThreshold }
     },
     _count: {
       id: true
@@ -603,7 +603,7 @@ router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => 
   const uniqueRecipients = await prisma.message.groupBy({
     by: ['recipientId'],
     where: {
-      createdAt: { gte: dateThreshold },
+      created_at: { gte: dateThreshold },
       recipientId: { not: null }
     },
     _count: {
@@ -675,7 +675,7 @@ router.get('/search/query', asyncHandler(async (req, res) => {
       senderName: true,
       recipientName: true,
       projectName: true,
-      createdAt: true,
+      created_at: true,
       priority: true
     }
   });

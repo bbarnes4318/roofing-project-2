@@ -53,8 +53,8 @@ const transformCustomerForFrontend = (customer) => {
     
     // Additional fields
     notes: customer.notes,
-    createdAt: customer.createdAt,
-    updatedAt: customer.updatedAt,
+    created_at: customer.created_at,
+    updated_at: customer.updated_at,
     
     // Associated projects (if included)
     associatedProjects: customer.projects ? customer.projects.map(project => ({
@@ -185,7 +185,7 @@ router.get('/', asyncHandler(async (req, res) => {
     search, 
     page = 1, 
     limit = 20,
-    sortBy = 'createdAt',
+    sortBy = 'created_at',
     sortOrder = 'desc',
     withProjects = false
   } = req.query;
@@ -552,7 +552,7 @@ router.get('/stats/overview', asyncHandler(async (req, res) => {
     
     const recentCustomers = await prisma.customer.count({
       where: {
-        createdAt: {
+        created_at: {
           gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
         }
       }
@@ -605,7 +605,7 @@ router.get('/search', asyncHandler(async (req, res) => {
         primaryPhone: true,
         secondaryName: true,
         address: true,
-        createdAt: true
+        created_at: true
       }
     });
 
