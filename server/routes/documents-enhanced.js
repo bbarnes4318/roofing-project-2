@@ -77,7 +77,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     isTemplate,
     projectId,
     tags,
-    sortBy = 'created_at',
+    sortBy = 'createdAt',
     sortOrder = 'desc',
     region,
     state
@@ -88,7 +88,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
 
   // Build where clause using existing fields only
   const where = {
-    is_active: true
+    isActive: true
   };
 
   // Apply filters using existing fields only
@@ -101,23 +101,23 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   }
 
   if (fileType) where.fileType = fileType;
-  if (is_public !== undefined) where.is_public = is_public === 'true';
+  if (is_public !== undefined) where.isPublic = is_public === 'true';
   if (projectId) where.projectId = projectId;
   if (tags) {
     const tagArray = Array.isArray(tags) ? tags : [tags];
     where.tags = { hasSome: tagArray };
   }
 
-  // Apply access control based on user role using existing is_public field
+  // Apply access control based on user role using existing isPublic field
   const user = req.user;
   if (user.role === 'CUSTOMER') {
-    where.is_public = true;
+    where.isPublic = true;
   }
   // For other roles, show all documents
 
   // Validate sortBy field - only allow valid Document fields
-  const validSortFields = ['created_at', 'updatedAt', 'fileName', 'originalName', 'file_size', 'download_count', 'last_downloaded_at'];
-  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'created_at';
+  const validSortFields = ['createdAt', 'updatedAt', 'fileName', 'originalName', 'fileSize', 'downloadCount', 'lastDownloadedAt'];
+  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
   const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
 
   // Get documents with pagination
@@ -135,8 +135,8 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
           select: { id: true, name: true, projectNumber: true }
         },
         downloads: {
-          select: { id: true, created_at: true, user: { select: { firstName: true, lastName: true } } },
-          orderBy: { created_at: 'desc' },
+          select: { id: true, createdAt: true, user: { select: { firstName: true, lastName: true } } },
+          orderBy: { createdAt: 'desc' },
           take: 5
         },
         _count: {
@@ -156,7 +156,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     download_count: doc._count.downloads,
     commentCount: 0, // Will be 0 for now
     favoriteCount: 0, // Will be 0 for now
-    file_sizeFormatted: formatFileSize(doc.file_size),
+    file_sizeFormatted: formatFileSize(doc.fileSize),
     uploadedBy: doc.uploadedBy ? {
       id: doc.uploadedBy.id,
       name: `${doc.uploadedBy.firstName} ${doc.uploadedBy.lastName}`,
@@ -169,7 +169,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     } : null,
     recentDownloads: doc.downloads.map(d => ({
       id: d.id,
-      downloadedAt: d.created_at,
+      downloadedAt: d.createdAt,
       downloadedBy: `${d.user.firstName} ${d.user.lastName}`
     }))
   }));
@@ -214,7 +214,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
         }
       },
       documentComments: {
-        orderBy: { created_at: 'desc' },
+        orderBy: { createdAt: 'desc' },
         include: {
           author: { select: { firstName: true, lastName: true, avatar: true } },
           replies: {
@@ -258,7 +258,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
   // Format response
   const formattedDocument = {
     ...document,
-    file_sizeFormatted: formatFileSize(document.file_size),
+    file_sizeFormatted: formatFileSize(document.fileSize),
     uploadedBy: document.uploadedBy ? {
       id: document.uploadedBy.id,
       name: `${document.uploadedBy.firstName} ${document.uploadedBy.lastName}`,
@@ -276,7 +276,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     } : null,
     versions: document.documentVersions.map(v => ({
       ...v,
-      file_sizeFormatted: formatFileSize(v.file_size),
+      file_sizeFormatted: formatFileSize(v.fileSize),
       uploadedBy: v.uploadedBy ? `${v.uploadedBy.firstName} ${v.uploadedBy.lastName}` : null
     })),
     comments: document.documentComments.map(c => ({
@@ -336,7 +336,7 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
     description,
     fileType = 'OTHER',
     tags = [],
-    is_public = false,
+    isPublic = false,
     projectId
   } = req.body;
 
@@ -355,14 +355,14 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
       fileName: req.file.filename,
       originalName: req.file.originalname,
       file_url,
-      mime_type: req.file.mimetype,
-      file_size: req.file.size,
+      mimeType: req.file.mimetype,
+      fileSize: req.file.size,
       fileType,
       description,
       tags: Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim()),
-      is_public,
+      isPublic,
       projectId: projectId || null,
-      uploaded_by_id: req.user.id
+      uploadedById: req.user.id
     },
     include: {
       uploadedBy: {
@@ -529,8 +529,8 @@ router.post('/:id/download', authenticateToken, asyncHandler(async (req, res) =>
   await prisma.document.update({
     where: { id },
     data: {
-      download_count: { increment: 1 },
-      last_downloaded_at: new Date()
+      downloadCount: { increment: 1 },
+      lastDownloadedAt: new Date()
     }
   });
 
@@ -584,7 +584,7 @@ router.get('/categories', authenticateToken, asyncHandler(async (req, res) => {
   const categories = await prisma.document.groupBy({
     by: ['fileType'],
     where: {
-      is_active: true
+      isActive: true
     },
     _count: {
       id: true
