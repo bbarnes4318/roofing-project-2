@@ -202,7 +202,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
       project: {
         select: { 
           id: true, 
-          name: true, 
+          projectName: true, 
           projectNumber: true,
           customer: { select: { firstName: true, lastName: true, company: true } }
         }
@@ -317,7 +317,7 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
       fileType,
       description,
       tags: Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim()),
-      isPublic,
+      isPublic: isPublic === 'true' || isPublic === true,
       projectId: projectId || null,
       uploadedById: req.user.id
     },
