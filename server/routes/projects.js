@@ -18,8 +18,8 @@ const router = express.Router();
 // Helper: return canonical phase key used across the app (e.g., 'LEAD','PROSPECT',...)
 const getProjectPhaseKey = (project) => {
   // FIXED: Use ProjectWorkflowTracker for accurate phase determination
-  if (project.workflowTrackers && project.workflowTrackers.length > 0) {
-    const tracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
+  if (project.project_workflow_trackers && project.project_workflow_trackers.length > 0) {
+    const tracker = project.project_workflow_trackers.find(t => t.is_main_workflow) || project.project_workflow_trackers[0];
     
     // Check for phase overrides first
     if (project.phaseOverrides && project.phaseOverrides.length > 0) {
@@ -31,21 +31,23 @@ const getProjectPhaseKey = (project) => {
     }
     
     // Get phase from current workflow position
-    if (tracker.currentPhase && tracker.currentPhase.phaseType) {
-      const phaseType = tracker.currentPhase.phaseType;
+    // TODO: Look up phase data using current_phase_id
+    if (false) { // Disabled until we can look up phase data
+      const phaseType = null;
       console.log(`📍 Using tracker phase: ${phaseType} for project ${project.id}`);
       return phaseType;
     }
     
     // Fallback to current line item's phase if available
-    if (tracker.currentLineItem && tracker.currentLineItem.section && tracker.currentLineItem.section.phase) {
-      const phaseType = tracker.currentLineItem.section.phase.phaseType;
+    // TODO: Look up line item data using current_line_item_id
+    if (false) { // Disabled until we can look up line item data
+      const phaseType = null;
       console.log(`📍 Using line item phase: ${phaseType} for project ${project.id}`);
       return phaseType;
     }
     
     // If workflow is complete (no current items), project should be in COMPLETION phase
-    if (!tracker.currentPhaseId && !tracker.currentSectionId && !tracker.currentLineItemId) {
+    if (!tracker.current_phase_id && !tracker.current_section_id && !tracker.current_line_item_id) {
       console.log(`📍 Workflow complete, using COMPLETION phase for project ${project.id}`);
       return 'COMPLETION';
     }
@@ -114,7 +116,7 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
   if (!project) return null;
   
   // Get total line items count for progress calculation
-  const trackerType = (project.workflowTrackers && project.workflowTrackers[0]?.workflowType) || project.projectType || 'ROOFING';
+  const trackerType = (project.project_workflow_trackers && project.project_workflow_trackers[0]?.workflowType) || project.projectType || 'ROOFING';
   const totalLineItems = typeof precomputedTotalLineItems === 'number'
     ? precomputedTotalLineItems
     : await getTotalLineItemsCount(trackerType);
@@ -213,17 +215,17 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
     phaseDisplay: getProjectPhaseDisplay(getProjectPhaseKey(project)),
     
     // ENABLED: currentWorkflowItem now that ProjectWorkflowTracker is properly populated
-    currentWorkflowItem: (project.workflowTrackers && project.workflowTrackers.length > 0) ? (() => {
-      const mainTracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
+    currentWorkflowItem: (project.project_workflow_trackers && project.project_workflow_trackers.length > 0) ? (() => {
+      const mainTracker = project.project_workflow_trackers.find(t => t.is_main_workflow) || project.project_workflow_trackers[0];
       return {
-        phase: mainTracker.currentPhase?.phaseType || null,
-        phaseDisplay: mainTracker.currentPhase?.phaseName || null,
-        section: mainTracker.currentSection?.displayName || null,
-        lineItem: mainTracker.currentLineItem?.itemName || null,
-        lineItemId: mainTracker.currentLineItem?.id || null,
-        sectionId: mainTracker.currentSectionId || null,
-        phaseId: mainTracker.currentPhaseId || null,
-        isComplete: !mainTracker.currentPhaseId && !mainTracker.currentSectionId && !mainTracker.currentLineItemId,
+        phase: null, // TODO: Look up phase data using current_phase_id
+        phaseDisplay: null,
+        section: null, // TODO: Look up section data using current_section_id  
+        lineItem: null, // TODO: Look up lineitem data using current_line_item_id
+        lineItemId: mainTracker.current_line_item_id || null,
+        sectionId: mainTracker.current_section_id || null,
+        phaseId: mainTracker.current_phase_id || null,
+        isComplete: !mainTracker.current_phase_id && !mainTracker.current_section_id && !mainTracker.current_line_item_id,
         completedItems: mainTracker.completedItems || [],
         totalLineItems: mainTracker.totalLineItems || totalLineItems
       };
@@ -311,10 +313,10 @@ router.get('/', asyncHandler(async (req, res) => {
 
   // Sanitize sorting - whitelist sortable fields
   const allowedSortFields = new Set([
-    'created_at', 'updated_at', 'projectNumber', 'projectName',
+    'createdAt', 'updatedAt', 'projectNumber', 'projectName',
     'status', 'priority', 'startDate', 'endDate'
   ]);
-  const sortBy = allowedSortFields.has(String(sortByRaw)) ? String(sortByRaw) : 'created_at';
+  const sortBy = allowedSortFields.has(String(sortByRaw)) ? String(sortByRaw) : 'createdAt';
   const sortOrder = String(sortOrderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
   // Build filter object for Prisma
@@ -354,7 +356,10 @@ router.get('/', asyncHandler(async (req, res) => {
   orderBy[sortBy] = sortOrder;
 
   try {
-    // Execute query with pagination and population using Prisma
+    console.log('🔍 Where clause:', where);
+    console.log('🔍 OrderBy clause:', orderBy);
+    
+    // Execute query with customer include
     const [projects, total] = await Promise.all([
       prisma.project.findMany({
         where,
@@ -362,95 +367,7 @@ router.get('/', asyncHandler(async (req, res) => {
         skip,
         take: limitNum,
         include: {
-          customer: {
-            select: {
-              id: true,
-              primaryName: true,
-              primaryEmail: true,
-              primaryPhone: true,
-              secondaryName: true,
-              secondaryEmail: true,
-              secondaryPhone: true,
-              address: true
-            }
-          },
-          projectManager: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-              role: true
-            }
-          },
-          teamMembers: {
-            select: {
-              id: true,
-              role: true,
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
-                  role: true
-                }
-              }
-            },
-            take: 10 // Limit team members for performance
-          },
-          _count: {
-            select: {
-              tasks: true,
-              documents: true,
-              workflowAlerts: true
-            }
-          },
-          workflowTrackers: {
-            include: {
-              currentPhase: {
-                select: {
-                  id: true,
-                  phaseType: true,
-                  phaseName: true
-                }
-              },
-              currentSection: {
-                select: {
-                  id: true,
-                  displayName: true
-                }
-              },
-              currentLineItem: {
-                select: {
-                  id: true,
-                  itemName: true,
-                  section: {
-                    select: {
-                      displayName: true,
-                      phase: {
-                        select: {
-                          phaseType: true,
-                          phaseName: true
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              completedItems: {
-                select: {
-                  id: true,
-                  lineItemId: true,
-                  phaseId: true,
-                  sectionId: true,
-                  completedAt: true,
-                  completedById: true
-                }
-              }
-            }
-          }
+          customer: true
         }
       }),
       prisma.project.count({ where })
@@ -543,50 +460,6 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
             }
           }
         },
-        workflowTrackers: {
-          include: {
-            currentPhase: {
-              select: {
-                id: true,
-                phaseType: true,
-                phaseName: true
-              }
-            },
-            currentSection: {
-              select: {
-                id: true,
-                displayName: true
-              }
-            },
-            currentLineItem: {
-              select: {
-                id: true,
-                itemName: true,
-                section: {
-                  select: {
-                    displayName: true,
-                    phase: {
-                      select: {
-                        phaseType: true,
-                        phaseName: true
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            completedItems: {
-              select: {
-                id: true,
-                lineItemId: true,
-                phaseId: true,
-                sectionId: true,
-                completedAt: true,
-                completedById: true
-              }
-            }
-          }
-        }
       }
     });
 
@@ -720,7 +593,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
         );
       }
       
-      if (workflowResult?.tracker?.currentLineItemId) {
+      if (workflowResult?.tracker?.current_line_item_id) {
         console.log(`✅ Optimized workflow initialized with ${workflowResult.totalSteps} steps`);
         
         // CRITICAL: Generate first alert immediately for the new project

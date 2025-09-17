@@ -117,7 +117,7 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
       where,
       include: {
         replies: includeReplies === 'true' ? {
-          orderBy: { created_at: 'asc' },
+          orderBy: { createdAt: 'asc' },
           include: {
             author: {
               select: {
@@ -143,7 +143,7 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
           select: { projectName: true }
         }
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: limitNum,
       skip
     }),
@@ -172,7 +172,7 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
     readBy: message.readBy,
     readCount: message.readCount,
     metadata: message.metadata,
-    created_at: message.created_at,
+    createdAt: message.createdAt,
     updated_at: message.updated_at,
     replies: message.replies || [],
     conversationCount: (message.replies?.length || 0) + 1
@@ -314,7 +314,7 @@ router.get('/thread/:messageId', asyncHandler(async (req, res, next) => {
     where: { id: messageId },
     include: {
       replies: {
-        orderBy: { created_at: 'asc' },
+        orderBy: { createdAt: 'asc' },
         include: {
           author: {
             select: {
@@ -489,14 +489,14 @@ router.get('/:projectId/stats', asyncHandler(async (req, res, next) => {
     prisma.projectMessage.count({
       where: {
         projectId,
-        created_at: { gte: dateThreshold }
+        createdAt: { gte: dateThreshold }
       }
     }),
     prisma.projectMessage.groupBy({
       by: ['messageType'],
       where: {
         projectId,
-        created_at: { gte: dateThreshold }
+        createdAt: { gte: dateThreshold }
       },
       _count: { id: true }
     }),
@@ -504,21 +504,21 @@ router.get('/:projectId/stats', asyncHandler(async (req, res, next) => {
       by: ['authorName'],
       where: {
         projectId,
-        created_at: { gte: dateThreshold }
+        createdAt: { gte: dateThreshold }
       },
       _count: { id: true }
     }),
     prisma.projectMessage.findMany({
       where: {
         projectId,
-        created_at: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
       },
       select: {
-        created_at: true,
+        createdAt: true,
         messageType: true,
         authorName: true
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: 10
     })
   ]);
@@ -551,7 +551,7 @@ router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next)
     messageType,
     priority,
     search,
-    sortBy = 'created_at',
+    sortBy = 'createdAt',
     sortOrder = 'desc'
   } = req.query;
 
@@ -639,7 +639,7 @@ router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next)
             }
           }
         },
-        orderBy: { created_at: 'asc' }
+        orderBy: { createdAt: 'asc' }
       } : false,
       parentMessage: {
         select: {

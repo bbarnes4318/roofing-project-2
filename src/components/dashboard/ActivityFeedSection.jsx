@@ -31,17 +31,25 @@ const ActivityFeedSection = ({
 
   // Expand/Collapse handlers
   const handleExpandAllActivity = () => {
-    setIsActivityFeedExpanded(true);
-    actions.expandAll();
+    const allItemIds = new Set((state.items || []).map(item => item.id));
+    allItemIds.forEach(id => {
+      if (!state.expandedItems.has(id)) {
+        actions.toggleExpanded(id);
+      }
+    });
   };
 
   const handleCollapseAllActivity = () => {
-    setIsActivityFeedExpanded(false);
-    actions.collapseAll();
+    const allItemIds = new Set((state.items || []).map(item => item.id));
+    allItemIds.forEach(id => {
+      if (state.expandedItems.has(id)) {
+        actions.toggleExpanded(id);
+      }
+    });
   };
   return (
     <div className="w-full" data-section="activity-feed">
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible mb-6">
+      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
         <div className="mb-3">
           <div className="flex items-center justify-between">
             <div>
@@ -60,12 +68,18 @@ const ActivityFeedSection = ({
               <button
                 onClick={handleExpandAllActivity}
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
-                  isActivityFeedExpanded
-                    ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                    : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
+                  (() => {
+                    const currentCount = (state.items || []).length;
+                    return state.expandedItems.size === currentCount && currentCount > 0
+                      ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
+                      : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
+                  })()
                 }`}
                 title="Expand all activity details"
-                disabled={isActivityFeedExpanded}
+                disabled={(() => {
+                  const currentCount = (state.items || []).length;
+                  return currentCount === 0 || state.expandedItems.size === currentCount;
+                })()}
               >
                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -76,12 +90,12 @@ const ActivityFeedSection = ({
               <button
                 onClick={handleCollapseAllActivity}
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
-                  !isActivityFeedExpanded
+                  state.expandedItems.size === 0
                     ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
                     : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
                 }`}
                 title="Collapse all activity details"
-                disabled={!isActivityFeedExpanded}
+                disabled={state.expandedItems.size === 0}
               >
                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />

@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts } from '../../hooks/useQueryApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import api, { authService, messagesService } from '../../services/api';
+import api, { authService, messagesService, usersService } from '../../services/api';
+
 import WorkflowProgressService from '../../services/workflowProgress';
 import { ACTIVITY_FEED_SUBJECTS, ALERT_SUBJECTS } from '../../data/constants';
 import { mapStepToWorkflowStructure } from '../../utils/workflowMapping';
@@ -21,6 +22,9 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
     const [expandedContacts, setExpandedContacts] = useState(new Set());
     const [expandedPMs, setExpandedPMs] = useState(new Set());
     const [actionLoading, setActionLoading] = useState({});
+
+    // Available users for assignment dropdown
+    const [availableUsers, setAvailableUsers] = useState([]);
 
     // Filter state
     const [alertProjectFilter, setAlertProjectFilter] = useState('all');
@@ -45,6 +49,24 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
             }
         };
         fetchUser();
+    }, []);
+
+    // Fetch available users for assignment dropdown
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const result = await usersService.getTeamMembers();
+                if (result?.success && Array.isArray(result.data?.teamMembers)) {
+                    setAvailableUsers(result.data.teamMembers);
+                } else {
+                    setAvailableUsers([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch users:', err);
+                setAvailableUsers([]);
+            }
+        };
+        fetchUsers();
     }, []);
 
     // Helper function to format user roles for display

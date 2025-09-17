@@ -207,12 +207,6 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
           customer: { select: { primaryName: true, secondaryName: true } }
         }
       },
-      documentVersions: {
-        orderBy: { versionNumber: 'desc' },
-        include: {
-          uploadedBy: { select: { firstName: true, lastName: true } }
-        }
-      },
       _count: {
         select: {
           downloads: true
@@ -255,11 +249,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
         company: document.project.customer.company
       } : null
     } : null,
-    versions: document.documentVersions.map(v => ({
-      ...v,
-      file_sizeFormatted: formatFileSize(v.fileSize),
-      uploadedBy: v.uploadedBy ? `${v.uploadedBy.firstName} ${v.uploadedBy.lastName}` : null
-    })),
+    versions: [], // TODO: documentVersions relationship doesn't exist
     stats: {
       download_count: document._count.downloads
     }
@@ -325,9 +315,11 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
       uploadedBy: {
         select: { id: true, firstName: true, lastName: true, email: true }
       },
-      project: {
-        select: { id: true, projectName: true, projectNumber: true }
-      }
+      ...(projectId && {
+        project: {
+          select: { id: true, projectName: true, projectNumber: true }
+        }
+      })
     }
   });
 

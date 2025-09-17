@@ -254,11 +254,11 @@ model Document {
   lastDownloadedAt        DateTime?
   checksum                String?                   @db.VarChar(255)
   isPublic                Boolean                   @default(false)
-  projectId               String?                   @map("project_id")
+  projectId               String                    @map("project_id")
   uploadedById            String                    @map("uploaded_by_id")
   searchVector            String?
   downloads               DocumentDownload[]
-  project                 Project?                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project                 Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy              User                      @relation("UploadedBy", fields: [uploadedById], references: [id])
   generated_document_meta generated_document_meta[]
 
@@ -428,12 +428,6 @@ model CompanyAsset {
   checksum         String?               @db.VarChar(255)
   metadata         Json?
   accessLevel      String?               @default("private") @map("access_level") @db.VarChar(50)
-  duplicateOf      String?               @map("duplicate_of") @db.VarChar(255)
-  isArchived       Boolean?              @default(false) @map("is_archived")
-  isFavorite       Boolean?              @default(false) @map("is_favorite")
-  lastAccessedAt   DateTime?             @map("last_accessed_at")
-  sharedWith       String[]              @default([]) @map("shared_with")
-  viewCount        Int                   @default(0) @map("view_count")
   versions         CompanyAssetVersion[] @relation("AssetVersions")
   parent           CompanyAsset?         @relation("FolderHierarchy", fields: [parentId], references: [id])
   children         CompanyAsset[]        @relation("FolderHierarchy")

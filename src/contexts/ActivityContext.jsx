@@ -8,9 +8,7 @@ const ACTIVITY_ACTIONS = {
   ADD_COMMENT: 'ADD_COMMENT',
   UPDATE_COMMENT_TEXT: 'UPDATE_COMMENT_TEXT',
   SET_SHOW_COMMENT_INPUT: 'SET_SHOW_COMMENT_INPUT',
-  SET_COMMENT_INPUTS: 'SET_COMMENT_INPUTS',
-  EXPAND_ALL: 'EXPAND_ALL',
-  COLLAPSE_ALL: 'COLLAPSE_ALL'
+  SET_COMMENT_INPUTS: 'SET_COMMENT_INPUTS'
 };
 
 // Initial state
@@ -33,12 +31,9 @@ const initialState = {
 function activityReducer(state, action) {
   switch (action.type) {
     case ACTIVITY_ACTIONS.SET_ITEMS:
-      // Automatically expand all items when they're set
-      const allItemIds = new Set(action.payload.map(item => item.id));
       return {
         ...state,
-        items: action.payload,
-        expandedItems: allItemIds
+        items: action.payload
       };
       
     case ACTIVITY_ACTIONS.TOGGLE_EXPANDED:
@@ -110,19 +105,6 @@ function activityReducer(state, action) {
         }
       };
       
-    case ACTIVITY_ACTIONS.EXPAND_ALL:
-      const expandAllItemIds = new Set(state.items.map(item => item.id));
-      return {
-        ...state,
-        expandedItems: expandAllItemIds
-      };
-      
-    case ACTIVITY_ACTIONS.COLLAPSE_ALL:
-      return {
-        ...state,
-        expandedItems: new Set()
-      };
-      
     default:
       return state;
   }
@@ -161,11 +143,7 @@ export function ActivityProvider({ children }) {
     setCommentInputs: (itemId, text) => dispatch({ 
       type: ACTIVITY_ACTIONS.SET_COMMENT_INPUTS, 
       payload: { itemId, text } 
-    }),
-    
-    expandAll: () => dispatch({ type: ACTIVITY_ACTIONS.EXPAND_ALL }),
-    
-    collapseAll: () => dispatch({ type: ACTIVITY_ACTIONS.COLLAPSE_ALL })
+    })
   };
 
   return (

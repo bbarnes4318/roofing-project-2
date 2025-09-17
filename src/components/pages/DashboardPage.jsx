@@ -2240,7 +2240,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   return (
     <ActivityProvider>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 text-gray-900 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 text-gray-900">
       {/* Full Width - Project Overview by Phase - AT THE TOP */}
       <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="project-phases">
         <div className="flex items-center justify-between mb-6">
@@ -2860,10 +2860,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           </div>
         </div>
 
-      {/* Main Dashboard Layout - Two Column */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 items-start overflow-visible">
+      {/* Main Dashboard Layout - Two Column (Flex-based to avoid grid row height issues) */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start overflow-visible">
         {/* Left Column - Project Messages */}
-        <div className="w-full" data-section="project-messages">
+        <div className="w-full lg:flex-1 flex flex-col gap-6" data-section="project-messages">
           <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
             <MTRHeader
               activeCommTab={activeCommTab}
@@ -2999,24 +2999,27 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 setCommentInputs={setCommentInputs}
                 handleAddReminderComment={handleAddReminderComment}
               />
+
             </div>
+          </div>
+
+          {/* Project Workflow Line Items (directly under MTR) */}
+          <div className="w-full lg:flex-1">
+            <ProjectWorkflowLineItemsSection
+              projects={projects}
+              colorMode={colorMode}
+              onProjectSelect={onProjectSelect}
+              workflowAlerts={workflowAlerts}
+              alertsLoading={alertsLoading}
+              availableUsers={availableUsers}
+              currentUser={currentUser}
+              handleProjectSelectWithScroll={handleProjectSelectWithScroll}
+            />
           </div>
         </div>
 
-        {/* Left Column - Project Workflow Line Items Section */}
-        <ProjectWorkflowLineItemsSection
-          projects={projects}
-          colorMode={colorMode}
-          onProjectSelect={onProjectSelect}
-          workflowAlerts={workflowAlerts}
-          alertsLoading={alertsLoading}
-          availableUsers={availableUsers}
-          currentUser={currentUser}
-          handleProjectSelectWithScroll={handleProjectSelectWithScroll}
-        />
-
-        {/* Right Column - Activity Feed */}
-        <div className="w-full" data-section="activity-feed">
+        {/* Right Column - Activity Feed Section */}
+        <div className="w-full">
           <ActivityFeedSection
             activityFeedItems={activityFeedItems}
             projects={projects}
@@ -3039,8 +3042,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           />
         </div>
 
-      {/* Project Cubes - Quick Access (hidden) */}
-      <div className="hidden" data-section="project-cubes" aria-hidden="true"></div>
+      </div>
+
       
       {/* Assignment Modal */}
       {showAssignModal && (
@@ -3632,7 +3635,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         }}
       />
       
-    </div>
     </div>
     </div>
     </ActivityProvider>

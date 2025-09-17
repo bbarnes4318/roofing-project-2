@@ -150,7 +150,7 @@ const ProjectWorkflowLineItemsSection = ({
   };
 
   return (
-    <div className="w-full mb-6" data-section="project-workflow-tasks">
+    <div className="w-full" data-section="project-workflow-tasks">
       {/* Beautiful original alerts UI with new functionality */}
       <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
         <div className="mb-4">
