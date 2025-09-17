@@ -323,7 +323,7 @@ async function seedCompanyDocuments() {
               sortOrder: folder.sortOrder,
               isActive: true,
               // New fields from migration
-              folderName: folder.folderName,
+              folder_name: folder.folderName,
               metadata: folder.metadata,
               isPublic: false
             }
@@ -334,7 +334,7 @@ async function seedCompanyDocuments() {
           existingFolder = await prisma.companyAsset.update({
             where: { id: existingFolder.id },
             data: {
-              folderName: folder.folderName,
+              folder_name: folder.folderName,
               description: folder.description || existingFolder.description,
               path: currentPath,
               sortOrder: folder.sortOrder,
