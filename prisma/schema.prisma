@@ -258,7 +258,7 @@ model Document {
   uploadedById            String                    @map("uploaded_by_id")
   searchVector            String?
   downloads               DocumentDownload[]
-  project                 Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project                 Project?                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy              User                      @relation("UploadedBy", fields: [uploadedById], references: [id])
   generated_document_meta generated_document_meta[]
 

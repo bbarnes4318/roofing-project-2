@@ -204,7 +204,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
           id: true, 
           projectName: true, 
           projectNumber: true,
-          customer: { select: { primaryName: true, secondaryName: true, company: true } }
+          customer: { select: { primaryName: true, secondaryName: true } }
         }
       },
       documentVersions: {
