@@ -1,0 +1,85 @@
+const express = require('express');
+const OpenAI = require('openai');
+const EmbeddingService = require('../services/EmbeddingService');
+const { PrismaClient } = require('@prisma/client');
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o';
+const openaiClient = (() => {
+  const apiKey = (process.env.OPENAI_API_KEY || '').trim();
+  return apiKey ? new OpenAI({ apiKey }) : null;
+})();
+
+function authVapi(req, res, next) {
+  const incoming = req.header('X-VAPI-KEY') || req.header('x-vapi-key');
+  const expected = (process.env.VAPI_INTERNAL_KEY || '').trim();
+  if (!expected) return res.status(500).json({ success: false, message: 'Server missing VAPI_INTERNAL_KEY' });
+  if (!incoming || incoming !== expected) return res.status(401).json({ success: false, message: 'Unauthorized' });
+  next();
+}
+
+function buildRagMessages({ chunks, userQuery }) {
+  const system = {
+    role: 'system',
+    content: 'You are the company\'s AI assistant. Speak naturally and conversationally. You can answer general questions without citing documents. When the user asks about project documents or policies, consult the provided DOCUMENT CONTEXT blocks as needed, and cite sources like [file:<fileId> page:<n>]. Keep responses concise (10-20 seconds when spoken).'
+  };
+  const contextBlocks = chunks.map((c) => {
+    const meta = c.metadata || {};
+    return {
+      role: 'user',
+      content: `--- DOCUMENT START ---\nfileId: ${c.fileId}\npage: ${meta.page || ''}\nchunkId: ${c.chunkId || ''}\nsnippet: ${c.snippet || ''}\n--- DOCUMENT END ---`
+    };
+  });
+  const instruction = {
+    role: 'user',
+    content: `Voice call user said: ${userQuery}. If this is a general conversation, answer naturally without citing docs. If it requires facts from documents, use the context above and include brief citations in brackets. Return plain text only.`
+  };
+  return [system, ...contextBlocks, instruction];
+}
+
+// POST /api/vapi/assistant-query
+// Auth: header X-VAPI-KEY must match VAPI_INTERNAL_KEY
+router.post('/vapi/assistant-query', authVapi, async (req, res) => {
+  try {
+    const { projectId, query, contextFileIds = [] } = req.body || {};
+    if (!query || String(query).trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'query is required' });
+    }
+
+    let chunks = [];
+    if (Array.isArray(contextFileIds) && contextFileIds.length > 0) {
+      const top = await EmbeddingService.semanticSearch({ projectId, query, topK: 24 });
+      const allow = new Set(contextFileIds.map(String));
+      chunks = top.filter((t) => allow.has(String(t.fileId))).slice(0, 12);
+    } else {
+      // Only retrieve if the user asked something document-specific, otherwise skip to keep it conversational
+      // Simple heuristic: keywords
+      const docy = /document|pdf|file|permit|estimate|photo|image|xactimate|warranty|form|page\s+\d+/i.test(query);
+      if (docy) chunks = await EmbeddingService.semanticSearch({ projectId, query, topK: 12 });
+    }
+
+    if (!openaiClient) {
+      return res.json({ success: true, data: { answer: 'OpenAI not configured on server.' } });
+    }
+
+    const messages = buildRagMessages({ chunks, userQuery: query });
+    const chat = await openaiClient.chat.completions.create({
+      model: OPENAI_CHAT_MODEL,
+      messages,
+      temperature: 0.4, // a bit warmer for natural voice
+      max_tokens: 300,
+    });
+    const text = chat?.choices?.[0]?.message?.content || '';
+    const used = chunks.length > 0;
+
+    // Expose top-level fields for Vapi tools that only map top-level variables
+    return res.json({ success: true, answer: text, usedDocs: used, data: { answer: text, usedDocs: used } });
+  } catch (err) {
+    console.error('POST /vapi/assistant-query error:', err);
+    return res.status(500).json({ success: false, message: 'Vapi assistant query failed' });
+  }
+});
+
+module.exports = router;

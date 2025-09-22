@@ -12,6 +12,7 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
+const { ensureVectorSchema } = require('./config/vector');
 
 const xss = require('xss-clean');
 // Load environment variables with robust fallbacks
@@ -71,6 +72,10 @@ const calendarRoutes = require('./routes/calendar');
 const companyDocumentsRoutes = require('./routes/companyDocuments');
 const companyDocumentsEnhancedRoutes = require('./routes/companyDocumentsEnhanced');
 const aiRoutes = require('./routes/ai');
+const uploadRoutes = require('./routes/uploads');
+const filesRoutes = require('./routes/files');
+const ragRoutes = require('./routes/rag');
+const vapiRoutes = require('./routes/vapi');
 let bubblesRoutes;
 try {
   bubblesRoutes = require('./routes/bubbles');
@@ -154,6 +159,10 @@ connectDatabase()
   .then(() => {
     global.__DB_CONNECTED__ = true;
     console.log('✅ Database connection established, initializing services...');
+    // Ensure pgvector/embeddings schema
+    ensureVectorSchema(prisma).then((ok) => {
+      console.log(`🧮 pgvector schema ${ok ? 'ready' : 'not ready'}`);
+    }).catch((e) => console.error('pgvector init error:', e));
     
     // Initialize services after database connection
     setTimeout(() => {
@@ -265,8 +274,6 @@ if (process.env.NODE_ENV === 'development') {
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-
 
 // Data sanitization against XSS
 app.use(xss());
@@ -732,6 +739,12 @@ app.use('/api/complete-excel-data', completeExcelDataRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/transcripts', require('./routes/transcripts'));
 app.use('/api/voice-transcripts', require('./routes/voiceTranscripts'));
+// RAG + Files + Upload microservice endpoints
+app.use('/api', uploadRoutes);
+app.use('/api', filesRoutes);
+app.use('/api', ragRoutes);
+// Vapi proxy endpoints (secured by X-VAPI-KEY)
+app.use('/api', vapiRoutes);
 
 // Legacy route fallbacks for frontend requests missing /api prefix
 // Redirect to proper /api endpoints
