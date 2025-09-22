@@ -149,14 +149,45 @@ export default function DocumentsPage() {
         uploaderId: null,
         metadata: {}
       });
-      // 2) PUT to Spaces
-      await fetch(init.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
-        body: file
-      });
-      // 3) complete
-      await ragService.completeUpload({ uploadId: init.uploadId, jobId: null, fileUrl: null, checksum: null, metadata: {} });
+      // 2) Try direct PUT to Spaces; if it fails (e.g., CORS), fall back to proxy upload
+      let completedViaProxy = false;
+      try {
+        const resp = await fetch(init.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: file
+        });
+        if (!resp.ok) throw new Error(`PUT failed with status ${resp.status}`);
+      } catch (putErr) {
+        console.warn('Direct PUT failed, falling back to proxy upload:', putErr?.message || putErr);
+        await ragService.proxyUpload({
+          file,
+          projectId,
+          metadata: {
+            projectId,
+            mimeType: file.type || 'application/octet-stream',
+            size: file.size,
+            originalName: file.name
+          }
+        });
+        completedViaProxy = true;
+      }
+      // 3) complete if not proxied
+      if (!completedViaProxy) {
+        await ragService.completeUpload({
+          uploadId: init.uploadId,
+          jobId: null,
+          key: init.key,
+          fileUrl: null,
+          checksum: null,
+          metadata: {
+            projectId,
+            mimeType: file.type || 'application/octet-stream',
+            size: file.size,
+            originalName: file.name
+          }
+        });
+      }
       // 4) refresh list
       await runSearch();
     } catch (err) {

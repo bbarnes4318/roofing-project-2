@@ -1,12 +1,15 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/auth');
-const { createPresignedPutUrl } = require('../config/spaces');
+const { createPresignedPutUrl, getS3 } = require('../config/spaces');
 const { PrismaClient } = require('@prisma/client');
 const IngestionService = require('../services/IngestionService');
+const multer = require('multer');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 // In-memory pending uploads registry (replace with Redis/BullMQ if needed)
 const pending = new Map();
@@ -25,7 +28,7 @@ router.post('/upload/initiate', authenticateToken, async (req, res) => {
 
     pending.set(uploadId, { key, projectId, jobId, uploaderId: uploaderId || req.user.id, fileType, size, metadata });
 
-    return res.json({ success: true, data: { uploadId, uploadUrl, expiresAt } });
+    return res.json({ success: true, data: { uploadId, uploadUrl, expiresAt, key } });
   } catch (err) {
     console.error('upload/initiate error:', err);
     return res.status(500).json({ success: false, message: 'Failed to initiate upload' });
@@ -35,10 +38,22 @@ router.post('/upload/initiate', authenticateToken, async (req, res) => {
 // POST /api/upload/complete
 router.post('/upload/complete', authenticateToken, async (req, res) => {
   try {
-    const { uploadId, jobId, fileUrl, checksum, metadata = {} } = req.body || {};
-    const entry = pending.get(uploadId);
+    const { uploadId, jobId, key: keyFromBody, fileUrl, checksum, metadata = {} } = req.body || {};
+    let entry = pending.get(uploadId);
     if (!entry) {
-      return res.status(400).json({ success: false, message: 'Invalid uploadId' });
+      // Fallback: accept explicit key to allow stateless completion (e.g., after server restart)
+      if (!keyFromBody) {
+        return res.status(400).json({ success: false, message: 'Invalid uploadId and no key provided' });
+      }
+      entry = {
+        key: keyFromBody,
+        projectId: metadata.projectId || null,
+        jobId: jobId || null,
+        uploaderId: req.user?.id,
+        fileType: metadata.mimeType || 'application/octet-stream',
+        size: metadata.size || 0,
+        metadata
+      };
     }
     // Create Document row immediately
     const key = entry.key;
@@ -90,3 +105,53 @@ router.post('/upload/complete', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
+// Proxy upload route: browser -> server -> Spaces (avoids Spaces CORS requirements)
+router.post('/upload/proxy', authenticateToken, upload.single('file'), async (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) return res.status(400).json({ success: false, message: 'file is required' });
+    const { projectId = null } = req.body || {};
+    let metadata = {};
+    try { if (req.body?.metadata) metadata = JSON.parse(req.body.metadata); } catch (_) {}
+
+    const safeName = String(file.originalname || file.filename || 'upload').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `files/${projectId || 'general'}/${Date.now()}_${safeName}`;
+
+    const s3 = getS3();
+    const Bucket = process.env.DO_SPACES_NAME;
+    await s3.send(new PutObjectCommand({ Bucket, Key: key, Body: file.buffer, ContentType: file.mimetype || 'application/octet-stream', ACL: 'private' }));
+
+    // Persist document
+    const fileName = key.split('/').pop();
+    const mimeType = file.mimetype || 'application/octet-stream';
+    const fileSize = Number(file.size || 0);
+    const uploadedById = req.user?.id;
+
+    const doc = await prisma.document.create({
+      data: {
+        fileName,
+        originalName: fileName,
+        fileUrl: `spaces://${key}`,
+        mimeType,
+        fileSize,
+        fileType: 'OTHER',
+        description: metadata.description || null,
+        tags: Array.isArray(metadata.tags) ? metadata.tags : [],
+        isPublic: Boolean(metadata.isPublic) || false,
+        projectId,
+        uploadedById,
+        checksum: null,
+      }
+    });
+
+    IngestionService.processFile({ documentId: doc.id, projectId, key, mimeType })
+      .then(() => console.log('✅ Ingestion complete for', doc.id))
+      .catch((e) => console.warn('⚠️ Ingestion failed for', doc.id, e?.message || e));
+
+    return res.json({ success: true, data: { id: doc.id, key, projectId, fileType: 'OTHER', size: fileSize, metadata, status: 'processing' } });
+  } catch (err) {
+    console.error('upload/proxy error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to proxy upload' });
+  }
+});

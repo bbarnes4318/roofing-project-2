@@ -26,8 +26,16 @@ export const ragService = {
     const res = await api.post('/upload/initiate', { jobId, projectId, fileName, fileType, size, uploaderId, metadata });
     return res.data?.data;
   },
-  completeUpload: async ({ uploadId, jobId, fileUrl, checksum, metadata }) => {
-    const res = await api.post('/upload/complete', { uploadId, jobId, fileUrl, checksum, metadata });
+  completeUpload: async ({ uploadId, jobId, key, fileUrl, checksum, metadata }) => {
+    const res = await api.post('/upload/complete', { uploadId, jobId, key, fileUrl, checksum, metadata });
+    return res.data?.data;
+  },
+  proxyUpload: async ({ file, projectId, metadata = {} }) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (projectId != null) form.append('projectId', projectId);
+    form.append('metadata', JSON.stringify(metadata));
+    const res = await api.post('/upload/proxy', form, { headers: { 'Content-Type': 'multipart/form-data' } });
     return res.data?.data;
   },
   listFiles: async ({ projectId, type, tags, limit } = {}) => {
