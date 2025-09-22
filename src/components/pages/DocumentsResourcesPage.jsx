@@ -1,7 +1,7 @@
 import React from 'react';
-import DocumentsPage from './DocumentsPage';
+import FileManagerPage from './FileManagerPage';
 
 export default function DocumentsResourcesPage() {
-  // Thin wrapper to the new integrated Documents page
-  return <DocumentsPage />;
+  // Render the new File Manager experience (supports nested folders, uploads, breadcrumbs)
+  return <FileManagerPage />;
 }
