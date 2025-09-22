@@ -10,7 +10,6 @@ import DashboardPage from './components/pages/DashboardPage';
 import ProjectProfilePage from './components/pages/ProjectProfilePage';
 import ProjectDetailPage from './components/pages/ProjectDetailPage';
 import ArchivedProjectsPage from './components/pages/ArchivedProjectsPage';
-import ActivityFeedPage from './components/pages/ActivityFeedPage';
 import TasksAndAlertsPage from './components/pages/TasksAndAlertsPage';
 import AIAssistantPage from './components/pages/AIAssistantPage';
 import AIToolsPage from './components/pages/AIToolsPage';
@@ -20,7 +19,7 @@ import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import AlertsCalendarPage from './components/pages/AlertsCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import ModernCompanyDocumentsPage from './components/pages/ModernCompanyDocumentsPage';
-import DocumentsPage from './components/Documents/DocumentsPage';
+import DocumentsResourcesPage from './components/pages/DocumentsResourcesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -509,12 +508,15 @@ const apiUrl = window.location.hostname === 'localhost'
                 return;
             }
             // If user came from Current Alerts, go back to Overview and scroll to alerts section
-            if (navigationState.projectSourceSection === 'Current Alerts') {
+            if (
+                navigationState.projectSourceSection === 'Project Workflow Line Items' ||
+                navigationState.projectSourceSection === 'Current Alerts'
+            ) {
                 setActivePage('Overview');
                 setTimeout(() => {
-                    const alertsSection = document.querySelector('[data-section="current-alerts"]');
-                    if (alertsSection) {
-                        alertsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const workflowSection = document.querySelector('[data-section="project-workflow-tasks"]');
+                    if (workflowSection) {
+                        workflowSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 }, 150);
                 return;
@@ -1025,7 +1027,7 @@ const apiUrl = window.location.hostname === 'localhost'
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'Company Documents': return <ModernCompanyDocumentsPage colorMode={colorMode} />;
-            case 'Documents & Resources': return <DocumentsPage />;
+            case 'Documents & Resources': return <DocumentsResourcesPage />;
             case 'Alerts Calendar': return <AlertsCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
             case 'Training & Knowledge Base':

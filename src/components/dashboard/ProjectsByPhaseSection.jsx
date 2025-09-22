@@ -531,17 +531,8 @@ const ProjectsByPhaseSection = ({
                               const expandedKey = `${project.id || project._id}-materials-labor`;
                               const isExpanded = expandedProgress[expandedKey];
                               
-                              // Handle positioning when expanded
-                              useEffect(() => {
-                                handleChartPositioning(project.id || project._id, 'materials-labor', isExpanded);
-                              }, [isExpanded]);
+                              // Positioning handled when toggling expansion; avoid hooks inside render
 
-                              // Handle positioning for trades section
-                              useEffect(() => {
-                                const tradesExpanded = expandedProgress[`${project.id || project._id}-trades`];
-                                handleChartPositioning(project.id || project._id, 'trades', tradesExpanded);
-                              }, [expandedProgress[`${project.id || project._id}-trades`]]);
-                              
                               return (
                                 <div
                                   className={`rounded-lg transition-all duration-300 relative ${

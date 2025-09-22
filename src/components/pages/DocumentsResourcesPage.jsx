@@ -15,14 +15,14 @@ import {
   TagIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import DocumentCard from './DocumentCard';
-import DocumentFilters from './DocumentFilters';
-import DocumentUploadModal from './DocumentUploadModal';
-import DocumentPreviewModal from './DocumentPreviewModal';
+import DocumentCard from '../Documents/DocumentCard';
+import DocumentFilters from '../Documents/DocumentFilters';
+import DocumentUploadModal from '../Documents/DocumentUploadModal';
+import DocumentPreviewModal from '../Documents/DocumentPreviewModal';
 import { documentService } from '../../services/documentService';
 import { toast } from 'react-hot-toast';
 
-const DocumentsPage = () => {
+export default function DocumentsResourcesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -381,6 +381,4 @@ const DocumentsPage = () => {
       )}
     </div>
   );
-};
-
-export default DocumentsPage;
+}

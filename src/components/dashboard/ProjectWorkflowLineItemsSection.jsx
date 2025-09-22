@@ -243,17 +243,18 @@ const ProjectWorkflowLineItemsSection = ({
         <div className={`border-t mb-3 mt-0 ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
         
         <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
-          {getPaginatedAlerts().length === 0 ? (
+          {getPaginatedAlerts().length === 0 && (
             <div className="text-gray-400 text-center py-3 text-sm">
               {alertsLoading ? 'Loading alerts...' : 'No alerts found.'}
             </div>
-          ) : (
+          )}
+          {getPaginatedAlerts().length > 0 && (
             getPaginatedAlerts().map(alert => {
-              // Extract data from alert
-              const alertId = alert._id || alert.id;
-              const actionData = alert.actionData || alert.metadata || {};
-              const phase = actionData.phase || 'UNKNOWN';
-              const priority = actionData.priority || 'medium';
+            // Extract data from alert
+            const alertId = alert._id || alert.id;
+            const actionData = alert.actionData || alert.metadata || {};
+            const phase = actionData.phase || 'UNKNOWN';
+            const priority = actionData.priority || 'medium';
               
               // Find associated project
               const projectId = actionData.projectId;
@@ -370,7 +371,7 @@ const ProjectWorkflowLineItemsSection = ({
                           
                           {/* PM with dropdown arrow - align baseline with Line Item label */}
                           <div className="flex items-center gap-1 flex-shrink-0" style={{ marginLeft: '8px' }}>
-                            <span className={`text-[9px] font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
+                            <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>PM:</span>
                             <button 
                               ref={(el) => alertPmButtonRefs.current[alertId] = el}
                               className={`text-[8px] font-semibold cursor-pointer hover:underline truncate max-w-[60px] ${
@@ -656,7 +657,7 @@ const ProjectWorkflowLineItemsSection = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className={`bg-white rounded-[20px] p-6 w-96 max-w-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white'}`}>
             <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-              Assign Alert to User
+              Assign Alert
             </h3>
             
             {/* Alert Information */}
