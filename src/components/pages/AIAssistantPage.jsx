@@ -1113,14 +1113,9 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                 id: `error_${Date.now()}`,
                 type: 'assistant',
                 content: `⚠️ Could not send conversation summary as project message. The summary has been saved locally.`,
-                timestamp: new Date(),
-                isError: true
-            };
-            setMessages(prev => [errorMessage, ...prev]);
-        }
     };
     
-    // Enhanced transcript and summary generation for modal with GPT-5
+    // Enhanced transcript and summary generation for modal with GPT-4o
     const generateEnhancedTranscriptSummary = async (baseSummary, conversationData = null) => {
         try {
             const projectInfo = selectedProject ? {
@@ -1132,7 +1127,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
             // Use the conversation data passed to the function, or fall back to voiceConversation
             const conversationToProcess = conversationData || voiceConversation;
             
-            // First, try to get AI-enhanced summary from backend using GPT-5
+            // First, try to get AI-enhanced summary from backend using GPT-4o
             try {
                 const response = await fetch('/api/transcripts/enhance', {
                     method: 'POST',
@@ -1160,7 +1155,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.data?.summary) {
-                        console.log('[Vapi] Successfully generated GPT-5 enhanced summary');
+                        console.log('[Vapi] Successfully generated GPT-4o enhanced summary');
                         // Store the transcript ID for potential later use
                         if (result.data.transcriptId) {
                             setTranscriptId(result.data.transcriptId);

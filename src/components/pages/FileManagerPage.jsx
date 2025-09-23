@@ -638,6 +638,12 @@ export default function FileManagerPage() {
   const load = async () => {
     setLoading(true);
     try {
+      // For blank folder workspaces (no root selected yet), don't auto-list root items
+      if (activeTab?.kind === 'folder' && (parentId === null || typeof parentId === 'undefined')) {
+        setItems([]);
+        setBreadcrumbs([]);
+        return;
+      }
       const data = await assetsService.list({ parentId, search, limit: 100, sortBy, sortOrder });
       let assets = data?.assets || [];
       // Client-side sorting for Type

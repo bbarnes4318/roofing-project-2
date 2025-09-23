@@ -16,7 +16,7 @@ const router = express.Router();
 // Apply authentication to all routes
 router.use(authenticateToken);
 
-// @desc    Generate AI-enhanced transcript with GPT-5
+// @desc    Generate AI-enhanced transcript with GPT-4o
 // @route   POST /api/transcripts/enhance
 // @access  Private
 router.post('/enhance', asyncHandler(async (req, res, next) => {
@@ -28,7 +28,7 @@ router.post('/enhance', asyncHandler(async (req, res, next) => {
             return next(new AppError('Full transcript data is required', 400));
         }
 
-        // Generate AI-enhanced summary using GPT-5
+        // Generate AI-enhanced summary using GPT-4o
         const enhancedSummary = await transcriptAIService.generateProfessionalSummary({
             fullTranscript,
             metadata,
@@ -64,7 +64,7 @@ router.post('/enhance', asyncHandler(async (req, res, next) => {
                 nextSteps: enhancedSummary.nextSteps || [],
                 communicationItems: enhancedSummary.communicationItems || [],
                 fullTranscript: fullTranscript,
-                aiModel: enhancedSummary.metadata?.aiModel || 'gpt-5',
+                aiModel: enhancedSummary.metadata?.aiModel || 'gpt-4o',
                 aiProcessedAt: new Date(),
                 isAiEnhanced: true
             }
@@ -74,7 +74,7 @@ router.post('/enhance', asyncHandler(async (req, res, next) => {
             summary: enhancedSummary,
             transcriptId: savedTranscript.id,
             sessionId: savedTranscript.sessionId
-        }, 'Transcript enhanced successfully with GPT-5 and saved to database');
+        }, 'Transcript enhanced successfully with GPT-4o and saved to database');
 
     } catch (error) {
         console.error('Error enhancing transcript:', error);

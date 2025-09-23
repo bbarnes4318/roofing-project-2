@@ -49,7 +49,7 @@ class TranscriptAIService {
                 `${entry.speaker}: ${entry.message}`
             ).join('\n');
 
-            // Create a comprehensive prompt for GPT-5
+            // Create a comprehensive prompt for GPT-4o
             const systemPrompt = `You are an expert construction project manager and technical writer. 
 Your task is to analyze a voice conversation transcript from a roofing project discussion and create a professional-grade document summary.
 
@@ -174,9 +174,9 @@ ${conversationText}
 Please analyze this conversation and provide a comprehensive professional summary following the specified JSON format. Be thorough and extract all relevant information for project documentation.`;
 
             console.log('🔍 TranscriptAIService: About to call OpenAI API');
-            console.log('🔍 TranscriptAIService: Model:', process.env.OPENAI_MODEL || "gpt-5");
+            console.log('🔍 TranscriptAIService: Model:', process.env.OPENAI_MODEL || "gpt-4o");
             const completion = await this.openai.chat.completions.create({
-                model: process.env.OPENAI_MODEL || "gpt-5",
+                model: process.env.OPENAI_MODEL || "gpt-4o",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
@@ -189,7 +189,7 @@ Please analyze this conversation and provide a comprehensive professional summar
             const responseContent = completion.choices?.[0]?.message?.content;
             
             if (!responseContent || responseContent.trim() === '') {
-                throw new Error('GPT-5 returned empty response content');
+                throw new Error('GPT-4o returned empty response content');
             }
 
             const aiSummary = JSON.parse(responseContent);
@@ -200,7 +200,7 @@ Please analyze this conversation and provide a comprehensive professional summar
                 metadata: {
                     ...metadata,
                     project: projectInfo,
-                    aiModel: process.env.OPENAI_MODEL || 'gpt-5',
+                    aiModel: process.env.OPENAI_MODEL || 'gpt-4o',
                     generatedAt: new Date().toISOString()
                 },
                 fullTranscript: fullTranscript
