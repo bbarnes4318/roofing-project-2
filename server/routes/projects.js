@@ -31,8 +31,8 @@ const getProjectPhaseKey = (project) => {
     }
     
     // Get phase from related workflow phase if present
-    if (tracker?.workflow_phases?.phaseType) {
-      const phaseType = tracker.workflow_phases.phaseType;
+    if (tracker?.currentPhase?.phaseType) {
+      const phaseType = tracker.currentPhase.phaseType;
       // console.log(`📍 Using tracker phase (related): ${phaseType} for project ${project.id}`);
       return phaseType;
     }
@@ -215,13 +215,18 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
     // ENABLED: currentWorkflowItem now that ProjectWorkflowTracker is properly populated
     currentWorkflowItem: (project.workflowTrackers && project.workflowTrackers.length > 0) ? (() => {
       const mainTracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
-      const trackerPhaseType = mainTracker?.workflow_phases?.phaseType || null;
-      const trackerPhaseName = mainTracker?.workflow_phases?.phaseName || (trackerPhaseType ? getProjectPhaseDisplay(trackerPhaseType) : null);
+      const trackerPhaseType = mainTracker?.currentPhase?.phaseType || null;
+      const trackerPhaseName = mainTracker?.currentPhase?.phaseName || (trackerPhaseType ? getProjectPhaseDisplay(trackerPhaseType) : null);
+      const sectionName = mainTracker?.currentSection?.displayName || mainTracker?.currentSection?.sectionName || null;
+      const lineItemName = mainTracker?.currentLineItem ? [
+        mainTracker.currentLineItem.itemLetter,
+        mainTracker.currentLineItem.itemName
+      ].filter(Boolean).join('. ') : null;
       return {
         phase: trackerPhaseType,
         phaseDisplay: trackerPhaseName,
-        section: null, // TODO: Populate from section relation if needed
-        lineItem: null, // TODO: Populate from line item relation if needed
+        section: sectionName,
+        lineItem: lineItemName,
         lineItemId: mainTracker.currentLineItemId || null,
         sectionId: mainTracker.currentSectionId || null,
         phaseId: mainTracker.currentPhaseId || null,
@@ -377,8 +382,14 @@ router.get('/', asyncHandler(async (req, res) => {
               currentLineItemId: true,
               totalLineItems: true,
               // include related workflow phase to derive current phase
-              workflow_phases: {
+              currentPhase: {
                 select: { phaseType: true, phaseName: true }
+              },
+              currentSection: {
+                select: { sectionName: true, displayName: true }
+              },
+              currentLineItem: {
+                select: { itemLetter: true, itemName: true }
               },
               completedItems: {
                 select: {
@@ -491,7 +502,9 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
             currentSectionId: true,
             currentLineItemId: true,
             totalLineItems: true,
-            workflow_phases: { select: { phaseType: true, phaseName: true } },
+            currentPhase: { select: { phaseType: true, phaseName: true } },
+            currentSection: { select: { sectionName: true, displayName: true } },
+            currentLineItem: { select: { itemLetter: true, itemName: true } },
             completedItems: {
               select: {
                 id: true,
@@ -535,7 +548,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
               currentSectionId: true,
               currentLineItemId: true,
               totalLineItems: true,
-              workflow_phases: { select: { phaseType: true, phaseName: true } },
+              currentPhase: { select: { phaseType: true, phaseName: true } },
               completedItems: {
                 select: {
                   id: true,
@@ -734,7 +747,9 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
               currentSectionId: true,
               currentLineItemId: true,
               totalLineItems: true,
-              workflow_phases: { select: { phaseType: true, phaseName: true } }
+              currentPhase: { select: { phaseType: true, phaseName: true } },
+              currentSection: { select: { sectionName: true, displayName: true } },
+              currentLineItem: { select: { itemLetter: true, itemName: true } }
             }
           }
         }
@@ -853,7 +868,9 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
             currentSectionId: true,
             currentLineItemId: true,
             totalLineItems: true,
-            workflow_phases: { select: { phaseType: true, phaseName: true } }
+            currentPhase: { select: { phaseType: true, phaseName: true } },
+            currentSection: { select: { sectionName: true, displayName: true } },
+            currentLineItem: { select: { itemLetter: true, itemName: true } }
           }
         }
       }
@@ -940,7 +957,7 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
             currentSectionId: true,
             currentLineItemId: true,
             totalLineItems: true,
-            workflow_phases: { select: { phaseType: true, phaseName: true } }
+            currentPhase: { select: { phaseType: true, phaseName: true } }
           }
         }
       }

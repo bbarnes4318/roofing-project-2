@@ -9,6 +9,7 @@ const { body, validationResult, query } = require('express-validator');
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const IngestionService = require('../services/IngestionService');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -38,12 +39,15 @@ const upload = multer({
       'image/gif',
       'text/plain',
       'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv',
+      'application/json'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
+      cb(new Error('Invalid file type. Only PDF, Word, Excel, images, text, CSV, and JSON files are allowed.'), false);
       cb(new Error('Invalid file type. Only PDF, Word, Excel, images, and text files are allowed.'), false);
     }
   }
@@ -322,6 +326,24 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
       })
     }
   });
+
+  // Fire-and-forget local ingestion into embeddings for RAG
+  try {
+    const safePath = (fileUrl || '').replace(/^\\|^\//, '');
+    const absolutePath = path.join(__dirname, '..', safePath);
+    IngestionService.processLocalPath({
+      documentId: document.id,
+      projectId: projectId || null,
+      filePath: absolutePath,
+      mimeType: req.file.mimetype
+    }).then(() => {
+      console.log('✅ Local ingestion complete for document', document.id);
+    }).catch(e => {
+      console.warn('⚠️ Local ingestion failed for document', document.id, e?.message || e);
+    });
+  } catch (e) {
+    console.warn('⚠️ Failed to kick off local ingestion:', e?.message || e);
+  }
 
   res.status(201).json({
     success: true,

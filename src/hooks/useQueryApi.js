@@ -130,7 +130,7 @@ export const useProjects = (params = {}) => {
         totalPages: 1
       };
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes for projects (frequently updated)
+    staleTime: 0, // always stale so focus triggers refetch
     retry: false,
     refetchOnWindowFocus: true,
   });

@@ -8,10 +8,21 @@ class EmbeddingService {
     this.model = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small';
   }
 
-  chunk(text, chunkTokens = 900, overlapTokens = 150) {
-    const sentences = String(text || '')
+  // Remove null bytes and problematic control characters, normalize whitespace
+  sanitizeText(input) {
+    if (!input) return '';
+    return String(input)
+      .replace(/\u0000/g, ' ')            // strip null bytes
+      .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, ' ') // control chars except tab/newline
       .replace(/\r\n?/g, '\n')
-      .split(/(?<=[.!?])\s+/);
+      .replace(/[\t\v\f]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  chunk(text, chunkTokens = 900, overlapTokens = 150) {
+    const clean = this.sanitizeText(text || '');
+    const sentences = clean.split(/(?<=[.!?])\s+/);
     const chunks = [];
     let current = '';
     const approxTokens = (s) => Math.ceil(String(s).length / 4);
@@ -60,7 +71,7 @@ class EmbeddingService {
   }
 
   async indexText({ projectId, fileId, text, metadata = {} }) {
-    const chunks = this.chunk(text);
+    const chunks = this.chunk(text).map((c) => this.sanitizeText(c));
     if (chunks.length === 0) return 0;
     const vectors = await this.embedTexts(chunks);
 
@@ -74,7 +85,7 @@ class EmbeddingService {
         projectId || null,
         fileId || null,
         `${i}`,
-        chunks[i],
+        this.sanitizeText(chunks[i]),
         JSON.stringify(metadata)
       );
     }
@@ -92,7 +103,7 @@ class EmbeddingService {
     for (const p of pages) {
       const perPageChunks = this.chunk(p.text);
       for (let i = 0; i < perPageChunks.length; i++) {
-        chunkTexts.push(perPageChunks[i]);
+        chunkTexts.push(this.sanitizeText(perPageChunks[i]));
         chunkMeta.push({ ...baseMetadata, page: p.page, pageChunk: i + 1 });
       }
     }
@@ -112,7 +123,7 @@ class EmbeddingService {
         projectId || null,
         fileId || null,
         chunkId,
-        chunkTexts[i],
+        this.sanitizeText(chunkTexts[i]),
         JSON.stringify(chunkMeta[i])
       );
     }

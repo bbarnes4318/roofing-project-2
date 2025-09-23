@@ -134,35 +134,29 @@ class OpenAIService {
   }
 
   buildSystemPrompt(context) {
-    return `You are Bubbles, the proactive AI project copilot for construction and roofing teams. Your goal is to make the next best action obvious and fast while sounding like a helpful, normal human — not robotic.
+    return `You are Bubbles, a proactive project copilot for construction and roofing teams. Write in a natural, conversational tone — like a human.
 
-Key Capabilities (prioritize relevance to user intent):
-- Project status summarization with next steps
-- Risk and blocker detection with mitigation suggestions
-- Alert creation, routing, and follow-up
-- Workflow updates and milestone management
-- Timeline forecasting and schedule impact
-- Natural-language task assignment and coordination
+Context:
+${context.projectName ? `Current project: ${context.projectName}` : 'No specific project selected'}
+${context.userRole ? `User role: ${context.userRole}` : ''}
+${context.activeAlerts ? `Active alerts: ${context.activeAlerts}` : ''}
+${context.workflowStatus ? `Workflow: ${context.workflowStatus}` : ''}
 
-Context Information:
-${context.projectName ? `- Current Project: ${context.projectName}` : '- No specific project selected'}
-${context.userRole ? `- User Role: ${context.userRole}` : ''}
-${context.activeAlerts ? `- Active Alerts: ${context.activeAlerts} pending` : ''}
-${context.workflowStatus ? `- Workflow Status: ${context.workflowStatus}` : ''}
+Style rules:
+- Keep it concise and actionable.
+- Do not use numbered lists (1., 2., 3.).
+- Avoid heavy formatting, headings, and bold text.
+- Prefer short paragraphs. Use a list only if the user explicitly asks for one.
+- If you suggest next steps, keep them inline as a short sentence at the end (e.g., Next: do X, then Y).
 
-Communication Style:
-- Be confident, concise, and actionable
-- Sound conversational and warm; acknowledge naturally; avoid repeating the user's phrasing
-- Prefer imperative phrasing (“Do X”, “Review Y”)
-- Use construction terminology appropriately
-- Structure with short headings and tight bullets
-- Offer 2–3 crisp follow-ups as buttons
+If document context is provided, treat it as the primary source of truth:
+- Use the document context (“documentSnippets”) to answer fact questions.
+- If you assert a fact from a snippet, add a minimal inline citation like [file:ID p:N] at the end of that sentence.
+- If no relevant snippet exists, answer from general knowledge.
 
-Response Format:
-- ≤ 250 words unless user asks for detail
-- Use markdown headings and bullets
-- Surface risks/urgencies up top when present
-- Always include 2–3 suggested actions aligned to the content`;
+Format:
+- Natural sentences and short paragraphs.
+- ≤ 250 words unless the user asks for more.`;
   }
 
   buildMessages(systemPrompt, prompt, context) {
@@ -179,6 +173,12 @@ Response Format:
           messages.push({ role: 'assistant', content: this.truncateForContext(respText) });
         }
       }
+    }
+
+    // Inject document context if available
+    if (Array.isArray(context.documentSnippets) && context.documentSnippets.length > 0) {
+      const block = ['--- DOCUMENT CONTEXT BEGIN ---', ...context.documentSnippets, '--- DOCUMENT CONTEXT END ---'].join('\n\n');
+      messages.push({ role: 'user', content: block });
     }
 
     const userPrompt = this.buildUserPrompt(prompt, context);
@@ -282,30 +282,14 @@ Response Format:
     if (lowerPrompt.includes('help') || lowerPrompt.includes('what can you do') || lowerPrompt === 'help') {
       return {
         type: 'capabilities',
-        content: `Here’s what I can do fast:
-
-**Status & Focus**
-• Summarize project status with next steps
-• Show today’s priorities and deadlines
-• Surface risks and blockers
-
-**Actions I Can Take**
-• Create alerts and assign tasks
-• Update workflow items and milestones
-• Forecast timelines and schedule impacts
-
-${context.projectName ? `Current project: **${context.projectName}**.` : ''}
-
-Ask for anything, or try a quick command:
-• "Show priorities"
-• "Project status"
-• "Create alert: weather delay — urgent"`,
+        content: `I can summarize project status with next steps, surface risks and blockers, create alerts and assign tasks, update workflow items and milestones, and forecast timelines.
+${context.projectName ? `We’re focused on ${context.projectName}. ` : ''}Ask me for priorities, project status, or to create an alert. Next: say what you want to do, and I’ll do it.`,
         confidence: 1.0,
         source: 'mock-responses',
         suggestedActions: [
-          { type: 'priorities_today', label: "Today's Priorities" },
-          { type: 'project_status', label: 'Project Status' },
-          { type: 'create_alert', label: 'Create Alert' }
+          { type: 'priorities_today', label: "Today's priorities" },
+          { type: 'project_status', label: 'Project status' },
+          { type: 'create_alert', label: 'Create alert' }
         ]
       };
     }
@@ -314,27 +298,19 @@ Ask for anything, or try a quick command:
       if (context.projectName) {
         return {
           type: 'project_status',
-          content: `**Project Name:** ${context.projectName}
-${context.projectNumber ? `**Project Number:** #${String(context.projectNumber).padStart(5, '0')}` : ''}
-**Progress:** ${context.progress ?? 'N/A'}%
-
-**Phase**
-N/A
-
-**Section**
-N/A
-
-**Line Item**
-N/A
-
-**Next Actions:**
-- No upcoming items found`,
+          content: `Project: ${context.projectName}
+${context.projectNumber ? `Project number: #${String(context.projectNumber).padStart(5, '0')}
+` : ''}Progress: ${context.progress ?? 'N/A'}%
+Phase: N/A
+Section: N/A
+Line item: N/A
+Next: no upcoming items found.`,
           confidence: 0.94,
           source: 'mock-responses',
           suggestedActions: [
-            { type: 'view_workflow', label: 'View Workflow' },
-            { type: 'check_alerts', label: 'Check Alerts' },
-            { type: 'team_status', label: 'Team Status' }
+            { type: 'view_workflow', label: 'View workflow' },
+            { type: 'check_alerts', label: 'Check alerts' },
+            { type: 'team_status', label: 'Team status' }
           ]
         };
       }
@@ -343,17 +319,7 @@ N/A
     if (lowerPrompt.includes('complete') || lowerPrompt.includes('mark') || lowerPrompt.includes('done')) {
       return {
         type: 'workflow_action',
-        content: `Let’s wrap this up. To complete a task I need:
-• Project name/ID
-• The workflow item
-• Optional notes
-
-Examples
-• "Mark foundation inspection complete for Project Alpha"
-• "Complete roofing installation task"
-• "Mark electrical rough‑in done"
-
-${context.projectName ? `For **${context.projectName}** — ` : ''}which task should I complete?`,
+        content: `I can complete a task. Tell me the task name${context.projectName ? ` for ${context.projectName}` : ''}, and add any notes if needed. For example: "Mark foundation inspection complete". Next: name the task to complete.`,
         confidence: 0.92,
         source: 'mock-responses',
         suggestedActions: [
@@ -367,23 +333,7 @@ ${context.projectName ? `For **${context.projectName}** — ` : ''}which task sh
     if (lowerPrompt.includes('alert') || lowerPrompt.includes('notification')) {
       return {
         type: 'alert_action',
-        content: `Let’s raise the right alert.
-
-Priority levels
-• Urgent — immediate attention
-• High — near‑term deadline
-• Medium — standard workflow
-• Low — general info/reminder
-
-I need
-• Priority level
-• Project
-• Message/description
-
-Example
-"Create urgent alert: weather delay on Project Alpha"
-
-${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What’s the priority?`,
+        content: `Let’s create an alert. Tell me the priority (urgent, high, medium, or low) and the message. ${context.projectName ? `This will be for ${context.projectName}. ` : ''}Example: Create urgent alert: weather delay. Next: give me the priority and message.`,
         confidence: 0.90,
         source: 'mock-responses',
         suggestedActions: [
@@ -396,11 +346,8 @@ ${context.projectName ? `Create this for **${context.projectName}**? ` : ''}What
 
     const hasProject = Boolean(context && context.projectName);
     const content = hasProject
-      ? `I'm ready to act on ${context.projectName}. Choose a next step:
-• Project status
-• Show incomplete tasks
-• Complete a task (name it)`
-      : `Tell me the project number or primary customer name so I can act (e.g., "Use project #12345" or the customer's name).`;
+      ? `I’m ready to act on ${context.projectName}. Tell me whether you want status, to see incomplete tasks, or to complete a specific task.`
+      : `Tell me which project you want to use (project number or customer name) so I can act.`;
 
     const actions = hasProject
       ? [

@@ -47,13 +47,19 @@ const getFilenameFromDisposition = (cd) => {
 };
 
 export const assetsService = {
-  list: async ({ parentId = null, search = '', page = 1, limit = 50, sortBy, sortOrder } = {}) => {
+  list: async ({ parentId = null, search = '', page = 1, limit = 50, sortBy, sortOrder, type } = {}) => {
     const params = { parentId: parentId === null ? 'null' : parentId, page, limit };
     if (search) params.search = search;
     if (sortBy) params.sortBy = sortBy;
     if (sortOrder) params.sortOrder = sortOrder;
+    if (type) params.type = type;
     const res = await api.get('/assets', { params });
     return res.data?.data;
+  },
+  // Convenience helper to list only folders at a given level
+  listFolders: async ({ parentId = null, sortBy = 'title', sortOrder = 'asc', limit = 1000 } = {}) => {
+    const data = await assetsService.list({ parentId, type: 'FOLDER', sortBy, sortOrder, limit });
+    return data?.assets || [];
   },
   createFolder: async ({ name, parentId = null, description = '' }) => {
     const res = await api.post('/folders', { name, parentId, description });

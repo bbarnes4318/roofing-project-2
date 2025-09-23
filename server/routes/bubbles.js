@@ -9,6 +9,7 @@ const {
 } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
+const EmbeddingService = require('../services/EmbeddingService');
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
@@ -742,17 +743,13 @@ ${currentWorkflowData ? `
 4. If general question: Answer directly
 
 ### STEP 2: RESPONSE GENERATION
-1. **For ACTIONABLE requests** (complete tasks, check status, etc.): Use JSON tool call format
-2. **For GENERAL QUESTIONS** (what is next, how to do something, etc.): Respond conversationally in natural language
-3. **For PROJECT STATUS queries**: Provide direct answers using project context
-4. **Context Maintenance:** Always maintain project context
-5. **No Repetition:** Never ask for project identification twice
+Write naturally in short paragraphs. Do not use numbered lists. Avoid heavy formatting, headings, and bold text. Keep responses under 150 words unless the user asks for more detail. If you suggest next steps, add a short inline sentence at the end like: Next: do X, then Y.
 
 ### STEP 3: FORMATTING
-- Use Markdown formatting (headers, bold, lists)
-- Keep responses under 150 words unless detailed report requested
-- End with 2-3 relevant next actions
-- Use bullet points for clarity
+Write naturally in short paragraphs.
+Do not use numbered lists. Avoid heavy formatting, headings, and bold text.
+Keep responses under 150 words unless the user asks for more detail.
+If you suggest next steps, add a short inline sentence at the end like: Next: do X, then Y.
 
 ## AVAILABLE TOOLS
 ${JSON.stringify(tools, null, 2)}
@@ -935,11 +932,28 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
   // Use enhanced system prompt for workflow knowledge questions or project-specific questions
   const systemPrompt = getSystemPrompt(req.user, projectContext, currentWorkflowData);
+
+  // Retrieve document context via semantic search (merge project docs and global company assets)
+  let documentSnippets = [];
+  try {
+    const topProject = await EmbeddingService.semanticSearch({ projectId: projectContext?.id || null, query: message, topK: 8 });
+    let topGlobal = [];
+    try { topGlobal = await EmbeddingService.semanticSearch({ projectId: null, query: message, topK: 8 }); } catch (_) {}
+    const merged = [...(topProject || []), ...(topGlobal || [])]
+      .sort((a, b) => (b.score || 0) - (a.score || 0))
+      .slice(0, 12);
+    documentSnippets = merged.map(c => `file:${c.fileId} page:${c?.metadata?.page || ''} score:${(c.score||0).toFixed(3)}\n${(c.snippet||'').replace(/\s+/g,' ').slice(0, 600)}`);
+  } catch (e) {
+    // If embeddings not available, continue without context
+    documentSnippets = [];
+  }
+
   const aiResponse = await openAIService.generateResponse(message, {
     systemPrompt,
     projectName: projectContext?.projectName,
     progress: projectContext?.progress,
-    projectNumber: projectContext?.projectNumber
+    projectNumber: projectContext?.projectNumber,
+    documentSnippets
   });
 
   let content = aiResponse?.content || 'OK';

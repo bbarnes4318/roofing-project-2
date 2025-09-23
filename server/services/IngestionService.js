@@ -4,6 +4,7 @@ const EmbeddingService = require('./EmbeddingService');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const pdfParse = require('pdf-parse');
 const { XMLParser } = require('fast-xml-parser');
+const fs = require('fs').promises;
 
 async function streamToBuffer(stream) {
   return new Promise((resolve, reject) => {
@@ -107,6 +108,33 @@ class IngestionService {
       let pageEntries = [];
       if (mimeType === 'application/pdf') {
         pageEntries = await this.extractPdfPages(buf); // [{page, text}]
+      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || mimeType === 'application/msword') {
+        // DOCX (and try legacy DOC if possible)
+        let text = '';
+        try {
+          const mammoth = require('mammoth');
+          const result = await mammoth.extractRawText({ buffer: buf });
+          text = String(result?.value || '').trim();
+        } catch (e) {
+          console.warn('⚠️ DOCX extract skipped (mammoth not installed or failed):', e?.message || e);
+        }
+        if (text) pageEntries = [{ page: 1, text }];
+      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || mimeType === 'application/vnd.ms-excel') {
+        // XLSX/XLS via xlsx package
+        try {
+          const XLSX = require('xlsx');
+          const wb = XLSX.read(buf, { type: 'buffer' });
+          const parts = [];
+          for (const name of wb.SheetNames) {
+            const sheet = wb.Sheets[name];
+            const csv = XLSX.utils.sheet_to_csv(sheet);
+            if (csv) parts.push(`# ${name}\n${csv}`);
+          }
+          const text = parts.join('\n\n').slice(0, 200000);
+          if (text) pageEntries = [{ page: 1, text }];
+        } catch (e) {
+          console.warn('⚠️ XLSX extract skipped (xlsx not available or failed):', e?.message || e);
+        }
       } else if (mimeType?.startsWith('image/')) {
         const text = await this.ocrImageBuffer(buf);
         if (text) pageEntries = [{ page: 1, text }];
@@ -118,6 +146,15 @@ class IngestionService {
         const obj = parser.parse(buf.toString('utf8'));
         const text = JSON.stringify(obj).slice(0, 50000);
         if (text) pageEntries = [{ page: 1, text }];
+      } else if (mimeType?.includes('json')) {
+        try {
+          const obj = JSON.parse(buf.toString('utf8'));
+          const text = JSON.stringify(obj).slice(0, 200000);
+          if (text) pageEntries = [{ page: 1, text }];
+        } catch (_) {
+          const text = buf.toString('utf8');
+          if (text) pageEntries = [{ page: 1, text }];
+        }
       }
 
       // 2) Index embeddings (page-aware)
@@ -140,6 +177,77 @@ class IngestionService {
       return { success: true };
     } catch (err) {
       console.error('❌ Ingestion processFile error:', err?.message || err);
+      return { success: false, error: err?.message || String(err) };
+    }
+  }
+
+  /**
+   * Process a local on-disk file path and index into embeddings.
+   */
+  async processLocalPath({ documentId, projectId, filePath, mimeType }) {
+    try {
+      const buf = await fs.readFile(filePath);
+      let pageEntries = [];
+      if (mimeType === 'application/pdf') {
+        pageEntries = await this.extractPdfPages(buf); // [{page, text}]
+      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || mimeType === 'application/msword') {
+        // DOCX (and try legacy DOC if possible)
+        let text = '';
+        try {
+          const mammoth = require('mammoth');
+          const result = await mammoth.extractRawText({ buffer: buf });
+          text = String(result?.value || '').trim();
+        } catch (e) {
+          console.warn('⚠️ DOCX extract skipped (mammoth not installed or failed):', e?.message || e);
+        }
+        if (text) pageEntries = [{ page: 1, text }];
+      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || mimeType === 'application/vnd.ms-excel') {
+        // XLSX/XLS via xlsx package
+        try {
+          const XLSX = require('xlsx');
+          const wb = XLSX.read(buf, { type: 'buffer' });
+          const parts = [];
+          for (const name of wb.SheetNames) {
+            const sheet = wb.Sheets[name];
+            const csv = XLSX.utils.sheet_to_csv(sheet);
+            if (csv) parts.push(`# ${name}\n${csv}`);
+          }
+          const text = parts.join('\n\n').slice(0, 200000);
+          if (text) pageEntries = [{ page: 1, text }];
+        } catch (e) {
+          console.warn('⚠️ XLSX extract skipped (xlsx not available or failed):', e?.message || e);
+        }
+      } else if (mimeType?.startsWith('image/')) {
+        const text = await this.ocrImageBuffer(buf);
+        if (text) pageEntries = [{ page: 1, text }];
+      } else if (mimeType?.startsWith('text/')) {
+        const text = buf.toString('utf8');
+        if (text) pageEntries = [{ page: 1, text }];
+      } else if (mimeType?.includes('xml')) {
+        const parser = new XMLParser({ ignoreAttributes: false });
+        const obj = parser.parse(buf.toString('utf8'));
+        const text = JSON.stringify(obj).slice(0, 50000);
+        if (text) pageEntries = [{ page: 1, text }];
+      }
+
+      if (pageEntries.length > 0) {
+        const baseMeta = { mimeType, path: filePath };
+        await EmbeddingService.indexPageChunks({
+          projectId: projectId || null,
+          fileId: documentId || filePath,
+          pages: pageEntries,
+          baseMetadata: baseMeta,
+        });
+      }
+
+      if (documentId) {
+        try {
+          await prisma.document.update({ where: { id: documentId }, data: { lastDownloadedAt: new Date() } });
+        } catch (_) {}
+      }
+      return { success: true };
+    } catch (err) {
+      console.error('❌ Ingestion processLocalPath error:', err?.message || err);
       return { success: false, error: err?.message || String(err) };
     }
   }

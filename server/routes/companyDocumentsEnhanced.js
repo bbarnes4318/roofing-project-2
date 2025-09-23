@@ -5,6 +5,7 @@ const fs = require('fs').promises;
 const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const { prisma } = require('../config/prisma');
+const IngestionService = require('../services/IngestionService');
 const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -43,13 +44,16 @@ const upload = multer({
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'image/jpeg',
       'image/png',
-      'image/gif'
+      'image/gif',
+      'text/plain',
+      'text/csv',
+      'application/json'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Allowed types: PDF, Word, Excel, JPG, PNG, GIF'));
+      cb(new Error('Invalid file type. Allowed types: PDF, Word, Excel, JPG, PNG, GIF, Plain Text, CSV'));
     }
   }
 });
@@ -60,6 +64,27 @@ async function calculateChecksum(filePath) {
   const hashSum = crypto.createHash('sha256');
   hashSum.update(fileBuffer);
   return hashSum.digest('hex');
+}
+
+// Helper: collect all descendant asset IDs (breadth-first) for cascading operations
+async function collectDescendantIds(rootIds) {
+  const toVisit = Array.from(new Set(rootIds.map(String)));
+  const all = new Set(toVisit);
+  while (toVisit.length) {
+    const chunk = toVisit.splice(0, 50);
+    const children = await prisma.companyAsset.findMany({
+      where: { isActive: true, parentId: { in: chunk } },
+      select: { id: true }
+    });
+    for (const c of children) {
+      const id = String(c.id);
+      if (!all.has(id)) {
+        all.add(id);
+        toVisit.push(id);
+      }
+    }
+  }
+  return Array.from(all);
 }
 
 // Helper function to get file icon based on mime type
@@ -336,6 +361,24 @@ router.post('/assets/upload',
           isCurrent: true
         }
       });
+
+      // Fire-and-forget local ingestion for RAG
+      try {
+        const safePath = (fileUrl || '').replace(/^\\|^\//, '');
+        const absolutePath = path.join(__dirname, '..', safePath);
+        IngestionService.processLocalPath({
+          documentId: null,
+          projectId: null,
+          filePath: absolutePath,
+          mimeType: file.mimetype
+        }).then(() => {
+          console.log('✅ Local ingestion complete for asset', asset.id);
+        }).catch(e => {
+          console.warn('⚠️ Local ingestion failed for asset', asset.id, e?.message || e);
+        });
+      } catch (e) {
+        console.warn('⚠️ Failed to kick off local ingestion for asset:', e?.message || e);
+      }
       
       // Update download count on parent folder
       if (parentId) {
@@ -587,11 +630,59 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
       break;
       
     case 'delete':
-      // Soft delete
-      result = await prisma.companyAsset.updateMany({
-        where: { id: { in: assetIds } },
-        data: { isActive: false }
-      });
+      // Soft delete (cascade): target assets and all descendants
+      {
+        const allIds = await collectDescendantIds(assetIds.map(String));
+        result = await prisma.companyAsset.updateMany({
+          where: { id: { in: allIds } },
+          data: { isActive: false }
+        });
+      }
+      break;
+    
+    case 'purge':
+      // Hard delete: remove files from disk, delete embeddings, then delete DB rows (cascade removes versions)
+      {
+        const allIds = await collectDescendantIds(assetIds.map(String));
+        const assets = await prisma.companyAsset.findMany({
+          where: { id: { in: allIds } },
+          select: {
+            id: true,
+            fileUrl: true,
+            versions: { select: { file_url: true } }
+          }
+        });
+
+        const filePaths = [];
+        for (const a of assets) {
+          const urls = [];
+          if (a.fileUrl) urls.push(a.fileUrl);
+          if (Array.isArray(a.versions)) {
+            for (const v of a.versions) if (v.file_url) urls.push(v.file_url);
+          }
+          for (const u of urls) {
+            try {
+              const safe = String(u).replace(/^\\|^\//, '');
+              const abs = path.join(__dirname, '..', safe);
+              filePaths.push(abs);
+              // Try to unlink
+              await fs.unlink(abs).catch(() => {});
+            } catch (_) {}
+          }
+        }
+
+        // Remove embeddings for these files (file_id equals absolute path for local ingests)
+        for (const abs of filePaths) {
+          try {
+            await prisma.$executeRawUnsafe('DELETE FROM embeddings WHERE file_id = $1', abs);
+          } catch (e) {
+            console.warn('⚠️ Failed to purge embeddings for', abs, e?.message || e);
+          }
+        }
+
+        // Finally, delete asset rows (versions will cascade)
+        result = await prisma.companyAsset.deleteMany({ where: { id: { in: allIds } } });
+      }
       break;
       
     case 'updateTags':
