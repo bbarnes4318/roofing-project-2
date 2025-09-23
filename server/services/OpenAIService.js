@@ -56,7 +56,7 @@ class OpenAIService {
       console.log('🔍 Making OpenAI API call (responses.create)...', modelName);
       const response = await this.client.responses.create({
         model: modelName,
-        messages,
+        input: messages,
         max_output_tokens: 900,
         temperature: 0.8,
       });
@@ -456,7 +456,7 @@ Display rules:
 
       const response = await this.client.responses.create({
         model: this.model,
-        messages,
+        input: messages,
         max_output_tokens: 200,
         temperature: 0.3
       });
