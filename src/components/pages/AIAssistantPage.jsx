@@ -1113,6 +1113,9 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                 id: `error_${Date.now()}`,
                 type: 'assistant',
                 content: `⚠️ Could not send conversation summary as project message. The summary has been saved locally.`,
+            };
+            setMessages(prev => [errorMessage, ...prev]);
+        }
     };
     
     // Enhanced transcript and summary generation for modal with GPT-4o
