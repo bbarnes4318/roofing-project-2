@@ -806,12 +806,12 @@ model CompanyAsset {
   uploadedById     String?                 @map("uploaded_by_id")
   
   // Enhanced fields for redesign
-  folderName       String?                 @db.VarChar(255)   // Human-readable folder name
-  isPublic         Boolean                 @default(false)    // Public/private access
-  thumbnailUrl     String?                 @db.VarChar(2000)  // Preview thumbnail
+  folderName       String?                 @map("folder_name") @db.VarChar(255)   // Human-readable folder name
+  isPublic         Boolean                 @map("is_public") @default(false)    // Public/private access
+  thumbnailUrl     String?                 @map("thumbnail_url") @db.VarChar(2000)  // Preview thumbnail
   checksum         String?                 @db.VarChar(255)   // File integrity check
   metadata         Json?                                      // Flexible metadata (icon, color, etc)
-  accessLevel      String?                 @default("private") @db.VarChar(50)
+  accessLevel      String?                 @map("access_level") @default("private") @db.VarChar(50)
   
   // Folder hierarchy support
   type             AssetType               @default(FILE)
@@ -833,15 +833,15 @@ model CompanyAsset {
 
 model CompanyAssetVersion {
   id                String        @id @default(cuid())
-  createdAt         DateTime      @default(now())
+  createdAt         DateTime      @map("created_at") @default(now())
   assetId           String        @map("asset_id")
   versionNumber     Int           @map("version_number")
-  fileUrl           String        @db.VarChar(2000)
-  fileSize          Int
+  fileUrl           String        @map("file_url") @db.VarChar(2000)
+  fileSize          Int           @map("file_size")
   checksum          String?       @db.VarChar(255)
-  changeDescription String?       @db.VarChar(1000)
+  changeDescription String?       @map("change_description") @db.VarChar(1000)
   uploadedById      String?       @map("uploaded_by_id")
-  isCurrent         Boolean       @default(false)
+  isCurrent         Boolean       @map("is_current") @default(false)
   
   // Relations
   asset             CompanyAsset  @relation("AssetVersions", fields: [assetId], references: [id], onDelete: Cascade)

@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    file_size: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -348,7 +348,7 @@ router.put('/:id', authenticateToken, validateDocument, asyncHandler(async (req,
   }
 
   // Check permissions
-  if (document.uploaded_by_id !== user.id && !['ADMIN', 'MANAGER'].includes(user.role)) {
+  if (document.uploadedById !== user.id && !['ADMIN', 'MANAGER'].includes(user.role)) {
     return res.status(403).json({
       success: false,
       message: 'Access denied'
@@ -579,23 +579,18 @@ async function getUserProjectIds(userId) {
 
 function hasDocumentAccess(document, user) {
   // Public documents
-  if (document.access_level === 'PUBLIC') return true;
-  
-  // Authenticated users
-  if (document.access_level === 'AUTHENTICATED' && user) return true;
-  
-  // Private documents - check if user has access to the project
-  if (document.access_level === 'PRIVATE' && document.projectId) {
-    // This would need to be enhanced with actual project access check
-    return true; // Simplified for now
-  }
-  
-  // Internal documents
-  if (document.access_level === 'INTERNAL' && ['ADMIN', 'MANAGER', 'WORKER'].includes(user.role)) return true;
-  
-  // Admin documents
-  if (document.access_level === 'ADMIN' && user.role === 'ADMIN') return true;
-  
+  if (document.isPublic) return true;
+
+  // No user context means no access beyond public
+  if (!user) return false;
+
+  // Admins always allowed
+  if (user.role === 'ADMIN') return true;
+
+  // Owner allowed
+  if (document.uploadedById && document.uploadedById === user.id) return true;
+
+  // Basic project-based allowance could be implemented here if needed
   return false;
 }
 

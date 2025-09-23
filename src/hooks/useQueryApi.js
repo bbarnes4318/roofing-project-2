@@ -132,7 +132,7 @@ export const useProjects = (params = {}) => {
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for projects (frequently updated)
     retry: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -579,6 +579,9 @@ export const useCompleteWorkflowStep = () => {
         queryClient.invalidateQueries({ 
           queryKey: queryKeys.workflow(variables.projectId) 
         });
+        // CRITICAL: Also refresh projects so Phase column updates immediately
+        queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+        queryClient.invalidateQueries({ queryKey: queryKeys.project(variables.projectId) });
       }
     },
   });
@@ -596,6 +599,11 @@ export const useCompleteWorkflowSubTask = () => {
         queryKey: queryKeys.workflow(variables.projectId) 
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.workflowAlerts });
+      // Ensure projects list and specific project refresh to update Phase column
+      if (variables.projectId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+        queryClient.invalidateQueries({ queryKey: queryKeys.project(variables.projectId) });
+      }
     },
   });
 };

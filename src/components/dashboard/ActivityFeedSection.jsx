@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import TaskItem from '../ui/TaskItem';
 import ReminderItem from '../ui/ReminderItem';
@@ -22,12 +22,24 @@ const ActivityFeedSection = ({
   // Activity Feed expansion state - expanded by default
   const [isActivityFeedExpanded, setIsActivityFeedExpanded] = useState(true);
 
-  // Initialize centralized state with activity feed items
-  useEffect(() => {
-    if (activityFeedItems && activityFeedItems.length > 0) {
-      actions.setItems(activityFeedItems);
+  // Build a stable signature for the incoming items so we only update when content truly changes
+  const itemsSignature = useMemo(() => {
+    if (!Array.isArray(activityFeedItems) || activityFeedItems.length === 0) return 'len:0';
+    try {
+      return 'len:' + activityFeedItems.length + '|' + activityFeedItems.map(it => `${it.id}:${it.timestamp || ''}`).join('|');
+    } catch {
+      return 'len:' + activityFeedItems.length;
     }
-  }, [activityFeedItems, actions]);
+  }, [activityFeedItems]);
+
+  // Initialize centralized state with activity feed items only when signature changes
+  const lastSigRef = useRef(null);
+  useEffect(() => {
+    if (itemsSignature !== lastSigRef.current) {
+      actions.setItems(Array.isArray(activityFeedItems) ? activityFeedItems : []);
+      lastSigRef.current = itemsSignature;
+    }
+  }, [itemsSignature, activityFeedItems, actions]);
 
   // Expand/Collapse handlers
   const handleExpandAllActivity = () => {

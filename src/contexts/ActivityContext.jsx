@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useMemo } from 'react';
 
 // Action types
 const ACTIVITY_ACTIONS = {
@@ -31,10 +31,24 @@ const initialState = {
 function activityReducer(state, action) {
   switch (action.type) {
     case ACTIVITY_ACTIONS.SET_ITEMS:
-      return {
-        ...state,
-        items: action.payload
-      };
+      {
+        const nextItems = Array.isArray(action.payload) ? action.payload : [];
+        const prevItems = Array.isArray(state.items) ? state.items : [];
+        // No-op if shallowly identical by id+timestamp and same length
+        if (prevItems.length === nextItems.length) {
+          let same = true;
+          for (let i = 0; i < prevItems.length; i++) {
+            const a = prevItems[i];
+            const b = nextItems[i];
+            if ((a?.id !== b?.id) || (a?.timestamp !== b?.timestamp)) { same = false; break; }
+          }
+          if (same) return state;
+        }
+        return {
+          ...state,
+          items: nextItems
+        };
+      }
       
     case ACTIVITY_ACTIONS.TOGGLE_EXPANDED:
       const newExpanded = new Set(state.expandedItems);
@@ -118,33 +132,15 @@ export function ActivityProvider({ children }) {
   const [state, dispatch] = useReducer(activityReducer, initialState);
 
   // Action creators
-  const actions = {
+  const actions = useMemo(() => ({
     setItems: (items) => dispatch({ type: ACTIVITY_ACTIONS.SET_ITEMS, payload: items }),
-    
     toggleExpanded: (itemId) => dispatch({ type: ACTIVITY_ACTIONS.TOGGLE_EXPANDED, payload: itemId }),
-    
     toggleCompleted: (itemId) => dispatch({ type: ACTIVITY_ACTIONS.TOGGLE_COMPLETED, payload: itemId }),
-    
-    addComment: (itemId, comment) => dispatch({ 
-      type: ACTIVITY_ACTIONS.ADD_COMMENT, 
-      payload: { itemId, comment } 
-    }),
-    
-    updateCommentText: (itemId, text) => dispatch({ 
-      type: ACTIVITY_ACTIONS.UPDATE_COMMENT_TEXT, 
-      payload: { itemId, text } 
-    }),
-    
-    setShowCommentInput: (itemId, show) => dispatch({ 
-      type: ACTIVITY_ACTIONS.SET_SHOW_COMMENT_INPUT, 
-      payload: { itemId, show } 
-    }),
-    
-    setCommentInputs: (itemId, text) => dispatch({ 
-      type: ACTIVITY_ACTIONS.SET_COMMENT_INPUTS, 
-      payload: { itemId, text } 
-    })
-  };
+    addComment: (itemId, comment) => dispatch({ type: ACTIVITY_ACTIONS.ADD_COMMENT, payload: { itemId, comment } }),
+    updateCommentText: (itemId, text) => dispatch({ type: ACTIVITY_ACTIONS.UPDATE_COMMENT_TEXT, payload: { itemId, text } }),
+    setShowCommentInput: (itemId, show) => dispatch({ type: ACTIVITY_ACTIONS.SET_SHOW_COMMENT_INPUT, payload: { itemId, show } }),
+    setCommentInputs: (itemId, text) => dispatch({ type: ACTIVITY_ACTIONS.SET_COMMENT_INPUTS, payload: { itemId, text } })
+  }), [dispatch]);
 
   return (
     <ActivityContext.Provider value={{ state, actions }}>

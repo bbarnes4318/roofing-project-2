@@ -12,7 +12,7 @@ function humanSize(bytes) {
 
 const Sidebar = ({ onUploadClick, onCreateFolder }) => {
   return (
-    <div className="w-56 border-r bg-white p-3 hidden md:flex md:flex-col">
+    <div className="col-span-12 md:col-span-3 lg:col-span-2 border-r bg-white p-3 hidden md:flex md:flex-col">
       <div className="mb-3">
         <button onClick={onUploadClick} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">
           <CloudArrowUpIcon className="w-4 h-4" />
@@ -73,7 +73,7 @@ const FolderCard = ({ folder, onOpen, onContext }) => {
       <div className="p-3 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FolderIcon className="w-6 h-6"/>
-          <div className="font-medium text-sm truncate" title={folder.folder_name || folder.title}>{folder.folder_name || folder.title}</div>
+          <div className="font-medium text-sm truncate" title={folder.folderName || folder.title}>{folder.folderName || folder.title}</div>
         </div>
         <button onClick={(e) => { e.stopPropagation(); onContext?.(e, folder); }}>
           <EllipsisVerticalIcon className="w-5 h-5 opacity-60" />
@@ -95,7 +95,7 @@ const FileRow = ({ item, onOpen, onContext }) => {
       <td className="px-3 py-2">
         <div className="flex items-center gap-2">
           {isFolder ? <FolderIcon className="w-5 h-5 text-yellow-500"/> : <DocumentIcon className="w-5 h-5 text-gray-400"/>}
-          <button className="text-sm text-left text-gray-800 hover:underline" onClick={() => onOpen(item)}>{item.title || item.folder_name}</button>
+          <button className="text-sm text-left text-gray-800 hover:underline" onClick={() => onOpen(item)}>{item.title || item.folderName}</button>
         </div>
       </td>
       <td className="px-3 py-2 text-xs text-gray-500">{new Date(item.updatedAt || item.createdAt).toLocaleString()}</td>
@@ -160,8 +160,8 @@ export default function FileManagerPage() {
       setParentId(item.id);
       return;
     }
-    // TODO: open viewer or download; for now, open download endpoint if available
-    window.open(assetsService.downloadUrl(item.id), '_blank');
+    // Authenticated open in new tab (sends Authorization header)
+    assetsService.openInNewTab(item.id);
   };
 
   const goUp = () => {
@@ -229,9 +229,11 @@ export default function FileManagerPage() {
       await load();
     } catch (err) { console.error('Rename failed', err); }
   };
-  const doDownload = () => {
+  const doDownload = async () => {
     const it = menu.item; if (!it || it.type === 'FOLDER') return; // download only files
-    window.open(assetsService.downloadUrl(it.id), '_blank');
+    try {
+      await assetsService.saveToDisk(it.id);
+    } catch (e) { console.error('Download failed', e); }
     closeMenu();
   };
   const doDelete = async () => {
@@ -243,10 +245,11 @@ export default function FileManagerPage() {
       await load();
     } catch (err) { console.error('Delete failed', err); }
   };
-  const doPreview = () => {
+  const doPreview = async () => {
     const it = menu.item; if (!it) return;
-    // For now, open download URL in a new tab; could be replaced with in-app preview later
-    window.open(assetsService.downloadUrl(it.id), '_blank');
+    try {
+      await assetsService.openInNewTab(it.id);
+    } catch (e) { console.error('Preview failed', e); }
     closeMenu();
   };
 
@@ -310,7 +313,7 @@ export default function FileManagerPage() {
                     <span className="text-gray-400">My Folder / </span>
                     {breadcrumbs.map((b, i) => (
                       <button key={b.id} onClick={() => setParentId(b.id)} className="hover:underline">
-                        {b.folder_name || b.title}{i < breadcrumbs.length - 1 ? ' / ' : ''}
+                        {b.folderName || b.title}{i < breadcrumbs.length - 1 ? ' / ' : ''}
                       </button>
                     ))}
                   </>

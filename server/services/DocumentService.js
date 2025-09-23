@@ -64,9 +64,9 @@ class DocumentService {
       let success = false;
       
       // Generate based on mime type
-      if (asset.mime_type && asset.mime_type.startsWith('image/')) {
+      if (asset.mimeType && asset.mimeType.startsWith('image/')) {
         success = await this.generateImageThumbnail(filePath, thumbnailPath);
-      } else if (asset.mime_type === 'application/pdf') {
+      } else if (asset.mimeType === 'application/pdf') {
         success = await this.generatePDFThumbnail(filePath, thumbnailPath);
       }
       
@@ -94,21 +94,21 @@ class DocumentService {
     try {
       const stats = await prisma.companyAsset.aggregate({
         where: {
-          parent_id: folderId,
+          parentId: folderId,
           isActive: true
         },
         _count: {
           id: true
         },
         _sum: {
-          file_size: true
+          fileSize: true
         }
       });
       
       const breakdown = await prisma.companyAsset.groupBy({
         by: ['type'],
         where: {
-          parent_id: folderId,
+          parentId: folderId,
           isActive: true
         },
         _count: {
@@ -118,7 +118,7 @@ class DocumentService {
       
       return {
         totalItems: stats._count.id || 0,
-        totalSize: stats._sum.file_size || 0,
+        totalSize: stats._sum.fileSize || 0,
         folders: breakdown.find(b => b.type === 'FOLDER')?._count.id || 0,
         files: breakdown.find(b => b.type === 'FILE')?._count.id || 0
       };
@@ -140,12 +140,12 @@ class DocumentService {
     try {
       const stats = await prisma.companyAsset.aggregate({
         where: {
-          uploaded_by_id: userId,
+          uploadedById: userId,
           type: 'FILE',
           isActive: true
         },
         _sum: {
-          file_size: true
+          fileSize: true
         },
         _count: {
           id: true
@@ -154,8 +154,8 @@ class DocumentService {
       
       return {
         totalFiles: stats._count.id || 0,
-        totalSize: stats._sum.file_size || 0,
-        formattedSize: this.formatFileSize(stats._sum.file_size || 0)
+        totalSize: stats._sum.fileSize || 0,
+        formattedSize: this.formatFileSize(stats._sum.fileSize || 0)
       };
     } catch (error) {
       console.error('Error getting user storage:', error);
@@ -183,16 +183,16 @@ class DocumentService {
   /**
    * Get file type category
    */
-  static getFileCategory(mime_type) {
-    if (!mime_type) return 'other';
+  static getFileCategory(mimeType) {
+    if (!mimeType) return 'other';
     
-    if (mime_type.includes('pdf')) return 'pdf';
-    if (mime_type.includes('word') || mime_type.includes('document')) return 'document';
-    if (mime_type.includes('excel') || mime_type.includes('spreadsheet')) return 'spreadsheet';
-    if (mime_type.includes('image')) return 'image';
-    if (mime_type.includes('video')) return 'video';
-    if (mime_type.includes('audio')) return 'audio';
-    if (mime_type.includes('zip') || mime_type.includes('rar')) return 'archive';
+    if (mimeType.includes('pdf')) return 'pdf';
+    if (mimeType.includes('word') || mimeType.includes('document')) return 'document';
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'spreadsheet';
+    if (mimeType.includes('image')) return 'image';
+    if (mimeType.includes('video')) return 'video';
+    if (mimeType.includes('audio')) return 'audio';
+    if (mimeType.includes('zip') || mimeType.includes('rar')) return 'archive';
     
     return 'other';
   }
@@ -206,7 +206,7 @@ class DocumentService {
         where: { id: assetId },
         select: {
           isPublic: true,
-          uploaded_by_id: true,
+          uploadedById: true,
           accessLevel: true,
           metadata: true
         }
@@ -217,11 +217,12 @@ class DocumentService {
       // Admin has access to everything
       if (userRole === 'ADMIN') return true;
       
-      // Public assets are accessible to all
-      if (asset.isPublic) return true;
+      // Public assets are accessible to all (either isPublic flag or accessLevel === 'public')
+      const isPublicAccess = asset.isPublic === true || String(asset.accessLevel || '').toLowerCase() === 'public';
+      if (isPublicAccess) return true;
       
       // Owner has access
-      if (asset.uploaded_by_id === userId) return true;
+      if (asset.uploadedById === userId) return true;
       
       // Check specific access rules in metadata
       if (asset.metadata?.allowedUsers?.includes(userId)) return true;
@@ -247,7 +248,7 @@ class DocumentService {
         where: {
           id: { in: assetIds },
           OR: [
-            { uploaded_by_id: userId },
+            { uploadedById: userId },
             { uploadedBy: { role: 'ADMIN' } }
           ]
         },
@@ -370,7 +371,7 @@ class DocumentService {
       
       // Non-admins only see their own trashed items
       if (userRole !== 'ADMIN') {
-        where.uploaded_by_id = userId;
+        where.uploadedById = userId;
       }
       
       const items = await prisma.companyAsset.findMany({

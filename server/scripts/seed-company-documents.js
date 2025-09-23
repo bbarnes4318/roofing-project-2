@@ -318,14 +318,14 @@ async function seedCompanyDocuments() {
               title: folder.title,
               description: folder.description,
               type: folder.type,
-              parentId: parentId,
               path: currentPath,
               sortOrder: folder.sortOrder,
               isActive: true,
-              // New fields from migration
-              folder_name: folder.folderName,
+              // Enhanced fields (mapped via Prisma @map)
+              folderName: folder.folderName,
               metadata: folder.metadata,
-              isPublic: false
+              isPublic: false,
+              ...(parentId ? { parent: { connect: { id: parentId } } } : {})
             }
           });
           console.log(`✅ Created folder: ${currentPath}`);
@@ -334,7 +334,7 @@ async function seedCompanyDocuments() {
           existingFolder = await prisma.companyAsset.update({
             where: { id: existingFolder.id },
             data: {
-              folder_name: folder.folderName,
+              folderName: folder.folderName,
               description: folder.description || existingFolder.description,
               path: currentPath,
               sortOrder: folder.sortOrder,
@@ -386,10 +386,19 @@ async function seedCompanyDocuments() {
           // Create the document
           const newDoc = await prisma.companyAsset.create({
             data: {
-              ...document,
-              parentId: targetFolder.id,
+              title: document.title,
+              description: document.description,
+              type: document.type,
+              fileUrl: document.fileUrl,
+              mimeType: document.mimeType,
+              fileSize: document.fileSize,
+              tags: document.tags,
+              isPublic: document.isPublic,
+              version: document.version,
+              metadata: document.metadata,
+              section: getDocumentSection(folderPath),
               path: `${folderPath}/${document.fileName}`,
-              section: getDocumentSection(folderPath)
+              parent: { connect: { id: targetFolder.id } }
             }
           });
           

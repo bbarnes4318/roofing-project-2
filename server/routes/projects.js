@@ -17,9 +17,9 @@ const router = express.Router();
 
 // Helper: return canonical phase key used across the app (e.g., 'LEAD','PROSPECT',...)
 const getProjectPhaseKey = (project) => {
-  // FIXED: Use ProjectWorkflowTracker for accurate phase determination
-  if (project.project_workflow_trackers && project.project_workflow_trackers.length > 0) {
-    const tracker = project.project_workflow_trackers.find(t => t.is_main_workflow) || project.project_workflow_trackers[0];
+  // Use ProjectWorkflowTracker for accurate phase determination
+  if (project.workflowTrackers && project.workflowTrackers.length > 0) {
+    const tracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
     
     // Check for phase overrides first
     if (project.phaseOverrides && project.phaseOverrides.length > 0) {
@@ -30,24 +30,17 @@ const getProjectPhaseKey = (project) => {
       }
     }
     
-    // Get phase from current workflow position
-    // TODO: Look up phase data using current_phase_id
-    if (false) { // Disabled until we can look up phase data
-      const phaseType = null;
-      console.log(`📍 Using tracker phase: ${phaseType} for project ${project.id}`);
+    // Get phase from related workflow phase if present
+    if (tracker?.workflow_phases?.phaseType) {
+      const phaseType = tracker.workflow_phases.phaseType;
+      // console.log(`📍 Using tracker phase (related): ${phaseType} for project ${project.id}`);
       return phaseType;
     }
     
-    // Fallback to current line item's phase if available
-    // TODO: Look up line item data using current_line_item_id
-    if (false) { // Disabled until we can look up line item data
-      const phaseType = null;
-      console.log(`📍 Using line item phase: ${phaseType} for project ${project.id}`);
-      return phaseType;
-    }
+    // Fallback to current line item's phase would go here if needed
     
     // If workflow is complete (no current items), project should be in COMPLETION phase
-    if (!tracker.current_phase_id && !tracker.current_section_id && !tracker.current_line_item_id) {
+    if (!tracker.currentPhaseId && !tracker.currentSectionId && !tracker.currentLineItemId) {
       console.log(`📍 Workflow complete, using COMPLETION phase for project ${project.id}`);
       return 'COMPLETION';
     }
@@ -93,12 +86,12 @@ const getTotalLineItemsCount = async (workflowType = 'ROOFING') => {
   try {
     const count = await prisma.workflowLineItem.count({
       where: {
-        is_active: true,
+        isActive: true,
         workflowType: workflowType,
         section: {
-          is_active: true,
+          isActive: true,
           phase: {
-            is_active: true
+            isActive: true
           }
         }
       }
@@ -116,7 +109,7 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
   if (!project) return null;
   
   // Get total line items count for progress calculation
-  const trackerType = (project.project_workflow_trackers && project.project_workflow_trackers[0]?.workflowType) || project.projectType || 'ROOFING';
+  const trackerType = (project.workflowTrackers && project.workflowTrackers[0]?.workflowType) || project.projectType || 'ROOFING';
   const totalLineItems = typeof precomputedTotalLineItems === 'number'
     ? precomputedTotalLineItems
     : await getTotalLineItemsCount(trackerType);
@@ -144,8 +137,10 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
     // Dates
     startDate: project.startDate,
     endDate: project.endDate,
-    created_at: project.created_at,
-    updated_at: project.updated_at,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+    created_at: project.createdAt,
+    updated_at: project.updatedAt,
     
     // Address - use customer's address as the single source of truth
     address: project.customer?.address || null,
@@ -168,7 +163,8 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
       secondaryPhone: project.customer.secondaryPhone,
       primaryContact: project.customer.primaryContact,
       address: project.customer.address,
-      created_at: project.customer.created_at
+      createdAt: project.customer.createdAt,
+      created_at: project.customer.createdAt
     } : null,
     
     // Also provide client alias for compatibility
@@ -180,7 +176,9 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
       phone: project.customer.primaryPhone,
       clientName: project.customer.primaryName,
       clientEmail: project.customer.primaryEmail,
-      clientPhone: project.customer.primaryPhone
+      clientPhone: project.customer.primaryPhone,
+      createdAt: project.customer.createdAt,
+      created_at: project.customer.createdAt
     } : null,
     
     // Project Manager
@@ -215,17 +213,19 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
     phaseDisplay: getProjectPhaseDisplay(getProjectPhaseKey(project)),
     
     // ENABLED: currentWorkflowItem now that ProjectWorkflowTracker is properly populated
-    currentWorkflowItem: (project.project_workflow_trackers && project.project_workflow_trackers.length > 0) ? (() => {
-      const mainTracker = project.project_workflow_trackers.find(t => t.is_main_workflow) || project.project_workflow_trackers[0];
+    currentWorkflowItem: (project.workflowTrackers && project.workflowTrackers.length > 0) ? (() => {
+      const mainTracker = project.workflowTrackers.find(t => t.isMainWorkflow) || project.workflowTrackers[0];
+      const trackerPhaseType = mainTracker?.workflow_phases?.phaseType || null;
+      const trackerPhaseName = mainTracker?.workflow_phases?.phaseName || (trackerPhaseType ? getProjectPhaseDisplay(trackerPhaseType) : null);
       return {
-        phase: null, // TODO: Look up phase data using current_phase_id
-        phaseDisplay: null,
-        section: null, // TODO: Look up section data using current_section_id  
-        lineItem: null, // TODO: Look up lineitem data using current_line_item_id
-        lineItemId: mainTracker.current_line_item_id || null,
-        sectionId: mainTracker.current_section_id || null,
-        phaseId: mainTracker.current_phase_id || null,
-        isComplete: !mainTracker.current_phase_id && !mainTracker.current_section_id && !mainTracker.current_line_item_id,
+        phase: trackerPhaseType,
+        phaseDisplay: trackerPhaseName,
+        section: null, // TODO: Populate from section relation if needed
+        lineItem: null, // TODO: Populate from line item relation if needed
+        lineItemId: mainTracker.currentLineItemId || null,
+        sectionId: mainTracker.currentSectionId || null,
+        phaseId: mainTracker.currentPhaseId || null,
+        isComplete: !mainTracker.currentPhaseId && !mainTracker.currentSectionId && !mainTracker.currentLineItemId,
         completedItems: mainTracker.completedItems || [],
         totalLineItems: mainTracker.totalLineItems || totalLineItems
       };
@@ -367,7 +367,30 @@ router.get('/', asyncHandler(async (req, res) => {
         skip,
         take: limitNum,
         include: {
-          customer: true
+          customer: true,
+          workflowTrackers: {
+            select: {
+              id: true,
+              isMainWorkflow: true,
+              currentPhaseId: true,
+              currentSectionId: true,
+              currentLineItemId: true,
+              totalLineItems: true,
+              // include related workflow phase to derive current phase
+              workflow_phases: {
+                select: { phaseType: true, phaseName: true }
+              },
+              completedItems: {
+                select: {
+                  id: true,
+                  lineItemId: true,
+                  sectionId: true,
+                  phaseId: true,
+                  completedAt: true
+                }
+              }
+            }
+          }
         }
       }),
       prisma.project.count({ where })
@@ -460,6 +483,26 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
             }
           }
         },
+        workflowTrackers: {
+          select: {
+            id: true,
+            isMainWorkflow: true,
+            currentPhaseId: true,
+            currentSectionId: true,
+            currentLineItemId: true,
+            totalLineItems: true,
+            workflow_phases: { select: { phaseType: true, phaseName: true } },
+            completedItems: {
+              select: {
+                id: true,
+                lineItemId: true,
+                sectionId: true,
+                phaseId: true,
+                completedAt: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -467,8 +510,51 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
       return next(new AppError('Project not found', 404));
     }
 
+    // Re-fetch project with workflow trackers for accurate response
+    let projectForResponse = project;
+    try {
+      projectForResponse = await prisma.project.findUnique({
+        where: { id: project.id },
+        include: {
+          customer: true,
+          projectManager: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              role: true
+            }
+          },
+          workflowTrackers: {
+            select: {
+              id: true,
+              isMainWorkflow: true,
+              currentPhaseId: true,
+              currentSectionId: true,
+              currentLineItemId: true,
+              totalLineItems: true,
+              workflow_phases: { select: { phaseType: true, phaseName: true } },
+              completedItems: {
+                select: {
+                  id: true,
+                  lineItemId: true,
+                  sectionId: true,
+                  phaseId: true,
+                  completedAt: true
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (refetchErr) {
+      console.warn('⚠️ Failed to refetch project with workflowTrackers:', refetchErr?.message);
+    }
+
     // Transform project for frontend compatibility
-    const transformedProject = await transformProjectForFrontend(project);
+    const transformedProject = await transformProjectForFrontend(projectForResponse);
     
     sendSuccess(res, 200, transformedProject, 'Project retrieved successfully');
   } catch (error) {
@@ -517,7 +603,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     let resolvedProjectManagerId = validatedProjectManagerId;
     if (!resolvedProjectManagerId && process.env.DEFAULT_PM_USER_ID) {
       const envUser = await prisma.user.findUnique({ where: { id: process.env.DEFAULT_PM_USER_ID } });
-      if (envUser && envUser.is_active) {
+      if (envUser && envUser.isActive) {
         resolvedProjectManagerId = envUser.id;
       }
     }
@@ -571,6 +657,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
     });
 
     // OPTIMIZED: Initialize workflow(s) with template-instance integration
+    let workflowInit = null;
     try {
       // Check if multiple trade types are provided for multiple workflows
       const tradeTypes = req.body.tradeTypes;
@@ -578,14 +665,14 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       if (tradeTypes && Array.isArray(tradeTypes) && tradeTypes.length > 1) {
         // Initialize multiple workflows for multiple trade types
         console.log(`🔧 Initializing multiple workflows for project ${project.id}:`, tradeTypes);
-        const workflowResult = await WorkflowProgressionService.initializeMultipleWorkflows(
+        workflowInit = await WorkflowProgressionService.initializeMultipleWorkflows(
           project.id,
           tradeTypes
         );
         console.log(`✅ Successfully initialized ${tradeTypes.length} workflows for project ${project.id}`);
       } else {
         // Initialize single workflow with starting phase
-        const workflowResult = await WorkflowProgressionService.initializeProjectWorkflow(
+        workflowInit = await WorkflowProgressionService.initializeProjectWorkflow(
           project.id, 
           project.projectType || 'ROOFING',
           true, // isMainWorkflow
@@ -593,8 +680,18 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
         );
       }
       
-      if (workflowResult?.tracker?.current_line_item_id) {
-        console.log(`✅ Optimized workflow initialized with ${workflowResult.totalSteps} steps`);
+      // Determine if there is a current active item
+      const hasActiveItem = Array.isArray(workflowInit)
+        ? workflowInit.some(t => t?.currentLineItemId)
+        : Boolean(workflowInit?.tracker?.currentLineItemId);
+
+      if (hasActiveItem) {
+        const totalSteps = Array.isArray(workflowInit) ? null : workflowInit.totalSteps;
+        if (totalSteps != null) {
+          console.log(`✅ Optimized workflow initialized with ${totalSteps} steps`);
+        } else {
+          console.log(`✅ Optimized workflows initialized`);
+        }
         
         // CRITICAL: Generate first alert immediately for the new project
         try {
@@ -612,8 +709,42 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       console.warn('⚠️ Optimized workflow init failed (project still created):', werr?.message);
     }
 
+    // Re-fetch project with workflow trackers for accurate response
+    let projectForResponse = project;
+    try {
+      projectForResponse = await prisma.project.findUnique({
+        where: { id: project.id },
+        include: {
+          customer: true,
+          projectManager: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              role: true
+            }
+          },
+          workflowTrackers: {
+            select: {
+              id: true,
+              isMainWorkflow: true,
+              currentPhaseId: true,
+              currentSectionId: true,
+              currentLineItemId: true,
+              totalLineItems: true,
+              workflow_phases: { select: { phaseType: true, phaseName: true } }
+            }
+          }
+        }
+      });
+    } catch (refetchErr) {
+      console.warn('⚠️ Failed to refetch project with workflowTrackers:', refetchErr?.message);
+    }
+
     // Transform project for frontend compatibility
-    const transformedProject = await transformProjectForFrontend(project);
+    const transformedProject = await transformProjectForFrontend(projectForResponse);
 
     // Invalidate caches so the new project and related lists show up immediately
     try {
@@ -713,6 +844,17 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
               }
             }
           }
+        },
+        workflowTrackers: {
+          select: {
+            id: true,
+            isMainWorkflow: true,
+            currentPhaseId: true,
+            currentSectionId: true,
+            currentLineItemId: true,
+            totalLineItems: true,
+            workflow_phases: { select: { phaseType: true, phaseName: true } }
+          }
         }
       }
     });
@@ -788,6 +930,17 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
             email: true,
             phone: true,
             role: true
+          }
+        },
+        workflowTrackers: {
+          select: {
+            id: true,
+            isMainWorkflow: true,
+            currentPhaseId: true,
+            currentSectionId: true,
+            currentLineItemId: true,
+            totalLineItems: true,
+            workflow_phases: { select: { phaseType: true, phaseName: true } }
           }
         }
       }
