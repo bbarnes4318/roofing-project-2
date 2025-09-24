@@ -376,49 +376,85 @@ router.get('/', asyncHandler(async (req, res) => {
     console.log('🔍 Where clause:', where);
     console.log('🔍 OrderBy clause:', orderBy);
     
-    // Execute query with customer include
-    const [projects, total] = await Promise.all([
-      prisma.project.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limitNum,
-        include: {
-          customer: true,
-          leadSource: true,
-          workflowTrackers: {
-            select: {
-              id: true,
-              isMainWorkflow: true,
-              currentPhaseId: true,
-              currentSectionId: true,
-              currentLineItemId: true,
-              totalLineItems: true,
-              // include related workflow phase to derive current phase
-              currentPhase: {
-                select: { phaseType: true, phaseName: true }
-              },
-              currentSection: {
-                select: { sectionName: true, displayName: true }
-              },
-              currentLineItem: {
-                select: { itemLetter: true, itemName: true }
-              },
-              completedItems: {
-                select: {
-                  id: true,
-                  lineItemId: true,
-                  sectionId: true,
-                  phaseId: true,
-                  completedAt: true
+    // Execute query with customer include; if lead_source_id missing, retry without leadSource
+    let projects, total;
+    try {
+      [projects, total] = await Promise.all([
+        prisma.project.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limitNum,
+          include: {
+            customer: true,
+            leadSource: true,
+            workflowTrackers: {
+              select: {
+                id: true,
+                isMainWorkflow: true,
+                currentPhaseId: true,
+                currentSectionId: true,
+                currentLineItemId: true,
+                totalLineItems: true,
+                // include related workflow phase to derive current phase
+                currentPhase: {
+                  select: { phaseType: true, phaseName: true }
+                },
+                currentSection: {
+                  select: { sectionName: true, displayName: true }
+                },
+                currentLineItem: {
+                  select: { itemLetter: true, itemName: true }
+                },
+                completedItems: {
+                  select: {
+                    id: true,
+                    lineItemId: true,
+                    sectionId: true,
+                    phaseId: true,
+                    completedAt: true
+                  }
                 }
               }
             }
           }
-        }
-      }),
-      prisma.project.count({ where })
-    ]);
+        }),
+        prisma.project.count({ where })
+      ]);
+    } catch (e) {
+      if (e?.code === 'P2022' && (e?.message?.includes('lead_source_id') || String(e?.meta?.column || '').includes('lead_source_id'))) {
+        console.warn('⚠️ lead_source_id missing; retrying project list without leadSource include');
+        [projects, total] = await Promise.all([
+          prisma.project.findMany({
+            where,
+            orderBy,
+            skip,
+            take: limitNum,
+            include: {
+              customer: true,
+              // leadSource omitted due to missing column
+              workflowTrackers: {
+                select: {
+                  id: true,
+                  isMainWorkflow: true,
+                  currentPhaseId: true,
+                  currentSectionId: true,
+                  currentLineItemId: true,
+                  totalLineItems: true,
+                  currentPhase: { select: { phaseType: true, phaseName: true } },
+                  currentSection: { select: { sectionName: true, displayName: true } },
+                  currentLineItem: { select: { itemLetter: true, itemName: true } },
+                  completedItems: { select: { id: true, lineItemId: true, sectionId: true, phaseId: true, completedAt: true } }
+                }
+              }
+            }
+          }),
+          prisma.project.count({ where })
+        ]);
+      } else {
+        throw e;
+      }
+    }
 
     // Compute shared values once for the page of results
     const totalLineItems = await getTotalLineItemsCount();
@@ -457,91 +493,10 @@ router.get('/', asyncHandler(async (req, res) => {
 // @access  Private
 router.get('/:id', asyncHandler(async (req, res, next) => {
   try {
-    const project = await prisma.project.findUnique({
-      where: { id: req.params.id },
-      include: {
-        customer: true,
-        leadSource: true,
-        projectManager: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            role: true
-          }
-        },
-        teamMembers: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                role: true
-              }
-            }
-          }
-        },
-        // workflow and phaseOverrides not present in active schema
-        tasks: {
-          include: {
-            assignedTo: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true
-              }
-            }
-          }
-        },
-        documents: {
-          include: {
-            uploadedBy: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true
-              }
-            }
-          }
-        },
-        workflowTrackers: {
-          select: {
-            id: true,
-            isMainWorkflow: true,
-            currentPhaseId: true,
-            currentSectionId: true,
-            currentLineItemId: true,
-            totalLineItems: true,
-            currentPhase: { select: { phaseType: true, phaseName: true } },
-            currentSection: { select: { sectionName: true, displayName: true } },
-            currentLineItem: { select: { itemLetter: true, itemName: true } },
-            completedItems: {
-              select: {
-                id: true,
-                lineItemId: true,
-                sectionId: true,
-                phaseId: true,
-                completedAt: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!project) {
-      return next(new AppError('Project not found', 404));
-    }
-
-    // Re-fetch project with workflow trackers for accurate response
-    let projectForResponse = project;
+    let project;
     try {
-      projectForResponse = await prisma.project.findUnique({
-        where: { id: project.id },
+      project = await prisma.project.findUnique({
+        where: { id: req.params.id },
         include: {
           customer: true,
           leadSource: true,
@@ -555,6 +510,30 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
               role: true
             }
           },
+          teamMembers: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: true
+                }
+              }
+            }
+          },
+          // workflow and phaseOverrides not present in active schema
+          tasks: {
+            include: {
+              assignedTo: { select: { id: true, firstName: true, lastName: true } }
+            }
+          },
+          documents: {
+            include: {
+              uploadedBy: { select: { id: true, firstName: true, lastName: true } }
+            }
+          },
           workflowTrackers: {
             select: {
               id: true,
@@ -564,21 +543,68 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
               currentLineItemId: true,
               totalLineItems: true,
               currentPhase: { select: { phaseType: true, phaseName: true } },
-              completedItems: {
-                select: {
-                  id: true,
-                  lineItemId: true,
-                  sectionId: true,
-                  phaseId: true,
-                  completedAt: true
-                }
-              }
+              currentSection: { select: { sectionName: true, displayName: true } },
+              currentLineItem: { select: { itemLetter: true, itemName: true } },
+              completedItems: { select: { id: true, lineItemId: true, sectionId: true, phaseId: true, completedAt: true } }
             }
           }
         }
       });
+    } catch (e) {
+      if (e?.code === 'P2022' && (e?.message?.includes('lead_source_id') || String(e?.meta?.column || '').includes('lead_source_id'))) {
+        console.warn('⚠️ lead_source_id missing; retrying project detail without leadSource include');
+        project = await prisma.project.findUnique({
+          where: { id: req.params.id },
+          include: {
+            customer: true,
+            // leadSource omitted due to missing column
+            projectManager: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true } },
+            teamMembers: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true, role: true } } } },
+            tasks: { include: { assignedTo: { select: { id: true, firstName: true, lastName: true } } } },
+            documents: { include: { uploadedBy: { select: { id: true, firstName: true, lastName: true } } } },
+            workflowTrackers: { select: { id: true, isMainWorkflow: true, currentPhaseId: true, currentSectionId: true, currentLineItemId: true, totalLineItems: true, currentPhase: { select: { phaseType: true, phaseName: true } }, currentSection: { select: { sectionName: true, displayName: true } }, currentLineItem: { select: { itemLetter: true, itemName: true } }, completedItems: { select: { id: true, lineItemId: true, sectionId: true, phaseId: true, completedAt: true } } } }
+          }
+        });
+      } else {
+        throw e;
+      }
+    }
+
+    if (!project) {
+      return next(new AppError('Project not found', 404));
+    }
+
+    // Re-fetch project with workflow trackers for accurate response
+    let projectForResponse = project;
+    try {
+      projectForResponse = await prisma.project.findUnique({
+        where: { id: project.id },
+        include: {
+          customer: true,
+          leadSource: true,
+          projectManager: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true } },
+          workflowTrackers: { select: { id: true, isMainWorkflow: true, currentPhaseId: true, currentSectionId: true, currentLineItemId: true, totalLineItems: true, currentPhase: { select: { phaseType: true, phaseName: true } }, completedItems: { select: { id: true, lineItemId: true, sectionId: true, phaseId: true, completedAt: true } } } }
+        }
+      });
     } catch (refetchErr) {
-      console.warn('⚠️ Failed to refetch project with workflowTrackers:', refetchErr?.message);
+      if (refetchErr?.code === 'P2022' && (refetchErr?.message?.includes('lead_source_id') || String(refetchErr?.meta?.column || '').includes('lead_source_id'))) {
+        console.warn('⚠️ lead_source_id missing on refetch; retrying without leadSource include');
+        try {
+          projectForResponse = await prisma.project.findUnique({
+            where: { id: project.id },
+            include: {
+              customer: true,
+              // leadSource omitted due to missing column
+              projectManager: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true } },
+              workflowTrackers: { select: { id: true, isMainWorkflow: true, currentPhaseId: true, currentSectionId: true, currentLineItemId: true, totalLineItems: true, currentPhase: { select: { phaseType: true, phaseName: true } }, completedItems: { select: { id: true, lineItemId: true, sectionId: true, phaseId: true, completedAt: true } } } }
+            }
+          });
+        } catch (e2) {
+          console.warn('⚠️ Fallback refetch also failed:', e2?.message || e2);
+        }
+      } else {
+        console.warn('⚠️ Failed to refetch project with workflowTrackers:', refetchErr?.message);
+      }
     }
 
     // Transform project for frontend compatibility
@@ -678,24 +704,52 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       notes: req.body.notes || null
     };
 
-    // Create project
-    const project = await prisma.project.create({
-      data: projectData,
-      include: {
-        customer: true,
-        leadSource: true,
-        projectManager: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            role: true
+    // Create project (fallback if lead_source_id missing)
+    let project;
+    try {
+      project = await prisma.project.create({
+        data: projectData,
+        include: {
+          customer: true,
+          leadSource: true,
+          projectManager: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              role: true
+            }
           }
         }
+      });
+    } catch (e) {
+      if (e?.code === 'P2022' && (e?.message?.includes('lead_source_id') || String(e?.meta?.column || '').includes('lead_source_id'))) {
+        console.warn('⚠️ lead_source_id missing; creating project without leadSource and retrying');
+        const fallbackData = { ...projectData };
+        delete fallbackData.leadSourceId;
+        project = await prisma.project.create({
+          data: fallbackData,
+          include: {
+            customer: true,
+            // leadSource omitted due to missing column
+            projectManager: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                role: true
+              }
+            }
+          }
+        });
+      } else {
+        throw e;
       }
-    });
+    }
 
     // OPTIMIZED: Initialize workflow(s) with template-instance integration
     let workflowInit = null;
@@ -867,52 +921,101 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     if (req.body.archived !== undefined) updateData.archived = req.body.archived;
     if (req.body.leadSourceId !== undefined) updateData.leadSourceId = req.body.leadSourceId || null;
 
-    // Update project
+    // Update project (fallback if lead_source_id missing)
     console.log('Updating project with data:', updateData);
-    const updatedProject = await prisma.project.update({
-      where: { id: req.params.id },
-      data: updateData,
-      include: {
-        customer: true,
-        leadSource: true,
-        projectManager: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            role: true
+    let updatedProject;
+    try {
+      updatedProject = await prisma.project.update({
+        where: { id: req.params.id },
+        data: updateData,
+        include: {
+          customer: true,
+          leadSource: true,
+          projectManager: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              role: true
+            }
+          },
+          teamMembers: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: true
+                }
+              }
+            }
+          },
+          workflowTrackers: {
+            select: {
+              id: true,
+              isMainWorkflow: true,
+              currentPhaseId: true,
+              currentSectionId: true,
+              currentLineItemId: true,
+              totalLineItems: true,
+              currentPhase: { select: { phaseType: true, phaseName: true } },
+              currentSection: { select: { sectionName: true, displayName: true } },
+              currentLineItem: { select: { itemLetter: true, itemName: true } }
+            }
           }
-        },
-        teamMembers: {
+        }
+      });
+    } catch (e) {
+      if (e?.code === 'P2022' && (e?.message?.includes('lead_source_id') || String(e?.meta?.column || '').includes('lead_source_id'))) {
+        console.warn('⚠️ lead_source_id missing; retrying update without leadSource and without mutating leadSourceId');
+        const dataNoLeadSource = { ...updateData };
+        delete dataNoLeadSource.leadSourceId;
+        updatedProject = await prisma.project.update({
+          where: { id: req.params.id },
+          data: dataNoLeadSource,
           include: {
-            user: {
+            customer: true,
+            // leadSource omitted due to missing column
+            projectManager: {
               select: {
                 id: true,
                 firstName: true,
                 lastName: true,
                 email: true,
+                phone: true,
                 role: true
+              }
+            },
+            teamMembers: {
+              include: {
+                user: {
+                  select: { id: true, firstName: true, lastName: true, email: true, role: true }
+                }
+              }
+            },
+            workflowTrackers: {
+              select: {
+                id: true,
+                isMainWorkflow: true,
+                currentPhaseId: true,
+                currentSectionId: true,
+                currentLineItemId: true,
+                totalLineItems: true,
+                currentPhase: { select: { phaseType: true, phaseName: true } },
+                currentSection: { select: { sectionName: true, displayName: true } },
+                currentLineItem: { select: { itemLetter: true, itemName: true } }
               }
             }
           }
-        },
-        workflowTrackers: {
-          select: {
-            id: true,
-            isMainWorkflow: true,
-            currentPhaseId: true,
-            currentSectionId: true,
-            currentLineItemId: true,
-            totalLineItems: true,
-            currentPhase: { select: { phaseType: true, phaseName: true } },
-            currentSection: { select: { sectionName: true, displayName: true } },
-            currentLineItem: { select: { itemLetter: true, itemName: true } }
-          }
-        }
+        });
+      } else {
+        throw e;
       }
-    });
+    }
 
     // Transform project for frontend compatibility
     const transformedProject = await transformProjectForFrontend(updatedProject);

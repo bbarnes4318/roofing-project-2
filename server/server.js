@@ -13,6 +13,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
 const { ensureVectorSchema } = require('./config/vector');
+const { ensureLeadSourcesSchema } = require('./config/ensureLeadSources');
 
 const xss = require('xss-clean');
 // Load environment variables with robust fallbacks
@@ -157,9 +158,16 @@ app.set('io', io);
 
 // Connect to PostgreSQL with better error handling
 connectDatabase()
-  .then(() => {
+  .then(async () => {
     global.__DB_CONNECTED__ = true;
     console.log('✅ Database connection established, initializing services...');
+    // Ensure lead sources schema exists (idempotent)
+    try {
+      await ensureLeadSourcesSchema(prisma);
+      console.log('🧱 Lead sources schema ensured (startup)');
+    } catch (e) {
+      console.warn('⚠️ Failed to ensure lead sources schema at startup:', e?.message || e);
+    }
     // Ensure pgvector/embeddings schema
     ensureVectorSchema(prisma).then((ok) => {
       console.log(`🧮 pgvector schema ${ok ? 'ready' : 'not ready'}`);
