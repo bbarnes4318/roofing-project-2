@@ -16,7 +16,7 @@ import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from 
 
 import ProjectCubes from '../dashboard/ProjectCubes';
 import CurrentProjectsByPhase from '../dashboard/CurrentProjectsByPhase';
-// import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
+import { mockProjects, mockMessages, mockTasks, mockReminders, mockTeamMembers } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, useTeamMembers, queryKeys } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
@@ -149,6 +149,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Extract the projects array from the response object
   const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || []);
   
+  // Use mock data as fallback when no real projects are available
+  const displayProjects = (projects && projects.length > 0) ? projects : mockProjects;
+  
   // DEBUG: Log projects data
   console.log('🔍 DASHBOARD DEBUG: projectsData:', projectsData);
   console.log('🔍 DASHBOARD DEBUG: projectsData.data:', projectsData?.data);
@@ -214,6 +217,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Fetch messages from conversations
   const [messagesData, setMessagesData] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
+  
+  // Use mock messages as fallback
+  const displayMessages = (activityFeedItems && activityFeedItems.length > 0) ? activityFeedItems : mockMessages;
   
   // Debug project loading
   console.log('🔍 DASHBOARD: Projects loading state:', projectsLoading);
@@ -509,6 +515,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ page: 1, limit: 20 });
   const { data: realCalendarEvents = [], isLoading: calendarLoading } = useCalendarEvents({ limit: 20 });
   
+  // Use mock data as fallback when no real data is available
+  const displayActivities = (realActivities && realActivities.length > 0) ? realActivities : mockMessages;
+  const displayTasks = (realTasks && realTasks.length > 0) ? realTasks : mockTasks;
+  const displayCalendarEvents = (realCalendarEvents && realCalendarEvents.length > 0) ? realCalendarEvents : mockReminders;
+  
   // Build activity feed items from real data + fallback synthesis
   const activityFeedItems = useMemo(() => {
     try {
@@ -683,18 +694,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Use React Query hooks for user data
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
   const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
-  // Fallback: if no team members, allow selecting self so the UI is usable
+  // Fallback: if no team members, use mock data so the UI is usable
   const usersForUi = useMemo(() => {
     if (Array.isArray(availableUsers) && availableUsers.length > 0) return availableUsers;
-    if (currentUser) {
-      return [{
-        id: currentUser.id,
-        firstName: currentUser.firstName || currentUser.name?.first || 'You',
-        lastName: currentUser.lastName || currentUser.name?.last || '',
-        email: currentUser.email || ''
-      }];
-    }
-    return [];
+    return mockTeamMembers;
   }, [availableUsers, currentUser]);
   
   console.log('🔍 DASHBOARD: currentUser from hook:', currentUser);
@@ -796,7 +799,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         startDate: reminderData.when,
         projectId: reminderData.projectId,
         createdBy: currentUser?.id,
-        userIds: reminderData.allUsers ? availableUsers.map(u => u.id) : reminderData.userIds || []
+        userIds: reminderData.allUsers ? usersForUi.map(u => u.id) : reminderData.userIds || []
       };
       
       const response = await calendarService.create(reminderPayload);
@@ -1199,7 +1202,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
       {/* Current Projects by Phase (original table view) */}
       <CurrentProjectsByPhase
-        projects={uiProjects || projects}
+        projects={uiProjects || displayProjects}
         PROJECT_PHASES={PROJECT_PHASES}
         colorMode={colorMode}
         onProjectSelect={handleProjectSelectWithScroll}
@@ -1227,7 +1230,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             
             <MTRFilters
               activeCommTab={activeCommTab}
-              projects={projects}
+              projects={displayProjects}
               availableUsers={usersForUi}
               messagesProjectFilter={messagesProjectFilter}
               messagesUserFilter={messagesUserFilter}
@@ -1252,7 +1255,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               colorMode={colorMode}
               showMessageDropdown={showMessageDropdown}
               setShowMessageDropdown={setShowMessageDropdown}
-              projects={projects}
+              projects={displayProjects}
               availableUsers={usersForUi}
               subjects={subjects}
               currentUser={currentUser}
@@ -1298,9 +1301,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
               <MessagesSection
                 activeCommTab={activeCommTab}
-                activityFeedItems={activityFeedItems}
-                      projects={projects}
-                      colorMode={colorMode}
+                activityFeedItems={displayMessages}
+                projects={displayProjects}
+                colorMode={colorMode}
                 expandedMessages={expandedMessages}
                 messagesProjectFilter={messagesProjectFilter}
                 messagesUserFilter={messagesUserFilter}
@@ -1311,8 +1314,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               
               <TasksSection
                 activeCommTab={activeCommTab}
-                activityFeedItems={activityFeedItems}
-                projects={projects}
+                activityFeedItems={displayTasks}
+                projects={displayProjects}
                 colorMode={colorMode}
                 expandedMessages={expandedMessages}
                 completedTasks={completedTasks}
@@ -1333,8 +1336,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               
               <RemindersSection
                 activeCommTab={activeCommTab}
-                activityFeedItems={activityFeedItems}
-                projects={projects}
+                activityFeedItems={displayCalendarEvents}
+                projects={displayProjects}
                 colorMode={colorMode}
                 expandedMessages={expandedMessages}
                 completedTasks={completedTasks}
@@ -1359,7 +1362,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           {/* Project Workflow Line Items (directly under MTR) */}
           <div className="w-full lg:flex-1">
             <ProjectWorkflowLineItemsSection
-              projects={projects}
+              projects={displayProjects}
               colorMode={colorMode}
               onProjectSelect={onProjectSelect}
               workflowAlerts={workflowAlerts}
@@ -1374,8 +1377,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         {/* Right Column - Activity Feed Section */}
         <div className="w-full">
           <ActivityFeedSection
-            activityFeedItems={activityFeedItems}
-            projects={projects}
+            activityFeedItems={displayActivities}
+            projects={displayProjects}
             colorMode={colorMode}
             expandedMessages={expandedMessages}
             completedTasks={completedTasks}
