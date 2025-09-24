@@ -80,7 +80,6 @@ const MTRForm = ({
             e.preventDefault();
             const finalSubject = newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject;
             if (newMessageProject && finalSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
-              // Create new message activity
               const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
               
               // Create message using the API service
@@ -94,8 +93,8 @@ const MTRForm = ({
                   
                   if (response.success) {
                     console.log('Message saved to database:', response.data);
-                    // Refresh the messages data by invalidating the query
-                    queryClient.invalidateQueries(['projectMessages']);
+                    // Refresh any project messages queries (match prefix)
+                    queryClient.invalidateQueries({ queryKey: ['project-messages'] });
                   } else {
                     console.error('Failed to save message to database:', response.message);
                   }
@@ -169,7 +168,7 @@ const MTRForm = ({
                   To <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={newMessageRecipients || ''}
+                  value={Array.isArray(newMessageRecipients) ? newMessageRecipients : []}
                   onChange={(e) => {
                     const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
                     setNewMessageRecipients(selectedOptions);

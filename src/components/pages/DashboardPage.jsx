@@ -506,13 +506,14 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   // Get real activities from API
   const { data: realActivities = [], isLoading: activitiesLoading } = useRecentActivities(50);
-  const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ limit: 20 });
+  const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ page: 1, limit: 20 });
   const { data: realCalendarEvents = [], isLoading: calendarLoading } = useCalendarEvents({ limit: 20 });
   
   // Build activity feed items from real data + fallback synthesis
   const activityFeedItems = useMemo(() => {
     try {
-      const realItems = [];
+      // Start with locally added items (messages/tasks/reminders) so they appear immediately
+      const realItems = Array.isArray(feed) ? [...feed] : [];
       
       // Add real activities (messages)
       realActivities.forEach(activity => {
@@ -530,7 +531,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       });
       
       // Add real tasks
-      realTasks.forEach(task => {
+      (Array.isArray(realTasks) ? realTasks : []).forEach(task => {
         realItems.push({
           id: `task_${task.id}`,
           type: 'task',
@@ -547,7 +548,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       });
       
       // Add real calendar events (reminders)
-      realCalendarEvents.forEach(event => {
+      (Array.isArray(realCalendarEvents) ? realCalendarEvents : []).forEach(event => {
         realItems.push({
           id: `reminder_${event.id}`,
           type: 'reminder', 
@@ -575,7 +576,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       const synthesized = generateActivitiesFromProjects(uiProjects || []);
       return Array.isArray(synthesized) ? synthesized : [];
     }
-  }, [realActivities, realTasks, realCalendarEvents, uiProjects]);
+  }, [feed, realActivities, realTasks, realCalendarEvents, uiProjects]);
 
   // Current activities after filters
   const currentActivities = useMemo(() => {
@@ -682,9 +683,25 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Use React Query hooks for user data
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
   const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
+  // Fallback: if no team members, allow selecting self so the UI is usable
+  const usersForUi = useMemo(() => {
+    if (Array.isArray(availableUsers) && availableUsers.length > 0) return availableUsers;
+    if (currentUser) {
+      return [{
+        id: currentUser.id,
+        firstName: currentUser.firstName || currentUser.name?.first || 'You',
+        lastName: currentUser.lastName || currentUser.name?.last || '',
+        email: currentUser.email || ''
+      }];
+    }
+    return [];
+  }, [availableUsers, currentUser]);
   
   console.log('🔍 DASHBOARD: currentUser from hook:', currentUser);
   console.log('🔍 DASHBOARD: availableUsers from hook:', availableUsers);
+  console.log('🔍 DASHBOARD: availableUsers length:', availableUsers?.length);
+  console.log('🔍 DASHBOARD: usersForUi length:', usersForUi?.length);
+  console.log('🔍 DASHBOARD: subjects from context:', subjects);
   
   // Team members are now loaded via useTeamMembers hook above
   
@@ -767,27 +784,26 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       toast.error(error.message || 'Failed to create task');
     }
   };
-  
+
   // Handle reminder submission
   const handleSubmitReminder = async (reminderData) => {
     try {
-      console.log('🔔 DASHBOARD: Submitting reminder:', reminderData);
+      console.log('📅 DASHBOARD: Submitting reminder:', reminderData);
       
       const reminderPayload = {
         title: reminderData.title,
         description: reminderData.description,
         startDate: reminderData.when,
         projectId: reminderData.projectId,
-        attendees: reminderData.allUsers ? availableUsers.map(u => u.id) : reminderData.userIds,
         createdBy: currentUser?.id,
-        type: 'reminder'
+        userIds: reminderData.allUsers ? availableUsers.map(u => u.id) : reminderData.userIds || []
       };
       
       const response = await calendarService.create(reminderPayload);
       
       if (response.success) {
         toast.success('Reminder created successfully!');
-        // Invalidate queries to refresh data
+        // Invalidate calendar events to refresh the feed
         queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
         queryClient.invalidateQueries({ queryKey: queryKeys.recentActivities(50) });
         
@@ -795,8 +811,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         setReminderTitle('');
         setReminderDescription('');
         setReminderWhen('');
-        setReminderAllUsers(false);
         setReminderUserIds([]);
+        setReminderAllUsers(false);
       } else {
         throw new Error(response.message || 'Failed to create reminder');
       }
@@ -1212,7 +1228,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             <MTRFilters
               activeCommTab={activeCommTab}
               projects={projects}
-              availableUsers={availableUsers}
+              availableUsers={usersForUi}
               messagesProjectFilter={messagesProjectFilter}
               messagesUserFilter={messagesUserFilter}
               tasksProjectFilter={tasksProjectFilter}
@@ -1237,7 +1253,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               showMessageDropdown={showMessageDropdown}
               setShowMessageDropdown={setShowMessageDropdown}
               projects={projects}
-              availableUsers={availableUsers}
+              availableUsers={usersForUi}
               subjects={subjects}
               currentUser={currentUser}
               newMessageProject={newMessageProject}
@@ -1307,7 +1323,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 handleToggleMessage={handleToggleMessage}
                 handleTaskToggle={handleTaskToggle}
                 handleProjectSelectWithScroll={handleProjectSelectWithScroll}
-                availableUsers={availableUsers}
+                availableUsers={usersForUi}
                 currentUser={currentUser}
                 taskComments={taskComments}
                 newCommentText={newCommentText}
@@ -1324,7 +1340,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 completedTasks={completedTasks}
                 remindersProjectFilter={remindersProjectFilter}
                 remindersUserFilter={remindersUserFilter}
-                availableUsers={availableUsers}
+                availableUsers={usersForUi}
                 currentUser={currentUser}
                 handleToggleMessage={handleToggleMessage}
                 handleTaskToggle={handleTaskToggle}
@@ -1348,7 +1364,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               onProjectSelect={onProjectSelect}
               workflowAlerts={workflowAlerts}
               alertsLoading={alertsLoading}
-              availableUsers={availableUsers}
+              availableUsers={usersForUi}
               currentUser={currentUser}
               handleProjectSelectWithScroll={handleProjectSelectWithScroll}
             />
@@ -1370,7 +1386,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             handleToggleMessage={handleToggleMessage}
             handleTaskToggle={handleTaskToggle}
             handleProjectSelectWithScroll={handleProjectSelectWithScroll}
-            availableUsers={availableUsers}
+            availableUsers={usersForUi}
             currentUser={currentUser}
             taskComments={taskComments}
             newCommentText={newCommentText}

@@ -15,6 +15,9 @@ import {
   usersService
 } from '../services/api';
 
+// Import workflow service separately since it might be in a different location
+import workflowService from '../services/workflowService';
+
 // Query Keys - Centralized key management
 export const queryKeys = {
   // Projects
@@ -319,7 +322,21 @@ export const useCalendarEvents = (params = {}) => {
   return useQuery({
     queryKey: [...queryKeys.calendarEvents, params],
     queryFn: () => calendarService.getAll(params),
-    select: (data) => data?.data || data || [],
+    select: (data) => {
+      // Normalize to an array regardless of server response shape
+      const asArray = (x) => (Array.isArray(x) ? x : null);
+      const arr =
+        asArray(data?.data) ||
+        asArray(data?.items) ||
+        asArray(data?.results) ||
+        asArray(data?.events) ||
+        asArray(data?.data?.items) ||
+        asArray(data?.data?.results) ||
+        asArray(data?.data?.events) ||
+        asArray(data) ||
+        [];
+      return arr;
+    },
   });
 };
 
@@ -373,7 +390,7 @@ export const useWorkflowAlertsSummary = () => {
 export const useWorkflow = (projectId) => {
   return useQuery({
     queryKey: queryKeys.workflow(projectId),
-    queryFn: () => workflowService.getByProject(projectId),
+    queryFn: () => workflowService.getWorkflow(projectId),
     select: (data) => data?.data || data,
     enabled: !!projectId,
   });
@@ -596,8 +613,8 @@ export const useCompleteWorkflowSubTask = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ projectId, stepId, subTaskId }) => 
-      workflowService.completeSubTask(projectId, stepId, subTaskId),
+    mutationFn: ({ projectId, stepId, notes = '' }) => 
+      workflowService.completeLineItem(projectId, stepId, notes),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.workflow(variables.projectId) 
@@ -612,16 +629,17 @@ export const useCompleteWorkflowSubTask = () => {
   });
 };
 
-export const useAssignTeamMember = () => {
+export const useUpdateWorkflowStep = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ projectId, stepId, userId }) => 
-      workflowService.assignTeamMember(projectId, stepId, userId),
+    mutationFn: ({ projectId, stepId, completed }) => 
+      workflowService.updateStep(projectId, stepId, completed),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.workflow(variables.projectId) 
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflowAlerts });
     },
   });
 };
@@ -683,8 +701,20 @@ export const useTeamMembers = () => {
     queryKey: ['users', 'team-members'],
     queryFn: () => usersService.getTeamMembers(),
     select: (data) => {
-      const raw = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : (Array.isArray(data?.users) ? data.users : []));
-      return raw.map(u => ({
+      // Robustly extract an array from multiple possible API shapes
+      const asArray = (x) => (Array.isArray(x) ? x : null);
+      const raw =
+        asArray(data?.data) ||
+        asArray(data?.users) ||
+        asArray(data?.items) ||
+        asArray(data?.result) ||
+        asArray(data?.data?.users) ||
+        asArray(data?.data?.items) ||
+        asArray(data?.data?.result) ||
+        asArray(data) ||
+        [];
+
+      const normalized = raw.map(u => ({
         id: u.id || u._id || u.userId || u.uuid,
         firstName: u.firstName || u.first_name || u.name?.first || '',
         lastName: u.lastName || u.last_name || u.name?.last || '',
@@ -693,6 +723,15 @@ export const useTeamMembers = () => {
         role: String(u.role || u.userRole || 'OFFICE').toUpperCase(),
         avatarUrl: u.avatarUrl || u.avatar || u.photoUrl || '',
       }));
+
+      try {
+        // Lightweight debug to help diagnose empty lists
+        if (normalized.length === 0) {
+          console.warn('useTeamMembers: no team members resolved from API response shape', data);
+        }
+      } catch (_) {}
+
+      return normalized;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     // Cache to localStorage as fallback
