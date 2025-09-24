@@ -258,7 +258,16 @@ app.use(cors({
   origin: (origin, callback) => callback(null, true),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    // Allow Vapi custom headers
+    'X-VAPI-KEY', 'x-vapi-key', 'X-Vapi-Key',
+    'X-Return-Actions', 'x-return-actions',
+    // Common CORS headers seen in some clients
+    'Origin', 'Accept'
+  ]
 }));
 
 // Compression middleware

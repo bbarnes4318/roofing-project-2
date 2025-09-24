@@ -43,10 +43,36 @@ function buildRagMessages({ chunks, userQuery }) {
 // Auth: header X-VAPI-KEY must match VAPI_INTERNAL_KEY
 router.post('/vapi/assistant-query', authVapi, async (req, res) => {
   try {
-    const { projectId, query, contextFileIds = [] } = req.body || {};
+    const raw = req.body || {};
+    // Accept multiple possible field names coming from Vapi UI schema builder
+    let projectId = raw.projectId ?? raw.projectid ?? raw.project_id ?? raw.project ?? req.query.projectId ?? req.query.projectid ?? null;
+    let query = raw.query ?? raw.input ?? raw.text ?? raw.message ?? raw.turn?.input ?? raw.turn?.text ?? req.query.query ?? req.query.q ?? '';
+    let contextFileIds = raw.contextFileIds ?? raw.context_file_ids ?? raw.fileIds ?? raw.file_ids ?? [];
+
+    // Normalize contextFileIds to array
+    if (!Array.isArray(contextFileIds)) {
+      if (typeof contextFileIds === 'string') {
+        try {
+          const parsed = JSON.parse(contextFileIds);
+          contextFileIds = Array.isArray(parsed) ? parsed : (String(contextFileIds).includes(',') ? String(contextFileIds).split(',').map(s => s.trim()).filter(Boolean) : [String(contextFileIds)]);
+        } catch (_) {
+          contextFileIds = String(contextFileIds).includes(',') ? String(contextFileIds).split(',').map(s => s.trim()).filter(Boolean) : (contextFileIds ? [String(contextFileIds)] : []);
+        }
+      } else if (contextFileIds && typeof contextFileIds === 'object') {
+        // handle accidental object map -> use its values
+        contextFileIds = Object.values(contextFileIds).map(String);
+      } else {
+        contextFileIds = [];
+      }
+    }
+
+    // Validate query
     if (!query || String(query).trim().length === 0) {
       return res.status(400).json({ success: false, message: 'query is required' });
     }
+
+    // Optional: allow returning Vapi actions if requested
+    const returnActions = (req.header('X-Return-Actions') === '1') || (raw.returnActions === true);
 
     let chunks = [];
     if (Array.isArray(contextFileIds) && contextFileIds.length > 0) {
@@ -83,6 +109,12 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     }
 
     if (!openaiClient) {
+      if (returnActions) {
+        // Fallback voice line when LLM unavailable
+        return res.json([
+          { type: 'say', text: 'I can’t access the knowledge service right now, but I’m still here to help with general questions.' }
+        ]);
+      }
       return res.json({ success: true, data: { answer: 'OpenAI not configured on server.' } });
     }
 
@@ -96,7 +128,14 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     const text = chat?.choices?.[0]?.message?.content || '';
     const used = chunks.length > 0;
 
-    // Expose top-level fields for Vapi tools that only map top-level variables
+    if (returnActions) {
+      // Return Vapi actions directly for tools that expect actions output
+      return res.json([
+        { type: 'say', text }
+      ]);
+    }
+
+    // Default: plain JSON that can be mapped to variables in Vapi
     return res.json({ success: true, answer: text, usedDocs: used, data: { answer: text, usedDocs: used } });
   } catch (err) {
     console.error('POST /vapi/assistant-query error:', err);
