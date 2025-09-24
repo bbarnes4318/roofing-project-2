@@ -1,5 +1,6 @@
 const express = require('express');
 const OpenAI = require('openai');
+const crypto = require('crypto');
 const EmbeddingService = require('../services/EmbeddingService');
 const { PrismaClient } = require('@prisma/client');
 
@@ -144,3 +145,63 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
 });
 
 module.exports = router;
+
+// ===== Custom Knowledge Base (Vapi) =====
+// POST /api/vapi/kb/search
+// Vapi will call this when a knowledge-base search is needed.
+// Verifies x-vapi-signature if provided, then returns documents array.
+router.post('/vapi/kb/search', express.json({ limit: '1mb' }), async (req, res) => {
+  try {
+    // Verify signature if header is present and VAPI_WEBHOOK_SECRET is set
+    try {
+      const sig = req.header('x-vapi-signature') || req.header('X-VAPI-SIGNATURE');
+      const secret = (process.env.VAPI_WEBHOOK_SECRET || '').trim();
+      if (sig && secret) {
+        const computed = crypto.createHmac('sha256', secret).update(JSON.stringify(req.body)).digest('hex');
+        if (sig !== `sha256=${computed}`) {
+          return res.status(401).json({ error: 'Invalid signature' });
+        }
+      }
+    } catch (e) {
+      // If signature verification throws, do not block; proceed without signature
+      try { console.warn('[Vapi KB] Signature verification error:', e?.message || e); } catch (_) {}
+    }
+
+    const payload = req.body || {};
+    const msg = payload.message || {};
+    const msgs = Array.isArray(msg.messages) ? msg.messages : [];
+    const userMsgs = msgs.filter(m => m && m.role === 'user' && typeof m.content === 'string');
+    const latestQuery = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].content : '';
+    if (!latestQuery || String(latestQuery).trim().length === 0) {
+      return res.json({ documents: [] });
+    }
+
+    // Retrieve top chunks from embeddings (global scope). Optionally merge project scope if provided later.
+    let results = [];
+    try {
+      results = await EmbeddingService.semanticSearch({ projectId: null, query: latestQuery, topK: 6 });
+    } catch (e) {
+      try { console.warn('[Vapi KB] semanticSearch failed:', e?.message || e); } catch (_) {}
+      results = [];
+    }
+
+    // Format documents for Vapi Knowledge Base
+    const documents = (results || []).map(r => {
+      const page = r?.metadata?.page ? ` page ${r.metadata.page}` : '';
+      const header = `source [file:${r.fileId || ''}${page}]`;
+      // Provide the snippet plus a small source line to help the model cite internally
+      const content = `${r.snippet || ''}\n\n(${header})`;
+      return {
+        content,
+        similarity: Number(r.score || 0),
+        uuid: `${r.fileId || 'file'}:${r.chunkId || 'chunk'}`
+      };
+    });
+
+    try { console.log('[Vapi KB] Returned documents:', documents.length); } catch (_) {}
+    return res.json({ documents });
+  } catch (err) {
+    console.error('POST /vapi/kb/search error:', err);
+    return res.json({ documents: [], error: 'Search temporarily unavailable' });
+  }
+});
