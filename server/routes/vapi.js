@@ -56,8 +56,30 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     } else {
       // Only retrieve if the user asked something document-specific, otherwise skip to keep it conversational
       // Simple heuristic: keywords
-      const docy = /document|pdf|file|permit|estimate|photo|image|xactimate|warranty|form|page\s+\d+/i.test(query);
-      if (docy) chunks = await EmbeddingService.semanticSearch({ projectId, query, topK: 12 });
+      const docy = /(\b(document|pdf|file|permit|estimate|photo|image|xactimate|warranty|form|checklist|manual|policy|procedure|sds|msds|safety|handbook|guide|spec|specification|blueprint|plan|invoice|receipt|contract|start the day|upfront)\b|page\s+\d+)/i.test(query || '');
+      if (!docy) {
+        // Minimal debug to trace why RAG was skipped during voice calls
+        try { console.log('[Vapi] Skipping semanticSearch (no doc keywords) for query:', String(query).slice(0, 140)); } catch (_) {}
+      }
+      if (docy) {
+        let topProject = [];
+        let topGlobal = [];
+        try {
+          if (projectId) topProject = await EmbeddingService.semanticSearch({ projectId, query, topK: 12 });
+        } catch (e) {
+          try { console.warn('[Vapi] Project semanticSearch failed:', e?.message || e); } catch (_) {}
+        }
+        try {
+          topGlobal = await EmbeddingService.semanticSearch({ projectId: null, query, topK: 12 });
+        } catch (e) {
+          try { console.warn('[Vapi] Global semanticSearch failed:', e?.message || e); } catch (_) {}
+        }
+        const merged = [...(topProject || []), ...(topGlobal || [])]
+          .sort((a, b) => (b.score || 0) - (a.score || 0))
+          .slice(0, 12);
+        chunks = merged;
+        try { console.log('[Vapi] semanticSearch results - project:', (topProject||[]).length, 'global:', (topGlobal||[]).length, 'merged:', merged.length); } catch (_) {}
+      }
     }
 
     if (!openaiClient) {
