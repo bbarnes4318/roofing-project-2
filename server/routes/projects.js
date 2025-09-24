@@ -195,6 +195,14 @@ const transformProjectForFrontend = async (project, precomputedTotalLineItems) =
     // Project Manager Contact Information (NEW FIELDS)
     pmPhone: project.pmPhone,
     pmEmail: project.pmEmail,
+
+    // Lead Source
+    leadSource: project.leadSource ? {
+      id: project.leadSource.id,
+      name: project.leadSource.name,
+      isActive: project.leadSource.isActive
+    } : null,
+    leadSourceName: project.leadSource?.name || null,
     
     // Team members
     teamMembers: project.teamMembers ? project.teamMembers.map(member => ({
@@ -290,7 +298,11 @@ const projectValidation = [
   body('startingPhase')
     .optional()
     .isIn(['LEAD', 'PROSPECT', 'APPROVED', 'EXECUTION', 'SECOND_SUPPLEMENT', 'COMPLETION'])
-    .withMessage('Invalid starting phase')
+    .withMessage('Invalid starting phase'),
+  body('leadSourceId')
+    .optional()
+    .isString()
+    .withMessage('Lead Source ID must be a string')
 ];
 
 // @desc    Get all projects with filtering and pagination
@@ -373,6 +385,7 @@ router.get('/', asyncHandler(async (req, res) => {
         take: limitNum,
         include: {
           customer: true,
+          leadSource: true,
           workflowTrackers: {
             select: {
               id: true,
@@ -448,6 +461,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
       where: { id: req.params.id },
       include: {
         customer: true,
+        leadSource: true,
         projectManager: {
           select: {
             id: true,
@@ -530,6 +544,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
         where: { id: project.id },
         include: {
           customer: true,
+          leadSource: true,
           projectManager: {
             select: {
               id: true,
@@ -621,6 +636,17 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       }
     }
 
+    // Verify lead source exists if provided
+    let resolvedLeadSourceId = null;
+    if (req.body.leadSourceId) {
+      const ls = await prisma.leadSource.findUnique({ where: { id: req.body.leadSourceId } });
+      if (ls && ls.isActive) {
+        resolvedLeadSourceId = ls.id;
+      } else {
+        console.warn(`Lead source ${req.body.leadSourceId} not found or inactive, continuing without lead source`);
+      }
+    }
+
     // Use user-provided project number or auto-generate if not provided
     let projectNumber;
     if (req.body.projectNumber) {
@@ -648,6 +674,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       projectManagerId: resolvedProjectManagerId,
       pmPhone: req.body.pmPhone || null,
       pmEmail: req.body.pmEmail || null,
+      leadSourceId: resolvedLeadSourceId,
       notes: req.body.notes || null
     };
 
@@ -656,6 +683,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       data: projectData,
       include: {
         customer: true,
+        leadSource: true,
         projectManager: {
           select: {
             id: true,
@@ -809,6 +837,14 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
       }
     }
 
+    // Verify lead source exists if being updated
+    if (req.body.leadSourceId) {
+      const ls = await prisma.leadSource.findUnique({ where: { id: req.body.leadSourceId } });
+      if (!ls || !ls.isActive) {
+        return next(new AppError('Lead source not found or inactive', 404));
+      }
+    }
+
     // Prepare update data
     const updateData = {};
     
@@ -829,6 +865,7 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     if (req.body.progress !== undefined) updateData.progress = parseInt(req.body.progress);
     if (req.body.notes !== undefined) updateData.notes = req.body.notes;
     if (req.body.archived !== undefined) updateData.archived = req.body.archived;
+    if (req.body.leadSourceId !== undefined) updateData.leadSourceId = req.body.leadSourceId || null;
 
     // Update project
     console.log('Updating project with data:', updateData);
@@ -837,6 +874,7 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
       data: updateData,
       include: {
         customer: true,
+        leadSource: true,
         projectManager: {
           select: {
             id: true,

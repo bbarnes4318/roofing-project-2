@@ -16,7 +16,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     projectTypes: [], // Multiple trade types
     description: '',
     startingPhase: 'LEAD', // Starting phase selection
-    projectManagerId: '' // Project manager assignment
+    projectManagerId: '', // Project manager assignment
+    leadSourceId: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -26,6 +27,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [projectManagers, setProjectManagers] = useState([]);
   const [showSecondaryCustomer, setShowSecondaryCustomer] = useState(false);
   const [showSecondHousehold, setShowSecondHousehold] = useState(false);
+  const [leadSources, setLeadSources] = useState([]);
+  const [leadSourcesLoading, setLeadSourcesLoading] = useState(true);
 
   // Available trade types with icons
   const TRADE_TYPES = [
@@ -124,6 +127,28 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       resetForm();
       setShowSecondaryCustomer(false);
       setShowSecondHousehold(false);
+    }
+  }, [isOpen]);
+
+  // Load lead sources when modal opens
+  useEffect(() => {
+    const loadLeadSources = async () => {
+      try {
+        setLeadSourcesLoading(true);
+        const res = await api.get('/lead-sources');
+        const items = Array.isArray(res?.data?.data) ? res.data.data : [];
+        setLeadSources(items.filter(ls => ls.isActive !== false));
+      } catch (e) {
+        console.error('Error fetching lead sources:', e);
+        setLeadSources([]);
+      } finally {
+        setLeadSourcesLoading(false);
+      }
+    };
+    if (isOpen) {
+      loadLeadSources();
+    } else {
+      setLeadSources([]);
     }
   }, [isOpen]);
 
@@ -295,7 +320,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         projectManagerId: formData.projectManagerId, // Assign project manager
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
-        startingPhase: formData.startingPhase // New field for starting phase
+        startingPhase: formData.startingPhase, // New field for starting phase
+        leadSourceId: formData.leadSourceId || undefined
       };
 
       const projectResponse = await api.post('/projects', projectData);
@@ -832,6 +858,28 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       </svg>
                       {errors.projectManagerId}
                     </p>
+                  )}
+                </div>
+
+                {/* Lead Source */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Lead Source
+                  </label>
+                  <select
+                    name="leadSourceId"
+                    value={formData.leadSourceId}
+                    onChange={handleInputChange}
+                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
+                    disabled={leadSourcesLoading}
+                  >
+                    <option value="">Select a lead source (optional)</option>
+                    {leadSources.map(ls => (
+                      <option key={ls.id} value={ls.id}>{ls.name}</option>
+                    ))}
+                  </select>
+                  {leadSourcesLoading && (
+                    <p className="mt-2 text-sm text-gray-500">Loading lead sources...</p>
                   )}
                 </div>
 

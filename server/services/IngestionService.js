@@ -31,12 +31,23 @@ class IngestionService {
   async extractPdfPages(buffer) {
     // Preferred: pdfjs-dist per-page extraction
     try {
-      // Lazy-load to avoid hard dependency
-      const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+      // Lazy-load to avoid hard dependency and support multiple packaging layouts
+      let pdfjsLib;
       try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = require('pdfjs-dist/legacy/build/pdf.worker.js');
-      } catch (_) {}
-      const loadingTask = pdfjsLib.getDocument({ data: buffer });
+        pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+      } catch (e1) {
+        try {
+          pdfjsLib = require('pdfjs-dist/build/pdf.js');
+        } catch (e2) {
+          throw e1; // trigger outer catch and fallback
+        }
+      }
+      // Handle ESM default export shape if present
+      if (pdfjsLib && pdfjsLib.default && !pdfjsLib.getDocument) {
+        pdfjsLib = pdfjsLib.default;
+      }
+      // In Node we don't need the worker; disable to avoid workerSrc issues
+      const loadingTask = pdfjsLib.getDocument({ data: buffer, disableWorker: true, disableFontFace: true, isEvalSupported: false });
       const pdf = await loadingTask.promise;
       const pages = [];
       for (let i = 1; i <= pdf.numPages; i++) {

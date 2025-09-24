@@ -24,6 +24,7 @@ async function main() {
   await prisma.projectTeamMember.deleteMany();
   await prisma.project.deleteMany();
   await prisma.customer.deleteMany();
+  await prisma.leadSource.deleteMany();
   await prisma.user.deleteMany();
 
   console.log('✅ All data cleared successfully');
@@ -167,6 +168,21 @@ async function main() {
   ]);
 
   console.log(`✅ Created ${users.length} users successfully`);
+
+  // Create default lead sources
+  console.log('📈 Creating default lead sources...');
+  const defaultLeadSources = [
+    'Website',
+    'Google Maps',
+    'Social Media',
+    'Word of Mouth'
+  ];
+  await prisma.leadSource.createMany({
+    data: defaultLeadSources.map(name => ({ name })),
+    skipDuplicates: true
+  });
+  const leadSourceCount = await prisma.leadSource.count();
+  console.log(`✅ Lead sources seeded (total now: ${leadSourceCount})`);
 
   // Create default role assignments
   console.log('🎯 Creating default role assignments...');

@@ -75,6 +75,7 @@ const aiRoutes = require('./routes/ai');
 const uploadRoutes = require('./routes/uploads');
 const filesRoutes = require('./routes/files');
 const ragRoutes = require('./routes/rag');
+const leadSourcesRoutes = require('./routes/leadSources');
 const vapiRoutes = require('./routes/vapi');
 let bubblesRoutes;
 try {
@@ -713,6 +714,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/company-docs', companyDocumentsRoutes);
 app.use('/api/company-docs-enhanced', companyDocumentsEnhancedRoutes);
 app.use('/api/migration', require('./routes/migration'));
+app.use('/api/lead-sources', leadSourcesRoutes);
 if (workflowRoutes) {
   app.use('/api/workflows', workflowRoutes);
   console.log('✅ SERVER: Workflow routes registered at /api/workflows');

@@ -98,20 +98,37 @@ const FolderTreeNode = ({ node, depth, onToggle, onSelect, isActive, onDropMove 
   );
 };
 
-const FolderTree = ({ currentParentId, onSelectFolder }) => {
+const FolderTree = ({ currentParentId, onSelectFolder, rootId, onCreateFolder }) => {
   const [roots, setRoots] = useState([]);
   const [childrenMap, setChildrenMap] = useState({}); // id -> children array
+  const [rootInfo, setRootInfo] = useState(null); // scoped root folder metadata
 
   const refreshRoots = async (preserveExpandedIds = new Set()) => {
     try {
-      const rootData = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
-      // Mark nodes with has-children hint
-      const annotated = (rootData || []).map(r => ({ ...r, _expanded: preserveExpandedIds.has(r.id), _hasChildren: (r.children || []).length > 0 }));
-      setRoots(annotated);
-    } catch (e) { setRoots([]); }
+      // When rootId is undefined, show global roots; when null, show blank; otherwise scope to that root's children
+      if (typeof rootId === 'undefined') {
+        const rootData = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+        const annotated = (rootData || []).map(r => ({ ...r, _expanded: preserveExpandedIds.has(r.id), _hasChildren: (r.children || []).length > 0 }));
+        setRoots(annotated);
+        setRootInfo(null);
+      } else if (rootId === null) {
+        setRoots([]);
+        setRootInfo(null);
+      } else {
+        // Scoped to a specific root folder
+        const info = await assetsService.get(rootId);
+        setRootInfo(info || null);
+        const kids = await assetsService.listFolders({ parentId: rootId, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+        const annotated = (kids || []).map(k => ({ ...k, _expanded: preserveExpandedIds.has(k.id), _hasChildren: (k.children || []).length > 0 }));
+        setRoots(annotated);
+      }
+    } catch (e) {
+      setRoots([]);
+      setRootInfo(null);
+    }
   };
 
-  useEffect(() => { refreshRoots(); }, []);
+  useEffect(() => { refreshRoots(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [rootId]);
 
   const loadChildren = async (id) => {
     try {
@@ -182,26 +199,70 @@ const FolderTree = ({ currentParentId, onSelectFolder }) => {
     );
   };
 
+  // Blank state when a new tab was added and no root is selected yet
+  const renderBlank = () => (
+    <div className="flex-1 overflow-auto">
+      <div className="p-2 text-xs text-gray-500">No folders yet for this tab.</div>
+      {typeof onCreateFolder === 'function' && (
+        <div className="p-2">
+          <button
+            className="px-2 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200"
+            onClick={() => onCreateFolder()}
+          >Create first folder</button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="flex-1 overflow-auto">
-      {/* Root */}
-      <div
-        className={`group flex items-center gap-2 py-1 rounded cursor-pointer ${currentParentId === null ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'}`}
-        style={{ paddingLeft: 8 }}
-        onClick={() => onSelectFolder(null)}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={async (e) => {
-          e.preventDefault();
-          const assetId = e.dataTransfer.getData('text/asset-id');
-          if (assetId) await moveAsset(assetId, null);
-        }}
-      >
-        <span className="w-5 h-5" />
-        <FolderIcon className="w-4 h-4 text-yellow-500"/>
-        <span className="text-sm whitespace-normal break-words leading-tight">My Folder</span>
-      </div>
+      {/* Root entry varies by scope */}
+      {(() => {
+        if (typeof rootId === 'undefined') {
+          // Global root selector
+          return (
+            <div
+              className={`group flex items-center gap-2 py-1 rounded cursor-pointer ${currentParentId === null ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'}`}
+              style={{ paddingLeft: 8 }}
+              onClick={() => onSelectFolder(null)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={async (e) => {
+                e.preventDefault();
+                const assetId = e.dataTransfer.getData('text/asset-id');
+                if (assetId) await moveAsset(assetId, null);
+              }}
+            >
+              <span className="w-5 h-5" />
+              <FolderIcon className="w-4 h-4 text-yellow-500"/>
+              <span className="text-sm whitespace-normal break-words leading-tight">My Folder</span>
+            </div>
+          );
+        }
+        if (rootId === null) {
+          return renderBlank();
+        }
+        // Scoped root label
+        return (
+          <div
+            className={`group flex items-center gap-2 py-1 rounded cursor-pointer ${currentParentId === rootId ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'}`}
+            style={{ paddingLeft: 8 }}
+            onClick={() => onSelectFolder(rootId)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={async (e) => {
+              e.preventDefault();
+              const assetId = e.dataTransfer.getData('text/asset-id');
+              if (assetId) await moveAsset(assetId, rootId);
+            }}
+            title={rootInfo?.folderName || rootInfo?.title}
+          >
+            <span className="w-5 h-5" />
+            <FolderIcon className="w-4 h-4 text-yellow-500"/>
+            <span className="text-sm whitespace-normal break-words leading-tight">{rootInfo?.folderName || rootInfo?.title || 'Root'}</span>
+          </div>
+        );
+      })()}
 
-      {/* Roots */}
+      {/* Children of root (global or scoped) */}
       <div className="mt-1">
         {roots.map((n) => renderBranch(n, 1))}
       </div>
@@ -209,7 +270,7 @@ const FolderTree = ({ currentParentId, onSelectFolder }) => {
   );
 };
 
-const Sidebar = ({ onUploadClick, onCreateFolder, currentParentId, onSelectFolder, width = 240 }) => {
+const Sidebar = ({ onUploadClick, onCreateFolder, currentParentId, onSelectFolder, width = 240, rootId }) => {
   const [quick, setQuick] = useState({ Documents: null, Contracts: null, Images: null, Projects: null });
   useEffect(() => {
     (async () => {
@@ -234,7 +295,7 @@ const Sidebar = ({ onUploadClick, onCreateFolder, currentParentId, onSelectFolde
         <FolderIcon className="w-4 h-4 text-yellow-500" />
         <span>Your Folders</span>
       </div>
-      <FolderTree currentParentId={currentParentId} onSelectFolder={onSelectFolder} />
+      <FolderTree currentParentId={currentParentId} onSelectFolder={onSelectFolder} rootId={rootId} onCreateFolder={onCreateFolder} />
       {/* Bottom sidebar controls intentionally removed per design */}
     </div>
   );
@@ -440,6 +501,8 @@ export default function FileManagerPage() {
   const toggleSelect = (id) => setSelectedIds((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const clearSelection = () => setSelectedIds(new Set());
   const selectAllVisible = () => setSelectedIds(new Set(items.map(i => i.id)));
+  // Track the Projects root folder id for sidebar scoping
+  const [projectsRootId, setProjectsRootId] = useState(null);
 
   // Ensure first tab is the Projects tab
   useEffect(() => {
@@ -555,6 +618,20 @@ export default function FileManagerPage() {
   };
   const renderSortMark = (key) => (sortBy === key ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : '');
 
+  // Determine which root the sidebar tree should display for the current tab
+  const sidebarRootId = useMemo(() => {
+    if (activeTab?.kind === 'projects') {
+      // If projects root not ready yet, keep blank until ensureProjectsRoot finds/creates it
+      return projectsRootId || null;
+    }
+    if (activeTab?.kind === 'folder') {
+      // null => blank state; otherwise scope to chosen folder
+      return (typeof activeTab.parentId === 'undefined') ? null : activeTab.parentId;
+    }
+    // Fallback to global root selector
+    return undefined;
+  }, [activeTabId, activeTab?.kind, activeTab?.parentId, projectsRootId]);
+
   const folders = useMemo(() => items.filter(i => i.type === 'FOLDER'), [items]);
   const files = useMemo(() => items.filter(i => i.type !== 'FOLDER'), [items]);
 
@@ -576,6 +653,7 @@ export default function FileManagerPage() {
       projRoot = await assetsService.createFolder({ name: 'Projects', parentId: null });
       window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
     }
+    try { setProjectsRootId(projRoot?.id || null); } catch (_) {}
     return projRoot;
   };
 
@@ -613,19 +691,22 @@ export default function FileManagerPage() {
       try {
         const projRoot = await ensureProjectsRoot();
         if (cancelled) return;
-        if (parentId !== projRoot.id) setActiveParentId(projRoot.id);
+        if (projRoot?.id) {
+          try { setProjectsRootId(projRoot.id); } catch (_) {}
+          if (parentId !== projRoot.id) setActiveParentId(projRoot.id);
+        }
         setView('list');
         if (Array.isArray(projects) && projects.length) {
           // Ensure each project has a folder under Projects root
-          const children = await assetsService.listFolders({ parentId: projRoot.id, sortBy: 'title', sortOrder: 'asc', limit: 10000 });
+          const children = projRoot?.id ? await assetsService.listFolders({ parentId: projRoot.id, sortBy: 'title', sortOrder: 'asc', limit: 10000 }) : [];
           if (cancelled) return;
           const existing = new Set(children.map(c => c.folderName || c.title));
           const toCreate = projects.filter(p => !existing.has(p.projectName || p.name));
           for (const p of toCreate) {
-            await assetsService.createFolder({ name: p.projectName || p.name || `Project ${p.id}`, parentId: projRoot.id });
+            if (projRoot?.id) await assetsService.createFolder({ name: p.projectName || p.name || `Project ${p.id}`, parentId: projRoot.id });
           }
           if (toCreate.length) {
-            window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: projRoot.id } }));
+            window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: projRoot?.id || null } }));
           }
         }
       } catch (e) {
@@ -696,12 +777,42 @@ export default function FileManagerPage() {
     setActiveParentId(bc.length ? bc[bc.length - 1].id : null);
   };
 
-  const onUploadClick = () => fileInputRef.current?.click();
+  // Ensure there is a target folder when uploading from a blank workspace tab
+  const ensureUploadTarget = async () => {
+    if (activeTab?.kind === 'folder' && (parentId === null || typeof parentId === 'undefined')) {
+      const name = window.prompt('Create a folder to upload into. Folder name');
+      if (!name) return false;
+      try {
+        const folder = await assetsService.createFolder({ name: name.trim(), parentId: null });
+        if (folder?.id) {
+          setActiveParentId(folder.id);
+          window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
+          return folder.id;
+        }
+      } catch (e) {
+        console.error('Failed to create folder for upload', e);
+        return false;
+      }
+      return false;
+    }
+    return parentId;
+  };
+
+  const onUploadClick = async () => {
+    const target = await ensureUploadTarget();
+    if (target === false) return;
+    fileInputRef.current?.click();
+  };
 
   const onFilesChosen = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     try {
+      // Guard: require a folder in non-Projects blank tabs
+      if (activeTab?.kind === 'folder' && (parentId === null || typeof parentId === 'undefined')) {
+        alert('Select or create a folder first, then upload.');
+        return;
+      }
       await assetsService.uploadFiles({ files, parentId, description: '' });
       await load();
     } catch (err) {
@@ -741,7 +852,14 @@ export default function FileManagerPage() {
         window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId } }));
       } else if (e.dataTransfer.files?.length) {
         const files = Array.from(e.dataTransfer.files);
-        await assetsService.uploadFiles({ files, parentId });
+        // If this is a blank tab (no folder yet), prompt user to create one and upload into it
+        if (activeTab?.kind === 'folder' && (parentId === null || typeof parentId === 'undefined')) {
+          const targetId = await ensureUploadTarget();
+          if (!targetId) return;
+          await assetsService.uploadFiles({ files, parentId: targetId });
+        } else {
+          await assetsService.uploadFiles({ files, parentId });
+        }
       }
       await load();
     } catch (err) { console.error('Main drop failed', err); }
@@ -887,7 +1005,7 @@ export default function FileManagerPage() {
       
 
       <div className="w-full mx-auto md:flex">
-        <Sidebar onUploadClick={onUploadClick} onCreateFolder={onCreateFolder} currentParentId={parentId} onSelectFolder={setActiveParentId} width={sidebarWidth} />
+        <Sidebar onUploadClick={onUploadClick} onCreateFolder={onCreateFolder} currentParentId={parentId} onSelectFolder={setActiveParentId} width={sidebarWidth} rootId={sidebarRootId} />
         <div
           className="w-1 cursor-col-resize bg-transparent hover:bg-blue-200 hidden md:block"
           onMouseDown={onSidebarResizeStart}

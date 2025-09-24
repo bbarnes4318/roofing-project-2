@@ -123,6 +123,7 @@ model Project {
   notes            String?
   pmPhone          String?                  @db.VarChar(20)
   pmEmail          String?                  @db.VarChar(320)
+  leadSourceId     String?                  @map("lead_source_id")
   customerId       String                   @map("customer_id")
   projectManagerId String?                  @map("project_manager_id")
   createdById      String?                  @map("created_by_id")
@@ -137,11 +138,23 @@ model Project {
   createdBy        User?                    @relation("CreatedBy", fields: [createdById], references: [id])
   customer         Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
   projectManager   User?                    @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  leadSource       LeadSource?              @relation(fields: [leadSourceId], references: [id])
   tasks            Task[]
   voiceTranscripts VoiceTranscript[]
   workflowAlerts   WorkflowAlert[]
 
   @@map("projects")
+}
+
+model LeadSource {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  name       String    @unique @db.VarChar(100)
+  isActive   Boolean   @default(true)
+  projects   Project[]
+
+  @@map("lead_sources")
 }
 
 model ProjectTeamMember {
@@ -821,6 +834,12 @@ model CompanyAsset {
   path             String?                 @db.VarChar(1000)  // Full path for easier queries
   sortOrder        Int                     @default(0)        // For custom ordering within folders
   
+  // Legacy fields (preserved for data migration; ignored by Prisma Client)
+  is_archived     Boolean?                @map("is_archived") @ignore
+  is_favorite     Boolean?                @map("is_favorite") @ignore
+  shared_with     Json?                   @map("shared_with") @ignore
+  view_count      Int?                    @map("view_count") @ignore
+  
   // Relations
   uploadedBy       User?                   @relation(fields: [uploadedById], references: [id])
   versions         CompanyAssetVersion[]   @relation("AssetVersions")
@@ -829,6 +848,18 @@ model CompanyAsset {
   @@index([isPublic])
   @@index([parentId, type])
   @@map("company_assets")
+}
+
+model Embedding {
+  projectId String?                 @map("project_id")
+  fileId    String?                 @map("file_id")
+  chunkId   String                  @map("chunk_id")
+  content   String
+  metadata  Json?
+  embedding Unsupported("vector")
+
+  @@map("embeddings")
+  @@ignore
 }
 
 model CompanyAssetVersion {

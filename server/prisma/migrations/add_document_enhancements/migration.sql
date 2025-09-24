@@ -1,6 +1,19 @@
 -- Add new fields to existing Document table
 -- This migration is SAFE and only ADDS new columns without modifying existing data
 
+-- Create new enums (must exist before columns reference them)
+DO $$ BEGIN
+  CREATE TYPE "document_categories" AS ENUM ('CONTRACTS', 'WARRANTIES', 'PERMITS', 'INSPECTIONS', 'ESTIMATES', 'INVOICES', 'PHOTOS', 'REPORTS', 'FORMS', 'CHECKLISTS', 'MANUALS', 'TRAINING', 'COMPLIANCE', 'LEGAL', 'MARKETING', 'OTHER');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "access_levels" AS ENUM ('PUBLIC', 'AUTHENTICATED', 'PRIVATE', 'INTERNAL', 'ADMIN');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "access_types" AS ENUM ('VIEW', 'DOWNLOAD', 'EDIT', 'DELETE', 'MANAGE');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
 -- Add new columns to documents table
 ALTER TABLE "documents" ADD COLUMN IF NOT EXISTS "title" VARCHAR(200);
 ALTER TABLE "documents" ADD COLUMN IF NOT EXISTS "category" "document_categories" NOT NULL DEFAULT 'OTHER';
@@ -20,10 +33,7 @@ ALTER TABLE "documents" ADD COLUMN IF NOT EXISTS "search_vector" TEXT;
 ALTER TABLE "documents" ADD COLUMN IF NOT EXISTS "keywords" TEXT[];
 ALTER TABLE "documents" ADD COLUMN IF NOT EXISTS "related_documents" TEXT[];
 
--- Create new enums
-CREATE TYPE "document_categories" AS ENUM ('CONTRACTS', 'WARRANTIES', 'PERMITS', 'INSPECTIONS', 'ESTIMATES', 'INVOICES', 'PHOTOS', 'REPORTS', 'FORMS', 'CHECKLISTS', 'MANUALS', 'TRAINING', 'COMPLIANCE', 'LEGAL', 'MARKETING', 'OTHER');
-CREATE TYPE "access_levels" AS ENUM ('PUBLIC', 'AUTHENTICATED', 'PRIVATE', 'INTERNAL', 'ADMIN');
-CREATE TYPE "access_types" AS ENUM ('VIEW', 'DOWNLOAD', 'EDIT', 'DELETE', 'MANAGE');
+-- (Enums were created above)
 
 -- Create new tables for enhanced document management
 CREATE TABLE IF NOT EXISTS "document_versions" (
@@ -94,11 +104,14 @@ ALTER TABLE "document_favorites" ADD CONSTRAINT "document_favorites_document_id_
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS "documents_category_idx" ON "documents"("category");
 CREATE INDEX IF NOT EXISTS "documents_access_level_idx" ON "documents"("access_level");
-CREATE INDEX IF NOT EXISTS "documents_is_public_idx" ON "documents"("is_public");
+-- documents.isPublic exists from initial schema (camelCase)
+CREATE INDEX IF NOT EXISTS "documents_is_public_idx" ON "documents"("isPublic");
+-- new columns added by this migration (snake_case)
 CREATE INDEX IF NOT EXISTS "documents_is_template_idx" ON "documents"("is_template");
 CREATE INDEX IF NOT EXISTS "documents_is_archived_idx" ON "documents"("is_archived");
-CREATE INDEX IF NOT EXISTS "documents_created_at_idx" ON "documents"("created_at");
-CREATE INDEX IF NOT EXISTS "documents_download_count_idx" ON "documents"("download_count");
+-- camelCase columns from initial schema
+CREATE INDEX IF NOT EXISTS "documents_created_at_idx" ON "documents"("createdAt");
+CREATE INDEX IF NOT EXISTS "documents_download_count_idx" ON "documents"("downloadCount");
 
 -- Add search vector index if PostgreSQL supports it
 -- CREATE INDEX IF NOT EXISTS "documents_search_vector_idx" ON "documents" USING gin("search_vector");

@@ -61,6 +61,11 @@ export const assetsService = {
     const data = await assetsService.list({ parentId, type: 'FOLDER', sortBy, sortOrder, limit });
     return data?.assets || [];
   },
+  // Fetch a single asset by id
+  get: async (id) => {
+    const res = await api.get(`/assets/${id}`);
+    return res.data?.data?.asset;
+  },
   createFolder: async ({ name, parentId = null, description = '' }) => {
     const res = await api.post('/folders', { name, parentId, description });
     return res.data?.data?.folder;
