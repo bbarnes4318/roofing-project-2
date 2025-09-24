@@ -10,6 +10,9 @@ const {
 const { authenticateToken } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
 const EmbeddingService = require('../services/EmbeddingService');
+const IngestionService = require('../services/IngestionService');
+const path = require('path');
+const fs = require('fs').promises;
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
@@ -20,6 +23,130 @@ try {
 } catch (error) {
   console.error('❌ Bubbles: Failed to load OpenAIService:', error.message);
   openAIService = null;
+}
+
+
+// --- Document helpers: find assets and extract numbered steps ---
+async function findAssetByMention(message) {
+  try {
+    const text = String(message || '');
+    // Extract a likely filename token (ends with .pdf/.docx) or a key phrase
+    const filenameMatch = text.match(/([\w\-\s]+\.(pdf|docx|doc))/i);
+    const rawKey = filenameMatch ? filenameMatch[1] : text;
+    // Normalize: replace spaces/underscores/hyphens with wildcard-like contains
+    const needle = rawKey
+      .toLowerCase()
+      .replace(/[_\-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const asset = await prisma.companyAsset.findFirst({
+      where: {
+        isActive: true,
+        type: 'FILE',
+        OR: [
+          { title: { contains: needle, mode: 'insensitive' } },
+          { folderName: { contains: needle, mode: 'insensitive' } },
+          { description: { contains: needle, mode: 'insensitive' } },
+        ]
+      },
+      include: { versions: { where: { isCurrent: true }, take: 1 } }
+    });
+    return asset || null;
+  } catch (e) {
+    console.warn('⚠️ findAssetByMention failed:', e?.message || e);
+    return null;
+  }
+}
+
+async function readAssetCurrentFile(asset) {
+  try {
+    if (!asset) return null;
+    const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl;
+    if (!fileUrl) return null;
+    const safePath = String(fileUrl).replace(/^\\|^\//, '');
+    const abs = path.join(__dirname, '..', safePath);
+    let exists = await fs.access(abs).then(() => true).catch(() => false);
+    // Fallback: scan uploads/company-assets/<year>/<month>/ for a file that matches the asset title slug
+    let effectiveAbs = abs;
+    if (!exists) {
+      try {
+        const uploadRoot = path.join(__dirname, '..', 'uploads', 'company-assets');
+        const baseTitle = String(asset.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        const years = await fs.readdir(uploadRoot).catch(() => []);
+        for (const y of years) {
+          const yearDir = path.join(uploadRoot, y);
+          const months = await fs.readdir(yearDir).catch(() => []);
+          for (const m of months) {
+            const monthDir = path.join(yearDir, m);
+            const files = await fs.readdir(monthDir).catch(() => []);
+            const hit = files.find(f => f.toLowerCase().includes(baseTitle));
+            if (hit) {
+              effectiveAbs = path.join(monthDir, hit);
+              exists = true;
+              break;
+            }
+          }
+          if (exists) break;
+        }
+      } catch (_) {}
+    }
+    if (!exists) return null;
+    const buffer = await fs.readFile(effectiveAbs);
+    // Prefer per-page extraction for PDFs
+    const mime = asset.mimeType || (asset.title?.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+    if (mime === 'application/pdf') {
+      const pages = await IngestionService.extractPdfPages(buffer);
+      const text = pages.map(p => p.text).join('\n');
+      return { text, pages };
+    }
+    // Fallback: treat as utf8 text
+    return { text: buffer.toString('utf8'), pages: [] };
+  } catch (e) {
+    console.warn('⚠️ readAssetCurrentFile failed:', e?.message || e);
+    return null;
+  }
+}
+
+function extractNumberedSteps(rawText, maxSteps = 20) {
+  if (!rawText) return [];
+  const text = String(rawText).replace(/\r\n?/g, '\n');
+  // Strategy: split by lines and accumulate sections starting with a number (1-20) followed by ., ) or -
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const steps = [];
+  let current = null;
+  let currentNum = null;
+  const startRe = /^(\d{1,2})[\.)\-]\s*(.*)$/;
+  for (const line of lines) {
+    const m = line.match(startRe);
+    if (m) {
+      const num = parseInt(m[1], 10);
+      const content = m[2].trim();
+      if (current && currentNum !== null) {
+        steps.push({ n: currentNum, text: current.trim() });
+      }
+      current = content || '';
+      currentNum = num;
+      if (steps.length >= maxSteps) break;
+    } else if (current !== null) {
+      // continuation of previous step
+      current += (current ? ' ' : '') + line;
+    }
+  }
+  if (current && currentNum !== null) {
+    steps.push({ n: currentNum, text: current.trim() });
+  }
+  // Sort by number and dedupe
+  const dedup = [];
+  const seen = new Set();
+  for (const s of steps) {
+    if (!seen.has(s.n)) {
+      seen.add(s.n);
+      dedup.push(s);
+    }
+  }
+  dedup.sort((a, b) => a.n - b.n);
+  return dedup;
 }
 
 try {
@@ -874,6 +1001,46 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
   // Heuristic 1: Customer info requests (name/address/phone/email)
   const lower = String(message || '').toLowerCase();
+
+  // Heuristic 0: Explicit document request (e.g., "give me all 11 steps" + filename or checklist)
+  const mentionsFileName = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
+  const mentionsChecklist = lower.includes('checklist') || lower.includes('start the day') || lower.includes('upfront');
+  const asksForSteps = lower.includes('steps') || lower.includes('give me') || lower.includes('list');
+  if (mentionsFileName || (mentionsChecklist && asksForSteps)) {
+    try {
+      const asset = await findAssetByMention(message);
+      if (!asset) {
+        const notFound = 'I couldn\'t find that document in Company Documents. Try opening Documents & Resources and copy the exact file name.';
+        contextManager.addToHistory(req.user.id, message, notFound, projectContext || null);
+        return sendSuccess(res, 200, { response: { content: notFound } });
+      }
+      const fileData = await readAssetCurrentFile(asset);
+      if (!fileData || !fileData.text) {
+        const noDisk = 'The document record exists but the file is missing on disk. Please re-upload it from Documents & Resources.';
+        contextManager.addToHistory(req.user.id, message, noDisk, projectContext || null);
+        return sendSuccess(res, 200, { response: { content: noDisk } });
+      }
+      let steps = extractNumberedSteps(fileData.text, 30);
+      if (!steps || steps.length === 0) {
+        // Fallback: try bullets that start with - or •
+        const lines = fileData.text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const bullets = lines.filter(l => /^([\-•\*])\s+/.test(l)).slice(0, 20).map((t, i) => ({ n: i + 1, text: t.replace(/^([\-•\*])\s+/, '') }));
+        steps = bullets;
+      }
+      // Prefer first 11 if more
+      const top = steps.slice(0, 11);
+      const content = top.length
+        ? `Here are the steps from "${asset.title}":\n\n` + top.map(s => `${s.n}. ${s.text}`).join('\n')
+        : `I opened "${asset.title}" but couldn\'t detect numbered steps. Try asking for a summary and I\'ll extract key points.`;
+      contextManager.addToHistory(req.user.id, message, content, projectContext || null);
+      return sendSuccess(res, 200, { response: { content } });
+    } catch (docErr) {
+      const msg = `Document processing failed: ${docErr?.message || docErr}`;
+      contextManager.addToHistory(req.user.id, message, msg, projectContext || null);
+      return sendSuccess(res, 200, { response: { content: msg } });
+    }
+  }
+
   const wantsCustomerInfo = /customer|owner|client/.test(lower) && /(name|phone|email|address)/.test(lower);
   if (projectContext && wantsCustomerInfo) {
     const proj = await prisma.project.findUnique({ where: { id: projectContext.id }, include: { customer: true } });
