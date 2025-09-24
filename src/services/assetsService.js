@@ -88,11 +88,32 @@ export const assetsService = {
   downloadBlob: downloadAssetBlob,
 
   openInNewTab: async (id) => {
-    const { blob } = await downloadAssetBlob(id);
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    // Revoke later to free memory
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    // Open a tab synchronously to avoid popup blockers, then stream content into it
+    const popup = (() => {
+      try {
+        return window.open('about:blank', '_blank');
+      } catch (_) {
+        return null;
+      }
+    })();
+
+    try {
+      const { blob } = await downloadAssetBlob(id);
+      const url = URL.createObjectURL(blob);
+      if (popup) {
+        // Navigate the pre-opened tab to the blob URL
+        popup.location.href = url;
+      } else {
+        // Fallback: same-tab navigation if popup was blocked
+        window.location.href = url;
+      }
+      // Revoke later to free memory
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      // Close the placeholder tab if something went wrong
+      try { if (popup && !popup.closed) popup.close(); } catch (_) {}
+      throw err;
+    }
   },
 
   saveToDisk: async (id, fallbackName = 'download') => {

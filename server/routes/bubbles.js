@@ -25,23 +25,23 @@ try {
   openAIService = null;
 }
 
-
 // --- Document helpers: find assets and extract numbered steps ---
 async function findAssetByMention(message) {
   try {
     const text = String(message || '');
     // Extract a likely filename token (ends with common extensions) or fall back to the whole text
-    const filenameMatch = text.match(/([\w\-.\s]+)\.(pdf|docx|doc|xlsx|csv|txt|jpg|jpeg|png)/i);
+    const filenameMatch = text.match(/[\w\-.\s]+\.(pdf|docx|doc|xlsx|csv|txt|jpg|jpeg|png)/i);
     const rawKey = filenameMatch ? filenameMatch[1] : text;
 
-    // Normalize and tokenize
+    // Normalize and tokenize (sanitize punctuation to avoid tokens like "'upfront'")
     const base = rawKey
       .toLowerCase()
       .replace(/[_\-]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    const tokens = Array.from(new Set(base.split(' ')))
-      .map(t => t.trim())
+    const baseClean = base.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    const tokens = Array.from(new Set(baseClean.split(' ')))
+      .map(t => t.replace(/[^a-z0-9]/g, '').trim())
       .filter(t => t && t.length >= 4 && !['document', 'file', 'files', 'pdf', 'doc', 'docx'].includes(t));
 
     const commonInclude = { versions: { where: { isCurrent: true }, take: 1 } };
@@ -63,8 +63,8 @@ async function findAssetByMention(message) {
 
     // 2) Heuristic head substrings from concatenated names (e.g., "upfrontstarttheday...")
     const heads = [];
-    for (const n of [8, 7, 6, 5]) {
-      if (base.length >= n) heads.push(base.slice(0, n));
+    for (const n of [12, 10, 8, 7, 6, 5]) {
+      if (baseClean.length >= n) heads.push(baseClean.slice(0, n));
     }
     if (heads.length) {
       asset = await prisma.companyAsset.findFirst({
@@ -124,12 +124,13 @@ async function findAssetByMention(message) {
         take: 25
       });
       if (candidates && candidates.length) {
-        const baseLen = base.length;
+        const baseLen = baseClean.length;
         const score = (a) => {
           const title = String(a.title || '').toLowerCase();
+          const titleClean = title.replace(/[^a-z0-9\s]/g, ' ');
           let s = 0;
-          if (title.includes(base)) s += 5;
-          for (const t of tokens) if (title.includes(t)) s += 2;
+          if (titleClean.includes(baseClean)) s += 5;
+          for (const t of tokens) if (t && titleClean.includes(t)) s += 2;
           // Prefer same extension if user supplied one
           if (filenameMatch && typeof a.title === 'string' && a.title.toLowerCase().endsWith('.' + filenameMatch[2].toLowerCase())) s += 1;
           // Slight preference for closer length
@@ -140,6 +141,62 @@ async function findAssetByMention(message) {
         return candidates[0] || null;
       }
     }
+
+    // 6) Fallback: scan uploads/company-assets for filenames matching tokens when DB lookup fails
+    try {
+      const uploadRoot = path.join(__dirname, '..', 'uploads', 'company-assets');
+      const years = await fs.readdir(uploadRoot).catch(() => []);
+      // sort years desc (numeric strings)
+      years.sort((a,b) => (b||'').localeCompare(a||''));
+      let best = null;
+      const scoreFilename = (file) => {
+        const name = String(file || '').toLowerCase();
+        const nameClean = name.replace(/[^a-z0-9\s]/g, ' ');
+        let s = 0;
+        if (baseClean && nameClean.includes(baseClean)) s += 5;
+        for (const t of tokens) if (t && nameClean.includes(t)) s += 2;
+        return s;
+      };
+      for (const y of years.slice(0, 3)) {
+        const yearDir = path.join(uploadRoot, y);
+        const months = await fs.readdir(yearDir).catch(() => []);
+        months.sort((a,b) => (b||'').localeCompare(a||''));
+        for (const m of months.slice(0, 6)) {
+          const monthDir = path.join(yearDir, m);
+          const files = await fs.readdir(monthDir).catch(() => []);
+          for (const f of files) {
+            const sc = scoreFilename(f);
+            if (sc > (best?.score || -Infinity)) {
+              best = { score: sc, year: y, month: m, file: f };
+            }
+          }
+          if (best?.score >= 5) break; // good match found in this month
+        }
+        if (best?.score >= 5) break;
+      }
+      if (best) {
+        const ext = path.extname(best.file).toLowerCase();
+        const mimeMap = {
+          '.pdf': 'application/pdf',
+          '.doc': 'application/msword',
+          '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          '.csv': 'text/csv',
+          '.txt': 'text/plain',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png'
+        };
+        const fileUrl = `/uploads/company-assets/${best.year}/${best.month}/${best.file}`;
+        return {
+          id: null,
+          title: best.file,
+          mimeType: mimeMap[ext] || 'application/octet-stream',
+          versions: [{ isCurrent: true, fileUrl }],
+          fileUrl
+        };
+      }
+    } catch (_) {}
 
     return null;
   } catch (e) {
@@ -1049,14 +1106,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
   }
 
-  // Guard: if OpenAI is unavailable, return 503 so frontend shows a clear error instead of canned fallback
-  if (!openAIService || !openAIService.isAvailable || !openAIService.isAvailable()) {
-    return res.status(503).json({
-      success: false,
-      message: 'AI service is temporarily unavailable',
-      aiStatus: openAIService && openAIService.getStatus ? openAIService.getStatus() : { enabled: false, model: 'mock-responses', status: 'fallback' }
-    });
-  }
+  // Determine AI availability (do not early-return; we still want to fulfill document/checklist requests without OpenAI)
+  const aiAvailable = !!(openAIService && openAIService.isAvailable && openAIService.isAvailable());
 
   const { message, projectId } = req.body;
   const session = contextManager.getUserSession(req.user.id);
@@ -1094,8 +1145,9 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   // Heuristic 0: Explicit document request (e.g., "give me all 11 steps" + filename or checklist)
   const mentionsFileName = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
   const mentionsChecklist = lower.includes('checklist') || lower.includes('start the day') || lower.includes('upfront');
-  const asksForSteps = lower.includes('steps') || lower.includes('give me') || lower.includes('list');
-  if (mentionsFileName || (mentionsChecklist && asksForSteps)) {
+  const asksForSteps = lower.includes('steps') || lower.includes('step') || lower.includes('give me') || lower.includes('list') || lower.includes('what is the other point');
+  // Broaden trigger: if they mention a checklist (like "Upfront Start The Day Checklist"), attempt doc retrieval
+  if (mentionsFileName || mentionsChecklist) {
     try {
       const asset = await findAssetByMention(message);
       if (!asset) {
@@ -1166,6 +1218,18 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   // Heuristic 2: General/company questions → Use OpenAI directly (but not for workflow knowledge)
   if (!projectContext && !isProjectSpecific && !isWorkflowKnowledge) {
     const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Kenstruction. Answer general questions about any topic helpfully and accurately.`;
+    if (!aiAvailable) {
+      const contentGeneric = heuristicGeneralAnswer(message);
+      contextManager.addToHistory(req.user.id, message, contentGeneric, projectContext || null);
+      return sendSuccess(res, 200, { 
+        response: { 
+          content: contentGeneric,
+          source: 'fallback',
+          metadata: { usedMock: true },
+          aiStatus: (openAIService && openAIService.getStatus ? openAIService.getStatus() : { enabled: false, model: 'mock-responses', status: 'fallback' })
+        } 
+      });
+    }
     const generic = await openAIService.generateResponse(message, {
       systemPrompt: genericSystemPrompt,
     });
@@ -1181,7 +1245,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         content: contentGeneric,
         source: generic?.source || 'unknown',
         metadata: { ...(generic?.metadata || {}), usedMock },
-        aiStatus: openAIService.getStatus()
+        aiStatus: (openAIService && openAIService.getStatus ? openAIService.getStatus() : undefined)
       } 
     });
   }
@@ -1204,6 +1268,13 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     documentSnippets = [];
   }
 
+  if (!aiAvailable) {
+    return res.status(503).json({
+      success: false,
+      message: 'AI service is temporarily unavailable',
+      aiStatus: openAIService && openAIService.getStatus ? openAIService.getStatus() : { enabled: false, model: 'mock-responses', status: 'fallback' }
+    });
+  }
   const aiResponse = await openAIService.generateResponse(message, {
     systemPrompt,
     projectName: projectContext?.projectName,
@@ -1219,7 +1290,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     content = heuristicGeneralAnswer(message);
   }
   contextManager.addToHistory(req.user.id, message, content, projectContext);
-  return sendSuccess(res, 200, { response: { content, source: aiResponse?.source || 'unknown', metadata: aiResponse?.metadata || {}, aiStatus: openAIService.getStatus() } });
+  return sendSuccess(res, 200, { response: { content, source: aiResponse?.source || 'unknown', metadata: aiResponse?.metadata || {}, aiStatus: (openAIService && openAIService.getStatus ? openAIService.getStatus() : undefined) } });
 }));
 
 // @desc    Get user's Bubbles conversation history
