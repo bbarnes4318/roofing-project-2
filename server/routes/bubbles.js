@@ -30,29 +30,118 @@ try {
 async function findAssetByMention(message) {
   try {
     const text = String(message || '');
-    // Extract a likely filename token (ends with .pdf/.docx) or a key phrase
-    const filenameMatch = text.match(/([\w\-\s]+\.(pdf|docx|doc))/i);
+    // Extract a likely filename token (ends with common extensions) or fall back to the whole text
+    const filenameMatch = text.match(/([\w\-.\s]+)\.(pdf|docx|doc|xlsx|csv|txt|jpg|jpeg|png)/i);
     const rawKey = filenameMatch ? filenameMatch[1] : text;
-    // Normalize: replace spaces/underscores/hyphens with wildcard-like contains
-    const needle = rawKey
+
+    // Normalize and tokenize
+    const base = rawKey
       .toLowerCase()
       .replace(/[_\-]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
+    const tokens = Array.from(new Set(base.split(' ')))
+      .map(t => t.trim())
+      .filter(t => t && t.length >= 4 && !['document', 'file', 'files', 'pdf', 'doc', 'docx'].includes(t));
 
-    const asset = await prisma.companyAsset.findFirst({
+    const commonInclude = { versions: { where: { isCurrent: true }, take: 1 } };
+    const commonWhere = { isActive: true, type: 'FILE' };
+
+    // 1) Strong exact-ish match on full base inside title
+    let asset = await prisma.companyAsset.findFirst({
       where: {
-        isActive: true,
-        type: 'FILE',
+        ...commonWhere,
         OR: [
-          { title: { contains: needle, mode: 'insensitive' } },
-          { folderName: { contains: needle, mode: 'insensitive' } },
-          { description: { contains: needle, mode: 'insensitive' } },
+          { title: { contains: base, mode: 'insensitive' } },
+          { folderName: { contains: base, mode: 'insensitive' } },
+          { description: { contains: base, mode: 'insensitive' } },
         ]
       },
-      include: { versions: { where: { isCurrent: true }, take: 1 } }
+      include: commonInclude
     });
-    return asset || null;
+    if (asset) return asset;
+
+    // 2) Heuristic head substrings from concatenated names (e.g., "upfrontstarttheday...")
+    const heads = [];
+    for (const n of [8, 7, 6, 5]) {
+      if (base.length >= n) heads.push(base.slice(0, n));
+    }
+    if (heads.length) {
+      asset = await prisma.companyAsset.findFirst({
+        where: {
+          ...commonWhere,
+          OR: [
+            ...heads.map(h => ({ title: { startsWith: h, mode: 'insensitive' } })),
+            ...heads.map(h => ({ folderName: { startsWith: h, mode: 'insensitive' } })),
+          ]
+        },
+        include: commonInclude
+      });
+      if (asset) return asset;
+      asset = await prisma.companyAsset.findFirst({
+        where: {
+          ...commonWhere,
+          OR: [
+            ...heads.map(h => ({ title: { contains: h, mode: 'insensitive' } })),
+            ...heads.map(h => ({ folderName: { contains: h, mode: 'insensitive' } })),
+          ]
+        },
+        include: commonInclude
+      });
+      if (asset) return asset;
+    }
+
+    // 3) Starts with first token (helps match shortened titles like "upfront.pdf")
+    if (tokens.length > 0) {
+      asset = await prisma.companyAsset.findFirst({
+        where: { ...commonWhere, title: { startsWith: tokens[0], mode: 'insensitive' } },
+        include: commonInclude
+      });
+      if (asset) return asset;
+    }
+
+    // 4) AND search: title contains all tokens
+    if (tokens.length >= 2) {
+      asset = await prisma.companyAsset.findFirst({
+        where: { ...commonWhere, AND: tokens.map(t => ({ title: { contains: t, mode: 'insensitive' } })) },
+        include: commonInclude
+      });
+      if (asset) return asset;
+    }
+
+    // 5) OR search across title/folderName/description, then score locally
+    if (tokens.length > 0) {
+      const candidates = await prisma.companyAsset.findMany({
+        where: {
+          ...commonWhere,
+          OR: [
+            ...tokens.map(t => ({ title: { contains: t, mode: 'insensitive' } })),
+            ...tokens.map(t => ({ folderName: { contains: t, mode: 'insensitive' } })),
+            ...tokens.map(t => ({ description: { contains: t, mode: 'insensitive' } })),
+          ]
+        },
+        include: commonInclude,
+        take: 25
+      });
+      if (candidates && candidates.length) {
+        const baseLen = base.length;
+        const score = (a) => {
+          const title = String(a.title || '').toLowerCase();
+          let s = 0;
+          if (title.includes(base)) s += 5;
+          for (const t of tokens) if (title.includes(t)) s += 2;
+          // Prefer same extension if user supplied one
+          if (filenameMatch && typeof a.title === 'string' && a.title.toLowerCase().endsWith('.' + filenameMatch[2].toLowerCase())) s += 1;
+          // Slight preference for closer length
+          s -= Math.min(5, Math.abs((a.title || '').length - baseLen));
+          return s;
+        };
+        candidates.sort((a, b) => score(b) - score(a));
+        return candidates[0] || null;
+      }
+    }
+
+    return null;
   } catch (e) {
     console.warn('⚠️ findAssetByMention failed:', e?.message || e);
     return null;
