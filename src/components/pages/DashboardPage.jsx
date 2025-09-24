@@ -18,10 +18,10 @@ import ProjectCubes from '../dashboard/ProjectCubes';
 import CurrentProjectsByPhase from '../dashboard/CurrentProjectsByPhase';
 // import { initialTasks, teamMembers, mockAlerts } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, queryKeys } from '../../hooks/useQueryApi';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, useTeamMembers, queryKeys } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import api, { authService, messagesService, customersService, usersService, projectMessagesService, calendarService } from '../../services/api';
+import api, { authService, messagesService, customersService, usersService, projectMessagesService, calendarService, activitiesService, tasksService } from '../../services/api';
 import toast from 'react-hot-toast';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { getUserFullName } from '../../utils/userUtils';
@@ -446,7 +446,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const commentText = commentInputs[reminderId]?.trim();
     if (!commentText) return;
     
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    // currentUser is now available from the hook above
     const newComment = {
       content: commentText,
       userName: currentUser.firstName ? `${currentUser.firstName} ${currentUser.lastName}` : 'You',
@@ -504,15 +504,78 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const { data: workflowAlertsData, isLoading: alertsLoading } = useWorkflowAlerts({ limit: 200 });
   const workflowAlerts = Array.isArray(workflowAlertsData) ? workflowAlertsData : (workflowAlertsData?.data || []);
 
-  // Build activity feed items from projects (fallback synthesis)
+  // Get real activities from API
+  const { data: realActivities = [], isLoading: activitiesLoading } = useRecentActivities(50);
+  const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ limit: 20 });
+  const { data: realCalendarEvents = [], isLoading: calendarLoading } = useCalendarEvents({ limit: 20 });
+  
+  // Build activity feed items from real data + fallback synthesis
   const activityFeedItems = useMemo(() => {
     try {
+      const realItems = [];
+      
+      // Add real activities (messages)
+      realActivities.forEach(activity => {
+        realItems.push({
+          id: `activity_${activity.id}`,
+          type: activity.type || 'message',
+          subject: activity.subject || activity.title || 'Activity Update',
+          description: activity.description || activity.content,
+          user: activity.user || activity.userName || 'Unknown User',
+          timestamp: activity.createdAt || activity.timestamp,
+          projectId: activity.projectId,
+          projectName: activity.projectName,
+          priority: activity.priority || 'medium'
+        });
+      });
+      
+      // Add real tasks
+      realTasks.forEach(task => {
+        realItems.push({
+          id: `task_${task.id}`,
+          type: 'task',
+          subject: task.title || task.subject || 'Task',
+          description: task.description || task.content,
+          user: task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : 'Unassigned',
+          timestamp: task.createdAt || task.timestamp,
+          projectId: task.projectId,
+          projectName: task.project?.name || task.projectName,
+          priority: task.priority || 'medium',
+          status: task.status,
+          dueDate: task.dueDate
+        });
+      });
+      
+      // Add real calendar events (reminders)
+      realCalendarEvents.forEach(event => {
+        realItems.push({
+          id: `reminder_${event.id}`,
+          type: 'reminder', 
+          subject: event.title || event.subject || 'Reminder',
+          description: event.description || event.content,
+          user: event.createdByUser ? `${event.createdByUser.firstName} ${event.createdByUser.lastName}` : 'Unknown User',
+          timestamp: event.createdAt || event.timestamp,
+          projectId: event.projectId,
+          projectName: event.project?.name || event.projectName,
+          priority: event.priority || 'medium',
+          when: event.startDate || event.when
+        });
+      });
+      
+      // Fallback to synthesized activities if no real data
+      if (realItems.length === 0) {
+        const synthesized = generateActivitiesFromProjects(uiProjects || []);
+        return Array.isArray(synthesized) ? synthesized : [];
+      }
+      
+      // Sort by timestamp (newest first)
+      return realItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    } catch (error) {
+      console.error('Error building activity feed:', error);
       const synthesized = generateActivitiesFromProjects(uiProjects || []);
       return Array.isArray(synthesized) ? synthesized : [];
-    } catch (_) {
-      return [];
     }
-  }, [uiProjects]);
+  }, [realActivities, realTasks, realCalendarEvents, uiProjects]);
 
   // Current activities after filters
   const currentActivities = useMemo(() => {
@@ -616,45 +679,132 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Contact/PM popups removed
   
   // Alerts UI is self-contained in ProjectWorkflowLineItemsSection
-  const [currentUser, setCurrentUser] = useState(null);
-  // Team members available for assignment/filters in MTR components
-  const [availableUsers, setAvailableUsers] = useState([]);
+  // Use React Query hooks for user data
+  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
+  const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
   
-  // Load team members for filters and recipients
-  useEffect(() => {
-    let cancelled = false;
-    const loadTeamMembers = async () => {
-      try {
-        const resp = await usersService.getTeamMembers();
-        const raw = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp) ? resp : (Array.isArray(resp?.users) ? resp.users : []));
-        const normalized = raw.map(u => ({
-          id: u.id || u._id || u.userId || u.uuid,
-          firstName: u.firstName || u.first_name || u.name?.first || '',
-          lastName: u.lastName || u.last_name || u.name?.last || '',
-          email: u.email || u.primaryEmail || '',
-          phone: u.phone || u.primaryPhone || '',
-          role: String(u.role || u.userRole || 'OFFICE').toUpperCase(),
-          avatarUrl: u.avatarUrl || u.avatar || u.photoUrl || '',
-        }));
-        if (!cancelled) setAvailableUsers(normalized);
-        // Cache to localStorage as a fallback
-        try { localStorage.setItem('teamMembersCache', JSON.stringify(normalized)); } catch (_) {}
-      } catch (error) {
-        console.error('Error loading team members:', error);
-        if (!cancelled) {
-          // Fallback to cache if available
-          try {
-            const cached = JSON.parse(localStorage.getItem('teamMembersCache') || '[]');
-            setAvailableUsers(Array.isArray(cached) ? cached : []);
-          } catch (_) {
-            setAvailableUsers([]);
-          }
-        }
+  console.log('🔍 DASHBOARD: currentUser from hook:', currentUser);
+  console.log('🔍 DASHBOARD: availableUsers from hook:', availableUsers);
+  
+  // Team members are now loaded via useTeamMembers hook above
+  
+  // HANDLERS FOR MTR FORMS
+  
+  // Handle message submission
+  const handleSubmitMessage = async (messageData) => {
+    try {
+      console.log('📨 DASHBOARD: Submitting message:', messageData);
+      
+      // Create activity via API
+      const activityPayload = {
+        type: 'message',
+        subject: messageData.subject || messageData.customSubject,
+        description: messageData.message || messageData.text,
+        projectId: messageData.projectId,
+        userId: currentUser?.id,
+        priority: messageData.priority || 'MEDIUM'
+      };
+      
+      const response = await activitiesService.create(activityPayload);
+      
+      if (response.success) {
+        toast.success('Message sent successfully!');
+        // Invalidate activities to refresh the feed
+        queryClient.invalidateQueries({ queryKey: queryKeys.activities });
+        queryClient.invalidateQueries({ queryKey: queryKeys.recentActivities(50) });
+        
+        // Clear form
+        setNewMessageText('');
+        setNewMessageProject('');
+        setNewMessageSubject('');
+        setNewMessageCustomSubject('');
+        setNewMessageRecipients([]);
+        setShowMessageDropdown(false);
+      } else {
+        throw new Error(response.message || 'Failed to send message');
       }
-    };
-    loadTeamMembers();
-    return () => { cancelled = true; };
-  }, []);
+    } catch (error) {
+      console.error('Error submitting message:', error);
+      toast.error(error.message || 'Failed to send message');
+    }
+  };
+  
+  // Handle task submission
+  const handleSubmitTask = async (taskData) => {
+    try {
+      console.log('📋 DASHBOARD: Submitting task:', taskData);
+      
+      const taskPayload = {
+        title: taskData.subject,
+        description: taskData.description,
+        projectId: taskData.projectId,
+        assignedTo: taskData.assigneeId,
+        dueDate: taskData.due,
+        priority: taskData.priority || 'MEDIUM',
+        status: 'PENDING',
+        createdBy: currentUser?.id
+      };
+      
+      const response = await tasksService.create(taskPayload);
+      
+      if (response.success) {
+        toast.success('Task created successfully!');
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+        queryClient.invalidateQueries({ queryKey: queryKeys.recentActivities(50) });
+        
+        // Clear form
+        setQuickTaskSubject('');
+        setQuickTaskDescription('');
+        setQuickTaskDue('');
+        setQuickTaskAssigneeId('');
+        setQuickTaskAssignAll(false);
+      } else {
+        throw new Error(response.message || 'Failed to create task');
+      }
+    } catch (error) {
+      console.error('Error submitting task:', error);
+      toast.error(error.message || 'Failed to create task');
+    }
+  };
+  
+  // Handle reminder submission
+  const handleSubmitReminder = async (reminderData) => {
+    try {
+      console.log('🔔 DASHBOARD: Submitting reminder:', reminderData);
+      
+      const reminderPayload = {
+        title: reminderData.title,
+        description: reminderData.description,
+        startDate: reminderData.when,
+        projectId: reminderData.projectId,
+        attendees: reminderData.allUsers ? availableUsers.map(u => u.id) : reminderData.userIds,
+        createdBy: currentUser?.id,
+        type: 'reminder'
+      };
+      
+      const response = await calendarService.create(reminderPayload);
+      
+      if (response.success) {
+        toast.success('Reminder created successfully!');
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
+        queryClient.invalidateQueries({ queryKey: queryKeys.recentActivities(50) });
+        
+        // Clear form
+        setReminderTitle('');
+        setReminderDescription('');
+        setReminderWhen('');
+        setReminderAllUsers(false);
+        setReminderUserIds([]);
+      } else {
+        throw new Error(response.message || 'Failed to create reminder');
+      }
+    } catch (error) {
+      console.error('Error submitting reminder:', error);
+      toast.error(error.message || 'Failed to create reminder');
+    }
+  };
   
   const _handleSort = (key) => {
     setSortConfig({

@@ -11,9 +11,8 @@ import {
   messagesService,
   projectMessagesService,
   aiService,
-  healthService,
   workflowAlertsService,
-  workflowService
+  usersService
 } from '../services/api';
 
 // Query Keys - Centralized key management
@@ -61,9 +60,14 @@ export const queryKeys = {
   // Project Messages
   projectMessages: (projectId, params) => ['project-messages', projectId, params],
   projectMessageThread: (messageId) => ['project-messages', 'thread', messageId],
-  
   // Search
   search: (query, type = 'general') => ['search', type, query],
+  
+  // Auth
+  currentUser: ['auth', 'current-user'],
+  
+  // Users
+  teamMembers: ['users', 'team-members'],
 };
 
 /**
@@ -643,6 +647,74 @@ export const useCustomerSearch = (query) => {
     select: (data) => data?.data || data || [],
     enabled: !!query && query.length >= 2,
     staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * AUTH HOOKS
+ */
+
+// Get current user from server
+export const useCurrentUser = () => {
+  return useQuery({
+    queryKey: queryKeys.currentUser,
+    queryFn: () => authService.getCurrentUser(),
+    select: (data) => data?.data || data,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: false,
+    // Use initialData from localStorage as fallback
+    initialData: () => {
+      try {
+        const storedUser = localStorage.getItem('user') || localStorage.getItem('currentUser');
+        if (storedUser) {
+          return { data: JSON.parse(storedUser) };
+        }
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+      }
+      return undefined;
+    }
+  });
+};
+
+// Get team members for assignment dropdowns
+export const useTeamMembers = () => {
+  return useQuery({
+    queryKey: ['users', 'team-members'],
+    queryFn: () => usersService.getTeamMembers(),
+    select: (data) => {
+      const raw = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : (Array.isArray(data?.users) ? data.users : []));
+      return raw.map(u => ({
+        id: u.id || u._id || u.userId || u.uuid,
+        firstName: u.firstName || u.first_name || u.name?.first || '',
+        lastName: u.lastName || u.last_name || u.name?.last || '',
+        email: u.email || u.primaryEmail || '',
+        phone: u.phone || u.primaryPhone || '',
+        role: String(u.role || u.userRole || 'OFFICE').toUpperCase(),
+        avatarUrl: u.avatarUrl || u.avatar || u.photoUrl || '',
+      }));
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    // Cache to localStorage as fallback
+    onSuccess: (data) => {
+      try {
+        localStorage.setItem('teamMembersCache', JSON.stringify(data));
+      } catch (error) {
+        console.error('Error caching team members:', error);
+      }
+    },
+    // Use cached data as initial data
+    initialData: () => {
+      try {
+        const cached = localStorage.getItem('teamMembersCache');
+        if (cached) {
+          return JSON.parse(cached);
+        }
+      } catch (error) {
+        console.error('Error parsing cached team members:', error);
+      }
+      return [];
+    }
   });
 };
 
