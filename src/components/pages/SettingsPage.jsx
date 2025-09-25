@@ -4,7 +4,7 @@ import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
-import { API_BASE_URL } from '../../services/api';
+import { API_BASE_URL, authService } from '../../services/api';
 
 // Removed mock user; use real authenticated user via props
 
@@ -23,6 +23,42 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const [currentPassword, setCurrentPassword] = useState('');
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Subjects context and local UI state
+  const { subjects, addSubject, editSubject, deleteSubject, resetToDefaults } = useSubjects();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newSubject, setNewSubject] = useState('');
+  const [editingSubject, setEditingSubject] = useState(null);
+  const [editingText, setEditingText] = useState('');
+
+  // Roles/users state
+  const [roleAssignments, setRoleAssignments] = useState({
+    projectManager: [],
+    fieldDirector: [],
+    officeStaff: [],
+    administration: []
+  });
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Workflow templates for Project Import
+  const [workflowTemplates, setWorkflowTemplates] = useState([]);
+
+  // Excel Data Manager state
+  const [uploadFile, setUploadFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [excelError, setExcelError] = useState('');
+  const [uploadResult, setUploadResult] = useState(null);
+
+  // Helper to show transient success/toast-style messages
+  const showSuccessMessage = (message) => {
+    try {
+      setSuccessMessage(String(message ?? ''));
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2000);
+    } catch (_) {}
+  };
 
   // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -30,37 +66,6 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const [projectUpdates, setProjectUpdates] = useState(true);
   const [taskReminders, setTaskReminders] = useState(true);
   const [systemAlerts, setSystemAlerts] = useState(true);
-
-  // Security settings (simplified)
-  // Note: 2FA and Session Timeout removed per requirements
-
-  // Excel Data Manager state
-  const [uploadFile, setUploadFile] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState(null);
-  const [excelError, setExcelError] = useState('');
-
-  // Role assignments state - now supports multiple users per role
-  const [roleAssignments, setRoleAssignments] = useState({
-    projectManager: [], // Changed from productManager to projectManager for consistency
-    fieldDirector: [],
-    officeStaff: [],
-    administration: []
-  });
-
-  // Available users for dropdowns (loaded from API)
-  const [availableUsers, setAvailableUsers] = useState([]);
-  const [usersLoading, setUsersLoading] = useState(true);
-
-  // Subjects management state
-  const { subjects, addSubject, editSubject, deleteSubject, resetToDefaults } = useSubjects();
-  const [newSubject, setNewSubject] = useState('');
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [editingText, setEditingText] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-
-  // Project import state
-  const [workflowTemplates, setWorkflowTemplates] = useState([]);
   const [selectedWorkflowTemplate, setSelectedWorkflowTemplate] = useState('');
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
@@ -68,25 +73,19 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isSaving) return;
+    setIsSaving(true);
     try {
-      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          firstName: firstName || undefined,
-          lastName: lastName || undefined,
-          phone: phone || undefined,
-          timezone,
-          language
-        })
-      });
-      const data = await response.json();
-      if (data?.success && data?.data?.user) {
-        const updated = data.data.user;
+      const payload = {
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        phone: phone || undefined,
+        timezone,
+        language
+      };
+      const res = await authService.updateUserProfile(payload);
+      if (res?.success && res?.data?.user) {
+        const updated = res.data.user;
         setFirstName(updated.firstName || '');
         setLastName(updated.lastName || '');
         setName(`${updated.firstName || ''} ${updated.lastName || ''}`.trim());
@@ -99,20 +98,16 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         setSuccess(true);
         setTimeout(() => setSuccess(false), 2000);
       } else {
-        throw new Error(data?.message || 'Failed to update profile');
+        throw new Error(res?.message || 'Failed to update profile');
       }
     } catch (err) {
-      setSuccessMessage(err.message || 'Failed to save');
+      console.error('Profile save failed:', err);
+      setSuccessMessage(String(err?.message || 'Failed to save'));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
+    } finally {
+      setIsSaving(false);
     }
-  };
-
-  // Subjects management functions
-  const showSuccessMessage = (message) => {
-    setSuccessMessage(message);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
   };
 
   const handleAddSubject = () => {

@@ -28,6 +28,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const inputRef = useRef(null);
     const composerRef = useRef(null);
     const containerRef = useRef(null);
+    const liveTranscriptScrollRef = useRef(null);
     
 
     // Message composer (subjects/recipients) for "Send Project Message"
@@ -400,7 +401,20 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 window.removeEventListener('resize', updateHeight);
             }
         };
-    }, []);
+    }, [])
+
+    useEffect(() => {
+        try {
+          if (!showTranscript || !(isVoiceLive || isVoiceConnecting)) return;
+          const el = liveTranscriptScrollRef.current;
+          if (!el) return;
+          if (typeof el.scrollTo === 'function') {
+            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+          } else {
+            el.scrollTop = el.scrollHeight;
+          }
+        } catch (_) {}
+      }, [voiceTranscript, liveTranscriptText, showTranscript, isVoiceLive, isVoiceConnecting]);
 
     // (Header sits above the scrollable messages; no need to observe its height)
 
@@ -1980,18 +1994,23 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                             </div>
                         )}
            {showTranscript && (liveTranscriptText || voiceTranscript.length > 0) && (
-             <div className="w-full">
-               <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
-                 <div className="flex items-center gap-2 mb-2">
-                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                   <span className="text-sm font-medium">ðŸŽ¤ Live Transcription</span>
-                 </div>
-                 <div className="text-sm leading-relaxed whitespace-pre-wrap bg-white/50 px-2 py-2 rounded font-sans">
-                   {liveTranscriptText || voiceTranscript.slice(-MAX_TRANSCRIPT_PREVIEW_LINES).join(' ')}
-                 </div>
-               </div>
-             </div>
-           )}
+  <div className="w-full">
+    <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
+    <div className="flex items-center gap-2 mb-2">
+  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+  <span className="text-sm font-medium">Live Transcription</span>
+</div>
+<div
+  ref={liveTranscriptScrollRef}
+  className="text-sm leading-relaxed whitespace-pre-wrap bg-white/50 px-2 py-2 rounded font-sans max-h-48 overflow-y-auto"
+>
+  {[...voiceTranscript.slice(-MAX_TRANSCRIPT_PREVIEW_LINES), liveTranscriptText]
+    .filter(Boolean)
+    .join('\n')}
+</div>
+    </div>
+  </div>
+)}
                         
                         {/* Chat Messages */}
                         {messages

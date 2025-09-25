@@ -50,8 +50,8 @@ const CurrentProjectsByPhase = ({
             }`}
             style={{ minWidth: 72 }}
           >
-            <div className="h-8 w-8 rounded-full bg-brand-500 flex-shrink-0 shadow-sm flex items-center justify-center text-white font-bold px-1 text-center leading-[10px]" style={{ fontSize: '9px' }}>
-              All
+            <div className="h-8 w-8 rounded-full bg-brand-500 flex-shrink-0 shadow-sm flex items-center justify-center text-white text-xs font-bold">
+              {Array.isArray(projects) ? projects.length : 0}
             </div>
             <span className="text-xs font-semibold">All</span>
           </button>
@@ -66,20 +66,20 @@ const CurrentProjectsByPhase = ({
                 <button
                   key={phase.id}
                   onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
-                  className={`h-14 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
+                  className={`min-h-14 py-2 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
                     selectedPhase === phase.id
                       ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-900'
                       : 'border-gray-200 bg-white/90 text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
                   }`}
                 >
                   <div
-                    className="h-8 w-8 rounded-full flex-shrink-0 shadow-sm flex items-center justify-center text-white font-bold px-1 text-center leading-[8px]"
-                    style={{ backgroundColor: phase.color, fontSize: `${(phase.name && phase.name.length <= 4) ? 10 : (phase.name && phase.name.length <= 8) ? 9 : (phase.name && phase.name.length <= 12) ? 8 : 7}px` }}
-                    title={phase.name}
+                    className="h-8 w-8 rounded-full flex-shrink-0 shadow-sm flex items-center justify-center text-white text-xs font-bold"
+                    style={{ backgroundColor: phase.color }}
+                    title={`${phase.name} projects`}
                   >
-                    {phase.name}
+                    {phaseCount}
                   </div>
-                  <span className="text-center leading-tight whitespace-nowrap truncate">{phase.name}</span>
+                  <span className="text-[11px] leading-tight text-center whitespace-normal break-words">{phase.name}</span>
                 </button>
               );
             })}
