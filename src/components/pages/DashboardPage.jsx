@@ -697,7 +697,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // UI state
   const [expandedPhases, setExpandedPhases] = useState(new Set());
-  const [selectedPhase, setSelectedPhase] = useState('all'); // Show all by default so data renders immediately
+  const [selectedPhase, setSelectedPhase] = useState(null); // Start blank: no phase selected until user chooses one
   
   // Project Messages expansion control
   const [expandedMessages, setExpandedMessages] = useState(new Set());

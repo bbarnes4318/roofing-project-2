@@ -206,7 +206,8 @@ const ActivityFeedSection = ({
                       colorMode={colorMode}
                       useRealData={true}
                       onQuickReply={() => {}}
-                      isExpanded={state.expandedItems.has(item.id)}
+                      // Expand messages by default on initial render to match tasks/reminders behavior
+                      isExpanded={state.expandedItems.has(item.id) || !expandedInitRef.current}
                       onToggleExpansion={() => actions.toggleExpanded(item.id)}
                       sourceSection="Activity Feed"
                     />
