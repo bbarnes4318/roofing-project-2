@@ -701,8 +701,11 @@ export default function FileManagerPage() {
 
   const goToProjectDocuments = (project) => {
     try {
-      // Best-effort navigation to a project page; update if your router uses a different path
-      window.open(`/projects/${project.id}`, '_self');
+      // Dispatch a global event so the top-level App can route to the Project Documents tab
+      const detail = { projectId: project?.id, project };
+      if (typeof window?.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('app:openProjectDocuments', { detail }));
+      }
     } catch (e) { console.error('Failed to navigate to project', e); }
   };
 

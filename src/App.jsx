@@ -202,6 +202,7 @@ const apiUrl = window.location.hostname === 'localhost'
         }
     };
 
+
     // Handle logout
     const handleLogout = async () => {
         const { supabase } = await import('./lib/supabaseClient');
@@ -435,24 +436,35 @@ const apiUrl = window.location.hostname === 'localhost'
         }
     }, [navigationState.selectedProject]);
 
-    // Monitor navigation state changes - must be before early returns
-    useEffect(() => {
-        console.log('🔍 NAV_STATE_CHANGE: navigationState updated:', navigationState);
-        console.log('🔍 NAV_STATE_CHANGE: activePage:', activePage);
-    }, [navigationState, activePage]);
-
-    // Remove loading screen - we're never loading in mock auth mode
-    // if (isLoading) {
-    //     return (
-    //         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    //             <div className="text-center">
-    //                 <div className="w-12 h-12 mx-auto mb-4 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
     //                 <p className="text-gray-600">Loading...</p>
     //             </div>
     //         </div>
     //     );
     // }
 
+    // Listen for global navigation events from File Manager "Docs" buttons (declare before early returns)
+    useEffect(() => {
+        const handleOpenProjectDocs = (e) => {
+            try {
+                const detail = e?.detail || {};
+                const projectId = detail.projectId || detail.project?.id;
+                if (!projectId) return;
+                const target = projects.find(p => String(p.id) === String(projectId)) || detail.project;
+                if (!target) return;
+                setNavigationState(prev => ({
+                    ...prev,
+                    selectedProject: target,
+                    projectInitialView: 'Project Documents',
+                    projectSourceSection: 'Documents & Resources',
+                    previousPage: activePage
+                }));
+            } catch (err) {
+                console.error('Failed to handle app:openProjectDocuments event', err);
+            }
+        };
+        window.addEventListener('app:openProjectDocuments', handleOpenProjectDocs);
+        return () => window.removeEventListener('app:openProjectDocuments', handleOpenProjectDocs);
+    }, [projects, activePage]);
     // Gate the app behind Supabase login when unauthenticated
     if (!isAuthenticated) {
         return (

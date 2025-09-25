@@ -2365,7 +2365,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                     <nav className="flex space-x-6" aria-label="Tabs">
                         {navItems.map(item => {
                             // Define which tabs are disabled/not ready
-                            const disabledTabs = ['Project Schedule', 'Work Order', 'Project Documents'];
+                            const disabledTabs = ['Project Schedule', 'Work Order'];
                             const isDisabled = disabledTabs.includes(item);
                             
                             return (
