@@ -206,8 +206,9 @@ const ActivityFeedSection = ({
                       colorMode={colorMode}
                       useRealData={true}
                       onQuickReply={() => {}}
-                      // Expand messages by default on initial render to match tasks/reminders behavior
-                      isExpanded={state.expandedItems.has(item.id) || !expandedInitRef.current}
+                      // Expand messages by default on initial load. Use a safe fallback so we don't race with the init effect.
+                      // If no items are marked expanded yet but we have items, render expanded by default.
+                      isExpanded={state.expandedItems.has(item.id) || (state.expandedItems.size === 0 && (state.items || []).length > 0)}
                       onToggleExpansion={() => actions.toggleExpanded(item.id)}
                       sourceSection="Activity Feed"
                     />
