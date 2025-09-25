@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
 
@@ -716,26 +716,23 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                         
                         {/* Keyboard Shortcut Hint */}
                         <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            💡 Tip: Press Ctrl+Enter (Cmd+Enter on Mac) to send quickly
+                            ðŸ’¡ Tip: Press Ctrl+Enter (Cmd+Enter on Mac) to send quickly
                         </div>
                     </form>
-                </div>
-            )}
-            
             {/* Dropdown section - Professional message thread */}
             {expanded && (
-                <div className={`px-3 py-3 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`px-3 py-3 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-white border-gray-200'}`} style={colorMode ? {} : {backgroundColor: 'white'}}>
                     <div className="space-y-3">
                         {/* Thread header - More professional */}
-                        <div className={`flex items-center justify-between ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <div className={`${colorMode ? 'text-gray-300' : 'text-gray-700'} flex items-center justify-between`}>
                             <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${colorMode ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                                <div className={`${colorMode ? 'bg-blue-400' : 'bg-blue-500'} w-2 h-2 rounded-full`}></div>
                                 <span className="text-xs font-semibold">
                                     {conversation.length} message{conversation.length !== 1 ? 's' : ''}
                                 </span>
                             </div>
                         </div>
-                        
+
                         {/* Message thread - Professional layout */}
                         <div className={`max-h-48 overflow-y-auto space-y-3 ${colorMode ? 'scrollbar-dark' : 'scrollbar-light'}`}>
                             {conversation.map((message, index) => (
@@ -814,3 +811,4 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
 };
 
 export default ProjectMessagesCard;
+

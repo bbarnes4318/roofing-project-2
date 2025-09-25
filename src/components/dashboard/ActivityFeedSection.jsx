@@ -26,11 +26,14 @@ const ActivityFeedSection = ({
   const getTypeStyle = (type) => {
     switch (type) {
       case 'message':
-        return { stripe: 'bg-blue-500', container: 'bg-blue-50/40 border-blue-100' };
+        // Make messages stand out more with a darker container background and stronger border
+        return { stripe: 'bg-blue-500', container: 'bg-blue-100 border-blue-200' };
       case 'task':
-        return { stripe: 'bg-emerald-500', container: 'bg-emerald-50/40 border-emerald-100' };
+        // Make tasks stand out more too
+        return { stripe: 'bg-emerald-500', container: 'bg-emerald-100 border-emerald-200' };
       case 'reminder':
-        return { stripe: 'bg-amber-500', container: 'bg-amber-50/40 border-amber-100' };
+        // And reminders as well
+        return { stripe: 'bg-amber-500', container: 'bg-amber-100 border-amber-200' };
       default:
         return { stripe: 'bg-gray-300', container: 'bg-gray-50/40 border-gray-100' };
     }
@@ -197,7 +200,7 @@ const ActivityFeedSection = ({
               if (item.type === 'message') {
                 // Message item with colored stripe and soft background
                 return (
-                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden`}>
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden shadow-md`}>
                     <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
                     <ProjectMessagesCard
                       activity={item}
@@ -217,7 +220,7 @@ const ActivityFeedSection = ({
               } else if (item.type === 'task') {
                 // Task item with colored stripe and soft background
                 return (
-                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden`}>
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden shadow-md`}>
                     <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
                     <TaskItem
                       item={item}
@@ -232,7 +235,7 @@ const ActivityFeedSection = ({
               } else if (item.type === 'reminder') {
                 // Reminder item with colored stripe and soft background
                 return (
-                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden`}>
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden shadow-md`}>
                     <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
                     <ReminderItem
                       item={item}
