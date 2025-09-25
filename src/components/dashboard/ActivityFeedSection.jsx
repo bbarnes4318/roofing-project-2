@@ -22,6 +22,20 @@ const ActivityFeedSection = ({
   // Activity Feed expansion state - expanded by default
   const [isActivityFeedExpanded, setIsActivityFeedExpanded] = useState(true);
 
+  // Color styles per activity type for clear separation
+  const getTypeStyle = (type) => {
+    switch (type) {
+      case 'message':
+        return { stripe: 'bg-blue-500', container: 'bg-blue-50/40 border-blue-100' };
+      case 'task':
+        return { stripe: 'bg-emerald-500', container: 'bg-emerald-50/40 border-emerald-100' };
+      case 'reminder':
+        return { stripe: 'bg-amber-500', container: 'bg-amber-50/40 border-amber-100' };
+      default:
+        return { stripe: 'bg-gray-300', container: 'bg-gray-50/40 border-gray-100' };
+    }
+  };
+
   // Build a stable signature for the incoming items so we only update when content truly changes
   const itemsSignature = useMemo(() => {
     if (!Array.isArray(activityFeedItems) || activityFeedItems.length === 0) return 'len:0';
@@ -40,6 +54,17 @@ const ActivityFeedSection = ({
       lastSigRef.current = itemsSignature;
     }
   }, [itemsSignature, activityFeedItems, actions]);
+
+  // Expand all items by default on first load so content is visible immediately
+  const expandedInitRef = useRef(false);
+  useEffect(() => {
+    if (expandedInitRef.current) return;
+    const items = state.items || [];
+    if (items.length > 0) {
+      items.forEach(it => actions.toggleExpanded(it.id));
+      expandedInitRef.current = true;
+    }
+  }, [state.items, actions]);
 
   // Expand/Collapse handlers
   const handleExpandAllActivity = () => {
@@ -168,47 +193,54 @@ const ActivityFeedSection = ({
             }
             
             return sortedItems.map(item => {
+              const style = getTypeStyle(item.type);
               if (item.type === 'message') {
-                // Keep existing message rendering - Message Item stays the same
+                // Message item with colored stripe and soft background
                 return (
-                  <ProjectMessagesCard
-                    key={item.id}
-                    activity={item}
-                    onProjectSelect={handleProjectSelectWithScroll}
-                    projects={projects || []}
-                    colorMode={colorMode}
-                    useRealData={true}
-                    onQuickReply={() => {}} // Add this prop if needed
-                    isExpanded={state.expandedItems.has(item.id)}
-                    onToggleExpansion={() => actions.toggleExpanded(item.id)}
-                    sourceSection="Activity Feed"
-                  />
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden`}>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
+                    <ProjectMessagesCard
+                      activity={item}
+                      onProjectSelect={handleProjectSelectWithScroll}
+                      projects={projects || []}
+                      colorMode={colorMode}
+                      useRealData={true}
+                      onQuickReply={() => {}}
+                      isExpanded={state.expandedItems.has(item.id)}
+                      onToggleExpansion={() => actions.toggleExpanded(item.id)}
+                      sourceSection="Activity Feed"
+                    />
+                  </div>
                 );
               } else if (item.type === 'task') {
-                // Use unified TaskItem component
+                // Task item with colored stripe and soft background
                 return (
-                  <TaskItem
-                    key={item.id}
-                    item={item}
-                    projects={projects || []}
-                    colorMode={colorMode}
-                    onProjectSelect={handleProjectSelectWithScroll}
-                    availableUsers={availableUsers}
-                    currentUser={currentUser}
-                  />
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden`}>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
+                    <TaskItem
+                      item={item}
+                      projects={projects || []}
+                      colorMode={colorMode}
+                      onProjectSelect={handleProjectSelectWithScroll}
+                      availableUsers={availableUsers}
+                      currentUser={currentUser}
+                    />
+                  </div>
                 );
               } else if (item.type === 'reminder') {
-                // Use unified ReminderItem component
+                // Reminder item with colored stripe and soft background
                 return (
-                  <ReminderItem
-                    key={item.id}
-                    item={item}
-                    projects={projects || []}
-                    colorMode={colorMode}
-                    onProjectSelect={handleProjectSelectWithScroll}
-                    availableUsers={availableUsers}
-                    currentUser={currentUser}
-                  />
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden`}>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
+                    <ReminderItem
+                      item={item}
+                      projects={projects || []}
+                      colorMode={colorMode}
+                      onProjectSelect={handleProjectSelectWithScroll}
+                      availableUsers={availableUsers}
+                      currentUser={currentUser}
+                    />
+                  </div>
                 );
               }
               

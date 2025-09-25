@@ -214,12 +214,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Get subjects from context
   const { subjects } = useSubjects();
   
+  // Use React Query hooks for user data (must be declared before activityFeedItems useMemo)
+  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
+  const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
+  // Fallback: if no team members, use mock data so the UI is usable
+  const usersForUi = useMemo(() => {
+    if (Array.isArray(availableUsers) && availableUsers.length > 0) return availableUsers;
+    return mockTeamMembers;
+  }, [availableUsers, currentUser]);
+  
   // Fetch messages from conversations
   const [messagesData, setMessagesData] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
-  
-  // Use mock messages as fallback
-  const displayMessages = (activityFeedItems && activityFeedItems.length > 0) ? activityFeedItems : mockMessages;
   
   // Debug project loading
   console.log('🔍 DASHBOARD: Projects loading state:', projectsLoading);
@@ -505,6 +511,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [activityProjectFilter, setActivityProjectFilter] = useState('');
   const [activitySubjectFilter, setActivitySubjectFilter] = useState('');
   const [activityTypeFilter, setActivityTypeFilter] = useState('');
+  
+  // Local feed state for newly created items (messages/tasks/reminders)
+  const [feed, setFeed] = useState([]);
 
   // Workflow alerts for Project Workflow section
   const { data: workflowAlertsData, isLoading: alertsLoading } = useWorkflowAlerts({ limit: 200 });
@@ -526,11 +535,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       // Start with locally added items (messages/tasks/reminders) so they appear immediately
       const realItems = Array.isArray(feed) ? [...feed] : [];
       
-      // Add real activities (messages)
-      realActivities.forEach(activity => {
+      // Add activities (messages) using displayActivities fallback
+      (Array.isArray(displayActivities) ? displayActivities : []).forEach(activity => {
+        const normalizedType = ['message', 'task', 'reminder'].includes(activity.type) ? activity.type : 'message';
         realItems.push({
           id: `activity_${activity.id}`,
-          type: activity.type || 'message',
+          type: normalizedType || 'message',
           subject: activity.subject || activity.title || 'Activity Update',
           description: activity.description || activity.content,
           user: activity.user || activity.userName || 'Unknown User',
@@ -541,36 +551,44 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         });
       });
       
-      // Add real tasks
-      (Array.isArray(realTasks) ? realTasks : []).forEach(task => {
+      // Add tasks using displayTasks fallback
+      (Array.isArray(displayTasks) ? displayTasks : []).forEach(task => {
         realItems.push({
           id: `task_${task.id}`,
           type: 'task',
           subject: task.title || task.subject || 'Task',
           description: task.description || task.content,
-          user: task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : 'Unassigned',
-          timestamp: task.createdAt || task.timestamp,
+          user: task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : (task.assignedTo || 'Unassigned'),
+          // Provide robust timestamp fallbacks for mock data
+          timestamp: task.createdAt || task.timestamp || task.dueDate || new Date().toISOString(),
           projectId: task.projectId,
           projectName: task.project?.name || task.projectName,
           priority: task.priority || 'medium',
           status: task.status,
-          dueDate: task.dueDate
+          dueDate: task.dueDate,
+          // Normalize fields used by TaskItem
+          author: task.author || 'System',
+          assignedTo: task.assignedTo || (task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : undefined)
         });
       });
       
-      // Add real calendar events (reminders)
-      (Array.isArray(realCalendarEvents) ? realCalendarEvents : []).forEach(event => {
+      // Add calendar events (reminders) using displayCalendarEvents fallback
+      (Array.isArray(displayCalendarEvents) ? displayCalendarEvents : []).forEach(event => {
         realItems.push({
           id: `reminder_${event.id}`,
           type: 'reminder', 
           subject: event.title || event.subject || 'Reminder',
           description: event.description || event.content,
           user: event.createdByUser ? `${event.createdByUser.firstName} ${event.createdByUser.lastName}` : 'Unknown User',
-          timestamp: event.createdAt || event.timestamp,
+          // Use 'when' as timestamp fallback for mock reminders
+          timestamp: event.createdAt || event.timestamp || event.when || event.startDate || new Date().toISOString(),
           projectId: event.projectId,
           projectName: event.project?.name || event.projectName,
           priority: event.priority || 'medium',
-          when: event.startDate || event.when
+          when: event.startDate || event.when,
+          // Provide authorId and recipients for UI filters and display
+          authorId: event.createdBy || event.organizerId || event.authorId || currentUser?.id || null,
+          recipients: Array.isArray(event.userIds) ? event.userIds : ['all']
         });
       });
       
@@ -587,7 +605,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       const synthesized = generateActivitiesFromProjects(uiProjects || []);
       return Array.isArray(synthesized) ? synthesized : [];
     }
-  }, [feed, realActivities, realTasks, realCalendarEvents, uiProjects]);
+  }, [feed, realActivities, realTasks, realCalendarEvents, uiProjects, currentUser]);
+
+  // Use mock messages as fallback (must be declared after activityFeedItems)
+  const displayMessages = (activityFeedItems && activityFeedItems.length > 0) ? activityFeedItems : mockMessages;
 
   // Current activities after filters
   const currentActivities = useMemo(() => {
@@ -663,9 +684,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // const [alertProjectFilter, setAlertProjectFilter] = useState('all'); // moved inside ProjectWorkflowLineItemsSection
   // const [alertUserGroupFilter, setAlertUserGroupFilter] = useState('all'); // moved inside ProjectWorkflowLineItemsSection
   
-  // Feed and filtering state - use real messages data
-  const [feed, setFeed] = useState([]);
-  
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   // const [alertCurrentPage, setAlertCurrentPage] = useState(1); // no longer used
@@ -684,6 +702,20 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Project Messages expansion control
   const [expandedMessages, setExpandedMessages] = useState(new Set());
   const [allMessagesExpanded, setAllMessagesExpanded] = useState(false);
+
+  // Expand all message items by default on initial load
+  const messagesExpandedInitRef = useRef(false);
+  useEffect(() => {
+    if (messagesExpandedInitRef.current) return;
+    const ids = (activityFeedItems || [])
+      .filter(item => item.type === 'message')
+      .map(item => item.id);
+    if (ids.length > 0) {
+      setExpandedMessages(new Set(ids));
+      setAllMessagesExpanded(true);
+      messagesExpandedInitRef.current = true;
+    }
+  }, [activityFeedItems]);
   // const [expandedAlerts, setExpandedAlerts] = useState(new Set()); // moved inside ProjectWorkflowLineItemsSection
   const [expandedProgress, setExpandedProgress] = useState(new Set());
   const [expandedTrades, setExpandedTrades] = useState(new Set());
@@ -691,14 +723,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Contact/PM popups removed
   
   // Alerts UI is self-contained in ProjectWorkflowLineItemsSection
-  // Use React Query hooks for user data
-  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
-  const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
-  // Fallback: if no team members, use mock data so the UI is usable
-  const usersForUi = useMemo(() => {
-    if (Array.isArray(availableUsers) && availableUsers.length > 0) return availableUsers;
-    return mockTeamMembers;
-  }, [availableUsers, currentUser]);
   
   console.log('🔍 DASHBOARD: currentUser from hook:', currentUser);
   console.log('🔍 DASHBOARD: availableUsers from hook:', availableUsers);
@@ -1377,7 +1401,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         {/* Right Column - Activity Feed Section */}
         <div className="w-full">
           <ActivityFeedSection
-            activityFeedItems={displayActivities}
+            activityFeedItems={activityFeedItems}
             projects={displayProjects}
             colorMode={colorMode}
             expandedMessages={expandedMessages}

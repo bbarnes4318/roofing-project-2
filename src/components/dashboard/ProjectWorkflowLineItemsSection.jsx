@@ -415,7 +415,7 @@ const ProjectWorkflowLineItemsSection = ({
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {projectTypeRaw && (
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border max-w-[140px] whitespace-nowrap truncate ${
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium border max-w-[140px] whitespace-nowrap truncate ${
                                 colorMode ? getProjectTypeColorDark(projectTypeRaw) : getProjectTypeColor(projectTypeRaw)
                               }`}
                               title={`Project Type: ${formatProjectType(projectTypeRaw)}`}

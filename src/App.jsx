@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { getUserFullName, getUserInitials } from './utils/userUtils';
 import {
-  ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, FolderIcon, ArchiveBoxIcon
+  ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, ArchiveBoxIcon
 } from './components/common/Icons';
 import { getCurrentUser, isUserVerified } from './lib/supabaseClient';
 import DashboardPage from './components/pages/DashboardPage';
@@ -18,7 +18,6 @@ import SettingsPage from './components/pages/SettingsPage';
 import CompanyCalendarPage from './components/pages/CompanyCalendarPage';
 import AlertsCalendarPage from './components/pages/AlertsCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
-import ModernCompanyDocumentsPage from './components/pages/ModernCompanyDocumentsPage';
 import DocumentsResourcesPage from './components/pages/DocumentsResourcesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import Login from './components/Login';
@@ -983,7 +982,6 @@ const apiUrl = window.location.hostname === 'localhost'
         { name: 'AI Estimate Analysis', icon: <DocumentTextIcon />, page: 'Estimator' },
         { name: 'AI Training Tools', icon: <ChartBarIcon />, page: 'AI Tools' },
         { name: 'Project Schedules', icon: <CalendarIcon />, page: 'Project Schedules', isDisabled: true },
-        { name: 'Company Documents', icon: <FolderIcon />, page: 'Company Documents' },
         { name: 'Documents & Resources', icon: <DocumentTextIcon />, page: 'Documents & Resources' },
         { name: 'AI Knowledge Base', icon: <ChatBubbleLeftRightIcon />, page: 'Training & Knowledge Base' },
         { name: 'Archived Projects', icon: <ArchiveBoxIcon />, page: 'Archived Projects' },
@@ -1026,7 +1024,6 @@ const apiUrl = window.location.hostname === 'localhost'
             );
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
-            case 'Company Documents': return <ModernCompanyDocumentsPage colorMode={colorMode} />;
             case 'Documents & Resources': return <DocumentsResourcesPage />;
             case 'Alerts Calendar': return <AlertsCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;

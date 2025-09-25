@@ -19,10 +19,23 @@ export const formatProjectType = (projectType) => {
     'HVAC': 'HVAC',
     'DECK_CONSTRUCTION': 'Deck Construction',
     'LANDSCAPING': 'Landscaping',
-    'OTHER': 'Other'
+    'OTHER': 'Other',
+    // Common simple types used across UI
+    'ROOFING': 'Roofing',
+    'GUTTERS': 'Gutters',
+    'INTERIOR_PAINT': 'Interior Paint'
   };
-  
-  return typeMap[projectType] || projectType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  // If we have an exact match, use it
+  if (typeMap[projectType]) return typeMap[projectType];
+
+  // Normalize unknown values to Title Case with spaces
+  const normalized = String(projectType)
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, c => c.toUpperCase());
+  return normalized;
 };
 
 /**

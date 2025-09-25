@@ -138,20 +138,43 @@ const FolderTree = ({ currentParentId, onSelectFolder, rootId, onCreateFolder })
   };
 
   const handleToggle = async (node) => {
-    if (!node._expanded && !childrenMap[node.id]) {
+    const isRootNode = Array.isArray(roots) && roots.some(r => r.id === node.id);
+    const nextExpanded = !node._expanded;
+    if (nextExpanded && !childrenMap[node.id]) {
       await loadChildren(node.id);
     }
-    // update expanded
-    const updateExpanded = (arr) => arr.map(n => n.id === node.id ? { ...n, _expanded: !n._expanded } : n);
-    setRoots((arr) => updateExpanded(arr));
+    // Update expanded state; if root-level and expanding, collapse siblings (accordion behavior)
+    setRoots((arr) => {
+      return arr.map(n => {
+        if (n.id === node.id) return { ...n, _expanded: nextExpanded };
+        if (isRootNode && nextExpanded) return { ...n, _expanded: false };
+        return n;
+      });
+    });
     setChildrenMap((m) => {
       const next = { ...m };
-      // also toggle in children arrays to keep single source expanded if present there
       Object.keys(next).forEach(pid => {
-        next[pid] = next[pid].map(n => n.id === node.id ? { ...n, _expanded: !node._expanded } : n);
+        next[pid] = next[pid].map(n => n.id === node.id ? { ...n, _expanded: nextExpanded } : n);
       });
       return next;
     });
+  };
+
+  // Root label click: toggle expand/collapse all first-level folders in current scope
+  const handleRootLabelClick = async () => {
+    const anyCollapsed = roots.some(r => !r._expanded);
+    if (anyCollapsed) {
+      // Expand all and preload children lazily
+      for (const r of roots) {
+        if (!childrenMap[r.id]) {
+          try { await loadChildren(r.id); } catch (_) {}
+        }
+      }
+      setRoots(arr => arr.map(r => ({ ...r, _expanded: true })));
+    } else {
+      // Collapse all
+      setRoots(arr => arr.map(r => ({ ...r, _expanded: false })));
+    }
   };
 
   const moveAsset = async (assetId, targetParentId) => {
@@ -224,7 +247,7 @@ const FolderTree = ({ currentParentId, onSelectFolder, rootId, onCreateFolder })
             <div
               className={`group flex items-center gap-2 py-1 rounded cursor-pointer ${currentParentId === null ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'}`}
               style={{ paddingLeft: 8 }}
-              onClick={() => onSelectFolder(null)}
+              onClick={() => { onSelectFolder(null); handleRootLabelClick(); }}
               onDragOver={(e) => e.preventDefault()}
               onDrop={async (e) => {
                 e.preventDefault();
@@ -246,7 +269,7 @@ const FolderTree = ({ currentParentId, onSelectFolder, rootId, onCreateFolder })
           <div
             className={`group flex items-center gap-2 py-1 rounded cursor-pointer ${currentParentId === rootId ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'}`}
             style={{ paddingLeft: 8 }}
-            onClick={() => onSelectFolder(rootId)}
+            onClick={() => { onSelectFolder(rootId); handleRootLabelClick(); }}
             onDragOver={(e) => e.preventDefault()}
             onDrop={async (e) => {
               e.preventDefault();
@@ -826,10 +849,19 @@ export default function FileManagerPage() {
     const name = window.prompt('Folder name');
     if (!name) return;
     try {
-      await assetsService.createFolder({ name, parentId });
-      await load();
-      // Notify sidebar tree to refresh the relevant branch
+      // If this is a blank workspace tab, create at root and then select it immediately
+      if (activeTab?.kind === 'folder' && (parentId === null || typeof parentId === 'undefined')) {
+        const folder = await assetsService.createFolder({ name, parentId: null });
+        if (folder?.id) {
+          setActiveParentId(folder.id);
+          window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
+          return;
+        }
+      }
+      // Normal case: create under current parent and refresh
+      const folder = await assetsService.createFolder({ name, parentId });
       window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId } }));
+      await load();
     } catch (err) { console.error(err); }
   };
 

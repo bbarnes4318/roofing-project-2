@@ -50,29 +50,39 @@ const CurrentProjectsByPhase = ({
             }`}
             style={{ minWidth: 72 }}
           >
-            <div className="w-3.5 h-3.5 rounded-full bg-brand-500 flex-shrink-0 shadow-sm"></div>
+            <div className="h-8 w-8 rounded-full bg-brand-500 flex-shrink-0 shadow-sm flex items-center justify-center text-white font-bold px-1 text-center leading-[10px]" style={{ fontSize: '9px' }}>
+              All
+            </div>
             <span className="text-xs font-semibold">All</span>
           </button>
 
           {/* Phases */}
           <div className="flex-1 grid grid-cols-6 gap-3">
-            {PROJECT_PHASES.map((phase) => (
-              <button
-                key={phase.id}
-                onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
-                className={`h-14 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
-                  selectedPhase === phase.id
-                    ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-900'
-                    : 'border-gray-200 bg-white/90 text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
-                }`}
-              >
-                <div
-                  className="w-4.5 h-4.5 rounded-full flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: phase.color, width: 18, height: 18 }}
-                ></div>
-                <span className="text-center leading-tight whitespace-nowrap truncate">{phase.name}</span>
-              </button>
-            ))}
+            {PROJECT_PHASES.map((phase) => {
+              const phaseCount = Array.isArray(projects)
+                ? projects.filter((p) => String(getProjectPhase(p)).toUpperCase() === String(phase.id).toUpperCase()).length
+                : 0;
+              return (
+                <button
+                  key={phase.id}
+                  onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
+                  className={`h-14 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
+                    selectedPhase === phase.id
+                      ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-900'
+                      : 'border-gray-200 bg-white/90 text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                  }`}
+                >
+                  <div
+                    className="h-8 w-8 rounded-full flex-shrink-0 shadow-sm flex items-center justify-center text-white font-bold px-1 text-center leading-[8px]"
+                    style={{ backgroundColor: phase.color, fontSize: `${(phase.name && phase.name.length <= 4) ? 10 : (phase.name && phase.name.length <= 8) ? 9 : (phase.name && phase.name.length <= 12) ? 8 : 7}px` }}
+                    title={phase.name}
+                  >
+                    {phase.name}
+                  </div>
+                  <span className="text-center leading-tight whitespace-nowrap truncate">{phase.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ const TaskItem = ({
   };
 
   const handleAddComment = () => {
-    const commentText = state.newCommentText[item.id];
+    const commentText = state.commentInputs[item.id];
     if (commentText?.trim()) {
       const comment = {
         id: Date.now(),
@@ -40,11 +40,17 @@ const TaskItem = ({
         timestamp: new Date().toISOString()
       };
       actions.addComment(item.id, comment);
+      // Hide input after posting to match Reminder behavior
+      actions.setShowCommentInput(item.id, false);
     }
   };
 
   const handleCommentTextChange = (e) => {
-    actions.updateCommentText(item.id, e.target.value);
+    actions.setCommentInputs(item.id, e.target.value);
+  };
+
+  const toggleCommentInput = () => {
+    actions.setShowCommentInput(item.id, !state.showCommentInput[item.id]);
   };
 
   return (
@@ -222,14 +228,22 @@ const TaskItem = ({
               </div>
             )}
             
-            {/* Comments Section */}
+            {/* Comments Section (match Reminder behavior: input toggles, not always open) */}
             <div className="bg-white rounded-lg border border-gray-200 p-3">
-              <h4 className="text-xs font-semibold text-gray-700 mb-2">Comments</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-semibold text-gray-700">Comments</h4>
+                <button 
+                  onClick={toggleCommentInput}
+                  className="text-[9px] text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  {state.showCommentInput[item.id] ? 'Cancel' : 'Add Comment'}
+                </button>
+              </div>
               
               {/* Existing Comments */}
-              <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
-                {state.comments[item.id] && state.comments[item.id].length > 0 ? (
-                  state.comments[item.id].map(comment => (
+              {state.comments[item.id] && state.comments[item.id].length > 0 && (
+                <div className="space-y-2 mb-2 max-h-48 overflow-y-auto">
+                  {state.comments[item.id].map(comment => (
                     <div key={comment.id} className="bg-gray-50 p-2 rounded border border-gray-100">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -250,19 +264,17 @@ const TaskItem = ({
                         </span>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-400 italic">No comments yet</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
               
-              {/* Add Comment Form */}
-              <div className="border-t border-gray-200 pt-2">
-                <div className="space-y-2">
+              {/* Comment input (only when toggled) */}
+              {state.showCommentInput[item.id] && (
+                <div className="mt-2 border-t border-gray-200 pt-2">
                   <MentionInput
-                    value={state.newCommentText[item.id] || ''}
+                    value={state.commentInputs[item.id] || ''}
                     onChange={handleCommentTextChange}
-                    placeholder="Add a comment... Use @ to mention users"
+                    placeholder="Type your comment here... Use @ to mention users"
                     availableUsers={availableUsers}
                     className="w-full"
                     rows={2}
@@ -273,21 +285,26 @@ const TaskItem = ({
                       }
                     }}
                   />
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-1 mt-1">
+                    <button
+                      onClick={() => {
+                        actions.setShowCommentInput(item.id, false);
+                        actions.setCommentInputs(item.id, '');
+                      }}
+                      className="px-2 py-1 text-[9px] text-gray-600 hover:text-gray-700 font-medium"
+                    >
+                      Cancel
+                    </button>
                     <button
                       onClick={handleAddComment}
-                      disabled={!state.newCommentText[item.id]?.trim()}
-                      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                        state.newCommentText[item.id]?.trim()
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
+                      disabled={!state.commentInputs[item.id]?.trim()}
+                      className="px-2 py-1 text-[9px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                     >
-                      Add Comment
+                      Post Comment
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
             
             {/* Action Buttons */}

@@ -55,10 +55,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [voiceActions, setVoiceActions] = useState([]);
     const voiceStartTimeRef = useRef(null);
     const voiceEndTimeRef = useRef(null);
-    // Refs to avoid stale state inside Vapi callbacks
-    const voiceConversationRef = useRef([]);
-    const voiceTranscriptRef = useRef([]);
-// Transcript modal state
+    
+    // Transcript modal state
     const [showTranscriptModal, setShowTranscriptModal] = useState(false);
     const [transcriptSummary, setTranscriptSummary] = useState(null);
     const [selectedFileFormats, setSelectedFileFormats] = useState(['pdf', 'json']);
@@ -68,10 +66,8 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     // Transcript history state
     const [showTranscriptHistory, setShowTranscriptHistory] = useState(false);
     const [transcriptId, setTranscriptId] = useState(null);
-    // Sync refs to latest state to avoid stale closures in Vapi events
-    useEffect(() => { voiceConversationRef.current = voiceConversation; }, [voiceConversation]);
-    useEffect(() => { voiceTranscriptRef.current = voiceTranscript; }, [voiceTranscript]);
-// Get Vapi configuration from environment variables
+
+    // Get Vapi configuration from environment variables
     const VAPI_PUBLIC_KEY = process.env.REACT_APP_VAPI_PUBLIC_KEY || 'bafbcec8-96b4-48d0-8ea0-6c8ce48d3ac4';
     const VAPI_ASSISTANT_ID = process.env.REACT_APP_VAPI_ASSISTANT_ID || '1ad2d156-7732-4f8b-97d3-41addce2d6a7';
 
@@ -158,11 +154,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 continue;
             }
 
-            // Bulleted list (-, *, â€¢, â€“, â€”)
-            if (/^[-*â€¢â€“â€”]\s+/.test(trimmed)) {
+            // Bulleted list (-, *, •, –, —)
+            if (/^[-*•–—]\s+/.test(trimmed)) {
                 if (inOl) { out.push('</ol>'); inOl = false; }
                 if (!inUl) { out.push('<ul class="list-disc ml-5 mb-1 space-y-1">'); inUl = true; }
-                const text = trimmed.replace(/^[-*â€¢â€“â€”]\s+/, '');
+                const text = trimmed.replace(/^[-*•–—]\s+/, '');
                 out.push(`<li>${replaceLinks(escapeHtml(text))}</li>`);
                 pendingAutoList = false;
                 continue;
@@ -243,7 +239,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             // Blockquotes
             text = text.replace(/^\s{0,3}>\s?/gm, '');
             // Lists markers
-            text = text.replace(/^\s{0,3}(?:[-*â€¢â€“â€”]\s+|\d+\.\s+)/gm, '');
+            text = text.replace(/^\s{0,3}(?:[-*•–—]\s+|\d+\.\s+)/gm, '');
             // Horizontal rules
             text = text.replace(/^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/gm, '');
             // Tables pipes
@@ -505,25 +501,22 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                         // Reset conversation tracking
                         setVoiceConversation([]);
                         setVoiceActions([]);
-                        voiceConversationRef.current = [];
-                        voiceTranscriptRef.current = [];
                         voiceStartTimeRef.current = new Date();
                         voiceEndTimeRef.current = null;
                     });
                     
                     vapiRef.current.on('call-end', async () => {
+                        console.log('🔴 [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL');
+                        console.log('🔴 [CALL-END] voiceConversation length:', voiceConversation.length);
+                        console.log('🔴 [CALL-END] voiceTranscript:', voiceTranscript);
+                        console.log('🔴 [CALL-END] showTranscriptModal before:', showTranscriptModal);
                         voiceEndTimeRef.current = new Date();
-console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL');
-                        console.log('ðŸ”´ [CALL-END] voiceConversation length:', voiceConversation.length);
-                        console.log('ðŸ”´ [CALL-END] voiceTranscript:', voiceTranscript);
-                        console.log('ðŸ”´ [CALL-END] showTranscriptModal before:', showTranscriptModal);
                         
-                        const transcriptStrings = Array.isArray(voiceTranscriptRef.current) ? voiceTranscriptRef.current : [];
-// If no conversation was captured, create one from the transcript
-                        let conversationToUse = Array.isArray(voiceConversationRef.current) ? voiceConversationRef.current : [];
-                        if (voiceConversation.length === 0 && transcriptStrings.length > 0) {
+                        // If no conversation was captured, create one from the transcript
+                        let conversationToUse = voiceConversation;
+                        if (voiceConversation.length === 0 && voiceTranscript.length > 0) {
                             console.log('[Vapi] Using voiceTranscript as fallback');
-                            conversationToUse = transcriptStrings.map((text, index) => ({
+                            conversationToUse = voiceTranscript.map((text, index) => ({
                                 speaker: 'User',
                                 message: text,
                                 timestamp: new Date(),
@@ -537,10 +530,10 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                         console.log('[Vapi] DEBUG: generated summary:', summary);
                         
                         // Always show modal if there was any conversation
-                        console.log('ðŸ”´ [CALL-END] conversationToUse.length:', conversationToUse.length);
-                        console.log('ðŸ”´ [CALL-END] voiceTranscript.length:', transcriptStrings.length);
-                        if (conversationToUse.length > 0 || transcriptStrings.length > 0) {
-                            console.log('ðŸ”´ [CALL-END] SHOULD show transcript modal - entering try block');
+                        console.log('🔴 [CALL-END] conversationToUse.length:', conversationToUse.length);
+                        console.log('🔴 [CALL-END] voiceTranscript.length:', voiceTranscript.length);
+                        if (conversationToUse.length > 0 || voiceTranscript.length > 0) {
+                            console.log('🔴 [CALL-END] SHOULD show transcript modal - entering try block');
                             try {
                                 const enhancedSummary = await generateEnhancedTranscriptSummary(summary || {}, conversationToUse);
                                 console.log('[Vapi] DEBUG: enhanced summary:', enhancedSummary);
@@ -581,11 +574,11 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                                     console.error('[Vapi] Error saving transcript:', saveError);
                                 }
                                 
-                                console.log('ðŸ”´ [CALL-END] SUCCESS - About to setShowTranscriptModal(true)');
+                                console.log('🔴 [CALL-END] SUCCESS - About to setShowTranscriptModal(true)');
                                 setShowTranscriptModal(true);
-                                console.log('ðŸ”´ [CALL-END] SUCCESS - Called setShowTranscriptModal(true)');
+                                console.log('🔴 [CALL-END] SUCCESS - Called setShowTranscriptModal(true)');
                             } catch (error) {
-                                console.error('ðŸ”´ [CALL-END] ERROR generating enhanced summary:', error);
+                                console.error('🔴 [CALL-END] ERROR generating enhanced summary:', error);
                                 // Show modal with basic summary even if enhancement fails
                                 setTranscriptSummary({
                                     metadata: {
@@ -594,19 +587,19 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                                         duration: summary?.duration || 'Unknown',
                                         participantCount: 1
                                     },
-                                    executiveSummary: transcriptStrings.join(' ') || 'Voice call ended.',
+                                    executiveSummary: voiceTranscript.join(' ') || 'Voice call ended.',
                                     keyDecisions: [],
                                     actionItems: [],
                                     materialsList: [],
                                     risks: [],
                                     fullTranscript: conversationToUse
                                 });
-                                console.log('ðŸ”´ [CALL-END] FALLBACK - About to setShowTranscriptModal(true)');
+                                console.log('🔴 [CALL-END] FALLBACK - About to setShowTranscriptModal(true)');
                                 setShowTranscriptModal(true);
-                                console.log('ðŸ”´ [CALL-END] FALLBACK - Called setShowTranscriptModal(true)');
+                                console.log('🔴 [CALL-END] FALLBACK - Called setShowTranscriptModal(true)');
                             }
                         } else {
-                            console.log('ðŸ”´ [CALL-END] No conversation data to show - FORCING MODAL ANYWAY FOR TESTING');
+                            console.log('🔴 [CALL-END] No conversation data to show - FORCING MODAL ANYWAY FOR TESTING');
                             // FORCE MODAL TO SHOW EVEN WITH NO DATA
                             setTranscriptSummary({
                                 metadata: {
@@ -622,14 +615,14 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                                 risks: [],
                                 fullTranscript: []
                             });
-                            console.log('ðŸ”´ [CALL-END] FORCE - About to setShowTranscriptModal(true)');
+                            console.log('🔴 [CALL-END] FORCE - About to setShowTranscriptModal(true)');
                             setShowTranscriptModal(true);
-                            console.log('ðŸ”´ [CALL-END] FORCE - Called setShowTranscriptModal(true)');
+                            console.log('🔴 [CALL-END] FORCE - Called setShowTranscriptModal(true)');
                         }
                         
                         // Save transcription as a chat message if there was any
-                        if (transcriptStrings.length > 0) {
-                            const transcriptContent = transcriptStrings.join(' ');
+                        if (voiceTranscript.length > 0) {
+                            const transcriptContent = voiceTranscript.join(' ');
                             const voiceMessage = {
                                 id: `voice_${Date.now()}`,
                                 type: 'user',
@@ -645,9 +638,8 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                         setVoiceError('');
                         setShowTranscript(false);
                         setVoiceTranscript([]);
-                        voiceTranscriptRef.current = [];
-                        setLiveTranscriptText('');
                     });
+                    
                     vapiRef.current.on('speech-start', () => {
                         console.log('[Vapi] speech started (user speaking)');
                     });
@@ -657,13 +649,13 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                     });
                     
                     vapiRef.current.on('message', (message) => {
-                        console.log('ðŸŸ¡ [MESSAGE] type:', message.type, 'message:', message);
+                        console.log('🟡 [MESSAGE] type:', message.type, 'message:', message);
                         
                         // Handle various transcript types
                         if (message.type === 'transcript') {
-                            console.log('ðŸŸ¡ [MESSAGE] Processing transcript message');
+                            console.log('🟡 [MESSAGE] Processing transcript message');
                             const text = String(message.transcript || message.text || '').trim();
-                            console.log('ðŸŸ¡ [MESSAGE] Transcript text:', text);
+                            console.log('🟡 [MESSAGE] Transcript text:', text);
                             if (text) {
                         // Update the on-screen evolving paragraph (natural text)
                     setLiveTranscriptText((prev) => {
@@ -693,8 +685,7 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                         // Keep a larger history window if you like
                         const capped = next.slice(-50);
                         console.log('[Vapi] Updated transcript (deduped):', capped);
-                                    voiceTranscriptRef.current = capped;
-                                    return capped;
+                        return capped;
                         });
                                 
                                 // Add to conversation tracking - determine speaker
@@ -707,7 +698,6 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                                         confidence: 'high'
                                     }];
                                     console.log('[Vapi] Updated conversation:', updated);
-                                    voiceConversationRef.current = updated;
                                     return updated;
                                 });
                             }
@@ -717,16 +707,12 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                         if (message.type === 'user-message' && message.message) {
                             const text = String(message.message).trim();
                             if (text) {
-                                setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: 'User',
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    voiceConversationRef.current = updated;
-                                    return updated;
-                                });
+                                setVoiceConversation(prev => [...prev, {
+                                    speaker: 'User',
+                                    message: text,
+                                    timestamp: new Date(),
+                                    confidence: 'high'
+                                }]);
                             }
                         }
                         
@@ -734,16 +720,12 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                         if (message.type === 'assistant-message' && message.message) {
                             const text = String(message.message).trim();
                             if (text) {
-                                setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: 'Assistant',
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    voiceConversationRef.current = updated;
-                                    return updated;
-                                });
+                                setVoiceConversation(prev => [...prev, {
+                                    speaker: 'Assistant',
+                                    message: text,
+                                    timestamp: new Date(),
+                                    confidence: 'high'
+                                }]);
                             }
                         }
                         
@@ -758,16 +740,12 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
                         if (message.type === 'speech' && message.speech) {
                             const text = String(message.speech).trim();
                             if (text) {
-                                setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: 'Assistant',
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    voiceConversationRef.current = updated;
-                                    return updated;
-                                });
+                                setVoiceConversation(prev => [...prev, {
+                                    speaker: 'Assistant',
+                                    message: text,
+                                    timestamp: new Date(),
+                                    confidence: 'high'
+                                }]);
                             }
                         }
                     });
@@ -1045,12 +1023,14 @@ console.log('ðŸ”´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL')
             console.log('[Voice] No summary or project to send message');
             return;
         }
+        
         try {
+            // Format the summary for the project message
             const messageBody = `
 **Voice Interaction Summary**
 📅 Date: ${new Date().toLocaleDateString()}
 ⏱️ Duration: ${summary.duration}
-🕒 Time: ${summary.startTime} - ${summary.endTime}
+🕐 Time: ${summary.startTime} - ${summary.endTime}
 
 **Key Points Discussed:**
 ${summary.keyPoints.map(point => `• ${point}`).join('\n')}
@@ -1331,45 +1311,10 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
         setSelectedFileFormats(prev => {
             if (prev.includes(format)) {
                 return prev.filter(f => f !== format);
+            } else {
+                return [...prev, format];
             }
-            return [...prev, format];
         });
-    };
-    
-    // Client-side download helpers
-    const downloadBlob = (filename, mime, data) => {
-      const blob = new Blob([data], { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    };
-    
-    const generateClientDownloads = () => {
-      const date = new Date().toISOString().split('T')[0];
-      if (selectedFileFormats.includes('json')) {
-        downloadBlob('transcript_' + date + '.json', 'application/json', JSON.stringify(transcriptSummary, null, 2));
-      }
-      if (selectedFileFormats.includes('txt') || selectedFileFormats.includes('pdf') || selectedFileFormats.includes('docx')) {
-        const lines = [];
-        lines.push('Voice Call Transcript & Summary');
-        lines.push('Date: ' + (transcriptSummary?.metadata?.callDate || ''));
-        lines.push('Duration: ' + (transcriptSummary?.metadata?.duration || ''));
-        lines.push('');
-        lines.push('Executive Summary:');
-        lines.push(String(transcriptSummary?.executiveSummary || ''));
-        lines.push('');
-        lines.push('Full Transcript:');
-        (transcriptSummary?.fullTranscript || []).forEach(ex => {
-          const t = new Date(ex.timestamp).toLocaleTimeString();
-          lines.push('[' + t + '] ' + ex.speaker + ': ' + ex.message);
-        });
-        downloadBlob('transcript_' + date + '.txt', 'text/plain', lines.join('\n'));
-      }
     };
     
     // Generate and download files
@@ -1409,14 +1354,13 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         document.body.removeChild(link);
                     });
                 } else {
-                    generateClientDownloads();
+                    throw new Error('Failed to generate files');
                 }
             } else {
-                generateClientDownloads();
+                throw new Error('API request failed');
             }
         } catch (error) {
             console.error('Error generating transcript files:', error);
-            generateClientDownloads();
             alert('Failed to generate transcript files. Please try again.');
         } finally {
             setIsGeneratingFiles(false);
@@ -1515,7 +1459,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         className="w-full text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
                     >
                         <div className="font-medium text-gray-900">{project.projectName || project.name}</div>
-                        <div className="text-sm text-gray-500">{project.customerName} â€¢ {project.status}</div>
+                        <div className="text-sm text-gray-500">{project.customerName} • {project.status}</div>
                     </button>
                 ))}
                 <button
@@ -1612,10 +1556,10 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                             projects={projects}
                             selectedProject={selectedProject}
                             onProjectSelect={(project) => {
-                                console.log('ðŸ” AIAssistantPage: onProjectSelect called with:', project);
-                                console.log('ðŸ” AIAssistantPage: Current selectedProject before:', selectedProject);
+                                console.log('🔍 AIAssistantPage: onProjectSelect called with:', project);
+                                console.log('🔍 AIAssistantPage: Current selectedProject before:', selectedProject);
                                 setSelectedProject(project);
-                                console.log('ðŸ” AIAssistantPage: setSelectedProject called with:', project);
+                                console.log('🔍 AIAssistantPage: setSelectedProject called with:', project);
                                 setSelectedProjectNonce(prev => prev + 1);
                                 setShowProjectSelector(false);
                                 setProjectSearch('');
@@ -1627,7 +1571,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                     // Enhanced navigation for Project Workflow to navigate to current line item
                                     if (targetTab === 'Project Workflow') {
                                         try {
-                                            console.log('ðŸŽ¯ AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
+                                            console.log('🎯 AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
                                             
                                             // Get current workflow state
                                             const currentWorkflow = project.currentWorkflowItem || {};
@@ -1635,7 +1579,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                             const section = currentWorkflow.section || 'Unknown Section';
                                             const lineItem = currentWorkflow.lineItem || 'Unknown Item';
                                             
-                                            console.log('ðŸŽ¯ AI ASSISTANT: Current workflow state:', {
+                                            console.log('🎯 AI ASSISTANT: Current workflow state:', {
                                                 phase,
                                                 section,
                                                 lineItem
@@ -1653,7 +1597,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                                 const positionResult = await positionResponse.json();
                                                 if (positionResult.success && positionResult.data) {
                                                     const position = positionResult.data;
-                                                    console.log('ðŸŽ¯ AI ASSISTANT: Project position data:', position);
+                                                    console.log('🎯 AI ASSISTANT: Project position data:', position);
                                                     
                                                     // Generate proper target IDs for navigation
                                                     const targetLineItemId = position.currentLineItemId || 
@@ -1664,7 +1608,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                                                           position.currentSection ||
                                                                           section.toLowerCase().replace(/\s+/g, '-');
                                                     
-                                                    console.log('ðŸŽ¯ AI ASSISTANT: Target IDs:', {
+                                                    console.log('🎯 AI ASSISTANT: Target IDs:', {
                                                         targetLineItemId,
                                                         targetSectionId
                                                     });
@@ -1700,9 +1644,9 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                                 }
                                             }
                                             
-                                            console.log('ðŸŽ¯ AI ASSISTANT: Could not get position data, using fallback navigation');
+                                            console.log('🎯 AI ASSISTANT: Could not get position data, using fallback navigation');
                                         } catch (error) {
-                                            console.error('ðŸŽ¯ AI ASSISTANT: Error enhancing workflow navigation:', error);
+                                            console.error('🎯 AI ASSISTANT: Error enhancing workflow navigation:', error);
                                         }
                                         
                                         // Fallback to simple navigation if enhanced navigation fails
@@ -1715,7 +1659,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                         onProjectSelect(project, 'Project Profile', null, 'AI Assistant');
                                     }
                                 } catch (error) {
-                                    console.error('ðŸŽ¯ AI ASSISTANT: Error in project navigation:', error);
+                                    console.error('🎯 AI ASSISTANT: Error in project navigation:', error);
                                     // Fallback to simple navigation
                                     onProjectSelect(project, targetTab || 'Project Profile', null, 'AI Assistant');
                                 }
@@ -1821,7 +1765,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                         onClick={handleVoiceToggle}
                         className={`ml-1 p-[6px] rounded-full border flex items-center justify-center transition ${isVoiceLive ? 'border-blue-600 bg-blue-50 shadow-glow' : 'border-gray-300 bg-white hover:bg-gray-100'}`}
                         aria-label={isVoiceLive ? 'End voice with Bubbles' : (isVoiceConnecting ? 'Connecting to Bubbles' : 'Speak to Bubbles')}
-                        title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'Connectingâ€¦' : 'Speak to Bubbles')}
+                        title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'Connecting…' : 'Speak to Bubbles')}
                     >
                         {isVoiceConnecting ? (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-spin" aria-hidden="true">
@@ -1873,7 +1817,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                         onClick={() => setShowChatHistory(false)}
                                         className="p-2 rounded-lg hover:bg-gray-100"
                                     >
-                                        â† Back
+                                        ← Back
                                     </button>
                                     <div>
                                         <h3 className="font-bold text-lg">Chat History</h3>
@@ -1937,7 +1881,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                                     </h4>
                                                     <p className="text-xs text-gray-600 mb-1">{timeLabel}</p>
                                                     {chat.projectName && (
-                                                        <p className="text-xs text-gray-500 truncate">ðŸ“ {chat.projectName}</p>
+                                                        <p className="text-xs text-gray-500 truncate">📁 {chat.projectName}</p>
                                                     )}
                                                 </div>
                                                 <button
@@ -1952,7 +1896,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                                     className="p-1.5 rounded-md hover:bg-red-100 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                                                     title="Delete chat"
                                                 >
-                                                    ðŸ—‘ï¸
+                                                    🗑️
                                                 </button>
                                             </div>
                                         </div>
@@ -1975,7 +1919,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                             <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
                                 <span className="inline-flex items-center gap-2 font-medium">
                                     <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                                    {isVoiceConnecting ? 'ðŸŽ¤ Connecting to voice...' : 'ðŸŽ¤ Listening - speak now'}
+                                    {isVoiceConnecting ? '🎤 Connecting to voice...' : '🎤 Listening - speak now'}
                                 </span>
                             </div>
                         )}
@@ -1984,7 +1928,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
                  <div className="flex items-center gap-2 mb-2">
                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                   <span className="text-sm font-medium">ðŸŽ¤ Live Transcription</span>
+                   <span className="text-sm font-medium">🎤 Live Transcription</span>
                  </div>
                  <div className="text-sm leading-relaxed whitespace-pre-wrap bg-white/50 px-2 py-2 rounded font-sans">
                    {liveTranscriptText || voiceTranscript.slice(-MAX_TRANSCRIPT_PREVIEW_LINES).join(' ')}
@@ -2092,7 +2036,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
             )}
 
             {/* Transcript and Summary Modal */}
-            {console.log('ðŸ”µ [RENDER] showTranscriptModal:', showTranscriptModal, 'transcriptSummary:', !!transcriptSummary)}
+            {console.log('🔵 [RENDER] showTranscriptModal:', showTranscriptModal, 'transcriptSummary:', !!transcriptSummary)}
             {showTranscriptModal && transcriptSummary && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-8" style={{ zIndex: 999999 }}>
                     <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col" style={{ zIndex: 999999 }}>
@@ -2107,7 +2051,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                 <div>
                                     <h2 className="text-xl font-semibold text-gray-900">Voice Call Transcript & Summary</h2>
                                     <p className="text-sm text-gray-600">
-                                        {transcriptSummary.metadata.callDate} â€¢ {transcriptSummary.metadata.duration} â€¢ {transcriptSummary.metadata.participantCount} participant(s)
+                                        {transcriptSummary.metadata.callDate} • {transcriptSummary.metadata.duration} • {transcriptSummary.metadata.participantCount} participant(s)
                                     </p>
                                 </div>
                             </div>
@@ -2154,7 +2098,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                                 <div key={index} className="bg-white p-3 rounded border border-green-200">
                                                     <p className="text-sm text-gray-800">{decision.decision}</p>
                                                     <p className="text-xs text-gray-600 mt-1">
-                                                        {decision.speaker} â€¢ {new Date(decision.timestamp).toLocaleTimeString()}
+                                                        {decision.speaker} • {new Date(decision.timestamp).toLocaleTimeString()}
                                                     </p>
                                                 </div>
                                             ))}
@@ -2234,7 +2178,7 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                         <div key={index} className="bg-white p-3 rounded border border-gray-200">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-sm font-semibold text-gray-700">
-                                                    {exchange.speaker === 'User' ? 'ðŸ‘¤ You' : 'ðŸ¤– Assistant'}
+                                                    {exchange.speaker === 'User' ? '👤 You' : '🤖 Assistant'}
                                                 </span>
                                                 <span className="text-xs text-gray-500">
                                                     {new Date(exchange.timestamp).toLocaleTimeString()}
@@ -2260,10 +2204,10 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
                                     <h4 className="text-sm font-semibold text-gray-700 mb-2">Select file formats:</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {[
-                                            { id: 'pdf', label: 'PDF (Branded)', icon: 'ðŸ“„' },
-                                            { id: 'json', label: 'JSON (Structured)', icon: 'ðŸ“Š' },
-                                            { id: 'docx', label: 'Word Document', icon: 'ðŸ“' },
-                                            { id: 'txt', label: 'Plain Text', icon: 'ðŸ“ƒ' }
+                                            { id: 'pdf', label: 'PDF (Branded)', icon: '📄' },
+                                            { id: 'json', label: 'JSON (Structured)', icon: '📊' },
+                                            { id: 'docx', label: 'Word Document', icon: '📝' },
+                                            { id: 'txt', label: 'Plain Text', icon: '📃' }
                                         ].map(format => (
                                             <label key={format.id} className="flex items-center gap-2 cursor-pointer">
                                                 <input
@@ -2335,5 +2279,3 @@ ${summary.actions.map(action => `✅ ${action}`).join('\n')}
 };
 
 export default AIAssistantPage;
-
-

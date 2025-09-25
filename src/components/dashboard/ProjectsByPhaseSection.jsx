@@ -442,7 +442,9 @@ const ProjectsByPhaseSection = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`w-4 h-4 rounded-full ${phase.color}`}></div>
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${phase.color} text-white text-xs font-bold`}>
+                      {phaseProjects.length}
+                    </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{phase.name}</h3>
                       <p className="text-sm text-gray-600">
@@ -451,11 +453,6 @@ const ProjectsByPhaseSection = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {phaseProjects.length > 0 && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {phaseProjects.length}
-                      </span>
-                    )}
                     <svg
                       className={`w-5 h-5 text-gray-500 transform transition-transform duration-200 ${
                         isExpanded ? 'rotate-180' : ''

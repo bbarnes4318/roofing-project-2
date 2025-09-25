@@ -170,9 +170,30 @@ export const mockMessages = [
     user: "Tom Supervisor",
     timestamp: "2025-09-20T08:30:00Z",
     priority: "medium"
+  },
+  {
+    id: "message_9",
+    projectId: 2,
+    projectName: "Smith Commercial Roof Repair",
+    type: "site_inspection",
+    subject: "Site Inspection Scheduled",
+    description: "City inspector scheduled for Friday 10:00 AM",
+    user: "Mike Foreman",
+    timestamp: "2025-09-20T15:00:00Z",
+    priority: "medium"
+  },
+  {
+    id: "message_10",
+    projectId: 4,
+    projectName: "Davis Apartment Complex Roofing",
+    type: "material_delivery",
+    subject: "Materials Delayed",
+    description: "Supplier reported a 24-hour delay due to logistics",
+    user: "Lisa Manager",
+    timestamp: "2025-09-19T09:20:00Z",
+    priority: "high"
   }
 ];
-
 export const mockTasks = [
   {
     id: "task_1",
