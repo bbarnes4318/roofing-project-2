@@ -170,7 +170,8 @@ const BubblesChat = ({
             setIsVoiceConnecting(false);
             setIsVoiceLive(true);
             setVoiceError('');
-            setShowTranscript(true);
+            // Show transcript AFTER the call ends, not during
+            setShowTranscript(false);
             console.log('[Vapi] call started');
           });
           
@@ -178,8 +179,8 @@ const BubblesChat = ({
             setIsVoiceConnecting(false);
             setIsVoiceLive(false);
             setVoiceError('');
-            setShowTranscript(false);
-            setVoiceTranscript([]);
+            // Preserve transcript and show it when the call finishes
+            setShowTranscript(true);
             console.log('[Vapi] call ended');
           });
           
@@ -724,9 +725,9 @@ const BubblesChat = ({
         {showChatHistory && (
           <div className={`absolute top-0 left-0 w-full h-full z-20 rounded-2xl overflow-hidden ${
             colorMode ? 'bg-slate-900/95' : 'bg-white/95'
-          } backdrop-blur-xl`}>
+          } backdrop-blur-xl flex flex-col`}>
             {/* History Header */}
-            <div className={`flex items-center justify-between p-4 border-b ${
+            <div className={`flex items-center justify-between p-4 border-b sticky top-0 z-30 ${
               colorMode ? 'border-slate-700 bg-slate-800/50' : 'border-gray-200 bg-gray-50/50'
             }`}>
               <div className="flex items-center gap-3">
@@ -747,16 +748,27 @@ const BubblesChat = ({
                   </p>
                 </div>
               </div>
-              <button
-                onClick={startNewChat}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  colorMode 
-                    ? 'bg-blue-600 hover:bg-blue-500 text-white' 
-                    : 'bg-blue-500 hover:bg-blue-600 text-white'
-                }`}
-              >
-                New Chat
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={startNewChat}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    colorMode 
+                      ? 'bg-blue-600 hover:bg-blue-500 text-white' 
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  New Chat
+                </button>
+                <button
+                  onClick={() => setShowChatHistory(false)}
+                  className={`p-2 rounded-full transition-colors ${
+                    colorMode ? 'hover:bg-slate-700' : 'hover:bg-gray-100'
+                  }`}
+                  title="Close"
+                >
+                  <XCircleIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* History List */}

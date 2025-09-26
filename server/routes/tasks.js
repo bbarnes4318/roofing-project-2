@@ -32,7 +32,7 @@ const updateProjectProgress = async (projectId) => {
       where: { id: projectId },
       data: {
         progress: progressPercentage,
-        updated_at: new Date()
+        updatedAt: new Date()
       }
     });
     
@@ -92,7 +92,7 @@ router.get('/', asyncHandler(async (req, res) => {
     search, 
     page = 1, 
     limit = 10,
-    sortBy = 'created_at',
+    sortBy = 'createdAt',
     sortOrder = 'desc',
     overdue = false
   } = req.query;
@@ -180,7 +180,7 @@ router.get('/', asyncHandler(async (req, res) => {
           }
         },
         orderBy: {
-          created_at: 'asc'
+          createdAt: 'asc'
         }
       }
     },
@@ -280,7 +280,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
           }
         },
         orderBy: {
-          created_at: 'asc'
+          createdAt: 'asc'
         }
       }
     }
@@ -584,7 +584,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res, next) => {
         }
       }
     },
-    orderBy: { created_at: 'desc' }
+    orderBy: { createdAt: 'desc' }
   });
 
   res.json({
@@ -654,7 +654,7 @@ router.get('/user/:userId', asyncHandler(async (req, res, next) => {
           }
         },
         orderBy: {
-          created_at: 'asc'
+          createdAt: 'asc'
         }
       }
     },
@@ -737,7 +737,7 @@ router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next)
           }
         },
         orderBy: {
-          created_at: 'asc'
+          createdAt: 'asc'
         }
       }
     },
@@ -910,7 +910,7 @@ router.get('/:taskId/comments', asyncHandler(async (req, res) => {
           }
         }
       },
-      orderBy: { created_at: 'asc' },
+      orderBy: { createdAt: 'asc' },
       skip,
       take: parseInt(limit)
     }),

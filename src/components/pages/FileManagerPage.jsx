@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { assetsService } from '../../services/assetsService';
+import toast from 'react-hot-toast';
 import { FolderIcon, DocumentIcon, EllipsisVerticalIcon, ArrowLeftIcon, PlusIcon, MagnifyingGlassIcon, CloudArrowUpIcon, Squares2X2Icon, Bars3Icon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useProjects } from '../../hooks/useQueryApi';
 
@@ -932,7 +933,11 @@ export default function FileManagerPage() {
     const it = menu.item; if (!it || it.type === 'FOLDER') return; // download only files
     try {
       await assetsService.saveToDisk(it.id);
-    } catch (e) { console.error('Download failed', e); }
+      try { toast.success('Download started'); } catch (_) {}
+    } catch (e) {
+      console.error('Download failed', e);
+      try { toast.error('Failed to download'); } catch (_) {}
+    }
     closeMenu();
   };
   const doDelete = async () => {
@@ -957,7 +962,11 @@ export default function FileManagerPage() {
     const it = menu.item; if (!it) return;
     try {
       await assetsService.openInNewTab(it.id);
-    } catch (e) { console.error('Preview failed', e); }
+      try { toast.success('Opening preview...'); } catch (_) {}
+    } catch (e) {
+      console.error('Preview failed', e);
+      try { toast.error('Failed to open preview'); } catch (_) {}
+    }
     closeMenu();
   };
 

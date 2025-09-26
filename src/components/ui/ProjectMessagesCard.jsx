@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
 
@@ -719,6 +719,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             ðŸ’¡ Tip: Press Ctrl+Enter (Cmd+Enter on Mac) to send quickly
                         </div>
                     </form>
+                </div>
+            )}
             {/* Dropdown section - Professional message thread */}
             {expanded && (
                 <div className={`px-3 py-3 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-white border-gray-200'}`} style={colorMode ? {} : {backgroundColor: 'white'}}>

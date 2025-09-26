@@ -1,11 +1,11 @@
-﻿import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
-import TranscriptHistory from '../ui/TranscriptHistory';
+import TranscriptHistory from '../ui/TranscriptHistory2';
 // Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
