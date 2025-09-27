@@ -40,28 +40,6 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [teamMembers, setTeamMembers] = useState([]);
     const [composerBody, setComposerBody] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
-    // Voice and composer state/refs
-    const vapiRef = useRef(null);
-    const [isVoiceConnecting, setIsVoiceConnecting] = useState(false);
-    const [isVoiceLive, setIsVoiceLive] = useState(false);
-    const [isComposerOpen, setIsComposerOpen] = useState(false);
-    const [inputHeight, setInputHeight] = useState(0);
-
-    // Cleans common mojibake/garbled sequences from transcript text
-    const cleanMojibake = (s) => {
-        if (s == null) return '';
-        let out = String(s);
-        // Replace common bullet/separators
-        out = out.split('ÃƒÂ¢|â€šÂ¬|Â¢').join('â€¢');
-        // Remove clusters like 'Ãƒ...|...|...'
-        out = out.replace(/Ãƒ[^\s]*\|[^\s]*\|[^\s]*/g, '');
-        // Remove stray 'Ã‚'
-        out = out.replace(/Ã‚/g, '');
-        // Normalize whitespace
-        out = out.replace(/\s{2,}/g, ' ').trim();
-        return out;
-    };
-
     const [voiceError, setVoiceError] = useState('');
     const [isVoiceReady, setIsVoiceReady] = useState(false);
     const [voiceTranscript, setVoiceTranscript] = useState([]); // last lines
@@ -269,7 +247,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             text = text.replace(/[|]/g, ' ');
             // Trim repeated blank lines
             text = text.replace(/\n{3,}/g, '\n\n');
-            return cleanMojibake(text);
+            return text;
         } catch (_){
             return String(content ?? '');
         }
@@ -624,51 +602,10 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                                         if (saveResult.success) {
                                             console.log('[Vapi] Transcript saved to database:', saveResult.data.transcript.id);
                                             setTranscriptId(saveResult.data.transcript.id);
-                                        // Persist to localStorage for history fallback
-                                        try {
-                                            const localKey = 'voiceTranscripts';
-                                            const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
-                                            const dateIso = saveResult.data.transcript.callDate || saveResult.data.transcript.createdAt || new Date().toISOString();
-                                            const title = (saveResult.data.transcript.project?.projectName ? `${saveResult.data.transcript.project.projectName} â€” ` : 'Call â€” ') + new Date(dateIso).toLocaleString();
-                                            const preview = saveResult.data.transcript.executiveSummary || (Array.isArray(saveResult.data.transcript.fullTranscript) && saveResult.data.transcript.fullTranscript[0]?.message) || '';
-                                            const item = {
-                                                id: saveResult.data.transcript.id,
-                                                date: new Date(dateIso).toISOString(),
-                                                title,
-                                                preview,
-                                                raw: saveResult.data.transcript
-                                            };
-                                            const next = [...existing.filter(it => it.id !== item.id), item].slice(-50);
-                                            localStorage.setItem(localKey, JSON.stringify(next));
-                                        } catch (_) {}
                                         }
                                     }
                                 } catch (saveError) {
                                     console.error('[Vapi] Error saving transcript:', saveError);
-                                    // Fallback: persist a minimal local item so history shows something
-                                    try {
-                                        const localKey = 'voiceTranscripts';
-                                        const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
-                                        const dateIso = new Date().toISOString();
-                                        const title = (selectedProject?.projectName || selectedProject?.name ? `${selectedProject.projectName || selectedProject.name} â€” ` : 'Call â€” ') + new Date(dateIso).toLocaleString();
-                                        const preview = (enhancedSummary?.executiveSummary) || (Array.isArray(conversationToUse) && conversationToUse[0]?.message) || '';
-                                        const temp = {
-                                            id: `local_${Date.now()}`,
-                                            date: dateIso,
-                                            title,
-                                            preview,
-                                            raw: {
-                                                id: undefined,
-                                                callDate: dateIso,
-                                                duration: enhancedSummary?.metadata?.duration || 'Unknown',
-                                                executiveSummary: enhancedSummary?.executiveSummary || '',
-                                                fullTranscript: conversationToUse || [],
-                                                project: selectedProject ? { projectName: selectedProject.projectName || selectedProject.name } : null
-                                            }
-                                        };
-                                        const next = [...existing, temp].slice(-50);
-                                        localStorage.setItem(localKey, JSON.stringify(next));
-                                    } catch (_) {}
                                 }
                                 
                                 console.log('Ã°Å¸|€|´ [CALL-END] SUCCESS - About to setShowTranscriptModal(true)');
@@ -757,13 +694,13 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                             if (text) {
                         // Update the on-screen evolving paragraph (natural text)
                     setLiveTranscriptText((prev) => {
-                        if (!prev) return cleanMojibake(text);
+                        if (!prev) return text;
                         // If the new text is an incremental extension of the previous, replace it
-                        if (text.startsWith(prev)) return cleanMojibake(text);
+                        if (text.startsWith(prev)) return text;
                         // If the engine regresses to a shorter partial, keep the longer one
                         if (prev.startsWith(text)) return prev;
                         // Otherwise, use the latest text
-                        return cleanMojibake(text);
+                        return text;
                     });
   
                         // Retain deduped transcript lines (for history/end-of-call)
@@ -2041,46 +1978,22 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
       </div>
       <div
         ref={liveTranscriptScrollRef}
-        className="text-sm leading-6 whitespace-pre-wrap break-words bg-white/50 px-3 py-2 rounded font-sans overflow-y-auto overflow-x-hidden h-44 md:h-56"
-        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', WebkitHyphens: 'auto', msHyphens: 'auto', hyphens: 'auto' }}
+        className="text-sm leading-6 whitespace-pre-wrap break-words bg-white/50 px-3 py-2 rounded font-sans overflow-y-auto overflow-x-hidden h-40 md:h-48"
+        style={{ wordBreak: 'break-word', WebkitHyphens: 'auto', msHyphens: 'auto', hyphens: 'auto' }}
         role="log"
         aria-live="polite"
         aria-atomic="false"
         aria-relevant="additions text"
       >
         {(() => {
-  // Render finalized lines (deduped) plus the in-progress live line (only if new)
-  const rawLines = Array.isArray(voiceTranscript) ? voiceTranscript : [];
-  const normalize = (s) => cleanMojibake(String(s || '')).trim();
-
-  // Remove consecutive duplicates after normalization
-  const normalized = [];
-  for (let i = 0; i < rawLines.length; i++) {
-    const txt = normalize(rawLines[i]);
-    if (!txt) continue;
-    if (normalized.length === 0 || normalized[normalized.length - 1] !== txt) {
-      normalized.push(txt);
-    }
-  }
-
-  // Keep only the last N lines for performance
-  const safeLines = normalized.slice(-200);
-
-  const live = normalize(liveTranscriptText || '');
-  const lastFinal = safeLines.length > 0 ? safeLines[safeLines.length - 1] : '';
-  const showLive = !!live && live !== lastFinal;
-
-  return (
-    <div className="space-y-1.5">
-      {safeLines.map((ln, idx) => (
-        <div key={idx} className="whitespace-pre-wrap break-words">{ln}</div>
-      ))}
-      {showLive && (
-        <div className="whitespace-pre-wrap break-words opacity-80">{live}</div>
-      )}
-    </div>
-  );
-})()}
+          // Prefer the live partial text; otherwise show the most recent finalized line
+          const stableLast = (voiceTranscript && voiceTranscript.length > 0)
+            ? String(voiceTranscript[voiceTranscript.length - 1] || '')
+            : '';
+          const live = String(liveTranscriptText || '');
+          const text = (live || stableLast).trim();
+          return text;
+        })()}
       </div>
     </div>
   </div>
@@ -2338,7 +2251,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-gray-800">{cleanMojibake(exchange.message)}</p>
+                                            <p className="text-sm text-gray-800">{exchange.message}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -2412,45 +2325,11 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                 <TranscriptHistory
                     projectId={selectedProject?.id}
                     onTranscriptSelect={(transcript) => {
-  // Normalize transcript into expected summary shape before opening modal
-  try {
-    const date = transcript?.date ? new Date(transcript.date) : new Date();
-    const normalized = {
-      metadata: {
-        callDate: date.toLocaleDateString(),
-        callTime: date.toLocaleTimeString(),
-        duration: transcript?.duration || 'Unknown',
-        participantCount: (transcript?.metadata?.participantCount) || 2,
-        project: selectedProject ? {
-          name: selectedProject.projectName || selectedProject.name,
-          number: selectedProject.projectNumber,
-          address: selectedProject.address || selectedProject.customer?.address
-        } : null
-      },
-      executiveSummary: transcript?.preview || transcript?.title || '',
-      keyDecisions: [],
-      actionItems: [],
-      materialsList: [],
-      risks: [],
-      fullTranscript: transcript?.fullTranscript || [],
-      actions: []
-    };
-    setTranscriptSummary(normalized);
-  } catch (_) {
-    setTranscriptSummary({
-      metadata: { callDate: '', callTime: '', duration: '', participantCount: '', project: null },
-      executiveSummary: transcript?.title || '',
-      keyDecisions: [],
-      actionItems: [],
-      materialsList: [],
-      risks: [],
-      fullTranscript: [],
-      actions: []
-    });
-  }
-  setShowTranscriptModal(true);
-  setShowTranscriptHistory(false);
-}}
+                        // When a transcript is selected, show its modal
+                        setTranscriptSummary(transcript);
+                        setShowTranscriptModal(true);
+                        setShowTranscriptHistory(false);
+                    }}
                     onClose={() => setShowTranscriptHistory(false)}
                 />
             )}

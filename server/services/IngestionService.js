@@ -34,12 +34,27 @@ class IngestionService {
       // Lazy-load to avoid hard dependency and support multiple packaging layouts
       let pdfjsLib;
       try {
+        // Try CommonJS legacy build first
         pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
       } catch (e1) {
         try {
+          // Try CommonJS build
           pdfjsLib = require('pdfjs-dist/build/pdf.js');
         } catch (e2) {
-          throw e1; // trigger outer catch and fallback
+          try {
+            // Try ESM legacy build
+            const m = await import('pdfjs-dist/legacy/build/pdf.mjs');
+            pdfjsLib = m?.default || m;
+          } catch (e3) {
+            try {
+              // Try ESM build
+              const m = await import('pdfjs-dist/build/pdf.mjs');
+              pdfjsLib = m?.default || m;
+            } catch (e4) {
+              // Exhausted attempts; rethrow original error to trigger fallback
+              throw e1;
+            }
+          }
         }
       }
       // Handle ESM default export shape if present

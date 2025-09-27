@@ -2,10 +2,11 @@ const express = require('express');
 const OpenAI = require('openai');
 const crypto = require('crypto');
 const EmbeddingService = require('../services/EmbeddingService');
-const { PrismaClient } = require('@prisma/client');
+const { findAssetByMention } = require('../services/AssetLookup');
+const { prisma } = require('../config/prisma');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+ 
 
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o';
 const openaiClient = (() => {
@@ -39,6 +40,115 @@ function buildRagMessages({ chunks, userQuery }) {
   };
   return [system, ...contextBlocks, instruction];
 }
+
+// ===== Helpers ported from bubbles for voice message creation =====
+function nextBusinessDaysFromNow(days = 2) {
+  const d = new Date();
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) added++;
+  }
+  d.setHours(17, 0, 0, 0);
+  return d;
+}
+
+function parseDueDateFromText(text) {
+  try {
+    const lower = String(text || '').toLowerCase();
+    const now = new Date();
+    if (/(due\s*)?today\b/.test(lower)) { const d = new Date(); d.setHours(17,0,0,0); return d; }
+    if (/(due\s*)?tomorrow\b/.test(lower)) { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(17,0,0,0); return d; }
+    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    for (let i=0;i<7;i++) {
+      if (lower.includes(days[i])) {
+        const target = new Date(now);
+        const diff = (i - now.getDay() + 7) % 7 || 7;
+        target.setDate(now.getDate() + diff);
+        target.setHours(17,0,0,0);
+        return target;
+      }
+    }
+    const byMatch = lower.match(/by\s+(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+    if (byMatch) {
+      const m = parseInt(byMatch[1],10);
+      const d = parseInt(byMatch[2],10);
+      const y = byMatch[3] ? parseInt(byMatch[3],10) : now.getFullYear();
+      const dt = new Date(y, m-1, d, 17, 0, 0, 0);
+      return dt;
+    }
+  } catch (_) {}
+  return nextBusinessDaysFromNow(2);
+}
+
+function parseReminderDateTimeFromText(text) {
+  try {
+    const lower = String(text || '').toLowerCase();
+    const now = new Date();
+    const timeMatch = lower.match(/(?:at|@)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+    let base = new Date(now);
+    if (/tomorrow/.test(lower)) base.setDate(base.getDate()+1);
+    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    for (let i=0;i<7;i++) {
+      if (lower.includes(days[i])) {
+        const diff = (i - now.getDay() + 7) % 7 || 7;
+        base.setDate(now.getDate() + diff);
+        break;
+      }
+    }
+    if (timeMatch) {
+      let h = parseInt(timeMatch[1],10);
+      const min = timeMatch[2] ? parseInt(timeMatch[2],10) : 0;
+      const ampm = timeMatch[3] || '';
+      if (ampm === 'pm' && h < 12) h += 12;
+      if (ampm === 'am' && h === 12) h = 0;
+      base.setHours(h, min, 0, 0);
+      if (base <= now) base.setDate(base.getDate()+1);
+      return base;
+    }
+    const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
+  } catch (_) {}
+  const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
+}
+
+function extractProjectNumberFromText(text) {
+  if (!text) return null;
+  const m = String(text).match(/(?:project\s*#?|#)\s*(\d{3,7})/i) || String(text).match(/\b(\d{4,7})\b/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+// Helper: extract recipient names from freeform voice text (prefers "to", supports "for")
+function extractRecipientNamesFromVoice(message) {
+  try {
+    const text = String(message || '');
+    const lower = text.toLowerCase();
+    const toMatch = lower.match(/\bto\b([\s\S]*?)(?:$|\bwith a message\b|\bmessage saying\b)/i);
+    const forMatch = lower.match(/\bfor\b([\s\S]*?)(?:$|\bwith a message\b|\bmessage saying\b)/i);
+    let segment = '';
+    if (toMatch && toMatch[1]) segment = text.slice(toMatch.index + 2, toMatch.index + 2 + toMatch[1].length);
+    if (!segment && forMatch && forMatch[1]) segment = text.slice(forMatch.index + 3, forMatch.index + 3 + forMatch[1].length);
+    segment = (segment || '').trim();
+    if (!segment) return [];
+    segment = segment
+      .replace(/project\s*#?\s*\d+/ig, '')
+      .replace(/project\s+[a-z0-9\s]+/ig, '')
+      .replace(/\s+for\s+project[\s\S]*$/i, '')
+      .replace(/\s+with a message[\s\S]*$/i, '')
+      .replace(/\s+message saying[\s\S]*$/i, '');
+    const parts = segment
+      .split(/,|\band\b/i)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .slice(0, 5);
+    const blocklist = new Set(['the','team','customer','primary','contact','manager','project']);
+    return parts.map(p => p.replace(/\s+/g, ' ').trim()).filter(p => p && !blocklist.has(p.toLowerCase()));
+  } catch (_) {
+    return [];
+  }
+}
+
+// Using shared AssetLookup.findAssetByMention via import above
 
 // POST /api/vapi/assistant-query
 // Auth: header X-VAPI-KEY must match VAPI_INTERNAL_KEY
@@ -74,6 +184,199 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
 
     // Optional: allow returning Vapi actions if requested
     const returnActions = (req.header('X-Return-Actions') === '1') || (raw.returnActions === true);
+
+    // Voice doc attach intent: handle before RAG/LLM
+    const lower = String(query).toLowerCase();
+    const wantsSend = /(send|share|attach|email|message)\b/.test(lower);
+    const docyIntent = /(\.(pdf|docx|doc|xlsx|csv|txt|jpg|jpeg|png)\b|document|file|permit|estimate|warranty|checklist|manual|policy|form|guide|photo|image)/.test(lower);
+
+    if (wantsSend && docyIntent) {
+      // Resolve project by provided id or by number in text
+      let proj = null;
+      if (projectId) {
+        proj = await prisma.project.findUnique({ where: { id: String(projectId) }, select: { id: true, projectNumber: true, projectName: true, projectManagerId: true } });
+      }
+      if (!proj) {
+        const pnum = extractProjectNumberFromText(query);
+        if (pnum) {
+          proj = await prisma.project.findFirst({ where: { projectNumber: pnum }, select: { id: true, projectNumber: true, projectName: true, projectManagerId: true } });
+        }
+      }
+
+      if (!proj) {
+        const msg = 'I need a project to send that to. Please say the project number, for example “Send to project #12345…”.';
+        if (returnActions) return res.json([{ type: 'say', text: msg }]);
+        return res.json({ success: false, message: msg });
+      }
+
+      // Find asset from mention
+      const asset = await findAssetByMention(prisma, query);
+      if (!asset) {
+        const msg = 'I couldn\'t find that document in Documents & Resources. Try mentioning more of the file name.';
+        if (returnActions) return res.json([{ type: 'say', text: msg }]);
+        return res.json({ success: false, message: msg });
+      }
+
+      // Extract and resolve recipients (prefer explicit internal users, not customers)
+      const recipientNames = extractRecipientNamesFromVoice(query);
+      let recipients = [];
+      if (recipientNames.length > 0) {
+        const ors = [];
+        for (const n of recipientNames) {
+          const [fn, ln] = String(n).split(/\s+/);
+          if (fn && ln) {
+            ors.push({ AND: [ { firstName: { contains: fn, mode: 'insensitive' } }, { lastName: { contains: ln, mode: 'insensitive' } } ] });
+          } else if (fn) {
+            ors.push({ OR: [ { firstName: { contains: fn, mode: 'insensitive' } }, { lastName: { contains: fn, mode: 'insensitive' } } ] });
+          }
+        }
+        if (ors.length) {
+          recipients = await prisma.user.findMany({ where: { OR: ors }, select: { id: true, firstName: true, lastName: true, email: true } });
+        }
+      }
+      // Fallback: specific internal target or project manager
+      if (recipients.length === 0) {
+        try {
+          if (lower.includes('sarah owner')) {
+            const sarah = await prisma.user.findFirst({
+              where: { AND: [ { firstName: { contains: 'Sarah', mode: 'insensitive' } }, { lastName: { contains: 'Owner', mode: 'insensitive' } } ] },
+              select: { id: true, firstName: true, lastName: true, email: true }
+            });
+            if (sarah) recipients = [sarah];
+          }
+          if (recipients.length === 0 && (lower.includes('owner') || lower.includes('project manager'))) {
+            const projFull = await prisma.project.findUnique({ where: { id: proj.id }, select: { projectManagerId: true } });
+            if (projFull?.projectManagerId) {
+              const pmUser = await prisma.user.findUnique({ where: { id: projFull.projectManagerId }, select: { id: true, firstName: true, lastName: true, email: true } });
+              if (pmUser) recipients = [pmUser];
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Optional short content after phrases like "message saying"
+      let userContent = '';
+      const sayingIdx = lower.indexOf('message saying');
+      if (sayingIdx !== -1) {
+        userContent = query.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+      }
+      if (!userContent) {
+        const withIdx = lower.indexOf('with a message');
+        if (withIdx !== -1) userContent = query.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+      }
+
+      // Build attachment
+      const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl || null;
+      const attachment = {
+        assetId: asset.id || null,
+        title: asset.title || 'Document',
+        mimeType: asset.mimeType || 'application/octet-stream',
+        fileUrl,
+        thumbnailUrl: asset.thumbnailUrl || null
+      };
+
+      // Create project message
+      const authorName = raw.userName || raw.username || raw.user_name || 'Voice Assistant';
+      const authorId = raw.userId || raw.user_id || null;
+      const lowerPriority = lower.includes('high') ? 'HIGH' : (lower.includes('low') ? 'LOW' : 'MEDIUM');
+      const pm = await prisma.projectMessage.create({
+        data: {
+          content: userContent || `Shared document: ${attachment.title}`,
+          subject: `Document: ${attachment.title}`,
+          messageType: 'USER_MESSAGE',
+          priority: lowerPriority,
+          authorId: authorId || undefined,
+          authorName,
+          authorRole: 'VOICE_ASSISTANT',
+          projectId: proj.id,
+          projectNumber: proj.projectNumber,
+          isSystemGenerated: false,
+          isWorkflowMessage: false,
+          metadata: { attachments: [attachment] }
+        }
+      });
+
+      if (recipients.length > 0) {
+        await prisma.projectMessageRecipient.createMany({ data: recipients.map(r => ({ messageId: pm.id, userId: r.id })) });
+      }
+
+      // Socket.IO broadcast so the activity feed updates live
+      try {
+        const io = req.app.get('io');
+        if (io) {
+          io.to(`project_${proj.id}`).emit('newMessage', { projectId: proj.id, subject: `Document: ${attachment.title}`, messageId: pm.id });
+          if (recipients.length > 0) {
+            recipients.forEach(r => {
+              io.to(`user_${r.id}`).emit('newMessage', { projectId: proj.id, subject: `Document: ${attachment.title}`, messageId: pm.id, recipientId: r.id });
+            });
+          }
+        }
+      } catch (_) {}
+
+      // Optional Task
+      let createdTask = null;
+      const intendsTask = /\b(task|todo|to-do)\b/.test(lower) || /assign|follow up/.test(lower);
+      if (intendsTask) {
+        let assignedToId = recipients?.[0]?.id || null;
+        if (!assignedToId) {
+          try {
+            const projFull = await prisma.project.findUnique({ where: { id: proj.id }, select: { projectManagerId: true } });
+            assignedToId = projFull?.projectManagerId || authorId || null;
+          } catch (_) { assignedToId = authorId || null; }
+        }
+        const due = parseDueDateFromText(query);
+        const taskTitle = (userContent && userContent.length <= 80) ? userContent : `Review: ${attachment.title}`;
+        try {
+          createdTask = await prisma.task.create({
+            data: {
+              title: taskTitle.slice(0, 200),
+              description: `Auto-created from Voice when sending ${attachment.title}.` + (userContent ? `\n\nNote: ${userContent}` : ''),
+              dueDate: due,
+              priority: lowerPriority,
+              status: 'TO_DO',
+              category: 'DOCUMENTATION',
+              projectId: proj.id,
+              assignedToId: assignedToId || (authorId || undefined),
+              createdById: authorId || undefined
+            }
+          });
+        } catch (_) {}
+      }
+
+      // Optional Reminder
+      let createdReminder = null;
+      const intendsReminder = /\b(remind|reminder|calendar|event)\b/.test(lower);
+      if (intendsReminder) {
+        try {
+          const start = parseReminderDateTimeFromText(query);
+          const end = new Date(start.getTime() + 30 * 60 * 1000);
+          const event = await prisma.calendarEvent.create({
+            data: {
+              title: `Follow-up: ${attachment.title}`.slice(0, 120),
+              description: `Auto-created from Voice when sending ${attachment.title}.` + (userContent ? `\n\nNote: ${userContent}` : ''),
+              startTime: start,
+              endTime: end,
+              isAllDay: false,
+              eventType: 'REMINDER',
+              status: 'CONFIRMED',
+              projectId: proj.id,
+              organizerId: authorId || (recipients?.[0]?.id) || (proj.projectManagerId) || undefined,
+              attendees: recipients?.length ? { create: recipients.map(r => ({ userId: r.id, status: 'REQUIRED', response: 'NO_RESPONSE' })) } : undefined
+            }
+          });
+          createdReminder = event;
+        } catch (_) {}
+      }
+
+      const parts = [];
+      parts.push(`Attached "${attachment.title}" to a new project message for project #${proj.projectNumber}` + (recipients.length ? ` and notified ${recipients.map(r => r.firstName + ' ' + r.lastName).join(', ')}` : '') + '.');
+      if (createdTask) parts.push(`Created task "${createdTask.title}" (due ${new Date(createdTask.dueDate).toLocaleString()}).`);
+      if (createdReminder) parts.push(`Set a reminder for ${new Date(createdReminder.startTime).toLocaleString()}.`);
+      const ack = parts.join(' ');
+
+      if (returnActions) return res.json([{ type: 'say', text: ack }]);
+      return res.json({ success: true, answer: ack, messageId: pm.id, attachments: [attachment], taskId: createdTask?.id, reminderId: createdReminder?.id });
+    }
 
     let chunks = [];
     if (Array.isArray(contextFileIds) && contextFileIds.length > 0) {

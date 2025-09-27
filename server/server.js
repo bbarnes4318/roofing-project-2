@@ -702,6 +702,8 @@ app.set('io', io);
 
 // Serve uploaded files (documents, company assets) safely
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Also serve uploads from the repository root if present (fallback)
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // API Routes
 app.use('/api/health', healthRoutes);

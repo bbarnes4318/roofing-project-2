@@ -13,6 +13,7 @@ const EmbeddingService = require('../services/EmbeddingService');
 const IngestionService = require('../services/IngestionService');
 const path = require('path');
 const fs = require('fs').promises;
+const AssetLookup = require('../services/AssetLookup');
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
@@ -25,184 +26,127 @@ try {
   openAIService = null;
 }
 
-// --- Document helpers: find assets and extract numbered steps ---
-async function findAssetByMention(message) {
+// Helper: extract recipient names from freeform message (supports "to" and "for" phrases)
+function extractRecipientNames(message) {
   try {
     const text = String(message || '');
-    // Extract a likely filename token (ends with common extensions) or fall back to the whole text
-    const filenameMatch = text.match(/[\w\-.\s]+\.(pdf|docx|doc|xlsx|csv|txt|jpg|jpeg|png)/i);
-    const rawKey = filenameMatch ? filenameMatch[1] : text;
-
-    // Normalize and tokenize (sanitize punctuation to avoid tokens like "'upfront'")
-    const base = rawKey
-      .toLowerCase()
-      .replace(/[_\-]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    const baseClean = base.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-    const tokens = Array.from(new Set(baseClean.split(' ')))
-      .map(t => t.replace(/[^a-z0-9]/g, '').trim())
-      .filter(t => t && t.length >= 4 && !['document', 'file', 'files', 'pdf', 'doc', 'docx'].includes(t));
-
-    const commonInclude = { versions: { where: { isCurrent: true }, take: 1 } };
-    const commonWhere = { isActive: true, type: 'FILE' };
-
-    // 1) Strong exact-ish match on full base inside title
-    let asset = await prisma.companyAsset.findFirst({
-      where: {
-        ...commonWhere,
-        OR: [
-          { title: { contains: base, mode: 'insensitive' } },
-          { folderName: { contains: base, mode: 'insensitive' } },
-          { description: { contains: base, mode: 'insensitive' } },
-        ]
-      },
-      include: commonInclude
-    });
-    if (asset) return asset;
-
-    // 2) Heuristic head substrings from concatenated names (e.g., "upfrontstarttheday...")
-    const heads = [];
-    for (const n of [12, 10, 8, 7, 6, 5]) {
-      if (baseClean.length >= n) heads.push(baseClean.slice(0, n));
-    }
-    if (heads.length) {
-      asset = await prisma.companyAsset.findFirst({
-        where: {
-          ...commonWhere,
-          OR: [
-            ...heads.map(h => ({ title: { startsWith: h, mode: 'insensitive' } })),
-            ...heads.map(h => ({ folderName: { startsWith: h, mode: 'insensitive' } })),
-          ]
-        },
-        include: commonInclude
-      });
-      if (asset) return asset;
-      asset = await prisma.companyAsset.findFirst({
-        where: {
-          ...commonWhere,
-          OR: [
-            ...heads.map(h => ({ title: { contains: h, mode: 'insensitive' } })),
-            ...heads.map(h => ({ folderName: { contains: h, mode: 'insensitive' } })),
-          ]
-        },
-        include: commonInclude
-      });
-      if (asset) return asset;
-    }
-
-    // 3) Starts with first token (helps match shortened titles like "upfront.pdf")
-    if (tokens.length > 0) {
-      asset = await prisma.companyAsset.findFirst({
-        where: { ...commonWhere, title: { startsWith: tokens[0], mode: 'insensitive' } },
-        include: commonInclude
-      });
-      if (asset) return asset;
-    }
-
-    // 4) AND search: title contains all tokens
-    if (tokens.length >= 2) {
-      asset = await prisma.companyAsset.findFirst({
-        where: { ...commonWhere, AND: tokens.map(t => ({ title: { contains: t, mode: 'insensitive' } })) },
-        include: commonInclude
-      });
-      if (asset) return asset;
-    }
-
-    // 5) OR search across title/folderName/description, then score locally
-    if (tokens.length > 0) {
-      const candidates = await prisma.companyAsset.findMany({
-        where: {
-          ...commonWhere,
-          OR: [
-            ...tokens.map(t => ({ title: { contains: t, mode: 'insensitive' } })),
-            ...tokens.map(t => ({ folderName: { contains: t, mode: 'insensitive' } })),
-            ...tokens.map(t => ({ description: { contains: t, mode: 'insensitive' } })),
-          ]
-        },
-        include: commonInclude,
-        take: 25
-      });
-      if (candidates && candidates.length) {
-        const baseLen = baseClean.length;
-        const score = (a) => {
-          const title = String(a.title || '').toLowerCase();
-          const titleClean = title.replace(/[^a-z0-9\s]/g, ' ');
-          let s = 0;
-          if (titleClean.includes(baseClean)) s += 5;
-          for (const t of tokens) if (t && titleClean.includes(t)) s += 2;
-          // Prefer same extension if user supplied one
-          if (filenameMatch && typeof a.title === 'string' && a.title.toLowerCase().endsWith('.' + filenameMatch[2].toLowerCase())) s += 1;
-          // Slight preference for closer length
-          s -= Math.min(5, Math.abs((a.title || '').length - baseLen));
-          return s;
-        };
-        candidates.sort((a, b) => score(b) - score(a));
-        return candidates[0] || null;
-      }
-    }
-
-    // 6) Fallback: scan uploads/company-assets for filenames matching tokens when DB lookup fails
-    try {
-      const uploadRoot = path.join(__dirname, '..', 'uploads', 'company-assets');
-      const years = await fs.readdir(uploadRoot).catch(() => []);
-      // sort years desc (numeric strings)
-      years.sort((a,b) => (b||'').localeCompare(a||''));
-      let best = null;
-      const scoreFilename = (file) => {
-        const name = String(file || '').toLowerCase();
-        const nameClean = name.replace(/[^a-z0-9\s]/g, ' ');
-        let s = 0;
-        if (baseClean && nameClean.includes(baseClean)) s += 5;
-        for (const t of tokens) if (t && nameClean.includes(t)) s += 2;
-        return s;
-      };
-      for (const y of years.slice(0, 3)) {
-        const yearDir = path.join(uploadRoot, y);
-        const months = await fs.readdir(yearDir).catch(() => []);
-        months.sort((a,b) => (b||'').localeCompare(a||''));
-        for (const m of months.slice(0, 6)) {
-          const monthDir = path.join(yearDir, m);
-          const files = await fs.readdir(monthDir).catch(() => []);
-          for (const f of files) {
-            const sc = scoreFilename(f);
-            if (sc > (best?.score || -Infinity)) {
-              best = { score: sc, year: y, month: m, file: f };
-            }
-          }
-          if (best?.score >= 5) break; // good match found in this month
-        }
-        if (best?.score >= 5) break;
-      }
-      if (best) {
-        const ext = path.extname(best.file).toLowerCase();
-        const mimeMap = {
-          '.pdf': 'application/pdf',
-          '.doc': 'application/msword',
-          '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          '.csv': 'text/csv',
-          '.txt': 'text/plain',
-          '.jpg': 'image/jpeg',
-          '.jpeg': 'image/jpeg',
-          '.png': 'image/png'
-        };
-        const fileUrl = `/uploads/company-assets/${best.year}/${best.month}/${best.file}`;
-        return {
-          id: null,
-          title: best.file,
-          mimeType: mimeMap[ext] || 'application/octet-stream',
-          versions: [{ isCurrent: true, fileUrl }],
-          fileUrl
-        };
-      }
-    } catch (_) {}
-
-    return null;
-  } catch (e) {
-    console.warn('⚠️ findAssetByMention failed:', e?.message || e);
-    return null;
+    const lower = text.toLowerCase();
+    // Capture segment after ' to ' (preferred) or ' for ' until end or until 'with a message' / 'message saying'
+    const toMatch = lower.match(/\bto\b([\s\S]*?)(?:$|\bwith a message\b|\bmessage saying\b)/i);
+    const forMatch = lower.match(/\bfor\b([\s\S]*?)(?:$|\bwith a message\b|\bmessage saying\b)/i);
+    let segment = '';
+    if (toMatch && toMatch[1]) segment = text.slice(toMatch.index + 2, toMatch.index + 2 + toMatch[1].length);
+    if (!segment && forMatch && forMatch[1]) segment = text.slice(forMatch.index + 3, forMatch.index + 3 + forMatch[1].length);
+    segment = (segment || '').trim();
+    if (!segment) return [];
+    // Remove obvious project mentions that might pollute names
+    segment = segment
+      .replace(/project\s*#?\s*\d+/ig, '')
+      .replace(/project\s+[a-z0-9\s]+/ig, '')
+      .replace(/\s+for\s+project[\s\S]*$/i, '')
+      .replace(/\s+with a message[\s\S]*$/i, '')
+      .replace(/\s+message saying[\s\S]*$/i, '');
+    // Split by comma or ' and '
+    const parts = segment
+      .split(/,|\band\b/i)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .slice(0, 5);
+    // Filter out non-name words that sometimes appear
+    const blocklist = new Set(['the', 'team', 'customer', 'primary', 'contact', 'manager', 'project']);
+    return parts
+      .map(p => p.replace(/\s+/g, ' ').trim())
+      .filter(p => p && !blocklist.has(p.toLowerCase()));
+  } catch (_) {
+    return [];
   }
+}
+
+// --- Simple natural language date parsers ---
+function nextBusinessDaysFromNow(days = 2) {
+  const d = new Date();
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) added++;
+  }
+  d.setHours(17, 0, 0, 0);
+  return d;
+}
+
+function parseDueDateFromText(text) {
+  try {
+    const lower = String(text || '').toLowerCase();
+    const now = new Date();
+    // Keywords: today, tomorrow
+    if (/(due\s*)?today\b/.test(lower)) {
+      const d = new Date(); d.setHours(17,0,0,0); return d;
+    }
+    if (/(due\s*)?tomorrow\b/.test(lower)) {
+      const d = new Date(); d.setDate(d.getDate()+1); d.setHours(17,0,0,0); return d;
+    }
+    // Day of week names
+    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    for (let i=0;i<7;i++) {
+      if (lower.includes(days[i])) {
+        const target = new Date(now);
+        const diff = (i - now.getDay() + 7) % 7 || 7; // next occurrence (at least next week if today)
+        target.setDate(now.getDate() + diff);
+        target.setHours(17,0,0,0);
+        return target;
+      }
+    }
+    // by <date>
+    const byMatch = lower.match(/by\s+(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+    if (byMatch) {
+      const m = parseInt(byMatch[1],10);
+      const d = parseInt(byMatch[2],10);
+      const y = byMatch[3] ? parseInt(byMatch[3],10) : now.getFullYear();
+      const dt = new Date(y, m-1, d, 17, 0, 0, 0);
+      return dt;
+    }
+  } catch (_) {}
+  return nextBusinessDaysFromNow(2);
+}
+
+function parseReminderDateTimeFromText(text) {
+  try {
+    const lower = String(text || '').toLowerCase();
+    const now = new Date();
+    // "remind me at 4pm" today
+    const timeMatch = lower.match(/(?:at|@)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+    let base = new Date(now);
+    if (/tomorrow/.test(lower)) base.setDate(base.getDate()+1);
+    // Day names
+    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    for (let i=0;i<7;i++) {
+      if (lower.includes(days[i])) {
+        const diff = (i - now.getDay() + 7) % 7 || 7;
+        base.setDate(now.getDate() + diff);
+        break;
+      }
+    }
+    if (timeMatch) {
+      let h = parseInt(timeMatch[1],10);
+      const min = timeMatch[2] ? parseInt(timeMatch[2],10) : 0;
+      const ampm = timeMatch[3] || '';
+      if (ampm === 'pm' && h < 12) h += 12;
+      if (ampm === 'am' && h === 12) h = 0;
+      base.setHours(h, min, 0, 0);
+      if (base <= now) base.setDate(base.getDate()+1); // push to future if already past
+      return base;
+    }
+    // Fallback: next business day at 9am
+    const d = nextBusinessDaysFromNow(1);
+    d.setHours(9,0,0,0);
+    return d;
+  } catch (_) {}
+  const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
+}
+// --- Document helpers: find assets and extract numbered steps ---
+async function findAssetByMention(message) {
+  return await AssetLookup.findAssetByMention(prisma, message);
 }
 
 async function readAssetCurrentFile(asset) {
@@ -1155,6 +1099,205 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         contextManager.addToHistory(req.user.id, message, notFound, projectContext || null);
         return sendSuccess(res, 200, { response: { content: notFound } });
       }
+
+      // If the user intends to send/attach the document, create a project message (and optional task/reminder)
+      const intendsToSend = lower.includes('send') || lower.includes('attach') || lower.includes('message');
+      const intendsTask = lower.includes('task');
+      const intendsReminder = lower.includes('reminder') || lower.includes('calendar');
+
+      if (intendsToSend || intendsTask || intendsReminder) {
+        // Resolve project from text or session
+        let proj = projectContext;
+        if (!proj) {
+          try {
+            const resolved = await resolveProjectFromMessage(message);
+            if (resolved?.project) proj = resolved.project;
+          } catch (_) {}
+        }
+        if (!proj) {
+          const msg = 'Please specify a project (name or project number) so I can send this document.';
+          contextManager.addToHistory(req.user.id, message, msg, projectContext || null);
+          return sendSuccess(res, 200, { response: { content: msg } });
+        }
+
+        // Extract and resolve recipients (prefer explicit internal users, not customers)
+        const recipientNames = extractRecipientNames(message);
+        let recipients = [];
+        if (recipientNames.length > 0) {
+          const ors = [];
+          for (const n of recipientNames) {
+            const [fn, ln] = String(n).split(/\s+/);
+            if (fn && ln) {
+              ors.push({ AND: [
+                { firstName: { contains: fn, mode: 'insensitive' } },
+                { lastName: { contains: ln, mode: 'insensitive' } }
+              ]});
+            } else if (fn) {
+              ors.push({ OR: [
+                { firstName: { contains: fn, mode: 'insensitive' } },
+                { lastName: { contains: fn, mode: 'insensitive' } }
+              ]});
+            }
+          }
+          if (ors.length) {
+            recipients = await prisma.user.findMany({
+              where: { OR: ors },
+              select: { id: true, firstName: true, lastName: true, email: true }
+            });
+          }
+        }
+        // Fallback: if "Sarah Owner" (or role owner) is intended but not matched yet, prefer project manager/internal user
+        if (recipients.length === 0) {
+          try {
+            if (lower.includes('sarah owner')) {
+              const sarah = await prisma.user.findFirst({
+                where: {
+                  AND: [
+                    { firstName: { contains: 'Sarah', mode: 'insensitive' } },
+                    { lastName: { contains: 'Owner', mode: 'insensitive' } }
+                  ]
+                },
+                select: { id: true, firstName: true, lastName: true, email: true }
+              });
+              if (sarah) recipients = [sarah];
+            }
+            if (recipients.length === 0 && (lower.includes('owner') || lower.includes('project manager'))) {
+              const projFull = await prisma.project.findUnique({ where: { id: proj.id }, select: { projectManagerId: true } });
+              if (projFull?.projectManagerId) {
+                const pm = await prisma.user.findUnique({ where: { id: projFull.projectManagerId }, select: { id: true, firstName: true, lastName: true, email: true } });
+                if (pm) recipients = [pm];
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Extract a short message content if present (e.g., "with a message saying ...")
+        let userContent = '';
+        const sayingIdx = lower.indexOf('message saying');
+        if (sayingIdx !== -1) {
+          userContent = message.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+        }
+        if (!userContent) {
+          // Fallback to anything after the word "with a message"
+          const withIdx = lower.indexOf('with a message');
+          if (withIdx !== -1) {
+            userContent = message.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+          }
+        }
+
+        // Build attachment metadata
+        const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl || null;
+        const attachment = {
+          assetId: asset.id || null,
+          title: asset.title || 'Document',
+          mimeType: asset.mimeType || 'application/octet-stream',
+          fileUrl,
+          thumbnailUrl: asset.thumbnailUrl || null
+        };
+
+        // Create a project message with attachment metadata
+        const pm = await prisma.projectMessage.create({
+          data: {
+            content: userContent || `Shared document: ${attachment.title}`,
+            subject: `Document: ${attachment.title}`,
+            messageType: 'USER_MESSAGE',
+            priority: 'MEDIUM',
+            authorId: req.user.id,
+            authorName: `${req.user.firstName || 'Bubbles'} ${req.user.lastName || 'AI'}`.trim(),
+            authorRole: req.user.role || 'AI_ASSISTANT',
+            projectId: proj.id,
+            projectNumber: proj.projectNumber,
+            isSystemGenerated: false,
+            isWorkflowMessage: false,
+            metadata: { attachments: [attachment] }
+          }
+        });
+
+        // Add recipients if provided
+        if (recipients.length > 0) {
+          await prisma.projectMessageRecipient.createMany({
+            data: recipients.map(r => ({ messageId: pm.id, userId: r.id }))
+          });
+        }
+
+        // Optionally create a Task
+        let createdTask = null;
+        if (intendsTask) {
+          let assignedToId = recipients?.[0]?.id || null;
+          if (!assignedToId) {
+            // Try project manager as default assignee
+            try {
+              const projFull = await prisma.project.findUnique({ where: { id: proj.id }, select: { projectManagerId: true } });
+              assignedToId = projFull?.projectManagerId || req.user.id;
+            } catch (_) { assignedToId = req.user.id; }
+          }
+          const priority = lower.includes('high') ? 'HIGH' : (lower.includes('low') ? 'LOW' : 'MEDIUM');
+          const due = parseDueDateFromText(message);
+          const taskTitle = (userContent && userContent.length <= 80)
+            ? userContent
+            : `Review: ${attachment.title}`;
+          try {
+            createdTask = await prisma.task.create({
+              data: {
+                title: taskTitle.slice(0, 200),
+                description: `Auto-created from Bubbles when sending ${attachment.title}.` + (userContent ? `\n\nNote: ${userContent}` : ''),
+                dueDate: due,
+                priority,
+                status: 'TO_DO',
+                category: 'DOCUMENTATION',
+                projectId: proj.id,
+                assignedToId,
+                createdById: req.user.id
+              }
+            });
+          } catch (taskErr) {
+            // Non-fatal: continue
+          }
+        }
+
+        // Optionally create a Reminder (Calendar Event)
+        let createdReminder = null;
+        if (intendsReminder) {
+          try {
+            const start = parseReminderDateTimeFromText(message);
+            const end = new Date(start.getTime() + 30 * 60 * 1000);
+            const event = await prisma.calendarEvent.create({
+              data: {
+                title: `Follow-up: ${attachment.title}`.slice(0, 120),
+                description: `Auto-created from Bubbles when sending ${attachment.title}.` + (userContent ? `\n\nNote: ${userContent}` : ''),
+                startTime: start,
+                endTime: end,
+                isAllDay: false,
+                eventType: 'REMINDER',
+                status: 'CONFIRMED',
+                projectId: proj.id,
+                organizerId: req.user.id,
+                attendees: recipients?.length ? {
+                  create: recipients.map(r => ({ userId: r.id, status: 'REQUIRED', response: 'NO_RESPONSE' }))
+                } : undefined
+              }
+            });
+            createdReminder = event;
+          } catch (remErr) {
+            // Non-fatal
+          }
+        }
+
+        // Build acknowledgment
+        const parts = [];
+        parts.push(`Attached "${attachment.title}" to a new project message for project #${proj.projectNumber}` + (recipients.length ? ` and notified ${recipients.map(r => r.firstName + ' ' + r.lastName).join(', ')}` : '') + '.');
+        if (createdTask) {
+          parts.push(`Created task "${createdTask.title}" (due ${new Date(createdTask.dueDate).toLocaleString()}).`);
+        }
+        if (createdReminder) {
+          parts.push(`Set a reminder for ${new Date(createdReminder.startTime).toLocaleString()}.`);
+        }
+        const ack = parts.join(' ');
+        contextManager.addToHistory(req.user.id, message, ack, proj);
+        return sendSuccess(res, 200, { response: { content: ack }, messageId: pm.id, attachments: [attachment], taskId: createdTask?.id, reminderId: createdReminder?.id });
+      }
+
+      // Default behavior: open the document and extract steps
       const fileData = await readAssetCurrentFile(asset);
       if (!fileData || !fileData.text) {
         const noDisk = 'The document record exists but the file is missing on disk. Please re-upload it from Documents & Resources.';

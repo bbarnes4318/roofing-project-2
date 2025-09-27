@@ -534,62 +534,83 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     try {
       // Start with locally added items (messages/tasks/reminders) so they appear immediately
       const realItems = Array.isArray(feed) ? [...feed] : [];
+      // Track seen items using stable composite keys: `${type}:${rawId}`
+      const seenKeys = new Set();
+      const markSeen = (type, id) => {
+        const rawId = String(id || '').replace(/^(activity_|task_|reminder_)/, '');
+        seenKeys.add(`${type}:${rawId}`);
+      };
+      realItems.forEach(it => markSeen(it.type || 'message', it.id));
       
       // Add activities (messages) using displayActivities fallback
       (Array.isArray(displayActivities) ? displayActivities : []).forEach(activity => {
         const normalizedType = ['message', 'task', 'reminder'].includes(activity.type) ? activity.type : 'message';
-        realItems.push({
-          id: `activity_${activity.id}`,
-          type: normalizedType || 'message',
-          subject: activity.subject || activity.title || 'Activity Update',
-          description: activity.description || activity.content,
-          user: activity.user || activity.userName || 'Unknown User',
-          timestamp: activity.createdAt || activity.timestamp,
-          projectId: activity.projectId,
-          projectName: activity.projectName,
-          priority: activity.priority || 'medium'
-        });
+        const key = `${normalizedType}:${activity.id}`;
+        if (!seenKeys.has(key)) {
+          realItems.push({
+            id: `activity_${activity.id}`,
+            type: normalizedType || 'message',
+            subject: activity.subject || activity.title || 'Activity Update',
+            description: activity.description || activity.content,
+            user: activity.user || activity.userName || 'Unknown User',
+            timestamp: activity.createdAt || activity.timestamp,
+            projectId: activity.projectId,
+            projectName: activity.projectName,
+            priority: activity.priority || 'medium',
+            // Preserve server-provided metadata (e.g., attachments) so UI can render thumbnails
+            metadata: activity.metadata || null
+          });
+          markSeen(normalizedType, activity.id);
+        }
       });
       
       // Add tasks using displayTasks fallback
       (Array.isArray(displayTasks) ? displayTasks : []).forEach(task => {
-        realItems.push({
-          id: `task_${task.id}`,
-          type: 'task',
-          subject: task.title || task.subject || 'Task',
-          description: task.description || task.content,
-          user: task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : (task.assignedTo || 'Unassigned'),
-          // Provide robust timestamp fallbacks for mock data
-          timestamp: task.createdAt || task.timestamp || task.dueDate || new Date().toISOString(),
-          projectId: task.projectId,
-          projectName: task.project?.name || task.projectName,
-          priority: task.priority || 'medium',
-          status: task.status,
-          dueDate: task.dueDate,
-          // Normalize fields used by TaskItem
-          author: task.author || 'System',
-          assignedTo: task.assignedTo || (task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : undefined)
-        });
+        const key = `task:${task.id}`;
+        if (!seenKeys.has(key)) {
+          realItems.push({
+            id: `task_${task.id}`,
+            type: 'task',
+            subject: task.title || task.subject || 'Task',
+            description: task.description || task.content,
+            user: task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : (task.assignedTo || 'Unassigned'),
+            // Provide robust timestamp fallbacks for mock data
+            timestamp: task.createdAt || task.timestamp || task.dueDate || new Date().toISOString(),
+            projectId: task.projectId,
+            projectName: task.project?.name || task.projectName,
+            priority: task.priority || 'medium',
+            status: task.status,
+            dueDate: task.dueDate,
+            // Normalize fields used by TaskItem
+            author: task.author || 'System',
+            assignedTo: task.assignedTo || (task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : undefined)
+          });
+          markSeen('task', task.id);
+        }
       });
       
       // Add calendar events (reminders) using displayCalendarEvents fallback
       (Array.isArray(displayCalendarEvents) ? displayCalendarEvents : []).forEach(event => {
-        realItems.push({
-          id: `reminder_${event.id}`,
-          type: 'reminder', 
-          subject: event.title || event.subject || 'Reminder',
-          description: event.description || event.content,
-          user: event.createdByUser ? `${event.createdByUser.firstName} ${event.createdByUser.lastName}` : 'Unknown User',
-          // Use 'when' as timestamp fallback for mock reminders
-          timestamp: event.createdAt || event.timestamp || event.when || event.startDate || new Date().toISOString(),
-          projectId: event.projectId,
-          projectName: event.project?.name || event.projectName,
-          priority: event.priority || 'medium',
-          when: event.startDate || event.when,
-          // Provide authorId and recipients for UI filters and display
-          authorId: event.createdBy || event.organizerId || event.authorId || currentUser?.id || null,
-          recipients: Array.isArray(event.userIds) ? event.userIds : ['all']
-        });
+        const key = `reminder:${event.id}`;
+        if (!seenKeys.has(key)) {
+          realItems.push({
+            id: `reminder_${event.id}`,
+            type: 'reminder', 
+            subject: event.title || event.subject || 'Reminder',
+            description: event.description || event.content,
+            user: event.createdByUser ? `${event.createdByUser.firstName} ${event.createdByUser.lastName}` : 'Unknown User',
+            // Use 'when' as timestamp fallback for mock reminders
+            timestamp: event.createdAt || event.timestamp || event.when || event.startDate || new Date().toISOString(),
+            projectId: event.projectId,
+            projectName: event.project?.name || event.projectName,
+            priority: event.priority || 'medium',
+            when: event.startDate || event.when,
+            // Provide authorId and recipients for UI filters and display
+            authorId: event.createdBy || event.organizerId || event.authorId || currentUser?.id || null,
+            recipients: Array.isArray(event.userIds) ? event.userIds : ['all']
+          });
+          markSeen('reminder', event.id);
+        }
       });
       
       // Fallback to synthesized activities if no real data

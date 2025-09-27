@@ -14,7 +14,6 @@ const router = express.Router();
 // Apply authentication to all routes
 router.use(authenticateToken);
 
-// Transform message data to activity format for frontend compatibility
 const transformMessageToActivity = (message, currentUserId) => {
   const authorName = message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User';
   const projectName = message.project ? message.project.projectName : 'Unknown Project';
@@ -42,15 +41,57 @@ const transformMessageToActivity = (message, currentUserId) => {
     isOwnMessage: isOwnMessage,
     recipients: ['all'], // Project messages are visible to all project team members
     metadata: {
-      projectId: message.projectId,
       projectName: projectName,
       messageType: message.messageType,
       priority: message.priority,
       phase: message.phase,
       isSystemGenerated: message.isSystemGenerated,
       authorId: message.authorId,
-      isOwnMessage: isOwnMessage
+      isOwnMessage: isOwnMessage,
+      attachments: (message.metadata && message.metadata.attachments) ? message.metadata.attachments : []
     }
+  };
+};
+
+const transformTaskToActivity = (task) => {
+  const assignedName = task.assignedTo ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}` : null;
+  const creatorName = task.createdBy ? `${task.createdBy.firstName} ${task.createdBy.lastName}` : 'System';
+  const projectName = task.project ? task.project.projectName : 'Unknown Project';
+  return {
+    id: task.id,
+    _id: task.id,
+    type: 'task',
+    subject: task.title || 'Task',
+    description: task.description || '',
+    user: assignedName || creatorName,
+    author: creatorName,
+    timestamp: task.createdAt || task.dueDate || new Date().toISOString(),
+    projectId: task.projectId,
+    projectName,
+    priority: (task.priority || 'MEDIUM').toLowerCase(),
+    status: task.status,
+    dueDate: task.dueDate,
+    metadata: { taskId: task.id }
+  };
+};
+
+const transformEventToActivity = (event) => {
+  const organizerName = event.organizer ? `${event.organizer.firstName} ${event.organizer.lastName}` : 'Unknown User';
+  const projectName = event.project ? event.project.projectName : 'Unknown Project';
+  return {
+    id: event.id,
+    _id: event.id,
+    type: 'reminder',
+    subject: event.title || 'Reminder',
+    description: event.description || '',
+    user: organizerName,
+    author: organizerName,
+    timestamp: event.startTime || event.createdAt || new Date().toISOString(),
+    projectId: event.projectId,
+    projectName,
+    priority: 'medium',
+    when: event.startTime,
+    metadata: { eventId: event.id, eventType: event.eventType }
   };
 };
 
@@ -104,48 +145,84 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
     where.AND = [{ projectId }];
   }
 
-  // Build sort object
+  // Build sort object for messages (others will be normalized post-merge)
   const orderBy = {};
   orderBy[sortBy] = sortOrder === 'desc' ? 'desc' : 'asc';
 
   try {
-    console.log('🔍 ACTIVITIES: Fetching messages as activities...');
-    
-    // Get project messages with author information
-    const [messages, total] = await Promise.all([
+    console.log('🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...');
+
+    // Build where clauses for tasks and reminders
+    const taskWhere = {
+      OR: [
+        { createdById: req.user.id },
+        { assignedToId: req.user.id },
+        { project: { OR: [ { projectManagerId: req.user.id }, { teamMembers: { some: { userId: req.user.id } } } ] } }
+      ]
+    };
+    if (projectId) taskWhere.AND = [{ projectId }];
+
+    const eventWhere = {
+      eventType: 'REMINDER',
+      OR: [
+        { organizerId: req.user.id },
+        { attendees: { some: { userId: req.user.id } } },
+        { project: { OR: [ { projectManagerId: req.user.id }, { teamMembers: { some: { userId: req.user.id } } } ] } }
+      ]
+    };
+    if (projectId) eventWhere.AND = [{ projectId }];
+
+    const fetchSize = limitNum * 3; // over-fetch to ensure we can page after merge
+
+    const [messages, tasks, events, messageCount, taskCount, eventCount] = await Promise.all([
       prisma.projectMessage.findMany({
         where,
         orderBy,
-        skip,
-        take: limitNum,
+        skip: 0,
+        take: fetchSize,
         include: {
-          author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              role: true
-            }
-          },
-          project: {
-            select: {
-              id: true,
-              projectName: true,
-              projectNumber: true
-            }
-          }
+          author: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
+          project: { select: { id: true, projectName: true, projectNumber: true } }
         }
       }),
-      prisma.projectMessage.count({ where })
+      prisma.task.findMany({
+        where: taskWhere,
+        orderBy: { createdAt: sortOrder === 'desc' ? 'desc' : 'asc' },
+        take: fetchSize,
+        include: {
+          assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
+          createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+          project: { select: { id: true, projectName: true, projectNumber: true } }
+        }
+      }),
+      prisma.calendarEvent.findMany({
+        where: eventWhere,
+        orderBy: { startTime: sortOrder === 'desc' ? 'desc' : 'asc' },
+        take: fetchSize,
+        include: {
+          organizer: { select: { id: true, firstName: true, lastName: true, email: true } },
+          project: { select: { id: true, projectName: true, projectNumber: true } }
+        }
+      }),
+      prisma.projectMessage.count({ where }),
+      prisma.task.count({ where: taskWhere }),
+      prisma.calendarEvent.count({ where: eventWhere })
     ]);
 
-    console.log(`✅ ACTIVITIES: Found ${messages.length} messages`);
+    const total = (messageCount || 0) + (taskCount || 0) + (eventCount || 0);
 
-    // Transform messages to activity format
-    const activities = messages.map(message => transformMessageToActivity(message, req.user.id));
+    const messageActivities = messages.map(m => transformMessageToActivity(m, req.user.id));
+    const taskActivities = tasks.map(t => transformTaskToActivity(t));
+    const eventActivities = events.map(e => transformEventToActivity(e));
 
-    sendPaginatedResponse(res, activities, pageNum, limitNum, total, 'Activities retrieved successfully');
+    const merged = [...messageActivities, ...taskActivities, ...eventActivities]
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    const start = skip;
+    const end = skip + limitNum;
+    const pageItems = merged.slice(start, end);
+
+    sendPaginatedResponse(res, pageItems, pageNum, limitNum, total, 'Activities retrieved successfully');
   } catch (error) {
     console.error('❌ ACTIVITIES: Error fetching activities:', error);
     throw new AppError('Failed to fetch activities', 500);
@@ -183,35 +260,59 @@ router.get('/recent', asyncHandler(async (req, res) => {
       ]
     };
 
-    // Get recent project messages with author and project information
-    const messages = await prisma.projectMessage.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: limitNum,
-      include: {
-        author: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            role: true
-          }
-        },
-        project: {
-          select: {
-            id: true,
-            projectName: true,
-            projectNumber: true
-          }
+    // Fetch recent messages, tasks, and reminders
+    const fetchSize = limitNum * 3;
+    const [messages, tasks, events] = await Promise.all([
+      prisma.projectMessage.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: fetchSize,
+        include: {
+          author: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
+          project: { select: { id: true, projectName: true, projectNumber: true } }
         }
-      }
-    });
+      }),
+      prisma.task.findMany({
+        where: {
+          OR: [
+            { createdById: req.user.id },
+            { assignedToId: req.user.id },
+            { project: { OR: [ { projectManagerId: req.user.id }, { teamMembers: { some: { userId: req.user.id } } } ] } }
+          ]
+        },
+        orderBy: { createdAt: 'desc' },
+        take: fetchSize,
+        include: {
+          assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
+          createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+          project: { select: { id: true, projectName: true, projectNumber: true } }
+        }
+      }),
+      prisma.calendarEvent.findMany({
+        where: {
+          eventType: 'REMINDER',
+          OR: [
+            { organizerId: req.user.id },
+            { attendees: { some: { userId: req.user.id } } },
+            { project: { OR: [ { projectManagerId: req.user.id }, { teamMembers: { some: { userId: req.user.id } } } ] } }
+          ]
+        },
+        orderBy: { startTime: 'desc' },
+        take: fetchSize,
+        include: {
+          organizer: { select: { id: true, firstName: true, lastName: true, email: true } },
+          project: { select: { id: true, projectName: true, projectNumber: true } }
+        }
+      })
+    ]);
 
-    console.log(`✅ ACTIVITIES: Found ${messages.length} recent messages`);
-
-    // Transform messages to activity format
-    const activities = messages.map(message => transformMessageToActivity(message, req.user.id));
+    const activities = [
+      ...messages.map(m => transformMessageToActivity(m, req.user.id)),
+      ...tasks.map(t => transformTaskToActivity(t)),
+      ...events.map(e => transformEventToActivity(e))
+    ]
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, limitNum);
 
     sendSuccess(res, 200, activities, 'Recent activities retrieved successfully');
   } catch (error) {

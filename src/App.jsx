@@ -76,7 +76,6 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(false); // Start as false since we're not loading
     const [activities, setActivities] = useState([]);
     // unauthenticated view state: 'login' | 'register'
-    const [authView, setAuthView] = useState('login');
     const [tasks, setTasks] = useState([]);
     const [projects, setProjects] = useState([]);
     const [projectsLoading, setProjectsLoading] = useState(false);
@@ -86,17 +85,59 @@ export default function App() {
     const suppressScrollTopUntilRef = useRef(0);
     const suppressScrollTopUntil = suppressScrollTopUntilRef.current;
     
-    // Onboarding state
-    const [needsOnboarding, setNeedsOnboarding] = useState(false);
-    const [onboardingChecked, setOnboardingChecked] = useState(false);
-    
-    // Navigation state must be declared before conditional returns
+    // Track per-page scroll positions to restore on back navigation
+    const pageScrollPositionsRef = useRef({});
+    const getPrimaryScrollTop = () => {
+        try {
+            const candidates = [
+                window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
+                (document.querySelector('.flex-1.overflow-y-auto')?.scrollTop) || 0,
+                (document.querySelector('main')?.scrollTop) || 0,
+                (document.querySelector('#root')?.scrollTop) || 0,
+                (document.querySelector('.overflow-y-auto')?.scrollTop) || 0
+            ];
+            return Math.max(...candidates);
+        } catch (_) {
+            return window.pageYOffset || 0;
+        }
+    };
+    const recordScrollFor = (pageName) => {
+        try {
+            if (!pageName) return;
+            pageScrollPositionsRef.current[pageName] = getPrimaryScrollTop();
+        } catch (_) {}
+    };
+    const restoreScrollFor = (pageName) => {
+        try {
+            const pos = pageScrollPositionsRef.current[pageName];
+            if (pos == null) return;
+            const apply = () => {
+                window.scrollTo({ top: pos, left: 0, behavior: 'auto' });
+                const containers = [
+                    document.querySelector('.flex-1.overflow-y-auto'),
+                    document.querySelector('main'),
+                    document.querySelector('#root'),
+                    document.querySelector('.overflow-y-auto')
+                ];
+                containers.forEach(el => { if (el) el.scrollTop = pos; });
+            };
+            apply();
+            setTimeout(apply, 50);
+            setTimeout(apply, 120);
+            setTimeout(apply, 250);
+        } catch (_) {}
+    };
+
     const [navigationState, setNavigationState] = useState({
         selectedProject: null,
         projectInitialView: 'Profile',
         projectSourceSection: null,
         previousPage: 'Overview'
     });
+
+    // Onboarding state
+    const [needsOnboarding, setNeedsOnboarding] = useState(false);
+    const [onboardingChecked, setOnboardingChecked] = useState(false);
 
     // On mount, check Supabase auth state and perform token exchange
     useEffect(() => {
@@ -120,7 +161,7 @@ export default function App() {
             
             try {
                 // Skip onboarding for existing users - only show for brand new users without any data
-                const needsOnboarding = 
+                const needsOnboardingFlag = 
                     currentUser.hasCompletedOnboarding === false ||
                     (currentUser.role === 'WORKER' && !currentUser.id); // Only if no user ID (brand new)
                 
@@ -128,9 +169,9 @@ export default function App() {
                 console.log('🔍 ONBOARDING: User role:', currentUser.role);
                 console.log('🔍 ONBOARDING: User ID:', currentUser.id);
                 console.log('🔍 ONBOARDING: hasCompletedOnboarding:', currentUser.hasCompletedOnboarding);
-                console.log('🔍 ONBOARDING: needsOnboarding result:', needsOnboarding);
+                console.log('🔍 ONBOARDING: needsOnboarding result:', needsOnboardingFlag);
                 
-                setNeedsOnboarding(needsOnboarding);
+                setNeedsOnboarding(needsOnboardingFlag);
                 setOnboardingChecked(true);
             } catch (error) {
                 console.error('Error checking onboarding status:', error);
@@ -331,8 +372,9 @@ const apiUrl = window.location.hostname === 'localhost'
 
     // Scroll to top whenever activePage changes
     useEffect(() => {
-        // Skip global scroll-to-top when returning to a specific section (e.g., Current Alerts)
+        // Skip global scroll-to-top when doing a back navigation; instead restore saved position
         if (Date.now() < suppressScrollTopUntilRef.current) {
+            restoreScrollFor(activePage);
             return;
         }
         // IMMEDIATE scroll to top - multiple methods
@@ -477,6 +519,8 @@ const apiUrl = window.location.hostname === 'localhost'
     const navigate = (page) => { 
         console.log('🔍 APP: navigate called with page:', page);
         console.log('🔍 APP: Current activePage:', activePage);
+        // Record current page scroll before navigating
+        recordScrollFor(activePage);
         
         // Enhanced navigation with proper state management
         setNavigationState(prev => ({
@@ -503,6 +547,9 @@ const apiUrl = window.location.hostname === 'localhost'
     const handleBackButton = () => {
         console.log('🔍 APP: handleBackButton called');
         console.log('🔍 APP: navigationState:', navigationState);
+        // Record current scroll and suppress scroll-to-top, we will restore target page position
+        recordScrollFor(activePage);
+        suppressScrollTopUntilRef.current = Date.now() + 1500;
         
         if (navigationState.selectedProject) {
             console.log('🔍 APP: Going back from project detail');

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
+import assetsService from '../../services/assetsService';
 import TaskItem from '../ui/TaskItem';
 import ReminderItem from '../ui/ReminderItem';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -215,6 +216,46 @@ const ActivityFeedSection = ({
                       onToggleExpansion={() => actions.toggleExpanded(item.id)}
                       sourceSection="Activity Feed"
                     />
+                    {Array.isArray(item?.metadata?.attachments) && item.metadata.attachments.length > 0 && (
+                      <div className="px-3 pb-3">
+                        <div className="flex gap-2 flex-wrap">
+                          {item.metadata.attachments.map((att, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                try {
+                                  if (att.assetId) {
+                                    assetsService.openInNewTab(att.assetId);
+                                  } else if (att.fileUrl) {
+                                    window.open(att.fileUrl, '_blank', 'noopener');
+                                  }
+                                } catch (_) {}
+                              }}
+                              className="group w-[120px] border border-gray-200 rounded-md overflow-hidden bg-white hover:shadow transition-shadow"
+                              title={att.title || 'Attachment'}
+                            >
+                              <div className="w-full h-20 bg-gray-100 flex items-center justify-center overflow-hidden">
+                                {att.thumbnailUrl ? (
+                                  <img src={att.thumbnailUrl} alt={att.title || 'Attachment'} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="flex items-center justify-center text-gray-500">
+                                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 3h6l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 3v6h6" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="px-2 py-1 text-[10px] text-gray-700 truncate text-left">
+                                {att.title || 'Attachment'}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               } else if (item.type === 'task') {

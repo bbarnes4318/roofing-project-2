@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useProjects, useWorkflowAlerts, useRecentActivities } from '../../hooks/useQueryApi';
 import WorkflowProgressService from '../../services/workflowProgress';
 
@@ -8,11 +8,6 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     const [completedTasks, setCompletedTasks] = useState(new Set());
     const [activeCommTab, setActiveCommTab] = useState('messages');
     
-    // Fetch EXACT same data sources as Dashboard
-    const { data: projectsData } = useProjects();
-    const realProjects = projectsData?.data || projects || [];
-    
-    // Mock data for now - should match Dashboard's data sources
     const messagesData = activities?.filter(a => a.type === 'message') || [];
     const calendarEvents = activities?.filter(a => a.type === 'task' || a.type === 'reminder') || [];
     const { alerts: workflowAlerts } = useWorkflowAlerts({ status: 'active' });
@@ -67,6 +62,16 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
         // Sort newest first
         return items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     }, [messagesData, calendarEvents, workflowAlerts, realProjects]);
+
+    // Expand all items by default on first load, mirroring Dashboard behavior
+    const expandedInitRef = useRef(false);
+    useEffect(() => {
+        if (expandedInitRef.current) return;
+        if (Array.isArray(activityFeedItems) && activityFeedItems.length > 0) {
+            setExpandedMessages(new Set(activityFeedItems.map(i => i.id)));
+            expandedInitRef.current = true;
+        }
+    }, [activityFeedItems]);
 
     // EXACT same handlers as Dashboard
     const handleTaskToggle = (taskId) => {
