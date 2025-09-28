@@ -13,6 +13,7 @@ const ProjectWorkflowLineItemsSection = ({
   currentUser = null,
   handleProjectSelectWithScroll
 }) => {
+  const alertsCount = Array.isArray(workflowAlerts) ? workflowAlerts.length : 0;
   // State for alerts
   const [expandedAlerts, setExpandedAlerts] = useState(new Set());
   const [expandedContacts, setExpandedContacts] = useState(new Set());
@@ -151,6 +152,10 @@ const ProjectWorkflowLineItemsSection = ({
 
   return (
     <div className="w-full" data-section="project-workflow-tasks">
+      {/* DEBUG BANNER - remove when finished debugging */}
+      <div className={`mb-3 p-2 rounded text-sm font-medium ${colorMode ? 'bg-red-900 text-white' : 'bg-red-100 text-red-800'} border ${colorMode ? 'border-red-700' : 'border-red-200'}`}>
+        DEBUG: ProjectWorkflowLineItemsSection mounted — alertsReceived: {alertsCount} — alertsLoading: {String(!!alertsLoading)}
+      </div>
       {/* Beautiful original alerts UI with new functionality */}
       <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
         <div className="mb-4">
@@ -265,8 +270,56 @@ const ProjectWorkflowLineItemsSection = ({
               const isExpanded = expandedAlerts.has(alertId);
               
               // Get proper section and line item from alert metadata
-              const sectionName = actionData.section || 'Unknown Section';
-              const lineItemName = actionData.lineItem || 'Unknown Line Item';
+              const sectionName = actionData.section || actionData.sectionName || 'Unknown Section';
+
+              // Resolve line item display name from multiple possible shapes (exhaustive)
+              const resolveLineItemName = (alertObj) => {
+                if (!alertObj) return 'Unknown Line Item';
+                // Top-level candidates
+                const top = [alertObj.lineItem, alertObj.stepName, alertObj.stepLabel, alertObj.title, alertObj.message, alertObj.name];
+
+                // Action/metadata bucket
+                const ad = alertObj.actionData || alertObj.metadata || {};
+                const actionCandidates = [
+                  ad.stepName, ad.lineItemName, ad.lineItem, ad.currentLineItemName, ad.stepLabel, ad.lineItemLabel, ad.name, ad.label, ad.title, ad.cleanTaskName
+                ];
+
+                const meta = alertObj.metadata || {};
+                const metaCandidates = [meta.lineItem, meta.cleanTaskName, meta.stepName, meta.lineItemName, meta.name, meta.label];
+
+                const candidates = [...top, ...actionCandidates, ...metaCandidates];
+
+                for (const c of candidates) {
+                  if (c === null || c === undefined) continue;
+                  if (typeof c === 'object') {
+                    if (c.name) return String(c.name);
+                    if (c.label) return String(c.label);
+                    continue;
+                  }
+                  if (typeof c === 'string' && c.trim()) return c.trim();
+                  if (typeof c === 'number') return String(c);
+                }
+
+                // If there's a stepId/lineItemId, show that raw id as a fallback so something is visible
+                if (alertObj.stepId) return String(alertObj.stepId);
+                if (alertObj.lineItemId) return String(alertObj.lineItemId);
+
+                // Last resort: return a clear placeholder
+                return '(unknown line item)';
+              };
+
+              const lineItemName = resolveLineItemName(alert);
+
+              // Compute a stable rendered id for this line item so Dashboard can target it when restoring
+              const renderedLineItemId = actionData.stepId || actionData.lineItemId || alert.stepId || alert.lineItemId || `alert-${alertId}`;
+
+              // Debugging: if we couldn't resolve a meaningful line item, log the alert payload (limited to first few occurrences)
+              try {
+                if ((!lineItemName || lineItemName === '(unknown line item)') && window && window.console) {
+                  // Log once per session for diagnosis
+                  console.debug('⚠️ Workflow Alert missing lineItemName, actionData:', actionData, 'alert:', alert);
+                }
+              } catch (_) {}
               
               // Get user group from alert's responsible role
               const getUserGroupFromAlert = (alert) => {
@@ -437,7 +490,7 @@ const ProjectWorkflowLineItemsSection = ({
                       {/* Section label and value - properly aligned */}
                       <div className="flex items-center" style={{ width: '150px' }}>
                         <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ marginLeft: '4px' }}>Section:</span>
-                        <span className={`font-semibold truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`} style={{ marginLeft: '4px' }}>
+                        <span className={`font-semibold truncate ${colorMode ? 'text-white' : 'text-gray-800'}`} style={{ marginLeft: '4px' }}>
                           {sectionName || 'Unknown Section'}
                         </span>
                       </div>
@@ -447,9 +500,12 @@ const ProjectWorkflowLineItemsSection = ({
                         <span className={`font-medium ${colorMode ? 'text-gray-400' : 'text-gray-500'}`} style={{ marginLeft: '8px' }}>Line Item:</span>
                         <span 
                             className={`font-semibold cursor-pointer hover:underline max-w-[120px] truncate ${
-                              colorMode ? 'text-blue-300 hover:text-blue-200' : 'text-brand-600 hover:text-brand-800'
+                              colorMode ? 'text-white hover:text-gray-200' : 'text-gray-800 hover:text-gray-900'
                             }`}
                             style={{ marginLeft: '4px' }}
+                            id={`lineitem-${renderedLineItemId}`}
+                            data-lineitem-id={renderedLineItemId}
+                            data-alert-id={alertId}
                             title={lineItemName || 'Unknown Line Item'}
                             onClick={async (e) => {
                               e.stopPropagation();

@@ -16,7 +16,7 @@ import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from 
 
 import ProjectCubes from '../dashboard/ProjectCubes';
 import CurrentProjectsByPhase from '../dashboard/CurrentProjectsByPhase';
-import { mockProjects, mockMessages, mockTasks, mockReminders, mockTeamMembers } from '../../data/mockData';
+import { mockProjects, mockMessages, mockTasks, mockReminders } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, useTeamMembers, queryKeys } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
@@ -217,11 +217,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Use React Query hooks for user data (must be declared before activityFeedItems useMemo)
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
   const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
-  // Fallback: if no team members, use mock data so the UI is usable
+  // Use live team members from API. If the API returns nothing, show empty list (no fake users).
   const usersForUi = useMemo(() => {
-    if (Array.isArray(availableUsers) && availableUsers.length > 0) return availableUsers;
-    return mockTeamMembers;
-  }, [availableUsers, currentUser]);
+    return Array.isArray(availableUsers) ? availableUsers : [];
+  }, [availableUsers]);
   
   // Fetch messages from conversations
   const [messagesData, setMessagesData] = useState([]);
@@ -262,6 +261,56 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     // Remove refetchProjects from dependencies to prevent infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardState, projectsError]);
+
+  // Restore workflow-specific navigation when coming back from a project workflow link
+  useEffect(() => {
+    try {
+      const workflowRestore = dashboardState?.workflowRestore;
+      if (!workflowRestore) return;
+
+      const { targetLineItemId, targetSectionId, project } = workflowRestore || {};
+      if (!targetLineItemId || !project) return;
+
+      // Scroll to the Project Workflow section and highlight the specific line item if present
+      setTimeout(() => {
+        const workflowSection = document.querySelector('[data-section="project-workflow-tasks"]');
+        if (workflowSection) {
+          workflowSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Attempt to find the specific line item element by id pattern used elsewhere
+        const targetEl = document.getElementById(`lineitem-${targetLineItemId}`) || document.querySelector(`[data-lineitem-id="${targetLineItemId}"]`);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const original = targetEl.style.boxShadow;
+          targetEl.style.boxShadow = '0 0 10px rgba(59,130,246,0.6)';
+          setTimeout(() => { targetEl.style.boxShadow = original || ''; }, 2500);
+        }
+      }, 120);
+    } catch (err) {
+      console.warn('Workflow restore failed:', err);
+    }
+  }, [dashboardState]);
+
+  // After a successful restore, notify App to clear the stored workflowRestore to avoid repeating
+  useEffect(() => {
+    try {
+      const workflowRestore = dashboardState?.workflowRestore;
+      if (!workflowRestore) return;
+
+      const { targetLineItemId } = workflowRestore || {};
+      if (!targetLineItemId) return;
+
+      // Wait a bit to allow highlight to complete, then dispatch event
+      const t = setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('dashboard:clearWorkflowRestore'));
+        } catch (e) {}
+      }, 800);
+
+      return () => clearTimeout(t);
+    } catch (_) {}
+  }, [dashboardState]);
   
   // Posting state
   const [message, setMessage] = useState('');
@@ -1231,7 +1280,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   return (
     <ActivityProvider>
-      <div className="min-h-screen bg-gradient-to-br from-emerald-200 via-emerald-100 to-emerald-200 text-gray-900">
+  <div className="min-h-screen text-gray-100" style={{ background: 'linear-gradient(135deg, #0f3720 0%, #26532B 34%, #3b7d52 100%)' }}>
       {/* Top Actions */}
       <div className="mb-4 flex items-center justify-end">
         <button
@@ -1259,6 +1308,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         projectsError={projectsError}
         refetchProjects={refetchProjects}
         expandedPhases={expandedPhases}
+        teamMembers={usersForUi}
       />
 
       {/* Main Dashboard Layout - Two Column (Flex-based to avoid grid row height issues) */}

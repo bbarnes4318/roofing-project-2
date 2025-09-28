@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
+import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
 import { ragService } from '../../services/ragService';
 import { projectsService } from '../../services/api';
 import { MagnifyingGlassIcon, PaperAirplaneIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -32,6 +33,7 @@ const AssistantPane = ({ projectId, contextFileIds }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const listRef = useRef(null);
 
   const renderContent = (text) => {
@@ -75,6 +77,17 @@ const AssistantPane = ({ projectId, contextFileIds }) => {
   return (
     <div className="h-full flex flex-col border rounded-lg bg-white">
       <div className="p-3 border-b font-semibold">Assistant</div>
+      {/* Visible quick-start banner so users immediately see what Bubbles can do */}
+      <div className="p-2 border-b bg-white">
+        <div className="max-w-7xl mx-auto px-2 flex items-center justify-between gap-4">
+          <div className="text-sm text-gray-700">Try: "Send inspection_report_v2.pdf to Jane Doe"</div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsQuickModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-500">Quick Start</button>
+            <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className="px-3 py-1.5 border rounded text-sm text-gray-700 hover:bg-gray-50">Printable</a>
+          </div>
+        </div>
+      </div>
+      <CheatSheetModal visible={isQuickModalOpen} onClose={() => setIsQuickModalOpen(false)} />
       <div ref={listRef} className="flex-1 overflow-auto p-3 space-y-3">
         {messages.map((m) => (
           <div key={m.id} className={`rounded-lg p-2 text-sm ${m.role === 'user' ? 'bg-blue-50' : m.role === 'assistant' ? 'bg-gray-50' : 'bg-red-50'}`}>

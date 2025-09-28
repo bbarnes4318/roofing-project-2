@@ -704,6 +704,8 @@ export const useTeamMembers = () => {
       // Robustly extract an array from multiple possible API shapes
       const asArray = (x) => (Array.isArray(x) ? x : null);
       const raw =
+        asArray(data?.data?.teamMembers) ||
+        asArray(data?.teamMembers) ||
         asArray(data?.data) ||
         asArray(data?.users) ||
         asArray(data?.items) ||
@@ -714,8 +716,16 @@ export const useTeamMembers = () => {
         asArray(data) ||
         [];
 
+      // Debug raw response for diagnostics (only in non-production)
+      try {
+        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.debug('useTeamMembers: raw API response', data);
+        }
+      } catch (_) {}
+
       const normalized = raw.map(u => ({
-        id: u.id || u._id || u.userId || u.uuid,
+        id: u.id || u._id || u.userId || u.uuid || null,
         firstName: u.firstName || u.first_name || u.name?.first || '',
         lastName: u.lastName || u.last_name || u.name?.last || '',
         email: u.email || u.primaryEmail || '',
@@ -724,14 +734,20 @@ export const useTeamMembers = () => {
         avatarUrl: u.avatarUrl || u.avatar || u.photoUrl || '',
       }));
 
+      // Filter out any entries missing an id (they can't be used in UI selects)
+      const filtered = normalized.filter(u => u && u.id);
+
       try {
-        // Lightweight debug to help diagnose empty lists
-        if (normalized.length === 0) {
-          console.warn('useTeamMembers: no team members resolved from API response shape', data);
+        if (filtered.length === 0) {
+          // eslint-disable-next-line no-console
+          console.warn('useTeamMembers: normalized team members empty after filtering invalid ids', {
+            rawShape: data,
+            normalizedSample: normalized.slice(0, 8)
+          });
         }
       } catch (_) {}
 
-      return normalized;
+      return filtered;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     // Cache to localStorage as fallback

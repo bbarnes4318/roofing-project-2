@@ -16,7 +16,22 @@ const CurrentProjectsByPhase = ({
   projectsError = null,
   refetchProjects,
   expandedPhases = new Set(),
+  // Optional list of team members to resolve PM ids to display names
+  teamMembers = [],
 }) => {
+  // Build a simple lookup map for quick id/email -> member
+  const teamMemberMap = Array.isArray(teamMembers)
+    ? teamMembers.reduce((m, u) => {
+        try {
+          if (u == null) return m;
+          const idKey = u.id != null ? String(u.id) : null;
+          if (idKey) m[idKey] = u;
+          if (u.email) m[String(u.email).toLowerCase()] = u;
+          if (u.username) m[String(u.username).toLowerCase()] = u;
+        } catch (_) {}
+        return m;
+      }, {})
+    : {};
   const getProjectPhase = (project) => WorkflowProgressService.getProjectPhase(project);
   const getProjectProgress = (project) => (WorkflowProgressService.calculateProjectProgress(project)?.overall || 0);
 
@@ -165,7 +180,6 @@ const CurrentProjectsByPhase = ({
                         )}
                       </button>
                     </th>
-                    <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Alerts</th>
                     <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Messages</th>
                     <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflow</th>
                   </tr>
@@ -177,7 +191,7 @@ const CurrentProjectsByPhase = ({
                 if (projectsLoading) {
                   return (
                     <tr>
-                      <td colSpan="9" className="text-center py-8">
+                      <td colSpan="8" className="text-center py-8">
                         <div className="text-brand-600">Loading projects...</div>
                       </td>
                     </tr>
@@ -186,7 +200,7 @@ const CurrentProjectsByPhase = ({
                 if (projectsError && (!projects || projects.length === 0)) {
                   return (
                     <tr>
-                      <td colSpan="9" className="text-center py-8">
+                      <td colSpan="8" className="text-center py-8">
                         <div className="text-red-600 mb-4">
                           <div className="font-semibold">Error loading projects:</div>
                           <div className="text-sm">{String(projectsError?.message || projectsError || 'Unknown error')}</div>
@@ -216,7 +230,7 @@ const CurrentProjectsByPhase = ({
                 if (!projects || projects.length === 0) {
                   return (
                     <tr>
-                      <td colSpan="9" className="text-center py-8">
+                      <td colSpan="8" className="text-center py-8">
                         <div className="text-gray-600">No projects found</div>
                       </td>
                     </tr>
@@ -280,7 +294,7 @@ const CurrentProjectsByPhase = ({
                   const phaseName = selectedPhase === 'all' ? 'All Projects' : (PROJECT_PHASES.find(p => p.id === selectedPhase)?.name || selectedPhase);
                   return (
                     <tr>
-                      <td colSpan="9" className="text-center py-12">
+                      <td colSpan="8" className="text-center py-12">
                         <div className={`${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           <div className="text-4xl mb-3">📋</div>
                           <div className="font-medium text-sm mb-1">No projects in {phaseName}</div>
@@ -294,7 +308,34 @@ const CurrentProjectsByPhase = ({
                 return sortedProjects.map((project) => {
                   const projectPhase = getProjectPhase(project);
                   const phaseConfig = PROJECT_PHASES.find(p => p.id === projectPhase) || PROJECT_PHASES[0];
-                  const pm = project.projectManager;
+                  // Robust project manager extraction to handle varying API shapes
+                  const pm = project.projectManager || project.pm || project.projectManagerId || project.projectManagerName || project.pmName || null;
+                  const getPMDisplay = (pmVal, projectObj) => {
+                    if (!pmVal && projectObj && (projectObj.projectManagerName || projectObj.pmName)) return projectObj.projectManagerName || projectObj.pmName;
+                    if (!pmVal) return '';
+                    if (typeof pmVal === 'object') {
+                      return pmVal.name || pmVal.displayName || `${(pmVal.firstName || '').trim()} ${(pmVal.lastName || '').trim()}`.trim() || pmVal.fullName || '';
+                    }
+                    // If it's a string id or email, try to resolve via teamMemberMap
+                    if (typeof pmVal === 'string') {
+                      const key = pmVal.trim();
+                      // direct id match
+                      if (teamMemberMap[key]) {
+                        const user = teamMemberMap[key];
+                        return user.name || `${(user.firstName || '').trim()} ${(user.lastName || '').trim()}`.trim() || user.displayName || user.email || key;
+                      }
+                      // try lower-cased email/username match
+                      const lower = key.toLowerCase();
+                      if (teamMemberMap[lower]) {
+                        const user = teamMemberMap[lower];
+                        return user.name || `${(user.firstName || '').trim()} ${(user.lastName || '').trim()}`.trim() || user.displayName || user.email || key;
+                      }
+                      // fallback to project explicit name fields
+                      if (projectObj && (projectObj.projectManagerName || projectObj.pmName)) return projectObj.projectManagerName || projectObj.pmName;
+                      return key;
+                    }
+                    return '';
+                  };
                   const contact = project.client?.name || project.clientName || project.customer?.primaryName || '';
                   const projectType = project.projectType || 'N/A';
 
@@ -343,7 +384,7 @@ const CurrentProjectsByPhase = ({
                       {/* PM */}
                       <td className="py-2 px-2 max-w-24 overflow-hidden">
                         <span className={`text-sm truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                          {pm ? (pm.name || `${pm.firstName || ''} ${pm.lastName || ''}`.trim()) : ''}
+                          {getPMDisplay(pm, project)}
                         </span>
                       </td>
 
@@ -361,26 +402,7 @@ const CurrentProjectsByPhase = ({
                         </span>
                       </td>
 
-                      {/* Alerts */}
-                      <td className="py-2 px-2 whitespace-nowrap">
-                        <button 
-                          onClick={() => {
-                            const projectWithDashboardState = {
-                              ...project,
-                              dashboardState: {
-                                selectedPhase: phaseConfig?.id,
-                                expandedPhases: Array.from(expandedPhases || []),
-                                scrollToProject: project,
-                                projectSourceSection: 'Project Phases'
-                              }
-                            };
-                            onProjectSelect && onProjectSelect(projectWithDashboardState, 'Alerts', null, 'Project Phases');
-                          }}
-                          className="inline-flex items-center justify-center w-16 h-6 border border-brand-500 text-black rounded-md hover:bg-brand-50 transition-colors text-[10px] font-semibold"
-                        >
-                          Alerts
-                        </button>
-                      </td>
+
 
                       {/* Messages */}
                       <td className="py-2 px-2 whitespace-nowrap">

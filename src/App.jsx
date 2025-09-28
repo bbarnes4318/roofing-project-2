@@ -507,6 +507,26 @@ const apiUrl = window.location.hostname === 'localhost'
         window.addEventListener('app:openProjectDocuments', handleOpenProjectDocs);
         return () => window.removeEventListener('app:openProjectDocuments', handleOpenProjectDocs);
     }, [projects, activePage]);
+
+    // Listen for requests to clear the persisted dashboard workflow restore target
+    useEffect(() => {
+        const handler = () => {
+            try {
+                setNavigationState(prev => {
+                    if (!prev || !prev.dashboardState) return prev;
+                    const nextDashboardState = { ...prev.dashboardState };
+                    if (nextDashboardState.workflowRestore) {
+                        delete nextDashboardState.workflowRestore;
+                    }
+                    return { ...prev, dashboardState: nextDashboardState };
+                });
+            } catch (e) {
+                console.warn('Failed to clear dashboard workflowRestore', e);
+            }
+        };
+        window.addEventListener('dashboard:clearWorkflowRestore', handler);
+        return () => window.removeEventListener('dashboard:clearWorkflowRestore', handler);
+    }, []);
     // Gate the app behind Supabase login when unauthenticated
     if (!isAuthenticated) {
         return (
@@ -642,6 +662,21 @@ const apiUrl = window.location.hostname === 'localhost'
         // Special case: if project is null and view is a page name, just navigate to that page
         if (!project && (view === 'Overview' || view === 'Projects' || view === 'Project Messages' || view === 'AI Assistant' || view === 'AI Tools' || view === 'Company Calendar' || view === 'Archived Projects' || view === 'Settings' || view === 'Estimator')) {
             console.log('🔍 APP: Null project with page navigation, going to:', view);
+            // If we have a pending targetLineItemId (from clicking a workflow line item), persist it into dashboardState
+            setNavigationState(prev => {
+                const workflowRestore = {
+                    targetLineItemId: prev.targetLineItemId || null,
+                    targetSectionId: prev.targetSectionId || null,
+                    project: prev.selectedProject || prev.scrollToProject || null
+                };
+                return {
+                    ...prev,
+                    dashboardState: {
+                        ...(prev.dashboardState || {}),
+                        workflowRestore
+                    }
+                };
+            });
             setActivePage(view);
             setSidebarOpen(false);
             return;
@@ -716,7 +751,11 @@ const apiUrl = window.location.hostname === 'localhost'
               ? 'Overview'
               : (navigationState.selectedProject ? navigationState.previousPage : activePage),
             // Preserve the dashboard state for back navigation if provided
-            dashboardState: project?.dashboardState || navigationState.dashboardState,
+            dashboardState: {
+                ...(project?.dashboardState || navigationState.dashboardState || {}),
+                // If a direct line-item target was provided, persist it so Dashboard can restore on back
+                ...(targetLineItemId ? { workflowRestore: { targetLineItemId, targetSectionId, project: projectWithEnhancements } } : {})
+            },
             targetLineItemId: targetLineItemId, // For direct line item navigation
             targetSectionId: targetSectionId, // For direct section navigation
             selectionNonce: project?.navigationTarget?.nonce || Date.now()

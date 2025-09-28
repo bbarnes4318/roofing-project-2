@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { assetsService } from '../../services/assetsService';
+import toast from 'react-hot-toast';
 import { ChevronDownIcon, ChevronUpIcon, ChevronLeftIcon, ChevronRightIcon } from '../common/Icons';
 import { formatPhoneNumber } from '../../utils/helpers';
 import Modal from '../common/Modal';
@@ -82,6 +84,11 @@ const ProjectProfilePage = ({
     const [availableUsers, setAvailableUsers] = useState([]);
     const [defaultRoles, setDefaultRoles] = useState({});
     const [usersLoading, setUsersLoading] = useState(true);
+    const [leadSourcesMap, setLeadSourcesMap] = useState({});
+    const [leadSourcesLoading, setLeadSourcesLoading] = useState(true);
+    const [isEditingLeadSource, setIsEditingLeadSource] = useState(false);
+    const [editingLeadSourceId, setEditingLeadSourceId] = useState(null);
+    const [leadSourceSaving, setLeadSourceSaving] = useState(false);
     
     // Use centralized workflow states
     const { workflowStates, getWorkflowState, getPhaseForProject, getPhaseColorForProject, getPhaseInitialForProject, getProgressForProject } = useWorkflowStates(projectsFromDb);
@@ -149,47 +156,87 @@ const ProjectProfilePage = ({
 
         fetchUsers();
     }, []);
+
+    // Load lead sources lookup for display on Project Profile
+    useEffect(() => {
+        let mounted = true;
+        const loadLeadSources = async () => {
+            try {
+                setLeadSourcesLoading(true);
+                const res = await fetch('/api/lead-sources');
+                if (!res.ok) throw new Error('Failed to load lead sources');
+                const json = await res.json();
+                const items = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+                const map = {};
+                items.forEach(ls => {
+                    if (ls && ls.id) map[ls.id] = ls;
+                });
+                if (mounted) {
+                    setLeadSourcesMap(map);
+                }
+            } catch (e) {
+                console.error('Error loading lead sources:', e);
+                if (mounted) setLeadSourcesMap({});
+            } finally {
+                if (mounted) setLeadSourcesLoading(false);
+            }
+        };
+
+        loadLeadSources();
+
+        return () => { mounted = false; };
+    }, []);
     
     // Filter and sort projects
+    const getFilteredAndSortedProjects = () => {
         let filteredProjects = [...projectsArray];
-        
+
         // Apply search filter
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
-            filteredProjects = filteredProjects.filter(project => 
+            filteredProjects = filteredProjects.filter(project =>
                 ((project.projectName || project.name || '')).toLowerCase().includes(searchTerm) ||
                 (project.projectNumber || '').toString().toLowerCase().includes(searchTerm) ||
                 (project.customer?.primaryName || '').toLowerCase().includes(searchTerm) ||
                 (project.customer?.address || '').toLowerCase().includes(searchTerm)
             );
         }
-        
+
         // Sort projects
         filteredProjects.sort((a, b) => {
             let aValue, bValue;
-{{ ... }}
+            switch (sortBy) {
+                case 'projectNumber':
+                    aValue = Number(a.projectNumber || 0);
+                    bValue = Number(b.projectNumber || 0);
                     break;
                 case 'startDate':
                     aValue = new Date(a.startDate || 0);
                     bValue = new Date(b.startDate || 0);
                     break;
+                case 'customer':
+                    aValue = (a.customer?.primaryName || '').toLowerCase();
+                    bValue = (b.customer?.primaryName || '').toLowerCase();
+                    break;
                 case 'name':
                 default:
-                    aValue = (a.projectName || '').toLowerCase();
-                    bValue = (b.projectName || '').toLowerCase();
+                    aValue = (a.projectName || a.name || '').toLowerCase();
+                    bValue = (b.projectName || b.name || '').toLowerCase();
                     break;
             }
-            
+
             if (typeof aValue === 'string') {
                 const comparison = aValue.localeCompare(bValue);
                 return sortOrder === 'asc' ? comparison : -comparison;
-            } else {
-{{ ... }}
+            } else if (aValue instanceof Date) {
                 const comparison = aValue - bValue;
+                return sortOrder === 'asc' ? comparison : -comparison;
+            } else {
+                const comparison = (aValue || 0) - (bValue || 0);
                 return sortOrder === 'asc' ? comparison : -comparison;
             }
         });
-        
+
         return filteredProjects;
     };
     
@@ -371,6 +418,109 @@ const ProjectProfilePage = ({
         }));
     };
 
+    // File upload UI state and refs for Documents section
+    const fileInputRef = useRef(null);
+    // uploadFilesState: { entries: [{ file, name, size, progress: 0..100, status: 'pending'|'uploading'|'success'|'error', error: null }] }
+    const [uploadFilesState, setUploadFilesState] = useState({ entries: [] });
+
+    const handleFilesSelected = (files) => {
+        const arr = Array.from(files || []);
+        const entries = arr.map(f => ({ file: f, name: f.name, size: f.size, progress: 0, status: 'pending', error: null, description: '', tagsString: '' }));
+        setUploadFilesState({ entries });
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const dtFiles = e.dataTransfer?.files;
+        if (dtFiles && dtFiles.length) handleFilesSelected(dtFiles);
+    };
+
+    const updateEntry = (index, patch) => {
+        setUploadFilesState(prev => {
+            const entries = Array.isArray(prev.entries) ? [...prev.entries] : [];
+            if (!entries[index]) return prev;
+            entries[index] = { ...entries[index], ...patch };
+            return { entries };
+        });
+    };
+
+    // Ensure Projects root and per-project folder exist (mirrors FileManagerPage behavior)
+    const ensureProjectsRoot = async () => {
+        const roots = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+        let projRoot = roots.find(r => (r.folderName || r.title) === 'Projects');
+        if (!projRoot) {
+            projRoot = await assetsService.createFolder({ name: 'Projects', parentId: null });
+            if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
+        }
+        return projRoot;
+    };
+
+    const ensureProjectFolder = async (project) => {
+        const root = await ensureProjectsRoot();
+        const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+        const name = project.projectName || project.name || `Project ${project.id}`;
+        let pf = children.find(c => (c.folderName || c.title) === name);
+        if (!pf) {
+            pf = await assetsService.createFolder({ name, parentId: root.id });
+            if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: root.id } }));
+        }
+        return pf;
+    };
+
+    const triggerUpload = async () => {
+        try {
+            if (!selectedProject || !selectedProject.id) {
+                toast.error('No project selected');
+                return;
+            }
+            const entries = uploadFilesState.entries || [];
+            if (entries.length === 0) {
+                toast('No files selected');
+                return;
+            }
+
+            // Mark all entries as uploading
+            setUploadFilesState(prev => ({ entries: prev.entries.map(e => ({ ...e, status: 'uploading', progress: 0, error: null })) }));
+            toast.loading('Uploading files...');
+
+            // Ensure project folder
+            const pf = await ensureProjectFolder(selectedProject);
+
+            // Upload files one-by-one so we can attach per-file metadata (description, tags) and per-file progress
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
+                // skip if already success
+                if (entry.status === 'success') continue;
+                updateEntry(i, { status: 'uploading', progress: 0, error: null });
+
+                try {
+                    const tags = (entry.tagsString || '').split(',').map(t => t.trim()).filter(Boolean);
+                    const onUploadProgress = (ev) => {
+                        if (!ev || !ev.lengthComputable) return;
+                        const pct = Math.round((ev.loaded / ev.total) * 100);
+                        updateEntry(i, { progress: pct });
+                    };
+
+                    await assetsService.uploadFiles({ files: [entry.file], parentId: pf?.id || null, description: entry.description || '', tags, onUploadProgress });
+                    updateEntry(i, { progress: 100, status: 'success' });
+                } catch (err) {
+                    console.error('Upload failed for file', entry.name, err);
+                    updateEntry(i, { status: 'error', error: err?.message || 'Upload failed' });
+                }
+            }
+
+            // Refresh File Manager once after batch
+            if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: pf?.id || null } }));
+            toast.dismiss();
+            // If any errors exist, notify user; otherwise success
+            const anyErrors = (uploadFilesState.entries || []).some(e => e.status === 'error');
+            if (anyErrors) toast.error('Some files failed to upload'); else toast.success('Files uploaded');
+        } catch (err) {
+            console.error('Upload flow failed', err);
+            toast.error('Upload flow failed');
+        }
+    };
+
     // Toggle trade type selection
     const toggleTradeType = (tradeValue) => {
         setNewProject(prev => ({
@@ -427,6 +577,90 @@ const ProjectProfilePage = ({
                             </p>
                         </div>
                     </div>
+
+                        {/* Documents Upload Section */}
+                        <div className="mt-4 border-t pt-4">
+                            <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'} mb-3`}>Documents</h3>
+                            <div className={`p-4 rounded-lg ${colorMode ? 'bg-slate-700/50' : 'bg-gray-50'} border ${colorMode ? 'border-slate-600' : 'border-gray-200'}`}>
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                    <div className="flex-1">
+                                        <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Upload files to this project's Documents folder. Files will be saved under the Projects root so they appear in Documents & Resources.</p>
+                                        <div className="mt-3">
+                                            <div
+                                                onDrop={(e) => handleDrop(e)}
+                                                onDragOver={(e) => e.preventDefault()}
+                                                className={`w-full p-4 border-2 border-dashed rounded-lg text-center cursor-pointer ${colorMode ? 'border-slate-600 bg-slate-800/40' : 'border-gray-200 bg-white'}`}
+                                            >
+                                                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => handleFilesSelected(e.target.files)} />
+                                                <div className="text-sm text-gray-500">Drag & drop files here, or <button onClick={() => fileInputRef.current?.click()} className="text-blue-600 underline">browse</button></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full md:w-auto flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => triggerUpload()} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Upload Selected</button>
+                                            <button onClick={() => {
+                                                if (!selectedProject) return;
+                                                try {
+                                                    const detail = { projectId: selectedProject.id, project: selectedProject };
+                                                    window.dispatchEvent(new CustomEvent('app:openProjectDocuments', { detail }));
+                                                } catch (e) { console.error('Failed to open project documents', e); }
+                                            }} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Open project documents</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {uploadFilesState.entries && uploadFilesState.entries.length > 0 && (
+                                    <div className="mt-3 text-sm text-gray-600">
+                                        <div className="font-medium">Selected files:</div>
+                                        <ul className="mt-2 space-y-2">
+                                            {uploadFilesState.entries.map((e, i) => (
+                                                <li key={i} className="flex items-center gap-3">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="truncate font-medium">{e.name}</div>
+                                                            <div className="text-xs text-gray-500">{Math.round((e.size || 0) / 1024)} KB</div>
+                                                        </div>
+                                                        <div className="w-full bg-gray-200 h-2 rounded mt-2 overflow-hidden">
+                                                            <div className={`h-full ${e.status === 'error' ? 'bg-red-500' : e.status === 'success' ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${e.progress || 0}%` }} />
+                                                        </div>
+                                                        <div className="mt-1 text-xs">
+                                                            {e.status === 'pending' && <span className="text-gray-500">Pending</span>}
+                                                            {e.status === 'uploading' && <span className="text-blue-600">Uploading — {e.progress}%</span>}
+                                                            {e.status === 'success' && <span className="text-green-600">Uploaded</span>}
+                                                            {e.status === 'error' && <span className="text-red-600">Error: {e.error}</span>}
+                                                        </div>
+                                                        <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Description (optional)"
+                                                                value={e.description || ''}
+                                                                onChange={(ev) => updateEntry(i, { description: ev.target.value })}
+                                                                className="px-2 py-1 border rounded text-sm w-full"
+                                                                disabled={e.status === 'uploading'}
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Tags (comma separated)"
+                                                                value={e.tagsString || ''}
+                                                                onChange={(ev) => updateEntry(i, { tagsString: ev.target.value })}
+                                                                className="px-2 py-1 border rounded text-sm w-full"
+                                                                disabled={e.status === 'uploading'}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        {e.status !== 'uploading' && (
+                                                            <button onClick={() => setUploadFilesState(prev => ({ entries: prev.entries.filter((_, idx) => idx !== i) }))} className="text-xs text-red-600 hover:underline">Remove</button>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     <button
                         onClick={() => {
                             setNewProject({...defaultNewProject, ...defaultRoles});
@@ -583,6 +817,96 @@ const ProjectProfilePage = ({
                                                     }
                                                     return address;
                                                 })()}
+                                            </div>
+                                        </div>
+
+                                        {/* Lead Source */}
+                                        <div>
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Lead Source</div>
+                                            <div className={`flex items-center gap-3 p-3 rounded-md ${colorMode ? 'bg-slate-700/40' : 'bg-white'} border ${colorMode ? 'border-slate-600' : 'border-gray-100'}`}>
+                                                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 font-semibold">
+                                                    🔎
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className={`${colorMode ? 'text-white font-semibold' : 'text-gray-900 font-semibold'}`}>
+                                                        {(() => {
+                                                            const lsId = selectedProject.leadSourceId || selectedProject.leadSource || selectedProject.lead_source;
+                                                            if (isEditingLeadSource) return '';
+                                                            const ls = lsId ? leadSourcesMap[lsId] : null;
+                                                            return ls ? (ls.name || ls.label || ls.title) : (leadSourcesLoading ? 'Loading…' : 'Not Set');
+                                                        })()}
+                                                    </div>
+                                                    <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                                        {(() => {
+                                                            const lsId = selectedProject.leadSourceId || selectedProject.leadSource || selectedProject.lead_source;
+                                                            const ls = lsId ? leadSourcesMap[lsId] : null;
+                                                            return ls && ls.description ? ls.description : '';
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* Edit controls */}
+                                            <div className="mt-2 flex items-center gap-2">
+                                                {!isEditingLeadSource ? (
+                                                    <button
+                                                        onClick={() => {
+                                                            const current = selectedProject.leadSourceId || selectedProject.leadSource || selectedProject.lead_source || null;
+                                                            setEditingLeadSourceId(current);
+                                                            setIsEditingLeadSource(true);
+                                                        }}
+                                                        className="px-3 py-1 text-xs rounded-md border border-gray-200 hover:bg-gray-50"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex items-center gap-2">
+                                                        <select
+                                                            value={editingLeadSourceId || ''}
+                                                            onChange={(e) => setEditingLeadSourceId(e.target.value || null)}
+                                                            className="px-3 py-1 text-sm rounded-md border"
+                                                        >
+                                                            <option value="">-- Select Lead Source --</option>
+                                                            {Object.values(leadSourcesMap).map(ls => (
+                                                                <option key={ls.id} value={ls.id}>{ls.name || ls.label || ls.title}</option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!selectedProject || !selectedProject.id) return;
+                                                                setLeadSourceSaving(true);
+                                                                try {
+                                                                    const payload = { leadSourceId: editingLeadSourceId || null };
+                                                                    const res = await projectsService.update(selectedProject.id, payload);
+                                                                    // Update local selectedProject state with returned data if available
+                                                                    const updated = res?.data || res;
+                                                                    if (updated) {
+                                                                        setSelectedProject(prev => ({ ...prev, ...updated }));
+                                                                    } else {
+                                                                        // fallback: update leadSourceId locally
+                                                                        setSelectedProject(prev => ({ ...prev, leadSourceId: editingLeadSourceId }));
+                                                                    }
+                                                                    toast.success('Lead Source updated');
+                                                                    setIsEditingLeadSource(false);
+                                                                } catch (err) {
+                                                                    console.error('Error updating lead source:', err);
+                                                                    toast.error('Failed to update Lead Source');
+                                                                } finally {
+                                                                    setLeadSourceSaving(false);
+                                                                }
+                                                            }}
+                                                            disabled={leadSourceSaving}
+                                                            className="px-3 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-60"
+                                                        >
+                                                            {leadSourceSaving ? 'Saving…' : 'Save'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setIsEditingLeadSource(false)}
+                                                            className="px-3 py-1 text-xs rounded-md border border-gray-200 hover:bg-gray-50"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -1610,7 +1934,7 @@ const ProjectListCard = ({
                         )}
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-2 mt-4">
+                        <div className="grid grid-cols-2 gap-2 mt-4">
                         <button
                             onClick={async () => {
                                 try {
@@ -1681,20 +2005,6 @@ const ProjectListCard = ({
                         >
                             <span>💬</span>
                             Messages
-                        </button>
-                        <button
-                            onClick={() => onProjectSelect(project, 'Alerts', null, 'Project Profile')}
-                            className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-xs"
-                        >
-                            <span>⚠️</span>
-                            Alerts
-                        </button>
-                        <button
-                            onClick={() => onProjectSelect(project, 'Alerts Calendar', null, 'Project Profile')}
-                            className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-xs"
-                        >
-                            <span>📅</span>
-                            Alerts Calendar
                         </button>
                     </div>
                 </div>

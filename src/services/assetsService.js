@@ -78,13 +78,15 @@ export const assetsService = {
     const res = await api.post('/bulk-operation', { operation, assetIds, data });
     return res.data?.data;
   },
-  uploadFiles: async ({ files, parentId = null, description = '', tags = [] }) => {
+  uploadFiles: async ({ files, parentId = null, description = '', tags = [], onUploadProgress = undefined } = {}) => {
     const form = new FormData();
     for (const f of files) form.append('files', f);
     if (parentId !== null) form.append('parentId', parentId);
     if (description) form.append('description', description);
     if (tags?.length) form.append('tags', JSON.stringify(tags));
-    const res = await api.post('/assets/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    if (typeof onUploadProgress === 'function') config.onUploadProgress = onUploadProgress;
+    const res = await api.post('/assets/upload', form, config);
     return res.data?.data;
   },
   downloadUrl: (id) => `${API_BASE_URL}/assets/${id}/download`,

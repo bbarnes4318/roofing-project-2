@@ -5,6 +5,7 @@ import api from '../../services/api';
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
+import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
 import TranscriptHistory from '../ui/TranscriptHistory2';
 // Vapi will be loaded dynamically
 
@@ -71,6 +72,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     
     // Current user display name (for transcript labels)
     const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
+    const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
 
     useEffect(() => {
         try {
@@ -299,6 +301,35 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             return cleanMojibake(text);
         } catch (_){
             return String(content ?? '');
+        }
+    };
+
+    // Map raw speaker identifiers to friendly display names
+    const normalizeSpeakerDisplay = (speaker) => {
+        try {
+            const raw = String(speaker || '').trim();
+            const lower = raw.toLowerCase();
+
+            // Known assistant identifiers -> Bubbles
+            if (!raw) return currentUserDisplayName || 'You';
+            if (['assistant', 'ai', 'aiaassistant', 'bubbles', 'bubble'].includes(lower) || lower.includes('assistant') || lower.includes('bubbles')) {
+                return 'Bubbles';
+            }
+
+            // Known user identifiers -> show actual user name when available
+            if (['user', 'you', 'client', 'customer'].includes(lower)) {
+                return currentUserDisplayName || 'You';
+            }
+
+            // If the speaker looks like a personal name (contains a space or capitalized words), return as-is
+            if (raw.indexOf(' ') >= 0 || /^[A-Z][a-z]+\s[A-Z]/.test(raw)) {
+                return raw;
+            }
+
+            // Otherwise, if it's a short token like an email or id, fall back to user name for 'user'-like values
+            return raw;
+        } catch (_) {
+            return currentUserDisplayName || 'You';
         }
     };
 
@@ -1173,7 +1204,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
 ${summary.keyPoints.map(point => `|â‚¬Â¢ ${point}`).join('\n')}
 
 **Full Conversation:**
-${summary.exchanges.map(ex => `${ex.speaker === 'user' ? 'â€˜Â¤ You' : 'Â¤â€“ Bubbles'}: ${ex.message}`).join('\n\n')}
+${summary.exchanges.map(ex => `${normalizeSpeakerDisplay(ex.speaker)}: ${ex.message}`).join('\n\n')}
 
 **Actions Taken:**
 ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
@@ -1471,7 +1502,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
       if (selectedFileFormats.includes('json')) {
         downloadBlob('transcript_' + date + '.json', 'application/json', JSON.stringify(transcriptSummary, null, 2));
       }
-      if (selectedFileFormats.includes('txt') || selectedFileFormats.includes('pdf') || selectedFileFormats.includes('docx')) {
+    if (selectedFileFormats.includes('txt') || selectedFileFormats.includes('pdf') || selectedFileFormats.includes('docx')) {
         const lines = [];
         lines.push('Voice Call Transcript & Summary');
         lines.push('Date: ' + (transcriptSummary?.metadata?.callDate || ''));
@@ -1481,10 +1512,11 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
         lines.push(String(transcriptSummary?.executiveSummary || ''));
         lines.push('');
         lines.push('Full Transcript:');
-        (transcriptSummary?.fullTranscript || []).forEach(ex => {
-          const t = new Date(ex.timestamp).toLocaleTimeString();
-          lines.push('[' + t + '] ' + ex.speaker + ': ' + ex.message);
-        });
+                (transcriptSummary?.fullTranscript || []).forEach(ex => {
+                    const t = new Date(ex.timestamp).toLocaleTimeString();
+                    const speakerLabel = normalizeSpeakerDisplay(ex.speaker);
+                    lines.push('[' + t + '] ' + speakerLabel + ': ' + ex.message);
+                });
         downloadBlob('transcript_' + date + '.txt', 'text/plain', lines.join('\n'));
       }
     };
@@ -1865,6 +1897,18 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     </div>
                 </div>
             </div>
+
+            {/* Clean Quick Start banner */}
+            <div className="p-2 border-b bg-white">
+                <div className="max-w-7xl mx-auto px-2 flex items-center justify-between gap-4">
+                    <div className="text-sm text-gray-700">Try Bubbles: "Send inspection_report_v2.pdf to Jane Doe"</div>
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setIsQuickModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-500">Quick Start</button>
+                        <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className="px-3 py-1.5 border rounded text-sm text-gray-700 hover:bg-gray-50">Printable</a>
+                    </div>
+                </div>
+            </div>
+            <CheatSheetModal visible={isQuickModalOpen} onClose={() => setIsQuickModalOpen(false)} colorMode={colorMode} />
 
             {/* Input Area - Moved to top, above messages */}
             <div ref={inputRef} className="flex-shrink-0 p-1 px-3 md:px-4 border-b border-gray-200 bg-gray-50">
@@ -2354,7 +2398,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                         <div key={index} className="bg-white p-3 rounded border border-gray-200">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-sm font-semibold text-gray-700">
-                                                    {exchange.speaker === 'User' ? 'You' : 'Assistant'}
+                                                    {normalizeSpeakerDisplay(exchange.speaker)}
                                                 </span>
                                                 <span className="text-xs text-gray-500">
                                                     {new Date(exchange.timestamp).toLocaleTimeString()}

@@ -690,13 +690,17 @@ export const projectMessagesService = {
   },
 
   // Create a new message in a project
-  create: async (projectId, { content, subject, priority = 'MEDIUM', parentMessageId } = {}) => {
-    const response = await api.post(`/project-messages/${projectId}`, {
+  // Accepts optional `recipients` array of user IDs and forwards it to the backend
+  create: async (projectId, { content, subject, priority = 'MEDIUM', parentMessageId, recipients } = {}) => {
+    const payload = {
       content,
       subject,
       priority,
-      parentMessageId,
-    });
+    };
+    if (parentMessageId) payload.parentMessageId = parentMessageId;
+    if (Array.isArray(recipients) && recipients.length > 0) payload.recipients = recipients;
+
+    const response = await api.post(`/project-messages/${projectId}`, payload);
     return response.data;
   },
 
@@ -1119,6 +1123,16 @@ export const usersService = {
   // Get team members for assignment
   getTeamMembers: async () => {
     const response = await api.get('/users/team-members');
+    return response.data;
+  }
+};
+
+// Roles Service
+export const rolesService = {
+  // Get available users used in Settings -> Roles (endpoint: /api/roles/users)
+  getUsers: async () => {
+    const response = await api.get('/roles/users');
+    // Backend returns { success: true, data: formattedUsers }
     return response.data;
   }
 };

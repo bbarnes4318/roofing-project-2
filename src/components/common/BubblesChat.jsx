@@ -1,6 +1,7 @@
 // --- BubblesChat Component ---
 import React, { useState, useEffect, useRef } from 'react';
 import { bubblesService, workflowAlertsService, usersService, projectMessagesService } from '../../services/api';
+import CheatSheet, { CheatSheetPopover, CheatSheetModal } from './CheatSheet';
 import socketService from '../../services/socket';
 import { CalendarIcon, ExclamationTriangleIcon, BellIcon, SparklesIcon, ClockIcon, ChevronDownIcon, XCircleIcon, ChatBubbleLeftRightIcon, TrashIcon, ArchiveBoxIcon, ChevronLeftIcon } from '../common/Icons';
 import { useSubjects } from '../../contexts/SubjectsContext';
@@ -30,6 +31,8 @@ const BubblesChat = ({
   const [teamMembers, setTeamMembers] = useState([]);
   const [composerBody, setComposerBody] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
 
   // Voice (Vapi) state
   const vapiRef = useRef(null);
@@ -700,6 +703,21 @@ const BubblesChat = ({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* Cheat-sheet help button -> use reusable CheatSheetPopover and in-app modal */}
+            <div className="relative">
+              <button
+                onClick={() => setShowCheatSheet(prev => !prev)}
+                className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                title="Quick help"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9h.01M12 5a4 4 0 10-4 4m0 0v1a3 3 0 006 0V9a3 3 0 00-3-3"/></svg>
+              </button>
+              {showCheatSheet && (
+                <div className="absolute right-0 mt-2">
+                  <CheatSheetPopover onOpenQuickCard={() => { setIsQuickModalOpen(true); setShowCheatSheet(false); }} onClose={() => setShowCheatSheet(false)} />
+                </div>
+              )}
+            </div>
             <button 
               onClick={() => setShowChatHistory(!showChatHistory)} 
               className={`p-2 rounded-full transition-colors relative ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'} ${
@@ -720,6 +738,9 @@ const BubblesChat = ({
             <button onClick={onClose} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Close"><XCircleIcon className="w-5 h-5" /></button>
           </div>
         </div>
+
+  {/* In-app Quick Card Modal */}
+  <CheatSheetModal visible={isQuickModalOpen} onClose={() => setIsQuickModalOpen(false)} colorMode={colorMode} />
 
         {/* Chat History Panel */}
         {showChatHistory && (

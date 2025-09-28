@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { projectMessagesService, calendarService } from '../../services/api';
+import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
 import { queryKeys } from '../../hooks/useQueryApi';
 import toast from 'react-hot-toast';
+import { useTeamMembers } from '../../hooks/useQueryApi';
 
 const MTRForm = ({
   activeCommTab,
@@ -56,6 +58,10 @@ const MTRForm = ({
   uiProjects
 }) => {
   const queryClient = useQueryClient();
+  // Prefer live team members from API; fall back to availableUsers prop if API returns nothing
+  const { data: liveUsers = [], isLoading: liveUsersLoading, error: liveUsersError } = useTeamMembers();
+  const recipients = Array.isArray(liveUsers) && liveUsers.length > 0 ? liveUsers : (Array.isArray(availableUsers) ? availableUsers : []);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
 
   return (
     <div className="mb-3">
@@ -85,12 +91,33 @@ const MTRForm = ({
               // Create message using the API service
               const createMessage = async () => {
                 try {
+                  // Handle special "all" selection by expanding to actual user IDs
+                  let recipientsToSend = Array.isArray(newMessageRecipients) ? [...newMessageRecipients] : [];
+                  if (recipientsToSend.includes('all')) {
+                    // Expand 'all' using the Roles API which drives the Settings -> Roles "Available Users" list
+                    try {
+                      const rolesRes = await import('../../services/api').then(m => m.rolesService.getUsers());
+                      if (rolesRes && rolesRes.success && Array.isArray(rolesRes.data)) {
+                        recipientsToSend = rolesRes.data.map(u => String(u.id));
+                      } else if (Array.isArray(recipients) && recipients.length > 0) {
+                        // Fallback to live users loaded by useTeamMembers
+                        recipientsToSend = recipients.map(u => String(u.id));
+                      } else {
+                        recipientsToSend = [];
+                      }
+                    } catch (err) {
+                      // On error, fallback to live users
+                      recipientsToSend = Array.isArray(recipients) ? recipients.map(u => String(u.id)) : [];
+                    }
+                  }
+
                   const response = await projectMessagesService.create(newMessageProject, {
                     content: newMessageText,
                     subject: finalSubject,
-                    priority: 'MEDIUM'
+                    priority: 'MEDIUM',
+                    recipients: recipientsToSend
                   });
-                  
+
                   if (response.success) {
                     console.log('Message saved to database:', response.data);
                     // Refresh any project messages queries (match prefix)
@@ -102,7 +129,7 @@ const MTRForm = ({
                   console.error('Error saving message:', error);
                 }
               };
-              
+
               // Call the API to save the message
               createMessage();
               
@@ -167,6 +194,9 @@ const MTRForm = ({
                 }`}>
                   To <span className="text-red-500">*</span>
                 </label>
+                <div className="flex justify-end -mt-3 mb-1">
+                  <button title="Quick phrases" onClick={() => setIsQuickModalOpen(true)} className="text-xs px-2 py-1 rounded bg-gray-100">Quick Phrases</button>
+                </div>
                 <select
                   value={Array.isArray(newMessageRecipients) ? newMessageRecipients : []}
                   onChange={(e) => {
@@ -183,11 +213,19 @@ const MTRForm = ({
                   style={{ minHeight: '40px' }}
                 >
                   <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
-                  {availableUsers.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email})`}
-                    </option>
-                  ))}
+                  {liveUsersLoading ? (
+                    <option value="" disabled>Loading users...</option>
+                  ) : liveUsersError ? (
+                    <option value="" disabled>Error loading users</option>
+                  ) : recipients.length === 0 ? (
+                    <option value="" disabled>No users found</option>
+                  ) : (
+                    recipients.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName || ''} {user.lastName ? '' : `(${user.email || ''})`}
+                      </option>
+                    ))
+                  )}
                 </select>
                 <p className={`text-[10px] mt-1 ${
                   colorMode ? 'text-gray-400' : 'text-gray-500'
@@ -297,6 +335,9 @@ const MTRForm = ({
         </div>
       )}
 
+      {/* In-app Quick Card Modal */}
+      <CheatSheetModal visible={isQuickModalOpen} onClose={() => setIsQuickModalOpen(false)} colorMode={colorMode} />
+
       {/* Tasks Form */}
       {showMessageDropdown && activeCommTab === 'tasks' && (
         <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
@@ -383,11 +424,19 @@ const MTRForm = ({
                 <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Assign To</label>
                 <select value={quickTaskAssigneeId} onChange={(e)=>{ setQuickTaskAssigneeId(e.target.value); setQuickTaskAssignAll(false); }} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}>
                   <option value="">Unassigned</option>
-                  {availableUsers.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.firstName} {u.lastName || ''} {u.lastName ? '' : `(${u.email})`}
-                    </option>
-                  ))}
+                  {liveUsersLoading ? (
+                    <option value="" disabled>Loading users...</option>
+                  ) : liveUsersError ? (
+                    <option value="" disabled>Error loading users</option>
+                  ) : recipients.length === 0 ? (
+                    <option value="" disabled>No users found</option>
+                  ) : (
+                    recipients.map(u => (
+                      <option key={u.id} value={u.id}>
+                        {u.firstName} {u.lastName || ''} {u.lastName ? '' : `(${u.email || ''})`}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </div>
@@ -465,9 +514,17 @@ const MTRForm = ({
               <div>
                 <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Recipients</label>
                 <select multiple value={reminderUserIds} onChange={(e)=>setReminderUserIds(Array.from(e.target.selectedOptions, o => o.value))} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} style={{ minHeight: '40px' }}>
-                  {availableUsers.map(u => (
-                    <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-                  ))}
+                  {liveUsersLoading ? (
+                    <option value="" disabled>Loading users...</option>
+                  ) : liveUsersError ? (
+                    <option value="" disabled>Error loading users</option>
+                  ) : recipients.length === 0 ? (
+                    <option value="" disabled>No users found</option>
+                  ) : (
+                    recipients.map(u => (
+                      <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                    ))
+                  )}
                 </select>
                 <p className={`text-[10px] mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Hold Ctrl/Cmd to select multiple recipients</p>
               </div>

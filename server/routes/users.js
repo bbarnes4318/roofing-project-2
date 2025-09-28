@@ -71,6 +71,16 @@ router.get('/team-members', authenticateToken, asyncHandler(async (req, res) => 
     ]
   });
 
+  // Debug logging to help diagnose missing users in client
+  try {
+    console.log(`GET /api/users/team-members - requested by userId=${req.user ? req.user.id : 'unknown'} - found ${Array.isArray(teamMembers) ? teamMembers.length : 0} teamMembers`);
+    if (Array.isArray(teamMembers) && teamMembers.length > 0) {
+      console.log('Sample teamMembers:', teamMembers.slice(0, 5).map(u => ({ id: u.id, firstName: u.firstName, lastName: u.lastName, email: u.email, role: u.role })));
+    }
+  } catch (e) {
+    // ignore logging errors
+  }
+
   res.json({
     success: true,
     data: { teamMembers },
