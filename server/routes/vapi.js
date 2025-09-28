@@ -159,6 +159,12 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     let projectId = raw.projectId ?? raw.projectid ?? raw.project_id ?? raw.project ?? req.query.projectId ?? req.query.projectid ?? null;
     let query = raw.query ?? raw.input ?? raw.text ?? raw.message ?? raw.turn?.input ?? raw.turn?.text ?? req.query.query ?? req.query.q ?? '';
     let contextFileIds = raw.contextFileIds ?? raw.context_file_ids ?? raw.fileIds ?? raw.file_ids ?? [];
+    // Also allow Vapi variable values to carry context
+    const vars = raw.variableValues ?? raw.variables ?? raw.vars ?? raw.turn?.variables ?? {};
+    if (!projectId) {
+      projectId = vars.projectId ?? vars.project_id ?? vars.projectid ?? null;
+    }
+    try { console.log('[Vapi] payload vars', { projectId, hasVars: !!vars, keys: Object.keys(vars || {}) }); } catch(_) {}
 
     // Normalize contextFileIds to array
     if (!Array.isArray(contextFileIds)) {
@@ -189,31 +195,36 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     const lower = String(query).toLowerCase();
     const wantsSend = /(send|share|attach|email|message)\b/.test(lower);
     const docyIntent = /(\.(pdf|docx|doc|xlsx|csv|txt|jpg|jpeg|png)\b|document|file|permit|estimate|warranty|checklist|manual|policy|form|guide|photo|image)/.test(lower);
+    try { console.log('[Vapi] intent flags', { wantsSend, docyIntent, query: String(query).slice(0,140) }); } catch(_) {}
 
-    if (wantsSend && docyIntent) {
+    if (wantsSend) {
       // Resolve project by provided id or by number in text
       let proj = null;
       if (projectId) {
-        proj = await prisma.project.findUnique({ where: { id: String(projectId) }, select: { id: true, projectNumber: true, projectName: true, projectManagerId: true } });
+        try {
+          proj = await prisma.project.findUnique({ where: { id: String(projectId) }, select: { id: true, projectNumber: true, projectName: true, projectManagerId: true } });
+        } catch(e) { try { console.warn('[Vapi] project lookup by projectId failed', e?.message || e); } catch(_) {} }
       }
       if (!proj) {
         const pnum = extractProjectNumberFromText(query);
         if (pnum) {
-          proj = await prisma.project.findFirst({ where: { projectNumber: pnum }, select: { id: true, projectNumber: true, projectName: true, projectManagerId: true } });
+          try { proj = await prisma.project.findFirst({ where: { projectNumber: pnum }, select: { id: true, projectNumber: true, projectName: true, projectManagerId: true } }); } catch(e) { try { console.warn('[Vapi] project lookup by number failed', e?.message || e); } catch(_) {} }
         }
       }
 
       if (!proj) {
         const msg = 'I need a project to send that to. Please say the project number, for example “Send to project #12345…”.';
-        if (returnActions) return res.json([{ type: 'say', text: msg }]);
+        if (returnActions) return res.json({ actions: [{ type: 'say', text: msg }] });
         return res.json({ success: false, message: msg });
       }
 
-      // Find asset from mention
-      const asset = await findAssetByMention(prisma, query);
+      // Find asset from mention (even if docyIntent was false, still attempt)
+      let asset = null;
+      try { asset = await findAssetByMention(prisma, query); } catch(e) { try { console.warn('[Vapi] findAssetByMention error', e?.message || e); } catch(_) {} }
+      try { console.log('[Vapi] asset lookup result', { found: !!asset, title: asset?.title, id: asset?.id }); } catch(_) {}
       if (!asset) {
-        const msg = 'I couldn\'t find that document in Documents & Resources. Try mentioning more of the file name.';
-        if (returnActions) return res.json([{ type: 'say', text: msg }]);
+        const msg = 'I couldn\'t find that document in Documents & Resources. Try mentioning more of the file name or the checklist name.';
+        if (returnActions) return res.json({ actions: [{ type: 'say', text: msg }] });
         return res.json({ success: false, message: msg });
       }
 
@@ -231,9 +242,12 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
           }
         }
         if (ors.length) {
-          recipients = await prisma.user.findMany({ where: { OR: ors }, select: { id: true, firstName: true, lastName: true, email: true } });
+          try {
+            recipients = await prisma.user.findMany({ where: { OR: ors }, select: { id: true, firstName: true, lastName: true, email: true } });
+          } catch(e) { try { console.warn('[Vapi] recipient lookup failed', e?.message || e); } catch(_) {} }
         }
       }
+      try { console.log('[Vapi] recipients resolved', { names: recipientNames, count: (recipients||[]).length }); } catch(_) {}
       // Fallback: specific internal target or project manager
       if (recipients.length === 0) {
         try {
@@ -295,9 +309,13 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
           metadata: { attachments: [attachment] }
         }
       });
+      try { console.log('[Vapi] projectMessage created', { id: pm.id, projectId: proj.id, subject: `Document: ${attachment.title}` }); } catch(_) {}
 
       if (recipients.length > 0) {
-        await prisma.projectMessageRecipient.createMany({ data: recipients.map(r => ({ messageId: pm.id, userId: r.id })) });
+        try {
+          await prisma.projectMessageRecipient.createMany({ data: recipients.map(r => ({ messageId: pm.id, userId: r.id })) });
+          try { console.log('[Vapi] recipients inserted for message', { messageId: pm.id, count: recipients.length }); } catch(_) {}
+        } catch(e) { try { console.warn('[Vapi] create recipients failed', e?.message || e); } catch(_) {} }
       }
 
       // Socket.IO broadcast so the activity feed updates live
@@ -374,7 +392,7 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
       if (createdReminder) parts.push(`Set a reminder for ${new Date(createdReminder.startTime).toLocaleString()}.`);
       const ack = parts.join(' ');
 
-      if (returnActions) return res.json([{ type: 'say', text: ack }]);
+      if (returnActions) return res.json({ actions: [{ type: 'say', text: ack }] });
       return res.json({ success: true, answer: ack, messageId: pm.id, attachments: [attachment], taskId: createdTask?.id, reminderId: createdReminder?.id });
     }
 
@@ -415,9 +433,9 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     if (!openaiClient) {
       if (returnActions) {
         // Fallback voice line when LLM unavailable
-        return res.json([
+        return res.json({ actions: [
           { type: 'say', text: 'I can’t access the knowledge service right now, but I’m still here to help with general questions.' }
-        ]);
+        ]});
       }
       return res.json({ success: true, data: { answer: 'OpenAI not configured on server.' } });
     }
@@ -434,9 +452,9 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
 
     if (returnActions) {
       // Return Vapi actions directly for tools that expect actions output
-      return res.json([
+      return res.json({ actions: [
         { type: 'say', text }
-      ]);
+      ]});
     }
 
     // Default: plain JSON that can be mapped to variables in Vapi

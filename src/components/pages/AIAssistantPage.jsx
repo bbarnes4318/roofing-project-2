@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+﻿import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
@@ -52,11 +52,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         if (s == null) return '';
         let out = String(s);
         // Replace common bullet/separators
-        out = out.split('ÃƒÂ¢|â€šÂ¬|Â¢').join('â€¢');
-        // Remove clusters like 'Ãƒ...|...|...'
-        out = out.replace(/Ãƒ[^\s]*\|[^\s]*\|[^\s]*/g, '');
-        // Remove stray 'Ã‚'
-        out = out.replace(/Ã‚/g, '');
+        out = out.split('ÃƒÆ’Ã‚Â¢|Ã¢â‚¬Å¡Ã‚Â¬|Ã‚Â¢').join('Ã¢â‚¬Â¢');
+        // Remove clusters like 'ÃƒÆ’...|...|...'
+        out = out.replace(/ÃƒÆ’[^\s]*\|[^\s]*\|[^\s]*/g, '');
+        // Remove stray 'Ãƒâ€š'
+        out = out.replace(/Ãƒâ€š/g, '');
         // Normalize whitespace
         out = out.replace(/\s{2,}/g, ' ').trim();
         return out;
@@ -177,11 +177,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                 continue;
             }
 
-            // Bulleted list (-, *, Ã¢|‚¬|¢, Ã¢|‚¬|€œ, Ã¢|‚¬|€)
-            if (/^[-*Ã¢|‚¬|¢Ã¢|‚¬|€œÃ¢|‚¬|€]\s+/.test(trimmed)) {
+            // Bulleted list (-, *, ÃƒÂ¢|â€šÂ¬|Â¢, ÃƒÂ¢|â€šÂ¬|â‚¬Å“, ÃƒÂ¢|â€šÂ¬|â‚¬Â)
+            if (/^[-*ÃƒÂ¢|â€šÂ¬|Â¢ÃƒÂ¢|â€šÂ¬|â‚¬Å“ÃƒÂ¢|â€šÂ¬|â‚¬Â]\s+/.test(trimmed)) {
                 if (inOl) { out.push('</ol>'); inOl = false; }
                 if (!inUl) { out.push('<ul class="list-disc ml-5 mb-1 space-y-1">'); inUl = true; }
-                const text = trimmed.replace(/^[-*Ã¢|‚¬|¢Ã¢|‚¬|€œÃ¢|‚¬|€]\s+/, '');
+                const text = trimmed.replace(/^[-*ÃƒÂ¢|â€šÂ¬|Â¢ÃƒÂ¢|â€šÂ¬|â‚¬Å“ÃƒÂ¢|â€šÂ¬|â‚¬Â]\s+/, '');
                 out.push(`<li>${replaceLinks(escapeHtml(text))}</li>`);
                 pendingAutoList = false;
                 continue;
@@ -262,7 +262,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             // Blockquotes
             text = text.replace(/^\s{0,3}>\s?/gm, '');
             // Lists markers
-            text = text.replace(/^\s{0,3}(?:[-*Ã¢|‚¬|¢Ã¢|‚¬|€œÃ¢|‚¬|€]\s+|\d+\.\s+)/gm, '');
+            text = text.replace(/^\s{0,3}(?:[-*ÃƒÂ¢|â€šÂ¬|Â¢ÃƒÂ¢|â€šÂ¬|â‚¬Å“ÃƒÂ¢|â€šÂ¬|â‚¬Â]\s+|\d+\.\s+)/gm, '');
             // Horizontal rules
             text = text.replace(/^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/gm, '');
             // Tables pipes
@@ -562,10 +562,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
                     
                     vapiRef.current.on('call-end', async () => {
                         voiceEndTimeRef.current = new Date();
-console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL');
-                        console.log('Ã°Å¸|€|´ [CALL-END] voiceConversation length:', voiceConversation.length);
-                        console.log('Ã°Å¸|€|´ [CALL-END] voiceTranscript:', voiceTranscript);
-                        console.log('Ã°Å¸|€|´ [CALL-END] showTranscriptModal before:', showTranscriptModal);
+console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT MODAL');
+                        console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] voiceConversation length:', voiceConversation.length);
+                        console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] voiceTranscript:', voiceTranscript);
+                        console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] showTranscriptModal before:', showTranscriptModal);
                         
                         const transcriptStrings = Array.isArray(voiceTranscriptRef.current) ? voiceTranscriptRef.current : [];
 // If no conversation was captured, create one from the transcript
@@ -586,10 +586,10 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                         console.log('[Vapi] DEBUG: generated summary:', summary);
                         
                         // Always show modal if there was any conversation
-                        console.log('Ã°Å¸|€|´ [CALL-END] conversationToUse.length:', conversationToUse.length);
-                        console.log('Ã°Å¸|€|´ [CALL-END] voiceTranscript.length:', transcriptStrings.length);
+                        console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] conversationToUse.length:', conversationToUse.length);
+                        console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] voiceTranscript.length:', transcriptStrings.length);
                         if (conversationToUse.length > 0 || transcriptStrings.length > 0) {
-                            console.log('Ã°Å¸|€|´ [CALL-END] SHOULD show transcript modal - entering try block');
+                            console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] SHOULD show transcript modal - entering try block');
                             try {
                                 const enhancedSummary = await generateEnhancedTranscriptSummary(summary || {}, conversationToUse);
                                 console.log('[Vapi] DEBUG: enhanced summary:', enhancedSummary);
@@ -629,7 +629,7 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                                             const localKey = 'voiceTranscripts';
                                             const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
                                             const dateIso = saveResult.data.transcript.callDate || saveResult.data.transcript.createdAt || new Date().toISOString();
-                                            const title = (saveResult.data.transcript.project?.projectName ? `${saveResult.data.transcript.project.projectName} â€” ` : 'Call â€” ') + new Date(dateIso).toLocaleString();
+                                            const title = (saveResult.data.transcript.project?.projectName ? `${saveResult.data.transcript.project.projectName} Ã¢â‚¬â€ ` : 'Call Ã¢â‚¬â€ ') + new Date(dateIso).toLocaleString();
                                             const preview = saveResult.data.transcript.executiveSummary || (Array.isArray(saveResult.data.transcript.fullTranscript) && saveResult.data.transcript.fullTranscript[0]?.message) || '';
                                             const item = {
                                                 id: saveResult.data.transcript.id,
@@ -650,7 +650,7 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                                         const localKey = 'voiceTranscripts';
                                         const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
                                         const dateIso = new Date().toISOString();
-                                        const title = (selectedProject?.projectName || selectedProject?.name ? `${selectedProject.projectName || selectedProject.name} â€” ` : 'Call â€” ') + new Date(dateIso).toLocaleString();
+                                        const title = (selectedProject?.projectName || selectedProject?.name ? `${selectedProject.projectName || selectedProject.name} Ã¢â‚¬â€ ` : 'Call Ã¢â‚¬â€ ') + new Date(dateIso).toLocaleString();
                                         const preview = (enhancedSummary?.executiveSummary) || (Array.isArray(conversationToUse) && conversationToUse[0]?.message) || '';
                                         const temp = {
                                             id: `local_${Date.now()}`,
@@ -671,11 +671,11 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                                     } catch (_) {}
                                 }
                                 
-                                console.log('Ã°Å¸|€|´ [CALL-END] SUCCESS - About to setShowTranscriptModal(true)');
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] SUCCESS - About to setShowTranscriptModal(true)');
                                 setShowTranscriptModal(true);
-                                console.log('Ã°Å¸|€|´ [CALL-END] SUCCESS - Called setShowTranscriptModal(true)');
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] SUCCESS - Called setShowTranscriptModal(true)');
                             } catch (error) {
-                                console.error('Ã°Å¸|€|´ [CALL-END] ERROR generating enhanced summary:', error);
+                                console.error('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] ERROR generating enhanced summary:', error);
                                 // Show modal with basic summary even if enhancement fails
                                 setTranscriptSummary({
                                     metadata: {
@@ -691,12 +691,12 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                                     risks: [],
                                     fullTranscript: conversationToUse
                                 });
-                                console.log('Ã°Å¸|€|´ [CALL-END] FALLBACK - About to setShowTranscriptModal(true)');
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] FALLBACK - About to setShowTranscriptModal(true)');
                                 setShowTranscriptModal(true);
-                                console.log('Ã°Å¸|€|´ [CALL-END] FALLBACK - Called setShowTranscriptModal(true)');
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] FALLBACK - Called setShowTranscriptModal(true)');
                             }
                         } else {
-                            console.log('Ã°Å¸|€|´ [CALL-END] No conversation data to show - FORCING MODAL ANYWAY FOR TESTING');
+                            console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] No conversation data to show - FORCING MODAL ANYWAY FOR TESTING');
                             // FORCE MODAL TO SHOW EVEN WITH NO DATA
                             setTranscriptSummary({
                                 metadata: {
@@ -712,9 +712,9 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                                 risks: [],
                                 fullTranscript: []
                             });
-                            console.log('Ã°Å¸|€|´ [CALL-END] FORCE - About to setShowTranscriptModal(true)');
+                            console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] FORCE - About to setShowTranscriptModal(true)');
                             setShowTranscriptModal(true);
-                            console.log('Ã°Å¸|€|´ [CALL-END] FORCE - Called setShowTranscriptModal(true)');
+                            console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] FORCE - Called setShowTranscriptModal(true)');
                         }
                         
                         // Save transcription as a chat message if there was any
@@ -723,7 +723,7 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                             const voiceMessage = {
                                 id: `voice_${Date.now()}`,
                                 type: 'user',
-                                content: `Ž¤Voice: ${transcriptContent}`,
+                                content: `Å½Â¤Voice: ${transcriptContent}`,
                                 timestamp: new Date(),
                                 isVoiceMessage: true
                             };
@@ -747,13 +747,13 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
                     });
                     
                     vapiRef.current.on('message', (message) => {
-                        console.log('Ã°Å¸Å¸|¡ [MESSAGE] type:', message.type, 'message:', message);
+                        console.log('ÃƒÂ°Ã…Â¸Ã…Â¸|Â¡ [MESSAGE] type:', message.type, 'message:', message);
                         
                         // Handle various transcript types
                         if (message.type === 'transcript') {
-                            console.log('Ã°Å¸Å¸|¡ [MESSAGE] Processing transcript message');
+                            console.log('ÃƒÂ°Ã…Â¸Ã…Â¸|Â¡ [MESSAGE] Processing transcript message');
                             const text = String(message.transcript || message.text || '').trim();
-                            console.log('Ã°Å¸Å¸|¡ [MESSAGE] Transcript text:', text);
+                            console.log('ÃƒÂ°Ã…Â¸Ã…Â¸|Â¡ [MESSAGE] Transcript text:', text);
                             if (text) {
                         // Update the on-screen evolving paragraph (natural text)
                     setLiveTranscriptText((prev) => {
@@ -1026,17 +1026,17 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
             if (userMessages.length === 0) return;
             
             const firstUserMessage = userMessages[0];
-            const title = firstUserMessage.content.slice(0, 60) + (firstUserMessage.content.length > 60 ? '...' : '');
-            
+            const contentSafe = String(firstUserMessage?.content ?? '');
+            const title = contentSafe.slice(0, 60) + (contentSafe.length > 60 ? '...' : '');
+
             const chatToSave = {
                 id: currentChatId || `chat_${Date.now()}`,
-                title,
-                messages: [...messages],
+                messages: messages.length > 0 ? [...messages] : [],
+                title: title.length > 0 ? title : 'No title',
                 timestamp: new Date().toISOString(),
                 projectId: selectedProject?.id || null,
                 projectName: selectedProject?.projectName || selectedProject?.name || null
             };
-
             const stored = localStorage.getItem(getChatStorageKey());
             let history = [];
             if (stored) {
@@ -1138,18 +1138,18 @@ console.log('Ã°Å¸|€|´ [CALL-END] Event triggered - DEBUGGING TRANSCRIPT
         try {
             const messageBody = `
 **Voice Interaction Summary**
-“… Date: ${new Date().toLocaleDateString()}
-|±ï¸ Duration: ${summary.duration}
-•’ Time: ${summary.startTime} - ${summary.endTime}
+â€œâ€¦ Date: ${new Date().toLocaleDateString()}
+|ÂÂ±Ã¯Â¸Â Duration: ${summary.duration}
+â€¢â€™ Time: ${summary.startTime} - ${summary.endTime}
 
 **Key Points Discussed:**
-${summary.keyPoints.map(point => `|€¢ ${point}`).join('\n')}
+${summary.keyPoints.map(point => `|â‚¬Â¢ ${point}`).join('\n')}
 
 **Full Conversation:**
-${summary.exchanges.map(ex => `${ex.speaker === 'user' ? '‘¤ You' : '¤– Bubbles'}: ${ex.message}`).join('\n\n')}
+${summary.exchanges.map(ex => `${ex.speaker === 'user' ? 'â€˜Â¤ You' : 'Â¤â€“ Bubbles'}: ${ex.message}`).join('\n\n')}
 
 **Actions Taken:**
-${summary.actions.map(action => `|œ… ${action}`).join('\n')}
+${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
 
 ---
 *This summary was automatically generated from your voice conversation with Bubbles AI Assistant.*
@@ -1235,7 +1235,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                 const confirmationMessage = {
                     id: `confirm_${Date.now()}`,
                     type: 'assistant',
-                    content: `|œ… Voice conversation summary sent as Project Message "Bubbles Conversation" to ${recipientCount > 0 ? `${recipientCount} team member${recipientCount > 1 ? 's' : ''}` : 'project team'}`,
+                    content: `|Å“â€¦ Voice conversation summary sent as Project Message "Bubbles Conversation" to ${recipientCount > 0 ? `${recipientCount} team member${recipientCount > 1 ? 's' : ''}` : 'project team'}`,
                     timestamp: new Date()
                 };
                 setMessages(prev => [confirmationMessage, ...prev]);
@@ -1249,7 +1249,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
             const errorMessage = {
                 id: `error_${Date.now()}`,
                 type: 'assistant',
-                content: `|š ï¸ Could not send conversation summary as project message. The summary has been saved locally.`,
+                content: `|Å¡Â Ã¯Â¸Â Could not send conversation summary as project message. The summary has been saved locally.`,
             };
             setMessages(prev => [errorMessage, ...prev]);
         }
@@ -1605,7 +1605,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                         className="w-full text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
                     >
                         <div className="font-medium text-gray-900">{project.projectName || project.name}</div>
-                        <div className="text-sm text-gray-500">{project.customerName} Ã¢|‚¬|¢ {project.status}</div>
+                        <div className="text-sm text-gray-500">{project.customerName} ÃƒÂ¢|â€šÂ¬|Â¢ {project.status}</div>
                     </button>
                 ))}
                 <button
@@ -1702,10 +1702,10 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                             projects={projects}
                             selectedProject={selectedProject}
                             onProjectSelect={(project) => {
-                                console.log('Ã°Å¸|€| AIAssistantPage: onProjectSelect called with:', project);
-                                console.log('Ã°Å¸|€| AIAssistantPage: Current selectedProject before:', selectedProject);
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â AIAssistantPage: onProjectSelect called with:', project);
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â AIAssistantPage: Current selectedProject before:', selectedProject);
                                 setSelectedProject(project);
-                                console.log('Ã°Å¸|€| AIAssistantPage: setSelectedProject called with:', project);
+                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â AIAssistantPage: setSelectedProject called with:', project);
                                 setSelectedProjectNonce(prev => prev + 1);
                                 setShowProjectSelector(false);
                                 setProjectSearch('');
@@ -1717,7 +1717,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                     // Enhanced navigation for Project Workflow to navigate to current line item
                                     if (targetTab === 'Project Workflow') {
                                         try {
-                                            console.log('Ã°Å¸Å½|¯ AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
+                                            console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
                                             
                                             // Get current workflow state
                                             const currentWorkflow = project.currentWorkflowItem || {};
@@ -1725,7 +1725,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                             const section = currentWorkflow.section || 'Unknown Section';
                                             const lineItem = currentWorkflow.lineItem || 'Unknown Item';
                                             
-                                            console.log('Ã°Å¸Å½|¯ AI ASSISTANT: Current workflow state:', {
+                                            console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Current workflow state:', {
                                                 phase,
                                                 section,
                                                 lineItem
@@ -1743,7 +1743,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                                 const positionResult = await positionResponse.json();
                                                 if (positionResult.success && positionResult.data) {
                                                     const position = positionResult.data;
-                                                    console.log('Ã°Å¸Å½|¯ AI ASSISTANT: Project position data:', position);
+                                                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Project position data:', position);
                                                     
                                                     // Generate proper target IDs for navigation
                                                     const targetLineItemId = position.currentLineItemId || 
@@ -1754,7 +1754,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                                                           position.currentSection ||
                                                                           section.toLowerCase().replace(/\s+/g, '-');
                                                     
-                                                    console.log('Ã°Å¸Å½|¯ AI ASSISTANT: Target IDs:', {
+                                                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Target IDs:', {
                                                         targetLineItemId,
                                                         targetSectionId
                                                     });
@@ -1790,9 +1790,9 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                                 }
                                             }
                                             
-                                            console.log('Ã°Å¸Å½|¯ AI ASSISTANT: Could not get position data, using fallback navigation');
+                                            console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Could not get position data, using fallback navigation');
                                         } catch (error) {
-                                            console.error('Ã°Å¸Å½|¯ AI ASSISTANT: Error enhancing workflow navigation:', error);
+                                            console.error('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Error enhancing workflow navigation:', error);
                                         }
                                         
                                         // Fallback to simple navigation if enhanced navigation fails
@@ -1805,7 +1805,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                         onProjectSelect(project, 'Project Profile', null, 'AI Assistant');
                                     }
                                 } catch (error) {
-                                    console.error('Ã°Å¸Å½|¯ AI ASSISTANT: Error in project navigation:', error);
+                                    console.error('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Error in project navigation:', error);
                                     // Fallback to simple navigation
                                     onProjectSelect(project, targetTab || 'Project Profile', null, 'AI Assistant');
                                 }
@@ -1873,7 +1873,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                         onClick={handleVoiceToggle}
                         className={`ml-1 p-[6px] rounded-full border flex items-center justify-center transition ${isVoiceLive ? 'border-blue-600 bg-blue-50 shadow-glow' : 'border-gray-300 bg-white hover:bg-gray-100'}`}
                         aria-label={isVoiceLive ? 'End voice with Bubbles' : (isVoiceConnecting ? 'Connecting to Bubbles' : 'Speak to Bubbles')}
-                        title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'ConnectingÃ¢|‚¬|¦' : 'Speak to Bubbles')}
+                        title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'ConnectingÃƒÂ¢|â€šÂ¬|Â¦' : 'Speak to Bubbles')}
                     >
                         {isVoiceConnecting ? (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-spin" aria-hidden="true">
@@ -2200,7 +2200,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                 <div>
                                     <h2 className="text-xl font-semibold text-gray-900">Voice Call Transcript & Summary</h2>
                                     <p className="text-sm text-gray-600">
-                                        {transcriptSummary.metadata.callDate} • {transcriptSummary.metadata.duration} • {transcriptSummary.metadata.participantCount} participant(s)
+                                        {transcriptSummary.metadata.callDate} â€¢ {transcriptSummary.metadata.duration} â€¢ {transcriptSummary.metadata.participantCount} participant(s)
                                     </p>
                                 </div>
                             </div>
@@ -2239,7 +2239,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                             {/* Key Sections Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Key Decisions */}
-                                {transcriptSummary.keyDecisions.length > 0 && (
+                                {(transcriptSummary?.keyDecisions || []).length > 0 && (
                                     <div className="bg-green-50 rounded-lg p-4">
                                         <h3 className="text-lg font-semibold text-green-900 mb-3">Key Decisions & Approvals</h3>
                                         <div className="space-y-2">
@@ -2247,7 +2247,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                                 <div key={index} className="bg-white p-3 rounded border border-green-200">
                                                     <p className="text-sm text-gray-800">{decision.decision}</p>
                                                     <p className="text-xs text-gray-600 mt-1">
-                                                        {decision.speaker} • {new Date(decision.timestamp).toLocaleTimeString()}
+                                                        {decision.speaker} â€¢ {new Date(decision.timestamp).toLocaleTimeString()}
                                                     </p>
                                                 </div>
                                             ))}
@@ -2256,7 +2256,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                 )}
 
                                 {/* Action Items */}
-                                {transcriptSummary.actionItems.length > 0 && (
+                                {(transcriptSummary?.actionItems || []).length > 0 && (
                                     <div className="bg-orange-50 rounded-lg p-4">
                                         <h3 className="text-lg font-semibold text-orange-900 mb-3">Action Items</h3>
                                         <div className="space-y-2">
@@ -2280,7 +2280,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                 )}
 
                                 {/* Materials List */}
-                                {transcriptSummary.materialsList.length > 0 && (
+                                {(transcriptSummary?.materialsList || []).length > 0 && (
                                     <div className="bg-purple-50 rounded-lg p-4">
                                         <h3 className="text-lg font-semibold text-purple-900 mb-3">Materials Discussed</h3>
                                         <div className="space-y-2">
@@ -2295,7 +2295,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                 )}
 
                                 {/* Risks/Issues */}
-                                {transcriptSummary.risks.length > 0 && (
+                                {(transcriptSummary?.risks || []).length > 0 && (
                                     <div className="bg-red-50 rounded-lg p-4">
                                         <h3 className="text-lg font-semibold text-red-900 mb-3">Risks & Open Issues</h3>
                                         <div className="space-y-2">
@@ -2323,7 +2323,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Full Conversation Transcript</h3>
                                 <div className="space-y-3 max-h-60 overflow-y-auto">
-                                    {transcriptSummary.fullTranscript.map((exchange, index) => (
+                                    {(transcriptSummary?.fullTranscript || []).map((exchange, index) => (
                                         <div key={index} className="bg-white p-3 rounded border border-gray-200">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-sm font-semibold text-gray-700">
@@ -2460,6 +2460,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
 };
 
 export default AIAssistantPage;
+
 
 
 
