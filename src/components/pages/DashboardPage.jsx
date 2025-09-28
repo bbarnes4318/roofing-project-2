@@ -1231,7 +1231,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   return (
     <ActivityProvider>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 text-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-200 via-emerald-100 to-emerald-200 text-gray-900">
       {/* Top Actions */}
       <div className="mb-4 flex items-center justify-end">
         <button

@@ -151,14 +151,13 @@ const ProjectProfilePage = ({
     }, []);
     
     // Filter and sort projects
-    const getFilteredAndSortedProjects = () => {
         let filteredProjects = [...projectsArray];
         
         // Apply search filter
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
             filteredProjects = filteredProjects.filter(project => 
-                ((project.name || project.projectName || '')).toLowerCase().includes(searchTerm) ||
+                ((project.projectName || project.name || '')).toLowerCase().includes(searchTerm) ||
                 (project.projectNumber || '').toString().toLowerCase().includes(searchTerm) ||
                 (project.customer?.primaryName || '').toLowerCase().includes(searchTerm) ||
                 (project.customer?.address || '').toLowerCase().includes(searchTerm)
@@ -168,23 +167,7 @@ const ProjectProfilePage = ({
         // Sort projects
         filteredProjects.sort((a, b) => {
             let aValue, bValue;
-            
-            switch (sortBy) {
-                case 'projectNumber':
-                    aValue = parseInt(a.projectNumber) || 0;
-                    bValue = parseInt(b.projectNumber) || 0;
-                    break;
-                case 'customer':
-                    aValue = a.customer?.primaryName || '';
-                    bValue = b.customer?.primaryName || '';
-                    break;
-                case 'phase':
-                    aValue = getPhaseForProject(a.id) || '';
-                    bValue = getPhaseForProject(b.id) || '';
-                    break;
-                case 'progress':
-                    aValue = getProgressForProject(a.id) || 0;
-                    bValue = getProgressForProject(b.id) || 0;
+{{ ... }}
                     break;
                 case 'startDate':
                     aValue = new Date(a.startDate || 0);
@@ -192,8 +175,8 @@ const ProjectProfilePage = ({
                     break;
                 case 'name':
                 default:
-                    aValue = (a.name || a.projectName || '').toLowerCase();
-                    bValue = (b.name || b.projectName || '').toLowerCase();
+                    aValue = (a.projectName || '').toLowerCase();
+                    bValue = (b.projectName || '').toLowerCase();
                     break;
             }
             
@@ -201,6 +184,7 @@ const ProjectProfilePage = ({
                 const comparison = aValue.localeCompare(bValue);
                 return sortOrder === 'asc' ? comparison : -comparison;
             } else {
+{{ ... }}
                 const comparison = aValue - bValue;
                 return sortOrder === 'asc' ? comparison : -comparison;
             }
@@ -462,7 +446,7 @@ const ProjectProfilePage = ({
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h2 className={`text-2xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-                                    {selectedProject.name || selectedProject.projectName || 'Project Details'}
+                                {selectedProject.projectName || selectedProject.name || 'Project Details'}
                                 </h2>
                                 <div className="flex items-center gap-4">
                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${colorMode ? getProjectTypeColorDark(selectedProject.projectType) : getProjectTypeColor(selectedProject.projectType)}`}>

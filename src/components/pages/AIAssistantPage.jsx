@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
@@ -69,6 +69,33 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [liveTranscriptText, setLiveTranscriptText] = useState('');
     const MAX_TRANSCRIPT_PREVIEW_LINES = 8; // tweakable
     
+    // Current user display name (for transcript labels)
+    const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
+
+    useEffect(() => {
+        try {
+            const getName = (u) => {
+                if (!u) return '';
+                if (u.firstName || u.lastName) {
+                    return [u.firstName, u.lastName].filter(Boolean).join(' ').trim();
+                }
+                return (u.name || u.fullName || u.email || '').trim();
+            };
+            let name = '';
+            const localUser = localStorage.getItem('user') || localStorage.getItem('currentUser');
+            if (localUser) {
+                try { name = getName(JSON.parse(localUser)); } catch (_) {}
+            }
+            if (!name) {
+                const sessionUser = sessionStorage.getItem('user') || sessionStorage.getItem('currentUser');
+                if (sessionUser) {
+                    try { name = getName(JSON.parse(sessionUser)); } catch (_) {}
+                }
+            }
+            setCurrentUserDisplayName(name);
+        } catch (_) {}
+    }, []);
+
     // Voice conversation tracking for summary
     const [voiceConversation, setVoiceConversation] = useState([]);
     const [voiceActions, setVoiceActions] = useState([]);

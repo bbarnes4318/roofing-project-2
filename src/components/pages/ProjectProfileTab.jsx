@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
 import api, { projectsService, customersService, documentsService, API_ORIGIN } from '../../services/api';
@@ -266,7 +266,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="text-6xl mb-4">📋</div>
+          <div className="text-6xl mb-4">ðŸ“‹</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Project Selected</h3>
           <p className="text-gray-500">Please select a project to view its profile information.</p>
         </div>
@@ -284,7 +284,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             {String(project.projectNumber || project.id || '')}
           </span>
           <h1 className="text-base font-semibold text-gray-900 truncate">
-              {project.name || project.projectName || 'Project Profile'}
+              {project.projectName || project.name || 'Project Profile'}
             </h1>
           </div>
         {/* Right: Type */}
@@ -379,13 +379,13 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           <button
             onClick={async () => {
               if (!onProjectSelect) {
-                console.error('🎯 LINE ITEM CLICKED! onProjectSelect is not available');
+                console.error('ðŸŽ¯ LINE ITEM CLICKED! onProjectSelect is not available');
                 toast.error('Navigation failed: onProjectSelect not available');
                 return;
               }
               
               try {
-                console.log('🎯 PROJECT PROFILE TAB: Line item clicked for project:', project.id);
+                console.log('ðŸŽ¯ PROJECT PROFILE TAB: Line item clicked for project:', project.id);
                 
                 const cw = project?.currentWorkflowItem;
                 const currentLineItem = WorkflowDataService.getCurrentLineItem(project);
@@ -415,7 +415,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                     }
                   }
                 } catch (positionError) {
-                  console.warn('🎯 PROJECT PROFILE TAB: Could not fetch position data, using fallback:', positionError);
+                  console.warn('ðŸŽ¯ PROJECT PROFILE TAB: Could not fetch position data, using fallback:', positionError);
                 }
                 
                 const projectWithNavigation = {
@@ -458,7 +458,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 );
                 
               } catch (error) {
-                console.error('🎯 PROJECT PROFILE TAB: Error navigating to workflow:', error);
+                console.error('ðŸŽ¯ PROJECT PROFILE TAB: Error navigating to workflow:', error);
                 const fallbackProject = {
                   ...project,
                   navigationSource: 'Project Profile Tab (Fallback)',
@@ -606,7 +606,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="text-gray-400 text-4xl mb-3">👤</div>
+            <div className="text-gray-400 text-4xl mb-3">ðŸ‘¤</div>
             <p className="text-gray-500">No secondary contact added</p>
           </div>
         )}
@@ -790,7 +790,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         </div>
         {docsError && <div className="text-xs text-red-600 mb-2">{docsError}</div>}
         {docsLoading ? (
-          <div className="text-xs text-gray-600">Loading…</div>
+          <div className="text-xs text-gray-600">Loadingâ€¦</div>
         ) : docs.length === 0 ? (
           <div className="text-xs text-gray-500">No documents yet</div>
         ) : (
@@ -886,7 +886,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   disabled={usersLoading}
                 >
                   <option value="">
-                    {usersLoading ? '⏳ Loading users...' : '👤 Select Project Manager'}
+                    {usersLoading ? 'â³ Loading users...' : 'ðŸ‘¤ Select Project Manager'}
                   </option>
                   {users.map(user => (
                     <option key={user.id} value={user.id}>
