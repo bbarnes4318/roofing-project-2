@@ -1877,34 +1877,82 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     {/* Header Actions */}
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => setShowChatHistory(!showChatHistory)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-blue-500 hover:bg-blue-600 text-white"
-                            title="Chat History"
-                        >
-                            History ({chatHistory.length})
-                        </button>
-                        <button
                             onClick={() => {
                                 setMessages([]);
                                 setCurrentChatId(null);
                             }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-red-500 hover:bg-red-600 text-white"
-                            title="Clear Chat"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+                            title="Clear the current chat"
                         >
+                            <TrashIcon className="w-3.5 h-3.5" />
                             Clear Chat
                         </button>
-                        {/* Removed Test Modal button (debug control) */}
                     </div>
                 </div>
             </div>
 
-            {/* Clean Quick Start banner */}
-            <div className="p-2 border-b bg-white">
-                <div className="max-w-7xl mx-auto px-2 flex items-center justify-between gap-4">
-                    <div className="text-sm text-gray-700">Try Bubbles: "Send inspection_report_v2.pdf to Jane Doe"</div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setIsQuickModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-500">Quick Start</button>
-                        <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className="px-3 py-1.5 border rounded text-sm text-gray-700 hover:bg-gray-50">Printable</a>
+            {/* Bubbles Quick Start Guidance */}
+            <div className="border-b bg-gradient-to-r from-slate-50 to-white">
+                <div className="max-w-7xl mx-auto px-4 py-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Get productive with Bubbles</h3>
+                            <p className="text-sm text-gray-600 mt-1 max-w-3xl">
+                                Bubbles can draft messages, schedule tasks, and set reminders while attaching the right documents. Try these starter prompts to keep your projects moving fast.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                onClick={() => setIsQuickModalOpen(true)}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition"
+                            >
+                                <SparklesIcon className="w-3.5 h-3.5" /> Assistant playbook
+                            </button>
+                            <a
+                                href="/bubbles-quickstart.html"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-100 transition"
+                            >
+                                <DocumentTextIcon className="w-3.5 h-3.5" /> Printable guide
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        <div className="rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                <PaperAirplaneIcon className="w-4 h-4 text-blue-500" />
+                                Send project updates fast
+                            </div>
+                            <ul className="mt-2 space-y-1.5 text-xs text-gray-600">
+                                <li><strong>Say:</strong> "Message the homeowner that today's crew arrives by 8am and attach progress_photos.pdf."</li>
+                                <li><strong>Who gets it:</strong> Describe the audience (“homeowner”, “production team”) or list names.</li>
+                                <li><strong>Proofread:</strong> Bubbles repeats back the draft—just answer “Looks good” or correct it.</li>
+                            </ul>
+                        </div>
+                        <div className="rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                <ClipboardDocumentCheckIcon className="w-4 h-4 text-green-500" />
+                                Assign tasks & reminders
+                            </div>
+                            <ul className="mt-2 space-y-1.5 text-xs text-gray-600">
+                                <li><strong>Say:</strong> "Create a task for Sarah to order shingles for project 10023 by Friday and attach the takeoff PDF."</li>
+                                <li><strong>Deadlines:</strong> Mention the due day or time so Bubbles schedules it correctly.</li>
+                                <li><strong>Follow-up:</strong> Add "Set a reminder for me tomorrow at 9am" to keep it on radar.</li>
+                            </ul>
+                        </div>
+                        <div className="rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                <ClockIcon className="w-4 h-4 text-orange-500" />
+                                Voice tip: natural names first
+                            </div>
+                            <ul className="mt-2 space-y-1.5 text-xs text-gray-600">
+                                <li><strong>Speak normally:</strong> “Attach the roofing doc forty-eight thirty-eight F F one PDF.” Bubbles matches underscores/dashes automatically.</li>
+                                <li><strong>Add context if needed:</strong> Mention the project, who uploaded it, or “the warranty PDF from today” to help it pick the right file.</li>
+                                <li><strong>Fallback:</strong> Only if it’s unsure, spell it out (“roofing underscore doc…”) to confirm the exact filename.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

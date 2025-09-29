@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 const PHRASES = [
-  'Send upfront_warranty_5-year_v4.pdf to Sarah Owner with a message saying Please review.',
-  'Create a task for Jane Doe to review inspection_report_v2.pdf in 3 days.',
-  'Open inspection_report_v2.pdf and list the top 10 steps.',
-  "Send the roof packet to the project manager and set a reminder next Tue 9am.",
+  'Send inspection_report_v2.pdf to the homeowner with a quick status update.',
+  'Create a task for Sarah to order shingles for project 10023 by Friday and attach the takeoff.',
+  'Set a reminder for the install crew tomorrow at 8am to upload day-one photos.',
+  'Ask Bubbles to summarize punchlist_notes.pdf and share the highlights with the production manager.',
 ];
 
 export function CheatSheetPopover({ colorMode = false, onOpenQuickCard = () => {}, onClose = () => {}, className = '' }) {
@@ -82,7 +82,7 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className={`max-w-3xl w-[92%] max-h-[90vh] overflow-auto rounded-2xl p-6 shadow-2xl relative ${colorMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-gray-900'}`}
+        className={`max-w-4xl w-[96%] max-h-[84vh] overflow-hidden rounded-2xl p-6 shadow-2xl relative ${colorMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-gray-900'}`}
         style={{ zIndex: 2147483648 }}
       >
         <div className="absolute top-3 right-3">
@@ -90,38 +90,60 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
             ✕
           </button>
         </div>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold">Bubbles AI — Quick Start</h3>
-            <p className={`text-sm ${colorMode ? 'text-slate-300' : 'text-gray-500'}`}>Use these phrases to send documents, create tasks, and set reminders via chat or voice.</p>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div className="max-w-2xl">
+              <h3 className="text-xl font-bold">Bubbles Assistant Playbook</h3>
+              <p className={`mt-1 text-sm leading-relaxed ${colorMode ? 'text-slate-300' : 'text-gray-600'}`}>
+                Speak naturally. Give Bubbles the goal, who should get it, and which documents to attach. These quick plays keep projects moving without leaving your desk or jobsite.
+              </p>
+            </div>
+            <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${colorMode ? 'border-slate-600 text-slate-100 hover:bg-slate-800/60' : 'border-gray-300 text-gray-700 hover:bg-gray-100'} transition`}>Printable guide</a>
           </div>
-          <div className="flex gap-2">
-            <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className={`px-3 py-1.5 rounded text-sm ${colorMode ? 'bg-slate-700 text-slate-100 hover:bg-slate-600' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>Open printable view</a>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div>
-            <h4 className="font-semibold">Top Phrases</h4>
-            <ol className="mt-2 space-y-2 text-sm">
-              {PHRASES.map((p, i) => (
-                <li key={i} className="rounded p-2 bg-transparent" style={{ lineHeight: 1.35 }}>{p}</li>
-              ))}
-            </ol>
-          </div>
-          <div>
-            <h4 className="font-semibold">JSON Examples</h4>
-            <div className="mt-2 text-xs">
-              <div className="mb-2 font-medium">Send doc + notify + task</div>
-              <pre className={`p-3 rounded text-xs ${colorMode ? 'bg-slate-800 text-slate-100' : 'bg-gray-50 text-gray-900'}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace' }}>{`{
-  "message": "Send inspection_report_v2.pdf to Jane Doe and Carlos Martinez with a message saying Please review the inspection comments. Also create a task to follow up in 3 days.",
-  "projectId": "proj_7a2f"
-}`}</pre>
-              <div className="mt-2 font-medium">Extract steps from doc</div>
-              <pre className={`p-3 rounded text-xs ${colorMode ? 'bg-slate-800 text-slate-100' : 'bg-gray-50 text-gray-900'}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace' }}>{`{
-  "message": "Open inspection_report_v2.pdf and give me the top 10 steps.",
-  "projectId": "proj_7a2f"
-}`}</pre>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="space-y-3">
+              <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-gray-50'} p-4 shadow-sm`}> 
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-blue-500">Prompts that work</h4>
+                <ul className={`mt-2 space-y-1.5 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                  {PHRASES.map((phrase, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className={`flex-shrink-0 mt-[3px] w-4 h-4 rounded-full text-[10px] font-semibold flex items-center justify-center ${colorMode ? 'bg-slate-800 text-blue-300' : 'bg-blue-50 text-blue-600'}`}>{idx + 1}</span>
+                      <span className="leading-snug">{phrase}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}> 
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-emerald-500">Attachments made easy</h4>
+                <ul className={`mt-2 space-y-1.5 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                  <li><strong>Exact names win:</strong> “Attach measurement_notes.pdf.”</li>
+                  <li><strong>Not sure?</strong> Ask “What documents are on project 10045?” then tell Bubbles which one to send.</li>
+                  <li><strong>Bundle files:</strong> “Send the permit.pdf <em>and</em> latest_photos.zip to accounting.”</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}> 
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-orange-500">Voice: natural names first</h4>
+                <div className={`mt-2 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                  <p className="leading-snug"><strong>Speak it normally:</strong> “Attach the roofing doc forty-eight thirty-eight F F one PDF.” Bubbles handles underscores and dashes automatically.</p>
+                  <p className="leading-snug mt-2"><strong>Add detail if needed:</strong> Mention the project, uploader, or “the warranty PDF from today” so it matches the right file.</p>
+                  <p className="leading-snug mt-2"><strong>Fallback:</strong> Only spell it out (“roofing underscore doc…”) if Bubbles asks for clarification.</p>
+                </div>
+              </div>
+
+              <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}> 
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-purple-500">Reliable workflow</h4>
+                <ul className={`mt-2 space-y-1.5 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                  <li><strong>1. State the job:</strong> “Send a status update to Maria about today’s roof progress.”</li>
+                  <li><strong>2. Add project & people:</strong> Include project number or names so Bubbles routes it correctly.</li>
+                  <li><strong>3. Approve the recap:</strong> Bubbles repeats the plan. Say “Looks good” or make tweaks.</li>
+                  <li><strong>Need help?</strong> Email <a href="mailto:support@kenstruction.com" className="underline">support@kenstruction.com</a>.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

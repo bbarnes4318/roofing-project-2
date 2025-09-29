@@ -4,7 +4,6 @@ import { projectMessagesService, calendarService } from '../../services/api';
 import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
 import { queryKeys } from '../../hooks/useQueryApi';
 import toast from 'react-hot-toast';
-import { useTeamMembers } from '../../hooks/useQueryApi';
 
 const MTRForm = ({
   activeCommTab,
@@ -13,6 +12,7 @@ const MTRForm = ({
   setShowMessageDropdown,
   projects,
   availableUsers,
+  usersLoading = false,
   subjects,
   currentUser,
   // Message form state
@@ -58,9 +58,7 @@ const MTRForm = ({
   uiProjects
 }) => {
   const queryClient = useQueryClient();
-  // Prefer live team members from API; fall back to availableUsers prop if API returns nothing
-  const { data: liveUsers = [], isLoading: liveUsersLoading, error: liveUsersError } = useTeamMembers();
-  const recipients = Array.isArray(liveUsers) && liveUsers.length > 0 ? liveUsers : (Array.isArray(availableUsers) ? availableUsers : []);
+  const recipients = Array.isArray(availableUsers) ? availableUsers : [];
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
 
   return (
@@ -213,10 +211,8 @@ const MTRForm = ({
                   style={{ minHeight: '40px' }}
                 >
                   <option value="all" style={{ fontWeight: 'bold' }}>All Users</option>
-                  {liveUsersLoading ? (
+                  {usersLoading ? (
                     <option value="" disabled>Loading users...</option>
-                  ) : liveUsersError ? (
-                    <option value="" disabled>Error loading users</option>
                   ) : recipients.length === 0 ? (
                     <option value="" disabled>No users found</option>
                   ) : (
@@ -424,10 +420,8 @@ const MTRForm = ({
                 <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Assign To</label>
                 <select value={quickTaskAssigneeId} onChange={(e)=>{ setQuickTaskAssigneeId(e.target.value); setQuickTaskAssignAll(false); }} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}>
                   <option value="">Unassigned</option>
-                  {liveUsersLoading ? (
+                  {usersLoading ? (
                     <option value="" disabled>Loading users...</option>
-                  ) : liveUsersError ? (
-                    <option value="" disabled>Error loading users</option>
                   ) : recipients.length === 0 ? (
                     <option value="" disabled>No users found</option>
                   ) : (
@@ -514,10 +508,8 @@ const MTRForm = ({
               <div>
                 <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Recipients</label>
                 <select multiple value={reminderUserIds} onChange={(e)=>setReminderUserIds(Array.from(e.target.selectedOptions, o => o.value))} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} style={{ minHeight: '40px' }}>
-                  {liveUsersLoading ? (
+                  {usersLoading ? (
                     <option value="" disabled>Loading users...</option>
-                  ) : liveUsersError ? (
-                    <option value="" disabled>Error loading users</option>
                   ) : recipients.length === 0 ? (
                     <option value="" disabled>No users found</option>
                   ) : (

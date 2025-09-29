@@ -12,7 +12,8 @@ import {
   projectMessagesService,
   aiService,
   workflowAlertsService,
-  usersService
+  usersService,
+  rolesService
 } from '../services/api';
 
 // Import workflow service separately since it might be in a different location
@@ -71,6 +72,7 @@ export const queryKeys = {
   
   // Users
   teamMembers: ['users', 'team-members'],
+  rolesUsers: ['roles', 'users'],
 };
 
 /**
@@ -89,6 +91,46 @@ export const useProjectMessages = (projectId, params = { page: 1, limit: 20, inc
     staleTime: 30 * 1000,
   });
 };
+
+export const useRolesUsers = () => {
+  return useQuery({
+    queryKey: queryKeys.rolesUsers,
+    queryFn: () => rolesService.getUsers(),
+    select: (data) => {
+      const arr = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+
+      const normalized = arr.map((u) => ({
+        id: u.id || u.userId || u._id || null,
+        firstName: u.firstName || u.name?.first || '',
+        lastName: u.lastName || u.name?.last || '',
+        email: u.email || u.primaryEmail || '',
+        phone: u.phone || u.primaryPhone || '',
+        role: u.role || u.userRole || '',
+        avatarUrl: u.avatarUrl || u.avatar || u.photoUrl || ''
+      }));
+
+      return normalized.filter((u) => u && u.id);
+    },
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    retry: false,
+    onSuccess: (users) => {
+      try {
+        localStorage.setItem('rolesUsersCache', JSON.stringify(users));
+      } catch (_) {}
+    },
+    initialData: () => {
+      try {
+        const cached = localStorage.getItem('rolesUsersCache');
+        if (cached) {
+          return JSON.parse(cached);
+        }
+      } catch (_) {}
+      return [];
+    }
+  });
+};
+
 
 export const useCreateProjectMessage = () => {
   const queryClient = useQueryClient();

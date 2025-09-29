@@ -18,10 +18,10 @@ import ProjectCubes from '../dashboard/ProjectCubes';
 import CurrentProjectsByPhase from '../dashboard/CurrentProjectsByPhase';
 import { mockProjects, mockMessages, mockTasks, mockReminders } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, useTeamMembers, queryKeys } from '../../hooks/useQueryApi';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, queryKeys } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
-import api, { authService, messagesService, customersService, usersService, projectMessagesService, calendarService, activitiesService, tasksService } from '../../services/api';
+import api, { API_BASE_URL, authService, messagesService, customersService, usersService, projectMessagesService, calendarService, activitiesService, tasksService } from '../../services/api';
 import toast from 'react-hot-toast';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { getUserFullName } from '../../utils/userUtils';
@@ -216,11 +216,78 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   
   // Use React Query hooks for user data (must be declared before activityFeedItems useMemo)
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser();
-  const { data: availableUsers = [], isLoading: usersLoading } = useTeamMembers();
-  // Use live team members from API. If the API returns nothing, show empty list (no fake users).
+  const [assignableUsers, setAssignableUsers] = useState([]);
+  const [assignableUsersLoading, setAssignableUsersLoading] = useState(false);
+  const [assignableUsersError, setAssignableUsersError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchAssignableUsers = async () => {
+      setAssignableUsersLoading(true);
+      setAssignableUsersError(null);
+      try {
+        const token =
+          localStorage.getItem('authToken') ||
+          localStorage.getItem('token') ||
+          sessionStorage.getItem('authToken') ||
+          sessionStorage.getItem('token');
+
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/roles/users`, {
+          method: 'GET',
+          headers,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load users: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const usersArray = Array.isArray(result?.data) ? result.data : [];
+
+        const normalized = usersArray.map((user) => ({
+          id: user.id || user.userId || user._id || user.uuid || null,
+          firstName: user.firstName || user.name?.first || user.fullName?.split?.(' ')?.[0] || '',
+          lastName: user.lastName || user.name?.last || user.fullName?.split?.(' ')?.slice(1).join(' ') || '',
+          email: user.email || user.primaryEmail || '',
+          phone: user.phone || user.primaryPhone || '',
+          role: user.role || user.userRole || user.assignedRole || '',
+          avatarUrl: user.avatarUrl || user.avatar || user.photoUrl || '',
+          raw: user
+        })).filter((user) => user.id);
+
+        if (!cancelled) {
+          setAssignableUsers(normalized);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch assignable users from roles endpoint:', error);
+          setAssignableUsersError(error);
+          setAssignableUsers([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setAssignableUsersLoading(false);
+        }
+      }
+    };
+
+    fetchAssignableUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const usersForUi = useMemo(() => {
-    return Array.isArray(availableUsers) ? availableUsers : [];
-  }, [availableUsers]);
+    return Array.isArray(assignableUsers) ? assignableUsers : [];
+  }, [assignableUsers]);
   
   // Fetch messages from conversations
   const [messagesData, setMessagesData] = useState([]);
@@ -795,8 +862,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Alerts UI is self-contained in ProjectWorkflowLineItemsSection
   
   console.log('🔍 DASHBOARD: currentUser from hook:', currentUser);
-  console.log('🔍 DASHBOARD: availableUsers from hook:', availableUsers);
-  console.log('🔍 DASHBOARD: availableUsers length:', availableUsers?.length);
+  console.log('🔍 DASHBOARD: assignableUsers length:', assignableUsers?.length);
   console.log('🔍 DASHBOARD: usersForUi length:', usersForUi?.length);
   console.log('🔍 DASHBOARD: subjects from context:', subjects);
   
@@ -1352,6 +1418,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               setShowMessageDropdown={setShowMessageDropdown}
               projects={displayProjects}
               availableUsers={usersForUi}
+              usersLoading={assignableUsersLoading}
               subjects={subjects}
               currentUser={currentUser}
               newMessageProject={newMessageProject}

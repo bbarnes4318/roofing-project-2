@@ -152,10 +152,6 @@ const ProjectWorkflowLineItemsSection = ({
 
   return (
     <div className="w-full" data-section="project-workflow-tasks">
-      {/* DEBUG BANNER - remove when finished debugging */}
-      <div className={`mb-3 p-2 rounded text-sm font-medium ${colorMode ? 'bg-red-900 text-white' : 'bg-red-100 text-red-800'} border ${colorMode ? 'border-red-700' : 'border-red-200'}`}>
-        DEBUG: ProjectWorkflowLineItemsSection mounted — alertsReceived: {alertsCount} — alertsLoading: {String(!!alertsLoading)}
-      </div>
       {/* Beautiful original alerts UI with new functionality */}
       <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
         <div className="mb-4">

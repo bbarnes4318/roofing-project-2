@@ -162,7 +162,7 @@ const ReminderItem = ({
               
               {/* To - Fixed position to match Subject exactly */}
               <div style={{ position: 'absolute', left: '141px', width: '200px' }}>
-                <span className="text-[9px] font-medium whitespace-nowrap text-gray-600" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1' }}>
+                <span className="text-[9px] font-medium whitespace-nowrap" style={{ display: 'inline-block', verticalAlign: 'baseline', lineHeight: '1', color: '#0f172a' }}>
                   To: {recipients.length > 0 ? (
                     recipients[0].isAll ? 'All Users' : `${recipients[0].firstName} ${recipients[0].lastName}`
                   ) : 'No recipients'}
