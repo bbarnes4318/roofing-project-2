@@ -6,6 +6,7 @@ import { assetsService } from '../../services/assetsService';
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
+import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { 
   PhoneIcon, 
   EnvelopeIcon, 
@@ -19,8 +20,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   PlusIcon,
-  XCircleIcon,
-  CloudArrowUpIcon
+  XCircleIcon
 } from '../common/Icons';
 
 const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
