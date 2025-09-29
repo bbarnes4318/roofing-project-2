@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import api from '../../services/api';
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 const CurrentProjectsByPhase = ({
   projects = [],
@@ -32,8 +33,20 @@ const CurrentProjectsByPhase = ({
         return m;
       }, {})
     : {};
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  
   const getProjectPhase = (project) => WorkflowProgressService.getProjectPhase(project);
   const getProjectProgress = (project) => (WorkflowProgressService.calculateProjectProgress(project)?.overall || 0);
+
+  const toggleRowExpansion = (projectId) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(projectId)) {
+      newExpanded.delete(projectId);
+    } else {
+      newExpanded.add(projectId);
+    }
+    setExpandedRows(newExpanded);
+  };
 
   const filteredProjects = !selectedPhase
     ? []
@@ -340,7 +353,8 @@ const CurrentProjectsByPhase = ({
                   const projectType = project.projectType || 'N/A';
 
                   return (
-                    <tr key={project.id} data-project-id={project.id} className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'} hover:bg-gray-50 transition-colors duration-300`}>
+                    <React.Fragment key={project.id}>
+                    <tr data-project-id={project.id} className={`border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'} hover:bg-gray-50 transition-colors duration-300`}>
                       {/* Phase */}
                       <td className="py-2 px-2 whitespace-nowrap">
                         <div 
@@ -395,15 +409,26 @@ const CurrentProjectsByPhase = ({
                         </span>
                       </td>
 
-                      {/* Progress */}
+                      {/* Progress with Expand */}
                       <td className="py-2 px-2 whitespace-nowrap">
-                        <div className="flex items-center gap-2 min-w-[120px]">
-                          <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden relative">
+                        <div className="flex items-center gap-2 min-w-[140px]">
+                          <button
+                            onClick={() => toggleRowExpansion(project.id)}
+                            className="p-1 hover:bg-gray-100 rounded transition"
+                            title="View phase breakdown"
+                          >
+                            {expandedRows.has(project.id) ? (
+                              <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+                            ) : (
+                              <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+                            )}
+                          </button>
+                          <div className="flex-1 h-7 bg-gray-200 rounded-full overflow-hidden relative shadow-inner">
                             <div 
-                              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 flex items-center justify-center"
+                              className="h-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 transition-all duration-500 flex items-center justify-center"
                               style={{ width: `${getProjectProgress(project)}%` }}
                             >
-                              <span className="text-[10px] font-bold text-white drop-shadow-sm px-2">
+                              <span className="text-xs font-bold text-white drop-shadow-md px-2">
                                 {getProjectProgress(project)}%
                               </span>
                             </div>
@@ -506,6 +531,127 @@ const CurrentProjectsByPhase = ({
                         </button>
                       </td>
                     </tr>
+                    
+                    {/* Expanded Progress Detail Row */}
+                    {expandedRows.has(project.id) && (
+                      <tr className="bg-blue-50/50">
+                        <td colSpan="8" className="py-4 px-6">
+                          <div className="space-y-4">
+                            {/* Phase Breakdown */}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                Phase Breakdown
+                              </h4>
+                              <div className="space-y-2">
+                                {(() => {
+                                  const progressData = WorkflowProgressService.calculateProjectProgress(project);
+                                  const phaseBreakdown = progressData?.phaseBreakdown || {};
+                                  const phases = [
+                                    { key: 'LEAD', name: 'Lead', color: '#EAB308' },
+                                    { key: 'PROSPECT', name: 'Prospect', color: '#F97316' },
+                                    { key: 'APPROVED', name: 'Approved', color: '#10B981' },
+                                    { key: 'EXECUTION', name: 'Execution', color: '#D946EF' },
+                                    { key: 'SECOND_SUPPLEMENT', name: '2nd Supplement', color: '#8B5CF6' },
+                                    { key: 'COMPLETION', name: 'Completion', color: '#0EA5E9' }
+                                  ];
+                                  
+                                  return phases.map((phase) => {
+                                    const phaseData = phaseBreakdown[phase.key] || {};
+                                    const progress = phaseData.progress || 0;
+                                    const isCurrent = phaseData.isCurrent || false;
+                                    const isCompleted = phaseData.isCompleted || false;
+                                    
+                                    return (
+                                      <div key={phase.key} className="flex items-center gap-3">
+                                        <div className="w-24 flex items-center gap-2">
+                                          <div 
+                                            className="w-2 h-2 rounded-full flex-shrink-0" 
+                                            style={{ backgroundColor: phase.color }}
+                                          />
+                                          <span className={`text-xs font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>
+                                            {phase.name}
+                                          </span>
+                                        </div>
+                                        <div className="flex-1 h-5 bg-gray-200 rounded-full overflow-hidden relative">
+                                          <div 
+                                            className="h-full transition-all duration-500 flex items-center justify-center"
+                                            style={{ 
+                                              width: `${progress}%`,
+                                              backgroundColor: phase.color,
+                                              opacity: isCompleted ? 1 : isCurrent ? 0.9 : 0.3
+                                            }}
+                                          >
+                                            {progress > 15 && (
+                                              <span className="text-[10px] font-bold text-white drop-shadow-sm">
+                                                {progress}%
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <span className="w-12 text-right text-xs font-semibold text-gray-700">
+                                          {progress}%
+                                        </span>
+                                        {isCurrent && (
+                                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">
+                                            ACTIVE
+                                          </span>
+                                        )}
+                                        {isCompleted && !isCurrent && (
+                                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  });
+                                })()}
+                              </div>
+                            </div>
+
+                            {/* Trades Section (if project has multiple trades) */}
+                            {project.additionalTrades && project.additionalTrades.length > 0 && (
+                              <div className="border-t border-gray-200 pt-4">
+                                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                                  Additional Trades ({project.additionalTrades.length})
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                  {project.additionalTrades.map((trade, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200">
+                                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-purple-700">
+                                          {trade.name?.charAt(0) || '?'}
+                                        </span>
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold text-gray-900 truncate">
+                                          {trade.name || 'Unknown Trade'}
+                                        </p>
+                                        {trade.status && (
+                                          <p className="text-[10px] text-gray-500">
+                                            {trade.status}
+                                          </p>
+                                        )}
+                                      </div>
+                                      {trade.progress !== undefined && (
+                                        <div className="flex-shrink-0 w-12 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                          <div 
+                                            className="h-full bg-purple-600 transition-all"
+                                            style={{ width: `${trade.progress || 0}%` }}
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   );
                 });
               })()}

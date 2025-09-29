@@ -1424,7 +1424,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         </button>
                         
                         {/* User Profile Dropdown */}
-                        <div className="relative" ref={profileDropdownRef} onMouseEnter={() => setProfileDropdownOpen(true)} onMouseLeave={() => setProfileDropdownOpen(false)}>
+                        <div className="relative" ref={profileDropdownRef}>
                             <button 
                                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                 className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}

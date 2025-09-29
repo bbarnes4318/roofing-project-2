@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
 import api, { projectsService, customersService, documentsService, API_ORIGIN } from '../../services/api';
+import { assetsService } from '../../services/assetsService';
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
@@ -18,7 +19,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   PlusIcon,
-  XCircleIcon
+  XCircleIcon,
+  CloudArrowUpIcon
 } from '../common/Icons';
 
 const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
@@ -751,6 +753,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     const [docs, setDocs] = useState([]);
     const [docsLoading, setDocsLoading] = useState(false);
     const [docsError, setDocsError] = useState('');
+    const [uploadModalOpen, setUploadModalOpen] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
       let cancelled = false;
@@ -771,6 +777,54 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       return () => { cancelled = true; };
     }, [project?.id]);
 
+    // Upload handler - uploads to BOTH Document table AND CompanyAssets for sync
+    const handleUpload = async () => {
+      if (selectedFiles.length === 0 || !project?.id) return;
+      
+      setUploading(true);
+      try {
+        // 1. Upload to Document table (original system)
+        const formData = new FormData();
+        selectedFiles.forEach(file => formData.append('files', file));
+        formData.append('projectId', project.id);
+        formData.append('category', 'General');
+        formData.append('description', `Uploaded from Project Profile`);
+        
+        const response = await api.post('/documents/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        // 2. Also upload to CompanyAssets with projectId metadata for Documents & Resources sync
+        try {
+          await assetsService.uploadFiles({
+            files: Array.from(selectedFiles),
+            metadata: {
+              projectId: project.id,
+              projectNumber: project.projectNumber,
+              source: 'projectProfile'
+            },
+            description: `Project ${project.projectNumber} - Uploaded from Project Profile`
+          });
+        } catch (assetErr) {
+          console.warn('Failed to sync to CompanyAssets:', assetErr);
+          // Don't fail the entire upload if CompanyAsset sync fails
+        }
+        
+        if (response.data) {
+          toast.success('Documents uploaded and synced successfully!');
+          setUploadModalOpen(false);
+          setSelectedFiles([]);
+          // Reload documents
+          const res = await documentsService.getByProject(project.id);
+          setDocs(Array.isArray(res?.data?.documents) ? res.data.documents : []);
+        }
+      } catch (error) {
+        toast.error(`Upload failed: ${error.message}`);
+      } finally {
+        setUploading(false);
+      }
+    };
+
     // Helpers
     const formatBytes = (bytes) => {
       const n = parseInt(bytes, 10) || 0;
@@ -787,6 +841,13 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft mt-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-900">Documents</h3>
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition shadow-sm"
+          >
+            <CloudArrowUpIcon className="w-4 h-4" />
+            Upload
+          </button>
         </div>
         {docsError && <div className="text-xs text-red-600 mb-2">{docsError}</div>}
         {docsLoading ? (
@@ -814,6 +875,73 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {/* Upload Modal */}
+        {uploadModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Upload Documents</h3>
+                <button
+                  onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircleIcon className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">Select Files</label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition"
+                  >
+                    <CloudArrowUpIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-600">Click to select files</p>
+                    <p className="text-xs text-gray-500 mt-1">PDF, DOC, XLS, images, and more</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))}
+                    className="hidden"
+                  />
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="text-xs text-gray-600">
+                          {file.name} ({(file.size / (1024 * 1024)).toFixed(1)} MB)
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); }}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpload}
+                    disabled={selectedFiles.length === 0 || uploading}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                      selectedFiles.length === 0 || uploading
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {uploading ? 'Uploading...' : `Upload ${selectedFiles.length > 0 ? `(${selectedFiles.length})` : ''}`}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

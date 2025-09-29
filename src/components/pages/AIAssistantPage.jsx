@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon } from '../common/Icons';
+import { ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon, SparklesIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
 import TranscriptHistory from '../ui/TranscriptHistory2';
+import { CheatSheetModal } from '../common/CheatSheet';
 // Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
@@ -18,6 +19,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [showChatHistory, setShowChatHistory] = useState(false);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
+    const [showPlaybook, setShowPlaybook] = useState(false);
     const [selectedProjectNonce, setSelectedProjectNonce] = useState(0);
     const [showProjectSelector, setShowProjectSelector] = useState(false);
     const [projectSearch, setProjectSearch] = useState('');
@@ -1875,6 +1877,16 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     {/* Header Actions */}
                     <div className="flex items-center gap-2">
                         <button
+                            onClick={() => setShowPlaybook(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all shadow-md"
+                            style={{ background: 'linear-gradient(to right, #f59e0b, #d97706)' }}
+                            title="Bubbles Assistant Playbook"
+                        >
+                            <SparklesIcon className="w-4 h-4" />
+                            <span className="hidden md:inline">Assistant Playbook</span>
+                            <span className="md:hidden">Playbook</span>
+                        </button>
+                        <button
                             onClick={() => {
                                 setMessages([]);
                                 setCurrentChatId(null);
@@ -2504,6 +2516,9 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     onClose={() => setShowTranscriptHistory(false)}
                 />
             )}
+
+            {/* Bubbles Assistant Playbook Modal */}
+            <CheatSheetModal visible={showPlaybook} onClose={() => setShowPlaybook(false)} colorMode={colorMode} />
 
         </div>
     );

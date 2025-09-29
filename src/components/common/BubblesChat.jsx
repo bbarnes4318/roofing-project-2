@@ -702,8 +702,19 @@ const BubblesChat = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            {/* Cheat-sheet help button -> use reusable CheatSheetPopover and in-app modal */}
+          <div className="flex items-center gap-2">
+            {/* Assistant Playbook Button - PROMINENT */}
+            <button
+              onClick={() => setIsQuickModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all shadow-sm"
+              style={{ background: 'linear-gradient(to right, #f59e0b, #d97706)', color: '#ffffff' }}
+              title="Bubbles Assistant Playbook"
+            >
+              <SparklesIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Playbook</span>
+            </button>
+            
+            {/* Quick help popover button */}
             <div className="relative">
               <button
                 onClick={() => setShowCheatSheet(prev => !prev)}
