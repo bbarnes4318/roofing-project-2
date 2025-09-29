@@ -212,7 +212,7 @@ const CompanyDocumentsTestSuite = () => {
                 className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
                   showTest 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-[var(--color-success-green)] text-white hover:bg-green-700'
                 }`}
               >
                 <ClipboardDocumentListIcon className="w-4 h-4 mr-2" />
@@ -253,7 +253,7 @@ const CompanyDocumentsTestSuite = () => {
               <div className="flex space-x-3">
                 <button
                   onClick={runAllTests}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Run All Tests
                 </button>

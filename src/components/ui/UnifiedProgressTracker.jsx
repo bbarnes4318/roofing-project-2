@@ -163,7 +163,6 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                                 {/* Phase Progress Bars */}
                                 <div className="space-y-3">
                                     {phases.map((phase) => {
-                                        const phaseData = progressData.phaseBreakdown[phase.key];
                                         const progress = phaseData?.progress || 0;
                                         const isCurrent = phaseData?.isCurrent || false;
                                         const isCompleted = phaseData?.isCompleted || false;
@@ -172,10 +171,15 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                                             <div 
                                                 key={phase.key}
                                                 className={`p-2 rounded-md cursor-pointer transition-colors ${
-                                                    isCurrent
-                                                        ? colorMode ? 'bg-gray-700' : 'bg-blue-50'
-                                                        : colorMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'
+                                                    colorMode
+                                                        ? isCurrent ? 'bg-gray-700' : 'hover:bg-gray-750'
+                                                        : 'hover:bg-gray-50'
                                                 }`}
+                                                style={
+                                                    !colorMode && isCurrent
+                                                        ? { backgroundColor: 'var(--color-primary-light-tint)' }
+                                                        : undefined
+                                                }
                                                 onClick={() => handlePhaseClick(phase.key)}
                                             >
                                                 <div className="flex items-center justify-between mb-1">
@@ -184,17 +188,22 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                                                             className="w-2 h-2 rounded-full"
                                                             style={{ backgroundColor: phase.color }}
                                                         />
-                                                        <span className={`text-sm font-medium ${
-                                                            colorMode ? 'text-gray-300' : 'text-gray-700'
-                                                        }`}>
+                                                        <span className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                             {phase.name}
                                                         </span>
                                                         {isCurrent && (
-                                                            <span className={`text-xs px-2 py-1 rounded ${
-                                                                colorMode 
-                                                                    ? 'bg-blue-900 text-blue-300' 
-                                                                    : 'bg-blue-100 text-blue-800'
-                                                            }`}>
+                                                            <span
+                                                                className="text-xs px-2 py-1 rounded font-semibold"
+                                                                style={colorMode
+                                                                    ? {
+                                                                        backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                                                                        color: 'var(--color-surface-white)'
+                                                                    }
+                                                                    : {
+                                                                        backgroundColor: 'var(--color-primary-light-tint)',
+                                                                        color: 'var(--color-primary-blueprint-blue)'
+                                                                    }
+                                                            >
                                                                 Current
                                                             </span>
                                                         )}
@@ -203,19 +212,7 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                                                         {progress}%
                                                     </span>
                                                 </div>
-                                                <div className={`w-full bg-gray-200 rounded-full h-1.5 ${
-                                                    colorMode ? 'bg-gray-600' : 'bg-gray-200'
-                                                }`}>
-                                                    <motion.div
-                                                        className="h-1.5 rounded-full"
-                                                        style={{ backgroundColor: phase.color }}
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${progress}%` }}
-                                                        transition={{ duration: 0.5, delay: 0.1 }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
+{{ ... }}
                                     })}
                                 </div>
 
@@ -223,18 +220,14 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                                 <div className="mt-4">
                                     <button
                                         onClick={handleNavigateToWorkflow}
-                                        className={`w-full py-2 px-4 rounded-md transition-colors ${
-                                            colorMode
-                                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                : 'bg-blue-500 hover:bg-blue-600 text-white'
-                                        }`}
+                                        className={`w-full py-2 px-4 rounded-md transition-colors font-semibold ${colorMode ? 'hover:bg-white/10' : 'btn-secondary'}`}
+                                        style={colorMode ? {
+                                            backgroundColor: 'rgba(148, 163, 184, 0.25)',
+                                            color: 'var(--color-surface-white)',
+                                            border: '1px solid rgba(148, 163, 184, 0.35)'
+                                        } : undefined}
                                     >
                                         View Full Workflow →
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
                 )}
             </AnimatePresence>
         </div>

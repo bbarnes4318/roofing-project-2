@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function ProjectTimeline({ timeline, currentStep = 0 }) {
+export default function ProjectTimeline({ timeline = [], currentStep = 0 }) {
   const [expandedPhases, setExpandedPhases] = useState(new Set());
 
   const togglePhaseExpansion = (phaseId) => {
@@ -15,15 +15,26 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
     });
   };
 
-  // Calculate total timeline duration for scaling
-  const totalDuration = timeline.length;
-  const currentProgress = (currentStep / totalDuration) * 100;
+  const totalPhases = timeline.length;
+  const completedPhases = Math.min(Math.max(currentStep, 0), totalPhases);
+  const hasActivePhase = totalPhases > 0 && currentStep < totalPhases;
+  const activePhaseIndex = hasActivePhase
+    ? Math.min(Math.max(currentStep, 0), totalPhases - 1)
+    : -1;
+  const activePhase = activePhaseIndex >= 0 ? timeline[activePhaseIndex] : null;
+  const currentProgress = totalPhases > 0 ? (completedPhases / totalPhases) * 100 : 0;
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-soft border border-gray-200/50 p-4">
+    <div className="card-surface backdrop-blur-sm rounded-xl shadow-soft border border-gray-200/50 p-4">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(26, 90, 153, 0.95), rgba(26, 90, 153, 0.7))',
+            color: 'var(--color-surface-white)'
+          }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -31,23 +42,22 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
           <h3 className="text-base font-bold text-gray-800">Project Timeline</h3>
         </div>
       </div>
-      
-      {/* Progress summary */}
-      <div className="mb-4 pb-3 border-b border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-600">Overall Project Progress</span>
-          <span className="text-xs font-bold text-gray-800">
-            {Math.round(currentProgress)}%
-          </span>
+      <div className="mb-5">
+        <div className="flex items-center justify-between text-xs font-semibold text-gray-600 mb-2">
+          <span>Overall Progress</span>
+          <span className="text-gray-800">{Math.round(currentProgress)}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${currentProgress}%` }}
+          <div
+            className="h-2 rounded-full transition-all duration-500 ease-out"
+            style={{
+              background: 'linear-gradient(90deg, var(--color-primary-blueprint-blue), var(--color-success-green))',
+              width: `${currentProgress}%`
+            }}
           ></div>
-              </div>
-            </div>
-      
+        </div>
+      </div>
+
       {/* Gantt Chart Container */}
       <div className="relative">
         {/* Timeline Scale */}
@@ -66,8 +76,8 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
         <div className="space-y-3">
           {timeline.map((step, idx) => {
             const isExpanded = expandedPhases.has(step.phase);
-            const isCompleted = idx < currentStep;
-            const isCurrent = idx === currentStep;
+            const isCompleted = idx < completedPhases;
+            const isCurrent = idx === activePhaseIndex;
             
             return (
               <div key={step.phase} className="group">
@@ -76,15 +86,22 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
                   {/* Phase Label */}
                   <div className="w-20 flex-shrink-0">
                     <div className="flex items-center gap-2">
-                      <div className={`
-                        w-3 h-3 rounded-full border-2 transition-all duration-200
-                        ${isCompleted 
-                          ? 'bg-green-500 border-green-500' 
-                          : isCurrent 
-                          ? 'bg-blue-500 border-blue-500 ring-2 ring-blue-200' 
-                          : 'bg-gray-100 border-gray-300'
-                        }
-                      `}></div>
+                      <div
+                        className="w-3 h-3 rounded-full border-2 transition-all duration-200"
+                        style={{
+                          backgroundColor: isCompleted
+                            ? 'var(--color-success-green)'
+                            : isCurrent
+                              ? 'var(--color-primary-blueprint-blue)'
+                              : 'var(--color-background-gray)',
+                          borderColor: isCompleted
+                            ? 'var(--color-success-green)'
+                            : isCurrent
+                              ? 'var(--color-primary-blueprint-blue)'
+                              : 'var(--color-border-gray)',
+                          boxShadow: isCurrent ? '0 0 0 4px rgba(26, 90, 153, 0.15)' : 'none'
+                        }}
+                      ></div>
                       <span className="text-xs font-semibold text-gray-800 truncate">
                         {step.phase}
                       </span>
@@ -93,19 +110,19 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
 
                   {/* Gantt Bar */}
                   <div className="flex-1 relative">
-                    <div className="relative h-8 bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="relative h-8 rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--color-background-gray)' }}>
                       {/* Progress Bar */}
-                      <div className={`
-                        h-full transition-all duration-500 ease-out rounded-lg
-                        ${isCompleted 
-                          ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                          : isCurrent 
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600' 
-                          : 'bg-gray-200'
-                        }
-                      `} style={{ 
-                        width: isCompleted ? '100%' : isCurrent ? '50%' : '0%' 
-                      }}></div>
+                      <div
+                        className="h-full transition-all duration-500 ease-out rounded-lg"
+                        style={{
+                          background: isCompleted
+                            ? 'linear-gradient(90deg, var(--color-success-green), rgba(16, 185, 129, 0.8))'
+                            : isCurrent
+                              ? 'linear-gradient(90deg, var(--color-primary-blueprint-blue), rgba(26, 90, 153, 0.75))'
+                              : 'var(--color-border-gray)',
+                          width: isCompleted ? '100%' : isCurrent ? '50%' : '0%'
+                        }}
+                      ></div>
                       
                       {/* Phase Info Overlay */}
                       <div className="absolute inset-0 flex items-center justify-between px-3">
@@ -158,12 +175,18 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
                     <div className="space-y-1">
                       <h6 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Key Tasks:</h6>
                       <div className="space-y-0.5">
-                        {step.tasks.map((task, taskIdx) => (
+                        {(step.tasks || []).map((task, taskIdx) => (
                           <div key={taskIdx} className="flex items-center gap-1.5 text-xs">
-                            <div className={`
-                              w-1 h-1 rounded-full
-                              ${isCompleted ? 'bg-green-500' : isCurrent ? 'bg-blue-500' : 'bg-gray-300'}
-                            `}></div>
+                            <div
+                              className="w-1 h-1 rounded-full"
+                              style={{
+                                backgroundColor: isCompleted
+                                  ? 'var(--color-success-green)'
+                                  : isCurrent
+                                    ? 'var(--color-primary-blueprint-blue)'
+                                    : 'var(--color-border-gray)'
+                              }}
+                            ></div>
                             <span className="text-gray-700">{task}</span>
                           </div>
                         ))}
@@ -172,14 +195,27 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
                     
                     {/* Status */}
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
-                      <div className={`
-                        w-1.5 h-1.5 rounded-full
-                        ${isCompleted ? 'bg-green-500' : isCurrent ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'}
-                      `}></div>
-                      <span className={`
-                        text-xs font-medium
-                        ${isCompleted ? 'text-green-600' : isCurrent ? 'text-blue-600' : 'text-gray-500'}
-                      `}>
+                                  <div
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{
+                          backgroundColor: isCompleted
+                            ? 'var(--color-success-green)'
+                            : isCurrent
+                              ? 'var(--color-primary-blueprint-blue)'
+                              : 'var(--color-border-gray)',
+                          animation: isCurrent ? 'pulse 2s infinite' : 'none'
+                        }}
+                      ></div>
+                      <span
+                        className="text-xs font-medium"
+                        style={{
+                          color: isCompleted
+                            ? 'var(--color-success-green)'
+                            : isCurrent
+                              ? 'var(--color-primary-blueprint-blue)'
+                              : 'var(--color-text-slate-gray)'
+                        }}
+                      >
                         {isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'}
                       </span>
                     </div>
@@ -192,29 +228,41 @@ export default function ProjectTimeline({ timeline, currentStep = 0 }) {
 
         {/* Current Phase Summary */}
         <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="bg-blue-50/80 rounded-lg p-2 border border-blue-100">
+        <div
+          className="rounded-lg p-2 border"
+          style={{
+            backgroundColor: 'var(--color-primary-light-tint)',
+            borderColor: 'color-mix(in srgb, var(--color-primary-blueprint-blue) 35%, var(--color-surface-white) 65%)'
+          }}
+        >
           <div className="flex items-center gap-1 mb-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span className="text-xs font-semibold text-blue-700">Current Phase</span>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-primary-blueprint-blue)' }}></div>
+            <span className="text-xs font-semibold" style={{ color: 'var(--color-primary-blueprint-blue)' }}>Current Phase</span>
           </div>
-          <p className="text-xs text-blue-600 font-medium">
-            {timeline[currentStep]?.phase || 'Project Complete'}
+          <p className="text-xs font-medium" style={{ color: 'var(--color-primary-blueprint-blue)' }}>
+            {activePhase?.phase || 'Project Complete'}
           </p>
-          <p className="text-xs text-blue-500">
-            {timeline[currentStep]?.responsible || 'All phases complete'}
+          <p className="text-xs" style={{ color: 'var(--color-primary-blueprint-blue)' }}>
+            {activePhase?.responsible || 'All phases complete'}
           </p>
-            </div>
-        
-        <div className="bg-green-50/80 rounded-lg p-2 border border-green-100">
+        </div>
+
+        <div
+          className="rounded-lg p-2 border"
+          style={{
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            borderColor: 'rgba(16, 185, 129, 0.25)'
+          }}
+        >
           <div className="flex items-center gap-1 mb-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs font-semibold text-green-700">Completed</span>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-success-green)' }}></div>
+            <span className="text-xs font-semibold" style={{ color: 'var(--color-success-green)' }}>Completed</span>
           </div>
-          <p className="text-xs text-green-600 font-medium">
-            {currentStep} of {timeline.length} phases
+          <p className="text-xs font-medium" style={{ color: 'var(--color-success-green)' }}>
+            {completedPhases} of {totalPhases} phases
           </p>
-          <p className="text-xs text-green-500">
-              {Math.round(currentProgress)}% complete
+          <p className="text-xs" style={{ color: 'var(--color-success-green)' }}>
+            {Math.round(currentProgress)}% complete
           </p>
         </div>
         </div>

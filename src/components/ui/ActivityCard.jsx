@@ -27,7 +27,7 @@ const ActivityCard = ({ activity, onProjectSelect, projects, colorMode }) => {
                 {/* Avatar - Colored background with white text */}
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-[8px] shadow-sm ${
                     activity.avatar === 'I' ? 'bg-slate-400 text-white' : // Lead phase
-                    activity.avatar === 'J' ? 'bg-blue-600 text-white' : // Prospect phase
+                    activity.avatar === 'J' ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : // Prospect phase
                     activity.avatar === 'T' ? 'bg-amber-500 text-gray-900' : // Prospect phase (amber background with dark text)
                     'bg-slate-400 text-white' // Default to Lead phase
                 }`}>

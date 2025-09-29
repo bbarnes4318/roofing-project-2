@@ -70,7 +70,7 @@ const RoleSelectionScreen = ({ onRoleSelected, loading = false }) => {
       <div className="max-w-6xl w-full">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6">
+          <div className="mx-auto w-16 h-16 bg-[var(--color-primary-blueprint-blue)] rounded-full flex items-center justify-center mb-6">
             <UserGroupIcon className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -170,7 +170,7 @@ const RoleSelectionScreen = ({ onRoleSelected, loading = false }) => {
               px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300
               transform hover:scale-105 disabled:transform-none
               ${selectedRole && !loading
-                ? 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 shadow-lg hover:shadow-xl'
                 : 'bg-gray-400 cursor-not-allowed'
               }
             `}

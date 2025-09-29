@@ -1,20 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import {
-  ArrowLeftIcon,
   ArrowPathIcon,
   Bars3Icon,
+  ChevronDownIcon,
   ChevronRightIcon,
   CloudArrowUpIcon,
   DocumentIcon,
+  EllipsisVerticalIcon,
   FolderIcon,
+  FolderOpenIcon,
   MagnifyingGlassIcon,
+  PencilIcon,
   PlusIcon,
   SparklesIcon,
   Squares2X2Icon,
+  TrashIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { assetsService } from '../../services/assetsService';
-import { useProjects } from '../../hooks/useQueryApi';
+import { CheatSheetModal } from '../common/CheatSheet';
+import api from '../../services/api';
 
 const formatBytes = (bytes = 0) => {
   if (!bytes) return '0 B';
@@ -28,48 +34,166 @@ const formatBytes = (bytes = 0) => {
   return `${value.toFixed(value >= 10 || value % 1 === 0 ? 0 : 1)} ${units[unit]}`;
 };
 
-const StatsCard = ({ icon: Icon, title, value, hint }) => (
-  <div className="flex items-center gap-3 rounded-2xl bg-white/90 shadow-sm px-4 py-3 border border-slate-200">
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-blue-500/20 flex items-center justify-center text-blue-600">
-      <Icon className="h-5 w-5" />
-    </div>
-    <div>
-      <p className="text-xs uppercase tracking-wide text-slate-500">{title}</p>
-      <p className="text-lg font-semibold text-slate-900">{value}</p>
-      {hint ? <p className="text-xs text-slate-400">{hint}</p> : null}
-    </div>
-  </div>
-);
+const formatDate = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+};
 
-const emptyDragEvents = (handler) => ({
-  onDragOver: (e) => {
-    if (e.dataTransfer?.types?.includes('Files') || e.dataTransfer?.types?.includes('text/asset-id')) {
-      e.preventDefault();
-    }
-  },
-  onDrop: handler,
-});
+// Context Menu Component
+const ContextMenu = ({ x, y, items, onClose }) => {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={menuRef}
+      className="fixed z-50 bg-white rounded-lg shadow-xl border border-slate-200 py-1 min-w-[180px]"
+      style={{ left: x, top: y }}
+    >
+      {items.map((item, idx) => (
+        <button
+          key={idx}
+          onClick={() => {
+            item.onClick();
+            onClose();
+          }}
+          disabled={item.disabled}
+          className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition ${
+            item.danger
+              ? 'text-red-600 hover:bg-red-50'
+              : 'text-slate-700 hover:bg-slate-50'
+          } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {item.icon && <item.icon className="h-4 w-4 flex-shrink-0" />}
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// Sidebar folder tree item component
+const FolderTreeItem = ({ folder, level = 0, isActive, onSelect, onDrop, draggingId, onContextMenu }) => {
+  const [expanded, setExpanded] = useState(level === 0);
+  const hasChildren = folder.children && folder.children.length > 0;
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition group"
+        style={{
+          paddingLeft: `${8 + level * 16}px`,
+          backgroundColor: isActive ? '#dbeafe' : undefined,
+          color: isActive ? '#1d4ed8' : '#475569',
+          opacity: draggingId === folder.id ? 0.5 : 1
+        }}
+        onClick={() => onSelect(folder)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu(e, folder);
+        }}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/asset-id', folder.id);
+          e.stopPropagation();
+        }}
+        onDragOver={(e) => {
+          if (e.dataTransfer?.types?.includes('text/asset-id')) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onDrop(e, folder);
+        }}
+      >
+        {hasChildren ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+            className="flex-shrink-0 hover:bg-slate-200 rounded p-0.5"
+          >
+            {expanded ? (
+              <ChevronDownIcon className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronRightIcon className="h-3.5 w-3.5" />
+            )}
+          </button>
+        ) : (
+          <div className="w-4" />
+        )}
+        {isActive || expanded ? (
+          <FolderOpenIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#3b82f6' }} />
+        ) : (
+          <FolderIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#94a3b8' }} />
+        )}
+        <span className="text-sm truncate flex-1">{folder.folderName || folder.title}</span>
+        {hasChildren && <span className="text-xs" style={{ color: '#94a3b8' }}>{folder.children.length}</span>}
+      </div>
+      {expanded && hasChildren && (
+        <div>
+          {folder.children.map((child) => (
+            <FolderTreeItem
+              key={child.id}
+              folder={child}
+              level={level + 1}
+              isActive={false}
+              onSelect={onSelect}
+              onDrop={onDrop}
+              draggingId={draggingId}
+              onContextMenu={onContextMenu}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function DocumentsResourcesPage() {
   const fileInputRef = useRef(null);
   const [parentId, setParentId] = useState(null);
   const [items, setItems] = useState([]);
+  const [allFolders, setAllFolders] = useState([]);
   const [breadcrumbs, setBreadcrumbs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [draggingId, setDraggingId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
   const [view, setView] = useState('grid');
-  const [projectsRootId, setProjectsRootId] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [uploading, setUploading] = useState(false);
+  const [showPlaybook, setShowPlaybook] = useState(false);
 
   const searchTimeoutRef = useRef();
-
-  const { data: projectsData } = useProjects();
-  const projects = useMemo(() => {
-    const raw = projectsData?.data || projectsData || [];
-    if (!Array.isArray(raw)) return [];
-    return raw.slice(0, 8);
-  }, [projectsData]);
 
   const folders = useMemo(() => items.filter((i) => i.type === 'FOLDER'), [items]);
   const files = useMemo(() => items.filter((i) => i.type !== 'FOLDER'), [items]);
@@ -83,6 +207,69 @@ export default function DocumentsResourcesPage() {
       // no-op
     }
   };
+
+  const loadFoldersTree = useCallback(async () => {
+    try {
+      const folders = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+      setAllFolders(Array.isArray(folders) ? folders : []);
+    } catch (err) {
+      console.error('Failed to load folders tree', err);
+      setAllFolders([]);
+    }
+  }, []);
+
+  // Auto-sync project folders with active projects
+  const syncProjectFolders = useCallback(async () => {
+    try {
+      // Fetch all active projects
+      const projectsResponse = await api.get('/projects');
+      const projects = projectsResponse.data?.data || projectsResponse.data || [];
+      
+      if (!Array.isArray(projects) || projects.length === 0) return;
+
+      // Find or create "Projects" parent folder
+      const allRootFolders = await assetsService.listFolders({ parentId: null });
+      let projectsFolder = allRootFolders.find(f => f.title === 'Projects' || f.folderName === 'Projects');
+      
+      if (!projectsFolder) {
+        projectsFolder = await assetsService.createFolder({
+          name: 'Projects',
+          parentId: null,
+          description: 'Automatically managed project folders'
+        });
+      }
+
+      // Get existing project subfolders
+      const existingProjectFolders = await assetsService.listFolders({ parentId: projectsFolder.id });
+      
+      // Create missing project folders
+      for (const project of projects) {
+        const projectNum = project.projectNumber || project.id;
+        const folderName = `Project ${String(projectNum).padStart(5, '0')} - ${project.client?.name || project.clientName || 'Unknown'}`.substring(0, 100);
+        
+        // Check if folder already exists
+        const exists = existingProjectFolders.find(f => f.metadata?.projectId === project.id);
+        
+        if (!exists) {
+          await assetsService.createFolder({
+            name: folderName,
+            parentId: projectsFolder.id,
+            description: `Auto-created folder for project ${projectNum}`,
+            metadata: {
+              projectId: project.id,
+              projectNumber: projectNum,
+              autoManaged: true
+            }
+          });
+        }
+      }
+
+      // Reload folder tree after sync
+      await loadFoldersTree();
+    } catch (err) {
+      console.error('Failed to sync project folders:', err);
+    }
+  }, [loadFoldersTree]);
 
   const load = useCallback(async (targetParentId = parentId, query = searchQuery) => {
     setLoading(true);
@@ -101,7 +288,13 @@ export default function DocumentsResourcesPage() {
 
   useEffect(() => {
     load();
-  }, [load]);
+    loadFoldersTree();
+    // Auto-sync project folders on mount (debounced to avoid multiple calls)
+    const timer = setTimeout(() => {
+      syncProjectFolders();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [load, loadFoldersTree, syncProjectFolders]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -118,6 +311,41 @@ export default function DocumentsResourcesPage() {
   }, [load]);
 
   useEffect(() => () => searchTimeoutRef.current && clearTimeout(searchTimeoutRef.current), []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Close context menu on Escape
+      if (e.key === 'Escape') {
+        setContextMenu(null);
+        if (selectedItems.size > 0) {
+          setSelectedItems(new Set());
+        }
+      }
+      
+      // Delete selected items on Delete/Backspace key
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItems.size > 0 && !e.target.matches('input, textarea')) {
+        e.preventDefault();
+        deleteItems(Array.from(selectedItems));
+      }
+      
+      // Select all with Ctrl+A
+      if (e.key === 'a' && (e.ctrlKey || e.metaKey) && items.length > 0) {
+        e.preventDefault();
+        setSelectedItems(new Set(items.map(i => i.id)));
+      }
+      
+      // Refresh with F5 or Ctrl+R
+      if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key === 'r')) {
+        e.preventDefault();
+        load();
+        loadFoldersTree();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedItems, items, load, loadFoldersTree]);
 
   const handleSearchInput = (value) => {
     setSearchInput(value);
@@ -164,66 +392,53 @@ export default function DocumentsResourcesPage() {
 
   const uploadFiles = async (fileList, targetParentId) => {
     if (!fileList.length) return;
+    setUploading(true);
     try {
-      await assetsService.uploadFiles({ files: fileList, parentId: targetParentId });
+      // Check if uploading to a project folder by looking for project metadata in parent or ancestors
+      let metadata = {};
+      if (targetParentId) {
+        // Find the target folder and check ancestors for project metadata
+        const findProjectMetadata = (folderId) => {
+          const folder = allFolders.find(f => f.id === folderId);
+          if (!folder) return null;
+          
+          // Check current folder
+          if (folder.metadata?.projectId) {
+            return {
+              projectId: folder.metadata.projectId,
+              projectNumber: folder.metadata.projectNumber
+            };
+          }
+          
+          // Check parent folder recursively
+          if (folder.parentId) {
+            return findProjectMetadata(folder.parentId);
+          }
+          
+          return null;
+        };
+        
+        const projectMeta = findProjectMetadata(targetParentId);
+        if (projectMeta) {
+          metadata = projectMeta;
+        }
+      }
+
+      await assetsService.uploadFiles({ 
+        files: fileList, 
+        parentId: targetParentId,
+        metadata 
+      });
       emitRefresh(targetParentId);
       await load(targetParentId);
-      toast.success(fileList.length > 1 ? 'Files uploaded' : 'File uploaded');
+      await loadFoldersTree();
+      toast.success(`${fileList.length} ${fileList.length > 1 ? 'files' : 'file'} uploaded successfully`);
     } catch (err) {
       console.error('Upload failed', err);
       toast.error('Upload failed');
+    } finally {
+      setUploading(false);
     }
-  };
-
-  const ensureProjectsRoot = async () => {
-    try {
-      const roots = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
-      let projRoot = roots.find((r) => (r.folderName || r.title) === 'Projects');
-      if (!projRoot) {
-        projRoot = await assetsService.createFolder({ name: 'Projects', parentId: null });
-        emitRefresh(null);
-      }
-      if (projRoot?.id) setProjectsRootId(projRoot.id);
-      return projRoot;
-    } catch (err) {
-      console.error('ensureProjectsRoot failed', err);
-      return null;
-    }
-  };
-
-  const ensureProjectFolder = async (project) => {
-    if (!project) return null;
-    const projRoot = projectsRootId ? { id: projectsRootId } : await ensureProjectsRoot();
-    if (!projRoot?.id) return null;
-    try {
-      const children = await assetsService.listFolders({ parentId: projRoot.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
-      const folderName = project.projectName || project.name || `Project ${project.id}`;
-      let folder = children.find((c) => (c.folderName || c.title) === folderName);
-      if (!folder) {
-        folder = await assetsService.createFolder({ name: folderName, parentId: projRoot.id });
-        emitRefresh(projRoot.id);
-      }
-      return folder;
-    } catch (err) {
-      console.error('ensureProjectFolder failed', err);
-      return null;
-    }
-  };
-
-  const openProjectFolder = async (project) => {
-    const folder = await ensureProjectFolder(project);
-    if (folder?.id) {
-      setParentId(folder.id);
-      await load(folder.id);
-    }
-  };
-
-  const dropOnProject = async (e, project) => {
-    e.preventDefault();
-    const assetId = e.dataTransfer.getData('text/asset-id');
-    if (!assetId) return;
-    const folder = await ensureProjectFolder(project);
-    if (folder?.id) await moveAsset(assetId, folder.id);
   };
 
   const openItem = async (item) => {
@@ -251,16 +466,63 @@ export default function DocumentsResourcesPage() {
   };
 
   const createFolder = async () => {
-    const name = window.prompt('Folder name');
-    if (!name) return;
+    const name = window.prompt('Folder name:');
+    if (!name?.trim()) return;
     try {
       const folder = await assetsService.createFolder({ name: name.trim(), parentId });
       emitRefresh(parentId);
       await load(parentId);
-      if (folder?.id) toast.success('Folder created');
+      await loadFoldersTree();
+      if (folder?.id) toast.success('Folder created successfully');
     } catch (err) {
       console.error('Create folder failed', err);
-      toast.error('Could not create folder');
+      toast.error(err.message || 'Could not create folder');
+    }
+  };
+
+  const renameItem = async (item) => {
+    const currentName = item.type === 'FOLDER' ? (item.folderName || item.title) : item.title;
+    const newName = window.prompt(`Rename ${item.type === 'FOLDER' ? 'folder' : 'file'}:`, currentName);
+    if (!newName?.trim() || newName === currentName) return;
+    
+    try {
+      const updateData = item.type === 'FOLDER' 
+        ? { title: newName.trim(), folderName: newName.trim() }
+        : { title: newName.trim() };
+      
+      await assetsService.updateAsset(item.id, updateData);
+      emitRefresh(parentId);
+      await load(parentId);
+      await loadFoldersTree();
+      toast.success(`${item.type === 'FOLDER' ? 'Folder' : 'File'} renamed successfully`);
+    } catch (err) {
+      console.error('Rename failed', err);
+      toast.error('Could not rename item');
+    }
+  };
+
+  const deleteItems = async (itemIds) => {
+    if (!itemIds || itemIds.length === 0) return;
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${itemIds.length} ${itemIds.length > 1 ? 'items' : 'item'}? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+    
+    try {
+      await assetsService.bulkOperation({ 
+        operation: 'delete', 
+        assetIds: Array.from(itemIds)
+      });
+      
+      setSelectedItems(new Set());
+      emitRefresh(parentId);
+      await load(parentId);
+      await loadFoldersTree();
+      toast.success(`${itemIds.length} ${itemIds.length > 1 ? 'items' : 'item'} deleted successfully`);
+    } catch (err) {
+      console.error('Delete failed', err);
+      toast.error('Could not delete items');
     }
   };
 
@@ -287,371 +549,624 @@ export default function DocumentsResourcesPage() {
     };
   }, [items, folders.length, files]);
 
-  const renderBreadcrumbs = () => (
-    <nav className="flex items-center gap-1 text-sm text-slate-500">
-      <button
-        onClick={() => setParentId(null)}
-        className={`px-2 py-1 rounded-md ${parentId === null ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100'}`}
-      >
-        Home
-      </button>
-      {breadcrumbs.map((crumb) => (
-        <React.Fragment key={crumb.id}>
-          <ChevronRightIcon className="h-4 w-4 text-slate-400" />
-          <button
-            onClick={() => setParentId(crumb.id)}
-            className={`px-2 py-1 rounded-md ${parentId === crumb.id ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100 text-slate-600'}`}
-          >
-            {crumb.title || crumb.folderName}
-          </button>
-        </React.Fragment>
-      ))}
-    </nav>
-  );
+  const handleContextMenu = (e, item) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: item.type === 'FOLDER' ? 'Open Folder' : 'Open File',
+          icon: item.type === 'FOLDER' ? FolderOpenIcon : DocumentIcon,
+          onClick: () => openItem(item),
+        },
+        {
+          label: 'Rename',
+          icon: PencilIcon,
+          onClick: () => renameItem(item),
+        },
+        {
+          label: 'Delete',
+          icon: TrashIcon,
+          danger: true,
+          onClick: () => deleteItems([item.id]),
+        },
+      ],
+    });
+  };
 
-  const fireProjectDocumentsEvent = (project) => {
-    if (!project?.id) return;
-    try {
-      window.dispatchEvent(new CustomEvent('app:openProjectDocuments', { detail: { projectId: project.id, project } }));
-    } catch (err) {
-      console.error('Failed to emit project documents event', err);
+  const handleItemClick = (item, e) => {
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      setSelectedItems(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(item.id)) {
+          newSet.delete(item.id);
+        } else {
+          newSet.add(item.id);
+        }
+        return newSet;
+      });
+    } else if (e.detail === 2) {
+      // Double click
+      openItem(item);
     }
   };
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-white"
-      onDragOver={(e) => {
-        if (e.dataTransfer?.types?.includes('Files')) e.preventDefault();
-      }}
-      onDrop={handleRootDrop}
-    >
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9)' }}>
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileInputChange} />
+      
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenu.items}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
 
-      <header className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-500 text-white">
-        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.35),_transparent_55%)]" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm backdrop-blur">
-                <SparklesIcon className="h-4 w-4" />
-                Seamless document workspace
+      {/* Modern Header */}
+      <header className="flex-shrink-0 bg-white border-b border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl shadow-md" style={{ background: 'linear-gradient(to bottom right, #3b82f6, #2563eb)' }}>
+                <FolderIcon className="h-5 w-5" style={{ color: '#ffffff' }} />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Documents & Resources</h1>
-              <p className="text-white/80 text-sm sm:text-base">
-                Organize, share, and move everything effortlessly. Drag any document onto folders, projects, or this workspace to keep teams aligned.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-                <div className="inline-flex items-center gap-1"><Squares2X2Icon className="h-4 w-4" /> Drag between sections</div>
-                <div className="inline-flex items-center gap-1"><Bars3Icon className="h-4 w-4" /> Reorder anywhere</div>
-                <div className="inline-flex items-center gap-1"><CloudArrowUpIcon className="h-4 w-4" /> Drop files to upload</div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">Documents & Resources</h1>
+                <p className="text-xs text-slate-500">Organize and manage your files</p>
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={createFolder}
-                className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-2 border border-white/30 backdrop-blur hover:bg-white/20 transition"
-              >
-                <PlusIcon className="h-5 w-5" />
-                New Folder
-              </button>
-              <button
-                onClick={handleUploadButton}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2 text-blue-600 font-semibold shadow-lg shadow-blue-800/20 hover:bg-blue-50 transition"
-              >
-                <CloudArrowUpIcon className="h-5 w-5" />
-                Upload
-              </button>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-            <StatsCard icon={FolderIcon} title="Folders" value={stats.totalFolders} />
-            <StatsCard icon={DocumentIcon} title="Files" value={stats.totalFiles} hint={formatBytes(stats.totalSize)} />
-            <StatsCard icon={ArrowPathIcon} title="In this view" value={`${stats.totalItems || 0} items`} hint={loading ? 'Refreshing…' : 'Updated moments ago'} />
-            <StatsCard icon={CloudArrowUpIcon} title="Drag & drop" value="Enabled" hint="Move or upload anywhere" />
+          <div className="flex items-center gap-3">
+            {selectedItems.size > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: '#eff6ff', borderColor: '#bfdbfe', border: '1px solid' }}>
+                <span className="text-sm font-medium" style={{ color: '#1d4ed8' }}>{selectedItems.size} selected</span>
+                <button
+                  onClick={() => deleteItems(Array.from(selectedItems))}
+                  className="p-1 hover:bg-blue-100 rounded transition"
+                  title="Delete selected"
+                >
+                  <TrashIcon className="h-4 w-4 text-red-600" />
+                </button>
+                <button
+                  onClick={() => setSelectedItems(new Set())}
+                  className="p-1 hover:bg-blue-100 rounded transition"
+                  title="Clear selection"
+                >
+                  <XMarkIcon className="h-4 w-4 text-slate-600" />
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => setShowPlaybook(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition shadow-md"
+              style={{ background: 'linear-gradient(to right, #f59e0b, #d97706)' }}
+              title="Bubbles Assistant Playbook"
+            >
+              <SparklesIcon className="h-5 w-5" />
+              Assistant Playbook
+            </button>
+            <button
+              onClick={createFolder}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition shadow-sm disabled:opacity-50"
+            >
+              <PlusIcon className="h-4 w-4" />
+              New Folder
+            </button>
+            <button
+              onClick={handleUploadButton}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition shadow-md disabled:opacity-50"
+              style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8)', color: '#ffffff' }}
+            >
+              <CloudArrowUpIcon className="h-5 w-5" />
+              {uploading ? 'Uploading...' : 'Upload Files'}
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center gap-3">
+      {/* Main Split View */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar: Folder Tree */}
+        {!sidebarCollapsed && (
+          <aside className="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Folders</h2>
               <button
-                onClick={goUp}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
-                title="Go up one level"
+                onClick={() => setSidebarCollapsed(true)}
+                className="p-1.5 hover:bg-slate-100 rounded-md transition"
+                title="Collapse sidebar"
               >
-                <ArrowLeftIcon className="h-4 w-4" />
-                Back
+                <ChevronRightIcon className="h-4 w-4 rotate-180 text-slate-600" />
               </button>
-              {renderBreadcrumbs()}
             </div>
-            <div className="relative w-full max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <input
-                value={searchInput}
-                onChange={(e) => handleSearchInput(e.target.value)}
-                placeholder="Search by file name, tags, or descriptions"
-                className="w-full rounded-xl border border-slate-200 bg-white px-10 py-2 text-sm shadow-inner focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-          </div>
-
-          <div className={`rounded-2xl border-2 border-dashed ${draggingId ? 'border-blue-200 bg-blue-50/40' : 'border-slate-200 bg-white'} p-4 transition`}
-            {...emptyDragEvents(handleRootDrop)}
-          >
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <p className="text-sm font-medium text-slate-700">Drop here to move into this space</p>
-                <p className="text-xs text-slate-500">You can also drop files to upload instantly.</p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <CloudArrowUpIcon className="h-4 w-4" /> Drag files from anywhere
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {projects.length ? (
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Projects quick access</h2>
-              <p className="text-xs text-slate-500">Drop a file on a project to send it to that project folder.</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {projects.map((project) => (
-                <div
-                  key={project.id || project._id || project.projectId}
-                  className={`group relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-5 shadow-sm transition hover:border-blue-300 hover:shadow-md ${draggingId ? 'ring-1 ring-blue-200' : ''}`}
-                  onDragOver={(e) => {
-                    if (e.dataTransfer?.types?.includes('text/asset-id')) e.preventDefault();
-                  }}
-                  onDrop={(e) => dropOnProject(e, project)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-blue-500/80">Project</p>
-                      <h3 className="mt-1 text-sm font-semibold text-slate-900 line-clamp-2">{project.projectName || project.name}</h3>
-                    </div>
-                    <div className="rounded-xl bg-blue-50 p-2 text-blue-500">
-                      <FolderIcon className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <p className="mt-2 text-xs text-slate-500 line-clamp-2">
-                    {project.customer?.name || project.customerName || 'Linked documents'}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                    <button
-                      onClick={() => openProjectFolder(project)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-slate-600 hover:border-blue-300 hover:text-blue-600"
-                    >
-                      <FolderIcon className="h-4 w-4" />
-                      Open folder
-                    </button>
-                    <button
-                      onClick={() => fireProjectDocumentsEvent(project)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-slate-600 hover:border-blue-300 hover:text-blue-600"
-                    >
-                      <DocumentIcon className="h-4 w-4" />
-                      Project docs
-                    </button>
-                  </div>
-                  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Folders</h2>
-            <span className="text-xs text-slate-400">Drag folders to nest them or drop files on a folder to move inside.</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {folders.length === 0 && !loading ? (
-              <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-20 text-center text-slate-400">
-                <FolderIcon className="h-12 w-12 text-slate-300" />
-                <p className="mt-4 text-sm font-semibold text-slate-500">No folders yet</p>
-                <p className="text-xs text-slate-400">Create one to start organizing.
-                </p>
-              </div>
-            ) : null}
-
-            {folders.map((folder) => (
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+              {/* Home/Root folder */}
               <div
-                key={folder.id}
-                className={`group relative rounded-2xl border px-4 py-5 shadow-sm transition ${draggingId === folder.id ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'}`}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/asset-id', folder.id);
-                  handleDragStart(folder.id);
+                className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition"
+                style={parentId === null ? {
+                  background: 'linear-gradient(to right, #eff6ff, #dbeafe)',
+                  color: '#1d4ed8',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                } : {}}
+                onClick={() => {
+                  setParentId(null);
+                  load(null);
+                  setSelectedItems(new Set());
                 }}
-                onDragEnd={handleDragEnd}
-                onDoubleClick={() => openItem(folder)}
-                onClick={() => openItem(folder)}
                 onDragOver={(e) => {
-                  if (e.dataTransfer?.types?.includes('text/asset-id')) e.preventDefault();
+                  if (e.dataTransfer?.types?.includes('Files') || e.dataTransfer?.types?.includes('text/asset-id')) {
+                    e.preventDefault();
+                  }
                 }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const assetId = e.dataTransfer.getData('text/asset-id');
-                  if (!assetId || assetId === folder.id) return;
-                  moveAsset(assetId, folder.id);
-                }}
+                onDrop={handleRootDrop}
               >
-                <div className="flex items-center justify-between">
-                  <div className="rounded-xl bg-blue-50 p-2 text-blue-500">
-                    <FolderIcon className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs text-slate-400">{(folder.children || []).length || ''}</span>
-                </div>
-                <h3 className="mt-3 text-sm font-semibold text-slate-900 line-clamp-2" title={folder.folderName || folder.title}>
-                  {folder.folderName || folder.title}
-                </h3>
-                <p className="mt-2 text-xs text-slate-400" title={folder.description || ''}>
-                  Updated {new Date(folder.updatedAt || folder.createdAt).toLocaleDateString()}
-                </p>
-                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-100/30 to-transparent" />
+                <FolderOpenIcon className="h-5 w-5 flex-shrink-0" style={{ color: parentId === null ? '#2563eb' : '#3b82f6' }} />
+                <span className="text-sm font-semibold flex-1">Home</span>
+                <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded-full">{allFolders.length}</span>
               </div>
-            ))}
-          </div>
-        </section>
 
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">Documents</h2>
-              <span className="hidden md:inline text-xs text-slate-400">Drag to reorder visually or drop onto folders/projects to move.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-                <button
-                  onClick={() => setView('grid')}
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${view === 'grid' ? 'bg-blue-100 text-blue-700' : 'text-slate-500 hover:bg-slate-100'}`}
-                  title="Grid view"
-                >
-                  <Squares2X2Icon className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setView('list')}
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${view === 'list' ? 'bg-blue-100 text-blue-700' : 'text-slate-500 hover:bg-slate-100'}`}
-                  title="List view"
-                >
-                  <Bars3Icon className="h-4 w-4" />
-                </button>
-              </div>
-              <button
-                onClick={() => load()}
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:border-blue-300 hover:text-blue-600"
-              >
-                <ArrowPathIcon className="h-4 w-4" /> Refresh
-              </button>
-            </div>
-          </div>
-          <span className="md:hidden block text-xs text-slate-400">Drag to reorder visually or drop onto folders/projects to move.</span>
+              {/* Render all folders in tree structure */}
+              {allFolders.map((folder) => (
+                <FolderTreeItem
+                  key={folder.id}
+                  folder={folder}
+                  level={0}
+                  isActive={parentId === folder.id}
+                  onSelect={(f) => {
+                    setParentId(f.id);
+                    load(f.id);
+                    setSelectedItems(new Set());
+                  }}
+                  onDrop={(e, f) => {
+                    const assetId = e.dataTransfer.getData('text/asset-id');
+                    if (assetId && assetId !== f.id) moveAsset(assetId, f.id);
+                  }}
+                  draggingId={draggingId}
+                  onContextMenu={handleContextMenu}
+                />
+              ))}
 
-          {stats.orderedFiles.length === 0 && folders.length === 0 && !loading ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-20 text-center">
-              <DocumentIcon className="mx-auto h-10 w-10 text-slate-300" />
-              <p className="mt-4 text-sm font-semibold text-slate-500">This space is empty</p>
-              <p className="text-xs text-slate-400">Upload files or drag them from other folders to get started.</p>
-            </div>
-          ) : null}
-
-          <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
-            {stats.orderedFiles.map((file) => {
-              const isDragging = draggingId === file.id;
-              const title = file.title || file.originalName || file.fileName;
-              const commonHandlers = {
-                draggable: true,
-                onDragStart: (e) => {
-                  e.dataTransfer.setData('text/asset-id', file.id);
-                  handleDragStart(file.id);
-                },
-                onDragEnd: handleDragEnd,
-                onDoubleClick: () => openItem(file),
-                onClick: () => openItem(file),
-              };
-
-              if (view === 'list') {
-                return (
-                  <div
-                    key={file.id}
-                    {...commonHandlers}
-                    className={`group flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-sm transition ${isDragging ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'}`}
+              {allFolders.length === 0 && !loading && (
+                <div className="px-3 py-12 text-center">
+                  <FolderIcon className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm text-slate-500 mb-2">No folders yet</p>
+                  <button
+                    onClick={createFolder}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                   >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="rounded-xl bg-slate-100 p-3 text-slate-500">
-                        <DocumentIcon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate" title={title}>
-                          {title}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">
-                          {formatBytes(file.fileSize)} • Updated {new Date(file.updatedAt || file.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-slate-400 justify-end">
-                      {file.tags && file.tags.length ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
-                          Tags
-                          <span className="font-medium text-slate-700">{file.tags.slice(0, 2).join(', ')}{file.tags.length > 2 ? '…' : ''}</span>
-                        </span>
-                      ) : null}
-                      {file.project?.name ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-600">
-                          Linked to {file.project.name}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={file.id}
-                  {...commonHandlers}
-                  className={`group relative rounded-2xl border px-4 py-5 shadow-sm transition ${isDragging ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-xl bg-slate-100 p-3 text-slate-500">
-                      <DocumentIcon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-slate-900 truncate" title={title}>
-                        {title}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-400">
-                        {formatBytes(file.fileSize)} • Updated {new Date(file.updatedAt || file.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
-                    {file.tags && file.tags.length ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
-                        Tags
-                        <span className="font-medium text-slate-700">{file.tags.slice(0, 2).join(', ')}{file.tags.length > 2 ? '…' : ''}</span>
-                      </span>
-                    ) : null}
-                    {file.project?.name ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-600">
-                        Linked to {file.project.name}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-100/20 to-transparent" />
+                    Create your first folder
+                  </button>
                 </div>
-              );
-            })}
+              )}
+            </div>
+          </aside>
+        )}
+
+        {/* Collapsed Sidebar Button */}
+        {sidebarCollapsed && (
+          <div className="w-14 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col items-center py-4 shadow-sm">
+            <button
+              onClick={() => setSidebarCollapsed(false)}
+              className="p-2.5 hover:bg-slate-100 rounded-lg transition"
+              title="Expand sidebar"
+            >
+              <FolderIcon className="h-5 w-5 text-slate-600" />
+            </button>
           </div>
-        </section>
-      </main>
+        )}
+
+        {/* Main Content Area: Documents & Breadcrumbs */}
+        <main
+          className="flex-1 flex flex-col overflow-hidden"
+          onDragOver={(e) => {
+            if (e.dataTransfer?.types?.includes('Files') || e.dataTransfer?.types?.includes('text/asset-id')) {
+              e.preventDefault();
+            }
+          }}
+          onDrop={handleRootDrop}
+          onClick={() => setSelectedItems(new Set())}
+        >
+          {/* Breadcrumbs & Controls Bar */}
+          <div className="flex-shrink-0 bg-white border-b border-slate-200 px-6 py-3.5 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <nav className="flex items-center gap-2 text-sm text-slate-600 min-w-0 flex-1">
+                <button
+                  onClick={() => {
+                    setParentId(null);
+                    load(null);
+                  }}
+                  className="px-3 py-1.5 rounded-md font-medium transition"
+                  style={parentId === null ? { backgroundColor: '#dbeafe', color: '#1d4ed8' } : {}}
+                >
+                  Home
+                </button>
+                {breadcrumbs.map((crumb, idx) => (
+                  <React.Fragment key={crumb.id}>
+                    <ChevronRightIcon className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                    <button
+                      onClick={() => {
+                        setParentId(crumb.id);
+                        load(crumb.id);
+                      }}
+                      className="px-3 py-1.5 rounded-md font-medium transition truncate"
+                      style={idx === breadcrumbs.length - 1 ? {
+                        backgroundColor: '#dbeafe',
+                        color: '#1d4ed8'
+                      } : { color: '#475569' }}
+                    >
+                      {crumb.title || crumb.folderName}
+                    </button>
+                  </React.Fragment>
+                ))}
+              </nav>
+              
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    value={searchInput}
+                    onChange={(e) => handleSearchInput(e.target.value)}
+                    placeholder="Search..."
+                    className="w-56 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setView('grid')}
+                    className="p-1.5 rounded-md transition shadow-sm"
+                    style={view === 'grid' ? {
+                      backgroundColor: '#ffffff',
+                      color: '#2563eb'
+                    } : { color: '#64748b' }}
+                    title="Grid view"
+                  >
+                    <Squares2X2Icon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setView('list')}
+                    className="p-1.5 rounded-md transition shadow-sm"
+                    style={view === 'list' ? {
+                      backgroundColor: '#ffffff',
+                      color: '#2563eb'
+                    } : { color: '#64748b' }}
+                    title="List view"
+                  >
+                    <Bars3Icon className="h-4 w-4" />
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    load();
+                    loadFoldersTree();
+                  }}
+                  className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition"
+                  title="Refresh"
+                >
+                  <ArrowPathIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Bar */}
+          {items.length > 0 && (
+            <div className="flex-shrink-0 px-6 py-2 bg-slate-50 border-b border-slate-200">
+              <div className="flex items-center justify-between text-xs text-slate-600">
+                <div className="flex items-center gap-4">
+                  <span className="font-medium">{stats.totalItems} items</span>
+                  {stats.totalFolders > 0 && <span>{stats.totalFolders} folders</span>}
+                  {stats.totalFiles > 0 && <span>{stats.totalFiles} files</span>}
+                </div>
+                {stats.totalSize > 0 && (
+                  <span className="font-medium text-slate-700">{formatBytes(stats.totalSize)} total</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Scrollable Documents Area */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <ArrowPathIcon className="h-10 w-10 mx-auto mb-3 text-blue-600 animate-spin" />
+                  <p className="text-sm font-medium text-slate-600">Loading documents...</p>
+                </div>
+              </div>
+            ) : items.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center max-w-md px-6 py-12 bg-white rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-400 transition">
+                  <div className="p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #eff6ff, #dbeafe)' }}>
+                    <CloudArrowUpIcon className="h-10 w-10" style={{ color: '#2563eb' }} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Drop files here</h3>
+                  <p className="text-sm text-slate-600 mb-6">
+                    {searchQuery ? 'No documents match your search.' : 'This folder is empty. Drag and drop files here or click the button below.'}
+                  </p>
+                  {!searchQuery && (
+                    <button
+                      onClick={handleUploadButton}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition shadow-md"
+                      style={{ background: 'linear-gradient(to right, #2563eb, #1d4ed8)', color: '#ffffff' }}
+                    >
+                      <CloudArrowUpIcon className="h-5 w-5" />
+                      Upload Files
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Folders Section */}
+                {folders.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-1">Folders</h3>
+                    <div className={view === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3' : 'space-y-2'}>
+                      {folders.map((folder) => {
+                        const isDragging = draggingId === folder.id;
+                        const isDragOver = dragOverId === folder.id;
+                        const isSelected = selectedItems.has(folder.id);
+                        const folderName = folder.folderName || folder.title;
+
+                        if (view === 'list') {
+                          return (
+                            <div
+                              key={folder.id}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/asset-id', folder.id);
+                                handleDragStart(folder.id);
+                              }}
+                              onDragOver={(e) => {
+                                if (e.dataTransfer?.types?.includes('text/asset-id') && draggingId !== folder.id) {
+                                  e.preventDefault();
+                                  setDragOverId(folder.id);
+                                }
+                              }}
+                              onDragLeave={() => setDragOverId(null)}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                setDragOverId(null);
+                                const assetId = e.dataTransfer.getData('text/asset-id');
+                                if (assetId && assetId !== folder.id) moveAsset(assetId, folder.id);
+                              }}
+                              onDragEnd={handleDragEnd}
+                              onClick={(e) => handleItemClick(folder, e)}
+                              onContextMenu={(e) => handleContextMenu(e, folder)}
+                              className="group flex items-center gap-3 px-4 py-3 rounded-lg border transition cursor-pointer"
+                              style={isSelected ? {
+                                borderColor: '#60a5fa',
+                                backgroundColor: '#eff6ff',
+                                boxShadow: '0 0 0 2px #bfdbfe'
+                              } : isDragOver ? {
+                                borderColor: '#4ade80',
+                                backgroundColor: '#f0fdf4',
+                                boxShadow: '0 0 0 2px #bbf7d0'
+                              } : isDragging ? {
+                                opacity: '0.5',
+                                borderColor: '#cbd5e1',
+                                backgroundColor: '#f8fafc'
+                              } : {
+                                borderColor: '#e2e8f0',
+                                backgroundColor: '#ffffff'
+                              }}
+                            >
+                              <FolderIcon className="h-5 w-5 flex-shrink-0" style={{ color: isSelected ? '#2563eb' : '#eab308' }} />
+                              <span className="text-sm font-medium text-slate-900 truncate flex-1">{folderName}</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContextMenu(e, folder);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 rounded transition"
+                              >
+                                <EllipsisVerticalIcon className="h-4 w-4 text-slate-600" />
+                              </button>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div
+                            key={folder.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/asset-id', folder.id);
+                              handleDragStart(folder.id);
+                            }}
+                            onDragOver={(e) => {
+                              if (e.dataTransfer?.types?.includes('text/asset-id') && draggingId !== folder.id) {
+                                e.preventDefault();
+                                setDragOverId(folder.id);
+                              }
+                            }}
+                            onDragLeave={() => setDragOverId(null)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setDragOverId(null);
+                              const assetId = e.dataTransfer.getData('text/asset-id');
+                              if (assetId && assetId !== folder.id) moveAsset(assetId, folder.id);
+                            }}
+                            onDragEnd={handleDragEnd}
+                            onClick={(e) => handleItemClick(folder, e)}
+                            onContextMenu={(e) => handleContextMenu(e, folder)}
+                            className="group relative p-4 rounded-xl border transition cursor-pointer"
+                            style={isSelected ? {
+                              borderColor: '#60a5fa',
+                              backgroundColor: '#eff6ff',
+                              boxShadow: '0 0 0 2px #bfdbfe'
+                            } : isDragOver ? {
+                              borderColor: '#4ade80',
+                              backgroundColor: '#f0fdf4',
+                              boxShadow: '0 0 0 2px #bbf7d0',
+                              transform: 'scale(1.05)'
+                            } : isDragging ? {
+                              opacity: '0.5',
+                              borderColor: '#cbd5e1',
+                              backgroundColor: '#f8fafc'
+                            } : {
+                              borderColor: '#e2e8f0',
+                              backgroundColor: '#ffffff'
+                            }}
+                          >
+                            <div className="flex flex-col items-center text-center">
+                              <div className="p-3 rounded-xl mb-3" style={{ backgroundColor: isSelected ? '#dbeafe' : '#fefce8' }}>
+                                <FolderIcon className="h-8 w-8" style={{ color: isSelected ? '#2563eb' : '#eab308' }} />
+                              </div>
+                              <h4 className="text-sm font-semibold text-slate-900 truncate w-full" title={folderName}>
+                                {folderName}
+                              </h4>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContextMenu(e, folder);
+                                }}
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-white hover:bg-slate-100 rounded-lg shadow-sm transition"
+                              >
+                                <EllipsisVerticalIcon className="h-4 w-4 text-slate-600" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Files Section */}
+                {files.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-1">Files</h3>
+                    <div className={view === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3' : 'space-y-2'}>
+                      {stats.orderedFiles.map((file) => {
+                        const isDragging = draggingId === file.id;
+                        const isSelected = selectedItems.has(file.id);
+                        const title = file.title || file.originalName || file.fileName;
+
+                        if (view === 'list') {
+                          return (
+                            <div
+                              key={file.id}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/asset-id', file.id);
+                                handleDragStart(file.id);
+                              }}
+                              onDragEnd={handleDragEnd}
+                              onClick={(e) => handleItemClick(file, e)}
+                              onContextMenu={(e) => handleContextMenu(e, file)}
+                              className="group flex items-center gap-3 px-4 py-3 rounded-lg border transition cursor-pointer"
+                              style={isSelected ? {
+                                borderColor: '#60a5fa',
+                                backgroundColor: '#eff6ff',
+                                boxShadow: '0 0 0 2px #bfdbfe'
+                              } : isDragging ? {
+                                opacity: '0.5',
+                                borderColor: '#cbd5e1',
+                                backgroundColor: '#f8fafc'
+                              } : {
+                                borderColor: '#e2e8f0',
+                                backgroundColor: '#ffffff'
+                              }}
+                            >
+                              <DocumentIcon className="h-5 w-5 flex-shrink-0" style={{ color: isSelected ? '#2563eb' : '#94a3b8' }} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-slate-900 truncate" title={title}>
+                                  {title}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {formatBytes(file.fileSize)} • {formatDate(file.updatedAt || file.createdAt)}
+                                </p>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContextMenu(e, file);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 rounded transition"
+                              >
+                                <EllipsisVerticalIcon className="h-4 w-4 text-slate-600" />
+                              </button>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div
+                            key={file.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/asset-id', file.id);
+                              handleDragStart(file.id);
+                            }}
+                            onDragEnd={handleDragEnd}
+                            onClick={(e) => handleItemClick(file, e)}
+                            onContextMenu={(e) => handleContextMenu(e, file)}
+                            className="group relative p-4 rounded-xl border transition cursor-pointer"
+                            style={isSelected ? {
+                              borderColor: '#60a5fa',
+                              backgroundColor: '#eff6ff',
+                              boxShadow: '0 0 0 2px #bfdbfe'
+                            } : isDragging ? {
+                              opacity: '0.5',
+                              borderColor: '#cbd5e1',
+                              backgroundColor: '#f8fafc'
+                            } : {
+                              borderColor: '#e2e8f0',
+                              backgroundColor: '#ffffff'
+                            }}
+                          >
+                            <div className="flex flex-col items-center text-center">
+                              <div className="p-3 rounded-xl mb-3" style={{ backgroundColor: isSelected ? '#dbeafe' : '#f1f5f9' }}>
+                                <DocumentIcon className="h-8 w-8" style={{ color: isSelected ? '#2563eb' : '#64748b' }} />
+                              </div>
+                              <h4 className="text-sm font-semibold text-slate-900 truncate w-full mb-1" title={title}>
+                                {title}
+                              </h4>
+                              <p className="text-xs text-slate-500">{formatBytes(file.fileSize)}</p>
+                              <p className="text-xs text-slate-400">{formatDate(file.updatedAt || file.createdAt)}</p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleContextMenu(e, file);
+                                }}
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-white hover:bg-slate-100 rounded-lg shadow-sm transition"
+                              >
+                                <EllipsisVerticalIcon className="h-4 w-4 text-slate-600" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* Bubbles Assistant Playbook Modal */}
+      <CheatSheetModal visible={showPlaybook} onClose={() => setShowPlaybook(false)} colorMode={false} />
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenu.items}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 }

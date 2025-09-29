@@ -332,7 +332,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                         toast.error('Failed to update address');
                       }
                     }}
-              className="px-2 py-1 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-2 py-1 text-[11px] bg-[var(--color-primary-blueprint-blue)] text-white rounded hover:bg-blue-700"
             >Save</button>
                   <button
               onClick={() => { setIsEditingAddress(false); setEditFormData(prev => ({ ...prev, address: project.customer?.address || project.address || '' })); }}
@@ -351,7 +351,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Phase</span>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm font-semibold text-blue-800">
-            <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+            <div className="w-2 h-2 rounded-full bg-[var(--color-primary-blueprint-blue)]"></div>
             {WorkflowProgressService.getPhaseName(project.currentWorkflowItem?.phase || WorkflowProgressService.getProjectPhase(project))}
           </span>
         </div>
@@ -467,7 +467,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 onProjectSelect(fallbackProject, 'Project Workflow', null, 'Project Profile');
               }
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
           >
             <div className="w-2 h-2 rounded-full bg-white"></div>
             {(() => {
@@ -945,7 +945,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             <button
               onClick={handleSaveChanges}
               disabled={isSaving}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
+              className="flex-1 px-4 py-3 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>

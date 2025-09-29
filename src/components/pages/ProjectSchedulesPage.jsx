@@ -506,7 +506,7 @@ export default function ProjectSchedulesPage() {
         </div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+            <button className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
               <PlusIcon className="w-4 h-4" />
               Add Project
             </button>
@@ -911,7 +911,7 @@ export default function ProjectSchedulesPage() {
                 <h4 className="font-semibold text-gray-900 mb-3">Progress</h4>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-500" 
+                    className="bg-[var(--color-primary-blueprint-blue)] h-3 rounded-full transition-all duration-500" 
                     style={{ width: `${modalProject.progress || 0}%` }}
                   ></div>
                 </div>
@@ -922,7 +922,7 @@ export default function ProjectSchedulesPage() {
               </div>
 
               <div className="flex gap-3">
-                <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                <button className="flex-1 px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 font-medium">
                   Edit Project
                 </button>
                 
@@ -955,7 +955,7 @@ export default function ProjectSchedulesPage() {
                 {/* Labor Scheduling */}
                 {!modalProject.laborStart ? (
                   <button 
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                    className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 font-medium"
                     onClick={() => {
                       setSelectedScheduleType('labor');
                       setShowDatePickers(true);
@@ -1032,7 +1032,7 @@ export default function ProjectSchedulesPage() {
                 <button
                   onClick={() => scheduleMaterials(modalProject)}
                   disabled={!materialsStartDate || !materialsEndDate}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Schedule Materials
                 </button>
@@ -1064,7 +1064,7 @@ export default function ProjectSchedulesPage() {
                 <button
                   onClick={() => scheduleLabor(modalProject)}
                   disabled={!laborStartDate || !laborEndDate}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Schedule Labor
                 </button>

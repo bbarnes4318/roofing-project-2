@@ -883,7 +883,7 @@ const CurrentAlertsSection = ({
                             await navigateAlertToWorkflow(alert);
                           }
                         }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                       >
                         View in Workflow
                       </button>
@@ -895,7 +895,7 @@ const CurrentAlertsSection = ({
                             handleProjectSelectFromAlert(project, 'Messages', null, 'Current Alerts');
                           }
                         }}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                        className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                       >
                         Project Messages
                       </button>
@@ -1093,7 +1093,7 @@ const CurrentAlertsSection = ({
                           }
                         }}
                         disabled={alert.status === 'COMPLETED'}
-                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-3 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
                         {alert.status === 'COMPLETED' ? 'Completed' : 'Complete'}
                       </button>
@@ -1121,7 +1121,7 @@ const CurrentAlertsSection = ({
             {(searchFilter || selectedProjectFilter || selectedPriorityFilter || selectedRoleFilter || selectedAlertFilter || selectedStatusFilter !== 'ACTIVE') && (
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Clear Filters
               </button>

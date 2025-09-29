@@ -298,7 +298,7 @@ const TaskItem = ({
                     <button
                       onClick={handleAddComment}
                       disabled={!state.commentInputs[item.id]?.trim()}
-                      className="px-2 py-1 text-[9px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                      className="px-2 py-1 text-[9px] bg-[var(--color-primary-blueprint-blue)] text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                     >
                       Post Comment
                     </button>

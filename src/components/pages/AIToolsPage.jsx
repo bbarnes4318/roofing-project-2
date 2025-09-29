@@ -179,8 +179,8 @@ const AIToolsPage = ({ colorMode }) => {
               {/* Action Button */}
               <button className={`w-full font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-xs ${
                 colorMode 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white' 
+                  : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white'
               }`}>
                 Get Information
               </button>

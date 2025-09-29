@@ -501,7 +501,7 @@ const CurrentProjectAccessSection = ({
                       onClick={() => goToPage(pageIndex)}
                       className={`px-3 py-2 rounded-lg text-sm ${
                         currentPage === pageIndex
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-[var(--color-primary-blueprint-blue)] text-white'
                           : 'border border-gray-300 hover:bg-gray-50'
                       }`}
                     >
@@ -552,7 +552,7 @@ const CurrentProjectAccessSection = ({
             {(searchFilter || selectedPhaseFilter || selectedProjectFilter) && (
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Clear Filters
               </button>
@@ -615,13 +615,13 @@ const CurrentProjectAccessSection = ({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => handleProjectCubeNavigation(selectedProject, 'Project Workflow')}
-                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      className="px-3 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
                       Workflow
                     </button>
                     <button
                       onClick={() => handleProjectCubeNavigation(selectedProject, 'Messages')}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      className="px-3 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                     >
                       Messages
                     </button>

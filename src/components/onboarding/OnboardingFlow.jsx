@@ -138,7 +138,7 @@ const OnboardingFlow = ({ currentUser, onComplete }) => {
               setError(null);
               setCurrentStep('role-selection');
             }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            className="w-full bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
           >
             Try Again
           </button>

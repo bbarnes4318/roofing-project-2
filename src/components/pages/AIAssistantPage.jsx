@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { PaperAirplaneIcon, SparklesIcon, ClipboardDocumentCheckIcon, ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, ClockIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon } from '../common/Icons';
+import { ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
 import socketService from '../../services/socket';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
-import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
 import TranscriptHistory from '../ui/TranscriptHistory2';
 // Vapi will be loaded dynamically
 
@@ -72,7 +71,6 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     
     // Current user display name (for transcript labels)
     const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
-    const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
 
     useEffect(() => {
         try {
@@ -1891,73 +1889,6 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 </div>
             </div>
 
-            {/* Bubbles Quick Start Guidance */}
-            <div className="border-b bg-gradient-to-r from-slate-50 to-white">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Get productive with Bubbles</h3>
-                            <p className="text-sm text-gray-600 mt-1 max-w-3xl">
-                                Bubbles can draft messages, schedule tasks, and set reminders while attaching the right documents. Try these starter prompts to keep your projects moving fast.
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                onClick={() => setIsQuickModalOpen(true)}
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition"
-                            >
-                                <SparklesIcon className="w-3.5 h-3.5" /> Assistant playbook
-                            </button>
-                            <a
-                                href="/bubbles-quickstart.html"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-100 transition"
-                            >
-                                <DocumentTextIcon className="w-3.5 h-3.5" /> Printable guide
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                        <div className="rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                <PaperAirplaneIcon className="w-4 h-4 text-blue-500" />
-                                Send project updates fast
-                            </div>
-                            <ul className="mt-2 space-y-1.5 text-xs text-gray-600">
-                                <li><strong>Say:</strong> "Message the homeowner that today's crew arrives by 8am and attach progress_photos.pdf."</li>
-                                <li><strong>Who gets it:</strong> Describe the audience (“homeowner”, “production team”) or list names.</li>
-                                <li><strong>Proofread:</strong> Bubbles repeats back the draft—just answer “Looks good” or correct it.</li>
-                            </ul>
-                        </div>
-                        <div className="rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                <ClipboardDocumentCheckIcon className="w-4 h-4 text-green-500" />
-                                Assign tasks & reminders
-                            </div>
-                            <ul className="mt-2 space-y-1.5 text-xs text-gray-600">
-                                <li><strong>Say:</strong> "Create a task for Sarah to order shingles for project 10023 by Friday and attach the takeoff PDF."</li>
-                                <li><strong>Deadlines:</strong> Mention the due day or time so Bubbles schedules it correctly.</li>
-                                <li><strong>Follow-up:</strong> Add "Set a reminder for me tomorrow at 9am" to keep it on radar.</li>
-                            </ul>
-                        </div>
-                        <div className="rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
-                                <ClockIcon className="w-4 h-4 text-orange-500" />
-                                Voice tip: natural names first
-                            </div>
-                            <ul className="mt-2 space-y-1.5 text-xs text-gray-600">
-                                <li><strong>Speak normally:</strong> “Attach the roofing doc forty-eight thirty-eight F F one PDF.” Bubbles matches underscores/dashes automatically.</li>
-                                <li><strong>Add context if needed:</strong> Mention the project, who uploaded it, or “the warranty PDF from today” to help it pick the right file.</li>
-                                <li><strong>Fallback:</strong> Only if it’s unsure, spell it out (“roofing underscore doc…”) to confirm the exact filename.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <CheatSheetModal visible={isQuickModalOpen} onClose={() => setIsQuickModalOpen(false)} colorMode={colorMode} />
-
             {/* Input Area - Moved to top, above messages */}
             <div ref={inputRef} className="flex-shrink-0 p-1 px-3 md:px-4 border-b border-gray-200 bg-gray-50">
                 <form onSubmit={handleSubmit} className="w-full max-w-2xl flex items-center gap-1">
@@ -2058,7 +1989,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                         setCurrentChatId(null);
                                         setShowChatHistory(false);
                                     }}
-                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white"
+                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)] text-white"
                                 >
                                     New Chat
                                 </button>
@@ -2146,7 +2077,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         {(isVoiceLive || isVoiceConnecting) && (
                             <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
                                 <span className="inline-flex items-center gap-2 font-medium">
-                                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                    <span className="w-2 h-2 rounded-full bg-[var(--color-primary-blueprint-blue)] animate-pulse"></span>
                                     {isVoiceConnecting ? 'Connecting to voice...' : 'Listening - speak now'}
                                 </span>
                             </div>
@@ -2155,7 +2086,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
   <div className="w-full">
     <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+        <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
         <span className="text-sm font-medium">Live Transcription</span>
       </div>
       <div
@@ -2295,7 +2226,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                 } catch (e) {
                                     setMessages(prev => [{ id: `msg_err_${Date.now()}`, type: 'error', content: 'Failed to send message. Please try again.', timestamp: new Date() }, ...prev]);
                                 } finally { setIsSendingMessage(false); }
-                            }} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-2 rounded-md text-white ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                            }} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-2 rounded-md text-white ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400' : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700'}`}>
                                 <span className="font-semibold text-sm md:text-base">{isSendingMessage ? 'Sending...' : 'SEND'}</span>
                             </button>
                         </div>
@@ -2504,7 +2435,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                         className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
                                             selectedFileFormats.length === 0 || isGeneratingFiles
                                                 ? 'bg-gray-400 cursor-not-allowed'
-                                                : 'bg-blue-600 hover:bg-blue-700'
+                                                : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700'
                                         }`}
                                     >
                                         {isGeneratingFiles ? (

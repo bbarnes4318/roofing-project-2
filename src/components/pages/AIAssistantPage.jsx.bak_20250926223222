@@ -1756,7 +1756,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowChatHistory(!showChatHistory)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-blue-500 hover:bg-blue-600 text-white"
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-[var(--color-primary-blueprint-blue-light)] hover:bg-[var(--color-primary-blueprint-blue)] text-white"
                             title="Chat History"
                         >
                             History ({chatHistory.length})
@@ -1876,7 +1876,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                         setCurrentChatId(null);
                                         setShowChatHistory(false);
                                     }}
-                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white"
+                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary-blueprint-blue-light)] hover:bg-[var(--color-primary-blueprint-blue)] text-white"
                                 >
                                     New Chat
                                 </button>
@@ -1964,7 +1964,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                         {(isVoiceLive || isVoiceConnecting) && (
                             <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
                                 <span className="inline-flex items-center gap-2 font-medium">
-                                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                    <span className="w-2 h-2 rounded-full bg-[var(--color-primary-blueprint-blue)] animate-pulse"></span>
                                     {isVoiceConnecting ? 'Connecting to voice...' : 'Listening - speak now'}
                                 </span>
                             </div>
@@ -1973,7 +1973,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
   <div className="w-full">
     <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+    <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
         <span className="text-sm font-medium">Live Transcription</span>
       </div>
       <div
@@ -2089,7 +2089,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                 } catch (e) {
                                     setMessages(prev => [{ id: `msg_err_${Date.now()}`, type: 'error', content: 'Failed to send message. Please try again.', timestamp: new Date() }, ...prev]);
                                 } finally { setIsSendingMessage(false); }
-                            }} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-2 rounded-md text-white ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                            }} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-2 rounded-md text-white ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400' : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-[var(--color-primary-blueprint-blue-dark)]`}`}>
                                 <span className="font-semibold text-sm md:text-base">{isSendingMessage ? 'Sending...' : 'SEND'}</span>
                             </button>
                         </div>
@@ -2298,7 +2298,7 @@ ${summary.actions.map(action => `|œ… ${action}`).join('\n')}
                                         className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
                                             selectedFileFormats.length === 0 || isGeneratingFiles
                                                 ? 'bg-gray-400 cursor-not-allowed'
-                                                : 'bg-blue-600 hover:bg-blue-700'
+                                                : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-[var(--color-primary-blueprint-blue-dark)]'
                                         }`}
                                     >
                                         {isGeneratingFiles ? (

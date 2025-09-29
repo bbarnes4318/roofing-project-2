@@ -81,7 +81,7 @@ const DocumentPreviewModal = ({ document, onClose, onDownload }) => {
             <p className="text-gray-600 mb-4">PDF Preview</p>
             <button
               onClick={() => onDownload(document.id)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="inline-flex items-center px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700"
             >
               <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
               Download to View
@@ -99,7 +99,7 @@ const DocumentPreviewModal = ({ document, onClose, onDownload }) => {
           <p className="text-gray-600 mb-4">Preview not available</p>
           <button
             onClick={() => onDownload(document.id)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700"
           >
             <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
             Download to View
@@ -221,7 +221,7 @@ const DocumentPreviewModal = ({ document, onClose, onDownload }) => {
           <div className="space-y-2">
             {document.isTemplate && (
               <div className="flex items-center text-sm text-blue-600">
-                <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                <span className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full mr-2"></span>
                 This is a template document
               </div>
             )}
@@ -441,7 +441,7 @@ const DocumentPreviewModal = ({ document, onClose, onDownload }) => {
             </button>
             <button
               onClick={() => onDownload(document.id)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700"
             >
               Download
             </button>

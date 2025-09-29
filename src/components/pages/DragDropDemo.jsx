@@ -115,7 +115,7 @@ const DragDropDemo = () => {
                 className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
                   showDemo 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-[var(--color-success-green)] text-white hover:bg-green-700'
                 }`}
               >
                 <HandRaisedIcon className="w-4 h-4 mr-2" />
@@ -172,7 +172,7 @@ const DragDropDemo = () => {
                   <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
                     {step.icon}
                   </div>
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full mx-auto mb-3 flex items-center justify-center text-sm font-bold">
+                  <div className="w-8 h-8 bg-[var(--color-primary-blueprint-blue)] text-white rounded-full mx-auto mb-3 flex items-center justify-center text-sm font-bold">
                     {step.step}
                   </div>
                   <h4 className="font-semibold text-gray-900 mb-2">{step.title}</h4>
@@ -271,7 +271,7 @@ const DragDropDemo = () => {
             <p className="text-lg text-gray-600 mb-8">Try the interactive demo to see all features in action</p>
             <button
               onClick={() => setShowDemo(true)}
-              className="px-8 py-4 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+              className="px-8 py-4 bg-[var(--color-success-green)] text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
             >
               Launch Interactive Demo
             </button>

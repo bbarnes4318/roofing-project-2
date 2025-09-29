@@ -774,8 +774,8 @@ const BubblesChat = ({
                   onClick={startNewChat}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     colorMode 
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white' 
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500 text-white' 
+                      : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)] text-white'
                   }`}
                 >
                   New Chat
@@ -828,7 +828,7 @@ const BubblesChat = ({
                       key={chat.id}
                       className={`group relative p-3 rounded-lg cursor-pointer transition-all ${
                         isActive
-                          ? (colorMode ? 'bg-blue-600/20 border border-blue-500/50' : 'bg-blue-50 border border-blue-200')
+                          ? (colorMode ? 'bg-[var(--color-primary-blueprint-blue)]/20 border border-blue-500/50' : 'bg-blue-50 border border-blue-200')
                           : (colorMode ? 'hover:bg-slate-800/50 border border-transparent' : 'hover:bg-gray-50 border border-transparent')
                       }`}
                       onClick={() => loadChatFromHistory(chat.id)}
@@ -934,7 +934,7 @@ const BubblesChat = ({
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] rounded-xl p-3 shadow-md transition-all duration-200 text-sm leading-relaxed ${
-                msg.type === 'user' ? (colorMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white') :
+                msg.type === 'user' ? (colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-blue-500 text-white') :
                 msg.type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
                 (colorMode ? 'bg-slate-700 text-white' : 'bg-gray-100 text-gray-900')
               }`}>
@@ -943,7 +943,7 @@ const BubblesChat = ({
                   <div className="mt-3 flex flex-wrap gap-2">
                     {msg.suggestedActions.map((action, i) => (
                       <button key={i} onClick={() => handleSendMessage(action.label)} className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
-                        colorMode ? 'bg-blue-600/20 border-blue-500/50 text-blue-200 hover:bg-blue-600/40' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                        colorMode ? 'bg-[var(--color-primary-blueprint-blue)]/20 border-blue-500/50 text-blue-200 hover:bg-[var(--color-primary-blueprint-blue)]/40' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
                       }`}>
                         {action.label}
                       </button>
@@ -1000,7 +1000,7 @@ const BubblesChat = ({
               </div>
               <div className="flex items-center justify-end gap-2 mt-1">
                 <button onClick={() => setIsComposerOpen(false)} className={`text-xs px-3 py-1 rounded-md border ${colorMode ? 'border-slate-600 hover:bg-white/10' : 'border-gray-300 hover:bg-gray-50'}`}>Cancel</button>
-                <button onClick={submitProjectMessage} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-1 rounded-md text-white flex items-center gap-1 ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                <button onClick={submitProjectMessage} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-1 rounded-md text-white flex items-center gap-1 ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700'}`}>
                   <ChatBubbleLeftRightIcon className="w-4 h-4" />
                   {isSendingMessage ? 'Sending...' : 'Send'}
                 </button>
@@ -1024,7 +1024,7 @@ const BubblesChat = ({
               disabled={isLoading}
             />
             <button onClick={() => handleSendMessage()} disabled={!inputMessage.trim() || isLoading} className={`p-2.5 rounded-lg transition-all text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-                colorMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-500 hover:bg-blue-600'
+                colorMode ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500' : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)]'
             }`}>
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
             </button>
@@ -1060,7 +1060,7 @@ const BubblesChat = ({
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
                 colorMode ? 'bg-blue-900/50 border border-blue-500 text-blue-300' : 'bg-blue-50 border border-blue-200 text-blue-700'
               }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary-blueprint-blue)] animate-pulse"></span>
                 {isVoiceConnecting ? 'Connecting…' : 'Listening…'}
               </span>
             </div>

@@ -302,7 +302,7 @@ const DocumentUploadZone = ({
                       <div className="mt-2">
                         <div className="w-full bg-gray-200 rounded-full h-1.5">
                           <div 
-                            className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                            className="bg-[var(--color-primary-blueprint-blue)] h-1.5 rounded-full transition-all duration-300"
                             style={{ width: `${upload.progress}%` }}
                           />
                         </div>

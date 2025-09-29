@@ -94,7 +94,7 @@ const CompanyDocumentsDemo = () => {
                 className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
                   showDemo 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                 }`}
               >
                 <EyeIcon className="w-4 h-4 mr-2" />
@@ -241,7 +241,7 @@ const CompanyDocumentsDemo = () => {
               <h3 className="text-lg font-semibold text-white">ModernCompanyDocumentsPage.jsx</h3>
               <button
                 onClick={() => navigator.clipboard.writeText('Code copied!')}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                className="px-3 py-1 bg-[var(--color-primary-blueprint-blue)] text-white text-sm rounded hover:bg-blue-700 transition-colors"
               >
                 Copy Code
               </button>

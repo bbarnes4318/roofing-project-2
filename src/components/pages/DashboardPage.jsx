@@ -1346,7 +1346,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   return (
     <ActivityProvider>
-  <div className="min-h-screen text-gray-100" style={{ background: 'linear-gradient(135deg, #0f3720 0%, #26532B 34%, #3b7d52 100%)' }}>
+  <div className="min-h-screen bg-gray-100 text-gray-900">
       {/* Top Actions */}
       <div className="mb-4 flex items-center justify-end">
         <button

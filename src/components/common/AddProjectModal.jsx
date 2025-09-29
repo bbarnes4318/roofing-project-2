@@ -1047,7 +1047,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 text-sm"
+                  className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 text-sm"
                 >
                   Next
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1059,7 +1059,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   type="submit"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-sm"
+                  className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-sm"
                 >
                   {isSubmitting ? (
                     <>

@@ -176,23 +176,23 @@ const WorkflowImportPage = ({ colorMode }) => {
           {/* Progress Steps */}
           <div className="px-6 py-4 border-b">
             <div className="flex items-center justify-between">
-              <div className={`flex items-center ${currentStep === 'upload' ? 'text-blue-600' : 'text-gray-400'}`}>
-                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full">1</span>
+              <div className={`flex items-center`} style={{ color: currentStep === 'upload' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-400)' }}>
+                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full" style={{ borderColor: currentStep === 'upload' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-300)' }}>1</span>
                 <span className="ml-2 font-medium">Upload File</span>
               </div>
               <div className="flex-1 h-0.5 mx-4 bg-gray-300"></div>
-              <div className={`flex items-center ${currentStep === 'preview' ? 'text-blue-600' : 'text-gray-400'}`}>
-                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full">2</span>
+              <div className={`flex items-center`} style={{ color: currentStep === 'preview' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-400)' }}>
+                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full" style={{ borderColor: currentStep === 'preview' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-300)' }}>2</span>
                 <span className="ml-2 font-medium">Preview & Validate</span>
               </div>
               <div className="flex-1 h-0.5 mx-4 bg-gray-300"></div>
-              <div className={`flex items-center ${currentStep === 'mapping' ? 'text-blue-600' : 'text-gray-400'}`}>
-                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full">3</span>
+              <div className={`flex items-center`} style={{ color: currentStep === 'mapping' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-400)' }}>
+                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full" style={{ borderColor: currentStep === 'mapping' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-300)' }}>3</span>
                 <span className="ml-2 font-medium">Configure Import</span>
               </div>
               <div className="flex-1 h-0.5 mx-4 bg-gray-300"></div>
-              <div className={`flex items-center ${currentStep === 'confirm' ? 'text-blue-600' : 'text-gray-400'}`}>
-                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full">4</span>
+              <div className={`flex items-center`} style={{ color: currentStep === 'confirm' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-400)' }}>
+                <span className="flex items-center justify-center w-8 h-8 border-2 rounded-full" style={{ borderColor: currentStep === 'confirm' ? 'var(--color-primary-blueprint-blue)' : 'var(--color-neutral-gray-300)' }}>4</span>
                 <span className="ml-2 font-medium">Confirm</span>
               </div>
             </div>
@@ -203,22 +203,24 @@ const WorkflowImportPage = ({ colorMode }) => {
             {currentStep === 'upload' && (
               <div className="space-y-6">
                 {/* Download Templates */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-medium text-blue-900 mb-2">Download Template</h3>
-                  <p className="text-sm text-blue-700 mb-3">
+                <div className="rounded-lg p-4" style={{ background: 'var(--color-primary-light-tint)' }}>
+                  <h3 className="font-medium mb-2" style={{ color: 'var(--color-primary-blueprint-blue)' }}>Download Template</h3>
+                  <p className="text-sm mb-3" style={{ color: 'var(--color-primary-blueprint-blue)' }}>
                     Use our template to ensure your data is formatted correctly
                   </p>
                   <div className="flex space-x-3">
                     <button
                       onClick={() => downloadTemplate('xlsx')}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="px-4 py-2 text-white rounded"
+                      style={{ background: 'var(--color-primary-blueprint-blue)' }}
                     >
                       <DocumentTextIcon className="w-4 h-4 inline mr-2" />
                       Excel Template
                     </button>
                     <button
                       onClick={() => downloadTemplate('csv')}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      className="px-4 py-2 text-white rounded"
+                      style={{ background: 'var(--color-success-green)' }}
                     >
                       <DocumentTextIcon className="w-4 h-4 inline mr-2" />
                       CSV Template
@@ -230,7 +232,7 @@ const WorkflowImportPage = ({ colorMode }) => {
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <ArrowUpTrayIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                   <label className="cursor-pointer">
-                    <span className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    <span className="px-4 py-2 text-white rounded" style={{ background: 'var(--color-primary-blueprint-blue)' }}>
                       Choose File
                     </span>
                     <input
@@ -269,7 +271,7 @@ const WorkflowImportPage = ({ colorMode }) => {
                 {/* File Summary */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-medium text-gray-900 mb-3">File Summary</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">File Name</p>
                       <p className="font-medium">{previewData.fileName}</p>
@@ -280,7 +282,7 @@ const WorkflowImportPage = ({ colorMode }) => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Valid Rows</p>
-                      <p className="font-medium text-green-600">{previewData.validRows}</p>
+                      <p className="font-medium" style={{ color: 'var(--color-success-green)' }}>{previewData.validRows}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Error Rows</p>
@@ -343,7 +345,8 @@ const WorkflowImportPage = ({ colorMode }) => {
                   </button>
                   <button
                     onClick={() => setCurrentStep('mapping')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 text-white rounded"
+                    style={{ background: 'var(--color-primary-blueprint-blue)' }}
                     disabled={previewData.validRows === 0}
                   >
                     Continue
@@ -401,7 +404,8 @@ const WorkflowImportPage = ({ colorMode }) => {
                     id="clearExisting"
                     checked={clearExisting}
                     onChange={(e) => setClearExisting(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 rounded"
+                    className="h-4 w-4 rounded"
+                    style={{ accentColor: 'var(--color-primary-blueprint-blue)' }}
                   />
                   <label htmlFor="clearExisting" className="ml-2 text-sm text-gray-700">
                     Clear existing workflow data before importing
@@ -428,7 +432,8 @@ const WorkflowImportPage = ({ colorMode }) => {
                   </button>
                   <button
                     onClick={() => setCurrentStep('confirm')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 text-white rounded"
+                    style={{ background: 'var(--color-primary-blueprint-blue)' }}
                     disabled={!selectedProject}
                   >
                     Review Import
@@ -473,7 +478,8 @@ const WorkflowImportPage = ({ colorMode }) => {
                   </button>
                   <button
                     onClick={handleConfirmImport}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-4 py-2 text-white rounded"
+                    style={{ background: 'var(--color-success-green)' }}
                     disabled={confirmMutation.isLoading}
                   >
                     {confirmMutation.isLoading ? 'Importing...' : 'Confirm Import'}

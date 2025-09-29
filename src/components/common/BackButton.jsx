@@ -124,8 +124,8 @@ const BackButton = memo(({
     switch (variant) {
       case 'primary':
         return `${baseStyles} ${colorMode 
-          ? 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 disabled:bg-slate-600' 
-          : 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 disabled:bg-gray-300'} rounded-lg disabled:cursor-not-allowed`;
+          ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white focus:ring-blue-500 disabled:bg-slate-600' 
+          : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white focus:ring-blue-500 disabled:bg-gray-300'} rounded-lg disabled:cursor-not-allowed`;
       
       case 'secondary':
         return `${baseStyles} ${colorMode 

@@ -20,23 +20,40 @@ export const calculateProgress = (tasks) => {
 };
 
 export const getStatusStyles = (status) => {
-    switch (status) {
-        case 'active': case 'in-progress': return 'bg-blue-100 text-blue-800';
-        case 'planning': return 'bg-yellow-100 text-yellow-800';
-        case 'pending': return 'bg-gray-100 text-gray-800';
-        case 'overdue': return 'bg-red-100 text-red-800';
-        case 'completed': return 'bg-green-100 text-green-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
+  // Return className strings that use Blueprint CSS variables where appropriate.
+  // Consumers expect a className string, so we use Tailwind arbitrary value support
+  // to reference CSS variables where needed.
+  switch (status) {
+    case 'active':
+    case 'in-progress':
+      // Light tint background with Blueprint blue text
+      return 'bg-[var(--color-primary-light-tint)] text-[var(--color-primary-blueprint-blue)]';
+    case 'planning':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'pending':
+      return 'bg-gray-100 text-gray-800';
+    case 'overdue':
+      return 'bg-red-100 text-red-800';
+    case 'completed':
+      // Use success green token for completed state
+      return 'bg-[var(--color-success-green)] text-white';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
 };
 
 export const getPriorityStyles = (priority) => {
-    switch (priority) {
-        case 'high': return 'border-l-4 border-red-500';
-        case 'medium': return 'border-l-4 border-yellow-500';
-        case 'low': return 'border-l-4 border-blue-500';
-        default: return 'border-l-4 border-gray-300';
-    }
+  // Return border class names using Blueprint variables for low/blue priority
+  switch (priority) {
+    case 'high':
+      return 'border-l-4 border-red-500';
+    case 'medium':
+      return 'border-l-4 border-yellow-500';
+    case 'low':
+      return 'border-l-4 border-[var(--color-primary-blueprint-blue)]';
+    default:
+      return 'border-l-4 border-gray-300';
+  }
 };
 
 /**

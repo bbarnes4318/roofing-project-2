@@ -598,7 +598,7 @@ const ProjectProfilePage = ({
                                     </div>
                                     <div className="w-full md:w-auto flex flex-col gap-2">
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => triggerUpload()} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Upload Selected</button>
+                                            <button onClick={() => triggerUpload()} className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg">Upload Selected</button>
                                             <button onClick={() => {
                                                 if (!selectedProject) return;
                                                 try {
@@ -1823,7 +1823,7 @@ const ProjectProfilePage = ({
                             <button
                                 type="submit"
                                 disabled={createProjectMutation.isLoading}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+                                className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
                             >
                                 {createProjectMutation.isLoading && (
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

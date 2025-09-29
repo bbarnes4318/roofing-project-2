@@ -221,7 +221,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 // Show success toast with user assignment confirmation
                 toast.success(
                     <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" style={{ color: 'var(--color-primary-blueprint-blue)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span>Alert assigned successfully</span>
@@ -229,8 +229,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                     {
                         duration: 3000,
                         style: {
-                            background: '#3B82F6',
-                            color: '#ffffff',
+                            background: 'var(--color-primary-blueprint-blue)',
+                            color: 'var(--color-on-primary, #ffffff)',
                             fontWeight: '600',
                         },
                     }
@@ -246,8 +246,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                 toast.error('Failed to assign alert. Please try again.', {
                     duration: 4000,
                     style: {
-                        background: '#EF4444',
-                        color: '#ffffff',
+                        background: 'var(--color-danger-red, #EF4444)',
+                        color: 'var(--color-on-danger, #ffffff)',
                         fontWeight: '600',
                     },
                 });
@@ -258,8 +258,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
             toast.error('Network error. Please check your connection and try again.', {
                 duration: 4000,
                 style: {
-                    background: '#EF4444',
-                    color: '#ffffff',
+                    background: 'var(--color-danger-red, #EF4444)',
+                    color: 'var(--color-on-danger, #ffffff)',
                     fontWeight: '600',
                 },
             });
@@ -343,8 +343,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                     {
                         duration: 4000,
                         style: {
-                            background: '#10B981',
-                            color: '#ffffff',
+                            background: 'var(--color-success-green, #10B981)',
+                            color: 'var(--color-on-success, #ffffff)',
                             fontWeight: '600',
                         },
                     }
@@ -364,8 +364,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                             { 
                                 duration: 6000,
                                 style: {
-                                    background: '#0F172A',
-                                    color: '#ffffff',
+                                    background: 'var(--color-neutral-dark, #0F172A)',
+                                    color: 'var(--color-on-neutral, #ffffff)',
                                     fontWeight: '600',
                                 },
                             }
@@ -380,8 +380,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                         toast.success(`📊 Workflow progress: ${Math.round(progress.completionPercentage)}%`, { 
                             duration: 4000,
                             style: {
-                                background: '#7C3AED',
-                                color: '#ffffff',
+                                background: 'var(--color-primary-purple, #7C3AED)',
+                                color: 'var(--color-on-primary, #ffffff)',
                                 fontWeight: '600',
                             },
                         });
@@ -450,7 +450,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
         <div className="w-full max-w-7xl mx-auto" data-section="my-alerts">
             {/* My Alerts - Current Alerts Section */}
             <div className="w-full" data-section="current-alerts">
-                <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] rounded-t-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`}>
+                <div className={`border-t-4 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] rounded-t-[8px] px-4 py-3 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden relative`} style={{ borderTopColor: 'var(--color-primary-blueprint-blue)' }}>
                     <div className="mb-3">
                         <div className="flex items-center justify-between mb-2">
                             <div>
@@ -466,9 +466,10 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                 onChange={(e) => setAlertProjectFilter(e.target.value)} 
                                 className={`text-[10px] font-medium px-1 py-0.5 rounded border transition-colors ${
                                     colorMode 
-                                        ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                        ? 'bg-[#1e293b] text-gray-300' 
                                         : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
                                 }`}
+                                style={colorMode ? { borderColor: 'var(--color-primary-blueprint-blue)' } : undefined}
                             >
                                 <option value="all">All Projects</option>
                                 <option value="general">General</option>
@@ -482,9 +483,10 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                 onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
                                 className={`text-[10px] font-medium px-1 py-0.5 rounded border transition-colors ${
                                     colorMode 
-                                        ? 'bg-[#1e293b] border-[#3b82f6]/30 text-gray-300 hover:border-[#3b82f6]/50' 
+                                        ? 'bg-[#1e293b] text-gray-300' 
                                         : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
                                 }`}
+                                style={colorMode ? { borderColor: 'var(--color-primary-blueprint-blue)' } : undefined}
                             >
                                 <option value="all">All User Groups</option>
                                 <option value="PM">PM</option>
@@ -513,7 +515,7 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
             {/* Assignment Modal */}
             {showAssignModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className={`bg-white rounded-[20px] p-6 w-96 max-w-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white'}`}>
+                    <div className={`bg-white rounded-[20px] p-6 w-96 max-w-md ${colorMode ? 'bg-[#1e293b] border' : 'bg-white'}`} style={colorMode ? { borderColor: 'var(--color-primary-blueprint-blue)' } : undefined}>
                         <h3 className={`text-lg font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                             Assign Alert to User
                         </h3>
@@ -540,8 +542,8 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                 onChange={(e) => setAssignToUser(e.target.value)}
                                 className={`w-full p-3 border rounded-lg text-sm transition-colors ${
                                     colorMode 
-                                        ? 'bg-[#1e293b] border-gray-600 text-white focus:border-brand-500 focus:ring-1 focus:ring-blue-500' 
-                                        : 'bg-white border-gray-300 text-gray-800 focus:border-brand-500 focus:ring-1 focus:ring-blue-500'
+                                        ? 'bg-[#1e293b] border-gray-600 text-white focus:border-brand-500 focus:ring-1 focus:ring-[var(--color-primary-blueprint-blue)]' 
+                                        : 'bg-white border-gray-300 text-gray-800 focus:border-brand-500 focus:ring-1 focus:ring-[var(--color-primary-blueprint-blue)]'
                                 }`}
                             >
                                 <option value="">Select a user...</option>
@@ -573,9 +575,10 @@ const TasksAndAlertsPage = ({ colorMode, onProjectSelect, projects, sourceSectio
                                 disabled={!assignToUser || actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]}
                                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                                     assignToUser && !actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        ? 'text-white'
                                         : 'bg-gray-400 text-white cursor-not-allowed'
                                 }`}
+                                style={assignToUser && !actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`] ? { background: 'var(--color-primary-blueprint-blue)' } : undefined}
                             >
                                 {actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`] ? (
                                     <span className="flex items-center">

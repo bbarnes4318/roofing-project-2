@@ -1191,7 +1191,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setInlineNewSection(prev => ({ ...prev, [phase.id]: prev[phase.id] ? undefined : { name: '', saving: false } }))}
-                    className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700"
                   >
                     + Add Section
                   </button>
@@ -1227,7 +1227,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                         className="px-2 py-1 border border-gray-300 rounded-md text-sm"
                         placeholder="Section name"
                       />
-                      <button type="submit" disabled={inlineNewSection[phase.id]?.saving} className="px-2 py-1 text-xs text-white bg-green-600 rounded-md disabled:opacity-50">
+                      <button type="submit" disabled={inlineNewSection[phase.id]?.saving} className="px-2 py-1 text-xs text-white bg-[var(--color-success-green)] rounded-md disabled:opacity-50">
                         {inlineNewSection[phase.id]?.saving ? 'Saving...' : 'Save'}
                       </button>
                     </form>
@@ -1355,7 +1355,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                         console.log(`Checkbox onClick: ${stepId}`);
                                         e.stopPropagation();
                                       }}
-                                      className={`h-4 w-4 rounded border-2 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-blue-600 checked:border-blue-600 ${
+                                      className={`h-4 w-4 rounded border-2 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-[var(--color-primary-blueprint-blue)] checked:border-blue-600 ${
                                         isCurrentLineItem ? 'border-blue-500' : 'border-gray-300'
                                       }`}
                                     />
@@ -1433,7 +1433,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                           <div className="mt-3">
                             <button
                               onClick={() => setInlineNewLineItem(prev => ({ ...prev, [item.id]: prev[item.id] ? undefined : { name: '', role: 'OFFICE', saving: false } }))}
-                              className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                              className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-[var(--color-success-green)] hover:bg-green-700"
                             >
                               + Add Line Item
                             </button>
@@ -1485,7 +1485,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                   <option value="ROOF_SUPERVISOR">Roof Supervisor</option>
                                   <option value="OFFICE_STAFF">Office Staff</option>
                                 </select>
-                                <button type="submit" disabled={inlineNewLineItem[item.id]?.saving} className="px-2 py-1 text-xs text-white bg-green-600 rounded-md disabled:opacity-50">
+                                <button type="submit" disabled={inlineNewLineItem[item.id]?.saving} className="px-2 py-1 text-xs text-white bg-[var(--color-success-green)] rounded-md disabled:opacity-50">
                                   {inlineNewLineItem[item.id]?.saving ? 'Saving...' : 'Save'}
                                 </button>
                               </form>
@@ -1603,7 +1603,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   <button
                     type="submit"
                     disabled={creatingSection || !selectedPhaseForSection || !createSectionData.sectionName.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary-blueprint-blue)] rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {creatingSection ? 'Creating...' : 'Create Section'}
                   </button>
@@ -1751,7 +1751,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   <button
                     type="submit"
                     disabled={creatingLineItem || !selectedSectionForLineItem || !createLineItemData.itemName.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-success-green)] rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {creatingLineItem ? 'Creating...' : 'Create Line Item'}
                   </button>

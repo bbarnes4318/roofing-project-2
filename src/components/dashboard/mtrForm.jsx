@@ -320,7 +320,7 @@ const MTRForm = ({
                 disabled={!newMessageProject || !(newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject) || !newMessageText.trim() || newMessageRecipients.length === 0}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                   newMessageProject && (newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject) && newMessageText.trim() && newMessageRecipients.length > 0
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
@@ -445,7 +445,7 @@ const MTRForm = ({
             </div>
             <div className="flex justify-end gap-1.5 pt-1">
               <button type="button" onClick={()=>{ setShowMessageDropdown(false); setQuickTaskSubject(''); setQuickTaskDescription(''); setQuickTaskDue(''); setQuickTaskAssignAll(false); setQuickTaskAssigneeId(''); setTasksProjectFilter(''); }} className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${colorMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-              <button type="submit" disabled={!quickTaskSubject.trim() || !quickTaskDue} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${quickTaskSubject.trim() && quickTaskDue ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Task</button>
+              <button type="submit" disabled={!quickTaskSubject.trim() || !quickTaskDue} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${quickTaskSubject.trim() && quickTaskDue ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Task</button>
             </div>
           </form>
         </div>
@@ -528,7 +528,7 @@ const MTRForm = ({
             </div>
             <div className="flex justify-end gap-1.5 pt-1">
               <button type="button" onClick={()=>{ setShowMessageDropdown(false); setReminderTitle(''); setReminderDescription(''); setReminderWhen(''); setReminderAllUsers(false); setReminderUserIds([]); }} className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${colorMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-              <button type="submit" disabled={!reminderTitle.trim() || !reminderWhen} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${reminderTitle.trim() && reminderWhen ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Reminder</button>
+              <button type="submit" disabled={!reminderTitle.trim() || !reminderWhen} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${reminderTitle.trim() && reminderWhen ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Reminder</button>
             </div>
           </form>
         </div>

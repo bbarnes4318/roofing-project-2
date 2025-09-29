@@ -518,7 +518,7 @@ const ConfirmationModal = ({ isOpen, title, message, confirmText = "Delete", onC
               className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
                 type === "danger" 
                   ? "bg-red-600 hover:bg-red-700" 
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : "bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700"
               }`}
             >
               {confirmText}
@@ -970,7 +970,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 text-sm font-medium rounded-l-lg transition-colors ${
                     viewMode === 'list' 
-                      ? 'bg-blue-600 text-white' 
+                      ? 'bg-[var(--color-primary-blueprint-blue)] text-white' 
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -980,7 +980,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-2 text-sm font-medium rounded-r-lg transition-colors ${
                     viewMode === 'grid' 
-                      ? 'bg-blue-600 text-white' 
+                      ? 'bg-[var(--color-primary-blueprint-blue)] text-white' 
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -991,7 +991,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
               {/* Create Folder Button */}
               <button
                 onClick={() => setShowCreateFolder(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <FolderPlusIcon className="w-4 h-4" />
                 <span>New Folder</span>
@@ -1000,7 +1000,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
               {/* Upload Button */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <CloudArrowUpIcon className="w-4 h-4" />
                 <span>Upload</span>
@@ -1037,7 +1037,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
                     // TODO: Implement bulk move dialog
                     toast('Bulk move functionality coming soon');
                   }}
-                  className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                 >
                   <FolderIcon className="w-4 h-4" />
                   <span>Move</span>
@@ -1065,7 +1065,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
                 <p className="text-gray-600 mb-4">{error}</p>
                 <button
                   onClick={loadDocuments}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Again
                 </button>
@@ -1078,7 +1078,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
                 <div className="flex justify-center space-x-3">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <CloudArrowUpIcon className="w-4 h-4" />
                     <span>Upload Files</span>
@@ -1147,7 +1147,7 @@ const AdvancedCompanyDocumentsPage = ({ colorMode }) => {
                   <button
                     onClick={createFolder}
                     disabled={!newFolderName.trim()}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary-blueprint-blue)] rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Create
                   </button>

@@ -397,10 +397,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 className={`p-1 rounded transition-colors ${
                                     showQuickReply 
                                         ? colorMode 
-                                            ? 'bg-blue-600 text-white' 
+                                            ? 'bg-[var(--color-primary-blueprint-blue)] text-white' 
                                             : 'bg-blue-500 text-white'
                                         : colorMode 
-                                            ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
+                                            ? 'bg-gray-700 text-gray-300 hover:bg-[var(--color-primary-blueprint-blue)] hover:text-white' 
                                             : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'
                                 }`}
                                 title="Quick Reply"
@@ -694,7 +694,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     disabled={!quickReplyText.trim()}
                                     className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                                         quickReplyText.trim()
-                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                            ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     }`}
                                 >
@@ -784,7 +784,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                                 }}
                                                 className={`p-1.5 rounded-full transition-colors ${
                                                     colorMode 
-                                                        ? 'bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white' 
+                                                        ? 'bg-gray-700 text-gray-300 hover:bg-[var(--color-primary-blueprint-blue)] hover:text-white' 
                                                         : 'bg-gray-100 text-gray-600 hover:bg-blue-500 hover:text-white'
                                                 }`}
                                                 title={`Reply to ${message.user}`}

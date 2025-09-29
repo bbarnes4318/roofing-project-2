@@ -1,8 +1,9 @@
 export const getStatusStyles = (status) => {
+  // Return className strings; consumers expect strings so we reference CSS variables
   switch (status) {
     case 'active':
     case 'in-progress':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-[var(--color-primary-light-tint)] text-[var(--color-primary-blueprint-blue)]';
     case 'planning':
       return 'bg-yellow-100 text-yellow-800';
     case 'pending':
@@ -10,7 +11,7 @@ export const getStatusStyles = (status) => {
     case 'overdue':
       return 'bg-red-100 text-red-800';
     case 'completed':
-      return 'bg-green-100 text-green-800';
+      return 'bg-[var(--color-success-green)] text-white';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -23,7 +24,7 @@ export const getPriorityStyles = (priority) => {
     case 'medium':
       return 'border-l-4 border-yellow-500';
     case 'low':
-      return 'border-l-4 border-blue-500';
+      return 'border-l-4 border-[var(--color-primary-blueprint-blue)]';
     default:
       return 'border-l-4 border-gray-300';
   }

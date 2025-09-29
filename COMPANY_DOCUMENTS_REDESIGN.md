@@ -128,7 +128,7 @@ The component uses TailwindCSS classes and can be easily customized:
 ```jsx
 // Custom color scheme
 const customClasses = {
-  primary: 'bg-blue-600',
+  primary: 'bg-[var(--color-primary-blueprint-blue)]',
   secondary: 'bg-gray-100',
   accent: 'text-red-500'
 };

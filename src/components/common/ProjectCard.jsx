@@ -71,7 +71,7 @@ const ProjectCard = ({ project, className = '' }) => {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-blue-600 h-2 rounded-full" 
+              className="bg-[var(--color-primary-blueprint-blue)] h-2 rounded-full" 
               style={{ width: `${(() => {
                 const progressData = WorkflowProgressService.calculateProjectProgress(project);
                 return Math.round(progressData.overall || 0);
@@ -84,7 +84,7 @@ const ProjectCard = ({ project, className = '' }) => {
         <div className="mt-4 flex space-x-2">
           <button
             type="button"
-            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             View Details
           </button>

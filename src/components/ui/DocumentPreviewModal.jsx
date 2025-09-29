@@ -121,7 +121,7 @@ const DocumentPreviewModal = ({
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleDownload}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
                 Download
@@ -191,7 +191,7 @@ const DocumentPreviewModal = ({
                 <p className="text-gray-600">{error}</p>
                 <button
                   onClick={loadDocumentPreview}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="mt-4 px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700"
                 >
                   Try Again
                 </button>

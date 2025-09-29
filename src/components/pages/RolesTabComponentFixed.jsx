@@ -43,7 +43,7 @@ const DraggableUser = ({ user, isAssigned = false, onRemove = null, colorMode, s
     >
       <div className="flex items-center gap-3">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
-          colorMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+          colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-blue-500 text-white'
         }`}>
           {user.firstName?.[0] || user.name?.[0] || '?'}
         </div>
@@ -177,7 +177,7 @@ const CompactRoleDropZone = ({ roleType, roleName, icon, colorScheme, users, onA
             }`}>
               <div className="flex items-center gap-2">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  colorMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                  colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-blue-500 text-white'
                 }`}>
                   {user.firstName?.[0] || user.name?.[0] || '?'}
                 </div>

@@ -2,18 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Primary & Accent Colors */
+  --color-primary-blueprint-blue: #1A5A99;
+  --color-accent-safety-orange: #FF7A00;
+
+  /* Neutral Colors (The "Steel") */
+  --color-background-gray: #F8F9FA;
+  --color-surface-white: #FFFFFF;
+  --color-text-ink-black: #1F2937;
+  --color-text-slate-gray: #6B7281;
+  --color-border-gray: #E5E7EB;
+
+  /* Semantic & Status Colors */
+  --color-success-green: #10B981;
+  --color-warning-amber: #F59E0B;
+  --color-info-indigo: #6366F1;
+  --color-prospect-teal: #14B8A6;
+  --color-danger-red: #EF4444;
+
+  /* Utility Tints & shades */
+  --color-primary-light-tint: #E8F0F7;
+  --color-danger-light-tint: #FEE2E2;
+
+  /* Shared elevations */
+  --shadow-soft: 0 2px 8px rgba(17, 24, 39, 0.08);
+  --shadow-medium: 0 4px 12px rgba(17, 24, 39, 0.12);
+}
+
 /* Base reset to prevent layout issues */
 * {
   box-sizing: border-box;
-}
-
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  scroll-behavior: smooth;
-  /* Prevent zoom on iOS */
-  touch-action: manipulation;
 }
 
 body {
@@ -26,14 +45,312 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-height: 100vh;
-  /* Better touch handling */
-  -webkit-tap-highlight-color: transparent;
+  /* Prevent zoom on iOS */
+  touch-action: manipulation;
+  background-color: var(--color-background-gray);
+  color: var(--color-text-ink-black);
 }
 
 #root {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
+  background-color: var(--color-background-gray);
+  color: inherit;
+}
+
+main {
+  background-color: var(--color-background-gray);
+  color: inherit;
+}
+
+/* Surfaces & text overrides for Blueprint & Steel */
+.card-surface,
+.module-surface,
+.modal-surface,
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: var(--color-surface-white) !important;
+  color: var(--color-text-ink-black) !important;
+}
+
+.border-gray-100,
+.border-gray-200,
+.border-gray-300,
+.divide-gray-100,
+.divide-gray-200 {
+  border-color: var(--color-border-gray) !important;
+}
+
+.text-gray-900,
+.text-gray-800,
+.text-gray-700 {
+  color: var(--color-text-ink-black) !important;
+}
+
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-slate-500,
+.text-slate-600 {
+  color: var(--color-text-slate-gray) !important;
+}
+
+/* Link treatments */
+a,
+.link-primary {
+  color: var(--color-primary-blueprint-blue);
+}
+
+a:hover,
+.link-primary:hover {
+  color: var(--color-accent-safety-orange);
+}
+
+/* Button theming */
+.btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary,
+.primary-cta {
+  background-color: var(--color-accent-safety-orange);
+  color: var(--color-surface-white);
+  border-color: var(--color-accent-safety-orange);
+}
+
+.btn-primary:hover,
+.primary-cta:hover {
+  background-color: color-mix(in srgb, var(--color-accent-safety-orange) 90%, var(--color-surface-white) 10%);
+  border-color: color-mix(in srgb, var(--color-accent-safety-orange) 85%, var(--color-surface-white) 15%);
+}
+
+.btn-secondary,
+.secondary-cta {
+  background-color: var(--color-primary-blueprint-blue);
+  color: var(--color-surface-white);
+  border-color: var(--color-primary-blueprint-blue);
+}
+
+.btn-secondary:hover,
+.secondary-cta:hover {
+  background-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 92%, var(--color-surface-white) 8%);
+  border-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 85%, var(--color-surface-white) 15%);
+}
+
+.btn-tertiary,
+.tertiary-cta {
+  background-color: var(--color-surface-white);
+  color: var(--color-text-ink-black);
+  border-color: var(--color-border-gray);
+}
+
+.btn-tertiary:hover,
+.tertiary-cta:hover {
+  background-color: var(--color-background-gray);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary-blueprint-blue);
+  outline-offset: 2px;
+}
+
+/* Sidebar styling */
+.sidebar {
+  background-color: var(--color-surface-white);
+  border-right: 1px solid var(--color-border-gray);
+  color: var(--color-text-slate-gray);
+}
+
+.sidebar-header {
+  background-color: var(--color-surface-white);
+  border-bottom: 1px solid var(--color-border-gray);
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-text-slate-gray);
+  background-color: transparent;
+  border-left: 3px solid transparent;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-nav-link:hover,
+.sidebar-nav-link:focus-visible {
+  background-color: var(--color-background-gray);
+  color: var(--color-text-ink-black);
+}
+
+.sidebar-nav-link--active {
+  color: var(--color-primary-blueprint-blue);
+  background-color: var(--color-primary-light-tint);
+  border-left-color: var(--color-primary-blueprint-blue);
+  font-weight: 600;
+}
+
+.sidebar-nav-link--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Phase pills */
+.phase-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.phase-pill--selected {
+  background-color: var(--color-primary-blueprint-blue);
+  color: var(--color-surface-white);
+}
+
+.phase-pill--unselected {
+  background-color: var(--color-background-gray);
+  color: var(--color-text-slate-gray);
+}
+
+/* Status circles */
+.status-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 600;
+  color: var(--color-surface-white);
+}
+
+.status-lead { background-color: var(--color-warning-amber); }
+.status-prospect { background-color: var(--color-prospect-teal); }
+.status-approved { background-color: var(--color-success-green); }
+.status-execution { background-color: var(--color-info-indigo); }
+.status-completion { background-color: var(--color-success-green); }
+
+/* Content modules */
+.module-header {
+  color: var(--color-text-ink-black);
+}
+
+.module-subtext {
+  color: var(--color-text-slate-gray);
+}
+
+.module-link,
+.module-link:hover {
+  color: var(--color-primary-blueprint-blue);
+  text-decoration: none;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-accent-safety-orange);
+}
+
+.tag-reminder {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-danger-light-tint);
+  color: var(--color-danger-red);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Tailwind color remaps */
+.bg-blue-600,
+.hover\:bg-blue-600:hover,
+.focus\:bg-blue-600:focus {
+  background-color: var(--color-primary-blueprint-blue) !important;
+  color: var(--color-surface-white) !important;
+}
+
+.bg-blue-700,
+.hover\:bg-blue-700:hover {
+  background-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 92%, var(--color-text-ink-black) 8%) !important;
+}
+
+.bg-blue-500,
+.hover\:bg-blue-500:hover {
+  background-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 88%, var(--color-surface-white) 12%) !important;
+}
+
+.bg-blue-100,
+.bg-blue-200,
+.bg-blue-300,
+.bg-blue-50 {
+  background-color: var(--color-primary-light-tint) !important;
+  color: var(--color-primary-blueprint-blue) !important;
+}
+
+.text-blue-600,
+.text-blue-700,
+.text-blue-500,
+.hover\:text-blue-600:hover,
+.hover\:text-blue-700:hover {
+  color: var(--color-primary-blueprint-blue) !important;
+}
+
+.border-blue-200,
+.border-blue-300,
+.border-blue-500,
+.border-blue-600 {
+  border-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 85%, var(--color-surface-white) 15%) !important;
+}
+
+.ring-blue-500,
+.focus\:ring-blue-500:focus,
+.focus\:ring-blue-600:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-blueprint-blue) 20%, transparent) !important;
+}
+
+.bg-orange-500,
+.text-orange-600 {
+  background-color: var(--color-accent-safety-orange) !important;
+  color: var(--color-surface-white) !important;
+}
+
+.bg-green-500,
+.text-green-600,
+.bg-green-600 {
+  background-color: var(--color-success-green) !important;
+  color: var(--color-surface-white) !important;
+}
+
+.bg-red-500,
+.text-red-600,
+.bg-red-600 {
+  background-color: var(--color-danger-red) !important;
+  color: var(--color-surface-white) !important;
+}
+
+.bg-yellow-100,
+.bg-yellow-200 {
+  background-color: color-mix(in srgb, var(--color-warning-amber) 18%, var(--color-surface-white) 82%) !important;
+  color: var(--color-warning-amber) !important;
+}
+
+.bg-blue-100.text-blue-700,
+.bg-blue-50.text-blue-700,
+.bg-blue-100.text-blue-600 {
+  color: var(--color-primary-blueprint-blue) !important;
 }
 
 /* Strong no-page-scroll mode, applied via body/html class from the AI page */

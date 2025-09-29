@@ -292,13 +292,13 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
             {/* Tabs - Project Messages, Direct Messages, and AI Directive */}
             <div className="flex gap-2 m-0 p-0">
               <button
-                className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'project' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
+                className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'project' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-[var(--color-primary-blueprint-blue)] text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
                 onClick={() => setTab('project')}
               >
                 Project Messages
               </button>
               <button
-                className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'dm' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-600 text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
+                className={`px-4 py-1 rounded-t-lg font-semibold text-xs transition-all duration-150 ${tab === 'dm' ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-[var(--color-primary-blueprint-blue)] text-white') : (colorMode ? 'bg-[#181f3a] text-gray-300' : 'bg-gray-100 text-gray-700')}`}
                 onClick={() => setTab('dm')}
               >
                 Direct Messages
@@ -535,7 +535,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                 disabled={!newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
                                                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                                                     newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
-                                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                        ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 }`}
                                             >
@@ -592,7 +592,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                         onClick={() => setSelectedCoworkerId(cw.id)}
                         className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-150 text-left focus:outline-none focus:ring-2 focus:ring-blue-400 w-full ${selectedCoworkerId === cw.id ? (colorMode ? 'bg-[#232b4d] text-white' : 'bg-blue-100 text-blue-900') : (colorMode ? 'hover:bg-[#232b4d]/60 text-gray-200' : 'hover:bg-blue-50 text-gray-700')}`}
                       >
-                        <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-blue-600 text-white'}`}>{cw.name[0]}</span>
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-[var(--color-primary-blueprint-blue)] text-white'}`}>{cw.name[0]}</span>
                         <span className="flex-1 truncate text-xs">{cw.name}</span>
                         <span className={`inline-block w-1.5 h-1.5 rounded-full ${cw.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`}></span>
                       </button>
@@ -606,7 +606,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                 <div className="flex-1 flex flex-col relative">
                   {/* Header */}
                   <div className={`flex items-center gap-2 px-4 py-2 border-b ${colorMode ? 'border-[#3b82f6]/30 bg-[#232b4d]/80' : 'border-gray-100 bg-white'} sticky top-0 z-10`}> 
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-blue-600 text-white'}`}>{mockCoworkers.find(cw => cw.id === selectedCoworkerId)?.name[0]}</span>
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-[var(--color-primary-blueprint-blue)] text-white'}`}>{mockCoworkers.find(cw => cw.id === selectedCoworkerId)?.name[0]}</span>
                     <div className="flex-1">
                       <div className={`font-semibold text-xs ${colorMode ? 'text-white' : 'text-gray-800'}`}>{mockCoworkers.find(cw => cw.id === selectedCoworkerId)?.name}</div>
                       <div className="flex items-center gap-1">
@@ -627,7 +627,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                         return (
                           <div key={idx} className={`flex items-end gap-1.5 ${isMe ? 'justify-end pr-16' : 'justify-start pl-8'} animate-fade-in`}>
                             {!isMe && (
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-blue-600 text-white'}`}>{mockCoworkers.find(cw => cw.id === selectedCoworkerId)?.name[0]}</span>
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-[var(--color-primary-blueprint-blue)] text-white'}`}>{mockCoworkers.find(cw => cw.id === selectedCoworkerId)?.name[0]}</span>
                             )}
                             <div className={`flex flex-col max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
                               <div className={`text-[10px] font-semibold mb-0.5 ${isMe ? (colorMode ? 'text-blue-200' : 'text-blue-700') : (colorMode ? 'text-white' : 'text-gray-800')}`}>{isMe ? 'You' : mockCoworkers.find(cw => cw.id === selectedCoworkerId)?.name}</div>
@@ -635,7 +635,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                 ${isMe
                                   ? (colorMode
                                       ? 'bg-gradient-to-r from-[#3b82f6] to-[#1e293b] text-white border-transparent'
-                                      : 'bg-blue-600 text-white border-transparent')
+                                      : 'bg-[var(--color-primary-blueprint-blue)] text-white border-transparent')
                                   : (colorMode
                                       ? 'bg-gradient-to-r from-[#a78bfa] to-[#38bdf8] text-white border-[#f472b6]/40'
                                       : 'bg-gradient-to-r from-[#ede9fe] to-[#a7f3d0] text-gray-900 border-[#a78bfa]/40')
@@ -645,7 +645,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                               <div className="text-[8px] mt-0.5 opacity-70 text-right">{msg.timestamp}</div>
                             </div>
                             {isMe && (
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-blue-600 text-white'}`}>Y</span>
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${colorMode ? 'bg-[#3b82f6] text-white' : 'bg-[var(--color-primary-blueprint-blue)] text-white'}`}>Y</span>
                             )}
                           </div>
                         );

@@ -82,7 +82,7 @@ const AssistantPane = ({ projectId, contextFileIds }) => {
         <div className="max-w-7xl mx-auto px-2 flex items-center justify-between gap-4">
           <div className="text-sm text-gray-700">Try: "Send inspection_report_v2.pdf to Jane Doe"</div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsQuickModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-500">Quick Start</button>
+            <button onClick={() => setIsQuickModalOpen(true)} className="px-3 py-1.5 bg-[var(--color-primary-blueprint-blue)] text-white rounded text-sm font-medium hover:bg-blue-500">Quick Start</button>
             <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className="px-3 py-1.5 border rounded text-sm text-gray-700 hover:bg-gray-50">Printable</a>
           </div>
         </div>
@@ -112,7 +112,7 @@ const AssistantPane = ({ projectId, contextFileIds }) => {
             placeholder="Ask about these documents…"
             className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <button onClick={send} disabled={loading} className="px-3 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50 flex items-center gap-1">
+          <button onClick={send} disabled={loading} className="px-3 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-md disabled:opacity-50 flex items-center gap-1">
             {loading ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <PaperAirplaneIcon className="w-4 h-4" />}
             <span>Send</span>
           </button>
@@ -264,7 +264,7 @@ export default function DocumentsPage() {
               className="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button onClick={runSearch} className="px-4 py-2 bg-blue-600 text-white rounded-md">Search</button>
+          <button onClick={runSearch} className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-md">Search</button>
           <div className="ml-2">
             <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChosen} />
             <button onClick={handleUploadClick} className="px-4 py-2 bg-gray-100 border rounded-md hover:bg-gray-200">Upload</button>

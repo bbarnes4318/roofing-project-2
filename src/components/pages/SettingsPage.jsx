@@ -649,14 +649,14 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <button
               type="button"
               onClick={() => setColorMode && setColorMode(false)}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${!colorMode ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${!colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               ☀️ Light
             </button>
             <button
               type="button"
               onClick={() => setColorMode && setColorMode(true)}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${colorMode ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               🌙 Dark
             </button>
@@ -716,7 +716,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               onChange={e => setEmailNotifications(e.target.checked)}
               className="sr-only peer"
             />
-            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${emailNotifications ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${emailNotifications ? 'bg-[var(--color-primary-blueprint-blue)]' : 'bg-gray-200'}`}></div>
           </label>
         </div>
 
@@ -732,7 +732,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               onChange={e => setSmsNotifications(e.target.checked)}
               className="sr-only peer"
             />
-            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${smsNotifications ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${smsNotifications ? 'bg-[var(--color-primary-blueprint-blue)]' : 'bg-gray-200'}`}></div>
           </label>
         </div>
 
@@ -748,7 +748,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               onChange={e => setProjectUpdates(e.target.checked)}
               className="sr-only peer"
             />
-            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${projectUpdates ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${projectUpdates ? 'bg-[var(--color-primary-blueprint-blue)]' : 'bg-gray-200'}`}></div>
           </label>
         </div>
 
@@ -764,7 +764,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               onChange={e => setTaskReminders(e.target.checked)}
               className="sr-only peer"
             />
-            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${taskReminders ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${taskReminders ? 'bg-[var(--color-primary-blueprint-blue)]' : 'bg-gray-200'}`}></div>
           </label>
         </div>
 
@@ -780,7 +780,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               onChange={e => setSystemAlerts(e.target.checked)}
               className="sr-only peer"
             />
-            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${systemAlerts ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`w-9 h-5 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${systemAlerts ? 'bg-[var(--color-primary-blueprint-blue)]' : 'bg-gray-200'}`}></div>
           </label>
         </div>
       </div>
@@ -1174,7 +1174,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           <button
             type="button"
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+            className="px-3 py-1.5 bg-[var(--color-primary-blueprint-blue)] text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
           >
             <span>+</span>
             Add Subject
@@ -1224,7 +1224,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               disabled={!newSubject.trim() || subjects.includes(newSubject.trim())}
               className={`px-3 py-2 text-xs font-medium rounded transition-colors ${
                 newSubject.trim() && !subjects.includes(newSubject.trim())
-                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  ? 'bg-[var(--color-success-green)] text-white hover:bg-green-700'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
@@ -1292,7 +1292,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                         disabled={!editingText.trim() || subjects.includes(editingText.trim())}
                         className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                           editingText.trim() && !subjects.includes(editingText.trim())
-                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            ? 'bg-[var(--color-success-green)] text-white hover:bg-green-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
@@ -1518,7 +1518,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => downloadCSVTemplate('combined')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
           >
             🏗️👥 Combined Template
           </button>
@@ -1561,7 +1561,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                 className={`px-6 py-2 rounded font-medium transition-colors ${
                   importLoading || !selectedWorkflowTemplate
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                 }`}
               >
                 {importLoading ? '🔄 Importing...' : '📤 Import Projects'}
@@ -1584,7 +1584,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         ) : (
           <div>
             <label className="cursor-pointer">
-              <span className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+              <span className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded hover:bg-blue-700 transition-colors">
                 Choose Project File
               </span>
               <input
@@ -1939,8 +1939,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             htmlFor="excel-file-input-settings"
             className={`inline-block mt-3 px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
               colorMode 
-                ? 'bg-blue-600 hover:bg-blue-500 text-white' 
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500 text-white' 
+                : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)] text-white'
             }`}
           >
             {uploadFile ? 'Choose Different File' : 'Select Excel File'}
@@ -1953,7 +1953,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors text-sm ${
             !uploadFile || isUploading
               ? colorMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : colorMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+              : colorMode ? 'bg-[var(--color-success-green)] hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-[var(--color-success-green)] text-white'
           }`}
         >
           {isUploading ? 'Syncing to DigitalOcean...' : 'Upload to Database'}
@@ -1977,7 +1977,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <button
               onClick={downloadTemplate}
               className={`w-full py-2 px-3 rounded text-xs font-medium transition-colors ${
-                colorMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
+                colorMode ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)] text-white'
               }`}
             >
               Download Template
@@ -1994,7 +1994,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <button
               onClick={exportDatabase}
               className={`w-full py-2 px-3 rounded text-xs font-medium transition-colors ${
-                colorMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+                colorMode ? 'bg-[var(--color-success-green)] hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-[var(--color-success-green)] text-white'
               }`}
             >
               Export to Excel
@@ -2159,8 +2159,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     type="submit"
                     className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm ${
                       colorMode 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/20' 
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+                        ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-900/20' 
+                        : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-600/20'
                     } hover:shadow-md transform hover:scale-105`}
                   >
                     <span className="flex items-center gap-2">

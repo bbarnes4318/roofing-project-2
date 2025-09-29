@@ -462,7 +462,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     onClick={() => setViewMode(mode)}
                                     className={`px-2 py-0.5 text-xs font-medium rounded transition-all duration-200 ${
                                         viewMode === mode
-                                            ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-blue-600 text-white shadow-md'}`
+                                            ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-[var(--color-primary-blueprint-blue)] text-white shadow-md'}`
                                             : `${colorMode ? 'text-gray-300 hover:text-white hover:bg-[#374151]' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`
                                     }`}
                                 >
@@ -506,7 +506,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             onClick={() => setFilterType(filter.key)}
                             className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all duration-200 shadow-sm ${
                                 filterType === filter.key
-                                    ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-blue-600 text-white shadow-md'}`
+                                    ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-[var(--color-primary-blueprint-blue)] text-white shadow-md'}`
                                     : `${colorMode ? 'bg-[#374151] text-gray-300 hover:text-white hover:bg-[#4b5563]' : 'bg-gray-100 text-gray-600 hover:text-gray-800 hover:bg-gray-200'}`
                             }`}
                         >

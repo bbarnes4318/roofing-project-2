@@ -67,7 +67,7 @@ const OwnerOnboardingFlow = ({ onComplete, onBack, currentUser }) => {
   const WorkflowSelectionStep = () => (
     <div className="max-w-5xl mx-auto">
       <div className="text-center mb-12">
-        <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6">
+        <div className="mx-auto w-16 h-16 bg-[var(--color-primary-blueprint-blue)] rounded-full flex items-center justify-center mb-6">
           <CogIcon className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -316,16 +316,16 @@ const OwnerOnboardingFlow = ({ onComplete, onBack, currentUser }) => {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+              currentStep >= 1 ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-gray-200 text-gray-600'
             }`}>
               1
             </div>
             <span className="text-sm font-medium text-gray-700">Workflow Selection</span>
           </div>
-          <div className={`flex-1 h-1 rounded ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+          <div className={`flex-1 h-1 rounded ${currentStep >= 2 ? 'bg-[var(--color-primary-blueprint-blue)]' : 'bg-gray-200'}`}></div>
           <div className="flex items-center space-x-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+              currentStep >= 2 ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-gray-200 text-gray-600'
             }`}>
               2
             </div>
@@ -356,7 +356,7 @@ const OwnerOnboardingFlow = ({ onComplete, onBack, currentUser }) => {
             flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300
             transform hover:scale-105 disabled:transform-none
             ${canProceed() && !isLoading
-              ? 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+              ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 shadow-lg hover:shadow-xl'
               : 'bg-gray-400 cursor-not-allowed'
             }
           `}

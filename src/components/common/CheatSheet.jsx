@@ -46,7 +46,7 @@ export function CheatSheetPopover({ colorMode = false, onOpenQuickCard = () => {
             <div style={{ flex: 1, marginRight: 8 }} className="text-sm leading-snug break-words">{p}</div>
             <button
               onClick={() => copy(p, i)}
-              className={`text-xs px-2 py-1 rounded ${copiedIndex === i ? 'bg-green-600 text-white' : (colorMode ? 'bg-slate-700 text-slate-100 hover:bg-slate-600' : 'bg-blue-50 text-blue-700 hover:bg-blue-100')}`}
+              className={`text-xs px-2 py-1 rounded ${copiedIndex === i ? 'bg-[var(--color-success-green)] text-white' : (colorMode ? 'bg-slate-700 text-slate-100 hover:bg-slate-600' : 'bg-blue-50 text-blue-700 hover:bg-blue-100')}`}
               aria-label={`Copy phrase ${i + 1}`}
             >
               {copiedIndex === i ? 'Copied' : 'Copy'}
@@ -56,7 +56,7 @@ export function CheatSheetPopover({ colorMode = false, onOpenQuickCard = () => {
       </ul>
       <div className="flex justify-end gap-2">
         <button onClick={onClose} className={`text-xs px-3 py-1.5 rounded border ${colorMode ? 'border-slate-600 text-slate-200 hover:bg-slate-700/30' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}>Close</button>
-        <button onClick={onOpenQuickCard} className={`text-xs px-3 py-1.5 rounded font-medium ${colorMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-500'}`}>Open Quick Card</button>
+        <button onClick={onOpenQuickCard} className={`text-xs px-3 py-1.5 rounded font-medium ${colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-500' : 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-500'}`}>Open Quick Card</button>
       </div>
     </div>
   );

@@ -377,7 +377,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                     className={`w-full text-left p-3 rounded-lg transition-colors ${
                       selectedCoworkerId === coworker.id
                         ? colorMode 
-                          ? 'bg-blue-600/20 border border-blue-500/30' 
+                          ? 'bg-[var(--color-primary-blueprint-blue)]/20 border border-blue-500/30' 
                           : 'bg-blue-50 border border-blue-200'
                         : colorMode 
                           ? 'hover:bg-gray-700/30' 
@@ -461,7 +461,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                     <div key={index} className={`flex ${msg.fromMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                         msg.fromMe
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-[var(--color-primary-blueprint-blue)] text-white'
                           : colorMode
                             ? 'bg-gray-700 text-gray-200'
                             : 'bg-gray-200 text-gray-800'
@@ -484,7 +484,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                   onClick={() => setShowAddMessageForm(false)}
                   className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     !showAddMessageForm
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-[var(--color-primary-blueprint-blue)] text-white'
                       : colorMode
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -496,7 +496,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                   onClick={() => setShowAddMessageForm(true)}
                   className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     showAddMessageForm
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-[var(--color-primary-blueprint-blue)] text-white'
                       : colorMode
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -525,7 +525,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                     disabled={!dmInput.trim()}
                     className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                       dmInput.trim()
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
@@ -736,7 +736,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                       disabled={!newMessageProject || !newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
                       className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                         newMessageProject && newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                     >

@@ -203,7 +203,7 @@ const Sidebar = ({
       
       {/* Quick Actions */}
       <div className="p-4 border-t border-gray-200">
-        <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button className="w-full flex items-center justify-center px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors">
           <FolderPlusIcon className="w-4 h-4 mr-2" />
           New Folder
         </button>
@@ -373,7 +373,7 @@ const DraggableItem = ({
       >
         {/* Selection Indicator */}
         {isSelected && (
-          <div className="absolute top-3 left-3 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="absolute top-3 left-3 w-5 h-5 bg-[var(--color-primary-blueprint-blue)] rounded-full flex items-center justify-center">
             <CheckCircleIcon className="w-3 h-3 text-white" />
           </div>
         )}
@@ -527,7 +527,7 @@ const DraggableItem = ({
       {/* Selection Checkbox */}
       <div className="col-span-1 flex items-center">
         {isSelected && (
-          <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="w-5 h-5 bg-[var(--color-primary-blueprint-blue)] rounded-full flex items-center justify-center">
             <CheckCircleIcon className="w-3 h-3 text-white" />
           </div>
         )}
@@ -1245,7 +1245,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
           <p className="text-gray-600">{error}</p>
           <button
             onClick={loadDocuments}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700"
           >
             Try Again
           </button>
@@ -1301,7 +1301,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                 <div className="flex items-center space-x-2 ml-4">
                   <button
                     onClick={() => setShowCreateFolder(true)}
-                    className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    className="flex items-center px-3 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                   >
                     <FolderPlusIcon className="w-4 h-4 mr-1" />
                     New Folder
@@ -1309,7 +1309,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                   
                   <button
                     onClick={() => setShowUploadZone(true)}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                    className="flex items-center px-3 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                   >
                     <CloudArrowUpIcon className="w-4 h-4 mr-1" />
                     Upload
@@ -1348,7 +1348,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                       onClick={() => setViewMode('list')}
                       className={`px-2 py-1 text-xs rounded transition-colors ${
                         viewMode === 'list' 
-                          ? 'bg-blue-600 text-white' 
+                          ? 'bg-[var(--color-primary-blueprint-blue)] text-white' 
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -1358,7 +1358,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                       onClick={() => setViewMode('grid')}
                       className={`px-2 py-1 text-xs rounded transition-colors ${
                         viewMode === 'grid' 
-                          ? 'bg-blue-600 text-white' 
+                          ? 'bg-[var(--color-primary-blueprint-blue)] text-white' 
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -1374,7 +1374,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
               <div className="px-8 py-4 bg-blue-50 border-t border-blue-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-[var(--color-primary-blueprint-blue)] rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-medium">{selectedItems.length}</span>
                     </div>
                     <span className="text-base font-medium text-blue-800">
@@ -1433,14 +1433,14 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                   <div className="flex gap-2 justify-center">
                     <button
                       onClick={() => setShowCreateFolder(true)}
-                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      className="flex items-center px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
                       <FolderPlusIcon className="w-4 h-4 mr-1" />
                       New Folder
                     </button>
                     <button
                       onClick={() => setShowUploadZone(true)}
-                      className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      className="flex items-center px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                     >
                       <CloudArrowUpIcon className="w-4 h-4 mr-1" />
                       Upload
@@ -1596,7 +1596,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                 </button>
                 <button
                   onClick={handleCreateFolder}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700"
                 >
                   Create
                 </button>

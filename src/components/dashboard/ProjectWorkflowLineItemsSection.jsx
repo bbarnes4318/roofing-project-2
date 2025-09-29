@@ -201,7 +201,7 @@ const ProjectWorkflowLineItemsSection = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={forceRefreshAlerts}
-                className="px-2 py-1 text-xs font-medium bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                className="px-2 py-1 text-xs font-medium bg-blue-500 text-white rounded-md hover:bg-[var(--color-primary-blueprint-blue)] transition-colors"
                 title="Refresh alerts"
               >
                 🔄
@@ -767,7 +767,7 @@ const ProjectWorkflowLineItemsSection = ({
                 disabled={!assignToUser || actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   assignToUser && !actionLoading[`${selectedAlertForAssign?.id || selectedAlertForAssign?._id}-assign`]
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                     : 'bg-gray-400 text-white cursor-not-allowed'
                 }`}
               >

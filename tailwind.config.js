@@ -1,4 +1,21 @@
 /** @type {import('tailwindcss').Config} */
+const colorMix = (base, mix, ratio) => `color-mix(in srgb, ${base} ${ratio}%, ${mix} ${100 - ratio}%)`;
+
+const blueprint = 'var(--color-primary-blueprint-blue)';
+const blueprintTint = 'var(--color-primary-light-tint)';
+const accent = 'var(--color-accent-safety-orange)';
+const background = 'var(--color-background-gray)';
+const surface = 'var(--color-surface-white)';
+const ink = 'var(--color-text-ink-black)';
+const slate = 'var(--color-text-slate-gray)';
+const border = 'var(--color-border-gray)';
+const success = 'var(--color-success-green)';
+const warning = 'var(--color-warning-amber)';
+const info = 'var(--color-info-indigo)';
+const prospect = 'var(--color-prospect-teal)';
+const danger = 'var(--color-danger-red)';
+const dangerTint = 'var(--color-danger-light-tint)';
+
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -15,50 +32,113 @@ module.exports = {
         '2xl': '1536px',
       },
       colors: {
-        // Brand colors from UpFront logo
         brand: {
-          primary: '#D02327',  // Primary red from logo
-          accent: '#1e3a8a',   // Steel blue accent
-          500: '#0066CC',      // Keep existing for compatibility
+          primary: blueprint,
+          accent,
+          contrast: surface,
         },
-        // UI colors for the login page
-        text: {
-          light: '#F5F5F7',    // Clean near-white
+        primary: {
+          DEFAULT: blueprint,
+          tint: blueprintTint,
+          contrast: surface,
         },
-        ui: {
-          dark: '#111827',     // Dark charcoal background
-          gray: '#6B7280',     // Neutral gray
-        },
-        // Keep existing accent colors for compatibility
         accent: {
-          500: '#DC2626',
-          600: '#D02327',      // Match brand primary
+          DEFAULT: accent,
+          contrast: surface,
         },
-        // Keep existing cyan colors
-        cyan: {
-          50: '#ECFEFF',
-          100: '#CFFAFE',
-          200: '#A5F3FC',
-          300: '#67E8F9',
-          400: '#22D3EE',
-          500: '#06B6D4',
-          600: '#0891B2',
-          700: '#0E7490',
-          800: '#155E75',
-          900: '#164E63',
-        },
-        // Keep existing neutral colors
         neutral: {
-          50: '#F8FAFC',
-          100: '#F1F5F9',
-          200: '#E2E8F0',
-          300: '#CBD5E1',
-          400: '#94A3B8',
-          500: '#64748B',
-          600: '#475569',
-          700: '#334155',
-          800: '#1E293B',
-          900: '#0F172A',
+          background,
+          surface,
+          border,
+          ink,
+          slate,
+        },
+        text: {
+          DEFAULT: ink,
+          primary: ink,
+          secondary: slate,
+          inverse: surface,
+        },
+        status: {
+          success,
+          warning,
+          info,
+          prospect,
+          danger,
+        },
+        blue: {
+          50: blueprintTint,
+          100: blueprintTint,
+          200: colorMix(blueprint, surface, 30),
+          300: colorMix(blueprint, surface, 45),
+          400: colorMix(blueprint, surface, 65),
+          500: colorMix(blueprint, surface, 80),
+          600: blueprint,
+          700: colorMix(blueprint, ink, 92),
+          800: colorMix(blueprint, ink, 96),
+          900: colorMix(blueprint, ink, 98),
+        },
+        gray: {
+          50: surface,
+          100: background,
+          200: border,
+          300: colorMix(border, surface, 75),
+          400: slate,
+          500: colorMix(slate, ink, 80),
+          600: colorMix(ink, slate, 92),
+          700: colorMix(ink, slate, 96),
+          800: colorMix(ink, slate, 98),
+          900: ink,
+        },
+        slate: {
+          400: slate,
+          500: slate,
+          600: colorMix(slate, ink, 85),
+          700: colorMix(slate, ink, 92),
+        },
+        orange: {
+          50: colorMix(accent, surface, 15),
+          100: colorMix(accent, surface, 25),
+          200: colorMix(accent, surface, 40),
+          500: accent,
+          600: colorMix(accent, ink, 92),
+          700: colorMix(accent, ink, 96),
+        },
+        yellow: {
+          100: colorMix(warning, surface, 18),
+          200: colorMix(warning, surface, 32),
+          500: warning,
+        },
+        green: {
+          100: colorMix(success, surface, 18),
+          200: colorMix(success, surface, 32),
+          500: success,
+          600: colorMix(success, ink, 92),
+        },
+        red: {
+          100: dangerTint,
+          200: colorMix(danger, surface, 30),
+          500: danger,
+          600: colorMix(danger, ink, 92),
+        },
+        emerald: {
+          500: success,
+        },
+        cyan: {
+          50: colorMix(info, surface, 12),
+          100: colorMix(info, surface, 22),
+          200: colorMix(info, surface, 36),
+          300: colorMix(info, surface, 52),
+          400: colorMix(info, surface, 68),
+          500: info,
+          600: colorMix(info, ink, 92),
+          700: colorMix(info, ink, 96),
+          800: colorMix(info, ink, 98),
+          900: colorMix(info, ink, 99),
+        },
+        rose: {
+          100: dangerTint,
+          500: danger,
         },
       },
       boxShadow: {

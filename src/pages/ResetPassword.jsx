@@ -52,31 +52,30 @@ const ResetPassword = () => {
       setMessage({ type: 'error', text: 'Password must be at least 6 characters long' });
       return;
     }
-
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
       await updatePassword(newPassword);
-      
-      setMessage({ 
-        type: 'success', 
-        text: 'Password updated successfully! Redirecting to login...' 
+
+      setMessage({
+        type: 'success',
+        text: 'Password updated successfully! Redirecting to login...'
       });
-      
+
       // Clear form
       setNewPassword('');
       setConfirmPassword('');
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (error) {
       console.error('Error updating password:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.message || 'Failed to update password. Please try again.' 
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to update password. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -84,13 +83,29 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Header */}
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: 'linear-gradient(135deg, rgba(26, 90, 153, 0.18), rgba(232, 240, 247, 0.9))'
+      }}
+    >
+      <div
+        className="rounded-2xl shadow-xl p-8 max-w-md w-full"
+        style={{
+          backgroundColor: 'var(--color-surface-white)',
+          boxShadow: 'var(--shadow-medium)'
+        }}
+      >
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          <div
+            className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
+            style={{
+              backgroundColor: 'var(--color-primary-light-tint)',
+              color: 'var(--color-primary-blueprint-blue)'
+            }}
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 011.293-.707l5.964-5.964A6 6 0 1121 9z" />
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Reset Password</h1>
@@ -112,7 +127,11 @@ const ResetPassword = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: 'var(--color-border-gray)',
+                    backgroundColor: 'var(--color-surface-white)'
+                  }}
                   placeholder="Enter new password"
                   minLength={6}
                   disabled={loading}
@@ -130,7 +149,11 @@ const ResetPassword = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: 'var(--color-border-gray)',
+                    backgroundColor: 'var(--color-surface-white)'
+                  }}
                   placeholder="Confirm new password"
                   minLength={6}
                   disabled={loading}
@@ -141,11 +164,11 @@ const ResetPassword = () => {
             <button
               type="submit"
               disabled={loading || !newPassword || !confirmPassword}
-              className="w-full mt-6 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-secondary w-full mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24" style={{ color: 'var(--color-surface-white)' }}>
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -156,41 +179,45 @@ const ResetPassword = () => {
           </form>
         ) : (
           <div className="text-center py-8">
-            {message.type === 'error' ? (
-              <div>
-                <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Back to Login
-                </button>
-              </div>
-            ) : (
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            )}
+            <div
+              className="animate-spin rounded-full h-12 w-12 mx-auto"
+              style={{
+                borderBottom: '2px solid var(--color-primary-blueprint-blue)',
+                borderTop: '2px solid transparent'
+              }}
+            ></div>
+            <p className="mt-4 text-sm text-gray-600">Validating reset link…</p>
           </div>
         )}
 
-        {/* Message Display */}
         {message.text && (
-          <div className={`mt-6 p-3 rounded-lg text-sm ${
-            message.type === 'error' ? 'bg-red-100 text-red-700' :
-            message.type === 'success' ? 'bg-green-100 text-green-700' :
-            'bg-blue-100 text-blue-700'
-          }`}>
+          <div
+            className="mt-6 p-3 rounded-lg text-sm"
+            style={{
+              backgroundColor:
+                message.type === 'error'
+                  ? 'var(--color-danger-light-tint)'
+                  : message.type === 'success'
+                    ? 'rgba(16, 185, 129, 0.12)'
+                    : 'var(--color-primary-light-tint)',
+              color:
+                message.type === 'error'
+                  ? 'var(--color-danger-red)'
+                  : message.type === 'success'
+                    ? 'var(--color-success-green)'
+                    : 'var(--color-primary-blueprint-blue)'
+            }}
+          >
             {message.text}
           </div>
         )}
 
-        {/* Back to Login Link */}
         {sessionValid && (
           <div className="mt-6 text-center">
             <button
               onClick={() => navigate('/login')}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm font-medium transition-colors"
+              style={{ color: 'var(--color-primary-blueprint-blue)' }}
             >
               Back to Login
             </button>
@@ -200,5 +227,4 @@ const ResetPassword = () => {
     </div>
   );
 };
-
 export default ResetPassword;

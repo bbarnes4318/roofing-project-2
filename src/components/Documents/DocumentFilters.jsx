@@ -270,7 +270,7 @@ const DocumentFilters = ({ filters, onFilterChange, categories = [] }) => {
                 onClick={() => handleTagToggle(tag)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   filters.tags?.includes(tag)
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-[var(--color-primary-blueprint-blue)] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >

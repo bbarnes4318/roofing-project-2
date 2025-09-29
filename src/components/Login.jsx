@@ -325,7 +325,7 @@ const Login = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50"
+            className="w-full mt-6 py-3 px-4 bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50"
           >
             {loading ? 'Processing...' : 
              mode === 'login' ? 'Sign In' : 

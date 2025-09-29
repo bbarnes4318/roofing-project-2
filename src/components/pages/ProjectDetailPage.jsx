@@ -1329,7 +1329,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     disabled={!newMessageSubject || !newMessageText.trim() || newMessageRecipients.length === 0}
                                                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                                                         newMessageSubject && newMessageText.trim() && newMessageRecipients.length > 0
-                                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                            ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                     }`}
                                                 >
@@ -1372,7 +1372,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                                     setActivityPriorityFilter('');
                                                     setActivitySearchFilter('');
                                                 }}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                                className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg hover:bg-blue-700 transition-colors"
                                             >
                                                 Clear Filters
                                             </button>
@@ -2080,7 +2080,7 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                             disabled={!assignToUser || actionLoading[`${selectedAlertForAssign?._id || selectedAlertForAssign?.id}-assign`]}
                                             className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
                                                 assignToUser && !actionLoading[`${selectedAlertForAssign?._id || selectedAlertForAssign?.id}-assign`]
-                                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                    ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700'
                                                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                             }`}
                                         >

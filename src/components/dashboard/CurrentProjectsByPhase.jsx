@@ -211,7 +211,7 @@ const CurrentProjectsByPhase = ({
                         <div className="flex gap-2 justify-center">
                           <button 
                             onClick={async () => { try { await refetchProjects?.(); } catch (_) {} }}
-                            className="px-4 py-2 bg-brand-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            className="px-4 py-2 bg-brand-500 text-white rounded hover:bg-[var(--color-primary-blueprint-blue)] transition-colors"
                             disabled={projectsLoading}
                           >
                             {projectsLoading ? 'Retrying...' : 'Retry'}
@@ -397,9 +397,18 @@ const CurrentProjectsByPhase = ({
 
                       {/* Progress */}
                       <td className="py-2 px-2 whitespace-nowrap">
-                        <span className={`text-xs font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                          {getProjectProgress(project)}%
-                        </span>
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <div className="flex-1 h-6 bg-gray-200 rounded-full overflow-hidden relative">
+                            <div 
+                              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 flex items-center justify-center"
+                              style={{ width: `${getProjectProgress(project)}%` }}
+                            >
+                              <span className="text-[10px] font-bold text-white drop-shadow-sm px-2">
+                                {getProjectProgress(project)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </td>
 
 

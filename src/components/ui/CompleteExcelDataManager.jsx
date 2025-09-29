@@ -312,7 +312,7 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
             className={`w-full py-2 px-4 rounded-md font-medium flex items-center justify-center ${
               !uploadFile || isLoading
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-blue-500 text-white hover:bg-[var(--color-primary-blueprint-blue)]'
             }`}
           >
             {isLoading ? (
@@ -440,7 +440,7 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <button
             onClick={() => downloadTemplate()}
-            className="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center"
+            className="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-[var(--color-success-green)] flex items-center justify-center"
           >
             <FaDownload className="mr-2" />
             Download All Templates
@@ -501,7 +501,7 @@ const CompleteExcelDataManager = ({ colorMode = false }) => {
               <div className="flex space-x-2 mt-3">
                 <button
                   onClick={() => downloadTemplate(table.name)}
-                  className="flex-1 py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                  className="flex-1 py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-[var(--color-success-green)]"
                 >
                   Template
                 </button>

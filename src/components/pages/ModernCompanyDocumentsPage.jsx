@@ -276,7 +276,13 @@ const DocumentCard = ({
     >
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute top-2 left-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+        <div
+          className="absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center"
+          style={{
+            backgroundColor: 'var(--color-primary-blueprint-blue)',
+            boxShadow: '0 4px 10px rgba(26, 90, 153, 0.25)'
+          }}
+        >
           <CheckCircleIcon className="w-3 h-3 text-white" />
         </div>
       )}
@@ -299,9 +305,19 @@ const DocumentCard = ({
         <div className="mb-4 flex justify-center">
           {isFolder ? (
             <div className="relative">
-              <FolderIcon className="w-16 h-16 text-blue-500" />
+              <FolderIcon
+                className="w-16 h-16"
+                style={{ color: 'var(--color-primary-blueprint-blue)' }}
+              />
               {item.children?.length > 0 && (
-                <div className="absolute -top-1 -right-1 bg-blue-100 text-blue-600 text-xs px-1.5 py-0.5 rounded-full">
+                <div
+                  className="absolute -top-1 -right-1 text-xs px-1.5 py-0.5 rounded-full"
+                  style={{
+                    backgroundColor: 'var(--color-primary-light-tint)',
+                    color: 'var(--color-primary-blueprint-blue)',
+                    border: '1px solid color-mix(in srgb, var(--color-primary-blueprint-blue) 35%, var(--color-surface-white) 65%)'
+                  }}
+                >
                   {item.children.length}
                 </div>
               )}
@@ -321,7 +337,8 @@ const DocumentCard = ({
                 onChange={(e) => setRenameValue(e.target.value)}
                 onBlur={handleRename}
                 onKeyDown={handleKeyDown}
-                className="w-full text-center bg-transparent border-b border-blue-500 focus:outline-none text-sm font-medium"
+                className="w-full text-center bg-transparent border-b focus:outline-none text-sm font-medium"
+                style={{ borderColor: 'var(--color-primary-blueprint-blue)' }}
               />
             </form>
           ) : (
@@ -398,7 +415,12 @@ const SearchAndFilterBar = ({
                 placeholder="Search documents..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none"
+                style={{
+                  borderColor: 'var(--color-border-gray)',
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.08)',
+                  backgroundColor: 'var(--color-surface-white)'
+                }}
               />
               {searchQuery && (
                 <button
@@ -415,11 +437,18 @@ const SearchAndFilterBar = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-2 rounded-lg border transition-colors ${
-                showFilters 
-                  ? 'bg-blue-50 border-blue-300 text-blue-700' 
-                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
+              className="p-2 rounded-lg border transition-colors"
+              style={showFilters
+                ? {
+                    backgroundColor: 'var(--color-primary-light-tint)',
+                    borderColor: 'color-mix(in srgb, var(--color-primary-blueprint-blue) 35%, var(--color-surface-white) 65%)',
+                    color: 'var(--color-primary-blueprint-blue)'
+                  }
+                : {
+                    backgroundColor: 'var(--color-surface-white)',
+                    borderColor: 'var(--color-border-gray)',
+                    color: 'var(--color-text-slate-gray)'
+                  }}
             >
               <FunnelIcon className="w-5 h-5" />
             </button>
@@ -428,21 +457,33 @@ const SearchAndFilterBar = ({
             <div className="flex border border-gray-300 rounded-lg overflow-hidden">
               <button
                 onClick={() => onViewModeChange('grid')}
-                className={`p-2 transition-colors ${
-                  viewMode === 'grid' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className="p-2 transition-colors"
+                style={viewMode === 'grid'
+                  ? {
+                      backgroundColor: 'var(--color-primary-blueprint-blue)',
+                      color: 'var(--color-surface-white)',
+                      boxShadow: '0 10px 20px rgba(26, 90, 153, 0.22)'
+                    }
+                  : {
+                      backgroundColor: 'var(--color-surface-white)',
+                      color: 'var(--color-text-slate-gray)'
+                    }}
               >
                 <Squares2X2Icon className="w-5 h-5" />
               </button>
               <button
                 onClick={() => onViewModeChange('list')}
-                className={`p-2 transition-colors ${
-                  viewMode === 'list' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className="p-2 transition-colors"
+                style={viewMode === 'list'
+                  ? {
+                      backgroundColor: 'var(--color-primary-blueprint-blue)',
+                      color: 'var(--color-surface-white)',
+                      boxShadow: '0 10px 20px rgba(26, 90, 153, 0.22)'
+                    }
+                  : {
+                      backgroundColor: 'var(--color-surface-white)',
+                      color: 'var(--color-text-slate-gray)'
+                    }}
               >
                 <ListBulletIcon className="w-5 h-5" />
               </button>
@@ -452,21 +493,39 @@ const SearchAndFilterBar = ({
 
         {/* Bulk Actions */}
         {selectedCount > 0 && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div
+            className="mt-4 p-3 rounded-lg border"
+            style={{
+              backgroundColor: 'var(--color-primary-light-tint)',
+              borderColor: 'color-mix(in srgb, var(--color-primary-blueprint-blue) 28%, var(--color-surface-white) 72%)'
+            }}
+          >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-blue-900">
+              <span
+                className="text-sm font-medium"
+                style={{ color: 'var(--color-primary-blueprint-blue)' }}
+              >
                 {selectedCount} item{selectedCount !== 1 ? 's' : ''} selected
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => onBulkAction('download')}
-                  className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-3 py-1.5 text-sm rounded-md transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-primary-blueprint-blue)',
+                    color: 'var(--color-surface-white)'
+                  }}
                 >
                   Download
                 </button>
                 <button
                   onClick={() => onBulkAction('move')}
-                  className="px-3 py-1.5 text-sm bg-white text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+                  className="px-3 py-1.5 text-sm rounded-md transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-surface-white)',
+                    color: 'var(--color-primary-blueprint-blue)',
+                    border: '1px solid color-mix(in srgb, var(--color-primary-blueprint-blue) 40%, var(--color-surface-white) 60%)'
+                  }}
                 >
                   Move
                 </button>
@@ -508,9 +567,13 @@ const DropZone = ({
       ref={drop}
       className={`
         transition-all duration-200
-        ${isOver && canDrop ? 'bg-blue-50 border-2 border-dashed border-blue-400 rounded-lg' : ''}
+        ${isOver && canDrop ? 'rounded-lg' : ''}
         ${className}
       `}
+      style={isOver && canDrop ? {
+        backgroundColor: 'var(--color-primary-light-tint)',
+        border: '2px dashed color-mix(in srgb, var(--color-primary-blueprint-blue) 45%, var(--color-surface-white) 55%)'
+      } : undefined}
     >
       {children}
     </div>
@@ -568,7 +631,7 @@ const DragPreview = ({ item }) => {
       <div className="flex items-center space-x-3">
         <div className="flex-shrink-0">
           {isFolder ? (
-            <FolderIcon className="w-8 h-8 text-blue-500" />
+            <FolderIcon className="w-8 h-8" style={{ color: 'var(--color-primary-blueprint-blue)' }} />
           ) : (
             <DocumentIcon className="w-8 h-8 text-gray-500" />
           )}
@@ -939,7 +1002,10 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
+          <ArrowPathIcon
+            className="w-8 h-8 animate-spin mx-auto mb-4"
+            style={{ color: 'var(--color-primary-blueprint-blue)' }}
+          />
           <p className="text-gray-600">Loading documents...</p>
         </div>
       </div>
@@ -954,7 +1020,11 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
           <p className="text-gray-600">{error}</p>
           <button
             onClick={loadDocuments}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="mt-4 px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: 'var(--color-primary-blueprint-blue)',
+              color: 'var(--color-surface-white)'
+            }}
           >
             Try Again
           </button>
@@ -995,22 +1065,35 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
           <DropZone
             onDrop={handleMainAreaDrop}
             className={`h-full p-6 transition-colors ${
-              isDragOver ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''
+              isDragOver ? 'rounded-xl' : ''
             }`}
+            style={isDragOver ? {
+              backgroundColor: 'var(--color-primary-light-tint)',
+              border: '2px dashed color-mix(in srgb, var(--color-primary-blueprint-blue) 38%, var(--color-surface-white) 62%)'
+            } : undefined}
           >
             {/* Quick Actions */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setShowCreateFolder(true)}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center px-4 py-2 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-primary-blueprint-blue)',
+                    color: 'var(--color-surface-white)'
+                  }}
                 >
                   <FolderPlusIcon className="w-5 h-5 mr-2" />
                   New Folder
                 </button>
                 <button
                   onClick={() => setShowUploadZone(true)}
-                  className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center px-4 py-2 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-surface-white)',
+                    color: 'var(--color-primary-blueprint-blue)',
+                    border: '1px solid color-mix(in srgb, var(--color-primary-blueprint-blue) 40%, var(--color-surface-white) 60%)'
+                  }}
                 >
                   <CloudArrowUpIcon className="w-5 h-5 mr-2" />
                   Upload Files
@@ -1031,13 +1114,22 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
                 <div className="flex justify-center space-x-3">
                   <button
                     onClick={() => setShowUploadZone(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: 'var(--color-primary-blueprint-blue)',
+                      color: 'var(--color-surface-white)'
+                    }}
                   >
                     Upload Files
                   </button>
                   <button
                     onClick={() => setShowCreateFolder(true)}
-                    className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: 'var(--color-surface-white)',
+                      color: 'var(--color-primary-blueprint-blue)',
+                      border: '1px solid color-mix(in srgb, var(--color-primary-blueprint-blue) 40%, var(--color-surface-white) 60%)'
+                    }}
                   >
                     Create Folder
                   </button>
@@ -1046,7 +1138,7 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
             ) : (
               <div className={
                 viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl-grid-cols-5 gap-4'
                   : 'space-y-2'
               }>
                 {currentContents.map((item, index) => (
@@ -1097,7 +1189,12 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
                     setShowCreateFolder(false);
                     setNewFolderName('');
                   }}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 rounded-lg border transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-surface-white)',
+                    color: 'var(--color-primary-blueprint-blue)',
+                    border: '1px solid color-mix(in srgb, var(--color-primary-blueprint-blue) 40%, var(--color-surface-white) 60%)'
+                  }}
                 >
                   Cancel
                 </button>
@@ -1117,7 +1214,11 @@ const ModernCompanyDocumentsPage = ({ colorMode = false }) => {
                       toast.error('Failed to create folder');
                     }
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-primary-blueprint-blue)',
+                    color: 'var(--color-surface-white)'
+                  }}
                 >
                   Create
                 </button>

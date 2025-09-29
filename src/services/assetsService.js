@@ -66,8 +66,12 @@ export const assetsService = {
     const res = await api.get(`/assets/${id}`);
     return res.data?.data?.asset;
   },
-  createFolder: async ({ name, parentId = null, description = '' }) => {
-    const res = await api.post('/folders', { name, parentId, description });
+  createFolder: async ({ name, parentId = null, description = '', metadata = {} }) => {
+    const payload = { name, parentId, description };
+    if (metadata && Object.keys(metadata).length > 0) {
+      payload.metadata = metadata;
+    }
+    const res = await api.post('/folders', payload);
     return res.data?.data?.folder;
   },
   updateAsset: async (id, data) => {
@@ -78,12 +82,13 @@ export const assetsService = {
     const res = await api.post('/bulk-operation', { operation, assetIds, data });
     return res.data?.data;
   },
-  uploadFiles: async ({ files, parentId = null, description = '', tags = [], onUploadProgress = undefined } = {}) => {
+  uploadFiles: async ({ files, parentId = null, description = '', tags = [], metadata = {}, onUploadProgress = undefined } = {}) => {
     const form = new FormData();
     for (const f of files) form.append('files', f);
     if (parentId !== null) form.append('parentId', parentId);
     if (description) form.append('description', description);
     if (tags?.length) form.append('tags', JSON.stringify(tags));
+    if (metadata && Object.keys(metadata).length > 0) form.append('metadata', JSON.stringify(metadata));
     const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     if (typeof onUploadProgress === 'function') config.onUploadProgress = onUploadProgress;
     const res = await api.post('/assets/upload', form, config);

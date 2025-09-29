@@ -35,7 +35,7 @@ const DraggableUser = ({ user, isAssigned = false, onRemove = null, colorMode })
     >
       <div className="flex items-center gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-          colorMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+          colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-blue-500 text-white'
         }`}>
           {user.firstName?.[0] || user.name?.[0] || '?'}
         </div>
