@@ -78,6 +78,7 @@ const filesRoutes = require('./routes/files');
 const ragRoutes = require('./routes/rag');
 const leadSourcesRoutes = require('./routes/leadSources');
 const vapiRoutes = require('./routes/vapi');
+const emailRoutes = require('./routes/email');
 let bubblesRoutes;
 try {
   bubblesRoutes = require('./routes/bubbles');
@@ -733,6 +734,7 @@ if (workflowRoutes) {
 }
 app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/email', emailRoutes);
 if (bubblesRoutes) {
   app.use('/api/bubbles', bubblesRoutes);
   console.log('✅ SERVER: Bubbles routes registered at /api/bubbles');

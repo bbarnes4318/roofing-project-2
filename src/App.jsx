@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { getUserFullName, getUserInitials } from './utils/userUtils';
 import {
-  ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, ArchiveBoxIcon
+  ChartPieIcon, DocumentTextIcon, BellIcon, SparklesIcon, CogIcon, LogoutIcon, CalendarIcon, ChatBubbleLeftRightIcon, ChevronDownIcon, ChartBarIcon, UserIcon, ArchiveBoxIcon, EnvelopeIcon
 } from './components/common/Icons';
 import { getCurrentUser, isUserVerified } from './lib/supabaseClient';
 import DashboardPage from './components/pages/DashboardPage';
@@ -20,6 +20,7 @@ import AlertsCalendarPage from './components/pages/AlertsCalendarPage';
 import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import DocumentsResourcesPage from './components/pages/DocumentsResourcesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
+import EmailHistoryPage from './components/pages/EmailHistoryPage';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
@@ -1083,6 +1084,7 @@ const apiUrl = window.location.hostname === 'localhost'
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
+        { name: 'Email History', icon: <EnvelopeIcon />, page: 'Email History' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
         { name: 'Bubbles', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
@@ -1175,6 +1177,7 @@ const apiUrl = window.location.hostname === 'localhost'
                     </div>
                 );
             case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
+            case 'Email History': return <EmailHistoryPage colorMode={colorMode} />;
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'Settings': return (
                 <SettingsPage 
@@ -1429,6 +1432,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                 <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                                     {activePage === 'Alerts' ? 'Project Alerts' :
                                         activePage === 'Company Calendar' ? 'Company Calendar' :
+                                        activePage === 'Email History' ? 'Email History' :
                                         activePage === 'AI Assistant' ? 'Bubbles' :
                                         activePage === 'AI Tools' ? 'AI Training Tools' :
                                         activePage === 'Archived Projects' ? 'Archived Projects' :
@@ -1442,6 +1446,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     {activePage === 'Alerts' ? 'Monitor project alerts, tasks, and urgent notifications.' :
                                         activePage === 'Project Schedules' ? 'Plan and organize project timelines and milestones' :
                                         activePage === 'Company Calendar' ? 'Company-wide events, meetings, and project schedules' :
+                                        activePage === 'Email History' ? 'View all sent emails with tracking, attachments, and project associations' :
                                         activePage === 'AI Assistant' ? 'Get help from Bubbles with your project management tasks' :
                                         activePage === 'AI Tools' ? 'Advanced AI-powered construction management tools' :
                                         activePage === 'Archived Projects' ? 'Completed projects and historical records' :

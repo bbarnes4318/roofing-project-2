@@ -54,6 +54,7 @@ model User {
   downloadedDocuments                                     DocumentDownload[]
   document_templates                                      document_templates[]
   uploadedDocuments                                       Document[]                   @relation("UploadedBy")
+  sentEmails                                              Email[]                      @relation("EmailSender")
   generated_document_meta                                 generated_document_meta[]
   readMessages                                            MessageRead[]
   sentMessages                                            Message[]                    @relation("Sender")
@@ -97,6 +98,7 @@ model Customer {
   isActive       Boolean     @default(true)
   primaryRole    String?     @db.VarChar(50)
   secondaryRole  String?     @db.VarChar(50)
+  emails         Email[]     @relation("CustomerEmails")
   projects       Project[]
 
   @@map("customers")
@@ -126,10 +128,12 @@ model Project {
   customerId                String                      @map("customer_id")
   projectManagerId          String?                     @map("project_manager_id")
   createdById               String?                     @map("created_by_id")
+  leadSourceId              String?                     @map("lead_source_id")
   phase                     ProjectPhase?
   searchVector              String?
   calendarEvents            CalendarEvent[]
   documents                 Document[]
+  emails                    Email[]                     @relation("ProjectEmails")
   project_messages          project_messages[]
   project_phase_overrides   project_phase_overrides[]
   teamMembers               ProjectTeamMember[]
@@ -214,6 +218,7 @@ model Task {
   projectId      String           @map("project_id")
   assignedToId   String           @map("assigned_to_id")
   createdById    String?          @map("created_by_id")
+  emails         Email[]          @relation("TaskEmails")
   task_comments  task_comments[]
   dependents     TaskDependency[] @relation("DependentTask")
   dependencies   TaskDependency[] @relation("ParentTask")
@@ -428,6 +433,10 @@ model CompanyAsset {
   checksum         String?               @db.VarChar(255)
   metadata         Json?
   accessLevel      String?               @default("private") @map("access_level") @db.VarChar(50)
+  isArchived       Boolean?              @default(false) @map("is_archived")
+  isFavorite       Boolean?              @default(false) @map("is_favorite")
+  sharedWith       String[]              @default([]) @map("shared_with")
+  viewCount        Int?                  @default(0) @map("view_count")
   versions         CompanyAssetVersion[] @relation("AssetVersions")
   parent           CompanyAsset?         @relation("FolderHierarchy", fields: [parentId], references: [id])
   children         CompanyAsset[]        @relation("FolderHierarchy")
@@ -872,6 +881,57 @@ model workflow_sections {
   @@index([workflowType])
 }
 
+model Email {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  messageId    String?   @map("message_id")
+  threadId     String?   @map("thread_id")
+  senderId     String    @map("sender_id")
+  senderEmail  String    @map("sender_email")
+  senderName   String?   @map("sender_name")
+  toEmails     String[]  @default([]) @map("to_emails")
+  toNames      String[]  @default([]) @map("to_names")
+  ccEmails     String[]  @default([]) @map("cc_emails")
+  bccEmails    String[]  @default([]) @map("bcc_emails")
+  replyTo      String?   @map("reply_to")
+  subject      String
+  bodyText     String?   @map("body_text")
+  bodyHtml     String?   @map("body_html")
+  emailType    String    @default("general") @map("email_type")
+  status       String    @default("sent")
+  priority     String?   @default("normal")
+  projectId    String?   @map("project_id")
+  customerId   String?   @map("customer_id")
+  taskId       String?   @map("task_id")
+  attachments  Json?
+  sentAt       DateTime? @map("sent_at")
+  deliveredAt  DateTime? @map("delivered_at")
+  openedAt     DateTime? @map("opened_at")
+  clickedAt    DateTime? @map("clicked_at")
+  bouncedAt    DateTime? @map("bounced_at")
+  failedAt     DateTime? @map("failed_at")
+  errorMessage String?   @map("error_message")
+  tags         Json?
+  metadata     Json?
+  isDeleted    Boolean   @default(false) @map("is_deleted")
+  deletedAt    DateTime? @map("deleted_at")
+  customer     Customer? @relation("CustomerEmails", fields: [customerId], references: [id])
+  project      Project?  @relation("ProjectEmails", fields: [projectId], references: [id])
+  sender       User      @relation("EmailSender", fields: [senderId], references: [id], onDelete: Cascade)
+  task         Task?     @relation("TaskEmails", fields: [taskId], references: [id])
+
+  @@index([senderId])
+  @@index([projectId])
+  @@index([customerId])
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+  @@index([emailType])
+  @@index([messageId])
+  @@index([threadId])
+  @@map("emails")
+}
+
 enum UserRole {
   ADMIN
   MANAGER
@@ -1211,4 +1271,29 @@ enum workflow_states {
   BLOCKED
   COMPLETED
   SKIPPED
+}
+
+model lead_sources {
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(255)
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("lead_sources")
+}
+
+model embeddings {
+  id            String   @id @default(cuid())
+  documentId    String?  @map("document_id")
+  assetId       String?  @map("asset_id")
+  content       String
+  embedding     String   // Store as JSON string or use Unsupported("vector") for pgvector
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([documentId])
+  @@index([assetId])
+  @@map("embeddings")
 }

@@ -14,6 +14,7 @@ const IngestionService = require('../services/IngestionService');
 const path = require('path');
 const fs = require('fs').promises;
 const AssetLookup = require('../services/AssetLookup');
+const emailService = require('../services/EmailService');
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
@@ -1322,6 +1323,204 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       const msg = `Document processing failed: ${docErr?.message || docErr}`;
       contextManager.addToHistory(req.user.id, message, msg, projectContext || null);
       return sendSuccess(res, 200, { response: { content: msg } });
+    }
+  }
+
+  // Heuristic: Email sending detection
+  const mentionsEmail = lower.includes('email') || lower.includes('send email') || lower.includes('e-mail');
+  const hasEmailIntent = mentionsEmail && (lower.includes('send') || lower.includes('to'));
+  
+  if (hasEmailIntent && emailService.isAvailable()) {
+    try {
+      // Resolve project if not already in context
+      let proj = projectContext;
+      if (!proj) {
+        const resolved = await resolveProjectFromMessage(message);
+        if (resolved?.project) proj = resolved.project;
+      }
+
+      // Extract recipient information
+      const recipientNames = extractRecipientNames(message);
+      let recipients = [];
+      let customerRecipient = null;
+
+      // Check if sending to customer
+      if (lower.includes('customer') || lower.includes('client') || lower.includes('owner')) {
+        if (proj) {
+          const customer = await prisma.customer.findUnique({
+            where: { id: proj.customerId },
+            select: { id: true, primaryName: true, email: true, primaryEmail: true }
+          });
+          if (customer && (customer.email || customer.primaryEmail)) {
+            customerRecipient = {
+              id: customer.id,
+              name: customer.primaryName,
+              email: customer.email || customer.primaryEmail,
+              type: 'customer'
+            };
+          }
+        }
+      }
+
+      // Resolve team member recipients
+      if (recipientNames.length > 0) {
+        const ors = [];
+        for (const n of recipientNames) {
+          const [fn, ln] = String(n).split(/\s+/);
+          if (fn && ln) {
+            ors.push({ AND: [
+              { firstName: { contains: fn, mode: 'insensitive' } },
+              { lastName: { contains: ln, mode: 'insensitive' } }
+            ]});
+          } else if (fn) {
+            ors.push({ OR: [
+              { firstName: { contains: fn, mode: 'insensitive' } },
+              { lastName: { contains: fn, mode: 'insensitive' } }
+            ]});
+          }
+        }
+        if (ors.length) {
+          recipients = await prisma.user.findMany({
+            where: { OR: ors },
+            select: { id: true, firstName: true, lastName: true, email: true }
+          });
+        }
+      }
+
+      // Extract email subject
+      let subject = 'Message from Kenstruction';
+      const subjectMatch = message.match(/subject[:\s]+["']?([^"'\n]+)["']?/i);
+      if (subjectMatch) {
+        subject = subjectMatch[1].trim();
+      } else if (proj) {
+        subject = `Update on ${proj.projectName}`;
+      }
+
+      // Extract email body/message
+      let emailBody = '';
+      const bodyPatterns = [
+        /(?:message|body|content|text)[:\s]+["']?([^"'\n]+)["']?/i,
+        /(?:saying|with)[:\s]+["']?([^"'\n]+)["']?/i
+      ];
+      for (const pattern of bodyPatterns) {
+        const match = message.match(pattern);
+        if (match) {
+          emailBody = match[1].trim();
+          break;
+        }
+      }
+
+      // Check for document attachments
+      let attachments = [];
+      if (mentionsFileName || lower.includes('attach')) {
+        try {
+          const asset = await findAssetByMention(message);
+          if (asset) {
+            attachments.push({ documentId: asset.id });
+          }
+        } catch (_) {}
+      }
+
+      // Validate we have recipients
+      const allRecipients = [
+        ...(customerRecipient ? [customerRecipient] : []),
+        ...recipients.map(r => ({ email: r.email, name: `${r.firstName} ${r.lastName}`, type: 'user' }))
+      ];
+
+      if (allRecipients.length === 0) {
+        const msg = 'Please specify who you want to send the email to (customer name or team member name).';
+        contextManager.addToHistory(req.user.id, message, msg, projectContext || null);
+        return sendSuccess(res, 200, { response: { content: msg } });
+      }
+
+      if (!emailBody) {
+        const msg = 'Please provide the email message content. For example: "Send email to John Smith saying: Please review the attached document."';
+        contextManager.addToHistory(req.user.id, message, msg, projectContext || null);
+        return sendSuccess(res, 200, { response: { content: msg } });
+      }
+
+      // Create HTML email template
+      const html = emailService.createEmailTemplate({
+        title: subject,
+        content: `<p>${emailBody.replace(/\n/g, '<br>')}</p>` + 
+                 (proj ? `<p><strong>Project:</strong> ${proj.projectName}<br><strong>Project #:</strong> ${proj.projectNumber}</p>` : ''),
+        footer: `This email was sent via Bubbles AI Assistant by ${req.user.firstName} ${req.user.lastName}`
+      });
+
+      // Send emails to all recipients
+      const results = [];
+      for (const recipient of allRecipients) {
+        try {
+          const result = await emailService.sendEmail({
+            to: recipient.email,
+            subject,
+            html,
+            text: emailBody,
+            attachments,
+            replyTo: req.user.email,
+            tags: {
+              sentBy: req.user.id,
+              projectId: proj?.id,
+              recipientType: recipient.type,
+              source: 'bubbles_ai'
+            }
+          });
+          results.push({ recipient: recipient.name, success: true, messageId: result.messageId });
+        } catch (emailErr) {
+          results.push({ recipient: recipient.name, success: false, error: emailErr.message });
+        }
+      }
+
+      // Log each successful email to database
+      for (const result of results.filter(r => r.success)) {
+        const recipient = allRecipients.find(r => r.name === result.recipient);
+        if (recipient) {
+          await emailService.logEmail({
+            senderId: req.user.id,
+            senderEmail: req.user.email,
+            senderName: `${req.user.firstName} ${req.user.lastName}`,
+            to: [recipient.email],
+            subject,
+            text: emailBody,
+            html,
+            attachments,
+            messageId: result.messageId,
+            projectId: proj?.id,
+            customerId: recipient.type === 'customer' ? recipient.id : null,
+            emailType: 'bubbles_ai',
+            status: 'sent',
+            tags: { source: 'bubbles_ai', aiGenerated: true },
+            metadata: { conversationContext: true }
+          });
+        }
+      }
+
+      // Build response
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+      let response = `✅ Email sent successfully to ${successCount} recipient${successCount !== 1 ? 's' : ''}`;
+      if (failCount > 0) {
+        response += ` (${failCount} failed)`;
+      }
+      response += `:\n\n`;
+      response += `**Subject:** ${subject}\n`;
+      response += `**Recipients:** ${allRecipients.map(r => r.name).join(', ')}\n`;
+      if (attachments.length > 0) {
+        response += `**Attachments:** ${attachments.length} file(s)\n`;
+      }
+
+      contextManager.addToHistory(req.user.id, message, response, proj || projectContext);
+      return sendSuccess(res, 200, { 
+        response: { content: response }, 
+        emailResults: results,
+        emailsSent: successCount
+      });
+
+    } catch (emailError) {
+      console.error('Bubbles email error:', emailError);
+      const errorMsg = `I encountered an error sending the email: ${emailError.message}`;
+      contextManager.addToHistory(req.user.id, message, errorMsg, projectContext || null);
+      return sendSuccess(res, 200, { response: { content: errorMsg } });
     }
   }
 

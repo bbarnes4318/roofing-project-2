@@ -7,6 +7,7 @@ import ProjectDocumentsPage from './ProjectDocumentsPage';
 import TasksAndAlertsPage from './TasksAndAlertsPage';
 import ProjectProfileTab from './ProjectProfileTab';
 import ProjectTimeline from '../../dashboard/ProjectTimeline';
+import ProjectEmailHistory from '../Email/ProjectEmailHistory';
 import ScrollToTop from '../common/ScrollToTop';
 import { formatPhoneNumber } from '../../utils/helpers';
 import { projectsService } from '../../services/api';
@@ -2284,15 +2285,16 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 );
             case 'Project Documents':
                 return <ProjectDocumentsPage project={projectData} onBack={onBack} colorMode={colorMode} />;
+            case 'Email History':
+                return <ProjectEmailHistory projectId={projectData.id} />;
             case 'Work Order':
                 return <div className="p-8 text-center text-gray-400 text-sm">(Blank for now)</div>;
             default:
                 return <ProjectProfileTab project={projectData} colorMode={colorMode} onProjectSelect={onProjectSelect} />;
-        }
-    };
-
-    const navItems = ['Project Profile', 'Project Workflow', 'Alerts', 'Messages', 'Project Schedule', 'Project Documents', 'Work Order'];
-
+            }
+        };
+    
+        const navItems = ['Project Profile', 'Project Workflow', 'Alerts', 'Messages', 'Project Schedule', 'Project Documents', 'Email History', 'Work Order'];
     if (!project) {
         return <div className="text-red-600 font-bold p-8">No project selected or project data is missing.</div>;
     }

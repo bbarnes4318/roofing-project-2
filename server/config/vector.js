@@ -3,46 +3,36 @@ const ensureVectorSchema = async (prisma) => {
     // Enable pgvector extension
     await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS vector;`);
 
-    // Create embeddings table if it doesn't exist
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS embeddings (
-        id BIGSERIAL PRIMARY KEY,
-        project_id TEXT,
-        file_id TEXT,
-        chunk_id TEXT,
-        content TEXT,
-        metadata JSONB,
-        embedding VECTOR(1536)
-      );
+    // Check if embeddings table exists and has the correct structure
+    const tableCheck = await prisma.$queryRawUnsafe(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'embeddings' AND column_name = 'embedding';
     `);
 
-    // Annotations table for file versions/annotations
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS document_annotations (
-        id BIGSERIAL PRIMARY KEY,
-        document_id TEXT NOT NULL,
-        user_id TEXT,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        annotations JSONB
-      );
-    `);
+    // Only create vector index if the embedding column is actually a vector type
+    if (tableCheck && tableCheck.length > 0 && tableCheck[0].data_type === 'USER-DEFINED') {
+      // Helpful indexes - only create if embedding is a vector type
+      await prisma.$executeRawUnsafe(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relname = 'embeddings_embedding_ivfflat_idx'
+          ) THEN
+            CREATE INDEX embeddings_embedding_ivfflat_idx ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+          END IF;
+        END$$;
+      `);
+      console.log('✅ Vector index created on embeddings table');
+    } else {
+      console.log('ℹ️ Embeddings table uses text storage - skipping vector index creation');
+    }
 
-    // Helpful indexes
-    await prisma.$executeRawUnsafe(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM pg_class c
-          JOIN pg_namespace n ON n.oid = c.relnamespace
-          WHERE c.relname = 'embeddings_embedding_ivfflat_idx'
-        ) THEN
-          CREATE INDEX embeddings_embedding_ivfflat_idx ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-        END IF;
-      END$$;
-    `);
-
-    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS embeddings_project_idx ON embeddings (project_id);`);
-    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS embeddings_file_idx ON embeddings (file_id);`);
+    // Create indexes on existing columns (document_id and asset_id from Prisma schema)
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS embeddings_document_idx ON embeddings (document_id);`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS embeddings_asset_idx ON embeddings (asset_id);`);
 
     return true;
   } catch (err) {
