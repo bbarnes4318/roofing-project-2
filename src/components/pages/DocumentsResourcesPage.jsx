@@ -108,19 +108,52 @@ const DocumentsResourcesPage = () => {
   };
 
   const createFolder = async () => {
-    if (!newFolderName.trim()) return;
+    if (!newFolderName.trim()) {
+      toast.error('Please enter a folder name');
+      return;
+    }
+    
+    console.log('Creating folder with:', { 
+      name: newFolderName, 
+      parentId: currentFolder 
+    });
+    
     try {
-      await assetsService.createFolder({ name: newFolderName, parentId: currentFolder });
+      const result = await assetsService.createFolder({ 
+        name: newFolderName, 
+        parentId: currentFolder 
+      });
+      
+      console.log('Folder created successfully:', result);
       setNewFolderName('');
-      await loadAllFolders();
-      await loadItems(currentFolder);
-      toast.success('Folder created!');
+      await Promise.all([
+        loadAllFolders(),
+        loadItems(currentFolder)
+      ]);
+      toast.success(`Folder "${newFolderName}" created successfully!`);
     } catch (err) {
-      console.error('Failed to create folder:', err);
-      if (err.response?.status === 400 && err.response?.data?.message?.includes('already exists')) {
-        toast.error(`A folder named "${newFolderName}" already exists here. Please choose a different name.`);
+      console.error('Failed to create folder:', {
+        error: err,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      
+      if (err.response?.status === 400) {
+        if (err.response?.data?.message?.toLowerCase().includes('already exists')) {
+          toast.error(`A folder named "${newFolderName}" already exists in this location`);
+        } else if (err.response?.data?.message) {
+          toast.error(err.response.data.message);
+        } else {
+          toast.error('Invalid folder name. Please try a different name.');
+        }
+      } else if (err.response?.status === 401) {
+        toast.error('Please log in to create folders');
+      } else if (err.response?.status === 403) {
+        toast.error('You do not have permission to create folders here');
+      } else if (err.message === 'Network Error') {
+        toast.error('Unable to connect to the server. Please check your connection.');
       } else {
-        toast.error(err.response?.data?.message || 'Failed to create folder');
+        toast.error(err.response?.data?.message || 'Failed to create folder. Please try again.');
       }
     }
   };
