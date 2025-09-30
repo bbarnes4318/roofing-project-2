@@ -82,15 +82,25 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className={`max-w-4xl w-[96%] max-h-[84vh] overflow-hidden rounded-2xl p-6 shadow-2xl relative ${colorMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-gray-900'}`}
+        className={`max-w-4xl w-[96%] max-h-[84vh] overflow-hidden rounded-2xl shadow-2xl relative ${colorMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-gray-900'}`}
         style={{ zIndex: 2147483648 }}
       >
-        <div className="absolute top-3 right-3">
-          <button onClick={onClose} aria-label="Close quick start" className={`p-2 rounded-full ${colorMode ? 'bg-slate-800 text-slate-100 hover:bg-slate-700' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>
-            ✕
-          </button>
-        </div>
-        <div className="flex flex-col gap-3">
+        {/* Professional Close Button */}
+        <button 
+          onClick={onClose} 
+          aria-label="Close quick start" 
+          className={`absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-lg transition-all ${
+            colorMode 
+              ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200' 
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="flex flex-col gap-3 p-6 pt-12 md:pt-6 pr-3 md:pr-14 overflow-y-auto max-h-[calc(84vh-2rem)]">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
             <div className="max-w-2xl">
               <h3 className="text-xl font-bold">Bubbles Assistant Playbook</h3>
@@ -98,7 +108,18 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
                 Speak naturally. Give Bubbles the goal, who should get it, and which documents to attach. These quick plays keep projects moving without leaving your desk or jobsite.
               </p>
             </div>
-            <a href="/bubbles-quickstart.html" target="_blank" rel="noreferrer" className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${colorMode ? 'border-slate-600 text-slate-100 hover:bg-slate-800/60' : 'border-gray-300 text-gray-700 hover:bg-gray-100'} transition`}>Printable guide</a>
+            <a 
+              href="/bubbles-quickstart.html" 
+              target="_blank" 
+              rel="noreferrer" 
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium border ${
+                colorMode 
+                  ? 'border-slate-600 text-slate-100 hover:bg-slate-800/60' 
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+              } transition`}
+            >
+              Printable guide
+            </a>
           </div>
 
           <div className="grid md:grid-cols-2 gap-3">
@@ -118,9 +139,11 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
               <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}> 
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-emerald-500">Attachments made easy</h4>
                 <ul className={`mt-2 space-y-1.5 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
-                  <li><strong>Exact names win:</strong> “Attach measurement_notes.pdf.”</li>
-                  <li><strong>Not sure?</strong> Ask “What documents are on project 10045?” then tell Bubbles which one to send.</li>
-                  <li><strong>Bundle files:</strong> “Send the permit.pdf <em>and</em> latest_photos.zip to accounting.”</li>
+                  <li><strong>Browse documents:</strong> Click the "Documents" button in the header to see all available documents from Documents & Resources.</li>
+                  <li><strong>Quick insert:</strong> Click any document name in the browser to automatically insert it into your message.</li>
+                  <li><strong>Exact names win:</strong> "Attach measurement_notes.pdf."</li>
+                  <li><strong>Not sure?</strong> Use the document browser or ask "What documents are on project 10045?" then tell Bubbles which one to send.</li>
+                  <li><strong>Bundle files:</strong> "Send the permit.pdf <em>and</em> latest_photos.zip to accounting."</li>
                 </ul>
               </div>
             </div>
@@ -129,19 +152,18 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
               <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}> 
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-orange-500">Voice: natural names first</h4>
                 <div className={`mt-2 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
-                  <p className="leading-snug"><strong>Speak it normally:</strong> “Attach the roofing doc forty-eight thirty-eight F F one PDF.” Bubbles handles underscores and dashes automatically.</p>
-                  <p className="leading-snug mt-2"><strong>Add detail if needed:</strong> Mention the project, uploader, or “the warranty PDF from today” so it matches the right file.</p>
-                  <p className="leading-snug mt-2"><strong>Fallback:</strong> Only spell it out (“roofing underscore doc…”) if Bubbles asks for clarification.</p>
+                  <p className="leading-snug"><strong>Speak it normally:</strong> "Attach the roofing doc forty-eight thirty-eight F F one PDF." Bubbles handles underscores and dashes automatically.</p>
+                  <p className="leading-snug mt-2"><strong>Add detail if needed:</strong> Mention the project, uploader, or "the warranty PDF from today" so it matches the right file.</p>
+                  <p className="leading-snug mt-2"><strong>Fallback:</strong> Only spell it out ("roofing underscore doc…") if Bubbles asks for clarification.</p>
                 </div>
               </div>
 
-              <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}> 
+              <div className={`rounded-2xl border ${colorMode ? 'border-slate-700 bg-slate-900/60' : 'border-gray-200 bg-white'} p-4 shadow-sm`}>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-purple-500">Reliable workflow</h4>
                 <ul className={`mt-2 space-y-1.5 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
-                  <li><strong>1. State the job:</strong> “Send a status update to Maria about today’s roof progress.”</li>
+                  <li><strong>1. State the job:</strong> "Send a status update to Maria about today's roof progress."</li>
                   <li><strong>2. Add project & people:</strong> Include project number or names so Bubbles routes it correctly.</li>
-                  <li><strong>3. Approve the recap:</strong> Bubbles repeats the plan. Say “Looks good” or make tweaks.</li>
-                  <li><strong>Need help?</strong> Email <a href="mailto:support@kenstruction.com" className="underline">support@kenstruction.com</a>.</li>
+                  <li><strong>3. Approve the recap:</strong> Bubbles repeats the plan. Say "Looks good" or make tweaks.</li>
                 </ul>
               </div>
             </div>

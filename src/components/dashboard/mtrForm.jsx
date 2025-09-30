@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { projectMessagesService, calendarService } from '../../services/api';
 import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
@@ -60,6 +60,7 @@ const MTRForm = ({
   const queryClient = useQueryClient();
   const recipients = Array.isArray(availableUsers) ? availableUsers : [];
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
   return (
     <div className="mb-3">
@@ -195,6 +196,66 @@ const MTRForm = ({
                 <div className="flex justify-end -mt-3 mb-1">
                   <button title="Quick phrases" onClick={() => setIsQuickModalOpen(true)} className="text-xs px-2 py-1 rounded bg-gray-100">Quick Phrases</button>
                 </div>
+                
+                {/* Primary Customer Contact Dropdown - Same style as Workflow Line Items */}
+                {newMessageProject && (() => {
+                  const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
+                  const customer = selectedProject?.customer || selectedProject?.client;
+                  if (customer) {
+                    return (
+                      <div className="mb-2 relative">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            📋 {customer.primaryName || customer.name || 'Customer'}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowCustomerDropdown(!showCustomerDropdown);
+                            }}
+                            className={`transform transition-transform duration-200 ${showCustomerDropdown ? 'rotate-180' : ''}`}
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Contact Details Popup */}
+                        {showCustomerDropdown && (
+                          <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-300 rounded-lg shadow-xl p-2.5 min-w-[180px] text-[10px] space-y-1">
+                            <div className="font-semibold text-gray-900 border-b border-gray-200 pb-1 mb-1">
+                              {customer.primaryName || customer.name || 'Customer'}
+                            </div>
+                            {customer.primaryPhone && (
+                              <div className="flex items-start gap-1">
+                                <span>📞</span>
+                                <span className="text-gray-700">{customer.primaryPhone}</span>
+                              </div>
+                            )}
+                            {customer.primaryEmail && (
+                              <div className="flex items-start gap-1">
+                                <span>📧</span>
+                                <span className="text-gray-700 break-all">{customer.primaryEmail}</span>
+                              </div>
+                            )}
+                            {customer.primaryAddress && (
+                              <div className="flex items-start gap-1">
+                                <span>📍</span>
+                                <span className="text-gray-700">{customer.primaryAddress}</span>
+                              </div>
+                            )}
+                            {!customer.primaryPhone && !customer.primaryEmail && !customer.primaryAddress && (
+                              <div className="text-gray-500 italic text-[9px]">No contact details</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                
                 <select
                   value={Array.isArray(newMessageRecipients) ? newMessageRecipients : []}
                   onChange={(e) => {
@@ -507,14 +568,22 @@ const MTRForm = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
                 <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Recipients</label>
-                <select multiple value={reminderUserIds} onChange={(e)=>setReminderUserIds(Array.from(e.target.selectedOptions, o => o.value))} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} style={{ minHeight: '40px' }}>
+                <select 
+                  multiple 
+                  value={reminderUserIds} 
+                  onChange={(e)=>setReminderUserIds(Array.from(e.target.selectedOptions, o => o.value))} 
+                  className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`} 
+                  style={{ minHeight: '40px', color: colorMode ? '#ffffff' : '#111827' }}
+                >
                   {usersLoading ? (
-                    <option value="" disabled>Loading users...</option>
+                    <option value="" disabled style={{ color: '#111827', backgroundColor: '#ffffff' }}>Loading users...</option>
                   ) : recipients.length === 0 ? (
-                    <option value="" disabled>No users found</option>
+                    <option value="" disabled style={{ color: '#111827', backgroundColor: '#ffffff' }}>No users found</option>
                   ) : (
                     recipients.map(u => (
-                      <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                      <option key={u.id} value={u.id} style={{ color: '#111827', backgroundColor: '#ffffff' }}>
+                        {u.firstName} {u.lastName || ''} {u.lastName ? '' : `(${u.email || ''})`}
+                      </option>
                     ))
                   )}
                 </select>

@@ -706,8 +706,7 @@ const BubblesChat = ({
             {/* Assistant Playbook Button - PROMINENT */}
             <button
               onClick={() => setIsQuickModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all shadow-sm"
-              style={{ background: 'linear-gradient(to right, #f59e0b, #d97706)', color: '#ffffff' }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all shadow-sm bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white"
               title="Bubbles Assistant Playbook"
             >
               <SparklesIcon className="w-4 h-4" />

@@ -379,7 +379,7 @@ const ProjectWorkflowLineItemsSection = ({
                           </button>
                           
                           {/* Customer with dropdown arrow - Made smaller */}
-                          <div className="flex items-center gap-1 flex-shrink-0" style={{width: '100px', marginLeft: '0px'}}>
+                          <div className="flex items-center gap-1 flex-shrink-0 relative" style={{width: '100px', marginLeft: '0px'}}>
                             <button 
                               ref={(el) => alertContactButtonRefs.current[alertId] = el}
                               className={`text-[9px] font-semibold cursor-pointer hover:underline ${
@@ -416,6 +416,43 @@ const ProjectWorkflowLineItemsSection = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                               </svg>
                             </button>
+                            
+                            {/* Contact Details Popup */}
+                            {expandedContacts.has(alertId) && (project?.customer || project?.client) && (
+                              <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-300 rounded-lg shadow-xl p-2.5 min-w-[180px] text-[10px] space-y-1">
+                                {(() => {
+                                  const customerData = project?.customer || project?.client;
+                                  return (
+                                    <>
+                                      <div className="font-semibold text-gray-900 border-b border-gray-200 pb-1 mb-1">
+                                        {customerData.primaryName || customerData.name || project?.clientName || 'Customer'}
+                                      </div>
+                                      {customerData.primaryPhone && (
+                                        <div className="flex items-start gap-1">
+                                          <span>📞</span>
+                                          <span className="text-gray-700">{customerData.primaryPhone}</span>
+                                        </div>
+                                      )}
+                                      {customerData.primaryEmail && (
+                                        <div className="flex items-start gap-1">
+                                          <span>📧</span>
+                                          <span className="text-gray-700 break-all">{customerData.primaryEmail}</span>
+                                        </div>
+                                      )}
+                                      {customerData.primaryAddress && (
+                                        <div className="flex items-start gap-1">
+                                          <span>📍</span>
+                                          <span className="text-gray-700">{customerData.primaryAddress}</span>
+                                        </div>
+                                      )}
+                                      {!customerData.primaryPhone && !customerData.primaryEmail && !customerData.primaryAddress && (
+                                        <div className="text-gray-500 italic text-[9px]">No contact details</div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            )}
                           </div>
                           
                           {/* PM with dropdown arrow - align baseline with Line Item label */}

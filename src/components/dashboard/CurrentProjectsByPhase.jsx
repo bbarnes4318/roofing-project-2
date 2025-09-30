@@ -73,12 +73,12 @@ const CurrentProjectsByPhase = ({
             onClick={() => setSelectedPhase(selectedPhase === 'all' ? null : 'all')}
             className={`h-12 px-4 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
               selectedPhase === 'all'
-                ? 'border-brand-500 bg-brand-50 shadow-brand-glow text-brand-800'
+                ? 'border-blue-600 bg-blue-50 shadow-medium text-blue-800'
                 : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
             }`}
             style={{ minWidth: 72 }}
           >
-            <div className="h-8 w-8 rounded-full bg-brand-500 flex-shrink-0 shadow-sm flex items-center justify-center text-white text-xs font-bold">
+            <div className="h-8 w-8 rounded-full bg-blue-600 flex-shrink-0 shadow-sm flex items-center justify-center text-white text-xs font-bold">
               {Array.isArray(projects) ? projects.length : 0}
             </div>
             <span className="text-xs font-semibold">All</span>
@@ -156,19 +156,6 @@ const CurrentProjectsByPhase = ({
                     </th>
                     <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       <button 
-                        onClick={() => handleProjectSort && handleProjectSort('projectManager')}
-                        className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
-                      >
-                        PM
-                        {sortConfig?.key === 'projectManager' && (
-                          <span className="text-xs">
-                            {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                          </span>
-                        )}
-                      </button>
-                    </th>
-                    <th className={`text-left py-2 px-2 text-xs font-medium whitespace-nowrap ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      <button 
                         onClick={() => handleProjectSort && handleProjectSort('projectType')}
                         className={`flex items-center gap-1 hover:underline ${colorMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
                       >
@@ -204,7 +191,7 @@ const CurrentProjectsByPhase = ({
                 if (projectsLoading) {
                   return (
                     <tr>
-                      <td colSpan="8" className="text-center py-8">
+                      <td colSpan="7" className="text-center py-8">
                         <div className="text-brand-600">Loading projects...</div>
                       </td>
                     </tr>
@@ -213,7 +200,7 @@ const CurrentProjectsByPhase = ({
                 if (projectsError && (!projects || projects.length === 0)) {
                   return (
                     <tr>
-                      <td colSpan="8" className="text-center py-8">
+                      <td colSpan="7" className="text-center py-8">
                         <div className="text-red-600 mb-4">
                           <div className="font-semibold">Error loading projects:</div>
                           <div className="text-sm">{String(projectsError?.message || projectsError || 'Unknown error')}</div>
@@ -243,7 +230,7 @@ const CurrentProjectsByPhase = ({
                 if (!projects || projects.length === 0) {
                   return (
                     <tr>
-                      <td colSpan="8" className="text-center py-8">
+                      <td colSpan="7" className="text-center py-8">
                         <div className="text-gray-600">No projects found</div>
                       </td>
                     </tr>
@@ -391,16 +378,51 @@ const CurrentProjectsByPhase = ({
                       </td>
 
                       {/* Primary Contact */}
-                      <td className="py-2 px-2 whitespace-nowrap max-w-32 overflow-hidden">
-                        <span className="text-sm font-semibold text-gray-700 truncate">{contact}</span>
+                      <td className="py-2 px-2 whitespace-nowrap max-w-32">
+                        {(project.customer || project.client) ? (
+                          <details className="inline-block">
+                            <summary className="cursor-pointer text-sm font-semibold text-gray-700 flex items-center gap-1 hover:text-gray-900">
+                              <span className="truncate">{contact}</span>
+                              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </summary>
+                            <div className={`mt-1 border rounded ${colorMode ? 'border-gray-600 bg-[#232b4d]' : 'border-gray-300 bg-white'} p-2 text-xs space-y-1 shadow-lg min-w-[200px]`}>
+                              {(() => {
+                                const customerData = project.customer || project.client;
+                                return (
+                                  <>
+                                    <div className={`font-semibold border-b pb-1 mb-1 ${colorMode ? 'text-gray-200 border-gray-600' : 'text-gray-900 border-gray-200'}`}>
+                                      {customerData.primaryName || customerData.name || contact}
+                                    </div>
+                                    {customerData.primaryPhone && (
+                                      <div className={colorMode ? 'text-gray-300' : 'text-gray-700'}>
+                                        <strong>📞 Phone:</strong> {customerData.primaryPhone}
+                                      </div>
+                                    )}
+                                    {customerData.primaryEmail && (
+                                      <div className={colorMode ? 'text-gray-300' : 'text-gray-700'}>
+                                        <strong>📧 Email:</strong> {customerData.primaryEmail}
+                                      </div>
+                                    )}
+                                    {customerData.primaryAddress && (
+                                      <div className={colorMode ? 'text-gray-300' : 'text-gray-700'}>
+                                        <strong>📍 Address:</strong> {customerData.primaryAddress}
+                                      </div>
+                                    )}
+                                    {!customerData.primaryPhone && !customerData.primaryEmail && !customerData.primaryAddress && (
+                                      <div className="text-gray-500 italic">No contact details available</div>
+                                    )}
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          </details>
+                        ) : (
+                          <span className="text-sm font-semibold text-gray-700 truncate">{contact}</span>
+                        )}
                       </td>
 
-                      {/* PM */}
-                      <td className="py-2 px-2 max-w-24 overflow-hidden">
-                        <span className={`text-sm truncate ${colorMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                          {getPMDisplay(pm, project)}
-                        </span>
-                      </td>
 
                       {/* Project Type */}
                       <td className="py-2 px-2 whitespace-nowrap">
@@ -411,26 +433,39 @@ const CurrentProjectsByPhase = ({
 
                       {/* Progress with Expand */}
                       <td className="py-2 px-2 whitespace-nowrap">
-                        <div className="flex items-center gap-2 min-w-[140px]">
+                        <div className="flex items-center gap-2 min-w-[160px]">
                           <button
                             onClick={() => toggleRowExpansion(project.id)}
-                            className="p-1 hover:bg-gray-100 rounded transition"
+                            className="p-1.5 hover:bg-blue-50 rounded-lg transition-all"
                             title="View phase breakdown"
                           >
                             {expandedRows.has(project.id) ? (
-                              <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+                              <ChevronDownIcon className="h-4 w-4 text-blue-600" />
                             ) : (
-                              <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+                              <ChevronRightIcon className="h-4 w-4 text-gray-500" />
                             )}
                           </button>
-                          <div className="flex-1 h-7 bg-gray-200 rounded-full overflow-hidden relative shadow-inner">
-                            <div 
-                              className="h-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 transition-all duration-500 flex items-center justify-center"
-                              style={{ width: `${getProjectProgress(project)}%` }}
-                            >
-                              <span className="text-xs font-bold text-white drop-shadow-md px-2">
-                                {getProjectProgress(project)}%
-                              </span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-8 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg overflow-hidden relative border border-gray-300 shadow-sm">
+                                <div 
+                                  className="h-full transition-all duration-700 ease-out relative"
+                                  style={{ 
+                                    width: `${getProjectProgress(project)}%`,
+                                    background: `linear-gradient(90deg, 
+                                      #3b82f6 0%, 
+                                      #2563eb ${Math.min(getProjectProgress(project) * 0.5, 50)}%, 
+                                      #1d4ed8 100%)`
+                                  }}
+                                >
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <span className="text-xs font-bold text-gray-800 drop-shadow-sm px-2">
+                                    {getProjectProgress(project)}%
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -537,75 +572,31 @@ const CurrentProjectsByPhase = ({
                       <tr className="bg-blue-50/50">
                         <td colSpan="8" className="py-4 px-6">
                           <div className="space-y-4">
-                            {/* Phase Breakdown */}
+                            {/* Current Workflow Position */}
                             <div>
                               <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                                Phase Breakdown
+                                Current Workflow Status
                               </h4>
-                              <div className="space-y-2">
-                                {(() => {
-                                  const progressData = WorkflowProgressService.calculateProjectProgress(project);
-                                  const phaseBreakdown = progressData?.phaseBreakdown || {};
-                                  const phases = [
-                                    { key: 'LEAD', name: 'Lead', color: '#EAB308' },
-                                    { key: 'PROSPECT', name: 'Prospect', color: '#F97316' },
-                                    { key: 'APPROVED', name: 'Approved', color: '#10B981' },
-                                    { key: 'EXECUTION', name: 'Execution', color: '#D946EF' },
-                                    { key: 'SECOND_SUPPLEMENT', name: '2nd Supplement', color: '#8B5CF6' },
-                                    { key: 'COMPLETION', name: 'Completion', color: '#0EA5E9' }
-                                  ];
-                                  
-                                  return phases.map((phase) => {
-                                    const phaseData = phaseBreakdown[phase.key] || {};
-                                    const progress = phaseData.progress || 0;
-                                    const isCurrent = phaseData.isCurrent || false;
-                                    const isCompleted = phaseData.isCompleted || false;
-                                    
-                                    return (
-                                      <div key={phase.key} className="flex items-center gap-3">
-                                        <div className="w-24 flex items-center gap-2">
-                                          <div 
-                                            className="w-2 h-2 rounded-full flex-shrink-0" 
-                                            style={{ backgroundColor: phase.color }}
-                                          />
-                                          <span className={`text-xs font-medium ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>
-                                            {phase.name}
-                                          </span>
-                                        </div>
-                                        <div className="flex-1 h-5 bg-gray-200 rounded-full overflow-hidden relative">
-                                          <div 
-                                            className="h-full transition-all duration-500 flex items-center justify-center"
-                                            style={{ 
-                                              width: `${progress}%`,
-                                              backgroundColor: phase.color,
-                                              opacity: isCompleted ? 1 : isCurrent ? 0.9 : 0.3
-                                            }}
-                                          >
-                                            {progress > 15 && (
-                                              <span className="text-[10px] font-bold text-white drop-shadow-sm">
-                                                {progress}%
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <span className="w-12 text-right text-xs font-semibold text-gray-700">
-                                          {progress}%
-                                        </span>
-                                        {isCurrent && (
-                                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">
-                                            ACTIVE
-                                          </span>
-                                        )}
-                                        {isCompleted && !isCurrent && (
-                                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">
-                                            ✓
-                                          </span>
-                                        )}
-                                      </div>
-                                    );
-                                  });
-                                })()}
+                              <div className="grid grid-cols-3 gap-4">
+                                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                  <div className="text-xs text-gray-600 mb-1">Current Section</div>
+                                  <div className="text-sm font-semibold text-gray-900">
+                                    {project.currentWorkflowItem?.section || 'Not Started'}
+                                  </div>
+                                </div>
+                                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                  <div className="text-xs text-gray-600 mb-1">Active Task</div>
+                                  <div className="text-sm font-semibold text-gray-900 truncate">
+                                    {project.currentWorkflowItem?.lineItem || 'No active task'}
+                                  </div>
+                                </div>
+                                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                  <div className="text-xs text-gray-600 mb-1">Completed Tasks</div>
+                                  <div className="text-sm font-semibold text-gray-900">
+                                    {project.currentWorkflowItem?.completedItems?.length || 0} tasks
+                                  </div>
+                                </div>
                               </div>
                             </div>
 

@@ -56,6 +56,15 @@ export default function App() {
     // All hooks must be declared before any conditional returns
     const [activePage, setActivePage] = useState('Overview');
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarPinned, setSidebarPinned] = useState(() => {
+        try {
+            const saved = localStorage.getItem('sidebarPinned');
+            return saved ? JSON.parse(saved) : true;
+        } catch (_) {
+            return true;
+        }
+    });
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     // No default demo user in production auth
@@ -1243,23 +1252,60 @@ const apiUrl = window.location.hostname === 'localhost'
             )}
             
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-80 lg:w-72 flex flex-col transition-all duration-300 ease-in-out
+            <aside 
+                className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out
                 ${colorMode 
                     ? 'bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-r-2 border-brand-500 text-white' 
                     : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                mobile-safe-area`}> 
+                mobile-safe-area`}
+                style={{
+                    width: sidebarCollapsed && !sidebarPinned ? '64px' : '288px'
+                }}
+                onMouseEnter={() => !sidebarPinned && setSidebarCollapsed(false)}
+                onMouseLeave={() => !sidebarPinned && setTimeout(() => setSidebarCollapsed(true), 300)}
+            > 
                 {/* Sidebar header (logo) */}
                 <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-brand-500 bg-gradient-to-r from-neutral-800 to-neutral-900' : 'border-neutral-200 bg-gradient-to-r from-white to-neutral-50'}`}>
-                    <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-brand-glow overflow-hidden border-2 ${colorMode ? 'bg-neutral-800 border-brand-500' : 'bg-white border-neutral-200'}`}>
-                        <img src={colorMode ? "/kenstruction-logo-dark.png" : "/kenstruction-logo.png"} alt="Kenstruction Logo" className="w-full h-full object-contain rounded-xl" />
-                    </div>
+                    {!sidebarCollapsed ? (
+                        <>
+                            <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-brand-glow overflow-hidden border-2 ${colorMode ? 'bg-neutral-800 border-brand-500' : 'bg-white border-neutral-200'}`}>
+                                <img src={colorMode ? "/kenstruction-logo-dark.png" : "/kenstruction-logo.png"} alt="Kenstruction Logo" className="w-full h-full object-contain rounded-xl" />
+                            </div>
+                            <AIPoweredBadge />
+                        </>
+                    ) : (
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl ${colorMode ? 'bg-brand-500 text-white' : 'bg-blue-600 text-white'} shadow-lg`}>
+                            K
+                        </div>
+                    )}
                     
-                    {/* AI-Powered Badge - directly under logo */}
-                    <AIPoweredBadge />
+                    {/* Pin/Unpin Toggle Button */}
+                    <button
+                        onClick={() => {
+                            const newPinned = !sidebarPinned;
+                            setSidebarPinned(newPinned);
+                            localStorage.setItem('sidebarPinned', JSON.stringify(newPinned));
+                            if (!newPinned) {
+                                setSidebarCollapsed(true);
+                            }
+                        }}
+                        className={`mt-2 p-1.5 rounded-lg transition-colors ${colorMode ? 'hover:bg-neutral-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                        title={sidebarPinned ? 'Auto-collapse sidebar' : 'Pin sidebar'}
+                    >
+                        {sidebarPinned ? (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M16 12V4H17V2H7V4H8V12L6 14V16H11.2V22H12.8V16H18V14L16 12Z" />
+                            </svg>
+                        ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4H17V2H7V4H8V12L6 14V16H11.2V22H12.8V16H18V14L16 12Z" />
+                            </svg>
+                        )}
+                    </button>
                 </div>
                 {/* Sidebar nav (improved spacing) */}
-                <nav className="flex-1 py-3 pl-5 pr-4 space-y-1.5 overflow-hidden">
+                <nav className={`flex-1 py-3 space-y-1.5 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'px-2' : 'pl-5 pr-4'}`}>
                     {navigationItems.map((item, idx) => (
                         item.isAIAssistant ? (
                             <button
@@ -1275,7 +1321,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                 : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
                             }`}>
                                 <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
-                                <span className="flex-1">{item.name}</span>
+                                {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
                             </button>
                         ) : item.isDropdown ? (
                             <div key={item.name} className="relative group">
@@ -1286,8 +1332,8 @@ const apiUrl = window.location.hostname === 'localhost'
                                     aria-expanded="false"
                                 >
                                     <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
-                                    <span className="flex-1">{item.name}</span>
-                                    <span className="ml-auto"><ChevronDownIcon className="w-3 h-3" /></span>
+                                    {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
+                                    {!sidebarCollapsed && <span className="ml-auto"><ChevronDownIcon className="w-3 h-3" /></span>}
                                 </button>
                                 {/* Dropdown menu */}
                                 <div className="absolute left-0 top-full z-20 min-w-[180px] bg-gradient-to-b from-[#232b4d] to-[#181f3a] shadow-xl rounded-lg py-2 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none transition-all duration-200 border border-[#3b82f6] text-white" style={{marginTop: 2}}>
@@ -1320,7 +1366,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                         : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
                                 }`}> 
                                 <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
-                                <span className="flex-1">{item.name}</span>
+                                {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
                             </button>
                         ) : item.isBullet ? (
                             <button key={item.name} onClick={() => navigate(item.page)}
@@ -1346,9 +1392,14 @@ const apiUrl = window.location.hostname === 'localhost'
                                             ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
                                     : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
                             }`}>
-                            <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
-                            <span className="flex-1">{item.name}</span>
-                            {item.badge && item.badge > 0 && (
+                            <span className="w-4 h-4 flex items-center justify-center relative">
+                                {item.icon}
+                                {sidebarCollapsed && item.badge && item.badge > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                )}
+                            </span>
+                            {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
+                            {!sidebarCollapsed && item.badge && item.badge > 0 && (
                                 <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[7px] font-bold rounded-full ml-2 ${
                                     item.page === 'Project Messages' 
                                         ? colorMode 
@@ -1371,7 +1422,7 @@ const apiUrl = window.location.hostname === 'localhost'
             {/* Main content */}
             <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white' : ''}`} style={{ minWidth: 0, fontSize: '12px' }}>
                 {/* Desktop header with user profile */}
-                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-colors duration-500 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
+                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-all duration-300 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'bg-white/95 backdrop-blur-sm border-neutral-200 shadow-sm'}`}>
                     <div className="flex items-center flex-1 min-w-0">
                         {activePage !== 'Overview' && (
                             <div className="flex-shrink-0">

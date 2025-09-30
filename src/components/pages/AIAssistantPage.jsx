@@ -7,6 +7,7 @@ import { useSubjects } from '../../contexts/SubjectsContext';
 import EnhancedProjectDropdown from '../ui/EnhancedProjectDropdown';
 import TranscriptHistory from '../ui/TranscriptHistory2';
 import { CheatSheetModal } from '../common/CheatSheet';
+import assetsService from '../../services/assetsService';
 // Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
@@ -71,6 +72,12 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [liveTranscriptText, setLiveTranscriptText] = useState('');
     const MAX_TRANSCRIPT_PREVIEW_LINES = 8; // tweakable
     
+    // Document browser state
+    const [showDocumentBrowser, setShowDocumentBrowser] = useState(false);
+    const [availableDocuments, setAvailableDocuments] = useState([]);
+    const [documentsLoading, setDocumentsLoading] = useState(false);
+    const [documentSearch, setDocumentSearch] = useState('');
+    
     // Current user display name (for transcript labels)
     const [currentUserDisplayName, setCurrentUserDisplayName] = useState('');
 
@@ -97,6 +104,55 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             setCurrentUserDisplayName(name);
         } catch (_) {}
     }, []);
+
+    // Fetch available documents for the document browser
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            if (!showDocumentBrowser) return;
+            setDocumentsLoading(true);
+            try {
+                // Fetch all documents recursively from all folders
+                const allFiles = [];
+                const foldersToProcess = [null]; // Start with root
+                const processedFolders = new Set();
+                
+                while (foldersToProcess.length > 0) {
+                    const currentParentId = foldersToProcess.shift();
+                    const folderKey = currentParentId || 'root';
+                    
+                    if (processedFolders.has(folderKey)) continue;
+                    processedFolders.add(folderKey);
+                    
+                    try {
+                        const response = await assetsService.list({ 
+                            parentId: currentParentId, 
+                            limit: 1000 
+                        });
+                        
+                        if (response && response.assets && Array.isArray(response.assets)) {
+                            // Add files to our list
+                            const files = response.assets.filter(item => item.type === 'FILE');
+                            allFiles.push(...files);
+                            
+                            // Add folders to process queue
+                            const folders = response.assets.filter(item => item.type === 'FOLDER');
+                            folders.forEach(folder => foldersToProcess.push(folder.id));
+                        }
+                    } catch (err) {
+                        console.error(`Failed to fetch from folder ${folderKey}:`, err);
+                    }
+                }
+                
+                console.log('Found documents:', allFiles.length, allFiles);
+                setAvailableDocuments(allFiles);
+            } catch (error) {
+                console.error('Failed to fetch documents:', error);
+            } finally {
+                setDocumentsLoading(false);
+            }
+        };
+        fetchDocuments();
+    }, [showDocumentBrowser]);
 
     // Voice conversation tracking for summary
     const [voiceConversation, setVoiceConversation] = useState([]);
@@ -1877,9 +1933,20 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     {/* Header Actions */}
                     <div className="flex items-center gap-2">
                         <button
+                            onClick={() => setShowDocumentBrowser(!showDocumentBrowser)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md ${
+                                showDocumentBrowser 
+                                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                                    : 'bg-gray-600 text-white hover:bg-gray-700'
+                            }`}
+                            title="Show available documents"
+                        >
+                            <FolderIcon className="w-4 h-4" />
+                            <span className="hidden md:inline">Documents</span>
+                        </button>
+                        <button
                             onClick={() => setShowPlaybook(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all shadow-md"
-                            style={{ background: 'linear-gradient(to right, #f59e0b, #d97706)' }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all shadow-md bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700"
                             title="Bubbles Assistant Playbook"
                         >
                             <SparklesIcon className="w-4 h-4" />
@@ -2075,6 +2142,76 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                 })
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Document Browser Sidebar */}
+            {showDocumentBrowser && (
+                <div className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col overflow-hidden">
+                    <div className="p-4 border-b border-gray-200 bg-white">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-semibold text-gray-800">Available Documents</h3>
+                            <button
+                                onClick={() => setShowDocumentBrowser(false)}
+                                className="p-1 hover:bg-gray-100 rounded"
+                                title="Close"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search documents..."
+                            value={documentSearch}
+                            onChange={(e) => setDocumentSearch(e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-3">
+                        {documentsLoading ? (
+                            <div className="text-center py-8 text-gray-500 text-sm">Loading documents...</div>
+                        ) : availableDocuments.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500 text-sm">No documents found</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {availableDocuments
+                                    .filter(doc => {
+                                        const name = doc.filename || doc.name || doc.title || '';
+                                        return !documentSearch || name.toLowerCase().includes(documentSearch.toLowerCase());
+                                    })
+                                    .map(doc => {
+                                        const docName = doc.filename || doc.name || doc.title || 'Untitled';
+                                        return (
+                                            <div
+                                                key={doc.id}
+                                                className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer group"
+                                                onClick={() => {
+                                                    setInput(input + (input ? ' ' : '') + `"${docName}"`);
+                                                    inputRef.current?.focus();
+                                                }}
+                                                title={`Click to insert "${docName}" into message`}
+                                            >
+                                                <div className="flex items-start gap-2">
+                                                    <DocumentTextIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">
+                                                            {docName}
+                                                        </div>
+                                                        {doc.fileSize && (
+                                                            <div className="text-xs text-gray-500 mt-1">
+                                                                {(doc.fileSize / 1024).toFixed(0)} KB
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

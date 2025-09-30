@@ -32,11 +32,12 @@ const MTRFilters = ({
             else if (activeCommTab === 'tasks') setTasksProjectFilter(e.target.value);
             else setRemindersProjectFilter(e.target.value);
           }}
-          className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+          className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-gray-300 transition-all duration-300 min-w-[120px]"
+          style={{ color: '#111827' }}
         >
-          <option value="">All Projects</option>
+          <option value="" style={{ color: '#111827', backgroundColor: '#ffffff' }}>All Projects</option>
           {(projects || []).map(p => (
-            <option key={p.id} value={p.id}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
+            <option key={p.id} value={p.id} style={{ color: '#111827', backgroundColor: '#ffffff' }}>#{String(p.projectNumber || p.id).padStart(5, '0')} - {p.customer?.name || p.clientName || p.name}</option>
           ))}
         </select>
         
@@ -47,11 +48,14 @@ const MTRFilters = ({
             else if (activeCommTab === 'tasks') setTasksUserFilter(e.target.value);
             else setRemindersUserFilter(e.target.value);
           }}
-          className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
+          className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-gray-300 transition-all duration-300 min-w-[100px]"
+          style={{ color: '#111827' }}
         >
-          <option value="">All Users</option>
+          <option value="" style={{ color: '#111827', backgroundColor: '#ffffff' }}>All Users</option>
           {availableUsers.map(u => (
-            <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+            <option key={u.id} value={u.id} style={{ color: '#111827', backgroundColor: '#ffffff' }}>
+              {u.firstName} {u.lastName}
+            </option>
           ))}
         </select>
       </div>
