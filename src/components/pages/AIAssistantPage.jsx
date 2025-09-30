@@ -1936,8 +1936,8 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             onClick={() => setShowDocumentBrowser(!showDocumentBrowser)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md ${
                                 showDocumentBrowser 
-                                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                                    : 'bg-gray-600 text-white hover:bg-gray-700'
+                                    ? 'bg-[#6BC22E] text-white hover:bg-[#5AB01D]' 
+                                    : 'bg-[#7ED242] text-white hover:bg-[#6BC22E]'
                             }`}
                             title="Show available documents"
                         >

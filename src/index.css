@@ -3,31 +3,50 @@
 @tailwind utilities;
 
 :root {
-  /* Primary & Accent Colors */
-  --color-primary-blueprint-blue: #1A5A99;
-  --color-accent-safety-orange: #FF7A00;
+  /* Primary & Accent Colors (from Bubbles AI logo) */
+  --color-brand-aqua-blue: #0089D1;
+  --color-brand-deep-teal: #0069B5;
+  --color-accent-vibrant-green: #7ED242;
+  --color-accent-fresh-green: #B3E08F;
 
-  /* Neutral Colors (The "Steel") */
-  --color-background-gray: #F8F9FA;
+  /* Neutral Colors (The Foundation) */
+  --color-background-ash: #F0F2F5;
   --color-surface-white: #FFFFFF;
-  --color-text-ink-black: #1F2937;
-  --color-text-slate-gray: #6B7281;
-  --color-border-gray: #E5E7EB;
+  --color-text-charcoal: #343A40;
+  --color-text-light-gray: #6C757D;
+  --color-border-silver: #E9ECEF;
 
   /* Semantic & Status Colors */
-  --color-success-green: #10B981;
-  --color-warning-amber: #F59E0B;
-  --color-info-indigo: #6366F1;
-  --color-prospect-teal: #14B8A6;
-  --color-danger-red: #EF4444;
+  --color-semantic-success: #28A745;
+  --color-semantic-warning: #FFC107;
+  --color-semantic-info: #17A2B8;
+  --color-semantic-danger: #DC3545;
 
-  /* Utility Tints & shades */
-  --color-primary-light-tint: #E8F0F7;
-  --color-danger-light-tint: #FEE2E2;
+  /* Utility Tints/Shades (Recommended for hover/active states) */
+  --color-brand-aqua-blue-light-tint: #E0F2FC;
+  --color-brand-aqua-blue-dark-shade: #005F99;
+  --color-accent-vibrant-green-dark: #6BC22E;
+  --color-danger-light-tint: #F8D7DA;
 
   /* Shared elevations */
-  --shadow-soft: 0 2px 8px rgba(17, 24, 39, 0.08);
-  --shadow-medium: 0 4px 12px rgba(17, 24, 39, 0.12);
+  --shadow-soft: 0 2px 8px rgba(0, 137, 209, 0.08);
+  --shadow-medium: 0 4px 12px rgba(0, 137, 209, 0.12);
+  --shadow-glow-aqua: 0 0 20px rgba(0, 137, 209, 0.3);
+  --shadow-glow-green: 0 0 20px rgba(126, 210, 66, 0.25);
+
+  /* BACKWARD COMPATIBILITY ALIASES - Map old variable names to new colors */
+  --color-background-gray: var(--color-background-ash);
+  --color-text-ink-black: var(--color-text-charcoal);
+  --color-text-slate-gray: var(--color-text-light-gray);
+  --color-border-gray: var(--color-border-silver);
+  --color-primary-blueprint-blue: var(--color-brand-aqua-blue);
+  --color-accent-safety-orange: var(--color-accent-vibrant-green);
+  --color-success-green: var(--color-semantic-success);
+  --color-warning-amber: var(--color-semantic-warning);
+  --color-info-indigo: var(--color-semantic-info);
+  --color-prospect-teal: var(--color-accent-fresh-green);
+  --color-danger-red: var(--color-semantic-danger);
+  --color-primary-light-tint: var(--color-brand-aqua-blue-light-tint);
 }
 
 /* Base reset to prevent layout issues */
@@ -47,20 +66,20 @@ body {
   min-height: 100vh;
   /* Prevent zoom on iOS */
   touch-action: manipulation;
-  background-color: var(--color-background-gray);
-  color: var(--color-text-ink-black);
+  background-color: var(--color-background-ash);
+  color: var(--color-text-charcoal);
 }
 
 #root {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-  background-color: var(--color-background-gray);
+  background-color: var(--color-background-ash);
   color: inherit;
 }
 
 main {
-  background-color: var(--color-background-gray);
+  background-color: var(--color-background-ash);
   color: inherit;
 }
 
@@ -72,21 +91,27 @@ main {
 .bg-gray-50,
 .bg-gray-100 {
   background-color: var(--color-surface-white) !important;
-  color: var(--color-text-ink-black) !important;
+  color: var(--color-text-charcoal) !important;
 }
 
 .border-gray-100,
 .border-gray-200,
 .border-gray-300,
+.border-gray-400,
 .divide-gray-100,
-.divide-gray-200 {
-  border-color: var(--color-border-gray) !important;
+.divide-gray-200,
+.divide-gray-300,
+.border-t,
+.border-b,
+.border-l,
+.border-r {
+  border-color: var(--color-border-silver) !important;
 }
 
 .text-gray-900,
 .text-gray-800,
 .text-gray-700 {
-  color: var(--color-text-ink-black) !important;
+  color: var(--color-text-charcoal) !important;
 }
 
 .text-gray-600,
@@ -94,18 +119,18 @@ main {
 .text-gray-400,
 .text-slate-500,
 .text-slate-600 {
-  color: var(--color-text-slate-gray) !important;
+  color: var(--color-text-light-gray) !important;
 }
 
 /* Link treatments */
 a,
 .link-primary {
-  color: var(--color-primary-blueprint-blue);
+  color: var(--color-brand-aqua-blue);
 }
 
 a:hover,
 .link-primary:hover {
-  color: var(--color-accent-safety-orange);
+  color: var(--color-brand-deep-teal);
 }
 
 /* Button theming */
@@ -120,64 +145,66 @@ a:hover,
 
 .btn-primary,
 .primary-cta {
-  background-color: var(--color-accent-safety-orange);
+  background-color: var(--color-brand-aqua-blue);
   color: var(--color-surface-white);
-  border-color: var(--color-accent-safety-orange);
+  border-color: var(--color-brand-aqua-blue);
 }
 
 .btn-primary:hover,
 .primary-cta:hover {
-  background-color: color-mix(in srgb, var(--color-accent-safety-orange) 90%, var(--color-surface-white) 10%);
-  border-color: color-mix(in srgb, var(--color-accent-safety-orange) 85%, var(--color-surface-white) 15%);
+  background-color: var(--color-brand-deep-teal);
+  border-color: var(--color-brand-aqua-blue-dark-shade);
+  box-shadow: var(--shadow-glow-aqua);
 }
 
 .btn-secondary,
 .secondary-cta {
-  background-color: var(--color-primary-blueprint-blue);
+  background-color: var(--color-accent-vibrant-green);
   color: var(--color-surface-white);
-  border-color: var(--color-primary-blueprint-blue);
+  border-color: var(--color-accent-vibrant-green);
 }
 
 .btn-secondary:hover,
 .secondary-cta:hover {
-  background-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 92%, var(--color-surface-white) 8%);
-  border-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 85%, var(--color-surface-white) 15%);
+  background-color: var(--color-accent-vibrant-green-dark);
+  border-color: var(--color-accent-vibrant-green-dark);
+  box-shadow: var(--shadow-glow-green);
 }
 
 .btn-tertiary,
 .tertiary-cta {
   background-color: var(--color-surface-white);
-  color: var(--color-text-ink-black);
-  border-color: var(--color-border-gray);
+  color: var(--color-text-charcoal);
+  border-color: var(--color-border-silver);
 }
 
 .btn-tertiary:hover,
 .tertiary-cta:hover {
-  background-color: var(--color-background-gray);
+  background-color: var(--color-background-ash);
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-primary-blueprint-blue);
+  outline: 2px solid var(--color-brand-aqua-blue);
   outline-offset: 2px;
 }
 
 /* Sidebar styling */
 .sidebar {
   background-color: var(--color-surface-white);
-  border-right: 1px solid var(--color-border-gray);
-  color: var(--color-text-slate-gray);
+  border-right: 1px solid var(--color-border-silver);
+  color: var(--color-text-light-gray);
 }
 
 .sidebar-header {
   background-color: var(--color-surface-white);
-  border-bottom: 1px solid var(--color-border-gray);
+  border-bottom: 1px solid var(--color-border-silver);
 }
 
 .sidebar-nav-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--color-text-slate-gray);
+  color: var(--color-text-light-gray);
   background-color: transparent;
   border-left: 3px solid transparent;
   border-radius: 0.5rem;
@@ -186,14 +213,14 @@ a:hover,
 
 .sidebar-nav-link:hover,
 .sidebar-nav-link:focus-visible {
-  background-color: var(--color-background-gray);
-  color: var(--color-text-ink-black);
+  background-color: var(--color-background-ash);
+  color: var(--color-text-charcoal);
 }
 
 .sidebar-nav-link--active {
-  color: var(--color-primary-blueprint-blue);
-  background-color: var(--color-primary-light-tint);
-  border-left-color: var(--color-primary-blueprint-blue);
+  color: var(--color-brand-aqua-blue);
+  background-color: var(--color-brand-aqua-blue-light-tint);
+  border-left-color: var(--color-brand-aqua-blue);
   font-weight: 600;
 }
 
@@ -214,13 +241,13 @@ a:hover,
 }
 
 .phase-pill--selected {
-  background-color: var(--color-primary-blueprint-blue);
+  background-color: var(--color-brand-aqua-blue);
   color: var(--color-surface-white);
 }
 
 .phase-pill--unselected {
-  background-color: var(--color-background-gray);
-  color: var(--color-text-slate-gray);
+  background-color: var(--color-background-ash);
+  color: var(--color-text-light-gray);
 }
 
 /* Status circles */
@@ -235,24 +262,24 @@ a:hover,
   color: var(--color-surface-white);
 }
 
-.status-lead { background-color: var(--color-warning-amber); }
-.status-prospect { background-color: var(--color-prospect-teal); }
-.status-approved { background-color: var(--color-success-green); }
-.status-execution { background-color: var(--color-info-indigo); }
-.status-completion { background-color: var(--color-success-green); }
+.status-lead { background-color: var(--color-semantic-warning); }
+.status-prospect { background-color: var(--color-accent-fresh-green); }
+.status-approved { background-color: var(--color-semantic-success); }
+.status-execution { background-color: var(--color-semantic-info); }
+.status-completion { background-color: var(--color-semantic-success); }
 
 /* Content modules */
 .module-header {
-  color: var(--color-text-ink-black);
+  color: var(--color-text-charcoal);
 }
 
 .module-subtext {
-  color: var(--color-text-slate-gray);
+  color: var(--color-text-light-gray);
 }
 
 .module-link,
 .module-link:hover {
-  color: var(--color-primary-blueprint-blue);
+  color: var(--color-brand-aqua-blue);
   text-decoration: none;
 }
 
@@ -260,7 +287,7 @@ a:hover,
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: var(--color-accent-safety-orange);
+  background-color: var(--color-accent-vibrant-green);
 }
 
 .tag-reminder {
@@ -269,7 +296,7 @@ a:hover,
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
   background-color: var(--color-danger-light-tint);
-  color: var(--color-danger-red);
+  color: var(--color-semantic-danger);
   font-weight: 600;
   font-size: 0.75rem;
 }
@@ -278,26 +305,26 @@ a:hover,
 .bg-blue-600,
 .hover\:bg-blue-600:hover,
 .focus\:bg-blue-600:focus {
-  background-color: var(--color-primary-blueprint-blue) !important;
+  background-color: var(--color-brand-aqua-blue) !important;
   color: var(--color-surface-white) !important;
 }
 
 .bg-blue-700,
 .hover\:bg-blue-700:hover {
-  background-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 92%, var(--color-text-ink-black) 8%) !important;
+  background-color: var(--color-brand-deep-teal) !important;
 }
 
 .bg-blue-500,
 .hover\:bg-blue-500:hover {
-  background-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 88%, var(--color-surface-white) 12%) !important;
+  background-color: var(--color-brand-aqua-blue) !important;
 }
 
 .bg-blue-100,
 .bg-blue-200,
 .bg-blue-300,
 .bg-blue-50 {
-  background-color: var(--color-primary-light-tint) !important;
-  color: var(--color-primary-blueprint-blue) !important;
+  background-color: var(--color-brand-aqua-blue-light-tint) !important;
+  color: var(--color-brand-aqua-blue) !important;
 }
 
 .text-blue-600,
@@ -305,52 +332,52 @@ a:hover,
 .text-blue-500,
 .hover\:text-blue-600:hover,
 .hover\:text-blue-700:hover {
-  color: var(--color-primary-blueprint-blue) !important;
+  color: var(--color-brand-aqua-blue) !important;
 }
 
 .border-blue-200,
 .border-blue-300,
 .border-blue-500,
 .border-blue-600 {
-  border-color: color-mix(in srgb, var(--color-primary-blueprint-blue) 85%, var(--color-surface-white) 15%) !important;
+  border-color: var(--color-brand-aqua-blue) !important;
 }
 
 .ring-blue-500,
 .focus\:ring-blue-500:focus,
 .focus\:ring-blue-600:focus {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-blueprint-blue) 20%, transparent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 137, 209, 0.3) !important;
 }
 
 .bg-orange-500,
 .text-orange-600 {
-  background-color: var(--color-accent-safety-orange) !important;
+  background-color: var(--color-accent-vibrant-green) !important;
   color: var(--color-surface-white) !important;
 }
 
 .bg-green-500,
 .text-green-600,
 .bg-green-600 {
-  background-color: var(--color-success-green) !important;
+  background-color: var(--color-semantic-success) !important;
   color: var(--color-surface-white) !important;
 }
 
 .bg-red-500,
 .text-red-600,
 .bg-red-600 {
-  background-color: var(--color-danger-red) !important;
+  background-color: var(--color-semantic-danger) !important;
   color: var(--color-surface-white) !important;
 }
 
 .bg-yellow-100,
 .bg-yellow-200 {
-  background-color: color-mix(in srgb, var(--color-warning-amber) 18%, var(--color-surface-white) 82%) !important;
-  color: var(--color-warning-amber) !important;
+  background-color: #FFF9E6 !important;
+  color: var(--color-semantic-warning) !important;
 }
 
 .bg-blue-100.text-blue-700,
 .bg-blue-50.text-blue-700,
 .bg-blue-100.text-blue-600 {
-  color: var(--color-primary-blueprint-blue) !important;
+  color: var(--color-brand-aqua-blue) !important;
 }
 
 /* Strong no-page-scroll mode, applied via body/html class from the AI page */
@@ -624,21 +651,20 @@ main {
 .shadow-soft {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-
 .shadow-medium {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
+  box-shadow: var(--shadow-glow-aqua);
 }
 
 .shadow-brand-glow {
-  box-shadow: 0 0 30px rgba(0, 102, 204, 0.2);
+  box-shadow: 0 0 30px rgba(0, 137, 209, 0.25);
 }
 
 .shadow-accent-glow {
-  box-shadow: 0 0 20px rgba(255, 107, 53, 0.15);
+  box-shadow: var(--shadow-glow-green);
 }
 
 /* Mobile-specific utilities */
@@ -825,7 +851,7 @@ main {
 
 /* Mobile focus optimizations */
 .mobile-focus-visible {
-  outline: 2px solid #0066CC;
+  outline: 2px solid var(--color-brand-aqua-blue);
   outline-offset: 2px;
 }
 

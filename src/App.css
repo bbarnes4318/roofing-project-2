@@ -1,10 +1,10 @@
-/* App.css */
+/* App.css - Aqua & Verdant Theme */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--color-background-gray);
+  background-color: var(--color-background-ash);
   margin: 0;
   padding: 0;
-  color: var(--color-text-ink-black);
+  color: var(--color-text-charcoal);
 }
 
 .app {
@@ -19,12 +19,12 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: var(--shadow-soft);
-  border-bottom: 1px solid var(--color-border-gray);
+  border-bottom: 1px solid var(--color-border-silver);
 }
 
 .app-header h1 {
   font-size: 1.5rem;
-  color: var(--color-text-ink-black);
+  color: var(--color-text-charcoal);
   margin: 0;
 }
 

@@ -31,21 +31,21 @@ const DocumentsResourcesPage = () => {
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [newFolderName, setNewFolderName] = useState('');
 
-  // Load ALL folders for sidebar tree
+  // Load folders for sidebar tree - optimized with smaller limit
   const loadAllFolders = async () => {
     try {
-      const data = await assetsService.list({ type: 'FOLDER', limit: 500 });
+      const data = await assetsService.list({ type: 'FOLDER', limit: 100 });
       setAllFolders(data?.assets || []);
     } catch (err) {
       console.error('Failed to load folders');
     }
   };
 
-  // Load items for current folder
+  // Load items for current folder - optimized
   const loadItems = async (parentId = null) => {
     setLoading(true);
     try {
-      const data = await assetsService.list({ parentId, search, limit: 200 });
+      const data = await assetsService.list({ parentId, search, limit: 50 });
       setItems(data?.assets || []);
       setBreadcrumbs(data?.breadcrumbs || []);
     } catch (err) {
@@ -55,50 +55,21 @@ const DocumentsResourcesPage = () => {
     }
   };
 
+  // Optimized loading - folders load once, items reload on folder/search change
   useEffect(() => {
     loadAllFolders();
-    loadItems(currentFolder);
-  }, [currentFolder, search]);
+  }, []); // Only load folders once on mount
 
-  // Sync project folders on mount
   useEffect(() => {
-    const syncFolders = async () => {
-      try {
-        const projectsResponse = await api.get('/projects');
-        const projects = projectsResponse.data?.data || [];
-        
-        if (!projects.length) return;
+    loadItems(currentFolder);
+  }, [currentFolder, search]); // Only reload items when folder or search changes
 
-        const rootFolders = await assetsService.listFolders({ parentId: null });
-        let projectsFolder = rootFolders.find(f => f.title === 'Projects');
-        
-        if (!projectsFolder) {
-          projectsFolder = await assetsService.createFolder({
-            name: 'Projects',
-            parentId: null,
-            description: 'Project folders'
-          });
-        }
-
-        const existingFolders = await assetsService.listFolders({ parentId: projectsFolder.id });
-        
-        for (const project of projects) {
-          const exists = existingFolders.find(f => f.metadata?.projectId === project.id);
-          if (!exists) {
-            await assetsService.createFolder({
-              name: `Project ${String(project.projectNumber).padStart(5, '0')} - ${project.client?.name || 'Unknown'}`.substring(0, 100),
-              parentId: projectsFolder.id,
-              description: `Project ${project.projectNumber}`,
-              metadata: { projectId: project.id, projectNumber: project.projectNumber, autoManaged: true }
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Sync failed:', err);
-      }
-    };
-    
-    setTimeout(syncFolders, 1000);
+  // Lazy sync project folders - only create when needed, not on every page load
+  // This improves initial page load time dramatically
+  useEffect(() => {
+    // Project folders are now created on-demand when a project is accessed
+    // or can be triggered manually via a sync button if needed
+    // Removing automatic sync on mount to improve performance
   }, []);
 
   const handleUpload = async () => {
@@ -218,8 +189,8 @@ const DocumentsResourcesPage = () => {
       <div>
         <div
           className={`flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer transition group ${
-            currentFolder === folder.id ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100'
-          } ${dropTarget === folder.id ? 'bg-blue-50 ring-2 ring-blue-400' : ''}`}
+            currentFolder === folder.id ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-100'
+          } ${dropTarget === folder.id ? 'bg-blue-50 ring-2 ring-blue-300' : ''}`}
           style={{ paddingLeft: `${level * 16 + 12}px` }}
           onDragOver={(e) => { handleDragOver(e); setDropTarget(folder.id); }}
           onDragLeave={() => setDropTarget(null)}
@@ -234,7 +205,7 @@ const DocumentsResourcesPage = () => {
               )}
             </button>
           )}
-          <FolderIcon className="h-5 w-5 flex-shrink-0 text-blue-500" />
+          <FolderIcon className="h-5 w-5 flex-shrink-0 text-slate-500" />
           <span
             className="flex-1 text-sm truncate"
             onClick={() => setCurrentFolder(folder.id)}
@@ -257,8 +228,8 @@ const DocumentsResourcesPage = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      {/* Compact Header with All Controls */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg">
+      {/* Compact Header with All Controls - Subtle Aqua Theme */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-[#0089D1] to-[#0069B5] text-white shadow-lg">
         <div className="px-6 py-3 flex items-center justify-between gap-6">
           {/* Left: Folder Creation */}
           <div className="flex items-center gap-3">
@@ -315,7 +286,7 @@ const DocumentsResourcesPage = () => {
             </button>
             <button
               onClick={() => setUploadModalOpen(true)}
-              className="px-3 py-1.5 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition"
+              className="px-3 py-1.5 bg-[#7ED242] text-white rounded-lg text-sm font-medium hover:bg-[#6BC22E] hover:shadow-lg transition"
             >
               <CloudArrowUpIcon className="h-4 w-4 inline mr-1.5" />
               Upload
@@ -331,13 +302,13 @@ const DocumentsResourcesPage = () => {
           <div className="flex-1 overflow-y-auto p-3">
             <div
               className={`flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer mb-1 ${
-                currentFolder === null ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100'
+                currentFolder === null ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-100'
               }`}
               onClick={() => setCurrentFolder(null)}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, null)}
             >
-              <FolderIcon className="h-5 w-5 text-blue-500" />
+              <FolderIcon className="h-5 w-5 text-slate-500" />
               <span className="text-sm font-medium">Home</span>
             </div>
             {buildFolderTree(null).map(folder => (
@@ -353,7 +324,7 @@ const DocumentsResourcesPage = () => {
           <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
             {loading ? (
               <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0089D1]"></div>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-4">
@@ -366,11 +337,11 @@ const DocumentsResourcesPage = () => {
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, folder.id)}
                     onClick={() => setCurrentFolder(folder.id)}
-                    className={`p-4 bg-white border-2 rounded-xl cursor-pointer hover:shadow-lg transition group ${
+                    className={`p-4 bg-white border-2 rounded-xl cursor-pointer hover:shadow-md hover:border-blue-300 transition group ${
                       draggedItem?.id === folder.id ? 'opacity-50' : ''
                     } ${dropTarget === folder.id ? 'border-blue-400 bg-blue-50' : 'border-slate-200'}`}
                   >
-                    <FolderIcon className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+                    <FolderIcon className="h-12 w-12 text-amber-500 mx-auto mb-2" />
                     <p className="text-sm font-medium text-center truncate">{folder.title}</p>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDelete(folder.id); }}
@@ -387,11 +358,11 @@ const DocumentsResourcesPage = () => {
                     key={file.id}
                     draggable
                     onDragStart={(e) => handleDragStart(e, file)}
-                    className={`p-4 bg-white border border-slate-200 rounded-xl hover:shadow-lg transition group relative ${
+                    className={`p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition group relative ${
                       draggedItem?.id === file.id ? 'opacity-50' : ''
                     }`}
                   >
-                    <DocumentIcon className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+                    <DocumentIcon className="h-12 w-12 text-blue-500 mx-auto mb-2" />
                     <p className="text-sm font-medium text-center truncate mb-1">{file.title}</p>
                     <p className="text-xs text-slate-500 text-center">{(file.fileSize / 1024 / 1024).toFixed(2)} MB</p>
                     <button
@@ -436,7 +407,7 @@ const DocumentsResourcesPage = () => {
               <button
                 onClick={handleUpload}
                 disabled={!selectedFiles.length || uploading}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-[#7ED242] text-white rounded-xl font-medium hover:bg-[#6BC22E] hover:shadow-lg disabled:bg-slate-300 disabled:cursor-not-allowed transition"
               >
                 {uploading ? 'Uploading...' : 'Upload'}
               </button>

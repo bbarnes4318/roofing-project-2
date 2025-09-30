@@ -692,12 +692,12 @@ const BubblesChat = ({
           colorMode ? 'border-blue-400/20 bg-slate-900/70' : 'border-gray-200/80 bg-white/70'
         }`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-[#0089D1] to-[#0069B5]">
               <SparklesIcon className="w-6 h-6 text-white" />
             </div>
             <div>
               <h3 className="font-bold text-md">Bubbles AI</h3>
-              <p className={`text-xs ${colorMode ? 'text-blue-300' : 'text-blue-600'}`}>
+              <p className={`text-xs ${colorMode ? 'text-blue-300' : 'text-slate-600'}`}>
                 {isTyping ? 'Thinking...' : (currentProject?.name || 'Your Project Copilot')}
               </p>
             </div>
@@ -706,7 +706,7 @@ const BubblesChat = ({
             {/* Assistant Playbook Button - PROMINENT */}
             <button
               onClick={() => setIsQuickModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all shadow-sm bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all shadow-sm bg-[#7ED242] hover:bg-[#6BC22E] text-white"
               title="Bubbles Assistant Playbook"
             >
               <SparklesIcon className="w-4 h-4" />
@@ -737,7 +737,7 @@ const BubblesChat = ({
             >
               <ArchiveBoxIcon className="w-5 h-5" />
               {chatHistory.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                <span className="absolute -top-1 -right-1 bg-[#7ED242] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                   {chatHistory.length > 99 ? '99+' : chatHistory.length}
                 </span>
               )}
@@ -784,8 +784,8 @@ const BubblesChat = ({
                   onClick={startNewChat}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     colorMode 
-                      ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500 text-white' 
-                      : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)] text-white'
+                      ? 'bg-[#7ED242] hover:bg-[#6BC22E] text-white' 
+                      : 'bg-[#7ED242] hover:bg-[#6BC22E] text-white'
                   }`}
                 >
                   New Chat
@@ -838,8 +838,8 @@ const BubblesChat = ({
                       key={chat.id}
                       className={`group relative p-3 rounded-lg cursor-pointer transition-all ${
                         isActive
-                          ? (colorMode ? 'bg-[var(--color-primary-blueprint-blue)]/20 border border-blue-500/50' : 'bg-blue-50 border border-blue-200')
-                          : (colorMode ? 'hover:bg-slate-800/50 border border-transparent' : 'hover:bg-gray-50 border border-transparent')
+                          ? (colorMode ? 'bg-blue-500/20 border border-blue-500/50' : 'bg-blue-50 border border-blue-200')
+                          : (colorMode ? 'hover:bg-slate-800/50 border border-transparent' : 'hover:bg-slate-50 border border-transparent')
                       }`}
                       onClick={() => loadChatFromHistory(chat.id)}
                     >
@@ -930,8 +930,8 @@ const BubblesChat = ({
           )}
           {!isLoading && messages.length === 0 && (
             <div className="flex flex-col justify-center items-center h-full text-center p-8">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 mb-4">
-                <SparklesIcon className="w-8 h-8 text-blue-500" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 mb-4">
+                <SparklesIcon className="w-8 h-8 text-[#0089D1]" />
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                 Chat Cleared
@@ -944,16 +944,16 @@ const BubblesChat = ({
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] rounded-xl p-3 shadow-md transition-all duration-200 text-sm leading-relaxed ${
-                msg.type === 'user' ? (colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-blue-500 text-white') :
+                msg.type === 'user' ? (colorMode ? 'bg-[#0089D1] text-white' : 'bg-blue-500 text-white') :
                 msg.type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
-                (colorMode ? 'bg-slate-700 text-white' : 'bg-gray-100 text-gray-900')
+                (colorMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-900')
               }`}>
                 <div className="space-y-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: renderMessageContent(msg.content) }} />
                 {msg.suggestedActions && msg.suggestedActions.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {msg.suggestedActions.map((action, i) => (
                       <button key={i} onClick={() => handleSendMessage(action.label)} className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
-                        colorMode ? 'bg-[var(--color-primary-blueprint-blue)]/20 border-blue-500/50 text-blue-200 hover:bg-[var(--color-primary-blueprint-blue)]/40' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                        colorMode ? 'bg-blue-500/20 border-blue-500/50 text-blue-200 hover:bg-blue-500/40' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
                       }`}>
                         {action.label}
                       </button>
@@ -967,9 +967,9 @@ const BubblesChat = ({
             <div className="flex justify-start">
               <div className={`rounded-xl p-3 shadow-md ${colorMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-[#0089D1] rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-[#0089D1] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-[#0089D1] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -1010,7 +1010,7 @@ const BubblesChat = ({
               </div>
               <div className="flex items-center justify-end gap-2 mt-1">
                 <button onClick={() => setIsComposerOpen(false)} className={`text-xs px-3 py-1 rounded-md border ${colorMode ? 'border-slate-600 hover:bg-white/10' : 'border-gray-300 hover:bg-gray-50'}`}>Cancel</button>
-                <button onClick={submitProjectMessage} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-1 rounded-md text-white flex items-center gap-1 ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700'}`}>
+                <button onClick={submitProjectMessage} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-1 rounded-md text-white flex items-center gap-1 ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#7ED242] hover:bg-[#6BC22E]'}`}>
                   <ChatBubbleLeftRightIcon className="w-4 h-4" />
                   {isSendingMessage ? 'Sending...' : 'Send'}
                 </button>
@@ -1034,7 +1034,7 @@ const BubblesChat = ({
               disabled={isLoading}
             />
             <button onClick={() => handleSendMessage()} disabled={!inputMessage.trim() || isLoading} className={`p-2.5 rounded-lg transition-all text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-                colorMode ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500' : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)]'
+                colorMode ? 'bg-[#0089D1] hover:bg-[#0069B5]' : 'bg-blue-500 hover:bg-blue-600'
             }`}>
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
             </button>

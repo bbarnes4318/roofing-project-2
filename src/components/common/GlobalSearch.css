@@ -38,39 +38,39 @@
 .search-icon {
   width: 20px;
   height: 20px;
-  color: #8B93FF;
+  color: #0089D1;
   transition: all 0.3s ease;
-  filter: drop-shadow(0 1px 2px rgba(99, 102, 241, 0.1));
+  filter: drop-shadow(0 1px 2px rgba(0, 137, 209, 0.1));
 }
 
 .global-search-container:hover .search-icon {
-  color: #6366F1;
+  color: #0069B5;
   transform: scale(1.05);
 }
 
 .global-search-container:focus-within .search-icon {
-  color: #4F46E5;
+  color: #005F99;
   transform: scale(1.1);
 }
 
 /* ========================= */
-/* SEARCH INPUT - BUBBLES THEME */
+/* SEARCH INPUT - AQUA & VERDANT THEME */
 /* ========================= */
 .global-search-input {
   width: 100%;
   padding: 14px 45px 14px 50px;
-  border: 1px solid #E0E7FF;
+  border: 1px solid #E9ECEF;
   border-radius: 25px;
   font-size: 15px;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
   
-  /* Bubble-inspired gradient background */
-  background: linear-gradient(135deg, #F8FAFF 0%, #EEF4FF 50%, #E0E7FF 100%);
-  color: #1E293B;
+  /* Aqua & Verdant gradient background */
+  background: linear-gradient(135deg, #FFFFFF 0%, #E0F2FC 50%, #B3E08F 100%);
+  color: #343A40;
   box-shadow: 
-    0 2px 8px rgba(99, 102, 241, 0.08),
+    0 2px 8px rgba(0, 137, 209, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   
   position: relative;
@@ -85,9 +85,9 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 20% 80%, rgba(167, 185, 255, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(129, 140, 248, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 40% 40%, rgba(199, 210, 254, 0.08) 0%, transparent 50%);
+  background: radial-gradient(circle at 20% 80%, rgba(0, 137, 209, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(126, 210, 66, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(179, 224, 143, 0.08) 0%, transparent 50%);
   pointer-events: none;
   animation: bubbleFloat 8s ease-in-out infinite;
 }
@@ -104,10 +104,10 @@
   position: absolute;
   right: 12px;
   padding: 6px;
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(0, 137, 209, 0.1);
   border: none;
   cursor: pointer;
-  color: #8B93FF;
+  color: #0089D1;
   transition: all 0.3s ease;
   border-radius: 50%;
   display: flex;
@@ -118,8 +118,8 @@
 }
 
 .search-clear-btn:hover {
-  background: rgba(99, 102, 241, 0.2);
-  color: #6366F1;
+  background: rgba(0, 137, 209, 0.2);
+  color: #0069B5;
   transform: scale(1.1);
 }
 
@@ -131,10 +131,10 @@
 /* HOVER STATES */
 /* ========================= */
 .global-search-input:hover {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFF 50%, #EEF4FF 100%);
-  border-color: #C7D2FE;
+  background: linear-gradient(135deg, #FFFFFF 0%, #E0F2FC 50%, #B3E08F 100%);
+  border-color: #0089D1;
   box-shadow: 
-    0 4px 12px rgba(99, 102, 241, 0.15),
+    0 4px 12px rgba(0, 137, 209, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 1);
   transform: translateY(-1px);
 }
@@ -144,11 +144,11 @@
 /* ========================= */
 .global-search-input:focus {
   outline: none;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFF 100%);
-  border-color: #6366F1;
+  background: linear-gradient(135deg, #FFFFFF 0%, #E0F2FC 100%);
+  border-color: #0089D1;
   box-shadow: 
-    0 0 0 1px rgba(99, 102, 241, 0.4),
-    0 4px 12px rgba(99, 102, 241, 0.15),
+    0 0 0 1px rgba(0, 137, 209, 0.4),
+    0 4px 12px rgba(0, 137, 209, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 1);
   transform: translateY(-1px);
 }
@@ -178,9 +178,9 @@
 
 .global-search-input.dark-mode:focus {
   background: #111827;
-  border-color: #EAB308;
+  border-color: #0089D1;
   box-shadow: 
-    0 0 0 1px rgba(234, 179, 8, 0.4),
+    0 0 0 1px rgba(0, 137, 209, 0.4),
     0 4px 6px -1px rgba(0, 0, 0, 0.3),
     0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
@@ -226,7 +226,7 @@
 .bubble {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.6) 0%, rgba(99, 102, 241, 0.2) 100%);
+  background: radial-gradient(circle, rgba(0, 137, 209, 0.6) 0%, rgba(126, 210, 66, 0.2) 100%);
   animation: bubbleRise 1.5s ease-out forwards;
   pointer-events: none;
 }
@@ -254,7 +254,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(0, 137, 209, 0.3);
   transform: translate(-50%, -50%);
   animation: ripple 0.8s ease-out forwards;
   pointer-events: none;
@@ -610,7 +610,7 @@
 /* ACCESSIBILITY */
 /* ========================= */
 .global-search-input:focus-visible {
-  outline: 2px solid #EAB308;
+  outline: 2px solid #0089D1;
   outline-offset: 2px;
 }
 
@@ -632,13 +632,13 @@
 /* ========================= */
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 0 0 rgba(0, 137, 209, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 10px rgba(0, 137, 209, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(0, 137, 209, 0);
   }
 }
 
@@ -698,55 +698,55 @@
 
 /* Primary Action Buttons */
 .action-btn.primary {
-  background: #EAB308;
+  background: #0089D1;
   color: white;
-  border-color: #2563EB;
+  border-color: #0089D1;
 }
 
 .action-btn.primary:hover {
-  background: #2563EB;
-  border-color: #1D4ED8;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  background: #0069B5;
+  border-color: #005F99;
+  box-shadow: 0 4px 8px rgba(0, 137, 209, 0.3);
 }
 
 .action-btn.primary.profile-btn {
-  background: #6366F1;
-  border-color: #5B21B6;
+  background: #0089D1;
+  border-color: #0069B5;
 }
 
 .action-btn.primary.profile-btn:hover {
-  background: #5B21B6;
-  border-color: #4C1D95;
+  background: #0069B5;
+  border-color: #005F99;
 }
 
 .action-btn.primary.workflow-btn {
-  background: #8B5CF6;
-  border-color: #7C3AED;
+  background: #7ED242;
+  border-color: #6BC22E;
 }
 
 .action-btn.primary.workflow-btn:hover {
-  background: #7C3AED;
-  border-color: #6D28D9;
+  background: #6BC22E;
+  border-color: #5AB01D;
 }
 
 .action-btn.primary.call-btn {
-  background: #10B981;
-  border-color: #059669;
+  background: #28A745;
+  border-color: #218838;
 }
 
 .action-btn.primary.call-btn:hover {
-  background: #059669;
-  border-color: #047857;
+  background: #218838;
+  border-color: #1E7E34;
 }
 
 .action-btn.primary.email-btn {
-  background: #DC2626;
-  border-color: #B91C1C;
+  background: #DC3545;
+  border-color: #C82333;
 }
 
 .action-btn.primary.email-btn:hover {
-  background: #B91C1C;
-  border-color: #991B1B;
+  background: #C82333;
+  border-color: #BD2130;
 }
 
 /* Secondary Action Buttons */
@@ -765,39 +765,39 @@
 }
 
 .action-btn.secondary.messages-btn:hover {
-  color: #8B5CF6;
-  border-color: #C4B5FD;
-  background: #F3F4F6;
+  color: #0089D1;
+  border-color: #B3E4F7;
+  background: #E0F2FC;
 }
 
 .action-btn.secondary.send-message-btn:hover {
-  color: #EAB308;
-  border-color: #93C5FD;
-  background: #EFF6FF;
+  color: #0089D1;
+  border-color: #B3E4F7;
+  background: #E0F2FC;
 }
 
 .action-btn.secondary.alerts-btn:hover {
-  color: #F97316;
-  border-color: #FCD34D;
-  background: #FFFBEB;
+  color: #FFC107;
+  border-color: #FFE082;
+  background: #FFF9E6;
 }
 
 .action-btn.secondary.email-btn:hover {
-  color: #DC2626;
-  border-color: #FCA5A5;
-  background: #FEF2F2;
+  color: #DC3545;
+  border-color: #F5C6CB;
+  background: #F8D7DA;
 }
 
 .action-btn.secondary.sms-btn:hover {
-  color: #10B981;
-  border-color: #6EE7B7;
-  background: #F0FDF4;
+  color: #28A745;
+  border-color: #C3E6CB;
+  background: #D4EDDA;
 }
 
 .action-btn.secondary.text-btn:hover {
-  color: #EAB308;
-  border-color: #93C5FD;
-  background: #EFF6FF;
+  color: #0089D1;
+  border-color: #B3E4F7;
+  background: #E0F2FC;
 }
 
 /* Customer Actions */
@@ -855,12 +855,12 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #EAB308;
+  background: #7ED242;
   animation: pulse 2s infinite;
 }
 
 .status-text {
-  color: #1E40AF;
+  color: #0089D1;
   font-weight: 500;
   font-size: 10px;
 }
@@ -886,9 +886,9 @@
 }
 
 .bg-\[\#1e293b\] .action-btn.primary {
-  background: #EAB308;
+  background: #0089D1;
   color: white;
-  border-color: #2563EB;
+  border-color: #0089D1;
 }
 
 .bg-\[\#1e293b\] .action-btn.secondary {
