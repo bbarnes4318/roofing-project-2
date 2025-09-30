@@ -1,14 +1,30 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
+  // Check if we're in the browser environment
   if (typeof window !== 'undefined') {
     const host = window.location.host;
+    const protocol = window.location.protocol;
+    
+    // Check for DigitalOcean App Platform
     if (host.includes('ondigitalocean.app')) {
-      return `${window.location.protocol}//${host}/api/company-docs-enhanced`;
+      return `${protocol}//${host}/api/company-docs-enhanced`;
     }
+    
+    // Check for local development with environment variable
+    if (process.env.REACT_APP_API_URL) {
+      const base = process.env.REACT_APP_API_URL.replace(/\/$/, '');
+      return `${base}/company-docs-enhanced`;
+    }
+    
+    // Default local development
+    return 'http://localhost:5000/api/company-docs-enhanced';
   }
-  if (process.env.REACT_APP_API_URL) return `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/company-docs-enhanced`;
-  return 'http://localhost:5000/api/company-docs-enhanced';
+  
+  // Server-side fallback
+  return process.env.REACT_APP_API_URL 
+    ? `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/company-docs-enhanced`
+    : 'http://localhost:5000/api/company-docs-enhanced';
 };
 
 // Internal helper for authenticated blob download
@@ -66,13 +82,58 @@ export const assetsService = {
     const res = await api.get(`/assets/${id}`);
     return res.data?.data?.asset;
   },
-  createFolder: async ({ name, parentId = null, description = '', metadata = {} }) => {
-    const payload = { name, parentId, description };
-    if (metadata && Object.keys(metadata).length > 0) {
-      payload.metadata = metadata;
+  createFolder: async ({ name, parentId = null, description = '' }) => {
+    try {
+      console.log('Creating folder with payload:', { name, parentId, description });
+      
+      // Ensure parentId is properly formatted (null or string, not 'null' or 'undefined')
+      const cleanParentId = (!parentId || parentId === 'null' || parentId === 'undefined') ? null : parentId;
+      
+      // Build the payload with correct field names matching the backend validation
+      // Use a valid DocumentSection enum value
+      const section = 'OFFICE_DOCUMENTS'; // Using OFFICE_DOCUMENTS as a valid section
+      
+      const payload = { 
+        name: name, // Backend validation expects 'name' not 'title'
+        title: name, // Also include title for the Prisma model
+        folderName: name,
+        description: description || '',
+        parentId: cleanParentId,
+        section: section,
+        isPublic: false,
+        accessLevel: 'private',
+        type: 'FOLDER',
+        tags: [],
+        isActive: true,
+        version: 1
+      };
+      
+      console.log('Using section:', section);
+      
+      console.log('Sending payload to /folders:', payload);
+      
+      const res = await api.post('/folders', payload);
+      console.log('Folder created successfully:', res.data);
+      
+      return res.data?.data?.folder || res.data?.data || res.data;
+    } catch (error) {
+      console.error('Error in createFolder:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data
+        }
+      });
+      
+      // Create a more descriptive error
+      const errorMessage = error.response?.data?.message || 'Failed to create folder';
+      const err = new Error(errorMessage);
+      err.response = error.response;
+      throw err;
     }
-    const res = await api.post('/folders', payload);
-    return res.data?.data?.folder;
   },
   updateAsset: async (id, data) => {
     const res = await api.patch(`/assets/${id}`, data);
