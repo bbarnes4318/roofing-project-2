@@ -1579,8 +1579,6 @@ const apiUrl = window.location.hostname === 'localhost'
             </main>
         </div>
         
-        {/* Bubbles AI Assistant (floating chat) disabled per request */}
-        
         </SubjectsProvider>
         </NavigationProvider>
         <Toaster />

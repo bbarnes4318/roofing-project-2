@@ -119,21 +119,45 @@ const EmailHistoryPage = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-3xl font-bold">{emailStats.total}</div>
-              <div className="text-sm text-white text-opacity-80 mt-1">Total Emails</div>
+            <div
+              className="rounded-lg p-4"
+              style={{
+                background: 'rgba(255, 255, 255, 0.92)',
+                boxShadow: 'var(--shadow-soft)'
+              }}
+            >
+              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.total}</div>
+              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Total Emails</div>
             </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-3xl font-bold">{emailStats.sent}</div>
-              <div className="text-sm text-white text-opacity-80 mt-1">Sent</div>
+            <div
+              className="rounded-lg p-4"
+              style={{
+                background: 'rgba(255, 255, 255, 0.92)',
+                boxShadow: 'var(--shadow-soft)'
+              }}
+            >
+              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.sent}</div>
+              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Sent</div>
             </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-3xl font-bold">{emailStats.delivered}</div>
-              <div className="text-sm text-white text-opacity-80 mt-1">Delivered</div>
+            <div
+              className="rounded-lg p-4"
+              style={{
+                background: 'rgba(255, 255, 255, 0.92)',
+                boxShadow: 'var(--shadow-soft)'
+              }}
+            >
+              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.delivered}</div>
+              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Delivered</div>
             </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-3xl font-bold">{emailStats.opened}</div>
-              <div className="text-sm text-white text-opacity-80 mt-1">Opened</div>
+            <div
+              className="rounded-lg p-4"
+              style={{
+                background: 'rgba(255, 255, 255, 0.92)',
+                boxShadow: 'var(--shadow-soft)'
+              }}
+            >
+              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.opened}</div>
+              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Opened</div>
             </div>
           </div>
         </div>

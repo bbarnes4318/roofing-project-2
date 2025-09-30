@@ -15,6 +15,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const AssetLookup = require('../services/AssetLookup');
 const emailService = require('../services/EmailService');
+const bubblesContextService = require('../services/BubblesContextService');
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;

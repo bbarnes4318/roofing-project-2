@@ -88,6 +88,7 @@ try {
   console.error('⚠️ SERVER: Bubbles routes error stack:', error?.stack || 'No stack trace');
   console.error('⚠️ SERVER: Bubbles routes will not be available');
 }
+const bubblesContextRoutes = require('./routes/bubbles-context');
 const healthRoutes = require('./routes/health');
 const debugRoutes = require('./routes/debug');
 const customerRoutes = require('./routes/customers');
@@ -741,6 +742,8 @@ if (bubblesRoutes) {
 } else {
   console.log('❌ SERVER: Bubbles routes not registered due to loading error');
 }
+app.use('/api/bubbles/context', bubblesContextRoutes);
+console.log('✅ SERVER: Bubbles Context routes registered at /api/bubbles/context');
 // app.use('/api/workflow-updates', workflowUpdateRoutes); // REMOVED - legacy route deleted
 app.use('/api/phase-override', phaseOverrideRoutes);
 if (workflowImportRoutes) {
