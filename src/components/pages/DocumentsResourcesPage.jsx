@@ -92,7 +92,10 @@ const DocumentsResourcesPage = () => {
     if (!window.confirm('Delete this item?')) return;
     try {
       await assetsService.bulkOperation({ operation: 'delete', assetIds: [id] });
-      await loadItems(currentFolder);
+      await Promise.all([
+        loadItems(currentFolder),
+        loadAllFolders()
+      ]);
       toast.success('Deleted');
     } catch (err) {
       toast.error('Delete failed');
@@ -172,16 +175,27 @@ const DocumentsResourcesPage = () => {
   const handleDrop = async (e, targetFolderId) => {
     e.preventDefault();
     e.stopPropagation();
-    
     if (!draggedItem) return;
-    
+    if (draggedItem.id === targetFolderId) {
+      setDraggedItem(null);
+      setDropTarget(null);
+      return;
+    }
+
+    const nextParentId = targetFolderId ?? null;
+    if (draggedItem.parentId === nextParentId) {
+      setDraggedItem(null);
+      setDropTarget(null);
+      return;
+    }
+
     try {
       await assetsService.bulkOperation({
         operation: 'move',
         assetIds: [draggedItem.id],
-        targetParentId: targetFolderId
+        data: { parentId: nextParentId }
       });
-      
+
       await loadAllFolders();
       await loadItems(currentFolder);
       toast.success(`Moved ${draggedItem.title}`);
