@@ -4,7 +4,7 @@ services:
   source_dir: /
   github:
     repo: bbarnes4318/roofing-project-2
-    branch: development
+    branch: bubbles-sep29
   build_command: npm install && npm run build && mkdir -p server/public && cp -r build/* server/public/
   run_command: NODE_ENV=production node server/server.js
   environment_slug: node-js
