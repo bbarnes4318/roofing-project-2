@@ -1,503 +1,574 @@
-import React, { useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
+import { ArrowLeftIcon, CloudArrowUpIcon, FolderIcon, TrashIcon } from '@heroicons/react/24/outline';
+import companyDocumentsService from '../../services/companyDocumentsService';
 
-const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
-  const [documents, setDocuments] = useState([
-    {
-      id: 1,
-      name: 'Contract Agreement.pdf',
-      type: 'contract',
-      category: 'Legal',
-      size: '2.4 MB',
-      uploadedBy: 'Sarah Owner',
-      uploadDate: '2024-06-01',
-      lastModified: '2024-06-01',
-      status: 'approved',
-      description: 'Signed contract agreement with client'
-    },
-    {
-      id: 2,
-      name: 'Site Survey Report.docx',
-      type: 'report',
-      category: 'Technical',
-      size: '1.8 MB',
-      uploadedBy: 'Mike Field',
-      uploadDate: '2024-06-02',
-      lastModified: '2024-06-02',
-      status: 'pending',
-      description: 'Initial site survey and assessment report'
-    },
-    {
-      id: 3,
-      name: 'Material Specifications.xlsx',
-      type: 'specs',
-      category: 'Technical',
-      size: '856 KB',
-      uploadedBy: 'John Supervisor',
-      uploadDate: '2024-06-03',
-      lastModified: '2024-06-03',
-      status: 'approved',
-      description: 'Detailed material specifications and requirements'
-    },
-    {
-      id: 4,
-      name: 'Safety Inspection Checklist.pdf',
-      type: 'checklist',
-      category: 'Safety',
-      size: '1.2 MB',
-      uploadedBy: 'Emily Project Manager',
-      uploadDate: '2024-06-04',
-      lastModified: '2024-06-04',
-      status: 'approved',
-      description: 'Safety inspection checklist and compliance documents'
-    },
-    {
-      id: 5,
-      name: 'Progress Photos.zip',
-      type: 'photos',
-      category: 'Visual',
-      size: '15.7 MB',
-      uploadedBy: 'Carlos Crew Lead',
-      uploadDate: '2024-06-05',
-      lastModified: '2024-06-05',
-      status: 'pending',
-      description: 'Weekly progress photos and site documentation'
-    }
-  ]);
-
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [uploadCategory, setUploadCategory] = useState('Technical');
-  const [uploadDescription, setUploadDescription] = useState('');
+const ProjectDocumentsPage = ({ project, onBack, colorMode = false }) => {
+  const [loading, setLoading] = useState(true);
+  const [treeLoading, setTreeLoading] = useState(false);
+  const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [search, setSearch] = useState('');
+  const [draggingId, setDraggingId] = useState(null);
+  const [dropTargetId, setDropTargetId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadFiles, setUploadFiles] = useState([]);
   const fileInputRef = useRef(null);
 
-  const categories = [
-    { id: 'All', name: 'All Documents', icon: '📁', count: documents.length },
-    { id: 'Legal', name: 'Legal Documents', icon: '⚖️', count: documents.filter(d => d.category === 'Legal').length },
-    { id: 'Technical', name: 'Technical Specs', icon: '🔧', count: documents.filter(d => d.category === 'Technical').length },
-    { id: 'Safety', name: 'Safety & Compliance', icon: '🛡️', count: documents.filter(d => d.category === 'Safety').length },
-    { id: 'Visual', name: 'Photos & Videos', icon: '📸', count: documents.filter(d => d.category === 'Visual').length },
-    { id: 'Financial', name: 'Financial Records', icon: '💰', count: documents.filter(d => d.category === 'Financial').length },
-    { id: 'Communication', name: 'Communication', icon: '💬', count: documents.filter(d => d.category === 'Communication').length }
-  ];
+  const safeProjectName = project?.projectName || project?.name || 'Project';
+  const projectNumber = project?.projectNumber || project?.number || project?.project_id;
 
-  const getFileIcon = (fileName) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'pdf': return '📄';
-      case 'doc':
-      case 'docx': return '📝';
-      case 'xls':
-      case 'xlsx': return '📊';
-      case 'jpg':
-      case 'jpeg':
-      case 'png': return '🖼️';
-      case 'zip':
-      case 'rar': return '📦';
-      case 'mp4':
-      case 'avi': return '🎥';
-      default: return '📄';
+  const loadFolderTree = useCallback(async ({ forceRefresh = false } = {}) => {
+    setTreeLoading(true);
+    try {
+      const list = await companyDocumentsService.listFolders({
+        parentId: null,
+        limit: 1000,
+        forceRefresh,
+      });
+      setFolders(list);
+    } catch (error) {
+      console.error('Folder tree load error', error);
+      toast.error(error?.response?.data?.message || 'Failed to load folders');
+    } finally {
+      setTreeLoading(false);
+    }
+  }, []);
+
+  const loadFolderItems = useCallback(
+    async ({ folderId = currentFolderId, term = search, forceRefresh = false } = {}) => {
+      if (folderId === undefined) return;
+      setLoading(true);
+      try {
+        const { assets = [], breadcrumbs: crumb = [] } = await companyDocumentsService.listAssets({
+          parentId: folderId,
+          search: term,
+          limit: 200,
+          forceRefresh,
+        });
+
+        const folderItems = assets.filter((asset) => asset.type === 'FOLDER');
+        const fileItems = assets.filter((asset) => asset.type !== 'FOLDER');
+
+        setFolders((prev) => {
+          const map = new Map(prev.map((f) => [f.id, f]));
+          folderItems.forEach((f) => map.set(f.id, f));
+          return Array.from(map.values());
+        });
+        setFiles(fileItems);
+        setBreadcrumbs(crumb);
+        setSelectedIds(new Set());
+        setCurrentFolderId(folderId);
+      } catch (error) {
+        console.error('Folder items load error', error);
+        toast.error(error?.response?.data?.message || 'Failed to load documents');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentFolderId, search]
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    const bootstrap = async () => {
+      try {
+        setLoading(true);
+        const folder = await companyDocumentsService.ensureProjectFolder(project);
+        if (!mounted) return;
+        await loadFolderTree({ forceRefresh: true });
+        await loadFolderItems({ folderId: folder?.id ?? null, forceRefresh: true });
+      } catch (error) {
+        console.error('Project folder bootstrap error', error);
+        toast.error(error?.response?.data?.message || 'Failed to initialise project documents');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    bootstrap();
+    return () => {
+      mounted = false;
+    };
+  }, [project, loadFolderTree, loadFolderItems]);
+
+  const filteredFolders = useMemo(() => {
+    if (!search) return folders.filter((f) => f.parentId === currentFolderId || (currentFolderId === null && !f.parentId));
+    const term = search.toLowerCase();
+    return folders.filter((f) => (f.parentId || null) === (currentFolderId || null) && (f.title || '').toLowerCase().includes(term));
+  }, [folders, search, currentFolderId]);
+
+  const filteredFiles = useMemo(() => {
+    if (!search) return files;
+    const term = search.toLowerCase();
+    return files.filter(
+      (file) =>
+        (file.title || '').toLowerCase().includes(term) ||
+        (file.description || '').toLowerCase().includes(term) ||
+        (file.metadata?.originalName || '').toLowerCase().includes(term)
+    );
+  }, [files, search]);
+
+  const handleCreateFolder = async () => {
+    const name = newFolderName.trim();
+    if (!name) return;
+    try {
+      const folder = await companyDocumentsService.createFolder({ name, parentId: currentFolderId });
+      toast.success(`Folder “${folder?.title || name}” created`);
+      setNewFolderName('');
+      await loadFolderTree({ forceRefresh: true });
+      await loadFolderItems({ folderId: currentFolderId, forceRefresh: true });
+    } catch (error) {
+      console.error('Create folder error', error);
+      toast.error(error?.response?.data?.message || 'Failed to create folder');
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800 border-green-300';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+  const handleUpload = async () => {
+    if (uploadFiles.length === 0) return;
+    try {
+      const uploaded = await companyDocumentsService.uploadFiles({
+        files: uploadFiles,
+        parentId: currentFolderId,
+      });
+      toast.success(`Uploaded ${uploaded.length} file${uploaded.length === 1 ? '' : 's'}`);
+      setUploadFiles([]);
+      setUploadOpen(false);
+      await loadFolderItems({ forceRefresh: true });
+    } catch (error) {
+      console.error('Upload error', error);
+      toast.error(error?.response?.data?.message || 'Upload failed');
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'approved': return 'Approved';
-      case 'pending': return 'Pending Review';
-      case 'rejected': return 'Rejected';
-      default: return 'Unknown';
+  const handleDelete = async (ids) => {
+    const toDelete = Array.isArray(ids) ? ids : [ids];
+    if (toDelete.length === 0) return;
+    const confirm = window.confirm(`Delete ${toDelete.length} item${toDelete.length === 1 ? '' : 's'}?`);
+    if (!confirm) return;
+
+    try {
+      await companyDocumentsService.deleteAssets({ assetIds: toDelete, purge: false });
+      toast.success('Items moved to archive');
+      await loadFolderTree({ forceRefresh: true });
+      await loadFolderItems({ forceRefresh: true });
+    } catch (error) {
+      console.error('Delete error', error);
+      toast.error(error?.response?.data?.message || 'Delete failed');
     }
   };
 
-  const filteredDocuments = documents.filter(doc => {
-    const matchesCategory = selectedCategory === 'All' || doc.category === selectedCategory;
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const handleFileSelect = (event) => {
-    const files = Array.from(event.target.files);
-    setSelectedFiles(files);
+  const handleMove = async ({ ids, targetId }) => {
+    if (!ids || ids.length === 0) return;
+    try {
+      await companyDocumentsService.moveAssets({
+        assetIds: ids,
+        targetParentId: targetId ?? null,
+      });
+      toast.success('Item moved');
+      await loadFolderTree({ forceRefresh: true });
+      await loadFolderItems({ forceRefresh: true });
+    } catch (error) {
+      console.error('Move error', error);
+      toast.error(error?.response?.data?.message || 'Move failed');
+    }
   };
 
-  const handleUpload = () => {
-    if (selectedFiles.length === 0) return;
-
-    const newDocuments = selectedFiles.map((file, index) => ({
-      id: documents.length + index + 1,
-      name: file.name,
-      type: file.type.split('/')[0],
-      category: uploadCategory,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      uploadedBy: 'Sarah Owner',
-      uploadDate: new Date().toISOString().split('T')[0],
-      lastModified: new Date().toISOString().split('T')[0],
-      status: 'pending',
-      description: uploadDescription || `Uploaded ${file.name}`
-    }));
-
-    setDocuments([...documents, ...newDocuments]);
-    setSelectedFiles([]);
-    setUploadDescription('');
-    setUploadCategory('Technical');
-    setUploadModalOpen(false);
+  const handleDownload = async (fileId) => {
+    try {
+      await companyDocumentsService.downloadAsset(fileId);
+    } catch (error) {
+      console.error('Download error', error);
+      toast.error(error?.response?.data?.message || 'Download failed');
+    }
   };
 
-  const handleDelete = (documentId) => {
-    setDocuments(documents.filter(doc => doc.id !== documentId));
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleDragStart = (id) => setDraggingId(id);
+  const handleDragEnter = (folderId) => setDropTargetId(folderId);
+  const handleDragEnd = () => {
+    setDraggingId(null);
+    setDropTargetId(null);
+  };
+
+  const onDropFolder = async (targetFolderId) => {
+    if (!draggingId && selectedIds.size === 0) return;
+    const dragIds = draggingId ? [draggingId] : Array.from(selectedIds);
+    await handleMove({ ids: dragIds, targetId: targetFolderId });
+    handleDragEnd();
+  };
+
+  const onDropToBreadcrumb = async (crumbId, index) => {
+    const target = index === breadcrumbs.length - 1 ? crumbId : breadcrumbs[index + 1]?.id;
+    await onDropFolder(target || null);
+  };
+
+  const isDark = Boolean(colorMode);
+  const surface = isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900';
+  const cardSurface = isDark ? 'bg-gray-800 text-gray-100 border-gray-700' : 'bg-white text-gray-900 border-gray-200';
+  const subduedText = isDark ? 'text-gray-400' : 'text-gray-600';
+  const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
+  const accent = 'bg-blue-600 hover:bg-blue-700 text-white';
 
   return (
-    <div className={`min-h-screen ${colorMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Header */}
-      <div className={`sticky top-0 z-10 ${colorMode ? 'bg-gray-800 border-b border-gray-700' : 'bg-white border-b border-gray-200'} shadow-sm`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <div>
-                <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                  Project Documents
-                </h1>
-                <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>{project?.name || 'Project Name'}</p>
-              </div>
-            </div>
-            
+    <div className={`min-h-screen ${surface}`}>
+      <header className={`sticky top-0 z-20 shadow-sm ${isDark ? 'bg-gray-900 border-b border-gray-800' : 'bg-white border-b border-gray-200'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => setUploadModalOpen(true)}
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 ${
-                colorMode
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
+              onClick={onBack}
+              className={`p-2 rounded-lg border ${borderColor} ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+              title="Back to project"
             >
-              📤 Upload Documents
+              <ArrowLeftIcon className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold">Project Documents</h1>
+              <p className={`text-sm ${subduedText}`}>
+                {safeProjectName}
+                {projectNumber ? ` • #${projectNumber}` : ''}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <input
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+              placeholder="New folder name"
+              className={`px-3 py-2 rounded-lg border ${borderColor} ${isDark ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'}`}
+            />
+            <button
+              onClick={handleCreateFolder}
+              className={`px-3 py-2 rounded-lg border ${borderColor} ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+            >
+              New Folder
+            </button>
+            <button
+              onClick={() => setUploadOpen(true)}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm ${accent}`}
+            >
+              <CloudArrowUpIcon className="h-5 w-5" />
+              Upload
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Search and Filters */}
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className={`relative ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search documents..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg transition-colors duration-200 ${
-                    colorMode
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
-                  }`}
-                />
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="sm:w-64">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg transition-colors duration-200 ${
-                  colorMode
-                    ? 'bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500'
-                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
-                }`}
-              >
-                {categories.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.icon} {category.name} ({category.count})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Category Tabs */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  selectedCategory === category.id
-                    ? colorMode
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'bg-blue-600 text-white shadow-lg'
-                    : colorMode
-                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                <span className="mr-2">{category.icon}</span>
-                {category.name}
-                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                  selectedCategory === category.id
-                    ? 'bg-white bg-opacity-20'
-                    : colorMode
-                      ? 'bg-gray-700'
-                      : 'bg-gray-100'
-                }`}>
-                  {category.count}
-                </span>
-              </button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <section className="mb-6 flex flex-wrap justify-between gap-3 items-center">
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={() => loadFolderItems({ folderId: null })} className="font-medium">
+              Home
+            </button>
+            {breadcrumbs.map((crumb, idx) => (
+              <span key={crumb.id} className="flex items-center gap-2">
+                <span>/</span>
+                <button
+                  onClick={() => loadFolderItems({ folderId: crumb.id })}
+                  className={`${idx === breadcrumbs.length - 1 ? 'font-semibold' : ''}`}
+                  onDragEnter={() => handleDragEnter(crumb.id)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDropTargetId(crumb.id);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    onDropToBreadcrumb(crumb.id, idx);
+                  }}
+                >
+                  {crumb.title || crumb.folderName}
+                </button>
+              </span>
             ))}
           </div>
-        </div>
-
-        {/* Documents Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocuments.map(doc => (
-            <div
-              key={doc.id}
-              className={`group relative rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] overflow-hidden ${
-                colorMode
-                  ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {/* Document Header */}
-              <div className={`p-4 border-b ${colorMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-2xl">{getFileIcon(doc.name)}</span>
-                      <h3 className={`text-sm font-bold truncate ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                        {doc.name}
-                      </h3>
-                    </div>
-                    <p className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'} line-clamp-2`}>
-                      {doc.description}
-                    </p>
-                  </div>
-                  <div className={`ml-2 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(doc.status)}`}>
-                    {getStatusText(doc.status)}
-                  </div>
-                </div>
-
-                {/* Document Info */}
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className={colorMode ? 'text-gray-400' : 'text-gray-600'}>Size:</span>
-                    <span className={colorMode ? 'text-gray-300' : 'text-gray-700'}>{doc.size}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={colorMode ? 'text-gray-400' : 'text-gray-600'}>Category:</span>
-                    <span className={colorMode ? 'text-gray-300' : 'text-gray-700'}>{doc.category}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={colorMode ? 'text-gray-400' : 'text-gray-600'}>Uploaded by:</span>
-                    <span className={colorMode ? 'text-gray-300' : 'text-gray-700'}>{doc.uploadedBy}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={colorMode ? 'text-gray-400' : 'text-gray-600'}>Date:</span>
-                    <span className={colorMode ? 'text-gray-300' : 'text-gray-700'}>{doc.uploadDate}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Document Actions */}
-              <div className={`p-3 ${colorMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <button
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        colorMode
-                          ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
-                          : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
-                      }`}
-                      title="View Document"
-                    >
-                      👁️
-                    </button>
-                    <button
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        colorMode
-                          ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700'
-                          : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
-                      }`}
-                      title="Download Document"
-                    >
-                      ⬇️
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => handleDelete(doc.id)}
-                    className={`p-2 rounded-lg transition-colors duration-200 ${
-                      colorMode
-                        ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700'
-                        : 'text-gray-600 hover:text-red-600 hover:bg-gray-100'
-                    }`}
-                    title="Delete Document"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredDocuments.length === 0 && (
-          <div className={`text-center py-12 ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            <div className="text-6xl mb-4">📁</div>
-            <h3 className="text-lg font-semibold mb-2">No documents found</h3>
-            <p className="mb-4">No documents match your current search criteria.</p>
+          <div className="flex gap-2 items-center">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search files or folders..."
+              className={`px-4 py-2 rounded-lg border ${borderColor} ${isDark ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'}`}
+            />
             <button
-              onClick={() => setUploadModalOpen(true)}
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 ${
-                colorMode
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
+              onClick={clearSelection}
+              className={`px-3 py-2 rounded-lg border ${borderColor} ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+              disabled={selectedIds.size === 0}
             >
-              📤 Upload Your First Document
+              Clear Selection
+            </button>
+            <button
+              onClick={() => handleDelete(Array.from(selectedIds))}
+              className={`px-3 py-2 rounded-lg border ${borderColor} ${isDark ? 'hover:bg-red-900 hover:text-red-200' : 'hover:bg-red-50 hover:text-red-600'}`}
+              disabled={selectedIds.size === 0}
+            >
+              Delete Selected
             </button>
           </div>
-        )}
-      </div>
+        </section>
 
-      {/* Upload Modal */}
-      {uploadModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`w-full max-w-md rounded-xl shadow-xl ${colorMode ? 'bg-gray-800' : 'bg-white'} p-6`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                Upload Documents
-              </h3>
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <aside className={`rounded-xl border ${borderColor} ${cardSurface} p-4 h-fit`}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <FolderIcon className="h-4 w-4" />
+                Folder Tree
+              </h2>
+              {treeLoading && <span className={`text-xs ${subduedText}`}>Refreshing…</span>}
+            </div>
+            <div className="space-y-1 text-sm">
               <button
-                onClick={() => setUploadModalOpen(false)}
-                className={`p-1 rounded-lg transition-colors duration-200 ${
-                  colorMode
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                onClick={() => loadFolderItems({ folderId: null })}
+                className={`w-full text-left px-2 py-1 rounded ${
+                  dropTargetId === null ? (isDark ? 'bg-gray-700' : 'bg-gray-200') : ''
                 }`}
               >
-                ✕
+                Home
               </button>
+              {folders
+                .filter((folder) => (folder.parentId || null) === null)
+                .map((folder) => (
+                  <FolderTreeItem
+                    key={folder.id}
+                    folder={folder}
+                    activeId={currentFolderId}
+                    dropTargetId={dropTargetId}
+                    onOpen={(id) => loadFolderItems({ folderId: id })}
+                    onMove={onDropFolder}
+                    onDragEnter={handleDragEnter}
+                    folders={folders}
+                    level={0}
+                    isDark={isDark}
+                  />
+                ))}
             </div>
+          </aside>
 
-            <div className="space-y-4">
-              {/* File Upload */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Select Files
-                </label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200 ${
-                    colorMode
-                      ? 'border-gray-600 hover:border-gray-500 text-gray-400 hover:text-gray-300'
-                      : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">📤</div>
-                  <p className="text-sm">Click to select files or drag and drop</p>
-                  <p className="text-xs mt-1">Supports PDF, DOC, XLS, images, and more</p>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                {selectedFiles.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {file.name} ({(file.size / (1024 * 1024)).toFixed(1)} MB)
-                      </div>
-                    ))}
-                  </div>
+          <section className="md:col-span-3">
+            <div className={`rounded-xl border ${borderColor} ${cardSurface}`}>
+              <div className="p-4 border-b flex justify-between items-center">
+                <span className="text-sm font-semibold">
+                  {loading ? 'Loading…' : `${filteredFolders.length} folders • ${filteredFiles.length} files`}
+                </span>
+                {selectedIds.size > 0 && (
+                  <span className="text-xs font-medium">
+                    {selectedIds.size} selected — drag into another folder or delete
+                  </span>
                 )}
               </div>
-
-              {/* Category Selection */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Category
-                </label>
-                <select
-                  value={uploadCategory}
-                  onChange={(e) => setUploadCategory(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg transition-colors duration-200 ${
-                    colorMode
-                      ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500 focus:ring-blue-500'
-                      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
-                  }`}
-                >
-                  {categories.slice(1).map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.icon} {category.name}
-                    </option>
+              <div className="p-4 space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {filteredFolders.map((folder) => (
+                    <article
+                      key={folder.id}
+                      draggable
+                      onDragStart={() => handleDragStart(folder.id)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        handleDragEnter(folder.id);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        onDropFolder(folder.id);
+                      }}
+                      onClick={() => loadFolderItems({ folderId: folder.id })}
+                      className={`relative rounded-lg border ${borderColor} ${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} cursor-pointer p-4 ${
+                        dropTargetId === folder.id ? (isDark ? 'ring-2 ring-blue-500' : 'ring-2 ring-blue-400') : ''
+                      }`}
+                    >
+                      <FolderIcon className="h-8 w-8 text-amber-400" />
+                      <h3 className="font-semibold truncate mt-2">{folder.title || folder.folderName}</h3>
+                      <p className={`text-xs ${subduedText}`}>Updated {new Date(folder.updatedAt || folder.createdAt).toLocaleDateString()}</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(folder.id);
+                        }}
+                        className="absolute top-2 right-2 p-1 rounded hover:bg-red-500/10"
+                        title="Delete folder"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </article>
                   ))}
-                </select>
-              </div>
 
-              {/* Description */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Description (Optional)
-                </label>
-                <textarea
-                  value={uploadDescription}
-                  onChange={(e) => setUploadDescription(e.target.value)}
-                  rows="3"
-                  placeholder="Add a description for the uploaded files..."
-                  className={`w-full px-3 py-2 border rounded-lg transition-colors duration-200 ${
-                    colorMode
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
-                  }`}
-                />
-              </div>
+                  {filteredFolders.length === 0 && filteredFiles.length === 0 && (
+                    <div className={`col-span-full text-center py-12 ${subduedText}`}>
+                      <div className="text-5xl mb-3">📁</div>
+                      <p>No documents yet. Create a folder or upload files to get started.</p>
+                    </div>
+                  )}
 
-              {/* Action Buttons */}
-              <div className="flex space-x-3 pt-4">
-                <button
-                  onClick={() => setUploadModalOpen(false)}
-                  className={`flex-1 px-4 py-2 border rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    colorMode
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpload}
-                  disabled={selectedFiles.length === 0}
-                  className={`flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 ${
-                    selectedFiles.length === 0
-                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  Upload {selectedFiles.length > 0 && `(${selectedFiles.length})`}
-                </button>
+                  {filteredFiles.map((file) => {
+                    const selected = selectedIds.has(file.id);
+                    return (
+                      <article
+                        key={file.id}
+                        draggable
+                        onDragStart={() => handleDragStart(file.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`relative rounded-lg border ${selected ? 'border-blue-500 ring-2 ring-blue-300' : borderColor} ${
+                          isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
+                        } p-4`}
+                        onClick={(e) => {
+                          if (e.metaKey || e.ctrlKey) {
+                            e.stopPropagation();
+                            toggleSelect(file.id);
+                          } else {
+                            clearSelection();
+                            toggleSelect(file.id);
+                          }
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold break-words">{file.title}</h3>
+                            <p className={`text-xs mt-1 ${subduedText}`}>
+                              {(file.metadata?.originalName && file.metadata.originalName !== file.title && file.metadata.originalName) || ''}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(file.id);
+                            }}
+                            className="p-1 rounded hover:bg-red-500/10"
+                            title="Delete file"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="mt-3 text-xs space-y-1">
+                          <p>
+                            Uploaded by{' '}
+                            <strong>
+                              {file.uploadedBy?.firstName} {file.uploadedBy?.lastName}
+                            </strong>
+                          </p>
+                          <p>Uploaded {new Date(file.createdAt).toLocaleString()}</p>
+                          <p>{(file.fileSize / (1024 * 1024)).toFixed(2)} MB</p>
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownload(file.id);
+                            }}
+                            className={`px-3 py-1 rounded border ${borderColor} ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                          >
+                            Download
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMove({ ids: [file.id], targetId: null });
+                            }}
+                            className={`px-3 py-1 rounded border ${borderColor} ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                          >
+                            Move to Home
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
               </div>
             </div>
+          </section>
+        </section>
+      </main>
+
+      {uploadOpen && (
+        <div className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className={`max-w-lg w-full rounded-2xl shadow-xl p-6 ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
+            <header className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <CloudArrowUpIcon className="h-5 w-5" />
+                Upload files
+              </h2>
+              <button
+                onClick={() => {
+                  setUploadOpen(false);
+                  setUploadFiles([]);
+                }}
+                className="p-1 rounded hover:bg-gray-500/10"
+              >
+                ×
+              </button>
+            </header>
+
+            <section className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer ${borderColor}`}>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const files = Array.from(e.dataTransfer.files || []);
+                  if (files.length) {
+                    setUploadFiles((prev) => [...prev, ...files]);
+                  }
+                }}
+              >
+                <div className="text-4xl mb-2">📄</div>
+                <p className="text-sm font-medium">Click to choose files or drag them here</p>
+                <p className={`text-xs mt-1 ${subduedText}`}>PDF, Word, Excel, images up to 50 MB each</p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length) {
+                    setUploadFiles((prev) => [...prev, ...files]);
+                  }
+                }}
+              />
+            </section>
+
+            {uploadFiles.length > 0 && (
+              <section className={`mt-4 rounded-lg border ${borderColor} p-3 space-y-2 text-sm`}>
+                {uploadFiles.map((file, idx) => (
+                  <div key={`${file.name}-${idx}`} className="flex justify-between">
+                    <span className="truncate">{file.name}</span>
+                    <span className={subduedText}>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                  </div>
+                ))}
+              </section>
+            )}
+
+            <footer className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setUploadOpen(false);
+                  setUploadFiles([]);
+                }}
+                className={`px-4 py-2 rounded border ${borderColor} ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpload}
+                disabled={uploadFiles.length === 0}
+                className={`px-4 py-2 rounded ${accent} disabled:bg-gray-500 disabled:cursor-not-allowed`}
+              >
+                Upload {uploadFiles.length > 0 ? `(${uploadFiles.length})` : ''}
+              </button>
+            </footer>
           </div>
         </div>
       )}
@@ -505,4 +576,48 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
   );
 };
 
-export default ProjectDocumentsPage; 
+const FolderTreeItem = ({ folder, folders, level, activeId, dropTargetId, onOpen, onMove, onDragEnter, isDark }) => {
+  const children = folders.filter((child) => child.parentId === folder.id);
+  return (
+    <div>
+      <button
+        onClick={() => onOpen(folder.id)}
+        onDragOver={(e) => {
+          e.preventDefault();
+          onDragEnter(folder.id);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          onMove({ ids: [], targetId: folder.id });
+        }}
+        className={`w-full flex items-center gap-2 px-2 py-1 rounded ${
+          activeId === folder.id ? (isDark ? 'bg-blue-500/20' : 'bg-blue-100') : ''
+        } ${dropTargetId === folder.id ? (isDark ? 'ring-2 ring-blue-400' : 'ring-2 ring-blue-300') : ''}`}
+        style={{ paddingLeft: `${level * 12 + 8}px` }}
+      >
+        <FolderIcon className="h-4 w-4 text-amber-400" />
+        <span className="truncate">{folder.title || folder.folderName}</span>
+      </button>
+      {children.length > 0 && (
+        <div className="pl-2">
+          {children.map((child) => (
+            <FolderTreeItem
+              key={child.id}
+              folder={child}
+              folders={folders}
+              level={level + 1}
+              activeId={activeId}
+              dropTargetId={dropTargetId}
+              onOpen={onOpen}
+              onMove={onMove}
+              onDragEnter={onDragEnter}
+              isDark={isDark}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ProjectDocumentsPage;
