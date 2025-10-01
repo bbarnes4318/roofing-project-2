@@ -13,7 +13,7 @@ const EmbeddingService = require('../services/EmbeddingService');
 const IngestionService = require('../services/IngestionService');
 const path = require('path');
 const fs = require('fs').promises;
-const AssetLookup = require('../services/AssetLookup');
+const { findAssetByMention } = require('../services/AssetLookup');
 const emailService = require('../services/EmailService');
 const bubblesContextService = require('../services/BubblesContextService');
 
@@ -1362,7 +1362,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   // Broaden trigger: if they mention a checklist (like "Upfront Start The Day Checklist"), attempt doc retrieval
   if (mentionsFileName || mentionsChecklist) {
     try {
-      const asset = await findAssetByMention(message);
+      const asset = await findAssetByMention(prisma, message);
       if (!asset) {
         const notFound = 'I couldn\'t find that document in Company Documents. Try opening Documents & Resources and copy the exact file name.';
         contextManager.addToHistory(req.user.id, message, notFound, projectContext || null);
@@ -1755,7 +1755,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       let attachments = [];
       if (mentionsFileName || lower.includes('attach')) {
         try {
-          const asset = await findAssetByMention(message);
+          const asset = await findAssetByMention(prisma, message);
           if (asset) {
             attachments.push({ documentId: asset.id });
           }
