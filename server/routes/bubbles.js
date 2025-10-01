@@ -1091,7 +1091,9 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
     // Handle different action types
     if (pendingAction.type === 'send_document_message') {
       // Fetch the asset
-      const asset = await prisma.asset.findUnique({ where: { id: pendingAction.assetId } });
+      const asset = await prisma.companyAsset.findUnique({
+        where: { id: pendingAction.assetId }
+      });
       if (!asset) {
         return sendSuccess(res, 404, { response: { content: 'Document not found.' } });
       }
@@ -1103,12 +1105,12 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       }
 
       // Build attachment metadata
-      const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl || null;
+      // CompanyAsset has fileUrl directly on it
       const attachment = {
         assetId: asset.id || null,
         title: asset.title || 'Document',
         mimeType: asset.mimeType || 'application/octet-stream',
-        fileUrl,
+        fileUrl: asset.fileUrl || null,
         thumbnailUrl: asset.thumbnailUrl || null
       };
 
@@ -1147,7 +1149,9 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
 
     if (pendingAction.type === 'send_document_email') {
       // Fetch the asset
-      const asset = await prisma.asset.findUnique({ where: { id: pendingAction.assetId } });
+      const asset = await prisma.companyAsset.findUnique({
+        where: { id: pendingAction.assetId }
+      });
       if (!asset) {
         return sendSuccess(res, 404, { response: { content: 'Document not found.' } });
       }
@@ -1302,8 +1306,10 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
 
     return sendSuccess(res, 400, { response: { content: 'Unknown action type.' } });
   } catch (error) {
-    console.error('Complete action error:', error);
-    return sendSuccess(res, 500, { response: { content: 'Failed to complete action.' } });
+    console.error('❌ Complete action error:', error);
+    console.error('❌ Error stack:', error?.stack);
+    console.error('❌ Pending action:', JSON.stringify(pendingAction, null, 2));
+    return sendSuccess(res, 500, { response: { content: `Failed to complete action: ${error.message}` } });
   }
 }));
 
