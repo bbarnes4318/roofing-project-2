@@ -26,7 +26,13 @@ const EmailHistoryPage = () => {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem('token');
-      
+
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       const params = new URLSearchParams();
       if (emailType) params.append('emailType', emailType);
       if (status) params.append('status', status);
@@ -35,11 +41,17 @@ const EmailHistoryPage = () => {
 
       const response = await fetch(`/api/email/history?${params}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch emails');
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Session expired. Please log in again.');
+        }
+        throw new Error('Failed to fetch emails');
+      }
 
       const data = await response.json();
       setEmails(data.data.emails || []);
@@ -122,42 +134,50 @@ const EmailHistoryPage = () => {
             <div
               className="rounded-lg p-4"
               style={{
-                background: 'rgba(255, 255, 255, 0.92)',
-                boxShadow: 'var(--shadow-soft)'
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: 'var(--shadow-soft)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
-              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.total}</div>
-              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Total Emails</div>
+              <div className="text-3xl font-bold text-white">{emailStats.total}</div>
+              <div className="text-sm mt-1 text-white text-opacity-90">Total Emails</div>
             </div>
             <div
               className="rounded-lg p-4"
               style={{
-                background: 'rgba(255, 255, 255, 0.92)',
-                boxShadow: 'var(--shadow-soft)'
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: 'var(--shadow-soft)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
-              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.sent}</div>
-              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Sent</div>
+              <div className="text-3xl font-bold text-white">{emailStats.sent}</div>
+              <div className="text-sm mt-1 text-white text-opacity-90">Sent</div>
             </div>
             <div
               className="rounded-lg p-4"
               style={{
-                background: 'rgba(255, 255, 255, 0.92)',
-                boxShadow: 'var(--shadow-soft)'
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: 'var(--shadow-soft)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
-              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.delivered}</div>
-              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Delivered</div>
+              <div className="text-3xl font-bold text-white">{emailStats.delivered}</div>
+              <div className="text-sm mt-1 text-white text-opacity-90">Delivered</div>
             </div>
             <div
               className="rounded-lg p-4"
               style={{
-                background: 'rgba(255, 255, 255, 0.92)',
-                boxShadow: 'var(--shadow-soft)'
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: 'var(--shadow-soft)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
-              <div className="text-3xl font-bold" style={{ color: 'var(--color-text-charcoal)' }}>{emailStats.opened}</div>
-              <div className="text-sm mt-1" style={{ color: 'var(--color-text-slate)' }}>Opened</div>
+              <div className="text-3xl font-bold text-white">{emailStats.opened}</div>
+              <div className="text-sm mt-1 text-white text-opacity-90">Opened</div>
             </div>
           </div>
         </div>

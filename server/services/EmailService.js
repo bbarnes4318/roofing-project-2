@@ -317,25 +317,35 @@ class EmailService {
         }
       });
 
-      // If not found, try CompanyAsset
+      // If not found, try CompanyAsset (uses title and fileUrl instead of filename and filePath)
       if (!document) {
-        document = await prisma.companyAsset.findUnique({
+        const companyAsset = await prisma.companyAsset.findUnique({
           where: { id: documentId },
-          select: { 
-            filename: true, 
-            filePath: true,
+          select: {
+            title: true,
+            fileUrl: true,
             mimeType: true
           }
         });
+
+        if (companyAsset) {
+          // Map CompanyAsset fields to document format
+          document = {
+            filename: companyAsset.title,
+            filePath: companyAsset.fileUrl,
+            mimeType: companyAsset.mimeType
+          };
+        }
       }
 
       if (!document || !document.filePath) {
+        console.warn(`⚠️ Document not found or has no file path for ID: ${documentId}`);
         return null;
       }
 
       // Resolve the file path
       const filePath = this.resolveDocumentPath(document.filePath);
-      
+
       if (!fs.existsSync(filePath)) {
         console.warn(`⚠️ Document file not found: ${filePath}`);
         return null;
@@ -343,7 +353,7 @@ class EmailService {
 
       // Read and encode file
       const content = fs.readFileSync(filePath);
-      
+
       return {
         filename: document.filename,
         content: content.toString('base64')

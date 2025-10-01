@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon, SparklesIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
@@ -1923,13 +1923,26 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                         <input
                                             type="email"
                                             value={customEmailInput}
-                                            onChange={(e) => setCustomEmailInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && addCustomEmail()}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                setCustomEmailInput(e.target.value);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addCustomEmail();
+                                                }
+                                            }}
+                                            onFocus={(e) => e.stopPropagation()}
                                             placeholder="email@example.com"
                                             className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <button
-                                            onClick={addCustomEmail}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                addCustomEmail();
+                                            }}
+                                            type="button"
                                             className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                                         >
                                             Add
