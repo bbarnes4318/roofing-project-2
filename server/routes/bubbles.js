@@ -106,8 +106,6 @@ function parseDueDateFromText(text) {
       const d = parseInt(byMatch[2],10);
       const y = byMatch[3] ? parseInt(byMatch[3],10) : now.getFullYear();
       const dt = new Date(y, m-1, d, 17, 0, 0, 0);
-      return dt;
-    }
   } catch (_) {}
   return nextBusinessDaysFromNow(2);
 }
@@ -116,44 +114,19 @@ function parseReminderDateTimeFromText(text) {
   try {
     const lower = String(text || '').toLowerCase();
     const now = new Date();
+
     // "remind me at 4pm" today
     const timeMatch = lower.match(/(?:at|@)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
     let base = new Date(now);
     if (/tomorrow/.test(lower)) base.setDate(base.getDate()+1);
     // Day names
-    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-    for (let i=0;i<7;i++) {
-      if (lower.includes(days[i])) {
-        const diff = (i - now.getDay() + 7) % 7 || 7;
-        base.setDate(now.getDate() + diff);
-        break;
-      }
-    }
-    if (timeMatch) {
-      let h = parseInt(timeMatch[1],10);
-      const min = timeMatch[2] ? parseInt(timeMatch[2],10) : 0;
-      const ampm = timeMatch[3] || '';
-      if (ampm === 'pm' && h < 12) h += 12;
-      if (ampm === 'am' && h === 12) h = 0;
-      base.setHours(h, min, 0, 0);
-      if (base <= now) base.setDate(base.getDate()+1); // push to future if already past
-      return base;
-    }
+{{ ... }}
     // Fallback: next business day at 9am
     const d = nextBusinessDaysFromNow(1);
     d.setHours(9,0,0,0);
     return d;
   } catch (_) {}
   const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
-}
-// --- Document helpers: find assets and extract numbered steps ---
-async function findAssetByMention(message) {
-  return await AssetLookup.findAssetByMention(prisma, message);
-}
-
-async function readAssetCurrentFile(asset) {
-  try {
-    if (!asset) return null;
     const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl;
     if (!fileUrl) return null;
     const safePath = String(fileUrl).replace(/^\\|^\//, '');

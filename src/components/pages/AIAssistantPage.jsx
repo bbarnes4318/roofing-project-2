@@ -40,7 +40,10 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const { subjects } = useSubjects();
     const [composerSubject, setComposerSubject] = useState('Project Status Update');
     const [composerRecipients, setComposerRecipients] = useState([]);
+    const [selectedRecipients, setSelectedRecipients] = useState([]);
+    const [showRecipientPicker, setShowRecipientPicker] = useState(false);
     const [teamMembers, setTeamMembers] = useState([]);
+    const [teamMembersLoading, setTeamMembersLoading] = useState(false);
     const [composerBody, setComposerBody] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
     // Voice and composer state/refs
@@ -1091,24 +1094,46 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                 const res = await bubblesService.getCurrentStep(selectedProject.id);
                 // sendSuccess shape: { success, message, data: { current }, timestamp }
                 setCurrentStep(res?.data?.current || res?.data?.data?.current || null);
-            } catch (_) { setCurrentStep(null); }
+            } catch (error) {
+                console.error('Failed to load current workflow step:', error);
+                setCurrentStep(null);
+            }
         };
-        fetchCurrent();
-    }, [selectedProject, selectedProjectNonce]);
 
-    // Load team for composer
+        fetchCurrent();
+    }, [selectedProject?.id]);
+
     useEffect(() => {
         const loadTeam = async () => {
-            if (!isComposerOpen) return;
+            if (!isComposerOpen && !showRecipientPicker) return;
             try {
+                setTeamMembersLoading(true);
                 const res = await usersService.getTeamMembers();
-                // API shape: { success, data: { teamMembers } }
-                const members = res?.data?.teamMembers || (Array.isArray(res?.data) ? res.data : []);
-                setTeamMembers(members);
-            } catch (_) { setTeamMembers([]); }
+                const members = Array.isArray(res?.data)
+                    ? res.data
+                    : (res?.data?.teamMembers || res?.data?.users || []);
+                setTeamMembers(Array.isArray(members) ? members : []);
+            } catch (_) {
+                setTeamMembers([]);
+            } finally {
+                setTeamMembersLoading(false);
+            }
         };
         loadTeam();
-    }, [isComposerOpen]);
+    }, [isComposerOpen, showRecipientPicker]);
+
+    useEffect(() => {
+        setSelectedRecipients([]);
+        setShowRecipientPicker(false);
+    }, [selectedProject?.id]);
+
+    const toggleSelectedRecipient = (userId) => {
+        if (!userId) return;
+        setSelectedRecipients(prev => prev.includes(userId)
+            ? prev.filter(id => id !== userId)
+            : [...prev, userId]
+        );
+    };
 
     const scrollToTop = () => {
         if (messagesContainerRef.current) {
@@ -1659,7 +1684,11 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
 
         try {
             // Use real Bubbles API with project context
-            const response = await bubblesService.chat(userInput, selectedProject?.id);
+            const chatContext = {};
+            if (selectedRecipients.length > 0) {
+                chatContext.selectedRecipientIds = selectedRecipients;
+            }
+            const response = await bubblesService.chat(userInput, selectedProject?.id, chatContext);
             
             const assistantMessage = {
                 id: Date.now() + 1,
@@ -2146,6 +2175,69 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 </div>
             )}
             
+            {/* Recipient Picker */}
+            {showRecipientPicker && (
+                <div className="w-full border-t border-b border-blue-200 bg-blue-50 px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                        <div>
+                            <h3 className="text-sm font-semibold text-blue-900">Select recipients</h3>
+                            <p className="text-xs text-blue-700">Chosen teammates will receive document shares initiated in this chat.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setSelectedRecipients([])}
+                                className="text-xs px-2 py-1 rounded-md border border-blue-300 text-blue-700 hover:bg-blue-100"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                onClick={() => setShowRecipientPicker(false)}
+                                className="text-xs px-2 py-1 rounded-md border border-blue-300 text-blue-700 hover:bg-blue-100"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                    <div className="max-h-40 overflow-y-auto bg-white border border-blue-200 rounded-lg p-3 shadow-sm">
+                        {teamMembersLoading ? (
+                            <div className="text-sm text-blue-700">Loading team members...</div>
+                        ) : (teamMembers || []).length === 0 ? (
+                            <div className="text-sm text-blue-700">No team members available.</div>
+                        ) : (
+                            teamMembers.map(member => {
+                                const memberId = member.id || member.userId;
+                                const name = member.firstName ? `${member.firstName} ${member.lastName || ''}`.trim() : (member.name || member.email || memberId);
+                                return (
+                                    <label key={memberId} className="flex items-center gap-2 text-sm py-1">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedRecipients.includes(memberId)}
+                                            onChange={() => toggleSelectedRecipient(memberId)}
+                                        />
+                                        <span>{name}</span>
+                                    </label>
+                                );
+                            })
+                        )}
+                    </div>
+                    {selectedRecipients.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {selectedRecipients.map(recipientId => {
+                                const member = (teamMembers || []).find(tm => (tm.id || tm.userId) === recipientId);
+                                const label = member
+                                    ? (member.firstName ? `${member.firstName} ${member.lastName || ''}`.trim() : (member.name || member.email || recipientId))
+                                    : recipientId;
+                                return (
+                                    <span key={recipientId} className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                        {label}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Document Browser Sidebar */}
             {showDocumentBrowser && (
                 <div className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col overflow-hidden">
