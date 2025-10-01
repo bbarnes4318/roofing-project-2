@@ -780,44 +780,50 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     // Upload handler - uploads to BOTH Document table AND CompanyAssets for sync
     const handleUpload = async () => {
       if (selectedFiles.length === 0 || !project?.id) return;
-      
+
       setUploading(true);
       try {
-        // 1. Upload to Document table (original system)
-        const formData = new FormData();
-        selectedFiles.forEach(file => formData.append('files', file));
-        formData.append('projectId', project.id);
-        formData.append('category', 'General');
-        formData.append('description', `Uploaded from Project Profile`);
-        
-        const response = await api.post('/documents/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        
-        // 2. Also upload to CompanyAssets with projectId metadata for Documents & Resources sync
-        try {
-          await assetsService.uploadFiles({
-            files: Array.from(selectedFiles),
-            metadata: {
-              projectId: project.id,
-              projectNumber: project.projectNumber,
-              source: 'projectProfile'
-            },
-            description: `Project ${project.projectNumber} - Uploaded from Project Profile`
+        // Upload each file to BOTH systems
+        for (const file of selectedFiles) {
+          // 1. Upload to Document table (project-specific documents)
+          const docFormData = new FormData();
+          docFormData.append('file', file);
+          docFormData.append('projectId', project.id);
+          docFormData.append('fileName', file.name);
+          docFormData.append('description', 'Uploaded from Project Profile');
+          docFormData.append('fileType', 'OTHER');
+          docFormData.append('tags', JSON.stringify([]));
+          docFormData.append('isPublic', 'false');
+          // uploadedById will be set from req.user on backend
+
+          const docResponse = await api.post('/documents', docFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
           });
-        } catch (assetErr) {
-          console.warn('Failed to sync to CompanyAssets:', assetErr);
-          // Don't fail the entire upload if CompanyAsset sync fails
+
+          // 2. Also upload to CompanyAssets with projectId metadata for Documents & Resources sync
+          try {
+            await assetsService.uploadFiles({
+              files: [file],
+              metadata: {
+                projectId: project.id,
+                projectNumber: project.projectNumber,
+                source: 'projectProfile',
+                documentId: docResponse.data?.data?.id // Link to Document table entry
+              },
+              description: `Project ${project.projectNumber} - Uploaded from Project Profile`
+            });
+          } catch (assetErr) {
+            console.warn('Failed to sync to CompanyAssets:', assetErr);
+            // Don't fail the entire upload if CompanyAsset sync fails
+          }
         }
-        
-        if (response.data) {
-          toast.success('Documents uploaded and synced successfully!');
-          setUploadModalOpen(false);
-          setSelectedFiles([]);
-          // Reload documents
-          const res = await documentsService.getByProject(project.id);
-          setDocs(Array.isArray(res?.data?.documents) ? res.data.documents : []);
-        }
+
+        toast.success('Documents uploaded and synced successfully!');
+        setUploadModalOpen(false);
+        setSelectedFiles([]);
+        // Reload documents
+        const res = await documentsService.getByProject(project.id);
+        setDocs(Array.isArray(res?.data?.documents) ? res.data.documents : []);
       } catch (error) {
         toast.error(`Upload failed: ${error.message}`);
       } finally {

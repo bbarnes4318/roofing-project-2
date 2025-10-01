@@ -322,13 +322,18 @@ router.post('/', upload.single('file'), documentValidation, asyncHandler(async (
     return next(new AppError('Project not found', 404));
   }
 
-  // Verify uploader exists
-  const uploader = await prisma.user.findUnique({
-    where: { id: uploadedById }
-  });
+  // Use uploadedById from request body or fall back to authenticated user
+  const finalUploaderId = uploadedById || req.user?.id;
 
-  if (!uploader) {
-    return next(new AppError('Uploader not found', 404));
+  // Verify uploader exists if provided
+  if (finalUploaderId) {
+    const uploader = await prisma.user.findUnique({
+      where: { id: finalUploaderId }
+    });
+
+    if (!uploader) {
+      return next(new AppError('Uploader not found', 404));
+    }
   }
 
   // Create document record
@@ -344,7 +349,7 @@ router.post('/', upload.single('file'), documentValidation, asyncHandler(async (
       tags: tags ? JSON.parse(tags) : [],
       isPublic: isPublic === 'true',
       projectId,
-      uploadedById
+      uploadedById: finalUploaderId
     },
     include: {
       project: {

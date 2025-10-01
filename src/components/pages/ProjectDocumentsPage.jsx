@@ -178,7 +178,10 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
       try {
         // Fetch from Document table (project-specific documents)
         const docResponse = await api.get(`/documents/project/${project.id}`);
-        const projectDocs = docResponse.data?.data || [];
+        // Backend returns { success: true, data: { documents: [...] } }
+        const projectDocs = Array.isArray(docResponse.data?.data?.documents)
+          ? docResponse.data.data.documents
+          : [];
 
         // Fetch from CompanyAssets with projectId in metadata
         // Note: This requires backend support for metadata queries
@@ -186,11 +189,11 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
         let companyAssetDocs = [];
         try {
           const assetsResponse = await assetsService.list({ limit: 1000 });
-          const assets = assetsResponse?.assets || [];
+          const assets = Array.isArray(assetsResponse?.assets) ? assetsResponse.assets : [];
           // Filter assets that have this project's ID in metadata
           companyAssetDocs = assets
-            .filter(asset => 
-              asset.type === 'FILE' && 
+            .filter(asset =>
+              asset.type === 'FILE' &&
               asset.metadata?.projectId === project.id
             )
             .map(asset => ({
@@ -258,32 +261,52 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
   // Upload mutation - uploads to BOTH Document table AND CompanyAssets
   const uploadMutation = useMutation({
     mutationFn: async (formData) => {
-      // First upload to Document table (original system)
-      const docResponse = await api.post('/documents/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const files = formData.getAll('files');
+      if (!files || files.length === 0) {
+        throw new Error('No files selected');
+      }
 
-      // Also upload to CompanyAssets with projectId metadata for Documents & Resources sync
-      try {
-        const files = formData.getAll('files');
-        if (files?.length > 0) {
+      const uploadedDocs = [];
+
+      // Upload each file to BOTH systems
+      for (const file of files) {
+        // 1. Upload to Document table (project-specific documents)
+        const docFormData = new FormData();
+        docFormData.append('file', file);
+        docFormData.append('projectId', project.id);
+        docFormData.append('fileName', file.name);
+        docFormData.append('description', uploadDescription || 'No description provided');
+        docFormData.append('fileType', uploadCategory || 'OTHER');
+        docFormData.append('tags', JSON.stringify([]));
+        docFormData.append('isPublic', 'false');
+        // uploadedById will be set from req.user on backend
+
+        const docResponse = await api.post('/documents', docFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        // 2. Also upload to CompanyAssets with projectId metadata for Documents & Resources sync
+        try {
           await assetsService.uploadFiles({
-            files: files,
+            files: [file],
             metadata: {
               projectId: project?.id,
               projectNumber: project?.projectNumber,
               category: uploadCategory,
-              source: 'projectDocuments'
+              source: 'projectDocuments',
+              documentId: docResponse.data?.data?.id // Link to Document table entry
             },
             description: uploadDescription || `Project ${project?.projectNumber} documents`
           });
+        } catch (assetErr) {
+          console.warn('Failed to sync to CompanyAssets:', assetErr);
+          // Don't fail the entire upload if CompanyAsset sync fails
         }
-      } catch (assetErr) {
-        console.warn('Failed to sync to CompanyAssets:', assetErr);
-        // Don't fail the entire upload if CompanyAsset sync fails
+
+        uploadedDocs.push(docResponse.data);
       }
 
-      return docResponse.data;
+      return { success: true, data: uploadedDocs };
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projectDocuments', project?.id]);
