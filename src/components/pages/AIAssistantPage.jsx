@@ -46,6 +46,9 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const [teamMembersLoading, setTeamMembersLoading] = useState(false);
     const [composerBody, setComposerBody] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
+    // Pending action state for recipient selection
+    const [pendingAction, setPendingAction] = useState(null);
+    const [pendingActionRecipients, setPendingActionRecipients] = useState([]);
     // Voice and composer state/refs
     const vapiRef = useRef(null);
     const [isVoiceConnecting, setIsVoiceConnecting] = useState(false);
@@ -1135,6 +1138,62 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
         );
     };
 
+    const togglePendingActionRecipient = (userId) => {
+        if (!userId) return;
+        setPendingActionRecipients(prev => prev.includes(userId)
+            ? prev.filter(id => id !== userId)
+            : [...prev, userId]
+        );
+    };
+
+    const handleCompletePendingAction = async () => {
+        if (!pendingAction || pendingActionRecipients.length === 0) return;
+
+        setIsLoading(true);
+        try {
+            const response = await bubblesService.completeAction(pendingAction, pendingActionRecipients);
+
+            const confirmationMessage = {
+                id: Date.now(),
+                type: 'assistant',
+                content: response.data?.response?.content || 'Action completed successfully.',
+                timestamp: new Date()
+            };
+
+            setMessages(prev => [confirmationMessage, ...prev]);
+
+            // Clear pending action state
+            setPendingAction(null);
+            setPendingActionRecipients([]);
+
+            setTimeout(scrollToTop, 0);
+        } catch (error) {
+            const errorMessage = {
+                id: Date.now(),
+                type: 'assistant',
+                content: 'Failed to complete the action. Please try again.',
+                timestamp: new Date(),
+                isError: true
+            };
+            setMessages(prev => [errorMessage, ...prev]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCancelPendingAction = () => {
+        setPendingAction(null);
+        setPendingActionRecipients([]);
+
+        const cancelMessage = {
+            id: Date.now(),
+            type: 'assistant',
+            content: 'Action cancelled. How else can I help you?',
+            timestamp: new Date()
+        };
+        setMessages(prev => [cancelMessage, ...prev]);
+    };
+
     const scrollToTop = () => {
         if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop = 0;
@@ -1665,7 +1724,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
 
     const handleSubmit = async (e, quickActionText = null) => {
         if (e) e.preventDefault();
-        
+
         const userInput = quickActionText || input;
         if (!userInput.trim()) return;
 
@@ -1689,23 +1748,47 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 chatContext.selectedRecipientIds = selectedRecipients;
             }
             const response = await bubblesService.chat(userInput, selectedProject?.id, chatContext);
-            
-            const assistantMessage = {
-                id: Date.now() + 1,
-                type: 'assistant',
-                content: response.data?.response?.content || 'I processed your request.',
-                timestamp: new Date(),
-                suggestedActions: response.data?.response?.suggestedActions || []
-            };
-            
-            // Add AI response with special flag to keep it paired with the user message
-            setMessages(prev => {
-                // Remove the user message temporarily
-                const [lastUserMsg, ...rest] = prev;
-                // Add both back in correct order: user first, then AI response
-                return [lastUserMsg, assistantMessage, ...rest];
-            });
-            setTimeout(scrollToTop, 0);
+
+            // Check if Bubbles requires recipient selection
+            if (response.data?.response?.requiresRecipientSelection) {
+                const assistantMessage = {
+                    id: Date.now() + 1,
+                    type: 'assistant',
+                    content: response.data.response.content,
+                    timestamp: new Date(),
+                    requiresRecipientSelection: true,
+                    availableRecipients: response.data.response.availableRecipients || [],
+                    pendingAction: response.data.response.pendingAction
+                };
+
+                // Store pending action and show recipient picker
+                setPendingAction(response.data.response.pendingAction);
+                setTeamMembers(response.data.response.availableRecipients || []);
+                setPendingActionRecipients([]);
+
+                setMessages(prev => {
+                    const [lastUserMsg, ...rest] = prev;
+                    return [lastUserMsg, assistantMessage, ...rest];
+                });
+                setTimeout(scrollToTop, 0);
+            } else {
+                const assistantMessage = {
+                    id: Date.now() + 1,
+                    type: 'assistant',
+                    content: response.data?.response?.content || 'I processed your request.',
+                    timestamp: new Date(),
+                    suggestedActions: response.data?.response?.suggestedActions || []
+                };
+
+                // Add AI response with special flag to keep it paired with the user message
+                setMessages(prev => {
+                    // Remove the user message temporarily
+                    const [lastUserMsg, ...rest] = prev;
+                    // Add both back in correct order: user first, then AI response
+                    return [lastUserMsg, assistantMessage, ...rest];
+                });
+                setTimeout(scrollToTop, 0);
+            }
         } catch (error) {
             const errorMessage = {
                 id: Date.now() + 1,
@@ -1784,6 +1867,46 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             __html: isAssistant ? renderMessageContent(message.content) : renderMessageContent(String(message.content ?? ''))
                         }}
                     />
+                    {message.requiresRecipientSelection && message.availableRecipients && (
+                        <div className="mt-4 p-3 bg-white border border-blue-300 rounded-lg">
+                            <h4 className="text-sm font-semibold text-blue-900 mb-2">Select Recipients:</h4>
+                            <div className="max-h-48 overflow-y-auto space-y-1 mb-3">
+                                {message.availableRecipients.map(user => (
+                                    <label key={user.id} className="flex items-center gap-2 text-sm py-1 px-2 hover:bg-blue-50 rounded cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={pendingActionRecipients.includes(user.id)}
+                                            onChange={() => togglePendingActionRecipient(user.id)}
+                                            className="rounded border-gray-300"
+                                        />
+                                        <span className="text-gray-800">
+                                            {user.firstName && user.lastName
+                                                ? `${user.firstName} ${user.lastName}`
+                                                : user.email || user.id}
+                                        </span>
+                                        {user.role && (
+                                            <span className="text-xs text-gray-500">({user.role})</span>
+                                        )}
+                                    </label>
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleCompletePendingAction}
+                                    disabled={pendingActionRecipients.length === 0}
+                                    className="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Send to {pendingActionRecipients.length} recipient{pendingActionRecipients.length !== 1 ? 's' : ''}
+                                </button>
+                                <button
+                                    onClick={handleCancelPendingAction}
+                                    className="px-4 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     {message.suggestedActions && message.suggestedActions.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
                             {message.suggestedActions.map((action, index) => (
@@ -1798,7 +1921,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         </div>
                     )}
                     <div className="text-xs mt-2 text-gray-400">
-                        {message.timestamp instanceof Date 
+                        {message.timestamp instanceof Date
                             ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                             : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         }

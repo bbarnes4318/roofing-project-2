@@ -1014,6 +1014,133 @@ const chatValidation = [
 ];
 
 /**
+ * @desc    Complete a pending action with selected recipients
+ * @route   POST /api/bubbles/complete-action
+ * @access  Private
+ */
+router.post('/complete-action', asyncHandler(async (req, res) => {
+  const { pendingAction, selectedRecipientIds } = req.body;
+
+  if (!pendingAction || !selectedRecipientIds || !Array.isArray(selectedRecipientIds) || selectedRecipientIds.length === 0) {
+    return res.status(400).json({ success: false, message: 'Missing pendingAction or selectedRecipientIds' });
+  }
+
+  try {
+    // Fetch selected recipients
+    const recipients = await prisma.user.findMany({
+      where: { id: { in: selectedRecipientIds } },
+      select: { id: true, firstName: true, lastName: true, email: true }
+    });
+
+    if (recipients.length === 0) {
+      return sendSuccess(res, 400, { response: { content: 'No valid recipients found.' } });
+    }
+
+    // Handle different action types
+    if (pendingAction.type === 'send_document') {
+      // Fetch the asset
+      const asset = await prisma.asset.findUnique({ where: { id: pendingAction.assetId } });
+      if (!asset) {
+        return sendSuccess(res, 404, { response: { content: 'Document not found.' } });
+      }
+
+      // Fetch the project
+      const proj = await prisma.project.findUnique({ where: { id: pendingAction.projectId } });
+      if (!proj) {
+        return sendSuccess(res, 404, { response: { content: 'Project not found.' } });
+      }
+
+      // Build attachment metadata
+      const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl || null;
+      const attachment = {
+        assetId: asset.id || null,
+        title: asset.title || 'Document',
+        mimeType: asset.mimeType || 'application/octet-stream',
+        fileUrl,
+        thumbnailUrl: asset.thumbnailUrl || null
+      };
+
+      // Create project message
+      const pm = await prisma.projectMessage.create({
+        data: {
+          content: pendingAction.message || `Shared document: ${attachment.title}`,
+          subject: `Document: ${attachment.title}`,
+          messageType: 'USER_MESSAGE',
+          priority: 'MEDIUM',
+          authorId: req.user.id,
+          authorName: `${req.user.firstName || 'Bubbles'} ${req.user.lastName || 'AI'}`.trim(),
+          authorRole: req.user.role || 'AI_ASSISTANT',
+          projectId: proj.id,
+          projectNumber: proj.projectNumber,
+          isSystemGenerated: false,
+          isWorkflowMessage: false,
+          metadata: { attachments: [attachment] }
+        }
+      });
+
+      // Add recipients
+      await prisma.projectMessageRecipient.createMany({
+        data: recipients.map(r => ({ messageId: pm.id, userId: r.id }))
+      });
+
+      const ack = `Attached "${attachment.title}" to a new project message for project #${proj.projectNumber} and notified ${recipients.map(r => r.firstName + ' ' + r.lastName).join(', ')}.`;
+      return sendSuccess(res, 200, { response: { content: ack }, messageId: pm.id, attachments: [attachment] });
+    }
+
+    if (pendingAction.type === 'send_email') {
+      // Send email to selected recipients
+      const allRecipients = recipients.map(r => ({
+        email: r.email,
+        name: `${r.firstName} ${r.lastName}`,
+        type: 'user'
+      }));
+
+      const results = [];
+      for (const recipient of allRecipients) {
+        try {
+          const result = await emailService.sendEmail({
+            to: recipient.email,
+            subject: pendingAction.subject,
+            html: pendingAction.body,
+            text: pendingAction.body,
+            attachments: pendingAction.attachments || [],
+            replyTo: req.user.email,
+            tags: {
+              sentBy: req.user.id,
+              projectId: pendingAction.projectId,
+              recipientType: recipient.type,
+              source: 'bubbles_ai'
+            }
+          });
+          results.push({ recipient: recipient.name, success: true, messageId: result.messageId });
+        } catch (emailErr) {
+          results.push({ recipient: recipient.name, success: false, error: emailErr.message });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+      let response = `✅ Email sent successfully to ${successCount} recipient${successCount !== 1 ? 's' : ''}`;
+      if (failCount > 0) {
+        response += ` (${failCount} failed)`;
+      }
+      response += `:\n\n**Subject:** ${pendingAction.subject}\n**Recipients:** ${allRecipients.map(r => r.name).join(', ')}`;
+
+      return sendSuccess(res, 200, {
+        response: { content: response },
+        emailResults: results,
+        emailsSent: successCount
+      });
+    }
+
+    return sendSuccess(res, 400, { response: { content: 'Unknown action type.' } });
+  } catch (error) {
+    console.error('Complete action error:', error);
+    return sendSuccess(res, 500, { response: { content: 'Failed to complete action.' } });
+  }
+}));
+
+/**
  * @desc    Chat with Bubbles AI Assistant
  * @route   POST /api/bubbles/chat
  * @access  Private
@@ -1028,7 +1155,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   // Determine AI availability (do not early-return; we still want to fulfill document/checklist requests without OpenAI)
   const aiAvailable = !!(openAIService && openAIService.isAvailable && openAIService.isAvailable());
 
-  const { message, projectId } = req.body;
+  const { message, projectId, context = {} } = req.body;
   const session = contextManager.getUserSession(req.user.id);
 
   let projectContext = null;
@@ -1095,10 +1222,22 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
           return sendSuccess(res, 200, { response: { content: msg } });
         }
 
+        // Check if recipients were provided via context (from UI selection)
+        const contextRecipientIds = context?.selectedRecipientIds || [];
+
         // Extract and resolve recipients (prefer explicit internal users, not customers)
         const recipientNames = extractRecipientNames(message);
         let recipients = [];
-        if (recipientNames.length > 0) {
+
+        // First, check if recipients were selected via UI
+        if (contextRecipientIds.length > 0) {
+          recipients = await prisma.user.findMany({
+            where: { id: { in: contextRecipientIds } },
+            select: { id: true, firstName: true, lastName: true, email: true }
+          });
+        }
+        // Otherwise, try to extract from message text
+        else if (recipientNames.length > 0) {
           const ors = [];
           for (const n of recipientNames) {
             const [fn, ln] = String(n).split(/\s+/);
@@ -1122,7 +1261,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
           }
         }
         // Fallback: if "Sarah Owner" (or role owner) is intended but not matched yet, prefer project manager/internal user
-        if (recipients.length === 0) {
+        if (recipients.length === 0 && contextRecipientIds.length === 0) {
           try {
             if (lower.includes('sarah owner')) {
               const sarah = await prisma.user.findFirst({
@@ -1144,6 +1283,60 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
               }
             }
           } catch (_) {}
+        }
+
+        // If still no recipients, prompt for selection
+        if (recipients.length === 0) {
+          // Get all team members for user selection
+          const teamMembers = await prisma.user.findMany({
+            where: {
+              isActive: true,
+              role: { not: 'CLIENT' }
+            },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true
+            },
+            orderBy: [
+              { firstName: 'asc' },
+              { lastName: 'asc' }
+            ]
+          });
+
+          // Extract user content for the message
+          let userContent = '';
+          const sayingIdx = lower.indexOf('message saying');
+          if (sayingIdx !== -1) {
+            userContent = message.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+          }
+          if (!userContent) {
+            const withIdx = lower.indexOf('with a message');
+            if (withIdx !== -1) {
+              userContent = message.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+            }
+          }
+
+          const msg = 'Who would you like to send this document to? Please select from the list below.';
+          contextManager.addToHistory(req.user.id, message, msg, proj);
+          return sendSuccess(res, 200, {
+            response: {
+              content: msg,
+              requiresRecipientSelection: true,
+              availableRecipients: teamMembers,
+              pendingAction: {
+                type: 'send_document',
+                assetId: asset.id,
+                assetTitle: asset.title,
+                message: userContent,
+                projectId: proj.id,
+                intendsTask,
+                intendsReminder
+              }
+            }
+          });
         }
 
         // Extract a short message content if present (e.g., "with a message saying ...")
@@ -1402,9 +1595,41 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       ];
 
       if (allRecipients.length === 0) {
-        const msg = 'Please specify who you want to send the email to (customer name or team member name).';
+        // Get all team members for user selection
+        const teamMembers = await prisma.user.findMany({
+          where: {
+            isActive: true,
+            role: { not: 'CLIENT' }
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          },
+          orderBy: [
+            { firstName: 'asc' },
+            { lastName: 'asc' }
+          ]
+        });
+
+        const msg = 'Who would you like to send this email to? Please select from the list below.';
         contextManager.addToHistory(req.user.id, message, msg, projectContext || null);
-        return sendSuccess(res, 200, { response: { content: msg } });
+        return sendSuccess(res, 200, {
+          response: {
+            content: msg,
+            requiresRecipientSelection: true,
+            availableRecipients: teamMembers,
+            pendingAction: {
+              type: 'send_email',
+              subject,
+              body: emailBody,
+              attachments,
+              projectId: proj?.id
+            }
+          }
+        });
       }
 
       if (!emailBody) {

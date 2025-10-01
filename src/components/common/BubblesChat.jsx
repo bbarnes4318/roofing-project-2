@@ -33,6 +33,9 @@ const BubblesChat = ({
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
+  // Pending action state for recipient selection
+  const [pendingAction, setPendingAction] = useState(null);
+  const [pendingActionRecipients, setPendingActionRecipients] = useState([]);
 
   // Voice (Vapi) state
   const vapiRef = useRef(null);
@@ -245,7 +248,7 @@ const BubblesChat = ({
       content: trimmedMessage,
       timestamp: new Date(),
     };
-    
+
     // Add user message and scroll to it
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
@@ -254,16 +257,37 @@ const BubblesChat = ({
 
     try {
       const response = await bubblesService.chat(trimmedMessage, currentProject?.id);
-      const aiMessage = {
-        id: response.data.sessionContext?.sessionId || Date.now() + 1,
-        type: 'ai',
-        content: response.data.response.content,
-        suggestedActions: response.data.response.suggestedActions || [],
-        timestamp: new Date(response.data.response.timestamp),
-      };
-      
-      // Add AI response and it will auto-scroll via useEffect
-      setMessages(prev => [...prev, aiMessage]);
+
+      // Check if Bubbles requires recipient selection
+      if (response.data?.response?.requiresRecipientSelection) {
+        const aiMessage = {
+          id: response.data.sessionContext?.sessionId || Date.now() + 1,
+          type: 'ai',
+          content: response.data.response.content,
+          timestamp: new Date(response.data.response.timestamp),
+          requiresRecipientSelection: true,
+          availableRecipients: response.data.response.availableRecipients || [],
+          pendingAction: response.data.response.pendingAction
+        };
+
+        // Store pending action
+        setPendingAction(response.data.response.pendingAction);
+        setTeamMembers(response.data.response.availableRecipients || []);
+        setPendingActionRecipients([]);
+
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        const aiMessage = {
+          id: response.data.sessionContext?.sessionId || Date.now() + 1,
+          type: 'ai',
+          content: response.data.response.content,
+          suggestedActions: response.data.response.suggestedActions || [],
+          timestamp: new Date(response.data.response.timestamp),
+        };
+
+        // Add AI response and it will auto-scroll via useEffect
+        setMessages(prev => [...prev, aiMessage]);
+      }
     } catch (error) {
       const errorMessage = {
         id: `error_${Date.now()}`,
@@ -483,6 +507,59 @@ const BubblesChat = ({
       ? prev.filter(id => id !== userId)
       : [...prev, userId]
     );
+  };
+
+  const togglePendingActionRecipient = (userId) => {
+    if (!userId) return;
+    setPendingActionRecipients(prev => prev.includes(userId)
+      ? prev.filter(id => id !== userId)
+      : [...prev, userId]
+    );
+  };
+
+  const handleCompletePendingAction = async () => {
+    if (!pendingAction || pendingActionRecipients.length === 0) return;
+
+    setIsLoading(true);
+    try {
+      const response = await bubblesService.completeAction(pendingAction, pendingActionRecipients);
+
+      const confirmationMessage = {
+        id: Date.now(),
+        type: 'ai',
+        content: response.data?.response?.content || 'Action completed successfully.',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, confirmationMessage]);
+
+      // Clear pending action state
+      setPendingAction(null);
+      setPendingActionRecipients([]);
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now(),
+        type: 'error',
+        content: 'Failed to complete the action. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelPendingAction = () => {
+    setPendingAction(null);
+    setPendingActionRecipients([]);
+
+    const cancelMessage = {
+      id: Date.now(),
+      type: 'ai',
+      content: 'Action cancelled. How else can I help you?',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, cancelMessage]);
   };
 
   const submitProjectMessage = async () => {
@@ -949,6 +1026,46 @@ const BubblesChat = ({
                 (colorMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-900')
               }`}>
                 <div className="space-y-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: renderMessageContent(msg.content) }} />
+                {msg.requiresRecipientSelection && msg.availableRecipients && (
+                  <div className="mt-4 p-3 bg-white border border-blue-300 rounded-lg">
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">Select Recipients:</h4>
+                    <div className="max-h-48 overflow-y-auto space-y-1 mb-3">
+                      {msg.availableRecipients.map(user => (
+                        <label key={user.id} className="flex items-center gap-2 text-sm py-1 px-2 hover:bg-blue-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={pendingActionRecipients.includes(user.id)}
+                            onChange={() => togglePendingActionRecipient(user.id)}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-gray-800">
+                            {user.firstName && user.lastName
+                              ? `${user.firstName} ${user.lastName}`
+                              : user.email || user.id}
+                          </span>
+                          {user.role && (
+                            <span className="text-xs text-gray-500">({user.role})</span>
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCompletePendingAction}
+                        disabled={pendingActionRecipients.length === 0}
+                        className="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Send to {pendingActionRecipients.length} recipient{pendingActionRecipients.length !== 1 ? 's' : ''}
+                      </button>
+                      <button
+                        onClick={handleCancelPendingAction}
+                        className="px-4 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {msg.suggestedActions && msg.suggestedActions.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {msg.suggestedActions.map((action, i) => (

@@ -848,6 +848,15 @@ export const bubblesService = {
     return response.data;
   },
 
+  // Complete a pending action with selected recipients
+  completeAction: async (pendingAction, selectedRecipientIds) => {
+    const response = await api.post('/bubbles/complete-action', {
+      pendingAction,
+      selectedRecipientIds
+    });
+    return response.data;
+  },
+
   // Get current step for selected project
   getCurrentStep: async (projectId) => {
     const response = await api.get(`/bubbles/project/${projectId}/current-step`);
