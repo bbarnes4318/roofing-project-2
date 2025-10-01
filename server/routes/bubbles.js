@@ -106,6 +106,8 @@ function parseDueDateFromText(text) {
       const d = parseInt(byMatch[2],10);
       const y = byMatch[3] ? parseInt(byMatch[3],10) : now.getFullYear();
       const dt = new Date(y, m-1, d, 17, 0, 0, 0);
+      return dt;
+    }
   } catch (_) {}
   return nextBusinessDaysFromNow(2);
 }
@@ -119,14 +121,51 @@ function parseReminderDateTimeFromText(text) {
     const timeMatch = lower.match(/(?:at|@)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
     let base = new Date(now);
     if (/tomorrow/.test(lower)) base.setDate(base.getDate()+1);
+
     // Day names
-{{ ... }}
+    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    for (let i=0;i<7;i++) {
+      if (lower.includes(days[i])) {
+        const target = new Date(now);
+        const diff = (i - now.getDay() + 7) % 7 || 7;
+        target.setDate(now.getDate() + diff);
+        if (timeMatch) {
+          let h = parseInt(timeMatch[1],10);
+          const min = timeMatch[2] ? parseInt(timeMatch[2],10) : 0;
+          const ampm = timeMatch[3];
+          if (ampm === 'pm' && h < 12) h += 12;
+          if (ampm === 'am' && h === 12) h = 0;
+          target.setHours(h, min, 0, 0);
+        } else {
+          target.setHours(9, 0, 0, 0);
+        }
+        return target;
+      }
+    }
+
+    // If time specified, use base date
+    if (timeMatch) {
+      let h = parseInt(timeMatch[1],10);
+      const min = timeMatch[2] ? parseInt(timeMatch[2],10) : 0;
+      const ampm = timeMatch[3];
+      if (ampm === 'pm' && h < 12) h += 12;
+      if (ampm === 'am' && h === 12) h = 0;
+      base.setHours(h, min, 0, 0);
+      return base;
+    }
+
     // Fallback: next business day at 9am
     const d = nextBusinessDaysFromNow(1);
     d.setHours(9,0,0,0);
     return d;
   } catch (_) {}
-  const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
+  const d = nextBusinessDaysFromNow(1);
+  d.setHours(9,0,0,0);
+  return d;
+}
+
+async function readAssetCurrentFile(asset) {
+  try {
     const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl;
     if (!fileUrl) return null;
     const safePath = String(fileUrl).replace(/^\\|^\//, '');
