@@ -1019,25 +1019,38 @@ const chatValidation = [
  * @access  Private
  */
 router.post('/complete-action', asyncHandler(async (req, res) => {
-  const { pendingAction, selectedRecipientIds } = req.body;
+  const { pendingAction, selectedRecipientIds = [], customEmails = [] } = req.body;
 
-  if (!pendingAction || !selectedRecipientIds || !Array.isArray(selectedRecipientIds) || selectedRecipientIds.length === 0) {
-    return res.status(400).json({ success: false, message: 'Missing pendingAction or selectedRecipientIds' });
+  if (!pendingAction || (selectedRecipientIds.length === 0 && customEmails.length === 0)) {
+    return res.status(400).json({ success: false, message: 'Please select at least one recipient or provide custom email addresses.' });
   }
 
   try {
-    // Fetch selected recipients
-    const recipients = await prisma.user.findMany({
-      where: { id: { in: selectedRecipientIds } },
-      select: { id: true, firstName: true, lastName: true, email: true }
-    });
+    // Fetch selected recipients (team members)
+    let recipients = [];
+    if (selectedRecipientIds.length > 0) {
+      recipients = await prisma.user.findMany({
+        where: { id: { in: selectedRecipientIds } },
+        select: { id: true, firstName: true, lastName: true, email: true }
+      });
+    }
 
-    if (recipients.length === 0) {
+    // Add custom email recipients
+    const customRecipients = customEmails.map(email => ({
+      email,
+      firstName: email.split('@')[0],
+      lastName: '',
+      isCustom: true
+    }));
+
+    const allRecipients = [...recipients, ...customRecipients];
+
+    if (allRecipients.length === 0) {
       return sendSuccess(res, 400, { response: { content: 'No valid recipients found.' } });
     }
 
     // Handle different action types
-    if (pendingAction.type === 'send_document') {
+    if (pendingAction.type === 'send_document_message') {
       // Fetch the asset
       const asset = await prisma.asset.findUnique({ where: { id: pendingAction.assetId } });
       if (!asset) {
@@ -1078,26 +1091,120 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
         }
       });
 
-      // Add recipients
-      await prisma.projectMessageRecipient.createMany({
-        data: recipients.map(r => ({ messageId: pm.id, userId: r.id }))
-      });
+      // Add recipients (only team members, not custom emails)
+      const teamMemberRecipients = allRecipients.filter(r => !r.isCustom);
+      if (teamMemberRecipients.length > 0) {
+        await prisma.projectMessageRecipient.createMany({
+          data: teamMemberRecipients.map(r => ({ messageId: pm.id, userId: r.id }))
+        });
+      }
 
-      const ack = `Attached "${attachment.title}" to a new project message for project #${proj.projectNumber} and notified ${recipients.map(r => r.firstName + ' ' + r.lastName).join(', ')}.`;
+      const recipientNames = allRecipients.map(r =>
+        r.isCustom ? r.email : `${r.firstName} ${r.lastName}`
+      ).join(', ');
+      const ack = `📨 Internal message sent with "${attachment.title}" to ${recipientNames} for project #${proj.projectNumber}.`;
       return sendSuccess(res, 200, { response: { content: ack }, messageId: pm.id, attachments: [attachment] });
     }
 
-    if (pendingAction.type === 'send_email') {
-      // Send email to selected recipients
-      const allRecipients = recipients.map(r => ({
-        email: r.email,
-        name: `${r.firstName} ${r.lastName}`,
-        type: 'user'
-      }));
+    if (pendingAction.type === 'send_document_email') {
+      // Fetch the asset
+      const asset = await prisma.asset.findUnique({ where: { id: pendingAction.assetId } });
+      if (!asset) {
+        return sendSuccess(res, 404, { response: { content: 'Document not found.' } });
+      }
 
+      // Fetch the project
+      const proj = await prisma.project.findUnique({ where: { id: pendingAction.projectId } });
+      if (!proj) {
+        return sendSuccess(res, 404, { response: { content: 'Project not found.' } });
+      }
+
+      // Prepare email attachment
+      const emailAttachment = { documentId: asset.id };
+
+      // Build email subject and body
+      const subject = `Document: ${asset.title}`;
+      const emailBody = pendingAction.message || `Please find the attached document: ${asset.title}`;
+      const html = emailService.createEmailTemplate({
+        title: subject,
+        content: `<p>${emailBody.replace(/\n/g, '<br>')}</p>` +
+                 (proj ? `<p><strong>Project:</strong> ${proj.projectName}<br><strong>Project #:</strong> ${proj.projectNumber}</p>` : ''),
+        footer: `This email was sent via Bubbles AI Assistant by ${req.user.firstName} ${req.user.lastName}`
+      });
+
+      // Send emails to all recipients
       const results = [];
       for (const recipient of allRecipients) {
         try {
+          const recipientName = recipient.isCustom
+            ? recipient.email
+            : `${recipient.firstName} ${recipient.lastName}`;
+
+          const result = await emailService.sendEmail({
+            to: recipient.email,
+            subject,
+            html,
+            text: emailBody,
+            attachments: [emailAttachment],
+            replyTo: req.user.email,
+            tags: {
+              sentBy: req.user.id,
+              projectId: proj.id,
+              recipientType: recipient.isCustom ? 'external' : 'user',
+              source: 'bubbles_ai'
+            }
+          });
+          results.push({ recipient: recipientName, success: true, messageId: result.messageId });
+
+          // Log email to database
+          await emailService.logEmail({
+            senderId: req.user.id,
+            senderEmail: req.user.email,
+            senderName: `${req.user.firstName} ${req.user.lastName}`,
+            to: [recipient.email],
+            subject,
+            text: emailBody,
+            html,
+            attachments: [emailAttachment],
+            messageId: result.messageId,
+            projectId: proj.id,
+            emailType: 'bubbles_ai',
+            status: 'sent',
+            tags: { source: 'bubbles_ai', documentAttachment: true, recipientType: recipient.isCustom ? 'external' : 'internal' },
+            metadata: { assetId: asset.id, assetTitle: asset.title }
+          });
+        } catch (emailErr) {
+          const recipientName = recipient.isCustom
+            ? recipient.email
+            : `${recipient.firstName} ${recipient.lastName}`;
+          results.push({ recipient: recipientName, success: false, error: emailErr.message });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+      let response = `📧 Email sent successfully to ${successCount} recipient${successCount !== 1 ? 's' : ''}`;
+      if (failCount > 0) {
+        response += ` (${failCount} failed)`;
+      }
+      response += `:\n\n**Subject:** ${subject}\n**Recipients:** ${results.filter(r => r.success).map(r => r.recipient).join(', ')}\n**Attachment:** ${asset.title}`;
+
+      return sendSuccess(res, 200, {
+        response: { content: response },
+        emailResults: results,
+        emailsSent: successCount
+      });
+    }
+
+    if (pendingAction.type === 'send_email') {
+      // Send email to selected recipients (includes both team members and custom emails)
+      const results = [];
+      for (const recipient of allRecipients) {
+        try {
+          const recipientName = recipient.isCustom
+            ? recipient.email
+            : `${recipient.firstName} ${recipient.lastName}`;
+
           const result = await emailService.sendEmail({
             to: recipient.email,
             subject: pendingAction.subject,
@@ -1108,13 +1215,34 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
             tags: {
               sentBy: req.user.id,
               projectId: pendingAction.projectId,
-              recipientType: recipient.type,
+              recipientType: recipient.isCustom ? 'external' : 'user',
               source: 'bubbles_ai'
             }
           });
-          results.push({ recipient: recipient.name, success: true, messageId: result.messageId });
+          results.push({ recipient: recipientName, success: true, messageId: result.messageId });
+
+          // Log email to database
+          await emailService.logEmail({
+            senderId: req.user.id,
+            senderEmail: req.user.email,
+            senderName: `${req.user.firstName} ${req.user.lastName}`,
+            to: [recipient.email],
+            subject: pendingAction.subject,
+            text: pendingAction.body,
+            html: pendingAction.body,
+            attachments: pendingAction.attachments || [],
+            messageId: result.messageId,
+            projectId: pendingAction.projectId,
+            emailType: 'bubbles_ai',
+            status: 'sent',
+            tags: { source: 'bubbles_ai', recipientType: recipient.isCustom ? 'external' : 'internal' },
+            metadata: { conversationContext: true }
+          });
         } catch (emailErr) {
-          results.push({ recipient: recipient.name, success: false, error: emailErr.message });
+          const recipientName = recipient.isCustom
+            ? recipient.email
+            : `${recipient.firstName} ${recipient.lastName}`;
+          results.push({ recipient: recipientName, success: false, error: emailErr.message });
         }
       }
 
@@ -1124,7 +1252,7 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       if (failCount > 0) {
         response += ` (${failCount} failed)`;
       }
-      response += `:\n\n**Subject:** ${pendingAction.subject}\n**Recipients:** ${allRecipients.map(r => r.name).join(', ')}`;
+      response += `:\n\n**Subject:** ${pendingAction.subject}\n**Recipients:** ${results.filter(r => r.success).map(r => r.recipient).join(', ')}`;
 
       return sendSuccess(res, 200, {
         response: { content: response },
@@ -1319,7 +1447,14 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
             }
           }
 
-          const msg = 'Who would you like to send this document to? Please select from the list below.';
+          // Determine if user wants email or internal message
+          const wantsEmail = lower.includes('email') || lower.includes('e-mail');
+          const actionType = wantsEmail ? 'send_document_email' : 'send_document_message';
+
+          const msg = wantsEmail
+            ? 'Who would you like to email this document to? Please select from the list below.'
+            : 'Who would you like to send this document to? Please select from the list below.';
+
           contextManager.addToHistory(req.user.id, message, msg, proj);
           return sendSuccess(res, 200, {
             response: {
@@ -1327,7 +1462,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
               requiresRecipientSelection: true,
               availableRecipients: teamMembers,
               pendingAction: {
-                type: 'send_document',
+                type: actionType,
                 assetId: asset.id,
                 assetTitle: asset.title,
                 message: userContent,

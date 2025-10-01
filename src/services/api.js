@@ -849,10 +849,11 @@ export const bubblesService = {
   },
 
   // Complete a pending action with selected recipients
-  completeAction: async (pendingAction, selectedRecipientIds) => {
+  completeAction: async (pendingAction, selectedRecipientIds, customEmails = []) => {
     const response = await api.post('/bubbles/complete-action', {
       pendingAction,
-      selectedRecipientIds
+      selectedRecipientIds,
+      customEmails
     });
     return response.data;
   },
