@@ -1084,7 +1084,6 @@ const apiUrl = window.location.hostname === 'localhost'
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
         { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
-        { name: 'Email History', icon: <EnvelopeIcon />, page: 'Email History' },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
         { name: 'Bubbles', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
@@ -1176,7 +1175,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         </div>
                     </div>
                 );
-            case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
+            case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} navigate={navigate} />;
             case 'Email History': return <EmailHistoryPage colorMode={colorMode} />;
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'Settings': return (

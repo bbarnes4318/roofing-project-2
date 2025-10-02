@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ClockIcon } from '../common/Icons';
+import { ClockIcon, EnvelopeIcon } from '../common/Icons';
 import { projectsService } from '../../services/api';
 
-const ArchivedProjectsPage = ({ colorMode, onProjectSelect }) => {
+const ArchivedProjectsPage = ({ colorMode, onProjectSelect, navigate }) => {
     const [sortConfig, setSortConfig] = useState({ key: 'archivedAt', direction: 'desc' });
     const [searchTerm, setSearchTerm] = useState('');
     const [filterYear, setFilterYear] = useState('all');
@@ -205,14 +205,29 @@ const ArchivedProjectsPage = ({ colorMode, onProjectSelect }) => {
 
     return (
         <div className="animate-fade-in w-full max-w-full">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                    Archived Projects ({archivedProjects.length})
-                </h1>
-                <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Projects that have been archived and moved out of active management
-                </p>
+            {/* Header with Email History Link */}
+            <div className="mb-6 flex items-start justify-between">
+                <div>
+                    <h1 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                        Archived Projects ({archivedProjects.length})
+                    </h1>
+                    <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Projects that have been archived and moved out of active management
+                    </p>
+                </div>
+
+                {/* Email History Link */}
+                <button
+                    onClick={() => navigate && navigate('Email History')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ${
+                        colorMode
+                            ? 'bg-[#1e293b] border-[#3b82f6]/30 text-white hover:bg-[#232b4d] hover:border-[#3b82f6]/50'
+                            : 'bg-white border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-blue-500'
+                    }`}
+                >
+                    <EnvelopeIcon className="w-5 h-5" />
+                    <span className="text-sm font-medium">Email History</span>
+                </button>
             </div>
 
             {error && (

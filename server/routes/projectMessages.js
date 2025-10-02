@@ -127,6 +127,18 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
                 role: true,
                 avatar: true
               }
+            },
+            recipients: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    role: true
+                  }
+                }
+              }
             }
           }
         } : false,
@@ -141,6 +153,18 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
         },
         project: {
           select: { projectName: true }
+        },
+        recipients: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -174,6 +198,7 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
     metadata: message.metadata,
     createdAt: message.createdAt,
     updated_at: message.updated_at,
+    recipients: message.recipients || [],
     replies: message.replies || [],
     conversationCount: (message.replies?.length || 0) + 1
   }));
