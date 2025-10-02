@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useProjects, useWorkflowAlerts, useRecentActivities } from '../../hooks/useQueryApi';
 import WorkflowProgressService from '../../services/workflowProgress';
+import { assetsService } from '../../services/api';
 
 const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity, colorMode }) => {
     // Dashboard sync state - EXACT same as Dashboard page
@@ -393,6 +394,61 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                     </p>
                                                 </div>
                                             )}
+                                        </div>
+                                    )}
+
+                                    {/* Attachments - Display outside expanded section so they're always visible */}
+                                    {Array.isArray(item?.metadata?.attachments) && item.metadata.attachments.length > 0 && (
+                                        <div className="px-3 pb-3">
+                                            <div className="flex flex-col gap-1.5">
+                                                {item.metadata.attachments.map((att, idx) => {
+                                                    const fileName = att.title || att.fileName || att.originalName || 'Attachment';
+                                                    const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg bg-white px-3 py-2 text-xs shadow-sm hover:shadow transition-shadow"
+                                                        >
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="font-medium text-gray-900 truncate">{fileName}</div>
+                                                                    {fileExt && (
+                                                                        <div className="text-[10px] text-gray-500 uppercase">{fileExt}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        try {
+                                                                            if (att.assetId) {
+                                                                                assetsService.openInNewTab(att.assetId);
+                                                                            } else if (att.fileUrl) {
+                                                                                window.open(att.fileUrl, '_blank', 'noopener');
+                                                                            }
+                                                                        } catch (err) {
+                                                                            console.error('Failed to open attachment:', err);
+                                                                        }
+                                                                    }}
+                                                                    className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
+                                                                >
+                                                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m0 0l-4-4m4 4l4-4" />
+                                                                    </svg>
+                                                                    Open
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     )}
                                 </div>

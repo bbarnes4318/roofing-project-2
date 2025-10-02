@@ -1392,8 +1392,9 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   // Heuristic 1: Customer info requests (name/address/phone/email)
   const lower = String(message || '').toLowerCase();
 
-  // Heuristic -1: Simple message request without project context
+  // Heuristic -1: Simple message request (with or without project context)
   // Detect patterns like "send a message that says..." or "send message saying..."
+  // This should work even if a project is selected
   const simpleMessagePatterns = [
     /send\s+(?:a\s+)?message\s+(?:that\s+)?(?:says?|saying)/i,
     /send\s+(?:a\s+)?message\s+["'](.+)["']/i,
@@ -1402,7 +1403,10 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
   const isSimpleMessageRequest = simpleMessagePatterns.some(pattern => pattern.test(message));
 
-  if (isSimpleMessageRequest && !projectContext) {
+  // Check if this is a simple message request (not a document send)
+  const mentionsDocument = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
+
+  if (isSimpleMessageRequest && !mentionsDocument) {
     // Extract message content
     let messageContent = '';
     const sayingMatch = message.match(/(?:says?|saying)[:\s]+["']?([^"'\n]+)["']?/i);
