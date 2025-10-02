@@ -22,12 +22,15 @@ const EmailHistoryPage = () => {
   }, [emailType, status, limit, offset]);
 
   const fetchEmails = async () => {
+    console.log('📧 EMAIL HISTORY: fetchEmails called');
     try {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem('token');
+      console.log('📧 EMAIL HISTORY: Token:', token ? 'Present' : 'Missing');
 
       if (!token) {
+        console.warn('📧 EMAIL HISTORY: No token found');
         setError('Authentication required. Please log in.');
         setLoading(false);
         return;
@@ -39,12 +42,16 @@ const EmailHistoryPage = () => {
       params.append('limit', limit);
       params.append('offset', offset);
 
+      console.log('📧 EMAIL HISTORY: Fetching with params:', params.toString());
+
       const response = await fetch(`/api/email/history?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+
+      console.log('📧 EMAIL HISTORY: Response status:', response.status);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -54,9 +61,12 @@ const EmailHistoryPage = () => {
       }
 
       const data = await response.json();
+      console.log('📧 EMAIL HISTORY: Received data:', data);
       setEmails(data.data.emails || []);
       setTotal(data.data.total || 0);
+      console.log('📧 EMAIL HISTORY: Emails loaded:', data.data.emails?.length || 0);
     } catch (err) {
+      console.error('📧 EMAIL HISTORY: Error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -115,9 +125,12 @@ const EmailHistoryPage = () => {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={fetchEmails}
+                onClick={() => {
+                  console.log('📧 EMAIL HISTORY: Refresh button clicked');
+                  fetchEmails();
+                }}
                 disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <FiRefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 Refresh

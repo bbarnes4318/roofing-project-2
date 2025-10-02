@@ -1060,6 +1060,11 @@ const chatValidation = [
 router.post('/complete-action', asyncHandler(async (req, res) => {
   const { pendingAction, selectedRecipientIds = [], customEmails = [] } = req.body;
 
+  console.log('🔍 COMPLETE-ACTION: Received request');
+  console.log('🔍 COMPLETE-ACTION: pendingAction:', JSON.stringify(pendingAction, null, 2));
+  console.log('🔍 COMPLETE-ACTION: selectedRecipientIds:', selectedRecipientIds);
+  console.log('🔍 COMPLETE-ACTION: customEmails:', customEmails);
+
   if (!pendingAction || (selectedRecipientIds.length === 0 && customEmails.length === 0)) {
     return res.status(400).json({ success: false, message: 'Please select at least one recipient or provide custom email addresses.' });
   }
@@ -1072,6 +1077,7 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
         where: { id: { in: selectedRecipientIds } },
         select: { id: true, firstName: true, lastName: true, email: true }
       });
+      console.log('🔍 COMPLETE-ACTION: Fetched recipients from DB:', recipients);
     }
 
     // Add custom email recipients
@@ -1134,16 +1140,21 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
 
       // Add recipients (only team members, not custom emails)
       const teamMemberRecipients = allRecipients.filter(r => !r.isCustom);
+      console.log('🔍 COMPLETE-ACTION: Team member recipients to add:', teamMemberRecipients);
       if (teamMemberRecipients.length > 0) {
+        const recipientData = teamMemberRecipients.map(r => ({ messageId: pm.id, userId: r.id }));
+        console.log('🔍 COMPLETE-ACTION: Creating ProjectMessageRecipient records:', recipientData);
         await prisma.projectMessageRecipient.createMany({
-          data: teamMemberRecipients.map(r => ({ messageId: pm.id, userId: r.id }))
+          data: recipientData
         });
+        console.log('🔍 COMPLETE-ACTION: ProjectMessageRecipient records created successfully');
       }
 
       const recipientNames = allRecipients.map(r =>
         r.isCustom ? r.email : `${r.firstName} ${r.lastName}`
       ).join(', ');
       const ack = `📨 Internal message sent with "${attachment.title}" to ${recipientNames} for project #${proj.projectNumber}.`;
+      console.log('🔍 COMPLETE-ACTION: Sending success response:', ack);
       return sendSuccess(res, 200, { response: { content: ack }, messageId: pm.id, attachments: [attachment] });
     }
 

@@ -2,12 +2,36 @@
 
 ## Issues Fixed
 
-### 1. ✅ Messages Sent to Wrong Recipient
+### 1. ⚠️ Messages Sent to Wrong Recipient - DEBUGGING ADDED
 **Problem**: When sending an internal message via Bubbles, the message was being sent to the project's primary customer contact instead of the selected user.
 
-**Root Cause**: Not identified yet - needs further investigation. The `/complete-action` endpoint code looks correct.
+**Root Cause**: Under investigation - added comprehensive logging to trace the issue.
 
-**Status**: Needs testing to confirm the exact flow
+**Changes Made**:
+1. Added detailed console logging to `/complete-action` endpoint to track:
+   - Received `selectedRecipientIds` from frontend
+   - Fetched recipients from database
+   - Created `ProjectMessageRecipient` records
+   - Final response sent to frontend
+
+2. Logging will show:
+   ```
+   🔍 COMPLETE-ACTION: Received request
+   🔍 COMPLETE-ACTION: selectedRecipientIds: [...]
+   🔍 COMPLETE-ACTION: Fetched recipients from DB: [...]
+   🔍 COMPLETE-ACTION: Creating ProjectMessageRecipient records: [...]
+   ```
+
+**Testing Instructions**:
+1. Open browser console (F12) and server logs
+2. Send a message via Bubbles to a specific user (e.g., Andrew Miller)
+3. Check console logs to see which recipients were selected
+4. Check server logs to see the database operations
+5. Verify the message appears for the correct recipient in the UI
+
+**File Modified**: `server/routes/bubbles.js` (lines 1060-1158)
+
+**Status**: Needs testing with logging enabled to identify root cause
 
 ---
 
@@ -70,40 +94,70 @@ And changed text to white:
 
 ---
 
-### 5. ✅ Email History 401 Unauthorized Error
-**Problem**: When accessing the Email History Page, the API call returned a 401 error with "Invalid token" because the Authorization header was `Bearer null`.
+### 5. ✅ Email History Page Issues - FIXED & DEBUGGING ADDED
 
-**Root Cause**: The token was being retrieved from localStorage but was null/undefined, and the code wasn't checking for this before making the API call.
+#### 5a. Missing Email Entries
+**Problem**: Emails sent from Bubbles Page don't appear in Email History Page.
 
-**Solution**: Added token validation before making the API call:
+**Root Cause**: Emails ARE being logged to the database (confirmed in `server/routes/bubbles.js` lines 1203-1218). The issue is likely:
+1. Token authentication failing
+2. API endpoint not returning all emails
+3. Frontend filtering out Bubbles emails
+
+**Solution**: Added comprehensive logging to trace the issue:
 ```javascript
-const token = localStorage.getItem('token');
-
-if (!token) {
-  setError('Authentication required. Please log in.');
-  setLoading(false);
-  return;
-}
+console.log('📧 EMAIL HISTORY: fetchEmails called');
+console.log('📧 EMAIL HISTORY: Token:', token ? 'Present' : 'Missing');
+console.log('📧 EMAIL HISTORY: Fetching with params:', params.toString());
+console.log('📧 EMAIL HISTORY: Response status:', response.status);
+console.log('📧 EMAIL HISTORY: Received data:', data);
+console.log('📧 EMAIL HISTORY: Emails loaded:', data.data.emails?.length || 0);
 ```
 
-Also added better error handling for 401 responses:
-```javascript
-if (response.status === 401) {
-  throw new Error('Session expired. Please log in again.');
-}
-```
+#### 5b. Dead Refresh Button
+**Problem**: Refresh button doesn't trigger any action when clicked.
 
-**File Modified**: `src/components/pages/EmailHistoryPage.jsx` (lines 24-64)
+**Root Cause**: Button was wired correctly but may have had JavaScript errors preventing execution.
+
+**Solution**:
+1. Added explicit click handler with logging:
+```javascript
+onClick={() => {
+  console.log('📧 EMAIL HISTORY: Refresh button clicked');
+  fetchEmails();
+}}
+```
+2. Added `cursor-pointer` class to ensure button appears clickable
+3. Added comprehensive logging throughout `fetchEmails()` function
+
+**Testing Instructions**:
+1. Open browser console (F12)
+2. Navigate to Email History Page
+3. Click Refresh button
+4. Check console for logs:
+   - "📧 EMAIL HISTORY: Refresh button clicked"
+   - "📧 EMAIL HISTORY: fetchEmails called"
+   - "📧 EMAIL HISTORY: Emails loaded: X"
+5. If no logs appear, there's a JavaScript error preventing execution
+6. If logs appear but no emails, check server response
+
+**File Modified**: `src/components/pages/EmailHistoryPage.jsx` (lines 24-137)
 
 ---
 
 ## Testing Checklist
 
-### Issue #1: Message Recipients
+### Issue #1: Message Recipients (WITH LOGGING)
+- [ ] Open browser console (F12) and server terminal
 - [ ] Send internal message via Bubbles with document attachment
 - [ ] Select specific user (e.g., Andrew Miller)
+- [ ] Check console logs for:
+  - `🔍 COMPLETE-ACTION: selectedRecipientIds: [...]`
+  - `🔍 COMPLETE-ACTION: Fetched recipients from DB: [...]`
+  - `🔍 COMPLETE-ACTION: Creating ProjectMessageRecipient records: [...]`
 - [ ] Verify message goes to selected user, NOT primary customer contact
-- [ ] Check ProjectMessageRecipient table in database
+- [ ] Check ProjectMessageRecipient table in database using Prisma Studio
+- [ ] Report findings: Which user ID was selected? Which user received the message?
 
 ### Issue #2: Custom Email Input
 - [ ] Open Bubbles chat
@@ -124,12 +178,29 @@ if (response.status === 401) {
 - [ ] Verify labels "Total Emails", "Sent", "Delivered", "Opened" are readable
 - [ ] Verify numbers are visible
 
-### Issue #5: Email History 401 Error
-- [ ] Log in to the application
+### Issue #4a: Email History Missing Entries (WITH LOGGING)
+- [ ] Open browser console (F12)
+- [ ] Send email via Bubbles Page
 - [ ] Navigate to Email History Page
-- [ ] Verify page loads without 401 error
-- [ ] Verify emails are displayed
-- [ ] If not logged in, verify friendly error message appears
+- [ ] Check console logs for:
+  - `📧 EMAIL HISTORY: fetchEmails called`
+  - `📧 EMAIL HISTORY: Token: Present/Missing`
+  - `📧 EMAIL HISTORY: Response status: 200`
+  - `📧 EMAIL HISTORY: Emails loaded: X`
+- [ ] Verify Bubbles-sent email appears in the list
+- [ ] If missing, check server logs for email logging confirmation
+- [ ] Check database Email table using Prisma Studio
+
+### Issue #4b: Email History Refresh Button (WITH LOGGING)
+- [ ] Open browser console (F12)
+- [ ] Navigate to Email History Page
+- [ ] Click Refresh button
+- [ ] Check console logs for:
+  - `📧 EMAIL HISTORY: Refresh button clicked`
+  - `📧 EMAIL HISTORY: fetchEmails called`
+- [ ] Verify loading spinner appears
+- [ ] Verify email list refreshes
+- [ ] If button doesn't work, check for JavaScript errors in console
 
 ---
 
@@ -140,18 +211,28 @@ if (response.status === 401) {
    - Fixed `getDocumentAttachment()` to map CompanyAsset fields correctly
    - Added logging for missing documents
 
+2. **server/routes/bubbles.js**
+   - Added comprehensive logging to `/complete-action` endpoint
+   - Logs recipient selection, database queries, and record creation
+   - Helps debug message recipient issue
+
 ### Frontend:
-2. **src/components/pages/AIAssistantPage.jsx**
+3. **src/components/pages/AIAssistantPage.jsx**
    - Fixed custom email input focus issue
    - Added `useCallback` import (for future optimization)
+   - Added event propagation prevention
 
-3. **src/components/common/BubblesChat.jsx**
+4. **src/components/common/BubblesChat.jsx**
    - Fixed custom email input focus issue
+   - Added event propagation prevention
 
-4. **src/components/pages/EmailHistoryPage.jsx**
+5. **src/components/pages/EmailHistoryPage.jsx**
    - Fixed stat card visibility (white text on gradient)
    - Added token validation before API calls
    - Added better error handling for 401 responses
+   - Added comprehensive logging throughout `fetchEmails()`
+   - Added logging to Refresh button click handler
+   - Added `cursor-pointer` class to Refresh button
 
 ---
 
