@@ -83,19 +83,21 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     id: message.id,
                     user: message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User',
                     comment: message.content,
-                    timestamp: message.createdAt
+                    timestamp: message.createdAt,
+                    recipients: message.recipients || [] // Include recipients from message data
                 };
-                
+
                 const replies = message.replies?.map(reply => ({
                     id: reply.id,
                     user: reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : reply.authorName || 'Unknown User',
                     comment: reply.content,
-                    timestamp: reply.createdAt
+                    timestamp: reply.createdAt,
+                    recipients: reply.recipients || []
                 })) || [];
-                
+
                 return [mainMessage, ...replies];
             });
-            
+
             // Sort by timestamp (newest first)
             return realMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         } else {
@@ -103,7 +105,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             return generateConversation();
         }
     }, [activity.id, useRealData, projectMessagesData]);
-    
+
     const lastMessage = conversation[0]; // First item is now the most recent
 
     // Get project data with proper fallbacks
@@ -322,27 +324,37 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             
                             {/* To - Fixed position to match Subject exactly */}
                             <div style={{ position: 'absolute', left: '141px', width: '200px' }}>
-                                <span 
+                                <span
                                     className={`text-[9px] font-medium whitespace-nowrap ${colorMode ? 'text-gray-400' : 'text-gray-600'}`}
-                                    style={{ 
+                                    style={{
                                         display: 'inline-block',
                                         verticalAlign: 'baseline',
                                         lineHeight: '1'
                                     }}
                                 >
                                     {(() => {
-                                        // Dynamic To field based on message participants
-                                        const allParticipants = [...new Set(conversation.map(msg => msg.user))];
-                                        const recipients = allParticipants.filter(user => user !== lastMessage.user);
-                                        
-                                        if (recipients.length === 0) {
-                                            return `To: ${primaryCustomer}`;
-                                        } else if (recipients.length === 1) {
-                                            return `To: ${recipients[0]}`;
-                                        } else if (recipients.length === 2) {
-                                            return `To: ${recipients.join(', ')}`;
+                                        // Use actual recipients from message data if available
+                                        const messageRecipients = lastMessage?.recipients || [];
+
+                                        if (messageRecipients.length === 0) {
+                                            // No recipients specified - show "Team" as default
+                                            return `To: Team`;
+                                        } else if (messageRecipients.length === 1) {
+                                            const recipient = messageRecipients[0];
+                                            const recipientName = recipient.user
+                                                ? `${recipient.user.firstName} ${recipient.user.lastName}`.trim()
+                                                : 'Team Member';
+                                            return `To: ${recipientName}`;
+                                        } else if (messageRecipients.length === 2) {
+                                            const names = messageRecipients.map(r =>
+                                                r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : 'Team Member'
+                                            );
+                                            return `To: ${names.join(', ')}`;
                                         } else {
-                                            return `To: ${recipients[0]} +${recipients.length - 1} others`;
+                                            const firstName = messageRecipients[0].user
+                                                ? `${messageRecipients[0].user.firstName} ${messageRecipients[0].user.lastName}`.trim()
+                                                : 'Team Member';
+                                            return `To: ${firstName} +${messageRecipients.length - 1} others`;
                                         }
                                     })()}
                                 </span>

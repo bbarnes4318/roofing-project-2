@@ -425,16 +425,27 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                             <div className="flex-shrink-0">
                                                                 <button
                                                                     type="button"
-                                                                    onClick={(e) => {
+                                                                    onClick={async (e) => {
                                                                         e.stopPropagation();
+                                                                        console.log('[ActivityFeed] Opening attachment:', att);
                                                                         try {
                                                                             if (att.assetId) {
-                                                                                assetsService.openInNewTab(att.assetId);
+                                                                                console.log('[ActivityFeed] Opening via assetId:', att.assetId);
+                                                                                await assetsService.openInNewTab(att.assetId);
                                                                             } else if (att.fileUrl) {
-                                                                                window.open(att.fileUrl, '_blank', 'noopener');
+                                                                                console.log('[ActivityFeed] Opening via fileUrl:', att.fileUrl);
+                                                                                window.open(att.fileUrl, '_blank', 'noopener,noreferrer');
+                                                                            } else if (att.id) {
+                                                                                // Try using id as assetId
+                                                                                console.log('[ActivityFeed] Opening via id as assetId:', att.id);
+                                                                                await assetsService.openInNewTab(att.id);
+                                                                            } else {
+                                                                                console.error('[ActivityFeed] No valid identifier found for attachment:', att);
+                                                                                alert('Unable to open attachment: No file reference found');
                                                                             }
                                                                         } catch (err) {
-                                                                            console.error('Failed to open attachment:', err);
+                                                                            console.error('[ActivityFeed] Failed to open attachment:', err);
+                                                                            alert(`Failed to open attachment: ${err.message || 'Unknown error'}`);
                                                                         }
                                                                     }}
                                                                     className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"

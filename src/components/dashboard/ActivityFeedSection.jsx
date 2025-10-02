@@ -33,8 +33,8 @@ const ActivityFeedSection = ({
         // Make tasks stand out more too
         return { stripe: 'bg-emerald-500', container: 'bg-emerald-100 border-emerald-200' };
       case 'reminder':
-        // And reminders as well
-        return { stripe: 'bg-amber-500', container: 'bg-amber-100 border-amber-200' };
+        // And reminders as well - ORANGE to match container outline
+        return { stripe: 'bg-orange-500', container: 'bg-orange-100 border-orange-200' };
       default:
         return { stripe: 'bg-gray-300', container: 'bg-gray-50/40 border-gray-100' };
     }
@@ -246,15 +246,28 @@ const ActivityFeedSection = ({
                                   )}
                                   <button
                                     type="button"
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       e.stopPropagation();
+                                      console.log('[ActivityFeedSection] Opening attachment:', att);
                                       try {
                                         if (att.assetId) {
-                                          assetsService.openInNewTab(att.assetId);
+                                          console.log('[ActivityFeedSection] Opening via assetId:', att.assetId);
+                                          await assetsService.openInNewTab(att.assetId);
                                         } else if (att.fileUrl) {
-                                          window.open(att.fileUrl, '_blank', 'noopener');
+                                          console.log('[ActivityFeedSection] Opening via fileUrl:', att.fileUrl);
+                                          window.open(att.fileUrl, '_blank', 'noopener,noreferrer');
+                                        } else if (att.id) {
+                                          // Try using id as assetId
+                                          console.log('[ActivityFeedSection] Opening via id as assetId:', att.id);
+                                          await assetsService.openInNewTab(att.id);
+                                        } else {
+                                          console.error('[ActivityFeedSection] No valid identifier found for attachment:', att);
+                                          alert('Unable to open attachment: No file reference found');
                                         }
-                                      } catch (_) {}
+                                      } catch (err) {
+                                        console.error('[ActivityFeedSection] Failed to open attachment:', err);
+                                        alert(`Failed to open attachment: ${err.message || 'Unknown error'}`);
+                                      }
                                     }}
                                     className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
                                   >
