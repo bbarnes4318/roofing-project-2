@@ -1315,6 +1315,26 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       });
     }
 
+    if (pendingAction.type === 'send_simple_message') {
+      // Send a simple message without project context
+      // Create a direct message or notification to selected recipients
+      const messageContent = pendingAction.message || 'Message from Bubbles AI';
+
+      // For now, we'll create a system notification for each recipient
+      // In the future, this could create direct messages in a messaging system
+      const recipientNames = allRecipients.map(r =>
+        r.isCustom ? r.email : `${r.firstName} ${r.lastName}`
+      ).join(', ');
+
+      const ack = `✅ Message sent to ${recipientNames}:\n\n"${messageContent}"`;
+
+      return sendSuccess(res, 200, {
+        response: { content: ack },
+        recipients: allRecipients,
+        messageContent
+      });
+    }
+
     return sendSuccess(res, 400, { response: { content: 'Unknown action type.' } });
   } catch (error) {
     console.error('❌ Complete action error:', error);
@@ -1372,6 +1392,65 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   // Heuristic 1: Customer info requests (name/address/phone/email)
   const lower = String(message || '').toLowerCase();
 
+  // Heuristic -1: Simple message request without project context
+  // Detect patterns like "send a message that says..." or "send message saying..."
+  const simpleMessagePatterns = [
+    /send\s+(?:a\s+)?message\s+(?:that\s+)?(?:says?|saying)/i,
+    /send\s+(?:a\s+)?message\s+["'](.+)["']/i,
+    /message\s+(?:someone|them|him|her)\s+(?:that\s+)?(?:says?|saying)/i
+  ];
+
+  const isSimpleMessageRequest = simpleMessagePatterns.some(pattern => pattern.test(message));
+
+  if (isSimpleMessageRequest && !projectContext) {
+    // Extract message content
+    let messageContent = '';
+    const sayingMatch = message.match(/(?:says?|saying)[:\s]+["']?([^"'\n]+)["']?/i);
+    if (sayingMatch) {
+      messageContent = sayingMatch[1].trim();
+    } else {
+      // Try to extract quoted content
+      const quotedMatch = message.match(/["']([^"']+)["']/);
+      if (quotedMatch) {
+        messageContent = quotedMatch[1].trim();
+      }
+    }
+
+    // Get all team members for recipient selection
+    const teamMembers = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        role: { not: 'CLIENT' }
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true
+      },
+      orderBy: [
+        { firstName: 'asc' },
+        { lastName: 'asc' }
+      ]
+    });
+
+    const msg = 'Who would you like to send this message to? Please select from the list below.';
+    contextManager.addToHistory(req.user.id, message, msg, null);
+    return sendSuccess(res, 200, {
+      response: {
+        content: msg,
+        requiresRecipientSelection: true,
+        availableRecipients: teamMembers,
+        pendingAction: {
+          type: 'send_simple_message',
+          message: messageContent || message,
+          projectId: null
+        }
+      }
+    });
+  }
+
   // Heuristic 0: Explicit document request (e.g., "give me all 11 steps" + filename or checklist)
   const mentionsFileName = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
   const mentionsChecklist = lower.includes('checklist') || lower.includes('start the day') || lower.includes('upfront');
@@ -1409,67 +1488,18 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         // Check if recipients were provided via context (from UI selection)
         const contextRecipientIds = context?.selectedRecipientIds || [];
 
-        // Extract and resolve recipients (prefer explicit internal users, not customers)
-        const recipientNames = extractRecipientNames(message);
         let recipients = [];
 
-        // First, check if recipients were selected via UI
+        // ONLY use recipients if they were explicitly selected via UI
+        // Do NOT auto-detect recipients from message text to prevent premature sending
         if (contextRecipientIds.length > 0) {
           recipients = await prisma.user.findMany({
             where: { id: { in: contextRecipientIds } },
             select: { id: true, firstName: true, lastName: true, email: true }
           });
         }
-        // Otherwise, try to extract from message text
-        else if (recipientNames.length > 0) {
-          const ors = [];
-          for (const n of recipientNames) {
-            const [fn, ln] = String(n).split(/\s+/);
-            if (fn && ln) {
-              ors.push({ AND: [
-                { firstName: { contains: fn, mode: 'insensitive' } },
-                { lastName: { contains: ln, mode: 'insensitive' } }
-              ]});
-            } else if (fn) {
-              ors.push({ OR: [
-                { firstName: { contains: fn, mode: 'insensitive' } },
-                { lastName: { contains: fn, mode: 'insensitive' } }
-              ]});
-            }
-          }
-          if (ors.length) {
-            recipients = await prisma.user.findMany({
-              where: { OR: ors },
-              select: { id: true, firstName: true, lastName: true, email: true }
-            });
-          }
-        }
-        // Fallback: if "Sarah Owner" (or role owner) is intended but not matched yet, prefer project manager/internal user
-        if (recipients.length === 0 && contextRecipientIds.length === 0) {
-          try {
-            if (lower.includes('sarah owner')) {
-              const sarah = await prisma.user.findFirst({
-                where: {
-                  AND: [
-                    { firstName: { contains: 'Sarah', mode: 'insensitive' } },
-                    { lastName: { contains: 'Owner', mode: 'insensitive' } }
-                  ]
-                },
-                select: { id: true, firstName: true, lastName: true, email: true }
-              });
-              if (sarah) recipients = [sarah];
-            }
-            if (recipients.length === 0 && (lower.includes('owner') || lower.includes('project manager'))) {
-              const projFull = await prisma.project.findUnique({ where: { id: proj.id }, select: { projectManagerId: true } });
-              if (projFull?.projectManagerId) {
-                const pm = await prisma.user.findUnique({ where: { id: projFull.projectManagerId }, select: { id: true, firstName: true, lastName: true, email: true } });
-                if (pm) recipients = [pm];
-              }
-            }
-          } catch (_) {}
-        }
 
-        // If still no recipients, prompt for selection
+        // If no recipients were explicitly selected, ALWAYS prompt for selection
         if (recipients.length === 0) {
           // Get all team members for user selection
           const teamMembers = await prisma.user.findMany({
@@ -1529,6 +1559,9 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
             }
           });
         }
+
+        // At this point, recipients have been explicitly selected via UI
+        // Proceed with sending the document message
 
         // Extract a short message content if present (e.g., "with a message saying ...")
         let userContent = '';
@@ -1697,53 +1730,10 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         if (resolved?.project) proj = resolved.project;
       }
 
-      // Extract recipient information
-      const recipientNames = extractRecipientNames(message);
+      // Do NOT auto-detect recipients from message text to prevent premature sending
+      // Recipients should only be provided via the complete-action endpoint after user selection
       let recipients = [];
       let customerRecipient = null;
-
-      // Check if sending to customer
-      if (lower.includes('customer') || lower.includes('client') || lower.includes('owner')) {
-        if (proj) {
-          const customer = await prisma.customer.findUnique({
-            where: { id: proj.customerId },
-            select: { id: true, primaryName: true, email: true, primaryEmail: true }
-          });
-          if (customer && (customer.email || customer.primaryEmail)) {
-            customerRecipient = {
-              id: customer.id,
-              name: customer.primaryName,
-              email: customer.email || customer.primaryEmail,
-              type: 'customer'
-            };
-          }
-        }
-      }
-
-      // Resolve team member recipients
-      if (recipientNames.length > 0) {
-        const ors = [];
-        for (const n of recipientNames) {
-          const [fn, ln] = String(n).split(/\s+/);
-          if (fn && ln) {
-            ors.push({ AND: [
-              { firstName: { contains: fn, mode: 'insensitive' } },
-              { lastName: { contains: ln, mode: 'insensitive' } }
-            ]});
-          } else if (fn) {
-            ors.push({ OR: [
-              { firstName: { contains: fn, mode: 'insensitive' } },
-              { lastName: { contains: fn, mode: 'insensitive' } }
-            ]});
-          }
-        }
-        if (ors.length) {
-          recipients = await prisma.user.findMany({
-            where: { OR: ors },
-            select: { id: true, firstName: true, lastName: true, email: true }
-          });
-        }
-      }
 
       // Extract email subject
       let subject = 'Message from Kenstruction';

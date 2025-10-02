@@ -182,7 +182,7 @@ const ReminderItem = ({
           {/* Row 1: Reminder label and Checkbox - Checkbox moved to top right */}
           <div className="flex items-center gap-1" style={{ marginRight: '1px' }}>
             {/* Type Label */}
-            <span className="text-[8px] font-bold text-orange-500">
+            <span className="text-[8px] font-bold text-gray-900">
               Reminder
             </span>
             

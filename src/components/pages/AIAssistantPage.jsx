@@ -2531,8 +2531,13 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
       </div>
       <div
         ref={liveTranscriptScrollRef}
-        className="text-sm leading-6 whitespace-pre-wrap break-words bg-white/50 px-3 py-2 rounded font-sans overflow-y-auto overflow-x-hidden h-44 md:h-56"
-        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', WebkitHyphens: 'auto', msHyphens: 'auto', hyphens: 'auto' }}
+        className="text-sm leading-relaxed bg-white/50 px-3 py-2 rounded font-sans overflow-y-auto overflow-x-hidden h-44 md:h-56"
+        style={{
+          wordBreak: 'normal',
+          overflowWrap: 'break-word',
+          whiteSpace: 'normal',
+          textAlign: 'left'
+        }}
         role="log"
         aria-live="polite"
         aria-atomic="false"
@@ -2810,8 +2815,19 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             </div>
 
                             {/* Full Transcript */}
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Full Conversation Transcript</h3>
+                            <div className="bg-gray-50 rounded-lg p-4 relative">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-lg font-semibold text-gray-900">Full Conversation Transcript</h3>
+                                    <button
+                                        onClick={closeTranscriptModal}
+                                        className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-200"
+                                        title="Close transcript"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div className="space-y-3 max-h-60 overflow-y-auto">
                                     {(transcriptSummary?.fullTranscript || []).map((exchange, index) => (
                                         <div key={index} className="bg-white p-3 rounded border border-gray-200">

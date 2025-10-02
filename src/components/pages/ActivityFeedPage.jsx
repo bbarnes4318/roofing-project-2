@@ -178,7 +178,8 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 </div>
                 
                 {/* Content Area - Shows current tab content - EXACT SAME as Dashboard */}
-                <div className="px-4 pb-4">
+                {/* Scrollable container with max-height for 8 items (~80px each = 640px) */}
+                <div className="px-4 pb-4 max-h-[640px] overflow-y-auto custom-scrollbar">
                     <div className="space-y-2">
                         {getCurrentItems().length === 0 ? (
                             <div className="text-center py-16">
@@ -372,7 +373,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                         
                                                         {/* Reminder indicator */}
                                                         <div className="flex flex-col items-center">
-                                                            <span className="text-[8px] font-bold text-orange-500">
+                                                            <span className="text-[8px] font-bold text-gray-900">
                                                                 Reminder
                                                         </span>
                                                         </div>

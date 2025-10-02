@@ -124,7 +124,9 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   // Build where clause to show messages user has access to:
   // 1. Messages the user authored (sent messages)
   // 2. Messages in projects where user is manager or team member (received messages)
+  // IMPORTANT: Exclude reply messages (parentMessageId !== null) to prevent duplicate containers
   const where = {
+    parentMessageId: null, // Only fetch top-level messages, not replies
     OR: [
       // Messages authored by current user (sent messages)
       { authorId: req.user.id },
@@ -204,7 +206,7 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
           project: { select: { id: true, projectName: true, projectNumber: true } }
         }
       }),
-      prisma.projectMessage.count({ where }),
+      prisma.projectMessage.count({ where }), // Already excludes replies via parentMessageId: null
       prisma.task.count({ where: taskWhere }),
       prisma.calendarEvent.count({ where: eventWhere })
     ]);
@@ -244,7 +246,9 @@ router.get('/recent', asyncHandler(async (req, res) => {
     console.log(`🔍 ACTIVITIES: Fetching ${limitNum} recent activities for user ${req.user.id}...`);
     
     // Build where clause to show messages user has access to
+    // IMPORTANT: Exclude reply messages to prevent duplicate containers
     const where = {
+      parentMessageId: null, // Only fetch top-level messages, not replies
       OR: [
         // Messages authored by current user (sent messages)
         { authorId: req.user.id },
