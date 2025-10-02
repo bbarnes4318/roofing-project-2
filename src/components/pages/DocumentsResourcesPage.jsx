@@ -376,28 +376,48 @@ const DocumentsResourcesPage = () => {
             ) : (
               <div className="grid grid-cols-4 gap-4">
                 {/* Folders */}
-                {filteredFolders.map(folder => (
-                  <div
-                    key={folder.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, folder)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, folder.id)}
-                    onClick={() => setCurrentFolder(folder.id)}
-                    className={`p-4 bg-white border-2 rounded-xl cursor-pointer hover:shadow-md hover:border-blue-300 transition group ${
-                      draggedItem?.id === folder.id ? 'opacity-50' : ''
-                    } ${dropTarget === folder.id ? 'border-blue-400 bg-blue-50' : 'border-slate-200'}`}
-                  >
-                    <FolderIcon className="h-12 w-12 text-amber-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-center truncate">{folder.title}</p>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(folder.id); }}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
+                {filteredFolders.map(folder => {
+                  // Check if this is a project folder with metadata
+                  const isProjectFolder = folder.metadata?.isProjectFolder;
+                  const projectNumber = folder.metadata?.projectNumber;
+                  const customerName = folder.metadata?.customerName;
+                  const address = folder.metadata?.address;
+
+                  return (
+                    <div
+                      key={folder.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, folder)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, folder.id)}
+                      onClick={() => setCurrentFolder(folder.id)}
+                      className={`p-3 bg-white border-2 rounded-xl cursor-pointer hover:shadow-md hover:border-blue-300 transition group relative ${
+                        draggedItem?.id === folder.id ? 'opacity-50' : ''
+                      } ${dropTarget === folder.id ? 'border-blue-400 bg-blue-50' : 'border-slate-200'}`}
                     >
-                      <TrashIcon className="h-4 w-4 text-red-600" />
-                    </button>
-                  </div>
-                ))}
+                      <FolderIcon className="h-10 w-10 text-amber-500 mx-auto mb-2" />
+
+                      {isProjectFolder && projectNumber ? (
+                        // Project folder with formatted display
+                        <div className="text-center space-y-0.5">
+                          <p className="text-xs font-bold text-blue-600">#{projectNumber}</p>
+                          <p className="text-xs font-medium text-gray-800 truncate">{customerName || 'Unknown'}</p>
+                          <p className="text-xs text-gray-600 truncate leading-tight">{address || folder.title}</p>
+                        </div>
+                      ) : (
+                        // Regular folder
+                        <p className="text-sm font-medium text-center truncate">{folder.title}</p>
+                      )}
+
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(folder.id); }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
+                      >
+                        <TrashIcon className="h-4 w-4 text-red-600" />
+                      </button>
+                    </div>
+                  );
+                })}
                 
                 {/* Files */}
                 {filteredFiles.map(file => (

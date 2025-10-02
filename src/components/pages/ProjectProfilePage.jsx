@@ -461,7 +461,19 @@ const ProjectProfilePage = ({
         const name = project.projectName || project.name || `Project ${project.id}`;
         let pf = children.find(c => (c.folderName || c.title) === name);
         if (!pf) {
-            pf = await assetsService.createFolder({ name, parentId: root.id });
+            // Create folder with project metadata
+            const metadata = {
+                projectId: project.id,
+                projectNumber: project.projectNumber,
+                customerName: project.customer?.primaryName || project.customerName || '',
+                address: project.projectName || project.name || '',
+                isProjectFolder: true
+            };
+            pf = await assetsService.createFolder({
+                name,
+                parentId: root.id,
+                metadata: metadata
+            });
             if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: root.id } }));
         }
         return pf;

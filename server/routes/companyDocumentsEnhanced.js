@@ -410,15 +410,16 @@ router.post('/folders', authenticateToken, [
     throw new AppError('Validation failed', 400, errors.array());
   }
   
-  const { 
-    name, 
-    description, 
-    section, 
-    parentId, 
+  const {
+    name,
+    description,
+    section,
+    parentId,
     isPublic = false,
-    accessLevel = 'private'
+    accessLevel = 'private',
+    metadata: customMetadata = null
   } = req.body;
-  
+
   // Check for duplicate folder name in same parent
   const existing = await prisma.companyAsset.findFirst({
     where: {
@@ -428,11 +429,11 @@ router.post('/folders', authenticateToken, [
       isActive: true
     }
   });
-  
+
   if (existing) {
     throw new AppError('A folder with this name already exists in this location', 400);
   }
-  
+
   // Build folder path
   let path = name;
   if (parentId) {
@@ -443,7 +444,19 @@ router.post('/folders', authenticateToken, [
       path = `${parent.path}/${name}`;
     }
   }
-  
+
+  // Merge custom metadata with default metadata
+  const defaultMetadata = {
+    icon: 'folder',
+    color: getFolderColor(name),
+    createdBy: `${req.user.firstName} ${req.user.lastName}`,
+    createdAt: new Date().toISOString()
+  };
+
+  const finalMetadata = customMetadata
+    ? { ...defaultMetadata, ...customMetadata }
+    : defaultMetadata;
+
   const folder = await prisma.companyAsset.create({
     data: {
       title: name,
@@ -456,12 +469,7 @@ router.post('/folders', authenticateToken, [
       uploadedById: req.user.id,
       accessLevel,
       path,
-      metadata: {
-        icon: 'folder',
-        color: getFolderColor(name),
-        createdBy: `${req.user.firstName} ${req.user.lastName}`,
-        createdAt: new Date().toISOString()
-      },
+      metadata: finalMetadata,
       isActive: true
     },
     include: {
@@ -722,8 +730,9 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
 
 router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  
-  const asset = await prisma.companyAsset.findUnique({ 
+
+  // Try to find in CompanyAsset first
+  let asset = await prisma.companyAsset.findUnique({
     where: { id },
     include: {
       versions: {
@@ -732,39 +741,78 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
       }
     }
   });
-  
+
+  // If not found in CompanyAsset, try Document table
+  let isFromDocumentTable = false;
+  if (!asset) {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        fileName: true,
+        originalName: true,
+        fileUrl: true,
+        mimeType: true,
+        fileSize: true,
+        uploadedById: true
+      }
+    });
+
+    if (document) {
+      // Map Document to CompanyAsset structure
+      asset = {
+        id: document.id,
+        title: document.fileName || document.originalName || 'Document',
+        fileUrl: document.fileUrl,
+        mimeType: document.mimeType,
+        fileSize: document.fileSize,
+        uploadedById: document.uploadedById,
+        type: 'FILE',
+        accessLevel: 'PRIVATE',
+        versions: []
+      };
+      isFromDocumentTable = true;
+      console.log(`[Download] Found document in Document table: ${asset.title}`);
+    }
+  }
+
   if (!asset) throw new AppError('Asset not found', 404);
   if (asset.type !== 'FILE') throw new AppError('Cannot download folders', 400);
-  
+
   // Check access (prefer accessLevel; treat 'public' as open)
   const isPublicAccess = String(asset.accessLevel || '').toLowerCase() === 'public';
   if (!isPublicAccess && req.user.role !== 'ADMIN' && asset.uploadedById !== req.user.id) {
     throw new AppError('Access denied', 403);
   }
-  
+
   // Use current version if available
   const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
-  const safePath = (fileUrl || '').replace(/^\\|^\//, '');
+  const safePath = (fileUrl || '').replace(/^\\|^\//, '').replace(/^spaces:\/\//, '');
   const filePath = path.join(__dirname, '..', safePath);
-  
+
+  console.log(`[Download] Attempting to download file from: ${filePath}`);
+
   if (!await fs.access(filePath).then(() => true).catch(() => false)) {
+    console.error(`[Download] File not found on disk: ${filePath}`);
     throw new AppError('File not found on disk', 404);
   }
-  
-  // Update download count
-  await prisma.companyAsset.update({
-    where: { id },
-    data: {
-      downloadCount: { increment: 1 },
-      lastDownloadedAt: new Date()
-    }
-  });
-  
+
+  // Update download count (only for CompanyAsset)
+  if (!isFromDocumentTable) {
+    await prisma.companyAsset.update({
+      where: { id },
+      data: {
+        downloadCount: { increment: 1 },
+        lastDownloadedAt: new Date()
+      }
+    });
+  }
+
   // Set headers
   res.setHeader('Content-Disposition', `attachment; filename="${asset.title}"`);
   res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
   res.setHeader('Content-Length', asset.fileSize);
-  
+
   // Send file
   res.download(filePath, asset.title);
 }));

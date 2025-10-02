@@ -82,18 +82,18 @@ export const assetsService = {
     const res = await api.get(`/assets/${id}`);
     return res.data?.data?.asset;
   },
-  createFolder: async ({ name, parentId = null, description = '' }) => {
+  createFolder: async ({ name, parentId = null, description = '', metadata = null }) => {
     try {
-      console.log('Creating folder with payload:', { name, parentId, description });
-      
+      console.log('Creating folder with payload:', { name, parentId, description, metadata });
+
       // Ensure parentId is properly formatted (null or string, not 'null' or 'undefined')
       const cleanParentId = (!parentId || parentId === 'null' || parentId === 'undefined') ? null : parentId;
-      
+
       // Build the payload with correct field names matching the backend validation
       // Use a valid DocumentSection enum value
       const section = 'OFFICE_DOCUMENTS'; // Using OFFICE_DOCUMENTS as a valid section
-      
-      const payload = { 
+
+      const payload = {
         name: name, // Backend validation expects 'name' not 'title'
         title: name, // Also include title for the Prisma model
         folderName: name,
@@ -105,16 +105,17 @@ export const assetsService = {
         type: 'FOLDER',
         tags: [],
         isActive: true,
-        version: 1
+        version: 1,
+        metadata: metadata // Include metadata if provided
       };
-      
+
       console.log('Using section:', section);
-      
+
       console.log('Sending payload to /folders:', payload);
-      
+
       const res = await api.post('/folders', payload);
       console.log('Folder created successfully:', res.data);
-      
+
       return res.data?.data?.folder || res.data?.data || res.data;
     } catch (error) {
       console.error('Error in createFolder:', {
