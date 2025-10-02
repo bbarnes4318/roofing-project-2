@@ -1335,6 +1335,58 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       });
     }
 
+    if (pendingAction.type === 'send_project_message') {
+      // Send a message to a specific project
+      const messageContent = pendingAction.message || 'Message from Bubbles AI';
+
+      // Fetch the project
+      const proj = await prisma.project.findUnique({
+        where: { id: pendingAction.projectId },
+        include: { customer: true }
+      });
+
+      if (!proj) {
+        return sendSuccess(res, 404, { response: { content: 'Project not found.' } });
+      }
+
+      // Create project message
+      const pm = await prisma.projectMessage.create({
+        data: {
+          content: messageContent,
+          subject: `Message for Project #${proj.projectNumber}`,
+          messageType: 'USER_MESSAGE',
+          priority: 'MEDIUM',
+          authorId: req.user.id,
+          authorName: `${req.user.firstName || 'User'} ${req.user.lastName || ''}`.trim(),
+          authorRole: req.user.role || 'USER',
+          projectId: proj.id,
+          projectNumber: proj.projectNumber,
+          isSystemGenerated: false,
+          isWorkflowMessage: false
+        }
+      });
+
+      // Add recipients
+      if (recipients.length > 0) {
+        await prisma.projectMessageRecipient.createMany({
+          data: recipients.map(r => ({ messageId: pm.id, userId: r.id }))
+        });
+      }
+
+      const recipientNames = allRecipients.map(r =>
+        r.isCustom ? r.email : `${r.firstName} ${r.lastName}`
+      ).join(', ');
+
+      const ack = `📨 Message sent to ${recipientNames} for project #${proj.projectNumber}:\n\n"${messageContent}"`;
+      contextManager.addToHistory(req.user.id, JSON.stringify(pendingAction), ack, proj);
+      return sendSuccess(res, 200, {
+        response: { content: ack },
+        messageId: pm.id,
+        recipients: allRecipients,
+        projectNumber: proj.projectNumber
+      });
+    }
+
     return sendSuccess(res, 400, { response: { content: 'Unknown action type.' } });
   } catch (error) {
     console.error('❌ Complete action error:', error);
@@ -1398,7 +1450,9 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   const simpleMessagePatterns = [
     /send\s+(?:a\s+)?message\s+(?:that\s+)?(?:says?|saying)/i,
     /send\s+(?:a\s+)?message\s+["'](.+)["']/i,
-    /message\s+(?:someone|them|him|her)\s+(?:that\s+)?(?:says?|saying)/i
+    /message\s+(?:someone|them|him|her)\s+(?:that\s+)?(?:says?|saying)/i,
+    /send\s+(?:a\s+)?message\s+for\s+project/i,
+    /send\s+(?:a\s+)?message\s+to\s+\w+/i
   ];
 
   const isSimpleMessageRequest = simpleMessagePatterns.some(pattern => pattern.test(message));
@@ -1407,6 +1461,27 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   const mentionsDocument = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
 
   if (isSimpleMessageRequest && !mentionsDocument) {
+    // Try to resolve project from message text (e.g., "for project #10012")
+    let targetProject = projectContext; // Start with current context
+
+    // Check if message mentions a different project number
+    const projectNumberMatch = message.match(/#?(\d{5})/);
+    if (projectNumberMatch) {
+      const projectNumber = projectNumberMatch[1];
+      try {
+        const foundProject = await prisma.project.findFirst({
+          where: { projectNumber },
+          include: { customer: true }
+        });
+        if (foundProject) {
+          targetProject = foundProject;
+          console.log(`[Bubbles] Resolved project #${projectNumber} from message text`);
+        }
+      } catch (err) {
+        console.warn(`[Bubbles] Failed to resolve project #${projectNumber}:`, err);
+      }
+    }
+
     // Extract message content
     let messageContent = '';
     const sayingMatch = message.match(/(?:says?|saying)[:\s]+["']?([^"'\n]+)["']?/i);
@@ -1439,17 +1514,20 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       ]
     });
 
-    const msg = 'Who would you like to send this message to? Please select from the list below.';
-    contextManager.addToHistory(req.user.id, message, msg, null);
+    const msg = targetProject
+      ? `Who would you like to send this message to for project #${targetProject.projectNumber}? Please select from the list below.`
+      : 'Who would you like to send this message to? Please select from the list below.';
+
+    contextManager.addToHistory(req.user.id, message, msg, targetProject);
     return sendSuccess(res, 200, {
       response: {
         content: msg,
         requiresRecipientSelection: true,
         availableRecipients: teamMembers,
         pendingAction: {
-          type: 'send_simple_message',
+          type: targetProject ? 'send_project_message' : 'send_simple_message',
           message: messageContent || message,
-          projectId: null
+          projectId: targetProject?.id || null
         }
       }
     });

@@ -429,23 +429,18 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                         e.stopPropagation();
                                                                         console.log('[ActivityFeed] Opening attachment:', att);
                                                                         try {
-                                                                            if (att.assetId) {
-                                                                                console.log('[ActivityFeed] Opening via assetId:', att.assetId);
-                                                                                await assetsService.openInNewTab(att.assetId);
-                                                                            } else if (att.fileUrl) {
-                                                                                console.log('[ActivityFeed] Opening via fileUrl:', att.fileUrl);
-                                                                                window.open(att.fileUrl, '_blank', 'noopener,noreferrer');
-                                                                            } else if (att.id) {
-                                                                                // Try using id as assetId
-                                                                                console.log('[ActivityFeed] Opening via id as assetId:', att.id);
-                                                                                await assetsService.openInNewTab(att.id);
+                                                                            // ALWAYS use assetId through the download endpoint - never open fileUrl directly
+                                                                            const idToUse = att.assetId || att.id;
+                                                                            if (idToUse) {
+                                                                                console.log('[ActivityFeed] Opening via assetId:', idToUse);
+                                                                                await assetsService.openInNewTab(idToUse);
                                                                             } else {
-                                                                                console.error('[ActivityFeed] No valid identifier found for attachment:', att);
-                                                                                alert('Unable to open attachment: No file reference found');
+                                                                                console.error('[ActivityFeed] No assetId found for attachment:', att);
+                                                                                alert('Unable to open attachment: No asset ID found. Please contact support.');
                                                                             }
                                                                         } catch (err) {
                                                                             console.error('[ActivityFeed] Failed to open attachment:', err);
-                                                                            alert(`Failed to open attachment: ${err.message || 'Unknown error'}`);
+                                                                            alert(`Failed to open attachment: ${err.message || 'Unknown error'}. The file may have been moved or deleted.`);
                                                                         }
                                                                     }}
                                                                     className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"

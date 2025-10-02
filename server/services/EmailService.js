@@ -369,22 +369,31 @@ class EmailService {
    * Resolve document path from various possible locations
    */
   resolveDocumentPath(filePath) {
+    // Remove leading slashes and backslashes for consistent path handling
+    const cleanPath = String(filePath || '').replace(/^[\/\\]+/, '');
+
     // Try multiple possible paths
     const candidates = [
       filePath,
-      path.join(__dirname, '..', filePath),
-      path.join(__dirname, '../..', filePath),
-      path.join(process.cwd(), filePath),
+      path.join(__dirname, '..', cleanPath),
+      path.join(__dirname, '../..', cleanPath),
+      path.join(process.cwd(), cleanPath),
       path.join(__dirname, '..', 'uploads', path.basename(filePath)),
-      path.join(__dirname, '../..', 'uploads', path.basename(filePath))
-    ];
+      path.join(__dirname, '../..', 'uploads', path.basename(filePath)),
+      // Try with uploads prefix removed if it exists
+      cleanPath.startsWith('uploads/') ? path.join(__dirname, '..', cleanPath) : null,
+      cleanPath.startsWith('uploads/') ? path.join(__dirname, '../..', cleanPath) : null,
+      cleanPath.startsWith('uploads/') ? path.join(process.cwd(), cleanPath) : null
+    ].filter(Boolean); // Remove null entries
 
     for (const candidate of candidates) {
       if (fs.existsSync(candidate)) {
+        console.log(`✅ Found file at: ${candidate}`);
         return candidate;
       }
     }
 
+    console.warn(`⚠️ File not found in any candidate path for: ${filePath}`);
     return filePath; // Return original if nothing found
   }
 

@@ -251,46 +251,18 @@ const ActivityFeedSection = ({
                                       e.stopPropagation();
                                       console.log('[ActivityFeedSection] Opening attachment:', att);
                                       try {
-                                        // Try assetId first
-                                        if (att.assetId) {
-                                          console.log('[ActivityFeedSection] Opening via assetId:', att.assetId);
-                                          try {
-                                            await assetsService.openInNewTab(att.assetId);
-                                            return; // Success, exit
-                                          } catch (assetErr) {
-                                            console.warn('[ActivityFeedSection] AssetId failed, trying fileUrl:', assetErr);
-                                            // Fall through to try fileUrl
-                                          }
+                                        // ALWAYS use assetId through the download endpoint - never open fileUrl directly
+                                        const idToUse = att.assetId || att.id;
+                                        if (idToUse) {
+                                          console.log('[ActivityFeedSection] Opening via assetId:', idToUse);
+                                          await assetsService.openInNewTab(idToUse);
+                                        } else {
+                                          console.error('[ActivityFeedSection] No assetId found for attachment:', att);
+                                          alert('Unable to open attachment: No asset ID found. Please contact support.');
                                         }
-
-                                        // Try fileUrl as fallback
-                                        if (att.fileUrl) {
-                                          console.log('[ActivityFeedSection] Opening via fileUrl:', att.fileUrl);
-                                          // Check if it's a relative URL and prepend API base if needed
-                                          const url = att.fileUrl.startsWith('http')
-                                            ? att.fileUrl
-                                            : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${att.fileUrl}`;
-                                          window.open(url, '_blank', 'noopener,noreferrer');
-                                          return; // Success, exit
-                                        }
-
-                                        // Try id as last resort
-                                        if (att.id) {
-                                          console.log('[ActivityFeedSection] Opening via id as assetId:', att.id);
-                                          try {
-                                            await assetsService.openInNewTab(att.id);
-                                            return; // Success, exit
-                                          } catch (idErr) {
-                                            console.warn('[ActivityFeedSection] Id failed:', idErr);
-                                          }
-                                        }
-
-                                        // No valid method worked
-                                        console.error('[ActivityFeedSection] No valid identifier found for attachment:', att);
-                                        alert('Unable to open attachment: No valid file reference found');
                                       } catch (err) {
                                         console.error('[ActivityFeedSection] Failed to open attachment:', err);
-                                        alert(`Failed to open attachment: ${err.message || 'Unknown error'}`);
+                                        alert(`Failed to open attachment: ${err.message || 'Unknown error'}. The file may have been moved or deleted.`);
                                       }
                                     }}
                                     className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
