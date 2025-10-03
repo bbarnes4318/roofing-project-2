@@ -31,9 +31,30 @@ const ReminderItem = ({
     actions.toggleExpanded(item.id);
   };
 
-  const handleToggleCompleted = (e) => {
+  const handleToggleCompleted = async (e) => {
     e.stopPropagation();
+
+    // Optimistically update UI
     actions.toggleCompleted(item.id);
+
+    // Persist to backend - reminders don't have a status endpoint, so we'll mark them as read/acknowledged
+    try {
+      // If this is a workflow alert-based reminder, mark the alert as completed
+      if (item.alertId) {
+        await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/alerts/${item.alertId}/complete`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
+          }
+        });
+        console.log(`✅ Reminder alert ${item.alertId} marked as completed`);
+      }
+    } catch (error) {
+      console.error('Failed to update reminder status:', error);
+      // Revert on error
+      actions.toggleCompleted(item.id);
+    }
   };
 
   const handleAddComment = () => {

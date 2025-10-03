@@ -103,11 +103,11 @@ router.post('/assign', authenticateToken, async (req, res) => {
     }
 
     // Validate role type (must match Prisma enum RoleType)
-    const validRoles = ['PROJECT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION'];
+    const validRoles = ['PROJECT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION', 'SUBCONTRACTOR'];
     // Normalize role type to handle various input formats
     let normalizedRoleType;
     const upperRoleType = roleType.toUpperCase();
-    
+
     // Map different input formats to standard role types
     switch (upperRoleType) {
       case 'PROJECT_MANAGER':
@@ -126,6 +126,9 @@ router.post('/assign', authenticateToken, async (req, res) => {
         break;
       case 'ADMINISTRATION':
         normalizedRoleType = 'ADMINISTRATION';
+        break;
+      case 'SUBCONTRACTOR':
+        normalizedRoleType = 'SUBCONTRACTOR';
         break;
       default:
         // Try camelCase conversion for cases like "projectManager"
@@ -157,12 +160,24 @@ router.post('/assign', authenticateToken, async (req, res) => {
       });
     }
 
-    // Remove existing assignment for this role
-    await prisma.roleAssignment.deleteMany({
-      where: { roleType: normalizedRoleType }
+    // Check if this user already has this role assignment
+    const existingAssignment = await prisma.roleAssignment.findFirst({
+      where: {
+        roleType: normalizedRoleType,
+        userId: userId
+      }
     });
 
-    // Create new assignment
+    if (existingAssignment) {
+      console.log(`ℹ️ ROLES API: User ${userId} already assigned to ${normalizedRoleType}`);
+      return res.json({
+        success: true,
+        data: existingAssignment,
+        message: `User already assigned to ${normalizedRoleType}`
+      });
+    }
+
+    // Create new assignment (don't delete existing ones - support multiple users per role)
     const assignment = await prisma.roleAssignment.create({
       data: {
         roleType: normalizedRoleType,
@@ -220,13 +235,13 @@ router.delete('/unassign', authenticateToken, async (req, res) => {
     // Normalize role type using same logic as assign endpoint
     let normalizedRoleType;
     const upperRoleType = roleType.toUpperCase();
-    
+
     switch (upperRoleType) {
       case 'PROJECT_MANAGER':
       case 'PROJECTMANAGER':
       case 'PRODUCT_MANAGER':
       case 'PRODUCTMANAGER':
-        normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
+        normalizedRoleType = 'PROJECT_MANAGER';
         break;
       case 'FIELD_DIRECTOR':
       case 'FIELDDIRECTOR':
@@ -239,14 +254,14 @@ router.delete('/unassign', authenticateToken, async (req, res) => {
       case 'ADMINISTRATION':
         normalizedRoleType = 'ADMINISTRATION';
         break;
+      case 'SUBCONTRACTOR':
+        normalizedRoleType = 'SUBCONTRACTOR';
+        break;
       default:
         normalizedRoleType = upperRoleType.replace(/([a-z])([A-Z])/g, '$1_$2');
-        if (normalizedRoleType === 'PRODUCT_MANAGER') {
-          normalizedRoleType = 'PRODUCT_MANAGER'; // Use existing database enum
-        }
     }
-    
-    // Remove assignment
+
+    // Remove ALL assignments for this role type
     const deleted = await prisma.roleAssignment.deleteMany({
       where: { roleType: normalizedRoleType }
     });
@@ -264,6 +279,106 @@ router.delete('/unassign', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to remove role assignment',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/roles/sync - Synchronize all role assignments (bulk update)
+ * Body: { roleAssignments: { projectManager: [userId1, userId2], fieldDirector: [...], ... } }
+ */
+router.post('/sync', authenticateToken, async (req, res) => {
+  try {
+    const { roleAssignments } = req.body;
+
+    console.log('🔄 ROLES API: Synchronizing role assignments:', roleAssignments);
+
+    if (!roleAssignments || typeof roleAssignments !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Role assignments object is required'
+      });
+    }
+
+    // Map of frontend role keys to backend enum values
+    const roleTypeMap = {
+      projectManager: 'PROJECT_MANAGER',
+      fieldDirector: 'FIELD_DIRECTOR',
+      officeStaff: 'OFFICE_STAFF',
+      administration: 'ADMINISTRATION',
+      subcontractor: 'SUBCONTRACTOR'
+    };
+
+    // Process each role type
+    for (const [roleKey, userIds] of Object.entries(roleAssignments)) {
+      const normalizedRoleType = roleTypeMap[roleKey];
+
+      if (!normalizedRoleType) {
+        console.warn(`⚠️ Unknown role type: ${roleKey}`);
+        continue;
+      }
+
+      // Get current assignments for this role
+      const currentAssignments = await prisma.roleAssignment.findMany({
+        where: { roleType: normalizedRoleType },
+        select: { userId: true, id: true }
+      });
+
+      const currentUserIds = new Set(currentAssignments.map(a => a.userId));
+      const newUserIds = new Set(Array.isArray(userIds) ? userIds : []);
+
+      // Find users to add and remove
+      const toAdd = [...newUserIds].filter(id => !currentUserIds.has(id));
+      const toRemove = [...currentUserIds].filter(id => !newUserIds.has(id));
+
+      // Remove users no longer in this role
+      if (toRemove.length > 0) {
+        await prisma.roleAssignment.deleteMany({
+          where: {
+            roleType: normalizedRoleType,
+            userId: { in: toRemove }
+          }
+        });
+        console.log(`🗑️ Removed ${toRemove.length} users from ${normalizedRoleType}`);
+      }
+
+      // Add new users to this role
+      for (const userId of toAdd) {
+        // Verify user exists
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+          console.warn(`⚠️ User ${userId} not found, skipping`);
+          continue;
+        }
+
+        await prisma.roleAssignment.create({
+          data: {
+            roleType: normalizedRoleType,
+            userId: userId,
+            assignedAt: new Date(),
+            assignedById: req.user?.id || userId
+          }
+        });
+      }
+
+      if (toAdd.length > 0) {
+        console.log(`✅ Added ${toAdd.length} users to ${normalizedRoleType}`);
+      }
+    }
+
+    console.log('✅ ROLES API: Role synchronization complete');
+
+    res.json({
+      success: true,
+      message: 'Role assignments synchronized successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ ROLES API: Error synchronizing roles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to synchronize role assignments',
       error: error.message
     });
   }

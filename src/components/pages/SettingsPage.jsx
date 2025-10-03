@@ -156,58 +156,36 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       console.log('💾 Saving role assignments:', newRoleAssignments);
 
-      // Save each user-role assignment individually using the correct API endpoint
-      const promises = [];
+      // Convert role assignments to the format expected by the backend
+      // Backend expects: { projectManager: [userId1, userId2], ... }
+      const roleAssignmentsForBackend = {};
 
       Object.keys(newRoleAssignments).forEach(roleType => {
         const users = newRoleAssignments[roleType] || [];
-
-        // Save ALL users for this role (not just the first one)
-        if (users.length > 0) {
-          users.forEach(user => {
-            promises.push(
-              fetch(`${API_BASE_URL}/roles/assign`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(token && { 'Authorization': `Bearer ${token}` })
-                },
-                body: JSON.stringify({
-                  roleType: roleType,
-                  userId: user.id
-                })
-              })
-            );
-          });
-        } else {
-          // If no users, unassign the role
-          promises.push(
-            fetch(`${API_BASE_URL}/roles/unassign`, {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` })
-              },
-              body: JSON.stringify({
-                roleType: roleType
-              })
-            })
-          );
-        }
+        roleAssignmentsForBackend[roleType] = users.map(user => user.id);
       });
 
-      // Wait for all API calls to complete
-      const responses = await Promise.all(promises);
+      console.log('📤 Sending to backend:', roleAssignmentsForBackend);
 
-      // Check if any failed
-      for (const response of responses) {
-        if (!response.ok) {
-          const result = await response.json();
-          throw new Error(result.message || `HTTP error! status: ${response.status}`);
-        }
+      // Use the new sync endpoint that handles bulk updates efficiently
+      const response = await fetch(`${API_BASE_URL}/roles/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+          roleAssignments: roleAssignmentsForBackend
+        })
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
       }
 
-      console.log('✅ Role assignments saved successfully');
+      const result = await response.json();
+      console.log('✅ Role assignments saved successfully:', result);
     } catch (error) {
       console.error('❌ Error saving role assignments:', error);
       throw error;

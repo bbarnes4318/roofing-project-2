@@ -25,9 +25,29 @@ const TaskItem = ({
     actions.toggleExpanded(item.id);
   };
 
-  const handleToggleCompleted = (e) => {
+  const handleToggleCompleted = async (e) => {
     e.stopPropagation();
+
+    // Optimistically update UI
     actions.toggleCompleted(item.id);
+
+    // Persist to backend
+    try {
+      const newStatus = isCompleted ? 'TODO' : 'DONE';
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/tasks/${item.id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      console.log(`✅ Task ${item.id} marked as ${newStatus}`);
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+      // Revert on error
+      actions.toggleCompleted(item.id);
+    }
   };
 
   const handleAddComment = () => {

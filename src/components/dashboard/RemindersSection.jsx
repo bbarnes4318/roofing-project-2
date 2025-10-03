@@ -32,7 +32,8 @@ const RemindersSection = ({
             const isRecipient = Array.isArray(i.recipients) && (i.recipients.includes('all') || i.recipients.some(r => String(r) === uid));
             const isAuthor = i.authorId && String(i.authorId) === uid;
             return isRecipient || isAuthor;
-          });
+          })
+          .filter(i => !state.completedItems.has(i.id)); // Filter out completed reminders
 
         if (reminderItems.length === 0) {
           return (

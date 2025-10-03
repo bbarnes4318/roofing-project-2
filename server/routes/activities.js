@@ -123,13 +123,16 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   
   // Build where clause to show messages user has access to:
   // 1. Messages the user authored (sent messages)
-  // 2. Messages in projects where user is manager or team member (received messages)
+  // 2. Messages where user is a recipient (via ProjectMessageRecipient)
+  // 3. Messages in projects where user is manager or team member (received messages)
   // IMPORTANT: Exclude reply messages (parentMessageId !== null) to prevent duplicate containers
   const where = {
     parentMessageId: null, // Only fetch top-level messages, not replies
     OR: [
       // Messages authored by current user (sent messages)
       { authorId: req.user.id },
+      // Messages where user is explicitly a recipient
+      { recipients: { some: { userId: req.user.id } } },
       // Messages in projects where user is project manager or team member (received messages)
       {
         project: {
@@ -184,7 +187,12 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
         take: fetchSize,
         include: {
           author: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
-          project: { select: { id: true, projectName: true, projectNumber: true } }
+          project: { select: { id: true, projectName: true, projectNumber: true } },
+          recipients: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, email: true } }
+            }
+          }
         }
       }),
       prisma.task.findMany({
@@ -252,6 +260,8 @@ router.get('/recent', asyncHandler(async (req, res) => {
       OR: [
         // Messages authored by current user (sent messages)
         { authorId: req.user.id },
+        // Messages where user is explicitly a recipient
+        { recipients: { some: { userId: req.user.id } } },
         // Messages in projects where user is project manager or team member (received messages)
         {
           project: {
@@ -273,7 +283,12 @@ router.get('/recent', asyncHandler(async (req, res) => {
         take: fetchSize,
         include: {
           author: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
-          project: { select: { id: true, projectName: true, projectNumber: true } }
+          project: { select: { id: true, projectName: true, projectNumber: true } },
+          recipients: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, email: true } }
+            }
+          }
         }
       }),
       prisma.task.findMany({
