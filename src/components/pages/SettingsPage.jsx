@@ -156,28 +156,29 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       console.log('💾 Saving role assignments:', newRoleAssignments);
 
-      // Save each role assignment individually using the correct API endpoint
+      // Save each user-role assignment individually using the correct API endpoint
       const promises = [];
 
       Object.keys(newRoleAssignments).forEach(roleType => {
         const users = newRoleAssignments[roleType] || [];
 
-        // If role has users, assign the first one (for now, single user per role)
+        // Save ALL users for this role (not just the first one)
         if (users.length > 0) {
-          const user = users[0]; // Take first user for single-assignment compatibility
-          promises.push(
-            fetch(`${API_BASE_URL}/roles/assign`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` })
-              },
-              body: JSON.stringify({
-                roleType: roleType,
-                userId: user.id
+          users.forEach(user => {
+            promises.push(
+              fetch(`${API_BASE_URL}/roles/assign`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(token && { 'Authorization': `Bearer ${token}` })
+                },
+                body: JSON.stringify({
+                  roleType: roleType,
+                  userId: user.id
+                })
               })
-            })
-          );
+            );
+          });
         } else {
           // If no users, unassign the role
           promises.push(

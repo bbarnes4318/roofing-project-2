@@ -258,13 +258,14 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             }
 
             // Numbered list: 1., 1) or 1 - patterns
-            if (/^\d+[\.)]\s+/.test(trimmed) || /^\d+\s+-\s+/.test(trimmed) || /^\d+\.\s*/.test(trimmed)) {
+            // Only treat as numbered list if it's a small number (1-99) followed by punctuation and space
+            // This prevents treating things like "1.5" or "100.25" as list items
+            if (/^([1-9]|[1-9][0-9])[\.)]\s+/.test(trimmed) || /^([1-9]|[1-9][0-9])\s+-\s+/.test(trimmed)) {
                 if (inUl) { out.push('</ul>'); inUl = false; }
                 if (!inOl) { out.push('<ol class="list-decimal ml-5 mb-1 space-y-1">'); inOl = true; }
                 const text = trimmed
-                    .replace(/^\d+[\.)]\s+/, '')
-                    .replace(/^\d+\s+-\s+/, '')
-                    .replace(/^\d+\.\s*/, '');
+                    .replace(/^([1-9]|[1-9][0-9])[\.)]\s+/, '')
+                    .replace(/^([1-9]|[1-9][0-9])\s+-\s+/, '');
                 out.push(`<li>${replaceLinks(escapeHtml(text))}</li>`);
                 pendingAutoList = false;
                 continue;

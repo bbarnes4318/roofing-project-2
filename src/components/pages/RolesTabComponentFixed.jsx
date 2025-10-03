@@ -299,7 +299,8 @@ const RolesTabComponentFixed = ({
       projectManager: 'Project Manager',
       fieldDirector: 'Field Director',
       officeStaff: 'Office Staff',
-      administration: 'Administration'
+      administration: 'Administration',
+      subcontractor: 'Subcontractor'
     };
     return roleNames[roleType] || roleType;
   };
@@ -413,6 +414,17 @@ const RolesTabComponentFixed = ({
                 icon="⚙️"
                 colorScheme="red"
                 users={roleAssignments.administration || []}
+                onAddUser={handleAddUserToRole}
+                onRemoveUser={handleRemoveUserFromRole}
+                colorMode={colorMode}
+              />
+
+              <CompactRoleDropZone
+                roleType="subcontractor"
+                roleName="Subcontractor"
+                icon="🔨"
+                colorScheme="blue"
+                users={roleAssignments.subcontractor || []}
                 onAddUser={handleAddUserToRole}
                 onRemoveUser={handleRemoveUserFromRole}
                 colorMode={colorMode}

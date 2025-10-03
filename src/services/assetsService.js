@@ -153,8 +153,21 @@ export const assetsService = {
     if (metadata && Object.keys(metadata).length > 0) form.append('metadata', JSON.stringify(metadata));
     const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     if (typeof onUploadProgress === 'function') config.onUploadProgress = onUploadProgress;
-    const res = await api.post('/assets/upload', form, config);
-    return res.data?.data;
+
+    try {
+      const res = await api.post('/assets/upload', form, config);
+      console.log('Upload response:', res);
+
+      // Check if the response indicates success
+      if (res.data && res.data.success) {
+        return res.data.data;
+      } else {
+        throw new Error(res.data?.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload error in assetsService:', error);
+      throw error;
+    }
   },
   downloadUrl: (id) => `${API_BASE_URL}/assets/${id}/download`,
 

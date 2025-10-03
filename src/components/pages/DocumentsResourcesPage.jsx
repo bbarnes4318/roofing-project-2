@@ -76,13 +76,15 @@ const DocumentsResourcesPage = () => {
     if (!selectedFiles.length) return;
     setUploading(true);
     try {
-      await assetsService.uploadFiles({ files: selectedFiles, parentId: currentFolder });
+      const result = await assetsService.uploadFiles({ files: selectedFiles, parentId: currentFolder });
+      console.log('Upload result:', result);
       await loadItems(currentFolder);
       setUploadModalOpen(false);
       setSelectedFiles([]);
       toast.success('Uploaded successfully!');
     } catch (err) {
-      toast.error('Upload failed');
+      console.error('Upload error:', err);
+      toast.error(`Upload failed: ${err.message || 'Unknown error'}`);
     } finally {
       setUploading(false);
     }
