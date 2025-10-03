@@ -695,7 +695,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                         if (voiceConversation.length === 0 && transcriptStrings.length > 0) {
                             console.log('[Vapi] Using voiceTranscript as fallback');
                             conversationToUse = transcriptStrings.map((text, index) => ({
-                                speaker: 'User',
+                                speaker: currentUserDisplayName || 'You',
                                 message: text,
                                 timestamp: new Date(),
                                 confidence: 'high'
@@ -908,9 +908,9 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                                     voiceTranscriptRef.current = capped;
                                     return capped;
                         });
-                                
-                                // Add to conversation tracking - determine speaker
-                                const speaker = message.role === 'assistant' ? 'Assistant' : 'User';
+
+                                // Add to conversation tracking - determine speaker based on message.role
+                                const speaker = message.role === 'assistant' ? 'Bubbles' : currentUserDisplayName || 'You';
                                 setVoiceConversation(prev => {
                                     const updated = [...prev, {
                                         speaker: speaker,
@@ -931,7 +931,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                             if (text) {
                                 setVoiceConversation(prev => {
                                     const updated = [...prev, {
-                                        speaker: 'User',
+                                        speaker: currentUserDisplayName || 'You',
                                         message: text,
                                         timestamp: new Date(),
                                         confidence: 'high'
@@ -948,7 +948,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                             if (text) {
                                 setVoiceConversation(prev => {
                                     const updated = [...prev, {
-                                        speaker: 'Assistant',
+                                        speaker: 'Bubbles',
                                         message: text,
                                         timestamp: new Date(),
                                         confidence: 'high'
@@ -972,7 +972,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                             if (text) {
                                 setVoiceConversation(prev => {
                                     const updated = [...prev, {
-                                        speaker: 'Assistant',
+                                        speaker: 'Bubbles',
                                         message: text,
                                         timestamp: new Date(),
                                         confidence: 'high'

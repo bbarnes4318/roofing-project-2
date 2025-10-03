@@ -31,12 +31,13 @@ router.get('/', authenticateToken, async (req, res) => {
 
     console.log(`✅ ROLES API: Found ${roleAssignments.length} role assignments`);
 
-    // Transform to expected format
+    // Transform to expected format - support multiple users per role
     const formattedRoles = {
-      projectManager: null,
-      fieldDirector: null,
-      officeStaff: null,
-      administration: null
+      projectManager: [],
+      fieldDirector: [],
+      officeStaff: [],
+      administration: [],
+      subcontractor: []
     };
 
     roleAssignments.forEach(assignment => {
@@ -56,15 +57,16 @@ router.get('/', authenticateToken, async (req, res) => {
         case 'ADMINISTRATION':
           roleKey = 'administration';
           break;
+        case 'SUBCONTRACTOR':
+          roleKey = 'subcontractor';
+          break;
         default:
           roleKey = assignment.roleType.toLowerCase().replace('_', '');
       }
-      
+
       if (formattedRoles.hasOwnProperty(roleKey)) {
-        formattedRoles[roleKey] = {
-          userId: assignment.userId,
-          user: assignment.user
-        };
+        // Add user to the array for this role
+        formattedRoles[roleKey].push(assignment.user);
       }
     });
 
