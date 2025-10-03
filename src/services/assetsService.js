@@ -82,6 +82,11 @@ export const assetsService = {
     const res = await api.get(`/assets/${id}`);
     return res.data?.data?.asset;
   },
+  // Get presigned URL for viewing (no download)
+  getViewUrl: async (id) => {
+    const res = await api.get(`/assets/${id}/view-url`);
+    return res.data?.data;
+  },
   createFolder: async ({ name, parentId = null, description = '', metadata = null }) => {
     try {
       console.log('Creating folder with payload:', { name, parentId, description, metadata });

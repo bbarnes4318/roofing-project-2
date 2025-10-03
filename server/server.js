@@ -270,7 +270,8 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https:", "wss:", "ws:", "https://*.vapi.ai", "https://*.daily.co", "https://goldfish-app-4yuma.ondigitalocean.app"],
       mediaSrc: ["'self'", "https://*.daily.co", "blob:"],  // For audio/video streams
-      frameSrc: ["'self'", "https://*.daily.co"],  // For Daily.co iframe if needed
+      frameSrc: ["'self'", "https://*.daily.co", "https://*.digitaloceanspaces.com"],  // Allow Digital Ocean Spaces for PDFs
+      objectSrc: ["'self'", "https://*.digitaloceanspaces.com"],  // Allow Digital Ocean Spaces for embed/object tags
       workerSrc: ["'self'", "blob:"]  // For web workers that Daily.co might use
     }
   } : undefined,

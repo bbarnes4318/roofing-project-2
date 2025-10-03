@@ -57,39 +57,23 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       if (document.assetId || document.id) {
         const assetId = document.assetId || document.id;
 
-        // Get the asset details to get the Digital Ocean Spaces URL
+        // Get presigned URL for viewing from Digital Ocean Spaces
         try {
-          const asset = await assetsService.get(assetId);
-          console.log('✅ Asset fetched:', asset);
+          const viewData = await assetsService.getViewUrl(assetId);
+          console.log('✅ Got presigned view URL:', viewData);
 
-          if (asset?.url) {
-            console.log('✅ Using asset URL:', asset.url);
-            setDocumentUrl(asset.url);
+          if (viewData?.url) {
+            console.log('✅ Using presigned URL:', viewData.url);
+            setDocumentUrl(viewData.url);
             setLoading(false);
             return;
           }
 
-          // If no direct URL, construct the download URL
-          const downloadUrl = assetsService.downloadUrl(assetId);
-          console.log('✅ Using download URL:', downloadUrl);
-          setDocumentUrl(downloadUrl);
-          setLoading(false);
-          return;
+          throw new Error('No presigned URL returned');
 
         } catch (err) {
-          console.error('Failed to fetch asset:', err);
-
-          // Fallback: try to construct download URL directly
-          try {
-            const downloadUrl = assetsService.downloadUrl(assetId);
-            console.log('⚠️ Fallback to download URL:', downloadUrl);
-            setDocumentUrl(downloadUrl);
-            setLoading(false);
-            return;
-          } catch (fallbackErr) {
-            console.error('Fallback also failed:', fallbackErr);
-            throw new Error('Could not load document from server');
-          }
+          console.error('Failed to get presigned URL:', err);
+          throw new Error('Could not load document from server');
         }
       }
 

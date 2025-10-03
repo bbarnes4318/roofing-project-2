@@ -308,7 +308,7 @@ router.post('/assets/upload',
         Key: key,
         Body: file.buffer,
         ContentType: file.mimetype || 'application/octet-stream',
-        ACL: 'private'
+        ACL: 'public-read' // Make files publicly accessible
       }));
 
       // Calculate checksum from buffer
@@ -542,7 +542,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
       Key: key,
       Body: req.file.buffer,
       ContentType: req.file.mimetype || 'application/octet-stream',
-      ACL: 'private'
+      ACL: 'public-read' // Make files publicly accessible
     }));
 
     // Calculate checksum from buffer
@@ -754,6 +754,91 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
     message: `${operation} completed for ${result.count} items`,
     data: { affected: result.count }
   });
+}));
+
+// =============================
+// Get presigned URL for viewing (no download)
+// =============================
+
+router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Try to find in CompanyAsset first
+  let asset = await prisma.companyAsset.findUnique({
+    where: { id },
+    include: {
+      versions: {
+        where: { isCurrent: true },
+        take: 1
+      }
+    }
+  });
+
+  // If not found in CompanyAsset, try Document table
+  let isFromDocumentTable = false;
+  if (!asset) {
+    const doc = await prisma.document.findUnique({
+      where: { id }
+    });
+
+    if (doc) {
+      asset = {
+        id: doc.id,
+        title: doc.fileName || doc.title || 'Untitled',
+        fileUrl: doc.fileUrl,
+        mimeType: doc.mimeType || 'application/octet-stream',
+        fileSize: doc.fileSize || 0,
+        uploadedById: doc.uploadedById,
+        type: 'FILE',
+        accessLevel: 'PRIVATE',
+        versions: []
+      };
+      isFromDocumentTable = true;
+      console.log(`[View URL] Found document in Document table: ${asset.title}`);
+    }
+  }
+
+  if (!asset) throw new AppError('Asset not found', 404);
+  if (asset.type !== 'FILE') throw new AppError('Cannot view folders', 400);
+
+  // Check access
+  const isPublicAccess = String(asset.accessLevel || '').toLowerCase() === 'public';
+  if (!isPublicAccess && req.user.role !== 'ADMIN' && asset.uploadedById !== req.user.id) {
+    throw new AppError('Access denied', 403);
+  }
+
+  // Use current version if available
+  const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
+  const key = extractSpacesKey(fileUrl);
+
+  if (!key) {
+    throw new AppError('Invalid file URL', 400);
+  }
+
+  console.log(`[View URL] Generating public URL for: ${key}`);
+
+  try {
+    // Generate permanent public URL (never expires)
+    const bucket = process.env.DO_SPACES_NAME;
+    const region = process.env.DO_SPACES_REGION || 'nyc3';
+    const publicUrl = `https://${bucket}.${region}.digitaloceanspaces.com/${key}`;
+
+    console.log(`[View URL] Generated public URL: ${publicUrl}`);
+
+    res.json({
+      success: true,
+      data: {
+        url: publicUrl,
+        title: asset.title,
+        mimeType: asset.mimeType,
+        fileSize: asset.fileSize,
+        expiresIn: null // Never expires
+      }
+    });
+  } catch (error) {
+    console.error('Error generating public URL:', error);
+    throw new AppError('Failed to generate view URL', 500);
+  }
 }));
 
 // =============================
