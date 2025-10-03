@@ -29,7 +29,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       // Determine file type from document
       const fileName = document.fileName || document.title || document.name || '';
       const extension = fileName.split('.').pop()?.toLowerCase();
-      
+
       let type = 'unknown';
       if (['pdf'].includes(extension)) {
         type = 'pdf';
@@ -42,11 +42,12 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       } else if (['txt', 'md'].includes(extension)) {
         type = 'text';
       }
-      
+
       setFileType(type);
 
       // If document has a URL, use it directly
       if (document.url) {
+        console.log('✅ Using direct URL:', document.url);
         setDocumentUrl(document.url);
         setLoading(false);
         return;
@@ -56,28 +57,39 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       if (document.assetId || document.id) {
         const assetId = document.assetId || document.id;
 
-        // Try to get the asset details first
+        // Get the asset details to get the Digital Ocean Spaces URL
         try {
           const asset = await assetsService.get(assetId);
+          console.log('✅ Asset fetched:', asset);
+
           if (asset?.url) {
+            console.log('✅ Using asset URL:', asset.url);
             setDocumentUrl(asset.url);
             setLoading(false);
             return;
           }
-        } catch (err) {
-          console.warn('Could not fetch asset details, trying direct download:', err);
-        }
 
-        // If no URL in asset details, try to download the file
-        try {
-          const { blob } = await assetsService.downloadBlob(assetId);
-          const blobUrl = URL.createObjectURL(blob);
-          setDocumentUrl(blobUrl);
+          // If no direct URL, construct the download URL
+          const downloadUrl = assetsService.downloadUrl(assetId);
+          console.log('✅ Using download URL:', downloadUrl);
+          setDocumentUrl(downloadUrl);
           setLoading(false);
           return;
+
         } catch (err) {
-          console.error('Failed to download asset:', err);
-          throw new Error('Could not load document from server');
+          console.error('Failed to fetch asset:', err);
+
+          // Fallback: try to construct download URL directly
+          try {
+            const downloadUrl = assetsService.downloadUrl(assetId);
+            console.log('⚠️ Fallback to download URL:', downloadUrl);
+            setDocumentUrl(downloadUrl);
+            setLoading(false);
+            return;
+          } catch (fallbackErr) {
+            console.error('Fallback also failed:', fallbackErr);
+            throw new Error('Could not load document from server');
+          }
         }
       }
 
@@ -161,33 +173,27 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
           {!loading && !error && documentUrl && (
             <>
               {fileType === 'pdf' && (
-                <object
-                  data={documentUrl}
-                  type="application/pdf"
-                  className="w-full h-full"
-                >
-                  <div className="flex flex-col items-center justify-center h-full p-8">
-                    <div className="w-20 h-20 mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">PDF Viewer Not Available</h3>
-                    <p className="text-gray-600 mb-6 text-center max-w-md">
-                      Your browser cannot display this PDF. Download it to view.
-                    </p>
+                <div className="w-full h-full relative">
+                  <embed
+                    src={documentUrl}
+                    type="application/pdf"
+                    className="w-full h-full"
+                  />
+                  {/* Fallback download button in bottom right corner */}
+                  <div className="absolute bottom-4 right-4">
                     <a
                       href={documentUrl}
-                      download={document?.fileName || document?.title || 'document.pdf'}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
-                      Download PDF
+                      Open in New Tab
                     </a>
                   </div>
-                </object>
+                </div>
               )}
 
               {fileType === 'image' && (
