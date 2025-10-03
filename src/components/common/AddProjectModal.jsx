@@ -17,7 +17,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     description: '',
     startingPhase: 'LEAD', // Starting phase selection
     projectManagerId: '', // Project manager assignment
-    leadSourceId: ''
+    leadSourceId: '',
+    subcontractorIds: [] // Multiple subcontractors
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -25,10 +26,17 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [projectManagers, setProjectManagers] = useState([]);
+  const [subcontractors, setSubcontractors] = useState([]);
   const [showSecondaryCustomer, setShowSecondaryCustomer] = useState(false);
   const [showSecondHousehold, setShowSecondHousehold] = useState(false);
-  const [leadSources, setLeadSources] = useState([]);
-  const [leadSourcesLoading, setLeadSourcesLoading] = useState(true);
+
+  // Hardcoded Lead Source values as specified
+  const LEAD_SOURCES = [
+    'Website',
+    'Google Maps',
+    'Social Media',
+    'Word of Mouth'
+  ];
 
   // Available trade types with icons
   const TRADE_TYPES = [
@@ -106,12 +114,25 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               }
 
               setProjectManagers(projectManagerUsers);
+
+              // Extract subcontractors from role assignments
+              const subcontractorUsers = [];
+              if (rolesData.data.subcontractor) {
+                if (Array.isArray(rolesData.data.subcontractor)) {
+                  subcontractorUsers.push(...rolesData.data.subcontractor);
+                } else if (rolesData.data.subcontractor.userId) {
+                  const subcontractor = teamMembers.find(u => u.id === rolesData.data.subcontractor.userId);
+                  if (subcontractor) subcontractorUsers.push(subcontractor);
+                }
+              }
+              setSubcontractors(subcontractorUsers);
             }
           }
         } catch (roleError) {
           console.error('Error fetching role assignments:', roleError);
-          // Fallback to all users if roles fetch fails
-          setProjectManagers(teamMembers);
+          // Don't fallback - only show users assigned to roles
+          setProjectManagers([]);
+          setSubcontractors([]);
         }
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -127,28 +148,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       resetForm();
       setShowSecondaryCustomer(false);
       setShowSecondHousehold(false);
-    }
-  }, [isOpen]);
-
-  // Load lead sources when modal opens
-  useEffect(() => {
-    const loadLeadSources = async () => {
-      try {
-        setLeadSourcesLoading(true);
-        const res = await api.get('/lead-sources');
-        const items = Array.isArray(res?.data?.data) ? res.data.data : [];
-        setLeadSources(items.filter(ls => ls.isActive !== false));
-      } catch (e) {
-        console.error('Error fetching lead sources:', e);
-        setLeadSources([]);
-      } finally {
-        setLeadSourcesLoading(false);
-      }
-    };
-    if (isOpen) {
-      loadLeadSources();
-    } else {
-      setLeadSources([]);
     }
   }, [isOpen]);
 
@@ -328,8 +327,25 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
       if (projectResponse.data.success) {
         console.log('✅ Project created successfully with trades:', formData.projectTypes);
+
+        // Add subcontractors as team members if any selected
+        if (formData.subcontractorIds.length > 0 && projectResponse.data.data.id) {
+          try {
+            for (const subcontractorId of formData.subcontractorIds) {
+              await api.post(`/projects/${projectResponse.data.data.id}/team-members`, {
+                userId: subcontractorId,
+                role: 'SUBCONTRACTOR'
+              });
+            }
+            console.log('✅ Subcontractors added to project');
+          } catch (teamError) {
+            console.error('Error adding subcontractors to project:', teamError);
+            // Don't fail the entire operation if team member addition fails
+          }
+        }
+
         onProjectCreated && onProjectCreated(projectResponse.data.data);
-        
+
         // Reset form
         resetForm();
         onClose();
@@ -375,7 +391,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       projectTypes: [],
       description: '',
       startingPhase: 'LEAD',
-      projectManagerId: ''
+      projectManagerId: '',
+      leadSourceId: '',
+      subcontractorIds: []
     });
     setCurrentStep(1);
     setErrors({});
@@ -834,22 +852,22 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     disabled={usersLoading}
                   >
                     <option value="">Select a project manager</option>
-                    {projectManagers.length > 0 ? (
-                      projectManagers.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName}
-                        </option>
-                      ))
-                    ) : (
-                      users.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName}
-                        </option>
-                      ))
-                    )}
+                    {projectManagers.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName}
+                      </option>
+                    ))}
                   </select>
                   {usersLoading && (
-                    <p className="mt-2 text-sm text-gray-500">Loading users...</p>
+                    <p className="mt-2 text-sm text-gray-500">Loading project managers...</p>
+                  )}
+                  {!usersLoading && projectManagers.length === 0 && (
+                    <p className="mt-2 text-sm text-amber-600 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      No project managers assigned in Settings → Roles
+                    </p>
                   )}
                   {errors.projectManagerId && (
                     <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -871,15 +889,49 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     value={formData.leadSourceId}
                     onChange={handleInputChange}
                     className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
-                    disabled={leadSourcesLoading}
                   >
                     <option value="">Select a lead source (optional)</option>
-                    {leadSources.map(ls => (
-                      <option key={ls.id} value={ls.id}>{ls.name}</option>
+                    {LEAD_SOURCES.map((source, index) => (
+                      <option key={index} value={source}>{source}</option>
                     ))}
                   </select>
-                  {leadSourcesLoading && (
-                    <p className="mt-2 text-sm text-gray-500">Loading lead sources...</p>
+                </div>
+
+                {/* Subcontractors */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Subcontractors (Optional)
+                  </label>
+                  <div className="border-2 border-gray-200 rounded-xl p-4 max-h-48 overflow-y-auto">
+                    {subcontractors.length > 0 ? (
+                      subcontractors.map(user => (
+                        <label key={user.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.subcontractorIds.includes(user.id)}
+                            onChange={(e) => {
+                              const newIds = e.target.checked
+                                ? [...formData.subcontractorIds, user.id]
+                                : formData.subcontractorIds.filter(id => id !== user.id);
+                              setFormData({ ...formData, subcontractorIds: newIds });
+                            }}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {user.firstName} {user.lastName}
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 text-center py-2">
+                        No subcontractors assigned in Settings → Roles
+                      </p>
+                    )}
+                  </div>
+                  {formData.subcontractorIds.length > 0 && (
+                    <p className="mt-2 text-sm text-gray-600">
+                      {formData.subcontractorIds.length} subcontractor{formData.subcontractorIds.length > 1 ? 's' : ''} selected
+                    </p>
                   )}
                 </div>
 

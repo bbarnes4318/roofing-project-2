@@ -954,6 +954,7 @@ enum UserRole {
   FOREMAN
   WORKER
   CLIENT
+  SUBCONTRACTOR
 
   @@map("user_roles")
 }
@@ -1207,6 +1208,7 @@ enum RoleType {
   FIELD_DIRECTOR
   OFFICE_STAFF
   ADMINISTRATION
+  SUBCONTRACTOR
 
   @@map("role_types")
 }

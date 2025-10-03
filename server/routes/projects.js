@@ -1117,4 +1117,70 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
   }
 }));
 
-module.exports = router; 
+// Add team member to project
+router.post('/:id/team-members', asyncHandler(async (req, res, next) => {
+  const { userId, role } = req.body;
+
+  if (!userId) {
+    return next(new AppError('User ID is required', 400));
+  }
+
+  try {
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id }
+    });
+
+    if (!project) {
+      return next(new AppError('Project not found', 404));
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return next(new AppError('User not found', 404));
+    }
+
+    // Check if team member already exists
+    const existingMember = await prisma.projectTeamMember.findFirst({
+      where: {
+        projectId: req.params.id,
+        userId: userId
+      }
+    });
+
+    if (existingMember) {
+      return sendSuccess(res, 200, existingMember, 'Team member already exists');
+    }
+
+    // Create team member
+    const teamMember = await prisma.projectTeamMember.create({
+      data: {
+        projectId: req.params.id,
+        userId: userId,
+        role: role || 'TEAM_MEMBER'
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      }
+    });
+
+    sendSuccess(res, 201, teamMember, 'Team member added successfully');
+  } catch (error) {
+    console.error('Error adding team member:', error);
+    return next(new AppError('Failed to add team member', 500));
+  }
+}));
+
+module.exports = router;

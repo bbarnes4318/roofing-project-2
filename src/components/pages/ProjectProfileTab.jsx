@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
-import api, { projectsService, customersService, documentsService, API_ORIGIN } from '../../services/api';
-import { assetsService } from '../../services/assetsService';
+import api, { projectsService, customersService, documentsService, API_BASE_URL } from '../../services/api';
+// import { assetsService } from '../../services/assetsService'; // Commented out - service doesn't exist
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
@@ -1096,20 +1096,75 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     );
   };
 
+  // Subcontractors Panel Component
+  const SubcontractorsPanel = () => {
+    const subcontractors = project.teamMembers?.filter(member => member.role === 'SUBCONTRACTOR') || [];
+
+    if (subcontractors.length === 0) {
+      return null; // Don't show panel if no subcontractors
+    }
+
+    return (
+      <div className={`rounded-lg shadow-sm border p-4 ${
+        colorMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      }`}>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-lg">🔨</span>
+          <h3 className={`text-sm font-semibold ${
+            colorMode ? 'text-orange-300' : 'text-orange-700'
+          }`}>
+            Subcontractors ({subcontractors.length})
+          </h3>
+        </div>
+        <div className="space-y-2">
+          {subcontractors.map((member, index) => (
+            <div
+              key={member.id || index}
+              className={`flex items-center gap-2 p-2 rounded ${
+                colorMode ? 'bg-orange-900/20' : 'bg-orange-50'
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
+                colorMode ? 'bg-orange-700 text-orange-100' : 'bg-orange-200 text-orange-800'
+              }`}>
+                {member.user?.firstName?.[0]}{member.user?.lastName?.[0]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-medium truncate ${
+                  colorMode ? 'text-gray-200' : 'text-gray-900'
+                }`}>
+                  {member.user?.firstName} {member.user?.lastName}
+                </div>
+                {member.user?.email && (
+                  <div className={`text-xs truncate ${
+                    colorMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                    {member.user.email}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <HeaderSection />
       <WorkflowNavigation />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column - Compact customer + documents */}
         <div className="lg:col-span-2 space-y-4">
           <ContactCards />
           <DocumentsPanel />
         </div>
-        {/* Right Column - Progress with PM */}
-        <div className="lg:col-span-1">
+        {/* Right Column - Progress with PM and Subcontractors */}
+        <div className="lg:col-span-1 space-y-4">
           <ProgressChart />
+          <SubcontractorsPanel />
         </div>
       </div>
     </div>

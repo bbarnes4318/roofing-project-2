@@ -37,7 +37,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     projectManager: [],
     fieldDirector: [],
     officeStaff: [],
-    administration: []
+    administration: [],
+    subcontractor: []
   });
   const [availableUsers, setAvailableUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -157,10 +158,10 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       // Save each role assignment individually using the correct API endpoint
       const promises = [];
-      
+
       Object.keys(newRoleAssignments).forEach(roleType => {
         const users = newRoleAssignments[roleType] || [];
-        
+
         // If role has users, assign the first one (for now, single user per role)
         if (users.length > 0) {
           const user = users[0]; // Take first user for single-assignment compatibility
@@ -196,7 +197,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       // Wait for all API calls to complete
       const responses = await Promise.all(promises);
-      
+
       // Check if any failed
       for (const response of responses) {
         if (!response.ok) {
@@ -204,7 +205,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           throw new Error(result.message || `HTTP error! status: ${response.status}`);
         }
       }
-      
+
       console.log('✅ Role assignments saved successfully');
     } catch (error) {
       console.error('❌ Error saving role assignments:', error);
@@ -215,39 +216,41 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const handleRoleAssignment = async (roleType, userId) => {
     try {
       console.log(`🔄 DEBUGGING: Assigning ${roleType} to user ${userId}`);
-      
+
       // Don't update if it's the same value or empty
       if (!userId || roleAssignments[roleType] === userId) {
         console.log(`✅ DEBUGGING: No change needed (same value or empty)`);
         return;
       }
-      
+
       // Optimistically update UI - store the value immediately
       const newAssignments = {
         ...roleAssignments,
         [roleType]: userId
       };
       setRoleAssignments(newAssignments);
-      
+
       // Get existing token (don't create new one)
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       console.log(`🔑 DEBUGGING: Token exists: ${!!token}`);
-      
+
       if (!token) {
         throw new Error('No authentication token available');
       }
-      
+
       // Convert frontend role names to backend format
       const roleTypeMapping = {
         productManager: 'PROJECT_MANAGER',
-        fieldDirector: 'FIELD_DIRECTOR', 
+        projectManager: 'PROJECT_MANAGER',
+        fieldDirector: 'FIELD_DIRECTOR',
         officeStaff: 'OFFICE_STAFF',
-        administration: 'ADMINISTRATION'
+        administration: 'ADMINISTRATION',
+        subcontractor: 'SUBCONTRACTOR'
       };
-      
+
       const backendRoleType = roleTypeMapping[roleType] || roleType;
       console.log(`🔄 DEBUGGING: Converting ${roleType} → ${backendRoleType}`);
-      
+
       // Save to API
       console.log(`📡 DEBUGGING: Making API call to ${API_BASE_URL}/roles/assign`);
       const response = await fetch(`${API_BASE_URL}/roles/assign`, {
@@ -265,7 +268,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       console.log(`📡 DEBUGGING: Response status: ${response.status}`);
       const data = await response.json();
       console.log(`📡 DEBUGGING: Response data:`, data);
-      
+
       if (data.success) {
         const selectedUser = availableUsers.find(user => user.id === userId);
         console.log(`✅ DEBUGGING: Assignment successful!`);
@@ -277,7 +280,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         console.log(`❌ DEBUGGING: API returned failure: ${data.message}`);
         throw new Error(data.message || 'Failed to assign role');
       }
-      
+
     } catch (error) {
       console.log(`❌ DEBUGGING: Error in handleRoleAssignment:`, error);
       // Revert state on error
@@ -292,7 +295,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const getRoleDisplayName = (roleType) => {
     const roleNames = {
       productManager: 'Project Manager',
-      fieldDirector: 'Field Director', 
+      fieldDirector: 'Field Director',
       officeStaff: 'Office Staff',
       administration: 'Administration'
     };
@@ -312,14 +315,14 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         console.log('⚠️ No token available for loading role assignments');
         return;
       }
-      
+
       console.log('📡 Loading role assignments...');
       const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (rolesResponse.ok) {
         const rolesData = await rolesResponse.json();
         console.log('📊 Role assignments received:', rolesData);
@@ -336,7 +339,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           Object.keys(formattedRoles).forEach(roleType => {
             const apiRoleType = roleType === 'projectManager' ? 'productManager' : roleType;
             const roleData = rolesData.data[apiRoleType] || rolesData.data[roleType];
-            
+
             if (roleData) {
               if (Array.isArray(roleData)) {
                 // New format - array of user objects
@@ -378,17 +381,17 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   // Load users and role assignments from API on mount
   useEffect(() => {
     let isMounted = true; // Prevent updates after unmount
-    
+
     const loadUsersAndRoles = async () => {
       try {
         setUsersLoading(true);
-        
+
         // Get auth token; do not create demo tokens
         const token = localStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) {
           console.warn('⚠️ No auth token found');
         }
-        
+
         // Load available users
         console.log('📡 Fetching users from API...');
         const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
@@ -396,7 +399,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
           console.log(`✅ Received ${usersData.data?.length || 0} users from API`);
@@ -408,10 +411,10 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         } else {
           console.error(`❌ API returned status ${usersResponse.status}`);
         }
-        
+
         // Load current role assignments
         await loadRoleAssignments();
-        
+
       } catch (error) {
         console.error('Error loading users and roles:', error);
         // Don't use fallback data - let the user know there's an issue
@@ -420,9 +423,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         setUsersLoading(false);
       }
     };
-    
+
     loadUsersAndRoles();
-    
+
     // Cleanup function
     return () => {
       isMounted = false;
@@ -438,7 +441,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         { id: 'express', name: 'Express Workflow', description: 'Simplified workflow for small projects' },
         { id: 'insurance', name: 'Insurance Claims Workflow', description: 'Workflow optimized for insurance claims' }
       ];
-      
+
       setWorkflowTemplates(defaultTemplates);
       if (defaultTemplates.length > 0) {
         setSelectedWorkflowTemplate(defaultTemplates[0].id);
@@ -465,22 +468,22 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         body: formData,
       });
       const data = await response.json();
-      
+
       if (data.success) {
         const successCount = data.data.successful || 0;
         const failedCount = data.data.failed || 0;
-        
+
         setImportResults({
           total: data.data.total || 0,
           successful: successCount,
           failed: data.data.errors || []
         });
-        
+
         let message = `Import completed: ${successCount} projects created successfully`;
         if (failedCount > 0) {
           message += `, ${failedCount} failed`;
         }
-        
+
         showSuccessMessage(message);
         setImportFile(null);
       } else {
@@ -515,7 +518,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const downloadCSVTemplate = (templateType) => {
     try {
       let filename, url;
-      
+
       switch (templateType) {
         case 'combined':
           filename = 'project_customer_combined_template.csv';
@@ -537,7 +540,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       showSuccessMessage(`Downloaded ${templateType} template successfully!`);
     } catch (error) {
       console.error('Error downloading template:', error);
@@ -871,8 +874,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     <div className="space-y-6">
       {/* Header */}
       <div className={`border rounded-lg p-4 ${
-        colorMode 
-          ? 'bg-blue-900/20 border-blue-500/40' 
+        colorMode
+          ? 'bg-blue-900/20 border-blue-500/40'
           : 'bg-blue-50 border-blue-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
@@ -895,8 +898,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Project Manager */}
         <div className={`border rounded-lg p-4 ${
-          colorMode 
-            ? 'bg-purple-900/20 border-purple-500/40' 
+          colorMode
+            ? 'bg-purple-900/20 border-purple-500/40'
             : 'bg-purple-50 border-purple-200'
         }`}>
           <div className="flex items-center gap-2 mb-3">
@@ -920,8 +923,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             }}
             disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
-              colorMode 
-                ? 'bg-[#232b4d] border-gray-600 text-white' 
+              colorMode
+                ? 'bg-[#232b4d] border-gray-600 text-white'
                 : 'bg-white border-gray-300 text-gray-800'
             } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
@@ -943,8 +946,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
         {/* Field Director */}
         <div className={`border rounded-lg p-4 ${
-          colorMode 
-            ? 'bg-orange-900/20 border-orange-500/40' 
+          colorMode
+            ? 'bg-orange-900/20 border-orange-500/40'
             : 'bg-orange-50 border-orange-200'
         }`}>
           <div className="flex items-center gap-2 mb-3">
@@ -968,8 +971,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             }}
             disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
-              colorMode 
-                ? 'bg-[#232b4d] border-gray-600 text-white' 
+              colorMode
+                ? 'bg-[#232b4d] border-gray-600 text-white'
                 : 'bg-white border-gray-300 text-gray-800'
             } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
@@ -991,8 +994,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
         {/* Office Staff */}
         <div className={`border rounded-lg p-4 ${
-          colorMode 
-            ? 'bg-green-900/20 border-green-500/40' 
+          colorMode
+            ? 'bg-green-900/20 border-green-500/40'
             : 'bg-green-50 border-green-200'
         }`}>
           <div className="flex items-center gap-2 mb-3">
@@ -1016,8 +1019,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             }}
             disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
-              colorMode 
-                ? 'bg-[#232b4d] border-gray-600 text-white' 
+              colorMode
+                ? 'bg-[#232b4d] border-gray-600 text-white'
                 : 'bg-white border-gray-300 text-gray-800'
             } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
@@ -1039,8 +1042,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
         {/* Administration */}
         <div className={`border rounded-lg p-4 ${
-          colorMode 
-            ? 'bg-red-900/20 border-red-500/40' 
+          colorMode
+            ? 'bg-red-900/20 border-red-500/40'
             : 'bg-red-50 border-red-200'
         }`}>
           <div className="flex items-center gap-2 mb-3">
@@ -1064,8 +1067,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             }}
             disabled={usersLoading}
             className={`w-full p-2 rounded border text-sm ${
-              colorMode 
-                ? 'bg-[#232b4d] border-gray-600 text-white' 
+              colorMode
+                ? 'bg-[#232b4d] border-gray-600 text-white'
                 : 'bg-white border-gray-300 text-gray-800'
             } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
@@ -1084,12 +1087,62 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             </div>
           )}
         </div>
-      </div>
+
+        {/* Subcontractor */}
+        <div className={`border rounded-lg p-4 ${
+          colorMode
+            ? 'bg-orange-900/20 border-orange-500/40'
+            : 'bg-orange-50 border-orange-200'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🔨</span>
+            <h4 className={`font-semibold ${
+              colorMode ? 'text-orange-300' : 'text-orange-900'
+            }`}>Subcontractor</h4>
+          </div>
+          <p className={`text-xs mb-3 ${
+            colorMode ? 'text-orange-200' : 'text-orange-700'
+          }`}>
+            External contractors who work on specific projects
+          </p>
+          <select
+            value={roleAssignments.subcontractor || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (newValue !== roleAssignments.subcontractor) {
+                handleRoleAssignment('subcontractor', newValue);
+              }
+            }}
+            disabled={usersLoading}
+            className={`w-full p-2 rounded border text-sm ${
+              colorMode
+                ? 'bg-[#232b4d] border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-800'
+            } ${usersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <option value="">Select Subcontractor...</option>
+            {availableUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+          {roleAssignments.subcontractor && (
+            <div className={`mt-2 p-2 rounded text-xs ${
+              colorMode ? 'bg-orange-900/40 text-orange-200' : 'bg-orange-100 text-orange-800'
+            }`}>
+              <strong>Current:</strong> {getUserDisplayName(roleAssignments.subcontractor).split(' (')[0]}
+            </div>
+          )}
+        </div>
+      </div>
+
+
 
       {/* Summary Card */}
       <div className={`border rounded-lg p-4 ${
-        colorMode 
-          ? 'bg-gray-800/50 border-gray-600' 
+        colorMode
+          ? 'bg-gray-800/50 border-gray-600'
           : 'bg-gray-50 border-gray-200'
       }`}>
         <h4 className={`font-semibold mb-3 ${
@@ -1103,7 +1156,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               🎯 Project Manager
             </div>
             <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {roleAssignments.productManager 
+              {roleAssignments.productManager
                 ? getUserDisplayName(roleAssignments.productManager).split(' (')[0]
                 : 'Not assigned'
               }
@@ -1116,7 +1169,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               🏗️ Field Director
             </div>
             <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {roleAssignments.fieldDirector 
+              {roleAssignments.fieldDirector
                 ? getUserDisplayName(roleAssignments.fieldDirector).split(' (')[0]
                 : 'Not assigned'
               }
@@ -1129,7 +1182,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               📋 Office Staff
             </div>
             <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {roleAssignments.officeStaff 
+              {roleAssignments.officeStaff
                 ? getUserDisplayName(roleAssignments.officeStaff).split(' (')[0]
                 : 'Not assigned'
               }
@@ -1142,12 +1195,26 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               ⚙️ Administration
             </div>
             <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {roleAssignments.administration 
+              {roleAssignments.administration
                 ? getUserDisplayName(roleAssignments.administration).split(' (')[0]
                 : 'Not assigned'
               }
             </div>
           </div>
+          <div className={`p-2 rounded ${
+            colorMode ? 'bg-gray-700/50' : 'bg-white'
+          }`}>
+            <div className={`font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              🔨 Subcontractor
+            </div>
+            <div className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {roleAssignments.subcontractor
+                ? getUserDisplayName(roleAssignments.subcontractor).split(' (')[0]
+                : 'Not assigned'
+              }
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1183,8 +1250,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             type="button"
             onClick={handleResetToDefaults}
             className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
-              colorMode 
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+              colorMode
+                ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -1203,8 +1270,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               onChange={(e) => setNewSubject(e.target.value)}
               placeholder="Enter new subject..."
               className={`flex-1 p-2 rounded border text-sm ${
-                colorMode 
-                  ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                colorMode
+                  ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400'
                   : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
               }`}
               onKeyDown={(e) => {
@@ -1237,8 +1304,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                 setNewSubject('');
               }}
               className={`px-3 py-2 text-xs font-medium rounded border transition-colors ${
-                colorMode 
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                colorMode
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -1272,8 +1339,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                         value={editingText}
                         onChange={(e) => setEditingText(e.target.value)}
                         className={`flex-1 p-1.5 rounded border text-sm ${
-                          colorMode 
-                            ? 'bg-[#232b4d] border-gray-600 text-white' 
+                          colorMode
+                            ? 'bg-[#232b4d] border-gray-600 text-white'
                             : 'bg-white border-gray-300 text-gray-800'
                         }`}
                         onKeyDown={(e) => {
@@ -1302,8 +1369,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                         type="button"
                         onClick={handleCancelEdit}
                         className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${
-                          colorMode 
-                            ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                          colorMode
+                            ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                             : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                         }`}
                       >
@@ -1323,8 +1390,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                           type="button"
                           onClick={() => handleEditSubject(index, subject)}
                           className={`p-1.5 rounded transition-colors ${
-                            colorMode 
-                              ? 'text-blue-400 hover:bg-blue-900/20' 
+                            colorMode
+                              ? 'text-blue-400 hover:bg-blue-900/20'
                               : 'text-blue-600 hover:bg-blue-50'
                           }`}
                           title="Edit subject"
@@ -1341,8 +1408,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                             }
                           }}
                           className={`p-1.5 rounded transition-colors ${
-                            colorMode 
-                              ? 'text-red-400 hover:bg-red-900/20' 
+                            colorMode
+                              ? 'text-red-400 hover:bg-red-900/20'
                               : 'text-red-600 hover:bg-red-50'
                           }`}
                           title="Delete subject"
@@ -1446,8 +1513,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const renderProjectImportTab = () => (
     <div className="space-y-6">
       <div className={`border rounded-lg p-4 ${
-        colorMode 
-          ? 'bg-blue-900/20 border-blue-500/40' 
+        colorMode
+          ? 'bg-blue-900/20 border-blue-500/40'
           : 'bg-blue-50 border-blue-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
@@ -1471,8 +1538,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       {/* Workflow Template Selection */}
       <div className={`border rounded-lg p-4 ${
-        colorMode 
-          ? 'bg-gray-800/50 border-gray-600' 
+        colorMode
+          ? 'bg-gray-800/50 border-gray-600'
           : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
@@ -1487,8 +1554,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           value={selectedWorkflowTemplate}
           onChange={(e) => setSelectedWorkflowTemplate(e.target.value)}
           className={`w-full p-2 rounded border text-sm ${
-            colorMode 
-              ? 'bg-[#181f3a] border-[#3b82f6] text-white' 
+            colorMode
+              ? 'bg-[#181f3a] border-[#3b82f6] text-white'
               : 'bg-white border-gray-300 text-gray-800'
           }`}
         >
@@ -1503,8 +1570,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       {/* Download Templates */}
       <div className={`border rounded-lg p-4 ${
-        colorMode 
-          ? 'bg-gray-800/50 border-gray-600' 
+        colorMode
+          ? 'bg-gray-800/50 border-gray-600'
           : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
@@ -1533,8 +1600,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       {/* Upload Area */}
       <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-        colorMode 
-          ? 'border-gray-600 hover:border-gray-500' 
+        colorMode
+          ? 'border-gray-600 hover:border-gray-500'
           : 'border-gray-300 hover:border-gray-400'
       }`}>
         <div className="text-4xl mb-4">🏗️</div>
@@ -1572,8 +1639,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                   setImportResults(null);
                 }}
                 className={`px-4 py-2 rounded border transition-colors ${
-                  colorMode 
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                  colorMode
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -1639,7 +1706,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <p><strong>Successful:</strong> {importResults.successful.length}</p>
             <p><strong>Failed:</strong> {importResults.failed.length}</p>
           </div>
-          
+
           {importResults.successful.length > 0 && (
             <div className="mt-4">
               <h4 className={`font-medium text-sm mb-2 ${
@@ -1663,7 +1730,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               </div>
             </div>
           )}
-          
+
           {importResults.failed.length > 0 && (
             <div className="mt-4">
               <h4 className={`font-medium text-sm mb-2 ${
@@ -1692,8 +1759,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       {/* Example Data */}
       <div className={`border rounded-lg p-4 ${
-        colorMode 
-          ? 'bg-gray-800/50 border-gray-600' 
+        colorMode
+          ? 'bg-gray-800/50 border-gray-600'
           : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className={`font-medium mb-2 ${
@@ -1805,7 +1872,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       setUploadFile(null);
       setSuccessMessage('Excel data uploaded successfully to DigitalOcean database!');
       setSuccess(true);
-      
+
       // Reset file input
       const fileInput = document.getElementById('excel-file-input-settings');
       if (fileInput) fileInput.value = '';
@@ -1868,7 +1935,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       setSuccessMessage('Database exported to Excel successfully!');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -1899,9 +1966,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         <h3 className={`font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
           📤 Upload Project Data
         </h3>
-        
+
         <div className={`border-2 border-dashed rounded-lg p-4 text-center mb-4 ${
-          uploadFile 
+          uploadFile
             ? colorMode ? 'border-green-500 bg-green-900/20' : 'border-green-400 bg-green-50'
             : colorMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
         }`}>
@@ -1926,7 +1993,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               </p>
             </div>
           )}
-          
+
           <input
             id="excel-file-input-settings"
             type="file"
@@ -1934,12 +2001,12 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             onChange={handleFileSelect}
             className="hidden"
           />
-          
+
           <label
             htmlFor="excel-file-input-settings"
             className={`inline-block mt-3 px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
-              colorMode 
-                ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500 text-white' 
+              colorMode
+                ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-500 text-white'
                 : 'bg-blue-500 hover:bg-[var(--color-primary-blueprint-blue)] text-white'
             }`}
           >
@@ -1965,7 +2032,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         <h3 className={`font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
           📥 Download & Export
         </h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className={`p-3 rounded-lg ${colorMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
             <h4 className={`font-medium mb-2 text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
@@ -2021,7 +2088,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           <h3 className={`font-semibold mb-3 text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
             Upload Results
           </h3>
-          
+
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className={`text-center p-2 rounded ${colorMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
               <p className={`text-lg font-bold ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
@@ -2151,15 +2218,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           <div className="p-4">
             <form onSubmit={handleSave}>
               {renderTabContent()}
-              
+
               {/* Note: Most settings auto-save. Save button primarily for Profile and Security changes */}
               {(activeTab === 'profile' || activeTab === 'security') && (
                 <div className="flex justify-end pt-3 border-t border-gray-200 mt-4">
                   <button
                     type="submit"
                     className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm ${
-                      colorMode 
-                        ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-900/20' 
+                      colorMode
+                        ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-900/20'
                         : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-600/20'
                     } hover:shadow-md transform hover:scale-105`}
                   >
@@ -2187,4 +2254,4 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   );
 };
 
-export default SettingsPage; 
+export default SettingsPage;
