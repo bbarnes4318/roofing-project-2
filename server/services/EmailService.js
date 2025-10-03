@@ -2,6 +2,8 @@ const { Resend } = require('resend');
 const path = require('path');
 const fs = require('fs');
 const { prisma } = require('../config/prisma');
+const { getS3 } = require('../config/spaces');
+const { GetObjectCommand } = require('@aws-sdk/client-s3');
 
 class EmailService {
   constructor() {
@@ -301,7 +303,7 @@ class EmailService {
   }
 
   /**
-   * Get document attachment from database
+   * Get document attachment from database and Spaces
    * @param {string} documentId - Document or CompanyAsset ID
    * @returns {Promise<Object|null>} Attachment object
    */
@@ -310,15 +312,21 @@ class EmailService {
       // Try to find in Documents first
       let document = await prisma.document.findUnique({
         where: { id: documentId },
-        select: { 
-          filename: true, 
-          filePath: true,
+        select: {
+          fileName: true,
+          originalName: true,
+          fileUrl: true,
           mimeType: true
         }
       });
 
-      // If not found, try CompanyAsset (uses title and fileUrl instead of filename and filePath)
-      if (!document) {
+      let filename, fileUrl;
+
+      if (document) {
+        filename = document.fileName || document.originalName;
+        fileUrl = document.fileUrl;
+      } else {
+        // If not found, try CompanyAsset
         const companyAsset = await prisma.companyAsset.findUnique({
           where: { id: documentId },
           select: {
@@ -329,34 +337,44 @@ class EmailService {
         });
 
         if (companyAsset) {
-          // Map CompanyAsset fields to document format
-          document = {
-            filename: companyAsset.title,
-            filePath: companyAsset.fileUrl,
-            mimeType: companyAsset.mimeType
-          };
+          filename = companyAsset.title;
+          fileUrl = companyAsset.fileUrl;
+          document = { mimeType: companyAsset.mimeType };
         }
       }
 
-      if (!document || !document.filePath) {
-        console.warn(`⚠️ Document not found or has no file path for ID: ${documentId}`);
+      if (!fileUrl) {
+        console.warn(`⚠️ Document not found or has no file URL for ID: ${documentId}`);
         return null;
       }
 
-      // Resolve the file path
-      const filePath = this.resolveDocumentPath(document.filePath);
+      // Extract Spaces key
+      const key = fileUrl.startsWith('spaces://')
+        ? fileUrl.replace('spaces://', '')
+        : fileUrl.replace(/^\/uploads\//, '');
 
-      if (!fs.existsSync(filePath)) {
-        console.warn(`⚠️ Document file not found: ${filePath}`);
+      // Download from Spaces
+      const s3 = getS3();
+      const bucket = process.env.DO_SPACES_NAME;
+
+      if (!bucket) {
+        console.error('⚠️ DO_SPACES_NAME not configured');
         return null;
       }
 
-      // Read and encode file
-      const content = fs.readFileSync(filePath);
+      const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+      const response = await s3.send(command);
+
+      // Convert stream to buffer
+      const chunks = [];
+      for await (const chunk of response.Body) {
+        chunks.push(chunk);
+      }
+      const buffer = Buffer.concat(chunks);
 
       return {
-        filename: document.filename,
-        content: content.toString('base64')
+        filename: filename || 'attachment',
+        content: buffer.toString('base64')
       };
 
     } catch (error) {

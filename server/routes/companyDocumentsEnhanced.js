@@ -55,14 +55,6 @@ const upload = multer({
   }
 });
 
-// Helper function to calculate file checksum
-async function calculateChecksum(filePath) {
-  const fileBuffer = await fs.readFile(filePath);
-  const hashSum = crypto.createHash('sha256');
-  hashSum.update(fileBuffer);
-  return hashSum.digest('hex');
-}
-
 // Helper: collect all descendant asset IDs (breadth-first) for cascading operations
 async function collectDescendantIds(rootIds) {
   const toVisit = Array.from(new Set(rootIds.map(String)));
