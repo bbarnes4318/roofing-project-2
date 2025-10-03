@@ -1,32 +1,38 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const { body, validationResult } = require('express-validator');
 const { prisma } = require('../config/prisma');
 const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
+const { getS3, getObjectPresignedUrl } = require('../config/spaces');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
 
-// Local disk storage for now (mirrors existing /api/documents approach)
-const uploadDir = path.join(__dirname, '..', 'uploads', 'company-assets');
-fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext);
-    cb(null, `${base}-${uniqueSuffix}${ext}`);
-  }
-});
-
+// Use memory storage - files go directly to Spaces
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }
 });
+
+// Helper to extract Spaces key from fileUrl
+function extractSpacesKey(fileUrl) {
+  if (!fileUrl) return null;
+  if (fileUrl.startsWith('spaces://')) return fileUrl.replace('spaces://', '');
+  if (fileUrl.startsWith('/uploads/')) return fileUrl.replace('/uploads/', '');
+  return fileUrl;
+}
+
+// Helper to generate unique filename
+function generateUniqueFilename(originalName) {
+  const timestamp = Date.now();
+  const random = Math.round(Math.random() * 1e9);
+  const ext = path.extname(originalName);
+  const base = path.basename(originalName, ext);
+  const safeName = base.replace(/[^a-zA-Z0-9._-]/g, '_');
+  return `${safeName}-${timestamp}-${random}${ext}`;
+}
 
 // =============================
 // Company Assets (Customer-facing PDFs)
@@ -95,11 +101,30 @@ router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHan
   if (!req.file) throw new AppError('No file uploaded', 400);
   const { title, description, tags, section, parentId, sortOrder } = req.body;
 
+  // Generate unique filename and upload to Spaces
+  const filename = generateUniqueFilename(req.file.originalname);
+  const key = `company-assets/${filename}`;
+
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
+
+  if (!bucket) {
+    throw new AppError('Digital Ocean Spaces not configured', 500);
+  }
+
+  await s3.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: req.file.buffer,
+    ContentType: req.file.mimetype || 'application/octet-stream',
+    ACL: 'private'
+  }));
+
   const asset = await prisma.companyAsset.create({
     data: {
       title: title || req.file.originalname,
       description: description || null,
-      fileUrl: `/uploads/company-assets/${req.file.filename}`,
+      fileUrl: `spaces://${key}`,
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
       tags: tags ? JSON.parse(tags) : [],
@@ -110,46 +135,58 @@ router.post('/assets/upload', authenticateToken, upload.single('file'), asyncHan
       uploadedById: req.user?.id || null
     }
   });
+
+  console.log(`✅ Uploaded to Spaces: ${key}`);
   res.status(201).json({ success: true, data: { asset } });
 }));
 
-// Download a company asset
+// Download a company asset from Spaces
 router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, res) => {
   const id = req.params.id;
   const asset = await prisma.companyAsset.findUnique({ where: { id } });
   if (!asset) throw new AppError('Asset not found', 404);
   if (asset.type !== 'FILE') throw new AppError('Cannot download folders', 400);
 
-  // asset.fileUrl is like "/uploads/company-assets/<file>"; map to server path
-  const filePath = path.join(__dirname, '..', asset.fileUrl);
-  
-  if (!fs.existsSync(filePath)) {
-    throw new AppError('File not found on disk', 404);
-  }
+  const key = extractSpacesKey(asset.fileUrl);
+  if (!key) throw new AppError('Invalid file URL', 400);
 
-  // Set appropriate headers for download
-  res.setHeader('Content-Disposition', `attachment; filename="${asset.title || 'download'}"`);
-  res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
-  
-  // Stream the file
-  res.download(filePath, asset.title || path.basename(filePath));
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
+
+  try {
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const response = await s3.send(command);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${asset.title || 'download'}"`);
+    res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', asset.fileSize);
+
+    response.Body.pipe(res);
+  } catch (error) {
+    console.error('Error downloading from Spaces:', error);
+    throw new AppError('File not found in storage', 404);
+  }
 }));
 
-// Delete a company asset (customer-facing PDF or other file)
+// Delete a company asset from Spaces and database
 router.delete('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
   const id = req.params.id;
   const asset = await prisma.companyAsset.findUnique({ where: { id } });
   if (!asset) throw new AppError('Asset not found', 404);
 
-  // Attempt to remove file from disk (best-effort)
-  try {
-    // asset.fileUrl is like "/uploads/company-assets/<file>"; map to server path
-    const absolutePath = path.join(__dirname, '..', asset.fileUrl);
-    if (fs.existsSync(absolutePath)) {
-      fs.unlinkSync(absolutePath);
+  // Delete from Spaces if it's a file
+  if (asset.type === 'FILE') {
+    const key = extractSpacesKey(asset.fileUrl);
+    if (key) {
+      try {
+        const s3 = getS3();
+        const bucket = process.env.DO_SPACES_NAME;
+        await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+        console.log(`✅ Deleted from Spaces: ${key}`);
+      } catch (error) {
+        console.error('Error deleting from Spaces:', error);
+      }
     }
-  } catch (err) {
-    console.error('Error deleting asset file:', err);
   }
 
   await prisma.companyAsset.delete({ where: { id } });

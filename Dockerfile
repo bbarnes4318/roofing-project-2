@@ -46,9 +46,11 @@ COPY server/prisma ./prisma
 # Copy built frontend
 COPY --from=frontend-build /app/build ./public
 
+# Create uploads directories so they always exist in the container
+RUN mkdir -p /app/uploads/company-assets /app/uploads/documents
+
 # Generate Prisma client, then prune dev deps for smaller image
 RUN npx prisma generate && npm prune --omit=dev
 
 EXPOSE 8080
-
 CMD ["npm", "start"]

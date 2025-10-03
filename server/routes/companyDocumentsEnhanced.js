@@ -1,38 +1,35 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs').promises;
 const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const { prisma } = require('../config/prisma');
 const IngestionService = require('../services/IngestionService');
 const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
+const { getS3, getObjectPresignedUrl } = require('../config/spaces');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
 
-// Enhanced storage configuration with better organization
-const uploadDir = path.join(__dirname, '..', 'uploads', 'company-assets');
-fs.mkdir(uploadDir, { recursive: true }).catch(console.error);
+// Helper functions
+function extractSpacesKey(fileUrl) {
+  if (!fileUrl) return null;
+  if (fileUrl.startsWith('spaces://')) return fileUrl.replace('spaces://', '');
+  if (fileUrl.startsWith('/uploads/')) return fileUrl.replace('/uploads/', '');
+  return fileUrl;
+}
 
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    // Organize by year/month
-    const date = new Date();
-    const subDir = path.join(uploadDir, date.getFullYear().toString(), (date.getMonth() + 1).toString().padStart(2, '0'));
-    await fs.mkdir(subDir, { recursive: true });
-    cb(null, subDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext).replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    cb(null, `${base}-${uniqueSuffix}${ext}`);
-  }
-});
+function generateUniqueFilename(originalName) {
+  const timestamp = Date.now();
+  const random = Math.round(Math.random() * 1e9);
+  const ext = path.extname(originalName);
+  const base = path.basename(originalName, ext).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  return `${base}-${timestamp}-${random}${ext}`;
+}
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
     // Enhanced file type validation
@@ -301,28 +298,43 @@ router.post('/assets/upload',
     } = req.body;
     
     const uploadedAssets = [];
-    
+
     for (const file of req.files) {
-      // Calculate checksum
-      const checksum = await calculateChecksum(file.path);
-      
-      // Build file URL
-      const date = new Date();
-      const fileUrl = `/uploads/company-assets/${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${file.filename}`;
-      
+      // Upload to Spaces
+      const filename = generateUniqueFilename(file.originalname);
+      const key = `company-assets/${filename}`;
+
+      const s3 = getS3();
+      const bucket = process.env.DO_SPACES_NAME;
+
+      if (!bucket) {
+        throw new AppError('Digital Ocean Spaces not configured', 500);
+      }
+
+      await s3.send(new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype || 'application/octet-stream',
+        ACL: 'private'
+      }));
+
+      // Calculate checksum from buffer
+      const checksum = crypto.createHash('sha256').update(file.buffer).digest('hex');
+
       // Determine metadata
       const metadata = {
         icon: getFileIcon(file.mimetype),
         originalName: file.originalname,
         uploadedAt: new Date().toISOString()
       };
-      
+
       // Create asset (without nested version to avoid schema mismatch)
       const asset = await prisma.companyAsset.create({
         data: {
           title: file.originalname,
           description: description || null,
-          fileUrl,
+          fileUrl: `spaces://${key}`,
           mimeType: file.mimetype,
           fileSize: file.size,
           tags: tags ? JSON.parse(tags) : [],
@@ -347,6 +359,8 @@ router.post('/assets/upload',
           }
         }
       });
+
+      console.log(`✅ Uploaded to Spaces: ${key}`);
 
       // Create initial version record
       await prisma.companyAssetVersion.create({
@@ -520,16 +534,34 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
   
   // Handle file replacement
   if (req.file) {
-    // Calculate new checksum
-    const checksum = await calculateChecksum(req.file.path);
-    const date = new Date();
-    const fileUrl = `/uploads/company-assets/${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${req.file.filename}`;
-    
+    // Upload to Spaces
+    const filename = generateUniqueFilename(req.file.originalname);
+    const key = `company-assets/${filename}`;
+
+    const s3 = getS3();
+    const bucket = process.env.DO_SPACES_NAME;
+
+    if (!bucket) {
+      throw new AppError('Digital Ocean Spaces not configured', 500);
+    }
+
+    await s3.send(new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype || 'application/octet-stream',
+      ACL: 'private'
+    }));
+
+    // Calculate checksum from buffer
+    const checksum = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+    const fileUrl = `spaces://${key}`;
+
     updateData.fileUrl = fileUrl;
     updateData.mimeType = req.file.mimetype;
     updateData.fileSize = req.file.size;
     updateData.checksum = checksum;
-    
+
     // Create new version
     const currentVersion = asset.versions[0]?.versionNumber || 0;
     await prisma.companyAssetVersion.create({
@@ -544,7 +576,7 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
         isCurrent: true
       }
     });
-    
+
     // Mark previous versions as not current
     await prisma.companyAssetVersion.updateMany({
       where: {
@@ -553,6 +585,8 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
       },
       data: { isCurrent: false }
     });
+
+    console.log(`✅ Uploaded to Spaces: ${key}`);
     
     // Update version number
     updateData.version = currentVersion + 1;
@@ -649,7 +683,7 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
       break;
     
     case 'purge':
-      // Hard delete: remove files from disk, delete embeddings, then delete DB rows (cascade removes versions)
+      // Hard delete: remove files from Spaces, delete embeddings, then delete DB rows (cascade removes versions)
       {
         const allIds = await collectDescendantIds(assetIds.map(String));
         const assets = await prisma.companyAsset.findMany({
@@ -661,7 +695,10 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
           }
         });
 
-        const filePaths = [];
+        const s3 = getS3();
+        const bucket = process.env.DO_SPACES_NAME;
+        const spacesKeys = [];
+
         for (const a of assets) {
           const urls = [];
           if (a.fileUrl) urls.push(a.fileUrl);
@@ -669,22 +706,25 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
             for (const v of a.versions) if (v.file_url) urls.push(v.file_url);
           }
           for (const u of urls) {
-            try {
-              const safe = String(u).replace(/^\\|^\//, '');
-              const abs = path.join(__dirname, '..', safe);
-              filePaths.push(abs);
-              // Try to unlink
-              await fs.unlink(abs).catch(() => {});
-            } catch (_) {}
+            const key = extractSpacesKey(u);
+            if (key) {
+              spacesKeys.push(key);
+              try {
+                await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+                console.log(`✅ Deleted from Spaces: ${key}`);
+              } catch (error) {
+                console.warn('⚠️ Failed to delete from Spaces:', key, error?.message || error);
+              }
+            }
           }
         }
 
-        // Remove embeddings for these files (file_id equals absolute path for local ingests)
-        for (const abs of filePaths) {
+        // Remove embeddings for these files
+        for (const key of spacesKeys) {
           try {
-            await prisma.$executeRawUnsafe('DELETE FROM embeddings WHERE file_id = $1', abs);
+            await prisma.$executeRawUnsafe('DELETE FROM embeddings WHERE file_id LIKE $1', `%${key}%`);
           } catch (e) {
-            console.warn('⚠️ Failed to purge embeddings for', abs, e?.message || e);
+            console.warn('⚠️ Failed to purge embeddings for', key, e?.message || e);
           }
         }
 
@@ -787,15 +827,13 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
 
   // Use current version if available
   const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
-  const safePath = (fileUrl || '').replace(/^\\|^\//, '').replace(/^spaces:\/\//, '');
-  const filePath = path.join(__dirname, '..', safePath);
+  const key = extractSpacesKey(fileUrl);
 
-  console.log(`[Download] Attempting to download file from: ${filePath}`);
-
-  if (!await fs.access(filePath).then(() => true).catch(() => false)) {
-    console.error(`[Download] File not found on disk: ${filePath}`);
-    throw new AppError('File not found on disk', 404);
+  if (!key) {
+    throw new AppError('Invalid file URL', 400);
   }
+
+  console.log(`[Download] Attempting to download file from Spaces: ${key}`);
 
   // Update download count (only for CompanyAsset)
   if (!isFromDocumentTable) {
@@ -808,13 +846,23 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
     });
   }
 
-  // Set headers
-  res.setHeader('Content-Disposition', `attachment; filename="${asset.title}"`);
-  res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
-  res.setHeader('Content-Length', asset.fileSize);
+  // Stream from Spaces
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
 
-  // Send file
-  res.download(filePath, asset.title);
+  try {
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const response = await s3.send(command);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${asset.title}"`);
+    res.setHeader('Content-Type', asset.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', asset.fileSize);
+
+    response.Body.pipe(res);
+  } catch (error) {
+    console.error('Error downloading from Spaces:', error);
+    throw new AppError('File not found in storage', 404);
+  }
 }));
 
 // =============================

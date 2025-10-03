@@ -1,45 +1,27 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs').promises;
 const { body, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
-const { 
-  asyncHandler, 
-  sendSuccess, 
+const {
+  asyncHandler,
+  sendSuccess,
   sendPaginatedResponse,
   formatValidationErrors,
-  AppError 
+  AppError
 } = require('../middleware/errorHandler');
-const { 
-  managerAndAbove, 
-  projectManagerAndAbove 
+const {
+  managerAndAbove,
+  projectManagerAndAbove
 } = require('../middleware/auth');
+const { getS3, getObjectPresignedUrl } = require('../config/spaces');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/documents');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, extension);
-    cb(null, `${baseName}-${uniqueSuffix}${extension}`);
-  }
-});
-
+// Use memory storage - files go directly to Spaces
 const fileFilter = (req, file, cb) => {
-  // Allowed file types
   const allowedTypes = [
     'application/pdf',
     'application/msword',
@@ -66,12 +48,29 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: {
     fileSize: 50 * 1024 * 1024 // 50MB limit
   }
 });
+
+// Helper functions
+function extractSpacesKey(fileUrl) {
+  if (!fileUrl) return null;
+  if (fileUrl.startsWith('spaces://')) return fileUrl.replace('spaces://', '');
+  if (fileUrl.startsWith('/uploads/')) return fileUrl.replace('/uploads/', '');
+  return fileUrl;
+}
+
+function generateUniqueFilename(originalName) {
+  const timestamp = Date.now();
+  const random = Math.round(Math.random() * 1e9);
+  const ext = path.extname(originalName);
+  const base = path.basename(originalName, ext);
+  const safeName = base.replace(/[^a-zA-Z0-9._-]/g, '_');
+  return `${safeName}-${timestamp}-${random}${ext}`;
+}
 
 // Validation rules
 const documentValidation = [
@@ -336,12 +335,31 @@ router.post('/', upload.single('file'), documentValidation, asyncHandler(async (
     }
   }
 
+  // Upload to Spaces
+  const uniqueFilename = generateUniqueFilename(req.file.originalname);
+  const key = `documents/${projectId}/${uniqueFilename}`;
+
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
+
+  if (!bucket) {
+    return next(new AppError('Digital Ocean Spaces not configured', 500));
+  }
+
+  await s3.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: req.file.buffer,
+    ContentType: req.file.mimetype || 'application/octet-stream',
+    ACL: 'private'
+  }));
+
   // Create document record
   const document = await prisma.document.create({
     data: {
-      fileName: fileName || req.file.filename,
+      fileName: fileName || req.file.originalname,
       originalName: req.file.originalname,
-      fileUrl: `/uploads/documents/${req.file.filename}`,
+      fileUrl: `spaces://${key}`,
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
       fileType: fileType ? fileType.toUpperCase() : getDocumentTypeFromMime(req.file.mimetype),
@@ -372,6 +390,7 @@ router.post('/', upload.single('file'), documentValidation, asyncHandler(async (
     }
   });
 
+  console.log(`✅ Uploaded to Spaces: ${key}`);
   res.status(201).json({
     success: true,
     message: 'Document uploaded successfully',
@@ -458,7 +477,7 @@ router.put('/:id', documentValidation, asyncHandler(async (req, res, next) => {
   });
 }));
 
-// @desc    Delete document
+// @desc    Delete document from Spaces and database
 // @route   DELETE /api/documents/:id
 // @access  Private
 router.delete('/:id', asyncHandler(async (req, res, next) => {
@@ -470,13 +489,18 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
     return next(new AppError('Document not found', 404));
   }
 
-  // Delete file from filesystem
-  try {
-    const filePath = path.join(__dirname, '..', document.fileUrl);
-    await fs.unlink(filePath);
-  } catch (error) {
-    console.error('Error deleting file:', error);
-    // Continue with database deletion even if file deletion fails
+  // Delete from Spaces
+  const key = extractSpacesKey(document.fileUrl);
+  if (key) {
+    try {
+      const s3 = getS3();
+      const bucket = process.env.DO_SPACES_NAME;
+      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+      console.log(`✅ Deleted from Spaces: ${key}`);
+    } catch (error) {
+      console.error('Error deleting from Spaces:', error);
+      // Continue with database deletion even if Spaces deletion fails
+    }
   }
 
   // Delete from database
@@ -490,7 +514,7 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
   });
 }));
 
-// @desc    Download document
+// @desc    Download document from Spaces
 // @route   GET /api/documents/:id/download
 // @access  Private
 router.get('/:id/download', asyncHandler(async (req, res, next) => {
@@ -519,9 +543,28 @@ router.get('/:id/download', asyncHandler(async (req, res, next) => {
     }
   });
 
-  // Send file
-  const filePath = path.join(__dirname, '..', document.fileUrl);
-  res.download(filePath, document.originalName);
+  // Stream from Spaces
+  const key = extractSpacesKey(document.fileUrl);
+  if (!key) {
+    return next(new AppError('Invalid file URL', 400));
+  }
+
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
+
+  try {
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const response = await s3.send(command);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
+    res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', document.fileSize);
+
+    response.Body.pipe(res);
+  } catch (error) {
+    console.error('Error downloading from Spaces:', error);
+    return next(new AppError('File not found in storage', 404));
+  }
 }));
 
 // @desc    Get documents by project

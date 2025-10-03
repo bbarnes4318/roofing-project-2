@@ -1,31 +1,36 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs').promises;
 const { PrismaClient } = require('@prisma/client');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
 const { body, validationResult, query } = require('express-validator');
+const { getS3, getObjectPresignedUrl } = require('../config/spaces');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const IngestionService = require('../services/IngestionService');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/documents');
-    await fs.mkdir(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Helper functions
+function extractSpacesKey(fileUrl) {
+  if (!fileUrl) return null;
+  if (fileUrl.startsWith('spaces://')) return fileUrl.replace('spaces://', '');
+  if (fileUrl.startsWith('/uploads/')) return fileUrl.replace('/uploads/', '');
+  return fileUrl;
+}
+
+function generateUniqueFilename(originalName) {
+  const timestamp = Date.now();
+  const random = Math.round(Math.random() * 1e9);
+  const ext = path.extname(originalName);
+  const base = path.basename(originalName, ext);
+  const safeName = base.replace(/[^a-zA-Z0-9._-]/g, '_');
+  return `${safeName}-${timestamp}-${random}${ext}`;
+}
 
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -43,7 +48,7 @@ const upload = multer({
       'text/csv',
       'application/json'
     ];
-    
+
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -291,9 +296,30 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
     projectId
   } = req.body;
 
-  // Generate file URL
-  const fileUrl = `/uploads/documents/${req.file.filename}`;
-  
+  // Upload to Spaces
+  const filename = generateUniqueFilename(req.file.originalname);
+  const key = `documents/${projectId || 'general'}/${filename}`;
+
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
+
+  if (!bucket) {
+    return res.status(500).json({
+      success: false,
+      message: 'Digital Ocean Spaces not configured'
+    });
+  }
+
+  await s3.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: req.file.buffer,
+    ContentType: req.file.mimetype || 'application/octet-stream',
+    ACL: 'private'
+  }));
+
+  const fileUrl = `spaces://${key}`;
+
   // Generate thumbnail for images
   let thumbnailUrl = null;
   if (req.file.mimetype.startsWith('image/')) {
@@ -303,7 +329,7 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
   // Create document using existing fields only
   const document = await prisma.document.create({
     data: {
-      fileName: req.file.filename,
+      fileName: req.file.originalname,
       originalName: req.file.originalname,
       fileUrl,
       mimeType: req.file.mimetype,
@@ -327,22 +353,22 @@ router.post('/', authenticateToken, upload.single('file'), validateDocument, asy
     }
   });
 
-  // Fire-and-forget local ingestion into embeddings for RAG
+  console.log(`✅ Uploaded to Spaces: ${key}`);
+
+  // Fire-and-forget ingestion into embeddings for RAG (if IngestionService supports Spaces)
   try {
-    const safePath = (fileUrl || '').replace(/^\\|^\//, '');
-    const absolutePath = path.join(__dirname, '..', safePath);
-    IngestionService.processLocalPath({
+    IngestionService.processSpacesFile({
       documentId: document.id,
       projectId: projectId || null,
-      filePath: absolutePath,
+      spacesKey: key,
       mimeType: req.file.mimetype
     }).then(() => {
-      console.log('✅ Local ingestion complete for document', document.id);
+      console.log('✅ Ingestion complete for document', document.id);
     }).catch(e => {
-      console.warn('⚠️ Local ingestion failed for document', document.id, e?.message || e);
+      console.warn('⚠️ Ingestion failed for document', document.id, e?.message || e);
     });
   } catch (e) {
-    console.warn('⚠️ Failed to kick off local ingestion:', e?.message || e);
+    console.warn('⚠️ Failed to kick off ingestion:', e?.message || e);
   }
 
   res.status(201).json({

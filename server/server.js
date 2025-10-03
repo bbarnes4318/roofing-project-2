@@ -53,6 +53,45 @@ if (!process.env.DATABASE_URL) {
 
 console.log('✅ Required modules loaded successfully');
 
+// Verify uploads directory exists and is writable
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads');
+const companyAssetsDir = path.join(uploadsDir, 'company-assets');
+const documentsDir = path.join(uploadsDir, 'documents');
+
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('✅ Created uploads directory:', uploadsDir);
+  } else {
+    console.log('✅ Uploads directory exists:', uploadsDir);
+  }
+
+  if (!fs.existsSync(companyAssetsDir)) {
+    fs.mkdirSync(companyAssetsDir, { recursive: true });
+    console.log('✅ Created company-assets directory:', companyAssetsDir);
+  } else {
+    console.log('✅ Company-assets directory exists:', companyAssetsDir);
+  }
+
+  if (!fs.existsSync(documentsDir)) {
+    fs.mkdirSync(documentsDir, { recursive: true });
+    console.log('✅ Created documents directory:', documentsDir);
+  } else {
+    console.log('✅ Documents directory exists:', documentsDir);
+  }
+
+  // Test write permissions
+  const testFile = path.join(uploadsDir, '.write-test');
+  fs.writeFileSync(testFile, 'test');
+  fs.unlinkSync(testFile);
+  console.log('✅ Uploads directory is writable');
+} catch (error) {
+  console.error('❌ Uploads directory error:', error.message);
+  console.error('❌ This may cause file upload/serving issues');
+  console.error('❌ Please check file permissions and disk space');
+}
+
 // Import database connection
 const { connectDatabase, prisma } = require('./config/prisma');
 
@@ -702,10 +741,78 @@ io.on('connection', async (socket) => {
 // Make io accessible to routes
 app.set('io', io);
 
+// ============================================================================
+// STATIC FILE SERVING CONFIGURATION
+// ============================================================================
 // Serve uploaded files (documents, company assets) safely
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// Also serve uploads from the repository root if present (fallback)
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// NOTE: Adjust the physical path based on your deployment environment
+// Set UPLOADS_PATH environment variable in production if needed
+
+const uploadsPath = process.env.UPLOADS_PATH || path.join(__dirname, 'uploads');
+
+// Log the uploads directory for debugging
+console.log('📁 Uploads directory:', uploadsPath);
+console.log('📁 Uploads exists:', fs.existsSync(uploadsPath));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsPath, {
+  // Enable directory listing in development only
+  index: false,
+  // Set cache headers for better performance
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+  // Handle errors gracefully
+  fallthrough: true,
+  // Set proper headers
+  setHeaders: (res, filePath) => {
+    // Allow CORS for uploaded files
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Prevent directory listing
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+  }
+}));
+
+// Fallback: Also serve uploads from the repository root if present
+const rootUploadsPath = path.join(__dirname, '..', 'uploads');
+if (fs.existsSync(rootUploadsPath) && rootUploadsPath !== uploadsPath) {
+  console.log('📁 Fallback uploads directory:', rootUploadsPath);
+  app.use('/uploads', express.static(rootUploadsPath, {
+    index: false,
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+    fallthrough: true,
+    setHeaders: (res, filePath) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+  }));
+}
+
+// Add a test endpoint to verify file serving
+app.get('/api/uploads/test', (req, res) => {
+  const testPaths = [
+    uploadsPath,
+    rootUploadsPath,
+    '/var/www/uploads',
+    path.join(process.cwd(), 'uploads')
+  ];
+
+  const results = testPaths.map(p => ({
+    path: p,
+    exists: fs.existsSync(p),
+    files: fs.existsSync(p) ? fs.readdirSync(p).slice(0, 5) : []
+  }));
+
+  res.json({
+    success: true,
+    uploadsConfiguration: {
+      primary: uploadsPath,
+      fallback: rootUploadsPath,
+      environment: process.env.NODE_ENV,
+      cwd: process.cwd(),
+      __dirname: __dirname
+    },
+    pathTests: results
+  });
+});
 
 // API Routes
 app.use('/api/health', healthRoutes);
