@@ -3,6 +3,7 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import MentionInput from './MentionInput';
 import { getUserFullName } from '../../utils/userUtils';
+import { workflowAlertsService } from '../../services/api';
 
 const ReminderItem = ({ 
   item, 
@@ -41,13 +42,7 @@ const ReminderItem = ({
     try {
       // If this is a workflow alert-based reminder, mark the alert as completed
       if (item.alertId) {
-        await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/alerts/${item.alertId}/complete`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
-          }
-        });
+        await workflowAlertsService.completeStep(item.alertId, item.projectId, item.lineItemId || '', '');
         console.log(`✅ Reminder alert ${item.alertId} marked as completed`);
       }
     } catch (error) {

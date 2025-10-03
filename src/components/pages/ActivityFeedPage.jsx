@@ -2,12 +2,15 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useProjects, useWorkflowAlerts, useRecentActivities } from '../../hooks/useQueryApi';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { assetsService } from '../../services/api';
+import DocumentViewerModal from '../ui/DocumentViewerModal';
 
 const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity, colorMode }) => {
     // Dashboard sync state - EXACT same as Dashboard page
     const [expandedMessages, setExpandedMessages] = useState(new Set());
     const [completedTasks, setCompletedTasks] = useState(new Set());
     const [activeCommTab, setActiveCommTab] = useState('messages');
+    const [selectedDocument, setSelectedDocument] = useState(null);
+    const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
     
     const messagesData = activities?.filter(a => a.type === 'message') || [];
     const calendarEvents = activities?.filter(a => a.type === 'task' || a.type === 'reminder') || [];
@@ -427,20 +430,16 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                     type="button"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        try {
-                                                                            if (att.assetId) {
-                                                                                assetsService.openInNewTab(att.assetId);
-                                                                            } else if (att.fileUrl) {
-                                                                                window.open(att.fileUrl, '_blank', 'noopener');
-                                                                            }
-                                                                        } catch (_) {}
+                                                                        setSelectedDocument(att);
+                                                                        setIsDocumentModalOpen(true);
                                                                     }}
                                                                     className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
                                                                 >
                                                                     <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m0 0l-4-4m4 4l4-4" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                                     </svg>
-                                                                    Open
+                                                                    View
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -456,6 +455,16 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 </div>
             </div>
         </div>
+
+        {/* Document Viewer Modal */}
+        <DocumentViewerModal
+            document={selectedDocument}
+            isOpen={isDocumentModalOpen}
+            onClose={() => {
+                setIsDocumentModalOpen(false);
+                setSelectedDocument(null);
+            }}
+        />
     );
 };
 

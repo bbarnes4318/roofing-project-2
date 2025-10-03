@@ -3,6 +3,7 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import MentionInput from './MentionInput';
 import { getUserFullName } from '../../utils/userUtils';
+import { tasksService } from '../../services/api';
 
 const TaskItem = ({ 
   item, 
@@ -34,14 +35,7 @@ const TaskItem = ({
     // Persist to backend
     try {
       const newStatus = isCompleted ? 'TODO' : 'DONE';
-      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/tasks/${item.id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
+      await tasksService.updateStatus(item.id, newStatus);
       console.log(`✅ Task ${item.id} marked as ${newStatus}`);
     } catch (error) {
       console.error('Failed to update task status:', error);
