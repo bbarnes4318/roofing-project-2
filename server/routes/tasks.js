@@ -512,6 +512,73 @@ router.put('/:id', taskValidation, asyncHandler(async (req, res, next) => {
   });
 }));
 
+// @desc    Update task status only
+// @route   PATCH /api/tasks/:id/status
+// @access  Private
+router.patch('/:id/status', asyncHandler(async (req, res, next) => {
+  const taskId = req.params.id;
+  const { status } = req.body;
+
+  if (!status) {
+    return next(new AppError('Status is required', 400));
+  }
+
+  // Validate status
+  const validStatuses = ['TODO', 'TO_DO', 'IN_PROGRESS', 'DONE', 'CANCELLED'];
+  const normalizedStatus = status.toUpperCase().replace(/-/g, '_');
+
+  if (!validStatuses.includes(normalizedStatus)) {
+    return next(new AppError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400));
+  }
+
+  // Check if task exists
+  const existingTask = await prisma.task.findUnique({
+    where: { id: taskId }
+  });
+
+  if (!existingTask) {
+    return next(new AppError('Task not found', 404));
+  }
+
+  // Update task status
+  const updatedTask = await prisma.task.update({
+    where: { id: taskId },
+    data: {
+      status: normalizedStatus,
+      completedAt: normalizedStatus === 'DONE' ? new Date() : null,
+      updatedAt: new Date()
+    },
+    include: {
+      assignedTo: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true
+        }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true
+        }
+      }
+    }
+  });
+
+  // Update project progress
+  await updateProjectProgress(updatedTask.projectId);
+
+  console.log(`✅ Task ${taskId} status updated to ${normalizedStatus}`);
+
+  res.json({
+    success: true,
+    message: 'Task status updated successfully',
+    data: { task: updatedTask }
+  });
+}));
+
 // @desc    Delete task
 // @route   DELETE /api/tasks/:id
 // @access  Private

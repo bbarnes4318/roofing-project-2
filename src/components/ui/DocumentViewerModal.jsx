@@ -161,11 +161,33 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
           {!loading && !error && documentUrl && (
             <>
               {fileType === 'pdf' && (
-                <iframe
-                  src={documentUrl}
-                  className="w-full h-full border-0"
-                  title="PDF Viewer"
-                />
+                <object
+                  data={documentUrl}
+                  type="application/pdf"
+                  className="w-full h-full"
+                >
+                  <div className="flex flex-col items-center justify-center h-full p-8">
+                    <div className="w-20 h-20 mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                      <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">PDF Viewer Not Available</h3>
+                    <p className="text-gray-600 mb-6 text-center max-w-md">
+                      Your browser cannot display this PDF. Download it to view.
+                    </p>
+                    <a
+                      href={documentUrl}
+                      download={document?.fileName || document?.title || 'document.pdf'}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download PDF
+                    </a>
+                  </div>
+                </object>
               )}
 
               {fileType === 'image' && (
@@ -179,12 +201,11 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
               )}
 
               {fileType === 'text' && (
-                <div className="p-8">
-                  <iframe
-                    src={documentUrl}
-                    className="w-full h-full border-0 bg-white rounded"
-                    title="Text Viewer"
-                  />
+                <div className="p-8 h-full overflow-auto">
+                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 bg-white p-4 rounded">
+                    {/* Text content will be loaded via fetch */}
+                    Loading text content...
+                  </pre>
                 </div>
               )}
 
