@@ -631,6 +631,18 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Local feed state for newly created items (messages/tasks/reminders)
   const [feed, setFeed] = useState([]);
 
+  // Remove an activity from the local feed cache so it disappears everywhere
+  const removeActivityFromFeed = useCallback((id) => {
+    if (!id) return;
+    setFeed(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  // Mark activity complete by removing it from the feed
+  const markActivityCompleteInFeed = useCallback((id) => {
+    if (!id) return;
+    setFeed(prev => prev.filter(item => item.id !== id));
+  }, []);
+
   // Workflow alerts for Project Workflow section
   const { data: workflowAlertsData, isLoading: alertsLoading } = useWorkflowAlerts({ limit: 200 });
   const workflowAlerts = Array.isArray(workflowAlertsData) ? workflowAlertsData : (workflowAlertsData?.data || []);

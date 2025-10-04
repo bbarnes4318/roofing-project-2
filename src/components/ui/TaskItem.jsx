@@ -13,7 +13,8 @@ const TaskItem = ({
   availableUsers = [],
   currentUser = null,
   onDelete = null,
-  isDeleting = false
+  isDeleting = false,
+  onComplete = null
 }) => {
   const { state, actions } = useActivity();
   
@@ -39,6 +40,12 @@ const TaskItem = ({
       const newStatus = isCompleted ? 'TODO' : 'DONE';
       await tasksService.updateStatus(item.id, newStatus);
       console.log(`✅ Task ${item.id} marked as ${newStatus}`);
+      if (!isCompleted) {
+        actions.removeItem(item.id);
+        if (typeof onComplete === 'function') {
+          onComplete(item.id);
+        }
+      }
     } catch (error) {
       console.error('Failed to update task status:', error);
       // Revert on error

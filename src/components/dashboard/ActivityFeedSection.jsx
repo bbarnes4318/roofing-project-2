@@ -19,7 +19,9 @@ const ActivityFeedSection = ({
   setActivityTypeFilter,
   handleProjectSelectWithScroll,
   availableUsers = [],
-  currentUser = null
+  currentUser = null,
+  onActivityRemoved,
+  onActivityCompleted
 }) => {
   const { state, actions } = useActivity();
 
@@ -124,6 +126,9 @@ const ActivityFeedSection = ({
       }
 
       actions.removeItem(item.id);
+      if (typeof onActivityRemoved === 'function') {
+        onActivityRemoved(item.id);
+      }
       toast.success(`${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} deleted.`);
     } catch (error) {
       console.error('Failed to delete activity item:', error);

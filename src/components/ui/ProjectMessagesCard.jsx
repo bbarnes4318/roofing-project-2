@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
 
-const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false, sourceSection = 'Project Messages' }) => {
+const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false, sourceSection = 'Project Messages', onDelete, isDeleting = false }) => {
     // Use external expansion state if provided, otherwise use internal state
     const [internalExpanded, setInternalExpanded] = useState(false);
     const expanded = isExpanded !== undefined ? isExpanded : internalExpanded;
@@ -160,6 +160,13 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     const handleQuickReplyCancel = () => {
         setQuickReplyText('');
         setShowQuickReply(false);
+    };
+
+    const handleDeleteClick = (e) => {
+        e.stopPropagation();
+        if (typeof onDelete === 'function' && !isDeleting) {
+            onDelete();
+        }
     };
 
     // Use centralized phase detection service - SINGLE SOURCE OF TRUTH
@@ -388,6 +395,32 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* Action buttons */}
                         <div className="flex items-center gap-1">
+                            {typeof onDelete === 'function' && (
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteClick}
+                                    disabled={isDeleting}
+                                    className={`p-1 rounded transition-colors flex-shrink-0 ${
+                                        isDeleting
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : colorMode
+                                                ? 'text-gray-400 hover:text-red-400 hover:bg-slate-700/60'
+                                                : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                    }`}
+                                    title={isDeleting ? 'Deleting...' : 'Delete message'}
+                                >
+                                    {isDeleting ? (
+                                        <svg className="w-2.5 h-2.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4"></circle>
+                                            <path className="opacity-75" d="M4 12a8 8 0 018-8" strokeWidth="4" strokeLinecap="round"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a2 2 0 00-2-2h-4a2 2 0 00-2 2m6 0H9" />
+                                        </svg>
+                                    )}
+                                </button>
+                            )}
                             {/* Quick Reply Button */}
                             <button
                                 onClick={(e) => {
