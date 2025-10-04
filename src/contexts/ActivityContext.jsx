@@ -8,7 +8,8 @@ const ACTIVITY_ACTIONS = {
   ADD_COMMENT: 'ADD_COMMENT',
   UPDATE_COMMENT_TEXT: 'UPDATE_COMMENT_TEXT',
   SET_SHOW_COMMENT_INPUT: 'SET_SHOW_COMMENT_INPUT',
-  SET_COMMENT_INPUTS: 'SET_COMMENT_INPUTS'
+  SET_COMMENT_INPUTS: 'SET_COMMENT_INPUTS',
+  REMOVE_ITEM: 'REMOVE_ITEM'
 };
 
 // Initial state
@@ -100,7 +101,7 @@ function activityReducer(state, action) {
           [action.payload.itemId]: action.payload.text
         }
       };
-      
+
     case ACTIVITY_ACTIONS.SET_SHOW_COMMENT_INPUT:
       return {
         ...state,
@@ -109,7 +110,7 @@ function activityReducer(state, action) {
           [action.payload.itemId]: action.payload.show
         }
       };
-      
+
     case ACTIVITY_ACTIONS.SET_COMMENT_INPUTS:
       return {
         ...state,
@@ -118,7 +119,32 @@ function activityReducer(state, action) {
           [action.payload.itemId]: action.payload.text
         }
       };
-      
+
+    case ACTIVITY_ACTIONS.REMOVE_ITEM: {
+      const itemId = action.payload;
+      const filteredItems = (state.items || []).filter(item => item.id !== itemId);
+      const newExpanded = new Set(state.expandedItems);
+      newExpanded.delete(itemId);
+      const newCompleted = new Set(state.completedItems);
+      newCompleted.delete(itemId);
+
+      const { [itemId]: _comments, ...remainingComments } = state.comments;
+      const { [itemId]: _inputs, ...remainingInputs } = state.commentInputs;
+      const { [itemId]: _showInputs, ...remainingShowInputs } = state.showCommentInput;
+      const { [itemId]: _newComment, ...remainingNewCommentText } = state.newCommentText;
+
+      return {
+        ...state,
+        items: filteredItems,
+        expandedItems: newExpanded,
+        completedItems: newCompleted,
+        comments: remainingComments,
+        commentInputs: remainingInputs,
+        showCommentInput: remainingShowInputs,
+        newCommentText: remainingNewCommentText
+      };
+    }
+
     default:
       return state;
   }
@@ -139,7 +165,8 @@ export function ActivityProvider({ children }) {
     addComment: (itemId, comment) => dispatch({ type: ACTIVITY_ACTIONS.ADD_COMMENT, payload: { itemId, comment } }),
     updateCommentText: (itemId, text) => dispatch({ type: ACTIVITY_ACTIONS.UPDATE_COMMENT_TEXT, payload: { itemId, text } }),
     setShowCommentInput: (itemId, show) => dispatch({ type: ACTIVITY_ACTIONS.SET_SHOW_COMMENT_INPUT, payload: { itemId, show } }),
-    setCommentInputs: (itemId, text) => dispatch({ type: ACTIVITY_ACTIONS.SET_COMMENT_INPUTS, payload: { itemId, text } })
+    setCommentInputs: (itemId, text) => dispatch({ type: ACTIVITY_ACTIONS.SET_COMMENT_INPUTS, payload: { itemId, text } }),
+    removeItem: (itemId) => dispatch({ type: ACTIVITY_ACTIONS.REMOVE_ITEM, payload: itemId })
   }), [dispatch]);
 
   return (

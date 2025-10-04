@@ -11,7 +11,9 @@ const TaskItem = ({
   colorMode, 
   onProjectSelect,
   availableUsers = [],
-  currentUser = null
+  currentUser = null,
+  onDelete = null,
+  isDeleting = false
 }) => {
   const { state, actions } = useActivity();
   
@@ -205,6 +207,37 @@ const TaskItem = ({
               onClick={handleToggleCompleted}
               className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 flex-shrink-0"
             />
+
+            {/* Delete button */}
+            {typeof onDelete === 'function' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isDeleting) {
+                    onDelete();
+                  }
+                }}
+                disabled={isDeleting}
+                className={`p-1 rounded transition-colors flex-shrink-0 ${
+                  isDeleting
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                }`}
+                title="Delete task"
+              >
+                {isDeleting ? (
+                  <svg className="w-2.5 h-2.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4"></circle>
+                    <path className="opacity-75" d="M4 12a8 8 0 018-8" strokeWidth="4" strokeLinecap="round"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a2 2 0 00-2-2h-4a2 2 0 00-2 2m6 0H9" />
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
           
           {/* Row 2: Timestamp and dropdown arrow - Timestamp moved 3 spaces left */}

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import assetsService from '../../services/assetsService';
 import TaskItem from '../ui/TaskItem';
@@ -6,6 +7,7 @@ import ReminderItem from '../ui/ReminderItem';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import DocumentViewerModal from '../ui/DocumentViewerModal';
+import { tasksService, projectMessagesService, calendarService } from '../../services/api';
 
 const ActivityFeedSection = ({
   activityFeedItems,
@@ -25,6 +27,7 @@ const ActivityFeedSection = ({
   const [isActivityFeedExpanded, setIsActivityFeedExpanded] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [deletingIds, setDeletingIds] = useState(new Set());
 
   // Color styles per activity type for clear separation
   const getTypeStyle = (type) => {
@@ -90,6 +93,49 @@ const ActivityFeedSection = ({
         actions.toggleExpanded(id);
       }
     });
+  };
+
+  const handleDeleteItem = async (item) => {
+    if (!item?.id) return;
+
+    const typeLabel = item.type === 'message' ? 'message'
+      : item.type === 'task' ? 'task'
+      : item.type === 'reminder' ? 'reminder'
+      : 'item';
+
+    const confirmed = window.confirm(`Delete this ${typeLabel}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      next.add(item.id);
+      return next;
+    });
+
+    try {
+      if (item.type === 'message') {
+        await projectMessagesService.delete(item.id);
+      } else if (item.type === 'task') {
+        await tasksService.delete(item.id);
+      } else if (item.type === 'reminder') {
+        await calendarService.delete(item.id);
+      } else {
+        throw new Error(`Unsupported activity type: ${item.type}`);
+      }
+
+      actions.removeItem(item.id);
+      toast.success(`${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} deleted.`);
+    } catch (error) {
+      console.error('Failed to delete activity item:', error);
+      const message = error?.response?.data?.message || error?.message || 'Failed to delete item.';
+      toast.error(message);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
   };
   return (
     <>
@@ -203,6 +249,7 @@ const ActivityFeedSection = ({
             
             return sortedItems.map(item => {
               const style = getTypeStyle(item.type);
+              const isDeleting = deletingIds.has(item.id);
               if (item.type === 'message') {
                 // Message item with colored stripe and soft background
                 return (
@@ -220,6 +267,8 @@ const ActivityFeedSection = ({
                       isExpanded={state.expandedItems.has(item.id) || (state.expandedItems.size === 0 && (state.items || []).length > 0)}
                       onToggleExpansion={() => actions.toggleExpanded(item.id)}
                       sourceSection="Activity Feed"
+                      onDelete={() => handleDeleteItem(item)}
+                      isDeleting={isDeleting}
                     />
                     {Array.isArray(item?.metadata?.attachments) && item.metadata.attachments.length > 0 && (
                       <div className="px-3 pb-3">
@@ -285,6 +334,8 @@ const ActivityFeedSection = ({
                       onProjectSelect={handleProjectSelectWithScroll}
                       availableUsers={availableUsers}
                       currentUser={currentUser}
+                      onDelete={() => handleDeleteItem(item)}
+                      isDeleting={isDeleting}
                     />
                   </div>
                 );
@@ -300,6 +351,8 @@ const ActivityFeedSection = ({
                       onProjectSelect={handleProjectSelectWithScroll}
                       availableUsers={availableUsers}
                       currentUser={currentUser}
+                      onDelete={() => handleDeleteItem(item)}
+                      isDeleting={isDeleting}
                     />
                   </div>
                 );
