@@ -715,6 +715,12 @@ export const projectMessagesService = {
     const response = await api.get(`/project-messages/thread/${messageId}`);
     return response.data;
   },
+
+  // Delete a message
+  delete: async (messageId) => {
+    const response = await api.delete(`/project-messages/${messageId}`);
+    return response.data;
+  },
 };
 
 // Documents Service
