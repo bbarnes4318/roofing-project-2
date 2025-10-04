@@ -8,7 +8,7 @@ const IngestionService = require('../services/IngestionService');
 const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { authenticateToken } = require('../middleware/auth');
 const { getS3, getObjectPresignedUrl } = require('../config/spaces');
-const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand, CopyObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
 
@@ -272,129 +272,151 @@ router.get('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
 }));
 
 // Enhanced upload with metadata and versioning
-router.post('/assets/upload', 
-  authenticateToken, 
+router.post('/assets/upload',
+  authenticateToken,
   upload.array('files', 10), // Support multiple file upload
   asyncHandler(async (req, res) => {
+    console.log('[Upload] Starting file upload...');
+    console.log('[Upload] User:', req.user?.id);
+    console.log('[Upload] Files count:', req.files?.length);
+
     if (!req.files || req.files.length === 0) {
       throw new AppError('No files uploaded', 400);
     }
-    
-    const { 
-      parentId, 
-      tags, 
-      section, 
+
+    const {
+      parentId,
+      tags,
+      section,
       isPublic = false,
       description,
       accessLevel = 'private'
     } = req.body;
-    
+
+    console.log('[Upload] Request body:', { parentId, tags, section, isPublic, description, accessLevel });
+
     const uploadedAssets = [];
 
     for (const file of req.files) {
-      // Upload to Spaces
-      const filename = generateUniqueFilename(file.originalname);
-      const key = `company-assets/${filename}`;
+      try {
+        console.log(`[Upload] Processing file: ${file.originalname}`);
 
-      const s3 = getS3();
-      const bucket = process.env.DO_SPACES_NAME;
+        // Upload to Spaces
+        const filename = generateUniqueFilename(file.originalname);
+        const key = `company-assets/${filename}`;
 
-      if (!bucket) {
-        throw new AppError('Digital Ocean Spaces not configured', 500);
-      }
+        const s3 = getS3();
+        const bucket = process.env.DO_SPACES_NAME;
 
-      await s3.send(new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype || 'application/octet-stream',
-        ACL: 'public-read' // Make files publicly accessible
-      }));
+        if (!bucket) {
+          throw new AppError('Digital Ocean Spaces not configured', 500);
+        }
 
-      // Calculate checksum from buffer
-      const checksum = crypto.createHash('sha256').update(file.buffer).digest('hex');
+        console.log(`[Upload] Uploading to Spaces: ${key}`);
 
-      // Determine metadata
-      const metadata = {
-        icon: getFileIcon(file.mimetype),
-        originalName: file.originalname,
-        uploadedAt: new Date().toISOString()
-      };
+        await s3.send(new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype || 'application/octet-stream',
+          ACL: 'public-read' // Make files publicly accessible
+        }));
 
-      // Create asset (without nested version to avoid schema mismatch)
-      const asset = await prisma.companyAsset.create({
-        data: {
-          title: file.originalname,
-          description: description || null,
-          fileUrl: `spaces://${key}`,
-          mimeType: file.mimetype,
-          fileSize: file.size,
-          tags: tags ? JSON.parse(tags) : [],
-          section: section || null,
-          type: 'FILE',
-          parentId: parentId || null,
-          sortOrder: 0,
-          uploadedById: req.user.id,
-          checksum,
-          metadata,
-          accessLevel,
-          isActive: true
-        },
-        include: {
-          uploadedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatar: true
+        console.log(`[Upload] ✅ Uploaded to Spaces: ${key}`);
+
+        // Calculate checksum from buffer
+        const checksum = crypto.createHash('sha256').update(file.buffer).digest('hex');
+
+        // Determine metadata
+        const metadata = {
+          icon: getFileIcon(file.mimetype),
+          originalName: file.originalname,
+          uploadedAt: new Date().toISOString()
+        };
+
+        console.log(`[Upload] Creating database record for: ${file.originalname}`);
+
+        // Create asset (without nested version to avoid schema mismatch)
+        const asset = await prisma.companyAsset.create({
+          data: {
+            title: file.originalname,
+            description: description || null,
+            fileUrl: `spaces://${key}`,
+            mimeType: file.mimetype,
+            fileSize: file.size,
+            tags: tags ? JSON.parse(tags) : [],
+            section: section || null,
+            type: 'FILE',
+            parentId: parentId || null,
+            sortOrder: 0,
+            uploadedById: req.user.id,
+            checksum,
+            metadata,
+            accessLevel,
+            isActive: true
+          },
+          include: {
+            uploadedBy: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
             }
           }
-        }
-      });
-
-      console.log(`✅ Uploaded to Spaces: ${key}`);
-
-      // Create initial version record
-      await prisma.companyAssetVersion.create({
-        data: {
-          assetId: asset.id,
-          versionNumber: 1,
-          fileUrl: fileUrl,
-          fileSize: file.size,
-          checksum,
-          changeDescription: 'Initial upload',
-          uploadedById: req.user.id,
-          isCurrent: true
-        }
-      });
-
-      // Fire-and-forget local ingestion for RAG
-      try {
-        const safePath = (fileUrl || '').replace(/^\\|^\//, '');
-        const absolutePath = path.join(__dirname, '..', safePath);
-        IngestionService.processLocalPath({
-          documentId: null,
-          projectId: null,
-          filePath: absolutePath,
-          mimeType: file.mimetype
-        }).then(() => {
-          console.log('✅ Local ingestion complete for asset', asset.id);
-        }).catch(e => {
-          console.warn('⚠️ Local ingestion failed for asset', asset.id, e?.message || e);
         });
-      } catch (e) {
-        console.warn('⚠️ Failed to kick off local ingestion for asset:', e?.message || e);
-      }
-      
-      // Update download count on parent folder
-      if (parentId) {
-        await prisma.companyAsset.update({
-          where: { id: parentId },
-          data: { updatedAt: new Date() }
+
+        console.log(`[Upload] ✅ Database record created: ${asset.id}`);
+
+        // Create initial version record
+        await prisma.companyAssetVersion.create({
+          data: {
+            assetId: asset.id,
+            versionNumber: 1,
+            fileUrl: `spaces://${key}`,
+            fileSize: file.size,
+            checksum,
+            changeDescription: 'Initial upload',
+            uploadedById: req.user.id,
+            isCurrent: true
+          }
         });
+
+        console.log(`[Upload] ✅ Version record created for: ${asset.id}`);
+
+        // Fire-and-forget local ingestion for RAG
+        try {
+          const safePath = (`spaces://${key}` || '').replace(/^\\|^\//, '');
+          const absolutePath = path.join(__dirname, '..', safePath);
+          IngestionService.processLocalPath({
+            documentId: null,
+            projectId: null,
+            filePath: absolutePath,
+            mimeType: file.mimetype
+          }).then(() => {
+            console.log('✅ Local ingestion complete for asset', asset.id);
+          }).catch(e => {
+            console.warn('⚠️ Local ingestion failed for asset', asset.id, e?.message || e);
+          });
+        } catch (e) {
+          console.warn('⚠️ Failed to kick off local ingestion for asset:', e?.message || e);
+        }
+
+        // Update parent folder timestamp
+        if (parentId) {
+          await prisma.companyAsset.update({
+            where: { id: parentId },
+            data: { updatedAt: new Date() }
+          });
+        }
+
+        uploadedAssets.push(asset);
+
+      } catch (fileError) {
+        console.error(`[Upload] ❌ Error processing file ${file.originalname}:`, fileError);
+        throw fileError;
       }
-      
-      uploadedAssets.push(asset);
     }
     
     res.status(201).json({ 
@@ -757,6 +779,83 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
 }));
 
 // =============================
+// Make file public (update ACL)
+// =============================
+
+router.post('/assets/:id/make-public', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Find asset
+  let asset = await prisma.companyAsset.findUnique({
+    where: { id },
+    include: { versions: { where: { isCurrent: true }, take: 1 } }
+  });
+
+  if (!asset) {
+    const doc = await prisma.document.findUnique({ where: { id } });
+    if (doc) {
+      asset = {
+        id: doc.id,
+        title: doc.fileName || doc.title || 'Untitled',
+        fileUrl: doc.fileUrl,
+        mimeType: doc.mimeType || 'application/octet-stream',
+        fileSize: doc.fileSize || 0,
+        uploadedById: doc.uploadedById,
+        type: 'FILE',
+        accessLevel: 'PRIVATE',
+        versions: []
+      };
+    }
+  }
+
+  if (!asset) throw new AppError('Asset not found', 404);
+  if (asset.type !== 'FILE') throw new AppError('Cannot make folders public', 400);
+
+  const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
+  const key = extractSpacesKey(fileUrl);
+
+  if (!key) {
+    throw new AppError('Invalid file URL', 400);
+  }
+
+  console.log(`[Make Public] Updating ACL for: ${key}`);
+
+  try {
+    const s3 = getS3();
+    const bucket = process.env.DO_SPACES_NAME;
+
+    // Copy object to itself with new ACL (this updates the ACL)
+    await s3.send(new CopyObjectCommand({
+      Bucket: bucket,
+      CopySource: `${bucket}/${key}`,
+      Key: key,
+      ACL: 'public-read',
+      MetadataDirective: 'COPY'
+    }));
+
+    console.log(`[Make Public] ✅ File is now public: ${key}`);
+
+    // Generate public URL
+    const region = process.env.DO_SPACES_REGION || 'atl1';
+    const publicUrl = `https://${bucket}.${region}.digitaloceanspaces.com/${key}`;
+
+    res.json({
+      success: true,
+      message: 'File is now publicly accessible',
+      data: {
+        url: publicUrl,
+        title: asset.title,
+        mimeType: asset.mimeType,
+        fileSize: asset.fileSize
+      }
+    });
+  } catch (error) {
+    console.error('Error making file public:', error);
+    throw new AppError('Failed to make file public', 500);
+  }
+}));
+
+// =============================
 // Get presigned URL for viewing (no download)
 // =============================
 
@@ -818,9 +917,39 @@ router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, r
   console.log(`[View URL] Generating public URL for: ${key}`);
 
   try {
-    // Generate permanent public URL (never expires)
+    const s3 = getS3();
     const bucket = process.env.DO_SPACES_NAME;
-    const region = process.env.DO_SPACES_REGION || 'nyc3';
+    const region = process.env.DO_SPACES_REGION || 'atl1';
+
+    // Check if file exists and get its ACL
+    try {
+      const headResponse = await s3.send(new HeadObjectCommand({
+        Bucket: bucket,
+        Key: key
+      }));
+
+      console.log(`[View URL] File exists, metadata:`, headResponse.Metadata);
+    } catch (headError) {
+      console.error(`[View URL] File not found in Spaces:`, headError);
+      throw new AppError('File not found in storage', 404);
+    }
+
+    // Make file public if it's not already (update ACL on old files)
+    try {
+      console.log(`[View URL] Ensuring file is public...`);
+      await s3.send(new CopyObjectCommand({
+        Bucket: bucket,
+        CopySource: `${bucket}/${key}`,
+        Key: key,
+        ACL: 'public-read',
+        MetadataDirective: 'COPY'
+      }));
+      console.log(`[View URL] ✅ File ACL updated to public-read`);
+    } catch (aclError) {
+      console.warn(`[View URL] Could not update ACL (file may already be public):`, aclError.message);
+    }
+
+    // Generate permanent public URL (never expires)
     const publicUrl = `https://${bucket}.${region}.digitaloceanspaces.com/${key}`;
 
     console.log(`[View URL] Generated public URL: ${publicUrl}`);

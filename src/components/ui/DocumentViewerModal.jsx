@@ -95,8 +95,8 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
       <div className="relative w-11/12 h-5/6 max-w-6xl bg-white rounded-lg shadow-2xl overflow-hidden">
