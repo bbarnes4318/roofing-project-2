@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
 import api, { projectsService, customersService, documentsService, API_BASE_URL } from '../../services/api';
+import { documentService } from '../../services/documentService';
 // import { assetsService } from '../../services/assetsService'; // Commented out - service doesn't exist
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
@@ -783,42 +784,17 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
 
       setUploading(true);
       try {
-        // Upload each file to BOTH systems
-        for (const file of selectedFiles) {
-          // 1. Upload to Document table (project-specific documents)
-          const docFormData = new FormData();
-          docFormData.append('file', file);
-          docFormData.append('projectId', project.id);
-          docFormData.append('fileName', file.name);
-          docFormData.append('description', 'Uploaded from Project Profile');
-          docFormData.append('fileType', 'OTHER');
-          docFormData.append('tags', JSON.stringify([]));
-          docFormData.append('isPublic', 'false');
-          // uploadedById will be set from req.user on backend
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
+          formData.append('files', file);
+        });
+        formData.append('projectId', project.id);
+        formData.append('description', 'Uploaded from Project Profile');
+        formData.append('fileType', 'OTHER');
+        formData.append('isPublic', 'false');
 
-          const docResponse = await api.post('/documents', docFormData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-
-          // 2. Also upload to CompanyAssets with projectId metadata for Documents & Resources sync
-          try {
-            await assetsService.uploadFiles({
-              files: [file],
-              metadata: {
-                projectId: project.id,
-                projectNumber: project.projectNumber,
-                source: 'projectProfile',
-                documentId: docResponse.data?.data?.id // Link to Document table entry
-              },
-              description: `Project ${project.projectNumber} - Uploaded from Project Profile`
-            });
-          } catch (assetErr) {
-            console.warn('Failed to sync to CompanyAssets:', assetErr);
-            // Don't fail the entire upload if CompanyAsset sync fails
-          }
-        }
-
-        toast.success('Documents uploaded and synced successfully!');
+        await documentService.uploadDocument(formData);
+        toast.success('Documents uploaded successfully!');
         setUploadModalOpen(false);
         setSelectedFiles([]);
         // Reload documents

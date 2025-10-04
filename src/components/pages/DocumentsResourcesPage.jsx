@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { assetsService } from '../../services/assetsService';
 import { CheatSheetModal } from '../common/CheatSheet';
+import DocumentViewerModal from '../ui/DocumentViewerModal';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -30,6 +31,8 @@ const DocumentsResourcesPage = () => {
   const [dropTarget, setDropTarget] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [newFolderName, setNewFolderName] = useState('');
+  const [previewDocument, setPreviewDocument] = useState(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   // Load folders for sidebar tree - optimized with smaller limit
   const loadAllFolders = async () => {
@@ -430,12 +433,19 @@ const DocumentsResourcesPage = () => {
                     className={`p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition group relative ${
                       draggedItem?.id === file.id ? 'opacity-50' : ''
                     }`}
+                    onClick={() => {
+                      setPreviewDocument(file);
+                      setIsViewerOpen(true);
+                    }}
                   >
                     <DocumentIcon className="h-12 w-12 text-blue-500 mx-auto mb-2" />
                     <p className="text-sm font-medium text-center truncate mb-1">{file.title}</p>
                     <p className="text-xs text-slate-500 text-center">{(file.fileSize / 1024 / 1024).toFixed(2)} MB</p>
                     <button
-                      onClick={() => handleDelete(file.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(file.id);
+                      }}
                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
                     >
                       <TrashIcon className="h-4 w-4 text-red-600" />
@@ -486,6 +496,15 @@ const DocumentsResourcesPage = () => {
       )}
 
       <CheatSheetModal visible={showPlaybook} onClose={() => setShowPlaybook(false)} colorMode={false} />
+
+      <DocumentViewerModal
+        document={previewDocument}
+        isOpen={isViewerOpen}
+        onClose={() => {
+          setIsViewerOpen(false);
+          setPreviewDocument(null);
+        }}
+      />
     </div>
   );
 };
