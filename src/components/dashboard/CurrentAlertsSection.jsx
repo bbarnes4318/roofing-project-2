@@ -111,6 +111,13 @@ const CurrentAlertsSection = ({
   const handleAssignUser = async (userId) => {
     if (!selectedAlertForAssign || !userId) return;
     
+    console.log('🔍 Assigning alert:', {
+      alertId: selectedAlertForAssign.id,
+      userId,
+      userIdType: typeof userId,
+      availableUsers: availableUsers.map(u => ({ id: u.id, idType: typeof u.id, name: `${u.firstName} ${u.lastName}` }))
+    });
+    
     setAssignLoading(true);
     try {
       const response = await api.patch(`/alerts/${selectedAlertForAssign.id}/assign`, {

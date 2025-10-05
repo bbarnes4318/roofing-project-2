@@ -909,23 +909,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [expandedPhases, setExpandedPhases] = useState(new Set());
   const [selectedPhase, setSelectedPhase] = useState(null); // Start blank: no phase selected until user chooses one
   
-  // Project Messages expansion control
+  // Project Messages expansion control - start collapsed
   const [expandedMessages, setExpandedMessages] = useState(new Set());
   const [allMessagesExpanded, setAllMessagesExpanded] = useState(false);
-
-  // Expand all message items by default on initial load
-  const messagesExpandedInitRef = useRef(false);
-  useEffect(() => {
-    if (messagesExpandedInitRef.current) return;
-    const ids = (activityFeedItems || [])
-      .filter(item => item.type === 'message')
-      .map(item => item.id);
-    if (ids.length > 0) {
-      setExpandedMessages(new Set(ids));
-      setAllMessagesExpanded(true);
-      messagesExpandedInitRef.current = true;
-    }
-  }, [activityFeedItems]);
   // const [expandedAlerts, setExpandedAlerts] = useState(new Set()); // moved inside ProjectWorkflowLineItemsSection
   const [expandedProgress, setExpandedProgress] = useState(new Set());
   const [expandedTrades, setExpandedTrades] = useState(new Set());

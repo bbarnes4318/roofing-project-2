@@ -598,11 +598,27 @@ router.patch('/:id/assign',
 
     const { assignedTo } = req.body;
     
+    console.log('🔍 Alert assignment request:', {
+      alertId: req.params.id,
+      assignedTo,
+      assignedToType: typeof assignedTo
+    });
+    
     // Verify the target user exists
     const targetUser = await prisma.user.findUnique({
       where: { id: assignedTo }
     });
+    
+    console.log('🔍 User lookup result:', targetUser ? `Found: ${targetUser.firstName} ${targetUser.lastName}` : 'NOT FOUND');
+    
     if (!targetUser) {
+      // Log all users to help debug
+      const allUsers = await prisma.user.findMany({
+        select: { id: true, firstName: true, lastName: true },
+        take: 10
+      });
+      console.log('🔍 Available users in DB:', allUsers);
+      
       return next(new AppError('Target user not found', 404));
     }
 

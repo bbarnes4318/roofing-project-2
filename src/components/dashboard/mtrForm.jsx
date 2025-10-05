@@ -400,7 +400,14 @@ const MTRForm = ({
         <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
           <form onSubmit={async (e) => {
             e.preventDefault();
-            if (!quickTaskSubject.trim() || !quickTaskDue) return;
+            if (!quickTaskSubject.trim() || !quickTaskDue) {
+              toast.error('Subject and due date are required');
+              return;
+            }
+            if (!currentUser?.id) {
+              toast.error('User not found. Please refresh and try again.');
+              return;
+            }
             try {
               // Create as calendar DEADLINE event; project optional
               const payload = {
@@ -409,10 +416,12 @@ const MTRForm = ({
                 startTime: quickTaskDue,
                 endTime: quickTaskDue,
                 eventType: 'DEADLINE',
-                organizerId: currentUser?.id,
+                organizerId: currentUser.id,
                 projectId: tasksProjectFilter || undefined,
                 attendees: quickTaskAssignAll ? availableUsers.map(u => ({ userId: u.id })) : (quickTaskAssigneeId ? [{ userId: quickTaskAssigneeId }] : [])
               };
+              
+              console.log('Creating task with payload:', payload);
               const res = await calendarService.create(payload);
               // Invalidate events so the task appears
               queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
@@ -517,7 +526,14 @@ const MTRForm = ({
         <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
           <form onSubmit={async (e) => {
             e.preventDefault();
-            if (!reminderTitle.trim() || !reminderWhen) return;
+            if (!reminderTitle.trim() || !reminderWhen) {
+              toast.error('Title and date/time are required');
+              return;
+            }
+            if (!currentUser?.id) {
+              toast.error('User not found. Please refresh and try again.');
+              return;
+            }
             try {
               const payload = {
                 title: reminderTitle.trim(),
@@ -525,10 +541,12 @@ const MTRForm = ({
                 startTime: reminderWhen,
                 endTime: reminderWhen,
                 eventType: 'REMINDER',
-                organizerId: currentUser?.id,
+                organizerId: currentUser.id,
                 projectId: remindersProjectFilter || undefined,
                 attendees: reminderAllUsers ? availableUsers.map(u => ({ userId: u.id })) : (reminderUserIds.length ? reminderUserIds.map(id => ({ userId: id })) : [])
               };
+              
+              console.log('Creating reminder with payload:', payload);
               const res = await calendarService.create(payload);
               // Invalidate events so the reminder appears
               queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
