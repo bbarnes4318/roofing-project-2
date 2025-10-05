@@ -113,12 +113,15 @@ const ActivityFeedSection = ({
     });
 
     try {
+      // Extract real ID by removing prefixes like 'task_', 'cal_', 'activity_', 'reminder_', 'msg_'
+      const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      
       if (item.type === 'message') {
-        await projectMessagesService.delete(item.id);
+        await projectMessagesService.delete(realId);
       } else if (item.type === 'task') {
-        await tasksService.delete(item.id);
+        await tasksService.delete(realId);
       } else if (item.type === 'reminder') {
-        await calendarService.delete(item.id);
+        await calendarService.delete(realId);
       } else {
         throw new Error(`Unsupported activity type: ${item.type}`);
       }

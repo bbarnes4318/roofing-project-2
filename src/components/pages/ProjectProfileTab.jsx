@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
-import api, { projectsService, customersService, documentsService, API_BASE_URL } from '../../services/api';
+import api, { projectsService, customersService, documentsService, API_BASE_URL, API_ORIGIN } from '../../services/api';
 import { documentService } from '../../services/documentService';
 // import { assetsService } from '../../services/assetsService'; // Commented out - service doesn't exist
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';

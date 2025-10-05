@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import ProjectMessagesCard from '../ui/ProjectMessagesCard';
+import { projectMessagesService } from '../../services/api';
+import { useActivity } from '../../contexts/ActivityContext';
 
 const MessagesSection = ({
   activeCommTab,
@@ -13,9 +16,43 @@ const MessagesSection = ({
   handleProjectSelectWithScroll,
   handleQuickReply
 }) => {
+  const { actions } = useActivity();
+  const [deletingIds, setDeletingIds] = useState(new Set());
+  
   if (activeCommTab !== 'messages') {
     return null;
   }
+
+  const handleDeleteMessage = async (item) => {
+    if (!item?.id) return;
+
+    const confirmed = window.confirm('Delete this message? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      next.add(item.id);
+      return next;
+    });
+
+    try {
+      // Extract real ID by removing prefixes like 'msg_', 'activity_'
+      const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      await projectMessagesService.delete(realId);
+      actions.removeItem(item.id);
+      toast.success('Message deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      const message = error?.response?.data?.message || error?.message || 'Failed to delete message.';
+      toast.error(message);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
 
   return (
     <>
@@ -70,6 +107,8 @@ const MessagesSection = ({
             isExpanded={expandedMessages.has(item.id)}
             onToggleExpansion={handleToggleMessage}
             sourceSection="Messages, Tasks, & Reminders"
+            onDelete={() => handleDeleteMessage(item)}
+            isDeleting={deletingIds.has(item.id)}
           />
         ));
       })()}

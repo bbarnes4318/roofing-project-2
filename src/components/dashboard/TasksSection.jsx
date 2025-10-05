@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import TaskItem from '../ui/TaskItem';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
+import { tasksService } from '../../services/api';
 
 const TasksSection = ({
   activeCommTab,
@@ -16,11 +18,43 @@ const TasksSection = ({
   availableUsers = [],
   currentUser = null
 }) => {
-  const { state } = useActivity();
+  const { state, actions } = useActivity();
+  const [deletingIds, setDeletingIds] = useState(new Set());
   
   if (activeCommTab !== 'tasks') {
     return null;
   }
+
+  const handleDeleteTask = async (item) => {
+    if (!item?.id) return;
+
+    const confirmed = window.confirm('Delete this task? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      next.add(item.id);
+      return next;
+    });
+
+    try {
+      // Extract real ID by removing prefixes like 'task_', 'cal_', 'activity_'
+      const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      await tasksService.delete(realId);
+      actions.removeItem(item.id);
+      toast.success('Task deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      const message = error?.response?.data?.message || error?.message || 'Failed to delete task.';
+      toast.error(message);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
 
   return (
     <>
@@ -88,6 +122,8 @@ const TasksSection = ({
                       onProjectSelect={handleProjectSelectWithScroll}
                       availableUsers={availableUsers}
                       currentUser={currentUser}
+                      onDelete={() => handleDeleteTask(item)}
+                      isDeleting={deletingIds.has(item.id)}
                     />
                   ))}
                 </div>

@@ -579,6 +579,19 @@ router.patch('/:id/status', asyncHandler(async (req, res, next) => {
   });
 }));
 
+// @desc    Delete ALL tasks (bulk delete for clearing mock data)
+// @route   DELETE /api/tasks
+// @access  Private
+router.delete('/', asyncHandler(async (req, res, next) => {
+  const result = await prisma.task.deleteMany({});
+
+  res.json({
+    success: true,
+    message: `All tasks deleted successfully (${result.count} tasks removed)`,
+    data: { count: result.count }
+  });
+}));
+
 // @desc    Delete task
 // @route   DELETE /api/tasks/:id
 // @access  Private

@@ -3,7 +3,7 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import MentionInput from './MentionInput';
 import { getUserFullName } from '../../utils/userUtils';
-import { workflowAlertsService } from '../../services/api';
+import { workflowAlertsService, calendarService } from '../../services/api';
 
 const ReminderItem = ({ 
   item, 
@@ -40,12 +40,28 @@ const ReminderItem = ({
     // Optimistically update UI
     actions.toggleCompleted(item.id);
 
-    // Persist to backend - reminders don't have a status endpoint, so we'll mark them as read/acknowledged
+    // Persist to backend - when a reminder is checked, it should disappear (be deleted)
     try {
+      // Extract real ID by removing ALL prefixes recursively
+      let realId = String(item.id || '');
+      console.log('🔍 Original reminder ID:', realId);
+      
+      // Remove prefixes until none remain
+      while (/^(task_|cal_|activity_|reminder_|msg_)/.test(realId)) {
+        realId = realId.replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      }
+      console.log('🔍 Extracted real ID:', realId);
+      
       // If this is a workflow alert-based reminder, mark the alert as completed
       if (item.alertId) {
         await workflowAlertsService.completeStep(item.alertId, item.projectId, item.lineItemId || '', '');
         console.log(`✅ Reminder alert ${item.alertId} marked as completed`);
+      } else {
+        // Delete the calendar event to make it disappear
+        await calendarService.delete(realId);
+        console.log(`✅ Reminder ${realId} completed and removed`);
+        // Remove from UI
+        actions.removeItem(item.id);
       }
     } catch (error) {
       console.error('Failed to update reminder status:', error);
@@ -209,7 +225,7 @@ const ReminderItem = ({
               type="checkbox"
               checked={isCompleted}
               onChange={handleToggleCompleted}
-              onClick={handleToggleCompleted}
+              onClick={(e) => e.stopPropagation()}
               className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 flex-shrink-0"
             />
 

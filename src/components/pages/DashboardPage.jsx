@@ -640,10 +640,83 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ page: 1, limit: 20 });
   const { data: realCalendarEvents = [], isLoading: calendarLoading } = useCalendarEvents({ limit: 20 });
   
-  // Use mock data as fallback when no real data is available
-  const displayActivities = (realActivities && realActivities.length > 0) ? realActivities : mockMessages;
-  const displayTasks = (realTasks && realTasks.length > 0) ? realTasks : mockTasks;
-  const displayCalendarEvents = (realCalendarEvents && realCalendarEvents.length > 0) ? realCalendarEvents : mockReminders;
+  // Convert mock data to real database entries
+  const [mockDataConverted, setMockDataConverted] = useState(false);
+  
+  useEffect(() => {
+    const convertMockToReal = async () => {
+      if (mockDataConverted) return;
+      
+      // Only convert if we have no real data
+      const needsConversion = (
+        (!realTasks || realTasks.length === 0) && mockTasks.length > 0
+      ) || (
+        (!realCalendarEvents || realCalendarEvents.length === 0) && mockReminders.length > 0
+      );
+      
+      if (!needsConversion) {
+        setMockDataConverted(true);
+        return;
+      }
+      
+      try {
+        // Convert mock tasks to real tasks
+        if (!realTasks || realTasks.length === 0) {
+          console.log('📝 Converting mock tasks to real database entries...');
+          for (const mockTask of mockTasks.slice(0, 5)) { // Only convert first 5
+            try {
+              await tasksService.create({
+                title: mockTask.title,
+                description: mockTask.description,
+                projectId: displayProjects[0]?.id || null, // Assign to first project
+                assignedTo: currentUser?.id || null,
+                dueDate: mockTask.dueDate,
+                priority: mockTask.priority?.toUpperCase() || 'MEDIUM',
+                status: mockTask.status?.toUpperCase() || 'TODO'
+              });
+            } catch (err) {
+              console.warn('Failed to create task:', err);
+            }
+          }
+        }
+        
+        // Convert mock reminders to real calendar events
+        if (!realCalendarEvents || realCalendarEvents.length === 0) {
+          console.log('📅 Converting mock reminders to real calendar events...');
+          for (const mockReminder of mockReminders.slice(0, 5)) { // Only convert first 5
+            try {
+              await calendarService.create({
+                title: mockReminder.title,
+                description: mockReminder.description,
+                projectId: displayProjects[0]?.id || null,
+                startTime: mockReminder.date || mockReminder.when || new Date().toISOString(),
+                eventType: 'REMINDER',
+                organizerId: currentUser?.id || null
+              });
+            } catch (err) {
+              console.warn('Failed to create reminder:', err);
+            }
+          }
+        }
+        
+        setMockDataConverted(true);
+        // Refresh the data
+        queryClient.invalidateQueries([queryKeys.TASKS]);
+        queryClient.invalidateQueries([queryKeys.CALENDAR_EVENTS]);
+      } catch (error) {
+        console.error('Error converting mock data:', error);
+      }
+    };
+    
+    if (!tasksLoading && !calendarLoading && currentUser) {
+      convertMockToReal();
+    }
+  }, [realTasks, realCalendarEvents, tasksLoading, calendarLoading, mockDataConverted, currentUser, displayProjects, queryClient]);
+  
+  // Use real data only (mock data gets converted to real data above)
+  const displayActivities = realActivities || [];
+  const displayTasks = realTasks || [];
+  const displayCalendarEvents = realCalendarEvents || [];
   
   // Build activity feed items from real data + fallback synthesis
   const activityFeedItems = useMemo(() => {

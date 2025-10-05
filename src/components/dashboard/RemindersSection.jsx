@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import ReminderItem from '../ui/ReminderItem';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
+import { calendarService } from '../../services/api';
 
 const RemindersSection = ({
   activeCommTab,
@@ -14,11 +16,43 @@ const RemindersSection = ({
   handleProjectSelectWithScroll,
   currentUser = null
 }) => {
-  const { state } = useActivity();
+  const { state, actions } = useActivity();
+  const [deletingIds, setDeletingIds] = useState(new Set());
   
   if (activeCommTab !== 'reminders') {
     return null;
   }
+
+  const handleDeleteReminder = async (item) => {
+    if (!item?.id) return;
+
+    const confirmed = window.confirm('Delete this reminder? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      next.add(item.id);
+      return next;
+    });
+
+    try {
+      // Extract real ID by removing prefixes like 'reminder_', 'cal_', 'activity_'
+      const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      await calendarService.delete(realId);
+      actions.removeItem(item.id);
+      toast.success('Reminder deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete reminder:', error);
+      const message = error?.response?.data?.message || error?.message || 'Failed to delete reminder.';
+      toast.error(message);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
 
   return (
     <>
@@ -60,6 +94,8 @@ const RemindersSection = ({
                 onProjectSelect={handleProjectSelectWithScroll}
                 availableUsers={availableUsers}
                 currentUser={currentUser}
+                onDelete={() => handleDeleteReminder(item)}
+                isDeleting={deletingIds.has(item.id)}
               />
             ))}
           </div>

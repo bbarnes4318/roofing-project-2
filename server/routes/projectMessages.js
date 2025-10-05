@@ -710,4 +710,42 @@ router.get('/project-number/:projectNumber', asyncHandler(async (req, res, next)
   sendSuccess(res, 200, response, `Found ${transformedMessages.length} messages for project #${projectNumber}`);
 }));
 
+// @desc    Delete ALL project messages (bulk delete for clearing mock data)
+// @route   DELETE /api/project-messages
+// @access  Private
+router.delete('/', asyncHandler(async (req, res, next) => {
+  const result = await prisma.projectMessage.deleteMany({});
+
+  res.json({
+    success: true,
+    message: `All project messages deleted successfully (${result.count} messages removed)`,
+    data: { count: result.count }
+  });
+}));
+
+// @desc    Delete single project message
+// @route   DELETE /api/project-messages/:id
+// @access  Private
+router.delete('/:id', asyncHandler(async (req, res, next) => {
+  const message = await prisma.projectMessage.findUnique({
+    where: { id: req.params.id }
+  });
+  
+  if (!message) {
+    return res.status(404).json({
+      success: false,
+      message: 'Project message not found'
+    });
+  }
+  
+  await prisma.projectMessage.delete({
+    where: { id: req.params.id }
+  });
+  
+  res.json({
+    success: true,
+    message: 'Project message deleted successfully'
+  });
+}));
+
 module.exports = router;

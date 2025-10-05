@@ -384,6 +384,19 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
   });
 }));
 
+// @desc    Delete ALL calendar events (bulk delete for clearing mock data)
+// @route   DELETE /api/calendar
+// @access  Private
+router.delete('/', asyncHandler(async (req, res, next) => {
+  const result = await prisma.calendarEvent.deleteMany({});
+
+  res.json({
+    success: true,
+    message: `All calendar events deleted successfully (${result.count} events removed)`,
+    data: { count: result.count }
+  });
+}));
+
 // @desc    Delete calendar event
 // @route   DELETE /api/calendar-events/:id
 // @access  Private

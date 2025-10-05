@@ -36,9 +36,11 @@ const TaskItem = ({
 
     // Persist to backend
     try {
+      // Extract real ID by removing prefixes like 'task_', 'cal_', 'activity_'
+      const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
       const newStatus = isCompleted ? 'TODO' : 'DONE';
-      await tasksService.updateStatus(item.id, newStatus);
-      console.log(`✅ Task ${item.id} marked as ${newStatus}`);
+      await tasksService.updateStatus(realId, newStatus);
+      console.log(`✅ Task ${realId} marked as ${newStatus}`);
     } catch (error) {
       console.error('Failed to update task status:', error);
       // Revert on error
@@ -204,7 +206,7 @@ const TaskItem = ({
               type="checkbox"
               checked={isCompleted}
               onChange={handleToggleCompleted}
-              onClick={handleToggleCompleted}
+              onClick={(e) => e.stopPropagation()}
               className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 flex-shrink-0"
             />
 
