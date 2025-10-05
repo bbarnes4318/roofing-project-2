@@ -66,7 +66,11 @@ const ActivityFeedSection = ({
   }, [itemsSignature, activityFeedItems, actions]);
 
   // Expand all items by default - keep track of which items we've already expanded
-  const expandedInitRef = useRef(new Set());
+  const expandedInitRef = useRef(null);
+  if (!expandedInitRef.current) {
+    expandedInitRef.current = new Set();
+  }
+  
   useEffect(() => {
     const items = state.items || [];
     if (items.length > 0) {
