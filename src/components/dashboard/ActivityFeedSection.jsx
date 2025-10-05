@@ -65,16 +65,20 @@ const ActivityFeedSection = ({
     }
   }, [itemsSignature, activityFeedItems, actions]);
 
-  // Expand all items by default on first load so content is visible immediately
-  const expandedInitRef = useRef(false);
+  // Expand all items by default - keep track of which items we've already expanded
+  const expandedInitRef = useRef(new Set());
   useEffect(() => {
-    if (expandedInitRef.current) return;
     const items = state.items || [];
     if (items.length > 0) {
-      items.forEach(it => actions.toggleExpanded(it.id));
-      expandedInitRef.current = true;
+      // Expand any items that haven't been expanded yet
+      items.forEach(it => {
+        if (!expandedInitRef.current.has(it.id) && !state.expandedItems.has(it.id)) {
+          actions.toggleExpanded(it.id);
+          expandedInitRef.current.add(it.id);
+        }
+      });
     }
-  }, [state.items, actions]);
+  }, [state.items, state.expandedItems, actions]);
 
   // Expand/Collapse handlers
   const handleExpandAllActivity = () => {
