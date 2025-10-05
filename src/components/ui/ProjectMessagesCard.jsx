@@ -201,7 +201,11 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
     return (
         <div 
             className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer`}
-            onClick={() => {
+            onClick={(e) => {
+                // Don't expand if clicking on action buttons
+                if (e.target.closest('button[type="button"]')) {
+                    return;
+                }
                 if (onToggleExpansion) {
                     onToggleExpansion(activity.id);
                 } else {
@@ -393,10 +397,16 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                               <button
                                 type="button"
                                 onClick={(e) => {
+                                  e.preventDefault();
                                   e.stopPropagation();
+                                  console.log('🗑️ Delete button clicked for message:', activity.id);
                                   if (!isDeleting) {
                                     onDelete();
                                   }
+                                }}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                 }}
                                 disabled={isDeleting}
                                 className={`p-1 rounded transition-colors flex-shrink-0 ${

@@ -122,7 +122,16 @@ const ActivityFeedSection = ({
 
     try {
       // Extract real ID by removing prefixes like 'task_', 'cal_', 'activity_', 'reminder_', 'msg_'
-      const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      let realId = String(item.id || '');
+      
+      // Remove common prefixes
+      realId = realId.replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      
+      console.log('🗑️ Delete attempt:', {
+        originalId: item.id,
+        realId: realId,
+        type: item.type
+      });
       
       if (item.type === 'message') {
         await projectMessagesService.delete(realId);
