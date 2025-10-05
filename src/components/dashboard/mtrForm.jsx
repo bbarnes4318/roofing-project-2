@@ -404,10 +404,14 @@ const MTRForm = ({
               toast.error('Subject and due date are required');
               return;
             }
-            if (!currentUser?.id) {
+            
+            // Get the actual user ID (handle both currentUser.id and currentUser.user.id)
+            const userId = currentUser?.user?.id || currentUser?.id;
+            if (!userId) {
               toast.error('User not found. Please refresh and try again.');
               return;
             }
+            
             try {
               // Create as calendar DEADLINE event; project optional
               const payload = {
@@ -416,7 +420,7 @@ const MTRForm = ({
                 startTime: quickTaskDue,
                 endTime: quickTaskDue,
                 eventType: 'DEADLINE',
-                organizerId: currentUser.id,
+                organizerId: userId,
                 projectId: tasksProjectFilter || undefined,
                 attendees: quickTaskAssignAll ? availableUsers.map(u => ({ userId: u.id })) : (quickTaskAssigneeId ? [{ userId: quickTaskAssigneeId }] : [])
               };
@@ -440,8 +444,8 @@ const MTRForm = ({
               setFeed(prev => [{
                 id: `cal_${Date.now()}`,
                 type: 'task',
-                authorId: currentUser?.id || null,
-                author: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You',
+                authorId: userId,
+                author: currentUser?.user ? `${currentUser.user.firstName} ${currentUser.user.lastName}` : (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You'),
                 assignedTo: assignedToDisplay,
                 assigneeId: quickTaskAssigneeId || null,
                 assignedToAll: quickTaskAssignAll || false,
@@ -530,10 +534,14 @@ const MTRForm = ({
               toast.error('Title and date/time are required');
               return;
             }
-            if (!currentUser?.id) {
+            
+            // Get the actual user ID (handle both currentUser.id and currentUser.user.id)
+            const userId = currentUser?.user?.id || currentUser?.id;
+            if (!userId) {
               toast.error('User not found. Please refresh and try again.');
               return;
             }
+            
             try {
               const payload = {
                 title: reminderTitle.trim(),
@@ -541,7 +549,7 @@ const MTRForm = ({
                 startTime: reminderWhen,
                 endTime: reminderWhen,
                 eventType: 'REMINDER',
-                organizerId: currentUser.id,
+                organizerId: userId,
                 projectId: remindersProjectFilter || undefined,
                 attendees: reminderAllUsers ? availableUsers.map(u => ({ userId: u.id })) : (reminderUserIds.length ? reminderUserIds.map(id => ({ userId: id })) : [])
               };
@@ -554,8 +562,8 @@ const MTRForm = ({
               setFeed(prev => [{
                 id: `cal_${Date.now()}`,
                 type: 'reminder',
-                authorId: currentUser?.id || null,
-                author: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You',
+                authorId: userId,
+                author: currentUser?.user ? `${currentUser.user.firstName} ${currentUser.user.lastName}` : (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You'),
                 projectId: remindersProjectFilter || null,
                 projectName: (projects.find(p => String(p.id) === String(remindersProjectFilter)) || {}).projectName || null,
                 subject: reminderTitle.trim(),
