@@ -427,28 +427,64 @@ const MTRForm = ({
               
               console.log('Creating task with payload:', payload);
               const res = await calendarService.create(payload);
+              
+              // Get the real ID from the API response
+              const realEventId = res?.data?.event?.id || res?.data?.id;
+              
               // Invalidate events so the task appears
               queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
               // Add to activity feed immediately
               // Determine assigned user for display
+              console.log('🔍 Task creation debug:', {
+                quickTaskAssignAll,
+                quickTaskAssigneeId,
+                availableUsersCount: availableUsers.length
+              });
+              
               let assignedToDisplay = 'Unassigned';
               if (quickTaskAssignAll) {
                 assignedToDisplay = 'All Users';
-              } else if (quickTaskAssigneeId) {
+              } else if (quickTaskAssigneeId && quickTaskAssigneeId.trim()) {
+                console.log('🔍 Looking for user with ID:', quickTaskAssigneeId);
+                console.log('🔍 Available users:', availableUsers.map(u => ({ id: u.id, name: u.name || `${u.firstName} ${u.lastName}` })));
+                
                 const assignedUser = availableUsers.find(u => String(u.id) === String(quickTaskAssigneeId));
+                console.log('🔍 Found user:', assignedUser);
+                
                 if (assignedUser) {
-                  assignedToDisplay = `${assignedUser.firstName} ${assignedUser.lastName}`;
+                  // Try name first, then firstName + lastName, then email, then 'Unassigned'
+                  if (assignedUser.name && assignedUser.name.trim()) {
+                    assignedToDisplay = assignedUser.name;
+                  } else if (assignedUser.firstName && assignedUser.firstName.trim() && assignedUser.lastName && assignedUser.lastName.trim()) {
+                    assignedToDisplay = `${assignedUser.firstName} ${assignedUser.lastName}`;
+                  } else if (assignedUser.firstName && assignedUser.firstName.trim()) {
+                    assignedToDisplay = assignedUser.firstName;
+                  } else if (assignedUser.email && assignedUser.email.trim()) {
+                    assignedToDisplay = assignedUser.email;
+                  } else {
+                    assignedToDisplay = 'Unassigned';
+                  }
+                } else {
+                  assignedToDisplay = 'Unassigned';
                 }
               }
               
+              console.log('🔍 Final assignedToDisplay:', assignedToDisplay);
+              
+              // Build attendees list for display
+              const attendeesForDisplay = quickTaskAssignAll 
+                ? availableUsers.map(u => u.id) 
+                : (quickTaskAssigneeId ? [quickTaskAssigneeId] : []);
+              
               setFeed(prev => [{
-                id: `cal_${Date.now()}`,
+                id: realEventId || `cal_${Date.now()}`,
                 type: 'task',
                 authorId: userId,
                 author: currentUser?.user ? `${currentUser.user.firstName} ${currentUser.user.lastName}` : (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You'),
                 assignedTo: assignedToDisplay,
                 assigneeId: quickTaskAssigneeId || null,
                 assignedToAll: quickTaskAssignAll || false,
+                attendees: attendeesForDisplay,
                 projectId: tasksProjectFilter || null,
                 projectName: (projects.find(p => String(p.id) === String(tasksProjectFilter)) || {}).projectName || null,
                 subject: quickTaskSubject.trim(),
@@ -556,14 +592,24 @@ const MTRForm = ({
               
               console.log('Creating reminder with payload:', payload);
               const res = await calendarService.create(payload);
+              
+              // Get the real ID from the API response
+              const realEventId = res?.data?.event?.id || res?.data?.id;
+              
               // Invalidate events so the reminder appears
               queryClient.invalidateQueries({ queryKey: queryKeys.calendarEvents });
               // Add to activity feed immediately
+              // Build recipients list for display
+              const recipientsForDisplay = reminderAllUsers 
+                ? availableUsers.map(u => u.id) 
+                : (reminderUserIds.length ? reminderUserIds : []);
+              
               setFeed(prev => [{
-                id: `cal_${Date.now()}`,
+                id: realEventId || `cal_${Date.now()}`,
                 type: 'reminder',
                 authorId: userId,
                 author: currentUser?.user ? `${currentUser.user.firstName} ${currentUser.user.lastName}` : (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'You'),
+                recipients: recipientsForDisplay,
                 projectId: remindersProjectFilter || null,
                 projectName: (projects.find(p => String(p.id) === String(remindersProjectFilter)) || {}).projectName || null,
                 subject: reminderTitle.trim(),

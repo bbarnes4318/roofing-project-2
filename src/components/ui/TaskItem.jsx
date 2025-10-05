@@ -3,19 +3,30 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import MentionInput from './MentionInput';
 import { getUserFullName } from '../../utils/userUtils';
-import { tasksService } from '../../services/api';
+import { calendarService } from '../../services/api';
 
 const TaskItem = ({ 
   item, 
   projects, 
   colorMode, 
-  onProjectSelect,
-  availableUsers = [],
-  currentUser = null,
-  onDelete = null,
-  isDeleting = false
+  onProjectSelect, 
+  availableUsers = [], 
+  currentUser = null, 
+  onDelete = null, 
+  isDeleting = false 
 }) => {
   const { state, actions } = useActivity();
+  
+  // Debug: Log the task item to see what fields are available
+  console.log('TaskItem Debug:', { 
+    id: item.id, 
+    assignedTo: item.assignedTo, 
+    recipient: item.recipient, 
+    author: item.author,
+    attendees: item.attendees,
+    assignedToAll: item.assignedToAll,
+    assigneeId: item.assigneeId
+  });
   
   const isCompleted = state.completedItems.has(item.id);
   const isExpanded = state.expandedItems.has(item.id);
@@ -34,13 +45,17 @@ const TaskItem = ({
     // Optimistically update UI
     actions.toggleCompleted(item.id);
 
-    // Persist to backend
+    // Persist to backend - when a task is checked, it should disappear (be deleted)
     try {
       // Extract real ID by removing prefixes like 'task_', 'cal_', 'activity_'
       const realId = String(item.id || '').replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
-      const newStatus = isCompleted ? 'TODO' : 'DONE';
-      await tasksService.updateStatus(realId, newStatus);
-      console.log(`✅ Task ${realId} marked as ${newStatus}`);
+      
+      // Delete the calendar event to make it disappear
+      await calendarService.delete(realId);
+      console.log(`✅ Task ${realId} completed and removed`);
+      
+      // Remove from UI
+      actions.removeItem(item.id);
     } catch (error) {
       console.error('Failed to update task status:', error);
       // Revert on error
@@ -185,7 +200,10 @@ const TaskItem = ({
                     maxWidth: '100%'
                   }}
                 >
-                  To: {item.assignedTo || item.recipient || item.author}
+                  To: {item.assignedTo && item.assignedTo.trim() ? item.assignedTo : 
+             item.recipient && item.recipient.trim() ? item.recipient : 
+             item.author && item.author.trim() ? item.author : 
+             'Unassigned'}
                 </span>
               </div>
             </div>
