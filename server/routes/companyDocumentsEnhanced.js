@@ -173,10 +173,6 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
       children: {
         where: { isActive: true },
         select: { id: true, type: true }
-      },
-      versions: {
-        orderBy: { versionNumber: 'desc' },
-        take: 1
       }
     }
   });
@@ -979,13 +975,7 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
 
   // Try to find in CompanyAsset first
   let asset = await prisma.companyAsset.findUnique({
-    where: { id },
-    include: {
-      versions: {
-        where: { isCurrent: true },
-        take: 1
-      }
-    }
+    where: { id }
   });
 
   // If not found in CompanyAsset, try Document table
