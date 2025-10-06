@@ -7,6 +7,7 @@ const {
   formatValidationErrors,
   AppError 
 } = require('../middleware/errorHandler');
+const { authenticateToken } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
 const WorkflowProgressionService = require('../services/WorkflowProgressionService');
 const AlertGenerationService = require('../services/AlertGenerationService');
@@ -630,7 +631,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
 // @desc    Create new project
 // @route   POST /api/projects
 // @access  Private
-router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
+router.post('/', authenticateToken, projectValidation, asyncHandler(async (req, res, next) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -1003,7 +1004,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
 // @desc    Update project
 // @route   PUT /api/projects/:id
 // @access  Private
-router.put('/:id', asyncHandler(async (req, res, next) => {
+router.put('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
   try {
     // Check if project exists
     const existingProject = await prisma.project.findUnique({
@@ -1176,7 +1177,7 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
 // @desc    Delete project
 // @route   DELETE /api/projects/:id
 // @access  Private
-router.delete('/:id', asyncHandler(async (req, res, next) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
   try {
     const project = await prisma.project.findUnique({
       where: { id: req.params.id }
@@ -1203,7 +1204,7 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
 // @desc    Archive/Unarchive project
 // @route   PATCH /api/projects/:id/archive
 // @access  Private
-router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
+router.patch('/:id/archive', authenticateToken, asyncHandler(async (req, res, next) => {
   try {
     const { archived = true } = req.body;
 
@@ -1261,7 +1262,7 @@ router.patch('/:id/archive', asyncHandler(async (req, res, next) => {
 }));
 
 // Add team member to project
-router.post('/:id/team-members', asyncHandler(async (req, res, next) => {
+router.post('/:id/team-members', authenticateToken, asyncHandler(async (req, res, next) => {
   const { userId, role } = req.body;
 
   if (!userId) {
