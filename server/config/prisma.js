@@ -26,20 +26,31 @@ const prisma = new PrismaClient({
   errorFormat: 'pretty',
 });
 
-// Database connection function
-const connectDatabase = async () => {
-  try {
-    await prisma.$connect();
-    console.log('✅ Connected to PostgreSQL database successfully');
-    
-    // Test the connection with a simple query
-    const userCount = await prisma.user.count();
-    console.log(`📊 Database ready - Found ${userCount} users`);
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to connect to PostgreSQL database:', error);
-    throw error;
+// Database connection function with retry logic
+const connectDatabase = async (maxRetries = 5, baseDelay = 1000) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await prisma.$connect();
+      console.log('✅ Connected to PostgreSQL database successfully');
+      
+      // Test the connection with a simple query
+      const userCount = await prisma.user.count();
+      console.log(`📊 Database ready - Found ${userCount} users`);
+      
+      return true;
+    } catch (error) {
+      console.error(`❌ Database connection attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      if (attempt === maxRetries) {
+        console.error('❌ All database connection attempts failed');
+        throw error;
+      }
+      
+      // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      console.log(`⏳ Retrying database connection in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
   }
 };
 
@@ -70,11 +81,18 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Health check function
+// Health check function with timeout
 const checkDBHealth = async () => {
   try {
-    // Test the connection with a simple query
-    const userCount = await prisma.user.count();
+    // Set a timeout for the health check
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database health check timeout')), 5000);
+    });
+    
+    const healthCheckPromise = prisma.user.count();
+    
+    // Race between the query and timeout
+    const userCount = await Promise.race([healthCheckPromise, timeoutPromise]);
     
     return {
       status: 'connected',

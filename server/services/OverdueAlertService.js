@@ -11,6 +11,13 @@ class OverdueAlertService {
         // No database configured; skip silently
         return [];
       }
+      
+      // Check if database is connected before proceeding
+      if (!global.__DB_CONNECTED__) {
+        console.warn('⚠️ Database not connected, skipping overdue alert check');
+        return [];
+      }
+      
       const now = new Date();
       
       // Find all active alerts that are overdue
@@ -147,6 +154,13 @@ class OverdueAlertService {
       if (!process.env.DATABASE_URL) {
         return [];
       }
+      
+      // Check if database is connected before proceeding
+      if (!global.__DB_CONNECTED__) {
+        console.warn('⚠️ Database not connected, skipping overdue alerts fetch');
+        return [];
+      }
+      
       const where = {
         status: 'ACTIVE',
         dueDate: {
@@ -207,11 +221,17 @@ class OverdueAlertService {
     }
     console.log(`📅 Starting overdue alert scheduler (checking every ${intervalMinutes} minutes)`);
     // Run immediately on startup
-    this.checkAndEscalateOverdueAlerts();
+    this.checkAndEscalateOverdueAlerts().catch(error => {
+      console.warn('⚠️ Initial overdue alert check failed:', error.message);
+    });
     // Then run periodically
     setInterval(async () => {
       console.log('🔄 Running scheduled overdue alert check...');
-      await this.checkAndEscalateOverdueAlerts();
+      try {
+        await this.checkAndEscalateOverdueAlerts();
+      } catch (error) {
+        console.warn('⚠️ Scheduled overdue alert check failed:', error.message);
+      }
     }, intervalMinutes * 60 * 1000);
   }
 }
