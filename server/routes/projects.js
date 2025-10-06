@@ -788,19 +788,32 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       });
       
       if (!projectsRoot) {
+        // Get system user or use a default user ID
+        let systemUserId = null;
+        if (req.user && req.user.id) {
+          systemUserId = req.user.id;
+        } else {
+          // Find the first admin user or create a system user
+          const systemUser = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            select: { id: true }
+          });
+          systemUserId = systemUser?.id || 'system';
+        }
+        
         projectsRoot = await prisma.companyAsset.create({
           data: {
             title: 'Projects',
             folderName: 'Projects',
             type: 'FOLDER',
             parentId: null,
-            uploadedById: req.user.id,
+            uploadedById: systemUserId,
             accessLevel: 'private',
             path: 'Projects',
             metadata: {
               icon: 'folder',
               color: '#3B82F6',
-              createdBy: `${req.user.firstName} ${req.user.lastName}`,
+              createdBy: req.user ? `${req.user.firstName} ${req.user.lastName}` : 'System',
               createdAt: new Date().toISOString()
             },
             isActive: true
@@ -824,13 +837,26 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       });
       
       if (!existingFolder) {
+        // Get system user or use a default user ID
+        let systemUserId = null;
+        if (req.user && req.user.id) {
+          systemUserId = req.user.id;
+        } else {
+          // Find the first admin user or use system
+          const systemUser = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            select: { id: true }
+          });
+          systemUserId = systemUser?.id || 'system';
+        }
+        
         const projectFolder = await prisma.companyAsset.create({
           data: {
             title: folderName,
             folderName: folderName,
             type: 'FOLDER',
             parentId: projectsRoot.id,
-            uploadedById: req.user.id,
+            uploadedById: systemUserId,
             accessLevel: 'private',
             path: `${projectsRoot.path}/${folderName}`,
             metadata: {
@@ -841,7 +867,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
               isProjectFolder: true,
               icon: 'folder',
               color: '#10B981',
-              createdBy: `${req.user.firstName} ${req.user.lastName}`,
+              createdBy: req.user ? `${req.user.firstName} ${req.user.lastName}` : 'System',
               createdAt: new Date().toISOString()
             },
             isActive: true

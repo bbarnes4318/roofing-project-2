@@ -1,118 +1,21 @@
-PS C:\Users\jimbo\roofing-project-2\server> npm start
-
-> kenstruction-server@0.1.0 start
-> node server.js
-
-🚀 Starting Kenstruction server...
-📅 Startup time: 2025-10-06T14:30:03.830Z
-🧪 Loaded environment from: C:\Users\jimbo\roofing-project-2\server\.env, C:\Users\jimbo\roofing-project-2\.env
-✅ DATABASE_URL configured from environment
-✅ Required modules loaded successfully
-✅ Uploads directory exists: C:\Users\jimbo\roofing-project-2\server\uploads
-✅ Company-assets directory exists: C:\Users\jimbo\roofing-project-2\server\uploads\company-assets
-✅ Documents directory exists: C:\Users\jimbo\roofing-project-2\server\uploads\documents
-✅ Uploads directory is writable
-📋 Loaded env from: C:\Users\jimbo\roofing-project-2\server\.env
-📋 Loaded env from: C:\Users\jimbo\roofing-project-2\.env
-🟡 Redis not configured - using in-memory cache fallback
-✅ Resend Email Service initialized
-🔍 OpenAI Initialization: Checking for API key...
-🔍 API Key present: true
-🔍 API Key length: 164
-🔍 API Key first 20 chars: sk-proj-0FpUNM3i-zgS...
-🔍 API Key last 4 chars: ...wk0A
-🔍 OpenAI: Loading OpenAI package...
-🔍 OpenAI: Creating v4 client...
-✅ OpenAI service initialized successfully with model: gpt-4o
-✅ Bubbles: OpenAIService loaded
-✅ Bubbles: BubblesInsightsService loaded
-✅ Bubbles: WorkflowActionService loaded
-✅ SERVER: Bubbles routes loaded successfully
-🔧 SERVER: Loading workflow routes...
-🔧 WORKFLOW ROUTES: Loading workflow routes module
-✅ SERVER: Workflow routes loaded successfully
-🔧 PHASE OVERRIDE ROUTES: Loading phase override routes module
-🚀 ONBOARDING: Loading onboarding routes module
-🔧 SERVER: Loading workflow import routes...
-✅ SERVER: Workflow import routes loaded successfully
-🔧 SERVER: Loading project import routes...
-✅ SERVER: Project import routes loaded successfully
-📁 Uploads directory: C:\Users\jimbo\roofing-project-2\server\uploads
-📁 Uploads exists: true
-📁 Fallback uploads directory: C:\Users\jimbo\roofing-project-2\uploads
-✅ SERVER: Workflow routes registered at /api/workflows
-✅ SERVER: Bubbles routes registered at /api/bubbles
-✅ SERVER: Bubbles Context routes registered at /api/bubbles/context
-✅ SERVER: Workflow import routes registered at /api/workflow-import
-✅ SERVER: Project import routes registered at /api/project-import
-✅ TranscriptAIService: OpenAI initialized successfully
-📅 Starting overdue alert scheduler (checking every 30 minutes)
-🔧 Debug: PORT from env = undefined, final PORT = 5000
-🔧 Debug: NODE_ENV = undefined
-🔧 Debug: DATABASE_URL present = true
-🔧 Debug: JWT_SECRET present = true
-🚀 Kenstruction server running on port 5000
-🌍 Environment: development
-🔗 API Base URL: http://0.0.0.0:5000/api
-📡 Socket.IO server ready for real-time connections
-✅ Server startup completed successfully
-✅ Connected to PostgreSQL database successfully
-📊 Database ready - Found 18 users
-✅ Database connection established, initializing services...
-🔧 Ensuring lead_sources schema and projects.lead_source_id column exist...
-✅ No overdue alerts found
-✅ Lead sources schema ensured
-🧱 Lead sources schema ensured (startup)
-ℹ️ Embeddings table uses text storage - skipping vector index creaation
-🧮 pgvector schema ready
-📦 Initializing Alert Cache Service...
-🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete
-⏰ Alert Scheduler ENABLED - PostgreSQL migration complete        
-🚀 Alert scheduler started - checking workflow deadlines every 5 minutes
-🔍 Checking workflow alerts...
-📊 Using modernized alert generation via AlertGenerationService   
-🔥 Warmed up alert cache for 1 active users
-✅ Alert cache warmed up
-🚀 Generating alerts for 26 active projects
-⚠️ Skipping duplicate alert for Answer phone call on project 10001
-⚠️ Skipping duplicate alert for Answer phone call on project 10026
-⚠️ Skipping duplicate alert for Answer phone call on project 10024
-⚠️ Skipping duplicate alert for Answer phone call on project 10022
-⚠️ Skipping duplicate alert for Answer phone call on project 10025
-⚠️ Skipping duplicate alert for Answer phone call on project 10023
-⚠️ Skipping duplicate alert for Take site photos on project 10006
-⚠️ Skipping duplicate alert for Take site photos on project 10005
-⚠️ Skipping duplicate alert for Take site photos on project 10004
-⚠️ Skipping duplicate alert for Take site photos on project 10002
-⚠️ Skipping duplicate alert for Take site photos on project 10003
-⚠️ Skipping duplicate alert for Complete inspection form on projecct 10021
-⚠️ Skipping duplicate alert for Confirm shingle choice on project  10009
-⚠️ Skipping duplicate alert for Confirm shingle choice on project  10008
-⚠️ Skipping duplicate alert for Confirm shingle choice on project  10007
-⚠️ Skipping duplicate alert for Document work start on project 100012
-⚠️ Skipping duplicate alert for Document work start on project 100011
-⚠️ Skipping duplicate alert for Document work start on project 100010
-⚠️ Skipping duplicate alert for Assess additional damage on projecct 10014
-⚠️ Skipping duplicate alert for Assess additional damage on projecct 10013
-No new alerts to create
 ✅ Generated 0 new alerts
-127.0.0.1 - - [06/Oct/2025:14:30:54 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=1000&sortBy=title&sortOrder=asc&type=FOLDER HTTP/1.1" 401 63 "-" "axios/1.11.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🔍 Where clause: { archived: false }
 🔍 OrderBy clause: { createdAt: 'desc' }
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+127.0.0.1 - - [06/Oct/2025:14:40:26 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:27 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🚨 ALERTS ROUTE: Fetching workflow alerts...
-🔍 Where clause: { archived: false }
-🔍 OrderBy clause: { createdAt: 'desc' }
-👥 ROLES API: Fetching available users
+127.0.0.1 - - [06/Oct/2025:14:40:27 +0000] "GET /api/projects HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Found 21 alerts from database
 📭 Cache miss: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"}
 🔍 ACTIVITIES: User from request: {
   id: 'cmfld60ef0000bi0d8ky8hlot',
@@ -123,71 +26,28 @@ No new alerts to create
   permissions: [],
   isActive: true,
   theme: 'LIGHT',
-  lastLogin: 2025-10-06T14:31:25.055Z,
+  lastLogin: 2025-10-06T14:40:26.367Z,
   createdAt: 2025-09-15T16:54:10.310Z,
-  updatedAt: 2025-10-06T14:31:25.056Z
+  updatedAt: 2025-10-06T14:40:26.369Z
 }
 🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...
-🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-✅ ROLES API: Found 18 active users
-127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "GET /api/roles/users HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🚨 ALERTS ROUTE: Found 20 alerts from database
-127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
-127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/activities HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/projects HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:28 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 👥 ROLES API: Fetching available users
-🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv
+🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+127.0.0.1 - - [06/Oct/2025:14:40:28 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:28 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 ✅ ROLES API: Found 18 active users
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/roles/users HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq
-🎯 API: Found position: {
-  projectId: 'cmgen6og30002j8v4bru6mfgv',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Found position: {
-  projectId: 'cmflohlx1000aj8g4p9renutq',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx
-🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/roles/users HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/activities HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmgf8ii460002j8mk5niqxu5m
 🎯 API: Getting project position for: cmgf6ri550002j86cueu0mz21
-🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6
-🎯 API: Found position: {
-  projectId: 'cmgenlnpt0002j8m0p69qemgx',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9   
+🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6   
+🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx   
+🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv
+👥 ROLES API: Fetching available users
 🎯 API: Found position: {
   projectId: 'cmgenwf480002j8is1zivlzr9',
   currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
@@ -200,7 +60,7 @@ No new alerts to create
   sectionDisplayName: 'Initial Contact',
   phaseName: 'Lead'
 }
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🎯 API: Found position: {
   projectId: 'cmg33hsh80006j8ccb7c0o4a6',
   currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
@@ -213,7 +73,20 @@ No new alerts to create
   sectionDisplayName: 'Initial Contact',
   phaseName: 'Lead'
 }
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgf8ii460002j8mk5niqxu5m',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/workflow-data/project-position/cmgf8ii460002j8mk5niqxu5m HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🎯 API: Found position: {
   projectId: 'cmgf6ri550002j86cueu0mz21',
   currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
@@ -226,35 +99,37 @@ No new alerts to create
   sectionDisplayName: 'Initial Contact',
   phaseName: 'Lead'
 }
-127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:28 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:28 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:31:28 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🔍 Checking workflow alerts...
-📊 Using modernized alert generation via AlertGenerationService
-🚀 Generating alerts for 26 active projects
-⚠️ Skipping duplicate alert for Answer phone call on project 10001
-⚠️ Skipping duplicate alert for Answer phone call on project 10026
-⚠️ Skipping duplicate alert for Answer phone call on project 10024
-⚠️ Skipping duplicate alert for Answer phone call on project 10022
-⚠️ Skipping duplicate alert for Answer phone call on project 10025
-⚠️ Skipping duplicate alert for Answer phone call on project 10023
-⚠️ Skipping duplicate alert for Take site photos on project 10006 
-⚠️ Skipping duplicate alert for Take site photos on project 10005 
-⚠️ Skipping duplicate alert for Take site photos on project 10004 
-⚠️ Skipping duplicate alert for Take site photos on project 10002 
-⚠️ Skipping duplicate alert for Take site photos on project 10003 
-⚠️ Skipping duplicate alert for Complete inspection form on projecct 10021
-⚠️ Skipping duplicate alert for Confirm shingle choice on project  10009
-⚠️ Skipping duplicate alert for Confirm shingle choice on project  10008
-⚠️ Skipping duplicate alert for Confirm shingle choice on project  10007
-⚠️ Skipping duplicate alert for Document work start on project 100012
-⚠️ Skipping duplicate alert for Document work start on project 100011
-⚠️ Skipping duplicate alert for Document work start on project 100010
-⚠️ Skipping duplicate alert for Assess additional damage on projecct 10014
-⚠️ Skipping duplicate alert for Assess additional damage on projecct 10013
-No new alerts to create
-✅ Generated 0 new alerts
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgenlnpt0002j8m0p69qemgx',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgen6og30002j8v4bru6mfgv',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:40:29 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+✅ ROLES API: Found 18 active users
+127.0.0.1 - - [06/Oct/2025:14:40:30 +0000] "GET /api/roles/users HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:30 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq
 GET /api/users/team-members - requested by userId=cmfld60ef0000bi0d8ky8hlot - found 18 teamMembers
 Sample teamMembers: [
   {
@@ -293,114 +168,7 @@ Sample teamMembers: [
     role: 'MANAGER'
   }
 ]
-127.0.0.1 - - [06/Oct/2025:14:36:29 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🔍 ROLES API: Fetching role assignments
-✅ ROLES API: Found 4 role assignments
-127.0.0.1 - - [06/Oct/2025:14:36:29 +0000] "GET /api/roles HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:36:59 +0000] "POST /api/customers HTTP/1.1" 201 517 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🔍 Project manager validation - req.body.projectManagerId: cmflo3nqx0002j8g4u4cykcb5
-🔍 Found project manager: true Jennifer Thompson
-✅ Project manager validated: cmflo3nqx0002j8g4u4cykcb5
-🔍 Resolved project manager ID: cmflo3nqx0002j8g4u4cykcb5
-🔍 Final project manager ID for project: cmflo3nqx0002j8g4u4cykcb5
-Lead source Website not found, continuing without lead source
-127.0.0.1 - - [06/Oct/2025:14:37:05 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=1000&sortBy=title&sortOrder=asc&type=FOLDER HTTP/1.1" 401 63 "-" "axios/1.11.0"
-⚠️ Failed to create project folder: Request failed with status codde 401
-✅ Initialized ROOFING workflow for project cmgf8ii460002j8mk5niqxu5m starting at phase LEAD with: Answer phone call
-✅ Optimized workflow initialized with 57 steps
-✅ Batch created 1 alerts for 1 projects
-✅ First alert generated for new project cmgf8ii460002j8mk5niqxu5m: "Answer phone call - test customer"
-🔍 Project manager in response: {
-  projectManagerId: 'cmflo3nqx0002j8g4u4cykcb5',
-  projectManagerName: 'Jennifer Thompson'
-}
-127.0.0.1 - - [06/Oct/2025:14:37:09 +0000] "POST /api/projects HTTP/1.1" 201 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🔍 Where clause: { archived: false }
-🔍 OrderBy clause: { createdAt: 'desc' }
-🚨 ALERTS ROUTE: Fetching workflow alerts...
-🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🚨 ALERTS ROUTE: Found 21 alerts from database
-127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🚨 ALERTS ROUTE: Fetching workflow alerts...
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/auth/me HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🔍 Where clause: { archived: false }
-🔍 OrderBy clause: { createdAt: 'desc' }
-🚨 ALERTS ROUTE: Found 21 alerts from database
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv
-🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6
-🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq   
-🎯 API: Getting project position for: cmgf8ii460002j8mk5niqxu5m   
-🎯 API: Getting project position for: cmgf6ri550002j86cueu0mz21
-🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx   
-🎯 API: Found position: {
-  projectId: 'cmgf8ii460002j8mk5niqxu5m',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgf8ii460002j8mk5niqxu5m HTTP/1.1" 200 413 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Found position: {
-  projectId: 'cmgenlnpt0002j8m0p69qemgx',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Found position: {
-  projectId: 'cmg33hsh80006j8ccb7c0o4a6',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Found position: {
-  projectId: 'cmgen6og30002j8v4bru6mfgv',
-  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-  phaseType: 'LEAD',
-  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-  currentLineItemName: 'Answer phone call',
-  sectionDisplayName: 'Initial Contact',
-  phaseName: 'Lead'
-}
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:30 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🎯 API: Found position: {
   projectId: 'cmflohlx1000aj8g4p9renutq',
   currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
@@ -413,7 +181,90 @@ Lead source Website not found, continuing without lead source
   sectionDisplayName: 'Initial Contact',
   phaseName: 'Lead'
 }
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:30 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 ROLES API: Fetching role assignments
+✅ ROLES API: Found 4 role assignments
+127.0.0.1 - - [06/Oct/2025:14:40:30 +0000] "GET /api/roles HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:31 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:31 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:31 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:50 +0000] "POST /api/customers HTTP/1.1" 201 486 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Project manager validation - req.body.projectManagerId: cmflo3nqx0002j8g4u4cykcb5
+🔍 Found project manager: true Jennifer Thompson
+✅ Project manager validated: cmflo3nqx0002j8g4u4cykcb5
+🔍 Resolved project manager ID: cmflo3nqx0002j8g4u4cykcb5
+🔍 Final project manager ID for project: cmflo3nqx0002j8g4u4cykcb5
+Lead source Website not found, continuing without lead source
+⚠️ Failed to create project folder: Cannot read properties of undeefined (reading 'id')
+✅ Initialized ROOFING workflow for project cmgf8ngzm0002j81grkpty64o starting at phase LEAD with: Answer phone call
+✅ Optimized workflow initialized with 57 steps
+✅ Batch created 1 alerts for 1 projects
+✅ First alert generated for new project cmgf8ngzm0002j81grkpty64o: "Answer phone call - test same"
+🔍 Project manager in response: {
+  projectManagerId: 'cmflo3nqx0002j8g4u4cykcb5',
+  projectManagerName: 'Jennifer Thompson'
+}
+127.0.0.1 - - [06/Oct/2025:14:40:56 +0000] "POST /api/projects HTTP/1.1" 201 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Fetching workflow alerts...
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Found 22 alerts from database
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/auth/me HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Fetching workflow alerts...
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Found 22 alerts from database
+127.0.0.1 - - [06/Oct/2025:14:40:57 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:40:58 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmgf8ngzm0002j81grkpty64o
+🎯 API: Getting project position for: cmgf8ii460002j8mk5niqxu5m
+🎯 API: Getting project position for: cmgf6ri550002j86cueu0mz21   
+🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9   
+🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx   
+🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv   
+🎯 API: Found position: {
+  projectId: 'cmgf8ngzm0002j81grkpty64o',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:41:03 +0000] "GET /api/workflow-data/project-position/cmgf8ngzm0002j81grkpty64o HTTP/1.1" 200 413 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgf8ii460002j8mk5niqxu5m',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:41:03 +0000] "GET /api/workflow-data/project-position/cmgf8ii460002j8mk5niqxu5m HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🎯 API: Found position: {
   projectId: 'cmgf6ri550002j86cueu0mz21',
   currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
@@ -426,8 +277,20 @@ Lead source Website not found, continuing without lead source
   sectionDisplayName: 'Initial Contact',
   phaseName: 'Lead'
 }
-127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9
+127.0.0.1 - - [06/Oct/2025:14:41:03 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgenlnpt0002j8m0p69qemgx',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:41:03 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
 🎯 API: Found position: {
   projectId: 'cmgenwf480002j8is1zivlzr9',
   currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
@@ -440,15 +303,45 @@ Lead source Website not found, continuing without lead source
   sectionDisplayName: 'Initial Contact',
   phaseName: 'Lead'
 }
-127.0.0.1 - - [06/Oct/2025:14:37:13 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=100&type=FOLDER HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=100&type=FOLDER HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:25 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfwrah4m0001j8rw1lk91wcn&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:36 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfyhozo10005j8fomoty8wvd&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:41 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfwrah4m0001j8rw1lk91wcn&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:48 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfws2qbc0003j8rw7grjck3e&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:51 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmgecp3rc0015j89gdcafi9j1&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:52 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
-127.0.0.1 - - [06/Oct/2025:14:37:54 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfwrah4m0001j8rw1lk91wcn&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:41:03 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgen6og30002j8v4bru6mfgv',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:41:03 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6
+🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq
+🎯 API: Found position: {
+  projectId: 'cmg33hsh80006j8ccb7c0o4a6',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:41:04 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmflohlx1000aj8g4p9renutq',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:41:04 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
