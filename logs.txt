@@ -1,1207 +1,454 @@
-Oct 06 13:56:53  
-Oct 06 13:56:53  > kenstruction-server@0.1.0 start
-Oct 06 13:56:53  > node server.js
-Oct 06 13:56:53  
-Oct 06 13:56:53  🚀 Starting Kenstruction server...
-Oct 06 13:56:53  📅 Startup time: 2025-10-06T13:56:53.494Z
-Oct 06 13:56:54  🔒 Using platform environment variables
-Oct 06 13:56:54  ✅ DATABASE_URL configured from environment
-Oct 06 13:56:54  ✅ Required modules loaded successfully
-Oct 06 13:56:54  ✅ Uploads directory exists: /app/uploads
-Oct 06 13:56:54  ✅ Company-assets directory exists: /app/uploads/company-assets
-Oct 06 13:56:54  ✅ Documents directory exists: /app/uploads/documents
-Oct 06 13:56:54  ✅ Uploads directory is writable
-Oct 06 13:56:56  🟡 Redis not configured - using in-memory cache fallback
-Oct 06 13:56:57  ✅ Resend Email Service initialized
-Oct 06 13:56:57  🔍 OpenAI Initialization: Checking for API key...
-Oct 06 13:56:57  🔍 API Key present: true
-Oct 06 13:56:57  🔍 API Key length: 164
-Oct 06 13:56:57  🔍 API Key first 20 chars: sk-proj-0FpUNM3i-zgS...
-Oct 06 13:56:57  🔍 API Key last 4 chars: ...wk0A
-Oct 06 13:56:57  🔍 OpenAI: Loading OpenAI package...
-Oct 06 13:56:57  🔍 OpenAI: Creating v4 client...
-Oct 06 13:56:57  ✅ OpenAI service initialized successfully with model: gpt-4o
-Oct 06 13:56:57  ✅ Bubbles: OpenAIService loaded
-Oct 06 13:56:57  ✅ Bubbles: BubblesInsightsService loaded
-Oct 06 13:56:57  ✅ Bubbles: WorkflowActionService loaded
-Oct 06 13:56:57  ✅ SERVER: Bubbles routes loaded successfully
-Oct 06 13:56:58  🔧 SERVER: Loading workflow routes...
-Oct 06 13:56:58  🔧 WORKFLOW ROUTES: Loading workflow routes module
-Oct 06 13:56:58  ✅ SERVER: Workflow routes loaded successfully
-Oct 06 13:56:58  🔧 PHASE OVERRIDE ROUTES: Loading phase override routes module
-Oct 06 13:56:58  🚀 ONBOARDING: Loading onboarding routes module
-Oct 06 13:56:58  🔧 SERVER: Loading workflow import routes...
-Oct 06 13:56:58  ✅ SERVER: Workflow import routes loaded successfully
-Oct 06 13:56:58  🔧 SERVER: Loading project import routes...
-Oct 06 13:56:58  ✅ SERVER: Project import routes loaded successfully
-Oct 06 13:56:58  📁 Uploads directory: /app/uploads
-Oct 06 13:56:58  📁 Uploads exists: true
-Oct 06 13:56:58  ✅ SERVER: Workflow routes registered at /api/workflows
-Oct 06 13:56:58  ✅ SERVER: Bubbles routes registered at /api/bubbles
-Oct 06 13:56:58  ✅ SERVER: Bubbles Context routes registered at /api/bubbles/context
-Oct 06 13:56:58  ✅ SERVER: Workflow import routes registered at /api/workflow-import
-Oct 06 13:56:58  ✅ SERVER: Project import routes registered at /api/project-import
-Oct 06 13:56:58  ✅ TranscriptAIService: OpenAI initialized successfully
-Oct 06 13:56:59  🏗️ Server directory: /app
-Oct 06 13:56:59  🏗️ Build path candidates: [ '/app/public', '/build', '/app/build' ]
-Oct 06 13:56:59  🏗️ Selected build path: /app/public
-Oct 06 13:56:59  🏗️ Build exists? true
-Oct 06 13:56:59  📁 Files in /app: [
-Oct 06 13:56:59    '5year-warranty-test.pdf',
-Oct 06 13:56:59    'COMPANY_DOCS_MIGRATION_README.md',
-Oct 06 13:56:59    'README-BUBBLES.md',
-Oct 06 13:56:59    '__tests__',
-Oct 06 13:56:59    'add-new-templates.js',
-Oct 06 13:56:59    'check-db.js',
-Oct 06 13:56:59    'clean-duplicate-alerts.js',
-Oct 06 13:56:59    'config',
-Oct 06 13:56:59    'coordinate-grid.pdf',
-Oct 06 13:56:59    'data',
-Oct 06 13:56:59    'field-position-test.pdf',
-Oct 06 13:56:59    'fix_workflow_progress.js',
-Oct 06 13:56:59    'jest-results.json',
-Oct 06 13:56:59    'jest.config.js',
-Oct 06 13:56:59    'middleware',
-Oct 06 13:56:59    'migrate_project_workflow_tracker.js',
-Oct 06 13:56:02  
-Oct 06 13:56:02  > kenstruction-server@0.1.0 start
-Oct 06 13:56:02  > node server.js
-Oct 06 13:56:02  
-Oct 06 13:56:02  🚀 Starting Kenstruction server...
-Oct 06 13:56:02  📅 Startup time: 2025-10-06T13:56:02.799Z
-Oct 06 13:56:03  🔒 Using platform environment variables
-Oct 06 13:56:03  ✅ DATABASE_URL configured from environment
-Oct 06 13:56:03  ✅ Required modules loaded successfully
-Oct 06 13:56:03  ✅ Uploads directory exists: /app/uploads
-Oct 06 13:56:03  ✅ Company-assets directory exists: /app/uploads/company-assets
-Oct 06 13:56:03  ✅ Documents directory exists: /app/uploads/documents
-Oct 06 13:56:03  ✅ Uploads directory is writable
-Oct 06 13:56:59    'node_modules',
-Oct 06 13:56:59    'package-lock.json',
-Oct 06 13:56:59    'package.json',
-Oct 06 13:56:59    'prisma',
-Oct 06 13:56:59    'public',
-Oct 06 13:56:59    'routes',
-Oct 06 13:56:59    'scripts',
-Oct 06 13:56:59    'server.js',
-Oct 06 13:56:59    'services',
-Oct 06 13:56:59    'test-route.js',
-Oct 06 13:56:59    'uploads',
-Oct 06 13:56:59    'utils'
-Oct 06 13:56:59  ]
-Oct 06 13:56:59  📅 Starting overdue alert scheduler (checking every 30 minutes)
-Oct 06 13:56:05  🟡 Redis not configured - using in-memory cache fallback
-Oct 06 13:56:07  ✅ Resend Email Service initialized
-Oct 06 13:56:07  🔍 OpenAI Initialization: Checking for API key...
-Oct 06 13:56:07  🔍 API Key present: true
-Oct 06 13:56:07  🔍 API Key length: 164
-Oct 06 13:56:07  🔍 API Key first 20 chars: sk-proj-0FpUNM3i-zgS...
-Oct 06 13:56:07  🔍 API Key last 4 chars: ...wk0A
-Oct 06 13:56:07  🔍 OpenAI: Loading OpenAI package...
-Oct 06 13:56:07  🔍 OpenAI: Creating v4 client...
-Oct 06 13:56:07  ✅ OpenAI service initialized successfully with model: gpt-4o
-Oct 06 13:56:07  ✅ Bubbles: OpenAIService loaded
-Oct 06 13:56:07  ✅ Bubbles: BubblesInsightsService loaded
-Oct 06 13:56:07  ✅ Bubbles: WorkflowActionService loaded
-Oct 06 13:56:07  ✅ SERVER: Bubbles routes loaded successfully
-Oct 06 13:56:59  🔧 Debug: PORT from env = 8080, final PORT = 8080
-Oct 06 13:56:59  🔧 Debug: NODE_ENV = production
-Oct 06 13:56:07  🔧 SERVER: Loading workflow routes...
-Oct 06 13:56:07  🔧 WORKFLOW ROUTES: Loading workflow routes module
-Oct 06 13:56:07  ✅ SERVER: Workflow routes loaded successfully
-Oct 06 13:56:07  🔧 PHASE OVERRIDE ROUTES: Loading phase override routes module
-Oct 06 13:56:07  🚀 ONBOARDING: Loading onboarding routes module
-Oct 06 13:56:07  🔧 SERVER: Loading workflow import routes...
-Oct 06 13:56:59  🔧 Debug: DATABASE_URL present = true
-Oct 06 13:56:59  🔧 Debug: JWT_SECRET present = true
-Oct 06 13:56:59  🚀 Kenstruction server running on port 8080
-Oct 06 13:56:59  🌍 Environment: production
-Oct 06 13:56:59  🔗 API Base URL: http://0.0.0.0:8080/api
-Oct 06 13:56:59  📡 Socket.IO server ready for real-time connections
-Oct 06 13:56:59  ✅ Server startup completed successfully
-Oct 06 13:57:02  10.244.44.151 - - [06/Oct/2025:13:57:02 +0000] "GET /api/health HTTP/1.1" - - "-" "kube-probe/1.31"
-Oct 06 13:57:04  ✅ Connected to PostgreSQL database successfully
-Oct 06 13:57:04  ✅ No overdue alerts found
-Oct 06 13:57:04  📊 Database ready - Found 21 users
-Oct 06 13:57:04  ✅ Database connection established, initializing services...
-Oct 06 13:57:04  🔧 Ensuring lead_sources schema and projects.lead_source_id column exist...
-Oct 06 13:57:04  ✅ Lead sources schema ensured
-Oct 06 13:57:04  🧱 Lead sources schema ensured (startup)
-Oct 06 13:57:04  ✅ Vector index created on embeddings table
-Oct 06 13:57:04  prisma:error 
-Oct 06 13:57:04  Invalid `prisma.$executeRawUnsafe()` invocation:
-Oct 06 13:56:07  ✅ SERVER: Workflow import routes loaded successfully
-Oct 06 13:56:07  🔧 SERVER: Loading project import routes...
-Oct 06 13:56:07  ✅ SERVER: Project import routes loaded successfully
-Oct 06 13:56:07  📁 Uploads directory: /app/uploads
-Oct 06 13:56:07  📁 Uploads exists: true
-Oct 06 13:56:07  ✅ SERVER: Workflow routes registered at /api/workflows
-Oct 06 13:56:07  ✅ SERVER: Bubbles routes registered at /api/bubbles
-Oct 06 13:56:07  ✅ SERVER: Bubbles Context routes registered at /api/bubbles/context
-Oct 06 13:56:07  ✅ SERVER: Workflow import routes registered at /api/workflow-import
-Oct 06 13:56:07  ✅ SERVER: Project import routes registered at /api/project-import
-Oct 06 13:56:07  ✅ TranscriptAIService: OpenAI initialized successfully
-Oct 06 13:56:08  🏗️ Server directory: /app
-Oct 06 13:56:08  🏗️ Build path candidates: [ '/app/public', '/build', '/app/build' ]
-Oct 06 13:56:08  🏗️ Selected build path: /app/public
-Oct 06 13:56:08  🏗️ Build exists? true
-Oct 06 13:56:08  📁 Files in /app: [
-Oct 06 13:56:08    '5year-warranty-test.pdf',
-Oct 06 13:57:04  
-Oct 06 13:57:04  
-Oct 06 13:57:04  Raw query failed. Code: `42703`. Message: `column "document_id" does not exist`
-Oct 06 13:57:04  ❌ Failed to ensure pgvector schema: 
-Oct 06 13:57:04  Invalid `prisma.$executeRawUnsafe()` invocation:
-Oct 06 13:57:04  
-Oct 06 13:57:04  
-Oct 06 13:57:04  Raw query failed. Code: `42703`. Message: `column "document_id" does not exist`
-Oct 06 13:57:04  🧮 pgvector schema not ready
-Oct 06 13:56:08    'COMPANY_DOCS_MIGRATION_README.md',
-Oct 06 13:56:08    'README-BUBBLES.md',
-Oct 06 13:56:08    '__tests__',
-Oct 06 13:56:08    'add-new-templates.js',
-Oct 06 13:56:08    'check-db.js',
-Oct 06 13:56:08    'clean-duplicate-alerts.js',
-Oct 06 13:56:08    'config',
-Oct 06 13:56:08    'coordinate-grid.pdf',
-Oct 06 13:56:08    'data',
-Oct 06 13:57:06  📦 Initializing Alert Cache Service...
-Oct 06 13:57:06  🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete
-Oct 06 13:57:06  ⏰ Alert Scheduler ENABLED - PostgreSQL migration complete
-Oct 06 13:57:06  🚀 Alert scheduler started - checking workflow deadlines every 5 minutes
-Oct 06 13:57:06  🔍 Checking workflow alerts...
-Oct 06 13:57:06  📊 Using modernized alert generation via AlertGenerationService
-Oct 06 13:57:06  🔥 Warmed up alert cache for 2 active users
-Oct 06 13:57:06  ✅ Alert cache warmed up
-Oct 06 13:57:06  🚀 Generating alerts for 20 active projects
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
-Oct 06 13:56:08    'field-position-test.pdf',
-Oct 06 13:56:08    'fix_workflow_progress.js',
-Oct 06 13:56:08    'jest-results.json',
-Oct 06 13:56:08    'jest.config.js',
-Oct 06 13:56:08    'middleware',
-Oct 06 13:56:08    'migrate_project_workflow_tracker.js',
-Oct 06 13:56:08    'node_modules',
-Oct 06 13:56:08    'package-lock.json',
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Document work start on project 10012
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Document work start on project 10011
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 13:56:08    'package.json',
-Oct 06 13:56:08    'prisma',
-Oct 06 13:56:08    'public',
-Oct 06 13:56:08    'routes',
-Oct 06 13:56:08    'scripts',
-Oct 06 13:56:08    'server.js',
-Oct 06 13:56:08    'services',
-Oct 06 13:56:08    'test-route.js',
-Oct 06 13:56:08    'uploads',
-Oct 06 13:56:08    'utils'
-Oct 06 13:56:08  ]
-Oct 06 13:56:08  📅 Starting overdue alert scheduler (checking every 30 minutes)
-Oct 06 13:56:08  🔧 Debug: PORT from env = 8080, final PORT = 8080
-Oct 06 13:56:08  🔧 Debug: NODE_ENV = production
-Oct 06 13:56:08  🔧 Debug: DATABASE_URL present = true
-Oct 06 13:56:08  🔧 Debug: JWT_SECRET present = true
-Oct 06 13:56:08  🚀 Kenstruction server running on port 8080
-Oct 06 13:56:08  🌍 Environment: production
-Oct 06 13:56:08  🔗 API Base URL: http://0.0.0.0:8080/api
-Oct 06 13:56:08  📡 Socket.IO server ready for real-time connections
-Oct 06 13:56:08  ✅ Server startup completed successfully
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
-Oct 06 13:57:06  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
-Oct 06 13:57:06  No new alerts to create
-Oct 06 13:57:06  ✅ Generated 0 new alerts
-Oct 06 13:57:10  10.244.44.151 - - [06/Oct/2025:13:57:10 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:20  10.244.44.151 - - [06/Oct/2025:13:57:20 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:29  10.244.3.89 - - [06/Oct/2025:13:57:29 +0000] "GET /favicon.ico HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:30  10.244.26.231 - - [06/Oct/2025:13:57:30 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:30  10.244.26.231 - - [06/Oct/2025:13:57:30 +0000] "GET /kenstruction-logo.png HTTP/1.1" 200 61767 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:31  📭 Cache miss: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"}
-Oct 06 13:57:31  🔍 ACTIVITIES: User from request: {
-Oct 06 13:57:31    id: 'cmfld60ef0000bi0d8ky8hlot',
-Oct 06 13:57:31    firstName: 'jimbosky35',
-Oct 06 13:57:31    lastName: '',
-Oct 06 13:57:31    email: 'jimbosky35@gmail.com',
-Oct 06 13:57:31    role: 'WORKER',
-Oct 06 13:57:31    permissions: [],
-Oct 06 13:57:31    isActive: true,
-Oct 06 13:56:12  10.244.11.1 - - [06/Oct/2025:13:56:12 +0000] "GET /api/health HTTP/1.1" - - "-" "kube-probe/1.31"
-Oct 06 13:56:13  ✅ Connected to PostgreSQL database successfully
-Oct 06 13:56:13  📊 Database ready - Found 21 users
-Oct 06 13:56:13  ✅ Database connection established, initializing services...
-Oct 06 13:56:13  🔧 Ensuring lead_sources schema and projects.lead_source_id column exist...
-Oct 06 13:56:13  ✅ No overdue alerts found
-Oct 06 13:57:31    theme: 'LIGHT',
-Oct 06 13:57:31    lastLogin: 2025-10-06T13:57:30.296Z,
-Oct 06 13:57:31    createdAt: 2025-09-15T16:54:10.310Z,
-Oct 06 13:57:31    updatedAt: 2025-10-06T13:57:30.298Z
-Oct 06 13:57:31  }
-Oct 06 13:57:31  🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...
-Oct 06 13:57:31  👥 ROLES API: Fetching available users
-Oct 06 13:57:31  10.244.44.151 - - [06/Oct/2025:13:57:31 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:31  🎯 API: Getting project position for: cmg8qpzr9000l960dvy6s4oum
-Oct 06 13:57:31  ✅ ROLES API: Found 21 active users
-Oct 06 13:57:32  🎯 API: Found position: {
-Oct 06 13:57:32    projectId: 'cmg8qpzr9000l960dvy6s4oum',
-Oct 06 13:57:32    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 13:57:32    phaseType: 'LEAD',
-Oct 06 13:57:32    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:57:32    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:57:32    currentLineItem: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 13:57:32    currentLineItemId: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 13:57:32    currentLineItemName: 'Create Calendar Appointment in AL',
-Oct 06 13:57:32    sectionDisplayName: 'Initial Contact',
-Oct 06 13:57:32    phaseName: 'Lead'
-Oct 06 13:57:32  }
-Oct 06 13:56:13  ✅ Lead sources schema ensured
-Oct 06 13:56:13  🧱 Lead sources schema ensured (startup)
-Oct 06 13:56:13  ✅ Vector index created on embeddings table
-Oct 06 13:56:13  prisma:error 
-Oct 06 13:56:13  Invalid `prisma.$executeRawUnsafe()` invocation:
-Oct 06 13:56:13  
-Oct 06 13:56:13  
-Oct 06 13:56:13  Raw query failed. Code: `42703`. Message: `column "document_id" does not exist`
-Oct 06 13:56:13  ❌ Failed to ensure pgvector schema: 
-Oct 06 13:56:13  Invalid `prisma.$executeRawUnsafe()` invocation:
-Oct 06 13:56:13  
-Oct 06 13:56:13  
-Oct 06 13:56:13  Raw query failed. Code: `42703`. Message: `column "document_id" does not exist`
-Oct 06 13:56:13  🧮 pgvector schema not ready
-Oct 06 13:56:15  📦 Initializing Alert Cache Service...
-Oct 06 13:56:15  🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete
-Oct 06 13:56:15  ⏰ Alert Scheduler ENABLED - PostgreSQL migration complete
-Oct 06 13:56:16  🚀 Alert scheduler started - checking workflow deadlines every 5 minutes
-Oct 06 13:56:16  🔍 Checking workflow alerts...
-Oct 06 13:56:16  📊 Using modernized alert generation via AlertGenerationService
-Oct 06 13:56:16  🔥 Warmed up alert cache for 2 active users
-Oct 06 13:57:32  10.244.3.89 - - [06/Oct/2025:13:57:32 +0000] "GET /api/workflow-data/project-position/cmg8qpzr9000l960dvy6s4oum HTTP/1.1" 200 429 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.26.231 - - [06/Oct/2025:13:57:32 +0000] "GET /api/roles/users HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
-Oct 06 13:57:32  10.244.3.89 - - [06/Oct/2025:13:57:32 +0000] "GET /api/activities HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.30.98 - - [06/Oct/2025:13:57:32 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 200 136 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  10.244.0.217 - - [06/Oct/2025:13:57:33 +0000] "GET /api/project-messages/cmflohqae0022j8g4t4od6hfn?page=1&limit=10&includeReplies=true HTTP/1.1" 200 922 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  10.244.3.89 - - [06/Oct/2025:13:57:33 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  10.244.26.231 - - [06/Oct/2025:13:57:33 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  10.244.0.217 - - [06/Oct/2025:13:57:33 +0000] "GET /api/project-messages/cmflohtzc0082j8g49eokt3q8?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  🚨 SERVER ERROR: {
-Oct 06 13:57:33    "timestamp": "2025-10-06T13:57:33.774Z",
-Oct 06 13:57:33    "method": "POST",
-Oct 06 13:57:33    "url": "/api/calendar-events",
-Oct 06 13:57:33    "ip": "10.244.30.98",
-Oct 06 13:57:33    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:57:33    "userId": "Anonymous",
-Oct 06 13:56:16  ✅ Alert cache warmed up
-Oct 06 13:56:16  🚀 Generating alerts for 20 active projects
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Document work start on project 10012
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Document work start on project 10011
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
-Oct 06 13:56:16  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
-Oct 06 13:56:16  No new alerts to create
-Oct 06 13:57:33    "error": {
-Oct 06 13:57:33      "name": "PrismaClientValidationError",
-Oct 06 13:57:33      "message": "\nInvalid `prisma.calendarEvent.create()` invocation:\n\n{\n  data: {\n    title: \"Client Follow-up Call\",\n    description: \"Call client to confirm waterproofing material selection\",\n    startTime: new Date(\"2025-09-26T14:00:00.000Z\"),\n    endTime: new Date(\"Invalid Date\"),\n             ~~~~~~~~~~~~~~~~~~~~~~~~\n    location: undefined,\n    isAllDay: false,\n    eventType: \"REMINDER\",\n    status: \"CONFIRMED\",\n    isRecurring: false,\n    recurrenceRule: undefined,\n    projectId: \"cmg8qpzr9000l960dvy6s4oum\",\n    organizerId: \"cmfld60ef0000bi0d8ky8hlot\",\n    attendees: undefined\n  },\n  include: {\n    organizer: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectNumber: true,\n        projectName: true,\n        status: true\n      }\n    },\n    attendees: {\n      include: {\n        user: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            email: true,\n            avatar: true\n          }\n        }\n      }\n    }\n  }\n}\n\nInvalid value for argument `endTime`: Provided Date object is invalid. Expected Date.",
-Oct 06 13:57:33      "statusCode": 500
-Oct 06 13:57:33    }
-Oct 06 13:57:33  }
-Oct 06 13:57:33  10.244.30.98 - - [06/Oct/2025:13:57:33 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  🚨 SERVER ERROR: {
-Oct 06 13:56:16  ✅ Generated 0 new alerts
-Oct 06 13:56:20  10.244.11.1 - - [06/Oct/2025:13:56:20 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:56:30  10.244.11.1 - - [06/Oct/2025:13:56:30 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:56:40  10.244.11.1 - - [06/Oct/2025:13:56:40 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:56:50  10.244.11.1 - - [06/Oct/2025:13:56:50 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:00  10.244.11.1 - - [06/Oct/2025:13:57:00 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:10  10.244.11.1 - - [06/Oct/2025:13:57:10 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:20  10.244.11.1 - - [06/Oct/2025:13:57:20 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Oct 06 13:57:28  10.244.26.231 - - [06/Oct/2025:13:57:28 +0000] "GET / HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:28  10.244.30.98 - - [06/Oct/2025:13:57:28 +0000] "GET /static/css/main.1fba9be6.css HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:28  10.244.0.217 - - [06/Oct/2025:13:57:28 +0000] "GET /static/js/main.78cfe684.js HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:30  10.244.26.231 - - [06/Oct/2025:13:57:30 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:30  10.244.30.98 - - [06/Oct/2025:13:57:30 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:30  10.244.0.217 - - [06/Oct/2025:13:57:30 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33    "timestamp": "2025-10-06T13:57:33.941Z",
-Oct 06 13:57:33    "method": "POST",
-Oct 06 13:57:33    "url": "/api/calendar-events",
-Oct 06 13:57:33    "ip": "10.244.26.231",
-Oct 06 13:57:33    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:57:33    "userId": "Anonymous",
-Oct 06 13:57:33    "error": {
-Oct 06 13:57:33      "name": "PrismaClientValidationError",
-Oct 06 13:57:33      "message": "\nInvalid `prisma.calendarEvent.create()` invocation:\n\n{\n  data: {\n    title: \"Permit Application Deadline\",\n    description: \"Submit permit application before deadline to avoid delays\",\n    startTime: new Date(\"2025-09-28T16:00:00.000Z\"),\n    endTime: new Date(\"Invalid Date\"),\n             ~~~~~~~~~~~~~~~~~~~~~~~~\n    location: undefined,\n    isAllDay: false,\n    eventType: \"REMINDER\",\n    status: \"CONFIRMED\",\n    isRecurring: false,\n    recurrenceRule: undefined,\n    projectId: \"cmg8qpzr9000l960dvy6s4oum\",\n    organizerId: \"cmfld60ef0000bi0d8ky8hlot\",\n    attendees: undefined\n  },\n  include: {\n    organizer: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectNumber: true,\n        projectName: true,\n        status: true\n      }\n    },\n    attendees: {\n      include: {\n        user: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            email: true,\n            avatar: true\n          }\n        }\n      }\n    }\n  }\n}\n\nInvalid value for argument `endTime`: Provided Date object is invalid. Expected Date.",
-Oct 06 13:57:33      "statusCode": 500
-Oct 06 13:57:33    }
-Oct 06 13:57:33  }
-Oct 06 13:57:33  10.244.26.231 - - [06/Oct/2025:13:57:33 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34  🚨 SERVER ERROR: {
-Oct 06 13:57:34    "timestamp": "2025-10-06T13:57:34.010Z",
-Oct 06 13:57:34    "method": "POST",
-Oct 06 13:57:34    "url": "/api/calendar-events",
-Oct 06 13:57:34    "ip": "10.244.26.231",
-Oct 06 13:57:30  🔍 Where clause: { archived: false }
-Oct 06 13:57:30  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 13:57:30  🔍 Where clause: { archived: false }
-Oct 06 13:57:30  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 13:57:30  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:57:30  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:57:30  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:57:30  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:57:30  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 13:57:30  10.244.3.89 - - [06/Oct/2025:13:57:30 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:30  10.244.26.231 - - [06/Oct/2025:13:57:30 +0000] "GET /api/projects HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:31  🚨 ALERTS ROUTE: Found 15 alerts from database
-Oct 06 13:57:31  10.244.11.1 - - [06/Oct/2025:13:57:31 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:57:31  10.244.30.98 - - [06/Oct/2025:13:57:31 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:57:34    "userId": "Anonymous",
-Oct 06 13:57:34    "error": {
-Oct 06 13:57:34      "name": "PrismaClientValidationError",
-Oct 06 13:57:31  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
-Oct 06 13:57:31  🎯 API: Found position: {
-Oct 06 13:57:31    projectId: 'cmflohmur000fj8g4uv12pin3',
-Oct 06 13:57:31    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 13:57:31    phaseType: 'LEAD',
-Oct 06 13:57:31    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:57:31    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:57:31    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 13:57:31    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 13:57:31    currentLineItemName: 'Answer phone call',
-Oct 06 13:57:31    sectionDisplayName: 'Initial Contact',
-Oct 06 13:57:31    phaseName: 'Lead'
-Oct 06 13:57:31  }
-Oct 06 13:57:31  10.244.3.89 - - [06/Oct/2025:13:57:31 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:31  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-Oct 06 13:57:31  10.244.0.217 - - [06/Oct/2025:13:57:31 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:31  10.244.3.89 - - [06/Oct/2025:13:57:31 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 200 98 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.3.89 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.0.217 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34      "message": "\nInvalid `prisma.calendarEvent.create()` invocation:\n\n{\n  data: {\n    title: \"Equipment Maintenance\",\n    description: \"Schedule maintenance for roofing equipment and tools\",\n    startTime: new Date(\"2025-10-01T08:00:00.000Z\"),\n    endTime: new Date(\"Invalid Date\"),\n             ~~~~~~~~~~~~~~~~~~~~~~~~\n    location: undefined,\n    isAllDay: false,\n    eventType: \"REMINDER\",\n    status: \"CONFIRMED\",\n    isRecurring: false,\n    recurrenceRule: undefined,\n    projectId: \"cmg8qpzr9000l960dvy6s4oum\",\n    organizerId: \"cmfld60ef0000bi0d8ky8hlot\",\n    attendees: undefined\n  },\n  include: {\n    organizer: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectNumber: true,\n        projectName: true,\n        status: true\n      }\n    },\n    attendees: {\n      include: {\n        user: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            email: true,\n            avatar: true\n          }\n        }\n      }\n    }\n  }\n}\n\nInvalid value for argument `endTime`: Provided Date object is invalid. Expected Date.",
-Oct 06 13:57:34      "statusCode": 500
-Oct 06 13:57:34    }
-Oct 06 13:57:34  }
-Oct 06 13:57:34  10.244.26.231 - - [06/Oct/2025:13:57:34 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34  10.244.0.217 - - [06/Oct/2025:13:57:34 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34  10.244.0.217 - - [06/Oct/2025:13:57:34 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34  🔍 ROLES API: Fetching role assignments
-Oct 06 13:57:34  ✅ ROLES API: Found 4 role assignments
-Oct 06 13:57:34  10.244.30.98 - - [06/Oct/2025:13:57:34 +0000] "GET /api/roles HTTP/1.1" 200 725 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:40  10.244.44.151 - - [06/Oct/2025:13:57:40 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:57:50  10.244.44.151 - - [06/Oct/2025:13:57:50 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:58:00  10.244.44.151 - - [06/Oct/2025:13:58:00 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:58:08  🚨 SERVER ERROR: {
-Oct 06 13:58:08    "timestamp": "2025-10-06T13:58:08.244Z",
-Oct 06 13:58:08    "method": "POST",
-Oct 06 13:58:08    "url": "/api/calendar-events",
-Oct 06 13:58:08    "ip": "10.244.30.98",
-Oct 06 13:58:08    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:57:32  10.244.26.231 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmflohoy40013j8g4x9yl8m9n?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.30.98 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.30.98 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmflohmur000fj8g4uv12pin3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  🚨 SERVER ERROR: {
-Oct 06 13:57:32    "timestamp": "2025-10-06T13:57:32.951Z",
-Oct 06 13:57:32    "method": "POST",
-Oct 06 13:57:32    "url": "/api/calendar-events",
-Oct 06 13:57:32    "ip": "10.244.26.231",
-Oct 06 13:57:32    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:57:32    "userId": "Anonymous",
-Oct 06 13:57:32    "error": {
-Oct 06 13:57:32      "name": "PrismaClientValidationError",
-Oct 06 13:58:08    "userId": "Anonymous",
-Oct 06 13:58:08    "error": {
-Oct 06 13:58:08      "name": "PrismaClientValidationError",
-Oct 06 13:58:08      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:58:08      "statusCode": 500
-Oct 06 13:58:08    }
-Oct 06 13:58:08  }
-Oct 06 13:57:32      "message": "\nInvalid `prisma.calendarEvent.create()` invocation:\n\n{\n  data: {\n    title: \"Weekly Progress Meeting\",\n    description: \"Team meeting to discuss progress and upcoming tasks\",\n    startTime: new Date(\"2025-09-25T09:00:00.000Z\"),\n    endTime: new Date(\"Invalid Date\"),\n             ~~~~~~~~~~~~~~~~~~~~~~~~\n    location: undefined,\n    isAllDay: false,\n    eventType: \"REMINDER\",\n    status: \"CONFIRMED\",\n    isRecurring: false,\n    recurrenceRule: undefined,\n    projectId: \"cmg8qpzr9000l960dvy6s4oum\",\n    organizerId: \"cmfld60ef0000bi0d8ky8hlot\",\n    attendees: undefined\n  },\n  include: {\n    organizer: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectNumber: true,\n        projectName: true,\n        status: true\n      }\n    },\n    attendees: {\n      include: {\n        user: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            email: true,\n            avatar: true\n          }\n        }\n      }\n    }\n  }\n}\n\nInvalid value for argument `endTime`: Provided Date object is invalid. Expected Date.",
-Oct 06 13:57:32      "statusCode": 500
-Oct 06 13:57:32    }
-Oct 06 13:57:32  }
-Oct 06 13:57:32  10.244.26.231 - - [06/Oct/2025:13:57:32 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.3.89 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmflohvu900chj8g466nsgnw6?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:32  10.244.26.231 - - [06/Oct/2025:13:57:32 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:33  🚨 SERVER ERROR: {
-Oct 06 13:57:33    "timestamp": "2025-10-06T13:57:33.862Z",
-Oct 06 13:57:33    "method": "POST",
-Oct 06 13:57:33    "url": "/api/calendar-events",
-Oct 06 13:57:33    "ip": "10.244.0.217",
-Oct 06 13:57:33    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:57:33    "userId": "Anonymous",
-Oct 06 13:57:33    "error": {
-Oct 06 13:57:33      "name": "PrismaClientValidationError",
-Oct 06 13:57:33      "message": "\nInvalid `prisma.calendarEvent.create()` invocation:\n\n{\n  data: {\n    title: \"Final Payment Due\",\n    description: \"Send final invoice and collect payment from client\",\n    startTime: new Date(\"2025-09-30T10:00:00.000Z\"),\n    endTime: new Date(\"Invalid Date\"),\n             ~~~~~~~~~~~~~~~~~~~~~~~~\n    location: undefined,\n    isAllDay: false,\n    eventType: \"REMINDER\",\n    status: \"CONFIRMED\",\n    isRecurring: false,\n    recurrenceRule: undefined,\n    projectId: \"cmg8qpzr9000l960dvy6s4oum\",\n    organizerId: \"cmfld60ef0000bi0d8ky8hlot\",\n    attendees: undefined\n  },\n  include: {\n    organizer: {\n      select: {\n        id: true,\n        firstName: true,\n        lastName: true,\n        email: true,\n        avatar: true\n      }\n    },\n    project: {\n      select: {\n        id: true,\n        projectNumber: true,\n        projectName: true,\n        status: true\n      }\n    },\n    attendees: {\n      include: {\n        user: {\n          select: {\n            id: true,\n            firstName: true,\n            lastName: true,\n            email: true,\n            avatar: true\n          }\n        }\n      }\n    }\n  }\n}\n\nInvalid value for argument `endTime`: Provided Date object is invalid. Expected Date.",
-Oct 06 13:57:33      "statusCode": 500
-Oct 06 13:57:33    }
-Oct 06 13:58:08  10.244.30.98 - - [06/Oct/2025:13:58:08 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:08  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
-Oct 06 13:58:08  🎯 API: Found position: {
-Oct 06 13:58:08    projectId: 'cmflohmur000fj8g4uv12pin3',
-Oct 06 13:58:08    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 13:58:08    phaseType: 'LEAD',
-Oct 06 13:58:08    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:58:08    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:58:08    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 13:58:08    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 13:58:08    currentLineItemName: 'Answer phone call',
-Oct 06 13:58:08    sectionDisplayName: 'Initial Contact',
-Oct 06 13:58:08    phaseName: 'Lead'
-Oct 06 13:58:08  }
-Oct 06 13:58:08  10.244.3.89 - - [06/Oct/2025:13:58:08 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:08  🔍 Where clause: { archived: false }
-Oct 06 13:58:08  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 13:58:08  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:58:08  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:57:33  }
-Oct 06 13:57:33  10.244.0.217 - - [06/Oct/2025:13:57:33 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:34  👥 ROLES API: Fetching available users
-Oct 06 13:57:34  ✅ ROLES API: Found 21 active users
-Oct 06 13:57:34  10.244.26.231 - - [06/Oct/2025:13:57:34 +0000] "GET /api/roles/users HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:57:40  10.244.11.1 - - [06/Oct/2025:13:57:40 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:57:50  10.244.11.1 - - [06/Oct/2025:13:57:50 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:58:00  10.244.11.1 - - [06/Oct/2025:13:58:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:08  🎯 API: Getting project position for: cmg8qpzr9000l960dvy6s4oum
-Oct 06 13:58:08  🎯 API: Found position: {
-Oct 06 13:58:08    projectId: 'cmg8qpzr9000l960dvy6s4oum',
-Oct 06 13:58:08    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 13:58:08    phaseType: 'LEAD',
-Oct 06 13:58:08    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:58:08    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:58:08    currentLineItem: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 13:58:08    currentLineItemId: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 13:58:08    currentLineItemName: 'Create Calendar Appointment in AL',
-Oct 06 13:58:08  10.244.3.89 - - [06/Oct/2025:13:58:08 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohoy40013j8g4x9yl8m9n?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  🚨 SERVER ERROR: {
-Oct 06 13:58:09    "timestamp": "2025-10-06T13:58:09.049Z",
-Oct 06 13:58:09    "method": "POST",
-Oct 06 13:58:09    "url": "/api/calendar-events",
-Oct 06 13:58:09    "ip": "10.244.26.231",
-Oct 06 13:58:09    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:58:09    "userId": "Anonymous",
-Oct 06 13:58:09    "error": {
-Oct 06 13:58:09      "name": "PrismaClientValidationError",
-Oct 06 13:58:09      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:58:09      "statusCode": 500
-Oct 06 13:58:09    }
-Oct 06 13:58:09  }
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.30.98 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohmur000fj8g4uv12pin3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohtzc0082j8g49eokt3q8?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.30.98 - - [06/Oct/2025:13:58:09 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:08    sectionDisplayName: 'Initial Contact',
-Oct 06 13:58:08    phaseName: 'Lead'
-Oct 06 13:58:08  }
-Oct 06 13:58:08  10.244.3.89 - - [06/Oct/2025:13:58:08 +0000] "GET /api/workflow-data/project-position/cmg8qpzr9000l960dvy6s4oum HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:08  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 13:58:08  🚨 ALERTS ROUTE: Found 15 alerts from database
-Oct 06 13:58:08  👥 ROLES API: Fetching available users
-Oct 06 13:58:09  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:10  10.244.44.151 - - [06/Oct/2025:13:58:10 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:58:20  10.244.44.151 - - [06/Oct/2025:13:58:20 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:58:30  10.244.44.151 - - [06/Oct/2025:13:58:30 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 13:58:08  10.244.30.98 - - [06/Oct/2025:13:58:08 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:08  ✅ ROLES API: Found 21 active users
-Oct 06 13:58:08  10.244.26.231 - - [06/Oct/2025:13:58:08 +0000] "GET /api/roles/users HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:08  🚨 SERVER ERROR: {
-Oct 06 13:58:08    "timestamp": "2025-10-06T13:58:08.599Z",
-Oct 06 13:58:08    "method": "POST",
-Oct 06 13:58:08    "url": "/api/calendar-events",
-Oct 06 13:58:08    "ip": "10.244.0.217",
-Oct 06 13:58:08    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:58:08    "userId": "Anonymous",
-Oct 06 13:58:08    "error": {
-Oct 06 13:58:08      "name": "PrismaClientValidationError",
-Oct 06 13:58:08      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:58:08      "statusCode": 500
-Oct 06 13:58:08    }
-Oct 06 13:58:08  }
-Oct 06 13:58:08  10.244.0.217 - - [06/Oct/2025:13:58:08 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.3.89 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohqae0022j8g4t4od6hfn?page=1&limit=10&includeReplies=true HTTP/1.1" 200 922 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:40  10.244.44.151 - - [06/Oct/2025:13:58:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:45  🔍 Where clause: { archived: false }
-Oct 06 13:58:45  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 13:58:45  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:58:45  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:58:45  10.244.3.89 - - [06/Oct/2025:13:58:45 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:50  10.244.44.151 - - [06/Oct/2025:13:58:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:53  👥 ROLES API: Fetching available users
-Oct 06 13:58:09  10.244.3.89 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohvu900chj8g466nsgnw6?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:53  ✅ ROLES API: Found 21 active users
-Oct 06 13:58:53  10.244.26.231 - - [06/Oct/2025:13:58:53 +0000] "GET /api/roles/users HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:00  10.244.44.151 - - [06/Oct/2025:13:59:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:10  10.244.44.151 - - [06/Oct/2025:13:59:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:20  10.244.44.151 - - [06/Oct/2025:13:59:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:30  10.244.44.151 - - [06/Oct/2025:13:59:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:36  🔍 Where clause: { archived: false }
-Oct 06 13:59:36  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 13:59:36  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
-Oct 06 13:59:36  🎯 API: Found position: {
-Oct 06 13:59:36    projectId: 'cmflohmur000fj8g4uv12pin3',
-Oct 06 13:59:36    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 13:59:36    phaseType: 'LEAD',
-Oct 06 13:59:36    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:59:36    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:59:36    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 13:59:36    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 13:59:36    currentLineItemName: 'Answer phone call',
-Oct 06 13:59:36    sectionDisplayName: 'Initial Contact',
-Oct 06 13:59:36    phaseName: 'Lead'
-Oct 06 13:58:09  10.244.30.98 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.3.89 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  🚨 SERVER ERROR: {
-Oct 06 13:58:09    "timestamp": "2025-10-06T13:58:09.184Z",
-Oct 06 13:58:09    "method": "POST",
-Oct 06 13:58:09    "url": "/api/calendar-events",
-Oct 06 13:58:09    "ip": "10.244.26.231",
-Oct 06 13:58:09    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:58:09    "userId": "Anonymous",
-Oct 06 13:58:09    "error": {
-Oct 06 13:58:09      "name": "PrismaClientValidationError",
-Oct 06 13:58:09      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:58:09      "statusCode": 500
-Oct 06 13:59:36  }
-Oct 06 13:59:36  10.244.3.89 - - [06/Oct/2025:13:59:36 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:59:36  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 13:59:36  10.244.3.89 - - [06/Oct/2025:13:59:36 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  👥 ROLES API: Fetching available users
-Oct 06 13:59:36  ✅ ROLES API: Found 21 active users
-Oct 06 13:59:36  10.244.26.231 - - [06/Oct/2025:13:59:36 +0000] "GET /api/roles/users HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.0.217 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohqae0022j8g4t4od6hfn?page=1&limit=10&includeReplies=true HTTP/1.1" 200 922 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.26.231 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohoy40013j8g4x9yl8m9n?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  🚨 SERVER ERROR: {
-Oct 06 13:59:36    "timestamp": "2025-10-06T13:59:36.651Z",
-Oct 06 13:59:36    "method": "POST",
-Oct 06 13:59:36    "url": "/api/calendar-events",
-Oct 06 13:59:36    "ip": "10.244.0.217",
-Oct 06 13:59:36    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:58:09    }
-Oct 06 13:58:09  }
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  🚨 SERVER ERROR: {
-Oct 06 13:58:09    "timestamp": "2025-10-06T13:58:09.355Z",
-Oct 06 13:58:09    "method": "POST",
-Oct 06 13:58:09    "url": "/api/calendar-events",
-Oct 06 13:58:09    "ip": "10.244.30.98",
-Oct 06 13:58:09    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:58:09    "userId": "Anonymous",
-Oct 06 13:58:09    "error": {
-Oct 06 13:58:09      "name": "PrismaClientValidationError",
-Oct 06 13:58:09      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:58:09      "statusCode": 500
-Oct 06 13:58:09    }
-Oct 06 13:58:09  }
-Oct 06 13:58:09  10.244.30.98 - - [06/Oct/2025:13:58:09 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.3.89 - - [06/Oct/2025:13:58:09 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.3.89 - - [06/Oct/2025:13:58:09 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36    "userId": "Anonymous",
-Oct 06 13:59:36    "error": {
-Oct 06 13:59:36      "name": "PrismaClientValidationError",
-Oct 06 13:59:36      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:59:36      "statusCode": 500
-Oct 06 13:59:36    }
-Oct 06 13:59:36  }
-Oct 06 13:59:36  10.244.0.217 - - [06/Oct/2025:13:59:36 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.3.89 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohvu900chj8g466nsgnw6?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.26.231 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  🚨 SERVER ERROR: {
-Oct 06 13:59:36    "timestamp": "2025-10-06T13:59:36.924Z",
-Oct 06 13:59:36    "method": "POST",
-Oct 06 13:59:36    "url": "/api/calendar-events",
-Oct 06 13:59:36    "ip": "10.244.0.217",
-Oct 06 13:59:36    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:59:36    "userId": "Anonymous",
-Oct 06 13:59:36    "error": {
-Oct 06 13:58:09  10.244.0.217 - - [06/Oct/2025:13:58:09 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.30.98 - - [06/Oct/2025:13:58:09 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:09  10.244.26.231 - - [06/Oct/2025:13:58:09 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:10  10.244.11.1 - - [06/Oct/2025:13:58:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:20  10.244.11.1 - - [06/Oct/2025:13:58:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:30  10.244.11.1 - - [06/Oct/2025:13:58:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:40  10.244.11.1 - - [06/Oct/2025:13:58:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:45  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 13:58:45  🚨 ALERTS ROUTE: Found 15 alerts from database
-Oct 06 13:58:45  10.244.30.98 - - [06/Oct/2025:13:58:45 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:50  10.244.11.1 - - [06/Oct/2025:13:58:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:58:54  🔍 ROLES API: Fetching role assignments
-Oct 06 13:58:54  ✅ ROLES API: Found 4 role assignments
-Oct 06 13:59:36      "name": "PrismaClientValidationError",
-Oct 06 13:59:36      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:59:36      "statusCode": 500
-Oct 06 13:59:36    }
-Oct 06 13:59:36  }
-Oct 06 13:59:36  10.244.0.217 - - [06/Oct/2025:13:59:36 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  🚨 SERVER ERROR: {
-Oct 06 13:59:37    "timestamp": "2025-10-06T13:59:37.301Z",
-Oct 06 13:59:37    "method": "POST",
-Oct 06 13:59:37    "url": "/api/calendar-events",
-Oct 06 13:59:37    "ip": "10.244.0.217",
-Oct 06 13:59:37    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:59:37    "userId": "Anonymous",
-Oct 06 13:59:37    "error": {
-Oct 06 13:59:37      "name": "PrismaClientValidationError",
-Oct 06 13:59:37      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:59:37      "statusCode": 500
-Oct 06 13:59:37    }
-Oct 06 13:59:37  }
-Oct 06 13:59:37  10.244.0.217 - - [06/Oct/2025:13:59:37 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  10.244.3.89 - - [06/Oct/2025:13:59:37 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:58:54  10.244.3.89 - - [06/Oct/2025:13:58:54 +0000] "GET /api/roles HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:00  10.244.11.1 - - [06/Oct/2025:13:59:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:10  10.244.11.1 - - [06/Oct/2025:13:59:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:20  10.244.11.1 - - [06/Oct/2025:13:59:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:30  10.244.11.1 - - [06/Oct/2025:13:59:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:36  🎯 API: Getting project position for: cmg8qpzr9000l960dvy6s4oum
-Oct 06 13:59:36  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 13:59:36  🎯 API: Found position: {
-Oct 06 13:59:36    projectId: 'cmg8qpzr9000l960dvy6s4oum',
-Oct 06 13:59:36    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 13:59:36    phaseType: 'LEAD',
-Oct 06 13:59:36    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:59:36    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 13:59:36    currentLineItem: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 13:59:36    currentLineItemId: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 13:59:38  10.244.30.98 - - [06/Oct/2025:13:59:37 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:40  10.244.44.151 - - [06/Oct/2025:13:59:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:50  10.244.44.151 - - [06/Oct/2025:13:59:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:00  🔍 Checking workflow alerts...
-Oct 06 14:00:00  📊 Using modernized alert generation via AlertGenerationService
-Oct 06 14:00:00  🚀 Generating alerts for 20 active projects
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 13:59:36    currentLineItemName: 'Create Calendar Appointment in AL',
-Oct 06 13:59:36    sectionDisplayName: 'Initial Contact',
-Oct 06 13:59:36    phaseName: 'Lead'
-Oct 06 13:59:36  }
-Oct 06 13:59:36  10.244.3.89 - - [06/Oct/2025:13:59:36 +0000] "GET /api/workflow-data/project-position/cmg8qpzr9000l960dvy6s4oum HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  🚨 SERVER ERROR: {
-Oct 06 13:59:36    "timestamp": "2025-10-06T13:59:36.322Z",
-Oct 06 13:59:36    "method": "POST",
-Oct 06 13:59:36    "url": "/api/calendar-events",
-Oct 06 13:59:36    "ip": "10.244.0.217",
-Oct 06 13:59:36    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:59:36    "userId": "Anonymous",
-Oct 06 13:59:36    "error": {
-Oct 06 13:59:36      "name": "PrismaClientValidationError",
-Oct 06 13:59:36      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:59:36      "statusCode": 500
-Oct 06 13:59:36    }
-Oct 06 13:59:36  }
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
-Oct 06 14:00:00  No new alerts to create
-Oct 06 14:00:00  ✅ Generated 0 new alerts
-Oct 06 14:00:00  10.244.44.151 - - [06/Oct/2025:14:00:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:10  10.244.44.151 - - [06/Oct/2025:14:00:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:20  10.244.44.151 - - [06/Oct/2025:14:00:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:22  10.244.0.217 - - [06/Oct/2025:14:00:22 +0000] "POST /api/calendar-events HTTP/1.1" 201 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:27  10.244.0.217 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:27  10.244.3.89 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:27  10.244.3.89 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmflohvu900chj8g466nsgnw6?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.0.217 - - [06/Oct/2025:13:59:36 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  🚨 ALERTS ROUTE: Found 15 alerts from database
-Oct 06 13:59:36  10.244.30.98 - - [06/Oct/2025:13:59:36 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-Oct 06 13:59:36  10.244.3.89 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.0.217 - - [06/Oct/2025:13:59:36 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.30.98 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.0.217 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:36  10.244.26.231 - - [06/Oct/2025:13:59:36 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  10.244.3.89 - - [06/Oct/2025:13:59:37 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  10.244.0.217 - - [06/Oct/2025:13:59:37 +0000] "GET /api/project-messages/cmflohtzc0082j8g49eokt3q8?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  10.244.30.98 - - [06/Oct/2025:13:59:37 +0000] "GET /api/project-messages/cmflohmur000fj8g4uv12pin3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  🚨 SERVER ERROR: {
-Oct 06 14:00:27  10.244.26.231 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:28  10.244.26.231 - - [06/Oct/2025:14:00:28 +0000] "GET /api/project-messages/cmflohoy40013j8g4x9yl8m9n?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:28  10.244.0.217 - - [06/Oct/2025:14:00:28 +0000] "GET /api/project-messages/cmflohtzc0082j8g49eokt3q8?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:28  10.244.3.89 - - [06/Oct/2025:14:00:28 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:28  10.244.30.98 - - [06/Oct/2025:14:00:28 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:30  10.244.44.151 - - [06/Oct/2025:14:00:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:40  10.244.44.151 - - [06/Oct/2025:14:00:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:50  10.244.44.151 - - [06/Oct/2025:14:00:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:00  10.244.44.151 - - [06/Oct/2025:14:01:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:10  10.244.44.151 - - [06/Oct/2025:14:01:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:13  GET /api/users/team-members - requested by userId=cmfld60ef0000bi0d8ky8hlot - found 21 teamMembers
-Oct 06 14:01:13  Sample teamMembers: [
-Oct 06 14:01:13    {
-Oct 06 14:01:13      id: 'cmflovwaf0006j8g4kb57rd0f',
-Oct 06 14:01:13      firstName: 'Andrew',
-Oct 06 14:01:13      lastName: 'Miller',
-Oct 06 14:01:13      email: 'andrew.miller@kenstruction.com',
-Oct 06 14:01:13      role: 'WORKER'
-Oct 06 14:01:13    },
-Oct 06 13:59:37    "timestamp": "2025-10-06T13:59:37.170Z",
-Oct 06 13:59:37    "method": "POST",
-Oct 06 13:59:37    "url": "/api/calendar-events",
-Oct 06 13:59:37    "ip": "10.244.0.217",
-Oct 06 13:59:37    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-Oct 06 13:59:37    "userId": "Anonymous",
-Oct 06 13:59:37    "error": {
-Oct 06 13:59:37      "name": "PrismaClientValidationError",
-Oct 06 13:59:37      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
-Oct 06 13:59:37      "statusCode": 500
-Oct 06 13:59:37    }
-Oct 06 13:59:37  }
-Oct 06 13:59:37  10.244.0.217 - - [06/Oct/2025:13:59:37 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  10.244.3.89 - - [06/Oct/2025:13:59:37 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:37  10.244.30.98 - - [06/Oct/2025:13:59:37 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:13    {
-Oct 06 14:01:13      id: 'cmft08dp600007n0dsyckkygd',
-Oct 06 14:01:13      firstName: 'chdoperations',
-Oct 06 14:01:13      lastName: '',
-Oct 06 14:01:13      email: 'chdoperations@gmail.com',
-Oct 06 14:01:13      role: 'WORKER'
-Oct 06 14:01:13    },
-Oct 06 14:01:13    {
-Oct 06 14:01:13      id: 'cmflo3ns50003j8g48bwa06n4',
-Oct 06 14:01:13      firstName: 'David',
-Oct 06 14:01:13      lastName: 'Anderson',
-Oct 06 14:01:13      email: 'david.anderson@kenstruction.com',
-Oct 06 14:01:13      role: 'FOREMAN'
-Oct 06 14:01:13    },
-Oct 06 14:01:13    {
-Oct 06 14:01:13      id: 'cmflovvn10004j8g4k7fy807f',
-Oct 06 14:01:13      firstName: 'David',
-Oct 06 14:01:13      lastName: 'Rodriguez',
-Oct 06 14:01:13      email: 'david.rodriguez@kenstruction.com',
-Oct 06 14:01:13      role: 'FOREMAN'
-Oct 06 14:01:13    },
-Oct 06 13:59:37  10.244.0.217 - - [06/Oct/2025:13:59:37 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:13    {
-Oct 06 14:01:13      id: 'cmflovwlc0007j8g4c0sjszys',
-Oct 06 14:01:13      firstName: 'Emily',
-Oct 06 14:01:13      lastName: 'Davis',
-Oct 06 13:59:38  10.244.0.217 - - [06/Oct/2025:13:59:38 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 13:59:40  10.244.11.1 - - [06/Oct/2025:13:59:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 13:59:50  10.244.11.1 - - [06/Oct/2025:13:59:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:00  🔍 Checking workflow alerts...
-Oct 06 14:00:00  📊 Using modernized alert generation via AlertGenerationService
-Oct 06 14:00:00  🚀 Generating alerts for 20 active projects
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 14:01:13      email: 'emily.davis@kenstruction.com',
-Oct 06 14:01:13      role: 'WORKER'
-Oct 06 14:01:13    }
-Oct 06 14:01:13  ]
-Oct 06 14:01:13  10.244.26.231 - - [06/Oct/2025:14:01:13 +0000] "GET /api/users/team-members HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:13  🔍 ROLES API: Fetching role assignments
-Oct 06 14:01:13  ✅ ROLES API: Found 4 role assignments
-Oct 06 14:01:13  10.244.30.98 - - [06/Oct/2025:14:01:13 +0000] "GET /api/roles HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:20  10.244.44.151 - - [06/Oct/2025:14:01:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:30  10.244.44.151 - - [06/Oct/2025:14:01:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:40  10.244.44.151 - - [06/Oct/2025:14:01:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:50  10.244.44.151 - - [06/Oct/2025:14:01:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:55  🔍 Project manager validation - req.body.projectManagerId: cmflovwaf0006j8g4kb57rd0f
-Oct 06 14:01:55  🔍 Found project manager: true Andrew Miller
-Oct 06 14:01:55  ✅ Project manager validated: cmflovwaf0006j8g4kb57rd0f
-Oct 06 14:01:55  🔍 Resolved project manager ID: cmflovwaf0006j8g4kb57rd0f
-Oct 06 14:01:55  🔍 Final project manager ID for project: cmflovwaf0006j8g4kb57rd0f
-Oct 06 14:01:55  Lead source Website not found, continuing without lead source
-Oct 06 14:01:56  ⚠️ Failed to create project folder: Cannot find module '../../src/services/assetsService'
-Oct 06 14:01:56  Require stack:
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
-Oct 06 14:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
-Oct 06 14:00:00  No new alerts to create
-Oct 06 14:00:00  ✅ Generated 0 new alerts
-Oct 06 14:00:00  10.244.11.1 - - [06/Oct/2025:14:00:00 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 14:00:10  10.244.11.1 - - [06/Oct/2025:14:00:10 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 14:00:20  10.244.11.1 - - [06/Oct/2025:14:00:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:23  10.244.3.89 - - [06/Oct/2025:14:00:23 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:27  10.244.0.217 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmflohqae0022j8g4t4od6hfn?page=1&limit=10&includeReplies=true HTTP/1.1" 200 922 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:27  10.244.30.98 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmflohmur000fj8g4uv12pin3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:27  10.244.26.231 - - [06/Oct/2025:14:00:27 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  - /app/routes/projects.js
-Oct 06 14:01:56  - /app/server.js
-Oct 06 14:01:56  ✅ Initialized ROOFING workflow for project cmgf79ee000059e0dz4y2y467 starting at phase LEAD with: Answer phone call
-Oct 06 14:01:56  ✅ Optimized workflow initialized with 57 steps
-Oct 06 14:01:56  ✅ Batch created 1 alerts for 1 projects
-Oct 06 14:01:56  ✅ First alert generated for new project cmgf79ee000059e0dz4y2y467: "Answer phone call - Test Tom"
-Oct 06 14:01:56  🔍 Project manager in response: {
-Oct 06 14:01:56    projectManagerId: 'cmflovwaf0006j8g4kb57rd0f',
-Oct 06 14:01:56    projectManagerName: 'Andrew Miller'
-Oct 06 14:01:56  }
-Oct 06 14:01:56  10.244.0.217 - - [06/Oct/2025:14:01:56 +0000] "POST /api/projects HTTP/1.1" 201 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 14:01:56  🔍 Where clause: { archived: false }
-Oct 06 14:01:56  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 14:01:56  10.244.3.89 - - [06/Oct/2025:14:01:56 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 200 98 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  🚨 ALERTS ROUTE: Found 16 alerts from database
-Oct 06 14:01:56  10.244.30.98 - - [06/Oct/2025:14:01:56 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:30  10.244.11.1 - - [06/Oct/2025:14:00:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:00:40  10.244.11.1 - - [06/Oct/2025:14:00:40 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 14:00:47  10.244.0.217 - - [06/Oct/2025:14:00:47 +0000] "DELETE /api/calendar-events/cmgf77eks00019e0dfzx32x8c HTTP/1.1" 200 64 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:00:50  10.244.11.1 - - [06/Oct/2025:14:00:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:00  10.244.11.1 - - [06/Oct/2025:14:01:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:10  10.244.11.1 - - [06/Oct/2025:14:01:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:20  10.244.11.1 - - [06/Oct/2025:14:01:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:30  10.244.11.1 - - [06/Oct/2025:14:01:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:40  10.244.11.1 - - [06/Oct/2025:14:01:40 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 14:01:50  10.244.11.1 - - [06/Oct/2025:14:01:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:01:55  10.244.0.217 - - [06/Oct/2025:14:01:55 +0000] "POST /api/customers HTTP/1.1" 201 506 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  10.244.30.98 - - [06/Oct/2025:14:01:56 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-Oct 06 14:01:56  10.244.26.231 - - [06/Oct/2025:14:01:56 +0000] "GET /api/project-messages/cmflohoy40013j8g4x9yl8m9n?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 14:01:56  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.30.98 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohtzc0082j8g49eokt3q8?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  🚨 ALERTS ROUTE: Found 16 alerts from database
-Oct 06 14:01:57  10.244.30.98 - - [06/Oct/2025:14:01:57 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.26.231 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.26.231 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohoy40013j8g4x9yl8m9n?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:56  10.244.0.217 - - [06/Oct/2025:14:01:56 +0000] "GET /api/project-messages/cmflohqae0022j8g4t4od6hfn?page=1&limit=10&includeReplies=true HTTP/1.1" 200 922 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.30.98 - - [06/Oct/2025:14:01:57 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  🔍 Where clause: { archived: false }
-Oct 06 14:01:57  🔍 OrderBy clause: { createdAt: 'desc' }
-Oct 06 14:01:57  10.244.26.231 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.30.98 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohmur000fj8g4uv12pin3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohqae0022j8g4t4od6hfn?page=1&limit=10&includeReplies=true HTTP/1.1" 200 922 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.26.231 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohvu900chj8g466nsgnw6?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:58  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
-Oct 06 14:01:58  🎯 API: Found position: {
-Oct 06 14:01:58    projectId: 'cmflohmur000fj8g4uv12pin3',
-Oct 06 14:01:58    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 14:01:58    phaseType: 'LEAD',
-Oct 06 14:01:58    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohvu900chj8g466nsgnw6?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.3.89 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.0.217 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohtzc0082j8g49eokt3q8?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  10.244.30.98 - - [06/Oct/2025:14:01:57 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:57  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 14:01:57  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
-Oct 06 14:01:58  10.244.3.89 - - [06/Oct/2025:14:01:58 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:58  10.244.26.231 - - [06/Oct/2025:14:01:58 +0000] "GET /api/project-messages/cmflohujv009fj8g4681eudhr?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:58  10.244.30.98 - - [06/Oct/2025:14:01:58 +0000] "GET /api/project-messages/cmflohmur000fj8g4uv12pin3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:58  10.244.3.89 - - [06/Oct/2025:14:01:58 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:58  🎯 API: Getting project position for: cmg8qpzr9000l960dvy6s4oum
-Oct 06 14:01:58  🎯 API: Found position: {
-Oct 06 14:01:58    projectId: 'cmg8qpzr9000l960dvy6s4oum',
-Oct 06 14:01:58    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 14:01:58    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 14:01:58    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 14:01:58    currentLineItemName: 'Answer phone call',
-Oct 06 14:01:58    sectionDisplayName: 'Initial Contact',
-Oct 06 14:01:58    phaseName: 'Lead'
-Oct 06 14:01:58  }
-Oct 06 14:01:58  10.244.3.89 - - [06/Oct/2025:14:01:58 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:01:58  🎯 API: Getting project position for: cmgf79ee000059e0dz4y2y467
-Oct 06 14:01:58  🎯 API: Found position: {
-Oct 06 14:01:58    projectId: 'cmgf79ee000059e0dz4y2y467',
-Oct 06 14:01:58    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 14:01:58    phaseType: 'LEAD',
-Oct 06 14:01:58    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 14:01:58    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 14:01:58    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 14:01:58    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
-Oct 06 14:01:58    currentLineItemName: 'Answer phone call',
-Oct 06 14:01:58    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
-Oct 06 14:01:58    phaseType: 'LEAD',
-Oct 06 14:01:58    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 14:01:58    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
-Oct 06 14:01:58    currentLineItem: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 14:01:58    currentLineItemId: 'cmflogzp80008j8a49q7kj67v',
-Oct 06 14:01:58    currentLineItemName: 'Create Calendar Appointment in AL',
-Oct 06 14:01:58    sectionDisplayName: 'Initial Contact',
-Oct 06 14:01:58    phaseName: 'Lead'
-Oct 06 14:01:58  }
-Oct 06 14:01:58  10.244.3.89 - - [06/Oct/2025:14:01:58 +0000] "GET /api/workflow-data/project-position/cmg8qpzr9000l960dvy6s4oum HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:00  10.244.11.1 - - [06/Oct/2025:14:02:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:10  10.244.11.1 - - [06/Oct/2025:14:02:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:16  10.244.3.89 - - [06/Oct/2025:14:02:16 +0000] "GET /api/documents/project/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 200 40 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:16  🚨 ALERTS ROUTE: Fetching workflow alerts...
-Oct 06 14:02:16  🚨 ALERTS ROUTE: Found 16 alerts from database
-Oct 06 14:02:16  10.244.26.231 - - [06/Oct/2025:14:02:16 +0000] "GET /api/alerts?status=active HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:16  GET /api/users/team-members - requested by userId=cmfld60ef0000bi0d8ky8hlot - found 21 teamMembers
-Oct 06 14:01:58    sectionDisplayName: 'Initial Contact',
-Oct 06 14:01:58    phaseName: 'Lead'
-Oct 06 14:01:58  }
-Oct 06 14:01:58  10.244.0.217 - - [06/Oct/2025:14:01:58 +0000] "GET /api/workflow-data/project-position/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:00  10.244.44.151 - - [06/Oct/2025:14:02:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:10  10.244.44.151 - - [06/Oct/2025:14:02:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:16  🔄 Redirecting to database-driven alerts...
-Oct 06 14:02:16  🔍 GENERATING REAL-TIME ALERTS with batch optimization...
-Oct 06 14:02:16  GET /api/users/team-members - requested by userId=cmfld60ef0000bi0d8ky8hlot - found 21 teamMembers
-Oct 06 14:02:16  Sample teamMembers: [
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovwaf0006j8g4kb57rd0f',
-Oct 06 14:02:16      firstName: 'Andrew',
-Oct 06 14:02:16      lastName: 'Miller',
-Oct 06 14:02:16      email: 'andrew.miller@kenstruction.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmft08dp600007n0dsyckkygd',
-Oct 06 14:02:16      firstName: 'chdoperations',
-Oct 06 14:02:16  Sample teamMembers: [
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovwaf0006j8g4kb57rd0f',
-Oct 06 14:02:16      firstName: 'Andrew',
-Oct 06 14:02:16      lastName: 'Miller',
-Oct 06 14:02:16      email: 'andrew.miller@kenstruction.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmft08dp600007n0dsyckkygd',
-Oct 06 14:02:16      firstName: 'chdoperations',
-Oct 06 14:02:16      lastName: '',
-Oct 06 14:02:16      email: 'chdoperations@gmail.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflo3ns50003j8g48bwa06n4',
-Oct 06 14:02:16      firstName: 'David',
-Oct 06 14:02:16      lastName: '',
-Oct 06 14:02:16      email: 'chdoperations@gmail.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflo3ns50003j8g48bwa06n4',
-Oct 06 14:02:16      firstName: 'David',
-Oct 06 14:02:16      lastName: 'Anderson',
-Oct 06 14:02:16      email: 'david.anderson@kenstruction.com',
-Oct 06 14:02:16      role: 'FOREMAN'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovvn10004j8g4k7fy807f',
-Oct 06 14:02:16      firstName: 'David',
-Oct 06 14:02:16      lastName: 'Rodriguez',
-Oct 06 14:02:16      email: 'david.rodriguez@kenstruction.com',
-Oct 06 14:02:16      role: 'FOREMAN'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovwlc0007j8g4c0sjszys',
-Oct 06 14:02:16      firstName: 'Emily',
-Oct 06 14:02:16      lastName: 'Davis',
-Oct 06 14:02:16      lastName: 'Anderson',
-Oct 06 14:02:16      email: 'david.anderson@kenstruction.com',
-Oct 06 14:02:16      role: 'FOREMAN'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovvn10004j8g4k7fy807f',
-Oct 06 14:02:16      firstName: 'David',
-Oct 06 14:02:16      lastName: 'Rodriguez',
-Oct 06 14:02:16      email: 'david.rodriguez@kenstruction.com',
-Oct 06 14:02:16      role: 'FOREMAN'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovwlc0007j8g4c0sjszys',
-Oct 06 14:02:16      firstName: 'Emily',
-Oct 06 14:02:16      lastName: 'Davis',
-Oct 06 14:02:16      email: 'emily.davis@kenstruction.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    }
-Oct 06 14:02:16  ]
-Oct 06 14:02:16      email: 'emily.davis@kenstruction.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    }
-Oct 06 14:02:16  ]
-Oct 06 14:02:16  10.244.26.231 - - [06/Oct/2025:14:02:16 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 14:02:16  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 14:02:16  No new alerts to create
-Oct 06 14:02:16  ✅ Generated 0 real-time alerts (batch optimized)
-Oct 06 14:02:16  10.244.26.231 - - [06/Oct/2025:14:02:16 +0000] "GET /api/alerts/project/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 200 115 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:16  10.244.3.89 - - [06/Oct/2025:14:02:16 +0000] "GET /api/documents/project/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:16  10.244.3.89 - - [06/Oct/2025:14:02:16 +0000] "GET /api/documents/project/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:16  10.244.26.231 - - [06/Oct/2025:14:02:16 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:20  10.244.11.1 - - [06/Oct/2025:14:02:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:30  10.244.11.1 - - [06/Oct/2025:14:02:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:36  10.244.3.89 - - [06/Oct/2025:14:02:36 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfx3hr720003ey0dovrk33gf&page=1&limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:40  10.244.11.1 - - [06/Oct/2025:14:02:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:16  GET /api/users/team-members - requested by userId=cmfld60ef0000bi0d8ky8hlot - found 21 teamMembers
-Oct 06 14:02:50  10.244.11.1 - - [06/Oct/2025:14:02:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:00  10.244.11.1 - - [06/Oct/2025:14:03:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:10  10.244.11.1 - - [06/Oct/2025:14:03:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:20  10.244.11.1 - - [06/Oct/2025:14:03:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:30  10.244.11.1 - - [06/Oct/2025:14:03:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:40  10.244.11.1 - - [06/Oct/2025:14:03:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:50  10.244.11.1 - - [06/Oct/2025:14:03:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:00  10.244.11.1 - - [06/Oct/2025:14:04:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:10  10.244.11.1 - - [06/Oct/2025:14:04:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:20  10.244.11.1 - - [06/Oct/2025:14:04:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:30  10.244.11.1 - - [06/Oct/2025:14:04:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:40  10.244.11.1 - - [06/Oct/2025:14:04:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:50  10.244.11.1 - - [06/Oct/2025:14:04:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:00  🔍 Checking workflow alerts...
-Oct 06 14:05:00  📊 Using modernized alert generation via AlertGenerationService
-Oct 06 14:05:00  🚀 Generating alerts for 21 active projects
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 14:02:16  Sample teamMembers: [
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovwaf0006j8g4kb57rd0f',
-Oct 06 14:02:16      firstName: 'Andrew',
-Oct 06 14:02:16      lastName: 'Miller',
-Oct 06 14:02:16      email: 'andrew.miller@kenstruction.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmft08dp600007n0dsyckkygd',
-Oct 06 14:02:16      firstName: 'chdoperations',
-Oct 06 14:02:16      lastName: '',
-Oct 06 14:02:16      email: 'chdoperations@gmail.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflo3ns50003j8g48bwa06n4',
-Oct 06 14:02:16      firstName: 'David',
-Oct 06 14:02:16      lastName: 'Anderson',
-Oct 06 14:02:16      email: 'david.anderson@kenstruction.com',
-Oct 06 14:02:16      role: 'FOREMAN'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovvn10004j8g4k7fy807f',
-Oct 06 14:02:16      firstName: 'David',
-Oct 06 14:02:16      lastName: 'Rodriguez',
-Oct 06 14:02:16      email: 'david.rodriguez@kenstruction.com',
-Oct 06 14:02:16      role: 'FOREMAN'
-Oct 06 14:02:16    },
-Oct 06 14:02:16    {
-Oct 06 14:02:16      id: 'cmflovwlc0007j8g4c0sjszys',
-Oct 06 14:02:16      firstName: 'Emily',
-Oct 06 14:02:16      lastName: 'Davis',
-Oct 06 14:02:16      email: 'emily.davis@kenstruction.com',
-Oct 06 14:02:16      role: 'WORKER'
-Oct 06 14:02:16    }
-Oct 06 14:02:16  ]
-Oct 06 14:02:16  10.244.26.231 - - [06/Oct/2025:14:02:16 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:20  10.244.44.151 - - [06/Oct/2025:14:02:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:30  10.244.44.151 - - [06/Oct/2025:14:02:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:32  10.244.0.217 - - [06/Oct/2025:14:02:32 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:32  10.244.3.89 - - [06/Oct/2025:14:02:32 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=100&type=FOLDER HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-Oct 06 14:02:40  10.244.44.151 - - [06/Oct/2025:14:02:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:02:50  10.244.44.151 - - [06/Oct/2025:14:02:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:00  10.244.44.151 - - [06/Oct/2025:14:03:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
-Oct 06 14:05:00  No new alerts to create
-Oct 06 14:05:00  ✅ Generated 0 new alerts
-Oct 06 14:05:00  10.244.11.1 - - [06/Oct/2025:14:05:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:10  10.244.11.1 - - [06/Oct/2025:14:05:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:10  10.244.44.151 - - [06/Oct/2025:14:03:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:20  10.244.44.151 - - [06/Oct/2025:14:03:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:30  10.244.44.151 - - [06/Oct/2025:14:03:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:40  10.244.44.151 - - [06/Oct/2025:14:03:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:03:50  10.244.44.151 - - [06/Oct/2025:14:03:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:00  10.244.44.151 - - [06/Oct/2025:14:04:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:10  10.244.44.151 - - [06/Oct/2025:14:04:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:20  10.244.44.151 - - [06/Oct/2025:14:04:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:30  10.244.44.151 - - [06/Oct/2025:14:04:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:40  10.244.44.151 - - [06/Oct/2025:14:04:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:04:50  10.244.44.151 - - [06/Oct/2025:14:04:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:00  🔍 Checking workflow alerts...
-Oct 06 14:05:00  📊 Using modernized alert generation via AlertGenerationService
-Oct 06 14:05:00  🚀 Generating alerts for 21 active projects
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
-Oct 06 14:05:20  10.244.11.1 - - [06/Oct/2025:14:05:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:30  10.244.11.1 - - [06/Oct/2025:14:05:30 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Oct 06 14:05:40  10.244.11.1 - - [06/Oct/2025:14:05:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
-Oct 06 14:05:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
-Oct 06 14:05:00  No new alerts to create
-Oct 06 14:05:00  ✅ Generated 0 new alerts
-Oct 06 14:05:00  10.244.44.151 - - [06/Oct/2025:14:05:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:10  10.244.44.151 - - [06/Oct/2025:14:05:10 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:20  10.244.44.151 - - [06/Oct/2025:14:05:20 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:30  10.244.44.151 - - [06/Oct/2025:14:05:30 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:40  10.244.44.151 - - [06/Oct/2025:14:05:40 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:50  10.244.11.1 - - [06/Oct/2025:14:05:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:05:50  10.244.44.151 - - [06/Oct/2025:14:05:50 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:06:00  10.244.11.1 - - [06/Oct/2025:14:06:00 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Oct 06 14:06:00  10.244.44.151 - - [06/Oct/2025:14:06:00 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+PS C:\Users\jimbo\roofing-project-2\server> npm start
+
+> kenstruction-server@0.1.0 start
+> node server.js
+
+🚀 Starting Kenstruction server...
+📅 Startup time: 2025-10-06T14:30:03.830Z
+🧪 Loaded environment from: C:\Users\jimbo\roofing-project-2\server\.env, C:\Users\jimbo\roofing-project-2\.env
+✅ DATABASE_URL configured from environment
+✅ Required modules loaded successfully
+✅ Uploads directory exists: C:\Users\jimbo\roofing-project-2\server\uploads
+✅ Company-assets directory exists: C:\Users\jimbo\roofing-project-2\server\uploads\company-assets
+✅ Documents directory exists: C:\Users\jimbo\roofing-project-2\server\uploads\documents
+✅ Uploads directory is writable
+📋 Loaded env from: C:\Users\jimbo\roofing-project-2\server\.env
+📋 Loaded env from: C:\Users\jimbo\roofing-project-2\.env
+🟡 Redis not configured - using in-memory cache fallback
+✅ Resend Email Service initialized
+🔍 OpenAI Initialization: Checking for API key...
+🔍 API Key present: true
+🔍 API Key length: 164
+🔍 API Key first 20 chars: sk-proj-0FpUNM3i-zgS...
+🔍 API Key last 4 chars: ...wk0A
+🔍 OpenAI: Loading OpenAI package...
+🔍 OpenAI: Creating v4 client...
+✅ OpenAI service initialized successfully with model: gpt-4o
+✅ Bubbles: OpenAIService loaded
+✅ Bubbles: BubblesInsightsService loaded
+✅ Bubbles: WorkflowActionService loaded
+✅ SERVER: Bubbles routes loaded successfully
+🔧 SERVER: Loading workflow routes...
+🔧 WORKFLOW ROUTES: Loading workflow routes module
+✅ SERVER: Workflow routes loaded successfully
+🔧 PHASE OVERRIDE ROUTES: Loading phase override routes module
+🚀 ONBOARDING: Loading onboarding routes module
+🔧 SERVER: Loading workflow import routes...
+✅ SERVER: Workflow import routes loaded successfully
+🔧 SERVER: Loading project import routes...
+✅ SERVER: Project import routes loaded successfully
+📁 Uploads directory: C:\Users\jimbo\roofing-project-2\server\uploads
+📁 Uploads exists: true
+📁 Fallback uploads directory: C:\Users\jimbo\roofing-project-2\uploads
+✅ SERVER: Workflow routes registered at /api/workflows
+✅ SERVER: Bubbles routes registered at /api/bubbles
+✅ SERVER: Bubbles Context routes registered at /api/bubbles/context
+✅ SERVER: Workflow import routes registered at /api/workflow-import
+✅ SERVER: Project import routes registered at /api/project-import
+✅ TranscriptAIService: OpenAI initialized successfully
+📅 Starting overdue alert scheduler (checking every 30 minutes)
+🔧 Debug: PORT from env = undefined, final PORT = 5000
+🔧 Debug: NODE_ENV = undefined
+🔧 Debug: DATABASE_URL present = true
+🔧 Debug: JWT_SECRET present = true
+🚀 Kenstruction server running on port 5000
+🌍 Environment: development
+🔗 API Base URL: http://0.0.0.0:5000/api
+📡 Socket.IO server ready for real-time connections
+✅ Server startup completed successfully
+✅ Connected to PostgreSQL database successfully
+📊 Database ready - Found 18 users
+✅ Database connection established, initializing services...
+🔧 Ensuring lead_sources schema and projects.lead_source_id column exist...
+✅ No overdue alerts found
+✅ Lead sources schema ensured
+🧱 Lead sources schema ensured (startup)
+ℹ️ Embeddings table uses text storage - skipping vector index creaation
+🧮 pgvector schema ready
+📦 Initializing Alert Cache Service...
+🚨 WorkflowAlertService ENABLED - PostgreSQL migration complete
+⏰ Alert Scheduler ENABLED - PostgreSQL migration complete        
+🚀 Alert scheduler started - checking workflow deadlines every 5 minutes
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService   
+🔥 Warmed up alert cache for 1 active users
+✅ Alert cache warmed up
+🚀 Generating alerts for 26 active projects
+⚠️ Skipping duplicate alert for Answer phone call on project 10001
+⚠️ Skipping duplicate alert for Answer phone call on project 10026
+⚠️ Skipping duplicate alert for Answer phone call on project 10024
+⚠️ Skipping duplicate alert for Answer phone call on project 10022
+⚠️ Skipping duplicate alert for Answer phone call on project 10025
+⚠️ Skipping duplicate alert for Answer phone call on project 10023
+⚠️ Skipping duplicate alert for Take site photos on project 10006
+⚠️ Skipping duplicate alert for Take site photos on project 10005
+⚠️ Skipping duplicate alert for Take site photos on project 10004
+⚠️ Skipping duplicate alert for Take site photos on project 10002
+⚠️ Skipping duplicate alert for Take site photos on project 10003
+⚠️ Skipping duplicate alert for Complete inspection form on projecct 10021
+⚠️ Skipping duplicate alert for Confirm shingle choice on project  10009
+⚠️ Skipping duplicate alert for Confirm shingle choice on project  10008
+⚠️ Skipping duplicate alert for Confirm shingle choice on project  10007
+⚠️ Skipping duplicate alert for Document work start on project 100012
+⚠️ Skipping duplicate alert for Document work start on project 100011
+⚠️ Skipping duplicate alert for Document work start on project 100010
+⚠️ Skipping duplicate alert for Assess additional damage on projecct 10014
+⚠️ Skipping duplicate alert for Assess additional damage on projecct 10013
+No new alerts to create
+✅ Generated 0 new alerts
+127.0.0.1 - - [06/Oct/2025:14:30:54 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=1000&sortBy=title&sortOrder=asc&type=FOLDER HTTP/1.1" 401 63 "-" "axios/1.11.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:24 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+🚨 ALERTS ROUTE: Fetching workflow alerts...
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+👥 ROLES API: Fetching available users
+📭 Cache miss: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"}
+🔍 ACTIVITIES: User from request: {
+  id: 'cmfld60ef0000bi0d8ky8hlot',
+  firstName: 'jimbosky35',
+  lastName: '',
+  email: 'jimbosky35@gmail.com',
+  role: 'WORKER',
+  permissions: [],
+  isActive: true,
+  theme: 'LIGHT',
+  lastLogin: 2025-10-06T14:31:25.055Z,
+  createdAt: 2025-09-15T16:54:10.310Z,
+  updatedAt: 2025-10-06T14:31:25.056Z
+}
+🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...
+🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+✅ ROLES API: Found 18 active users
+127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "GET /api/roles/users HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Found 20 alerts from database
+127.0.0.1 - - [06/Oct/2025:14:31:25 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
+127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/activities HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/projects HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:26 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+👥 ROLES API: Fetching available users
+🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv
+✅ ROLES API: Found 18 active users
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/roles/users HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq
+🎯 API: Found position: {
+  projectId: 'cmgen6og30002j8v4bru6mfgv',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmflohlx1000aj8g4p9renutq',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx
+🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9
+🎯 API: Getting project position for: cmgf6ri550002j86cueu0mz21
+🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6
+🎯 API: Found position: {
+  projectId: 'cmgenlnpt0002j8m0p69qemgx',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgenwf480002j8is1zivlzr9',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmg33hsh80006j8ccb7c0o4a6',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgf6ri550002j86cueu0mz21',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:31:27 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:28 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:28 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:31:28 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Checking workflow alerts...
+📊 Using modernized alert generation via AlertGenerationService
+🚀 Generating alerts for 26 active projects
+⚠️ Skipping duplicate alert for Answer phone call on project 10001
+⚠️ Skipping duplicate alert for Answer phone call on project 10026
+⚠️ Skipping duplicate alert for Answer phone call on project 10024
+⚠️ Skipping duplicate alert for Answer phone call on project 10022
+⚠️ Skipping duplicate alert for Answer phone call on project 10025
+⚠️ Skipping duplicate alert for Answer phone call on project 10023
+⚠️ Skipping duplicate alert for Take site photos on project 10006 
+⚠️ Skipping duplicate alert for Take site photos on project 10005 
+⚠️ Skipping duplicate alert for Take site photos on project 10004 
+⚠️ Skipping duplicate alert for Take site photos on project 10002 
+⚠️ Skipping duplicate alert for Take site photos on project 10003 
+⚠️ Skipping duplicate alert for Complete inspection form on projecct 10021
+⚠️ Skipping duplicate alert for Confirm shingle choice on project  10009
+⚠️ Skipping duplicate alert for Confirm shingle choice on project  10008
+⚠️ Skipping duplicate alert for Confirm shingle choice on project  10007
+⚠️ Skipping duplicate alert for Document work start on project 100012
+⚠️ Skipping duplicate alert for Document work start on project 100011
+⚠️ Skipping duplicate alert for Document work start on project 100010
+⚠️ Skipping duplicate alert for Assess additional damage on projecct 10014
+⚠️ Skipping duplicate alert for Assess additional damage on projecct 10013
+No new alerts to create
+✅ Generated 0 new alerts
+GET /api/users/team-members - requested by userId=cmfld60ef0000bi0d8ky8hlot - found 18 teamMembers
+Sample teamMembers: [
+  {
+    id: 'cmflovwaf0006j8g4kb57rd0f',
+    firstName: 'Andrew',
+    lastName: 'Miller',
+    email: 'andrew.miller@kenstruction.com',
+    role: 'WORKER'
+  },
+  {
+    id: 'cmflo3ns50003j8g48bwa06n4',
+    firstName: 'David',
+    lastName: 'Anderson',
+    email: 'david.anderson@kenstruction.com',
+    role: 'FOREMAN'
+  },
+  {
+    id: 'cmflovvn10004j8g4k7fy807f',
+    firstName: 'David',
+    lastName: 'Rodriguez',
+    email: 'david.rodriguez@kenstruction.com',
+    role: 'FOREMAN'
+  },
+  {
+    id: 'cmflovwlc0007j8g4c0sjszys',
+    firstName: 'Emily',
+    lastName: 'Davis',
+    email: 'emily.davis@kenstruction.com',
+    role: 'WORKER'
+  },
+  {
+    id: 'cmflo3nwx0007j8g4dg1bhbs0',
+    firstName: 'James',
+    lastName: 'Taylor',
+    email: 'james.taylor@kenstruction.com',
+    role: 'MANAGER'
+  }
+]
+127.0.0.1 - - [06/Oct/2025:14:36:29 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 ROLES API: Fetching role assignments
+✅ ROLES API: Found 4 role assignments
+127.0.0.1 - - [06/Oct/2025:14:36:29 +0000] "GET /api/roles HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:36:59 +0000] "POST /api/customers HTTP/1.1" 201 517 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Project manager validation - req.body.projectManagerId: cmflo3nqx0002j8g4u4cykcb5
+🔍 Found project manager: true Jennifer Thompson
+✅ Project manager validated: cmflo3nqx0002j8g4u4cykcb5
+🔍 Resolved project manager ID: cmflo3nqx0002j8g4u4cykcb5
+🔍 Final project manager ID for project: cmflo3nqx0002j8g4u4cykcb5
+Lead source Website not found, continuing without lead source
+127.0.0.1 - - [06/Oct/2025:14:37:05 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=1000&sortBy=title&sortOrder=asc&type=FOLDER HTTP/1.1" 401 63 "-" "axios/1.11.0"
+⚠️ Failed to create project folder: Request failed with status codde 401
+✅ Initialized ROOFING workflow for project cmgf8ii460002j8mk5niqxu5m starting at phase LEAD with: Answer phone call
+✅ Optimized workflow initialized with 57 steps
+✅ Batch created 1 alerts for 1 projects
+✅ First alert generated for new project cmgf8ii460002j8mk5niqxu5m: "Answer phone call - test customer"
+🔍 Project manager in response: {
+  projectManagerId: 'cmflo3nqx0002j8g4u4cykcb5',
+  projectManagerName: 'Jennifer Thompson'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:09 +0000] "POST /api/projects HTTP/1.1" 201 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+🚨 ALERTS ROUTE: Fetching workflow alerts...
+🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Found 21 alerts from database
+127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:10 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🚨 ALERTS ROUTE: Fetching workflow alerts...
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/auth/me HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🔍 Where clause: { archived: false }
+🔍 OrderBy clause: { createdAt: 'desc' }
+🚨 ALERTS ROUTE: Found 21 alerts from database
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:11 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/project-messages/cmfloht6x006pj8g4vfqs62so?page=1&limit=10&includeReplies=true HTTP/1.1" 200 915 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/project-messages/cmflohs2o004nj8g48irw5cwo?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv
+🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6
+🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq   
+🎯 API: Getting project position for: cmgf8ii460002j8mk5niqxu5m   
+🎯 API: Getting project position for: cmgf6ri550002j86cueu0mz21
+🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx   
+🎯 API: Found position: {
+  projectId: 'cmgf8ii460002j8mk5niqxu5m',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgf8ii460002j8mk5niqxu5m HTTP/1.1" 200 413 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgenlnpt0002j8m0p69qemgx',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmg33hsh80006j8ccb7c0o4a6',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgen6og30002j8v4bru6mfgv',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmflohlx1000aj8g4p9renutq',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Found position: {
+  projectId: 'cmgf6ri550002j86cueu0mz21',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:12 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9
+🎯 API: Found position: {
+  projectId: 'cmgenwf480002j8is1zivlzr9',
+  currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+  phaseType: 'LEAD',
+  currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+  currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+  currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+  currentLineItemName: 'Answer phone call',
+  sectionDisplayName: 'Initial Contact',
+  phaseName: 'Lead'
+}
+127.0.0.1 - - [06/Oct/2025:14:37:13 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=100&type=FOLDER HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:21 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=100&type=FOLDER HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:25 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfwrah4m0001j8rw1lk91wcn&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:36 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfyhozo10005j8fomoty8wvd&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:41 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfwrah4m0001j8rw1lk91wcn&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:48 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfws2qbc0003j8rw7grjck3e&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:51 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmgecp3rc0015j89gdcafi9j1&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:52 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+127.0.0.1 - - [06/Oct/2025:14:37:54 +0000] "GET /api/company-docs-enhanced/assets?parentId=cmfwrah4m0001j8rw1lk91wcn&page=1&limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"

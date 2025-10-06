@@ -775,40 +775,89 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       }
     }
 
-    // Create project folder in Documents & Resources
+    // Create project folder in Documents & Resources using direct Prisma operations
     try {
-      const assetsService = require('../../src/services/assetsService').assetsService;
-      
       // Get or create Projects root folder
-      const roots = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
-      let projectsRoot = roots.find(r => (r.folderName || r.title) === 'Projects');
+      let projectsRoot = await prisma.companyAsset.findFirst({
+        where: {
+          title: 'Projects',
+          parentId: null,
+          type: 'FOLDER',
+          isActive: true
+        }
+      });
+      
       if (!projectsRoot) {
-        projectsRoot = await assetsService.createFolder({ name: 'Projects', parentId: null });
+        projectsRoot = await prisma.companyAsset.create({
+          data: {
+            title: 'Projects',
+            folderName: 'Projects',
+            type: 'FOLDER',
+            parentId: null,
+            uploadedById: req.user.id,
+            accessLevel: 'private',
+            path: 'Projects',
+            metadata: {
+              icon: 'folder',
+              color: '#3B82F6',
+              createdBy: `${req.user.firstName} ${req.user.lastName}`,
+              createdAt: new Date().toISOString()
+            },
+            isActive: true
+          }
+        });
+        console.log('✅ Created Projects root folder');
       }
       
       // Create project folder with correct format: "Project Number - Primary Customer Contact"
       const primaryContact = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || 'Unknown';
       const folderName = `${project.projectNumber} - ${primaryContact}`;
       
-      const projectFolder = await assetsService.createFolder({
-        name: folderName,
-        parentId: projectsRoot.id,
-        metadata: {
-          projectId: project.id,
-          projectNumber: project.projectNumber,
-          customerName: primaryContact,
-          address: project.projectName,
-          isProjectFolder: true
+      // Check if project folder already exists
+      const existingFolder = await prisma.companyAsset.findFirst({
+        where: {
+          title: folderName,
+          parentId: projectsRoot.id,
+          type: 'FOLDER',
+          isActive: true
         }
       });
       
-      console.log('✅ Created project folder:', folderName, 'with ID:', projectFolder.id);
-      console.log('📁 Project folder details:', {
-        id: projectFolder.id,
-        name: projectFolder.title || projectFolder.folderName,
-        parentId: projectFolder.parentId,
-        metadata: projectFolder.metadata
-      });
+      if (!existingFolder) {
+        const projectFolder = await prisma.companyAsset.create({
+          data: {
+            title: folderName,
+            folderName: folderName,
+            type: 'FOLDER',
+            parentId: projectsRoot.id,
+            uploadedById: req.user.id,
+            accessLevel: 'private',
+            path: `${projectsRoot.path}/${folderName}`,
+            metadata: {
+              projectId: project.id,
+              projectNumber: project.projectNumber,
+              customerName: primaryContact,
+              address: project.projectName,
+              isProjectFolder: true,
+              icon: 'folder',
+              color: '#10B981',
+              createdBy: `${req.user.firstName} ${req.user.lastName}`,
+              createdAt: new Date().toISOString()
+            },
+            isActive: true
+          }
+        });
+        
+        console.log('✅ Created project folder:', folderName, 'with ID:', projectFolder.id);
+        console.log('📁 Project folder details:', {
+          id: projectFolder.id,
+          name: projectFolder.title,
+          parentId: projectFolder.parentId,
+          metadata: projectFolder.metadata
+        });
+      } else {
+        console.log('📁 Project folder already exists:', folderName);
+      }
     } catch (folderError) {
       console.warn('⚠️ Failed to create project folder:', folderError.message);
       // Don't fail project creation if folder creation fails
