@@ -207,13 +207,40 @@ router.post('/', asyncHandler(async (req, res) => {
     }
   }
 
+  // Validate and parse dates
+  const startDate = new Date(startTime);
+  const endDate = new Date(endTime);
+  
+  // Check if dates are valid
+  if (isNaN(startDate.getTime())) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid startTime provided'
+    });
+  }
+  
+  if (isNaN(endDate.getTime())) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid endTime provided'
+    });
+  }
+  
+  // Ensure endTime is after startTime
+  if (endDate <= startDate) {
+    return res.status(400).json({
+      success: false,
+      message: 'endTime must be after startTime'
+    });
+  }
+
   // Create event
   const event = await prisma.calendarEvent.create({
     data: {
       title,
       description,
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
+      startTime: startDate,
+      endTime: endDate,
       location,
       isAllDay: isAllDay || false,
       eventType: eventType ? eventType.toUpperCase() : 'MEETING',
@@ -317,12 +344,43 @@ router.put('/:id', asyncHandler(async (req, res, next) => {
     }
   }
 
+  // Validate dates if provided
+  let startDate, endDate;
+  
+  if (startTime) {
+    startDate = new Date(startTime);
+    if (isNaN(startDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid startTime provided'
+      });
+    }
+  }
+  
+  if (endTime) {
+    endDate = new Date(endTime);
+    if (isNaN(endDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid endTime provided'
+      });
+    }
+  }
+  
+  // If both dates are provided, ensure endTime is after startTime
+  if (startDate && endDate && endDate <= startDate) {
+    return res.status(400).json({
+      success: false,
+      message: 'endTime must be after startTime'
+    });
+  }
+
   // Prepare update data
   const updateData = {
     title,
     description,
-    startTime: startTime ? new Date(startTime) : undefined,
-    endTime: endTime ? new Date(endTime) : undefined,
+    startTime: startDate,
+    endTime: endDate,
     location,
     isAllDay,
     eventType: eventType ? eventType.toUpperCase() : undefined,

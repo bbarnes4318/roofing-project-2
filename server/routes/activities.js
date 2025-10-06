@@ -121,28 +121,10 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
     throw new AppError('Authentication required', 401);
   }
   
-  // Build where clause to show messages user has access to:
-  // 1. Messages the user authored (sent messages)
-  // 2. Messages where user is a recipient (via ProjectMessageRecipient)
-  // 3. Messages in projects where user is manager or team member (received messages)
+  // Build where clause to show ALL messages to all users
   // IMPORTANT: Exclude reply messages (parentMessageId !== null) to prevent duplicate containers
   const where = {
-    parentMessageId: null, // Only fetch top-level messages, not replies
-    OR: [
-      // Messages authored by current user (sent messages)
-      { authorId: req.user.id },
-      // Messages where user is explicitly a recipient
-      { recipients: { some: { userId: req.user.id } } },
-      // Messages in projects where user is project manager or team member (received messages)
-      {
-        project: {
-          OR: [
-            { projectManagerId: req.user.id },
-            { teamMembers: { some: { userId: req.user.id } } }
-          ]
-        }
-      }
-    ]
+    parentMessageId: null // Only fetch top-level messages, not replies
   };
   
   if (projectId) {
@@ -157,25 +139,14 @@ router.get('/', cacheService.middleware('activities', 60), asyncHandler(async (r
   try {
     console.log('🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...');
 
-    // Build where clauses for tasks and reminders
-    const taskWhere = {
-      OR: [
-        { createdById: req.user.id },
-        { assignedToId: req.user.id },
-        { project: { OR: [ { projectManagerId: req.user.id }, { teamMembers: { some: { userId: req.user.id } } } ] } }
-      ]
-    };
-    if (projectId) taskWhere.AND = [{ projectId }];
+    // Build where clauses for tasks and reminders - Show ALL to all users
+    const taskWhere = {};
+    if (projectId) taskWhere.projectId = projectId;
 
     const eventWhere = {
-      eventType: 'REMINDER',
-      OR: [
-        { organizerId: req.user.id },
-        { attendees: { some: { userId: req.user.id } } },
-        { project: { OR: [ { projectManagerId: req.user.id }, { teamMembers: { some: { userId: req.user.id } } } ] } }
-      ]
+      eventType: 'REMINDER'
     };
-    if (projectId) eventWhere.AND = [{ projectId }];
+    if (projectId) eventWhere.projectId = projectId;
 
     const fetchSize = limitNum * 3; // over-fetch to ensure we can page after merge
 
@@ -253,25 +224,10 @@ router.get('/recent', asyncHandler(async (req, res) => {
   try {
     console.log(`🔍 ACTIVITIES: Fetching ${limitNum} recent activities for user ${req.user.id}...`);
     
-    // Build where clause to show messages user has access to
+    // Build where clause to show ALL messages to all users
     // IMPORTANT: Exclude reply messages to prevent duplicate containers
     const where = {
-      parentMessageId: null, // Only fetch top-level messages, not replies
-      OR: [
-        // Messages authored by current user (sent messages)
-        { authorId: req.user.id },
-        // Messages where user is explicitly a recipient
-        { recipients: { some: { userId: req.user.id } } },
-        // Messages in projects where user is project manager or team member (received messages)
-        {
-          project: {
-            OR: [
-              { projectManagerId: req.user.id },
-              { teamMembers: { some: { userId: req.user.id } } }
-            ]
-          }
-        }
-      ]
+      parentMessageId: null // Only fetch top-level messages, not replies
     };
 
     // Fetch recent messages, tasks, and reminders

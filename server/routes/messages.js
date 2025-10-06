@@ -61,15 +61,8 @@ router.get('/', asyncHandler(async (req, res) => {
     unreadOnly = false
   } = req.query;
 
-  // Build filter object
-  let where = {
-    OR: [
-      { senderId: req.user.id },
-      { recipientId: req.user.id },
-      { type: 'ANNOUNCEMENT' }, // Everyone can see announcements
-      { participants: { has: req.user.id } } // Group messages
-    ]
-  };
+  // Build filter object - Show ALL messages to all users
+  let where = {};
   
   if (type) where.type = type;
   if (projectId) where.projectId = projectId;
@@ -194,15 +187,8 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
     return next(new AppError('Message not found', 404));
   }
 
-  // Check if user has access to this message
-  const hasAccess = message.senderId === req.user.id ||
-                   message.recipientId === req.user.id ||
-                   message.type === 'ANNOUNCEMENT' ||
-                   message.participants?.includes(req.user.id);
-
-  if (!hasAccess) {
-    return next(new AppError('Access denied', 403));
-  }
+  // Allow all users to access all messages
+  // No access restrictions - all messages are viewable by all users
 
   // Mark as read if user is recipient
   if (message.recipientId === req.user.id && 
