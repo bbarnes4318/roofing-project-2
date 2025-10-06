@@ -801,7 +801,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         
         // Find or create project folder
         const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
-        const name = project.projectName || project.name || `Project ${project.id}`;
+        
+        // Use the correct format: "Project [number] - [customer name]"
+        const customerName = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || project.customerName || 'Unknown';
+        const name = `Project ${project.projectNumber} - ${customerName}`;
         
         // FIRST: Try to find by project number in metadata (most reliable)
         let projectFolder = null;
@@ -813,20 +816,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           }
         }
         
-        // SECOND: If not found by project number, try by project number format in name (e.g., "Project 10020 - Robert Anderson")
-        if (!projectFolder && project.projectNumber) {
-          const projectNumberPattern = new RegExp(`Project\\s+${project.projectNumber}\\s*-`, 'i');
-          projectFolder = children.find(c => {
-            const folderName = c.folderName || c.title || '';
-            return projectNumberPattern.test(folderName);
-          });
-          console.log('🔍 Searching for project folder by number pattern:', projectNumberPattern, 'Found:', !!projectFolder);
-          if (projectFolder) {
-            console.log('📁 Found project folder by pattern:', projectFolder.title || projectFolder.folderName);
-          }
-        }
-        
-        // THIRD: If not found by project number, try by exact name match (fallback)
+        // SECOND: If not found by project number, try by exact name match
         if (!projectFolder) {
           projectFolder = children.find(c => (c.folderName || c.title) === name);
           console.log('🔍 Searching for project folder by name:', name, 'Found:', !!projectFolder);
@@ -837,7 +827,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           const metadata = {
             projectId: project.id,
             projectNumber: project.projectNumber,
-            customerName: project.customer?.primaryName || project.customerName || '',
+            customerName: customerName,
             address: project.projectName || project.name || '',
             isProjectFolder: true
           };
