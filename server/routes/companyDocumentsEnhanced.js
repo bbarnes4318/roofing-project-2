@@ -866,13 +866,7 @@ router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, r
 
   // Try to find in CompanyAsset first
   let asset = await prisma.companyAsset.findUnique({
-    where: { id },
-    include: {
-      versions: {
-        where: { isCurrent: true },
-        take: 1
-      }
-    }
+    where: { id }
   });
   
   console.log('🔍 CompanyAsset lookup result:', !!asset);
@@ -913,8 +907,8 @@ router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, r
     throw new AppError('Access denied', 403);
   }
 
-  // Use current version if available
-  const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
+  // Use file URL directly (no versions in CompanyAsset)
+  const fileUrl = asset.fileUrl;
   const key = extractSpacesKey(fileUrl);
 
   if (!key) {
