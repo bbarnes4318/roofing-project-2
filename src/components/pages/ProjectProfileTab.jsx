@@ -784,23 +784,106 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
 
       setUploading(true);
       try {
-        const formData = new FormData();
-        selectedFiles.forEach((file) => {
-          formData.append('files', file);
-        });
-        formData.append('projectId', project.id);
-        formData.append('description', 'Uploaded from Project Profile');
-        formData.append('fileType', 'OTHER');
-        formData.append('isPublic', 'false');
+        // First, ensure project folder exists in assets
+        const { assetsService } = await import('../../services/assetsService');
+        
+        // Get or create Projects root folder
+        const roots = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+        let root = roots.find(r => (r.folderName || r.title) === 'Projects');
+        if (!root) {
+          root = await assetsService.createFolder({ name: 'Projects', parentId: null });
+          if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
+        }
+        
+        if (!root || !root.id) {
+          throw new Error('Failed to get or create Projects root folder');
+        }
+        
+        // Find or create project folder
+        const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+        const name = project.projectName || project.name || `Project ${project.id}`;
+        
+        // FIRST: Try to find by project number in metadata (most reliable)
+        let projectFolder = null;
+        if (project.projectNumber) {
+          projectFolder = children.find(c => c.metadata?.projectNumber === project.projectNumber);
+          console.log('🔍 Searching for project folder by project number:', project.projectNumber, 'Found:', !!projectFolder);
+          if (projectFolder) {
+            console.log('📁 Found project folder by number:', projectFolder.title || projectFolder.folderName);
+          }
+        }
+        
+        // SECOND: If not found by project number, try by project number format in name (e.g., "Project 10020 - Robert Anderson")
+        if (!projectFolder && project.projectNumber) {
+          const projectNumberPattern = new RegExp(`Project\\s+${project.projectNumber}\\s*-`, 'i');
+          projectFolder = children.find(c => {
+            const folderName = c.folderName || c.title || '';
+            return projectNumberPattern.test(folderName);
+          });
+          console.log('🔍 Searching for project folder by number pattern:', projectNumberPattern, 'Found:', !!projectFolder);
+          if (projectFolder) {
+            console.log('📁 Found project folder by pattern:', projectFolder.title || projectFolder.folderName);
+          }
+        }
+        
+        // THIRD: If not found by project number, try by exact name match (fallback)
+        if (!projectFolder) {
+          projectFolder = children.find(c => (c.folderName || c.title) === name);
+          console.log('🔍 Searching for project folder by name:', name, 'Found:', !!projectFolder);
+        }
+        
+        // Create project folder if it doesn't exist
+        if (!projectFolder) {
+          const metadata = {
+            projectId: project.id,
+            projectNumber: project.projectNumber,
+            customerName: project.customer?.primaryName || project.customerName || '',
+            address: project.projectName || project.name || '',
+            isProjectFolder: true
+          };
+          projectFolder = await assetsService.createFolder({
+            name,
+            parentId: root.id,
+            metadata: metadata
+          });
+        }
+        
+        console.log('📁 Using project folder for assets:', projectFolder?.id, projectFolder?.title);
+        
+        // Upload files one by one since the endpoint only supports single file upload
+        for (const file of selectedFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('projectId', project.id);
+          formData.append('description', 'Uploaded from Project Profile');
+          formData.append('fileType', 'OTHER');
+          formData.append('isPublic', 'false');
 
-        await documentService.uploadDocument(formData);
-        toast.success('Documents uploaded successfully!');
+          await documentService.uploadDocument(formData);
+          
+          // Also upload to assets service for organization
+          await assetsService.uploadFiles({ 
+            files: [file], 
+            parentId: projectFolder?.id || null, 
+            description: 'Uploaded from Project Profile',
+            tags: []
+          });
+        }
+        
+        // Refresh file manager
+        if (typeof window?.dispatchEvent === 'function') {
+          window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: projectFolder?.id || null } }));
+          window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
+        }
+        
+        toast.success('Documents uploaded and organized in project folder!');
         setUploadModalOpen(false);
         setSelectedFiles([]);
         // Reload documents
         const res = await documentsService.getByProject(project.id);
         setDocs(Array.isArray(res?.data?.documents) ? res.data.documents : []);
       } catch (error) {
+        console.error('Upload failed:', error);
         toast.error(`Upload failed: ${error.message}`);
       } finally {
         setUploading(false);
@@ -845,18 +928,65 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               <div>Uploaded</div>
               <div className="text-right pr-1">Actions</div>
             </div>
-            {docs.map(d => (
-              <div key={d.id} className="min-w-[780px] grid gap-2 items-center px-2 py-2 border-b text-xs" style={{ gridTemplateColumns: gridTemplate }}>
-                <a href={`${API_ORIGIN}${d.fileUrl}`} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline whitespace-nowrap overflow-hidden text-ellipsis" title={d.originalName || d.fileName}>{d.originalName || d.fileName}</a>
-                <div className="text-gray-700 truncate" title={d.mimeType || d.fileType}>{d.mimeType || d.fileType}</div>
-                <div className="text-gray-700">{formatBytes(d.fileSize)}</div>
-                <div className="text-gray-700">{new Date(d.createdAt || d.updatedAt || Date.now()).toLocaleDateString()}</div>
-                <div className="text-right space-x-3">
-                  <a href={`${API_ORIGIN}${d.fileUrl}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Preview</a>
-                  <a href={`${API_ORIGIN}${d.fileUrl}`} target="_blank" rel="noreferrer" download className="text-blue-600 hover:underline">Download</a>
+            {docs.map(d => {
+              const handleDownload = async (e) => {
+                e.preventDefault();
+                try {
+                  const response = await documentsService.download(d.id);
+                  const blob = response.data;
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = d.originalName || d.fileName || 'document';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  console.error('Download failed:', error);
+                  toast.error('Failed to download document');
+                }
+              };
+
+              const handlePreview = async (e) => {
+                e.preventDefault();
+                try {
+                  const response = await documentsService.download(d.id);
+                  const blob = response.data;
+                  const url = window.URL.createObjectURL(blob);
+                  window.open(url, '_blank', 'noopener');
+                  setTimeout(() => window.URL.revokeObjectURL(url), 60000); // Clean up after 1 minute
+                } catch (error) {
+                  console.error('Preview failed:', error);
+                  toast.error('Failed to preview document');
+                }
+              };
+              
+              return (
+                <div key={d.id} className="min-w-[780px] grid gap-2 items-center px-2 py-2 border-b text-xs" style={{ gridTemplateColumns: gridTemplate }}>
+                  <div className="font-medium text-blue-700 whitespace-nowrap overflow-hidden text-ellipsis" title={d.originalName || d.fileName}>
+                    {d.originalName || d.fileName}
+                  </div>
+                  <div className="text-gray-700 truncate" title={d.mimeType || d.fileType}>{d.mimeType || d.fileType}</div>
+                  <div className="text-gray-700">{formatBytes(d.fileSize)}</div>
+                  <div className="text-gray-700">{new Date(d.createdAt || d.updatedAt || Date.now()).toLocaleDateString()}</div>
+                  <div className="text-right space-x-3">
+                    <button 
+                      onClick={handlePreview}
+                      className="text-blue-600 hover:underline cursor-pointer"
+                    >
+                      Preview
+                    </button>
+                    <button 
+                      onClick={handleDownload}
+                      className="text-blue-600 hover:underline cursor-pointer"
+                    >
+                      Download
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         

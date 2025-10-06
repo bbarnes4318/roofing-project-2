@@ -456,27 +456,70 @@ const ProjectProfilePage = ({
     };
 
     const ensureProjectFolder = async (project) => {
-        const root = await ensureProjectsRoot();
-        const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
-        const name = project.projectName || project.name || `Project ${project.id}`;
-        let pf = children.find(c => (c.folderName || c.title) === name);
-        if (!pf) {
-            // Create folder with project metadata
-            const metadata = {
-                projectId: project.id,
-                projectNumber: project.projectNumber,
-                customerName: project.customer?.primaryName || project.customerName || '',
-                address: project.projectName || project.name || '',
-                isProjectFolder: true
-            };
-            pf = await assetsService.createFolder({
-                name,
-                parentId: root.id,
-                metadata: metadata
+        try {
+            const root = await ensureProjectsRoot();
+            console.log('Projects root:', root);
+            console.log('Root folder details:', {
+                id: root?.id,
+                name: root?.title || root?.folderName,
+                type: root?.type
             });
-            if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: root.id } }));
+            
+            if (!root || !root.id) {
+                throw new Error('Failed to get or create Projects root folder');
+            }
+            
+            const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+            console.log('Children folders:', children);
+            
+            const name = project.projectName || project.name || `Project ${project.id}`;
+            // First try to find by exact name match
+            let pf = children.find(c => (c.folderName || c.title) === name);
+            
+            // If not found by name, try to find by project number in metadata
+            if (!pf && project.projectNumber) {
+                console.log('🔍 Searching for existing project folder by project number:', project.projectNumber);
+                pf = children.find(c => c.metadata?.projectNumber === project.projectNumber);
+                console.log('🔍 Found existing project folder by number:', !!pf, pf?.title || pf?.folderName);
+            }
+            
+            if (!pf) {
+                console.log('Creating project folder:', name);
+                // Create folder with project metadata
+                const metadata = {
+                    projectId: project.id,
+                    projectNumber: project.projectNumber,
+                    customerName: project.customer?.primaryName || project.customerName || '',
+                    address: project.projectName || project.name || '',
+                    isProjectFolder: true
+                };
+                pf = await assetsService.createFolder({
+                    name,
+                    parentId: root.id,
+                    metadata: metadata
+                });
+                console.log('✅ Created project folder:', pf);
+                console.log('📁 Project folder details:', {
+                    id: pf?.id,
+                    name: pf?.title || pf?.folderName,
+                    parentId: pf?.parentId,
+                    metadata: pf?.metadata
+                });
+                if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: root.id } }));
+            }
+            
+            console.log('📁 Using project folder:', {
+                id: pf?.id,
+                name: pf?.title || pf?.folderName,
+                projectNumber: pf?.metadata?.projectNumber,
+                projectId: pf?.metadata?.projectId
+            });
+            
+            return pf;
+        } catch (error) {
+            console.error('Error in ensureProjectFolder:', error);
+            throw error;
         }
-        return pf;
     };
 
     const triggerUpload = async () => {
@@ -496,7 +539,19 @@ const ProjectProfilePage = ({
             toast.loading('Uploading files...');
 
             // Ensure project folder
+            console.log('Ensuring project folder for project:', selectedProject);
+            console.log('Project details:', {
+                id: selectedProject.id,
+                projectNumber: selectedProject.projectNumber,
+                name: selectedProject.projectName || selectedProject.name
+            });
             const pf = await ensureProjectFolder(selectedProject);
+            console.log('Project folder result:', pf);
+            console.log('Project folder ID for upload:', pf?.id);
+            
+            if (!pf || !pf.id) {
+                throw new Error('Failed to create or access project folder');
+            }
 
             // Upload files one-by-one so we can attach per-file metadata (description, tags) and per-file progress
             for (let i = 0; i < entries.length; i++) {
@@ -513,7 +568,22 @@ const ProjectProfilePage = ({
                         updateEntry(i, { progress: pct });
                     };
 
-                    await assetsService.uploadFiles({ files: [entry.file], parentId: pf?.id || null, description: entry.description || '', tags, onUploadProgress });
+                    console.log('📤 Uploading file to project folder:', {
+                        fileName: entry.name,
+                        projectFolderId: pf?.id,
+                        projectFolderName: pf?.title || pf?.folderName,
+                        parentId: pf?.id || null
+                    });
+                    const uploadParams = { 
+                        files: [entry.file], 
+                        parentId: pf?.id || null, 
+                        description: entry.description || '', 
+                        tags, 
+                        onUploadProgress 
+                    };
+                    console.log('📤 Upload parameters:', uploadParams);
+                    await assetsService.uploadFiles(uploadParams);
+                    console.log('✅ File uploaded successfully to project folder');
                     updateEntry(i, { progress: 100, status: 'success' });
                 } catch (err) {
                     console.error('Upload failed for file', entry.name, err);
@@ -522,14 +592,24 @@ const ProjectProfilePage = ({
             }
 
             // Refresh File Manager once after batch
-            if (typeof window?.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: pf?.id || null } }));
+            console.log('🔄 Dispatching fm:refresh event for project folder:', pf?.id);
+            if (typeof window?.dispatchEvent === 'function') {
+                window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: pf?.id || null } }));
+                // Also refresh the root to ensure the project folder appears
+                window.dispatchEvent(new CustomEvent('fm:refresh', { detail: { parentId: null } }));
+            }
             toast.dismiss();
             // If any errors exist, notify user; otherwise success
             const anyErrors = (uploadFilesState.entries || []).some(e => e.status === 'error');
-            if (anyErrors) toast.error('Some files failed to upload'); else toast.success('Files uploaded');
+            if (anyErrors) toast.error('Some files failed to upload'); else toast.success('Files uploaded and organized in project folder');
         } catch (err) {
             console.error('Upload flow failed', err);
-            toast.error('Upload flow failed');
+            toast.dismiss();
+            toast.error(`Upload failed: ${err?.message || 'Unknown error occurred'}`);
+            // Reset all entries to pending status
+            setUploadFilesState(prev => ({ 
+                entries: prev.entries.map(e => ({ ...e, status: 'pending', progress: 0, error: null })) 
+            }));
         }
     };
 

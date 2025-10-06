@@ -11,6 +11,7 @@ const {
   AppError
 } = require('../middleware/errorHandler');
 const {
+  authenticateToken,
   managerAndAbove,
   projectManagerAndAbove
 } = require('../middleware/auth');
@@ -517,7 +518,7 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
 // @desc    Download document from Spaces
 // @route   GET /api/documents/:id/download
 // @access  Private
-router.get('/:id/download', asyncHandler(async (req, res, next) => {
+router.get('/:id/download', authenticateToken, asyncHandler(async (req, res, next) => {
   const document = await prisma.document.findUnique({
     where: { id: req.params.id }
   });

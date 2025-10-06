@@ -202,10 +202,18 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
         <div 
             className={`${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] border-gray-600' : 'bg-white hover:bg-gray-50 border-gray-200'} rounded-[12px] shadow-sm border transition-all duration-200 hover:shadow-md cursor-pointer`}
             onClick={(e) => {
-                // Don't expand if clicking on action buttons
-                if (e.target.closest('button[type="button"]')) {
+                console.log('🖱️ Container clicked, target:', e.target);
+                console.log('🖱️ Is button?', e.target.closest('button[type="button"]'));
+                console.log('🖱️ Is SVG?', e.target.closest('svg'));
+                console.log('🖱️ Is delete action?', e.target.closest('[data-action="delete"]'));
+                console.log('🖱️ Is reply action?', e.target.closest('[data-action="reply"]'));
+                
+                // Don't expand if clicking on action buttons or their children
+                if (e.target.closest('button[type="button"]') || e.target.closest('svg') || e.target.closest('[data-action="delete"]') || e.target.closest('[data-action="reply"]')) {
+                    console.log('🖱️ Clicked on action button, not expanding');
                     return;
                 }
+                console.log('🖱️ Expanding message');
                 if (onToggleExpansion) {
                     onToggleExpansion(activity.id);
                 } else {
@@ -391,30 +399,42 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     {/* Row 2: Timestamp and Actions */}
                     <div className="flex items-center gap-1" style={{ marginRight: '8px' }}>
                         {/* Action buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                             {/* Delete Button */}
+                            {console.log('🔍 Checking delete button render:', { onDelete: typeof onDelete, onDeleteFunction: onDelete })}
                             {typeof onDelete === 'function' && (
                               <button
                                 type="button"
+                                data-action="delete"
+                                style={{ zIndex: 10, position: 'relative' }}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   console.log('🗑️ Delete button clicked for message:', activity.id);
-                                  if (!isDeleting) {
+                                  console.log('🗑️ onDelete function:', typeof onDelete, onDelete);
+                                  console.log('🗑️ isDeleting:', isDeleting);
+                                  if (!isDeleting && typeof onDelete === 'function') {
+                                    console.log('🗑️ Calling onDelete function');
                                     onDelete();
+                                  } else {
+                                    console.log('🗑️ Not calling onDelete - isDeleting:', isDeleting, 'onDelete type:', typeof onDelete);
                                   }
                                 }}
                                 onMouseDown={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                 }}
+                                onMouseUp={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
                                 disabled={isDeleting}
-                                className={`p-1 rounded transition-colors flex-shrink-0 ${
+                                className={`p-2 rounded transition-colors flex-shrink-0 border ${
                                   isDeleting
-                                    ? 'text-gray-400 cursor-not-allowed'
+                                    ? 'text-gray-400 cursor-not-allowed border-gray-300'
                                     : colorMode
-                                    ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/20'
-                                    : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                    ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/20 border-gray-600 hover:border-red-400'
+                                    : 'text-gray-400 hover:text-red-600 hover:bg-red-50 border-gray-300 hover:border-red-400'
                                 }`}
                                 title="Delete message"
                               >
@@ -433,6 +453,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             
                             {/* Quick Reply Button */}
                             <button
+                                type="button"
+                                data-action="reply"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     // Ensure message is expanded when reply is clicked

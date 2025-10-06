@@ -98,6 +98,14 @@ export const documentService = {
     return response.data;
   },
 
+  // Download document (GET method for blob response)
+  download: async (id) => {
+    const response = await api.get(`/documents-enhanced/${id}/download`, {
+      responseType: 'blob'
+    });
+    return response;
+  },
+
   // Toggle document favorite
   toggleFavorite: async (id) => {
     const response = await api.post(`/documents-enhanced/${id}/favorite`);

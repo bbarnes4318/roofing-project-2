@@ -490,6 +490,74 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
   });
 }));
 
+// GET /api/documents/:id/download - Download document file
+router.get('/:id/download', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  console.log('🔍 Download request - ID:', id, 'User:', user?.id, 'User role:', user?.role);
+
+  const document = await prisma.document.findUnique({
+    where: { id }
+  });
+
+  console.log('🔍 Document found:', !!document, 'Document ID:', document?.id);
+
+  if (!document) {
+    return res.status(404).json({
+      success: false,
+      message: 'Document not found'
+    });
+  }
+
+  // Check access permissions
+  console.log('🔍 Checking access - isPublic:', document.isPublic, 'user:', user?.id, 'uploadedById:', document.uploadedById);
+  if (!hasDocumentAccess(document, user)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied'
+    });
+  }
+
+  const key = extractSpacesKey(document.fileUrl);
+  if (!key) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid file URL'
+    });
+  }
+
+  // Stream file from Spaces
+  const s3 = getS3();
+  const bucket = process.env.DO_SPACES_NAME;
+
+  if (!bucket) {
+    return res.status(500).json({
+      success: false,
+      message: 'Digital Ocean Spaces not configured'
+    });
+  }
+
+  try {
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const response = await s3.send(command);
+    
+    // Set appropriate headers
+    res.setHeader('Content-Disposition', `attachment; filename="${document.fileName || document.originalName}"`);
+    res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', document.fileSize);
+    
+    // Stream the file to the client
+    response.Body.pipe(res);
+  } catch (error) {
+    console.error('Error downloading from Spaces:', error);
+    return res.status(404).json({
+      success: false,
+      message: 'File not found in storage'
+    });
+  }
+}));
+
 // POST /api/documents/:id/download - Track document download
 router.post('/:id/download', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -626,6 +694,12 @@ async function getUserProjectIds(userId) {
 }
 
 function hasDocumentAccess(document, user) {
+  console.log('🔍 hasDocumentAccess - document:', !!document, 'user:', !!user);
+  console.log('🔍 hasDocumentAccess - document.isPublic:', document?.isPublic);
+  console.log('🔍 hasDocumentAccess - user.role:', user?.role);
+  console.log('🔍 hasDocumentAccess - document.uploadedById:', document?.uploadedById);
+  console.log('🔍 hasDocumentAccess - user.id:', user?.id);
+  
   // Public documents
   if (document.isPublic) return true;
 

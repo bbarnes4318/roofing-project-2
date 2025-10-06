@@ -67,6 +67,18 @@ const DocumentsResourcesPage = () => {
     loadItems(currentFolder);
   }, [currentFolder, search]); // Only reload items when folder or search changes
 
+  // Listen for refresh events from other components
+  useEffect(() => {
+    const handleRefresh = (event) => {
+      console.log('🔄 Documents & Resources received refresh event:', event.detail);
+      loadAllFolders();
+      loadItems(currentFolder);
+    };
+
+    window.addEventListener('fm:refresh', handleRefresh);
+    return () => window.removeEventListener('fm:refresh', handleRefresh);
+  }, [currentFolder]);
+
   // Lazy sync project folders - only create when needed, not on every page load
   // This improves initial page load time dramatically
   useEffect(() => {
@@ -406,12 +418,12 @@ const DocumentsResourcesPage = () => {
                         // Project folder with formatted display
                         <div className="text-center space-y-0.5">
                           <p className="text-xs font-bold text-blue-600">#{projectNumber}</p>
-                          <p className="text-xs font-medium text-gray-800 truncate">{customerName || 'Unknown'}</p>
-                          <p className="text-xs text-gray-600 truncate leading-tight">{address || folder.title}</p>
+                          <p className="text-xs font-medium text-gray-800 leading-tight break-words">{customerName || 'Unknown'}</p>
+                          <p className="text-xs text-gray-600 leading-tight break-words">{address || folder.title}</p>
                         </div>
                       ) : (
                         // Regular folder
-                        <p className="text-sm font-medium text-center truncate">{folder.title}</p>
+                        <p className="text-xs font-medium text-center leading-tight break-words">{folder.title}</p>
                       )}
 
                       <button
