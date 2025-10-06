@@ -642,12 +642,15 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
 
     // Verify project manager exists if provided - if not found, continue without one
     let validatedProjectManagerId = null;
+    console.log('🔍 Project manager validation - req.body.projectManagerId:', req.body.projectManagerId);
     if (req.body.projectManagerId) {
       const projectManager = await prisma.user.findUnique({
         where: { id: req.body.projectManagerId }
       });
+      console.log('🔍 Found project manager:', !!projectManager, projectManager?.firstName, projectManager?.lastName);
       if (projectManager) {
         validatedProjectManagerId = req.body.projectManagerId;
+        console.log('✅ Project manager validated:', validatedProjectManagerId);
       } else {
         console.warn(`Project manager ${req.body.projectManagerId} not found, continuing without project manager`);
       }
@@ -655,21 +658,32 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
 
     // Determine default project manager if none provided
     let resolvedProjectManagerId = validatedProjectManagerId;
+    console.log('🔍 Resolved project manager ID:', resolvedProjectManagerId);
     if (!resolvedProjectManagerId && process.env.DEFAULT_PM_USER_ID) {
       const envUser = await prisma.user.findUnique({ where: { id: process.env.DEFAULT_PM_USER_ID } });
       if (envUser && envUser.isActive) {
         resolvedProjectManagerId = envUser.id;
+        console.log('🔍 Using default project manager:', resolvedProjectManagerId);
       }
     }
+    console.log('🔍 Final project manager ID for project:', resolvedProjectManagerId);
 
     // Verify lead source exists if provided
     let resolvedLeadSourceId = null;
     if (req.body.leadSourceId) {
-      const ls = await prisma.leadSource.findUnique({ where: { id: req.body.leadSourceId } });
-      if (ls && ls.isActive) {
-        resolvedLeadSourceId = ls.id;
-      } else {
-        console.warn(`Lead source ${req.body.leadSourceId} not found or inactive, continuing without lead source`);
+      try {
+        const ls = await prisma.leadSource.findUnique({ 
+          where: { id: req.body.leadSourceId },
+          select: { id: true }
+        });
+        if (ls) {
+          resolvedLeadSourceId = ls.id;
+        } else {
+          console.warn(`Lead source ${req.body.leadSourceId} not found, continuing without lead source`);
+        }
+      } catch (error) {
+        console.warn(`Error checking lead source ${req.body.leadSourceId}:`, error.message);
+        // Continue without lead source if there's a database issue
       }
     }
 
@@ -749,6 +763,45 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
       } else {
         throw e;
       }
+    }
+
+    // Create project folder in Documents & Resources
+    try {
+      const { assetsService } = require('../../src/services/assetsService');
+      
+      // Get or create Projects root folder
+      const roots = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
+      let projectsRoot = roots.find(r => (r.folderName || r.title) === 'Projects');
+      if (!projectsRoot) {
+        projectsRoot = await assetsService.createFolder({ name: 'Projects', parentId: null });
+      }
+      
+      // Create project folder with correct format: "Project [number] - [customer name]"
+      const customerName = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || 'Unknown';
+      const folderName = `Project ${project.projectNumber} - ${customerName}`;
+      
+      const projectFolder = await assetsService.createFolder({
+        name: folderName,
+        parentId: projectsRoot.id,
+        metadata: {
+          projectId: project.id,
+          projectNumber: project.projectNumber,
+          customerName: customerName,
+          address: project.projectName,
+          isProjectFolder: true
+        }
+      });
+      
+      console.log('✅ Created project folder:', folderName, 'with ID:', projectFolder.id);
+      console.log('📁 Project folder details:', {
+        id: projectFolder.id,
+        name: projectFolder.title || projectFolder.folderName,
+        parentId: projectFolder.parentId,
+        metadata: projectFolder.metadata
+      });
+    } catch (folderError) {
+      console.warn('⚠️ Failed to create project folder:', folderError.message);
+      // Don't fail project creation if folder creation fails
     }
 
     // OPTIMIZED: Initialize workflow(s) with template-instance integration
@@ -842,6 +895,11 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
 
     // Transform project for frontend compatibility
     const transformedProject = await transformProjectForFrontend(projectForResponse);
+    
+    console.log('🔍 Project manager in response:', {
+      projectManagerId: projectForResponse?.projectManager?.id,
+      projectManagerName: projectForResponse?.projectManager ? `${projectForResponse.projectManager.firstName} ${projectForResponse.projectManager.lastName}` : 'Not assigned'
+    });
 
     // Invalidate caches so the new project and related lists show up immediately
     try {
