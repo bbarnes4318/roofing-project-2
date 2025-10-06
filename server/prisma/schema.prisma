@@ -45,9 +45,9 @@ model User {
   emergencyContact         Json?
   address                  Json?
   eventAttendees           CalendarEventAttendee[]
+  calendarEventComments    CalendarEventComment[]
   calendarEvents           CalendarEvent[]           @relation("Organizer")
   companyAssets            CompanyAsset[]
-  companyAssetVersions     CompanyAssetVersion[]
   completedWorkflowItems   CompletedWorkflowItem[]
   conversationParticipants ConversationParticipant[]
   downloadedDocuments      DocumentDownload[]
@@ -67,7 +67,6 @@ model User {
   resolvedSecurityEvents   SecurityEvent[]           @relation("SecurityEventResolver")
   securityEvents           SecurityEvent[]           @relation("SecurityEvents")
   taskComments             TaskComment[]
-  calendarEventComments    CalendarEventComment[]
   assignedTasks            Task[]                    @relation("AssignedUser")
   createdTasks             Task[]                    @relation("CreatedByUser")
   behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
@@ -123,12 +122,12 @@ model Project {
   notes            String?
   pmPhone          String?                  @db.VarChar(20)
   pmEmail          String?                  @db.VarChar(320)
-  leadSourceId     String?                  @map("lead_source_id")
   customerId       String                   @map("customer_id")
   projectManagerId String?                  @map("project_manager_id")
   createdById      String?                  @map("created_by_id")
   phase            ProjectPhase?
   searchVector     String?
+  leadSourceId     String?                  @map("lead_source_id")
   calendarEvents   CalendarEvent[]
   documents        Document[]
   projectMessages  ProjectMessage[]
@@ -137,8 +136,8 @@ model Project {
   workflowTrackers ProjectWorkflowTracker[]
   createdBy        User?                    @relation("CreatedBy", fields: [createdById], references: [id])
   customer         Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  projectManager   User?                    @relation("ProjectManager", fields: [projectManagerId], references: [id])
   leadSource       LeadSource?              @relation(fields: [leadSourceId], references: [id])
+  projectManager   User?                    @relation("ProjectManager", fields: [projectManagerId], references: [id])
   tasks            Task[]
   voiceTranscripts VoiceTranscript[]
   workflowAlerts   WorkflowAlert[]
@@ -147,12 +146,13 @@ model Project {
 }
 
 model LeadSource {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  name       String    @unique @db.VarChar(100)
-  isActive   Boolean   @default(true)
-  projects   Project[]
+  id          String    @id @default(cuid())
+  name        String    @db.VarChar(255)
+  description String?
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime
+  projects    Project[]
 
   @@map("lead_sources")
 }
@@ -802,84 +802,72 @@ model VoiceTranscript {
 }
 
 model CompanyAsset {
-  id               String                  @id @default(cuid())
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  title            String                  @db.VarChar(255)
-  description      String?                 @db.VarChar(1000)
-  fileUrl          String?                 @db.VarChar(2000)  // Optional for folders
-  mimeType         String?                 @db.VarChar(100)   // Optional for folders
-  fileSize         Int?                                        // Optional for folders
+  id               String           @id @default(cuid())
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  title            String           @db.VarChar(255)
+  description      String?          @db.VarChar(1000)
+  fileUrl          String?          @db.VarChar(2000)
+  mimeType         String?          @db.VarChar(100)
+  fileSize         Int?
   tags             String[]
   section          DocumentSection?
-  version          Int                     @default(1)
-  isActive         Boolean                 @default(true)
-  downloadCount    Int                     @default(0)
+  version          Int              @default(1)
+  isActive         Boolean          @default(true)
+  downloadCount    Int              @default(0)
   lastDownloadedAt DateTime?
-  uploadedById     String?                 @map("uploaded_by_id")
-  
-  // Enhanced fields for redesign
-  folderName       String?                 @map("folder_name") @db.VarChar(255)   // Human-readable folder name
-  isPublic         Boolean                 @map("is_public") @default(false)    // Public/private access
-  thumbnailUrl     String?                 @map("thumbnail_url") @db.VarChar(2000)  // Preview thumbnail
-  checksum         String?                 @db.VarChar(255)   // File integrity check
-  metadata         Json?                                      // Flexible metadata (icon, color, etc)
-  accessLevel      String?                 @map("access_level") @default("private") @db.VarChar(50)
-  
-  // Folder hierarchy support
-  type             AssetType               @default(FILE)
-  parentId         String?                 @map("parent_id")
-  parent           CompanyAsset?           @relation("FolderHierarchy", fields: [parentId], references: [id])
-  children         CompanyAsset[]          @relation("FolderHierarchy")
-  path             String?                 @db.VarChar(1000)  // Full path for easier queries
-  sortOrder        Int                     @default(0)        // For custom ordering within folders
-  
-  // Legacy fields (preserved for data migration; ignored by Prisma Client)
-  is_archived     Boolean?                @map("is_archived") @ignore
-  is_favorite     Boolean?                @map("is_favorite") @ignore
-  shared_with     Json?                   @map("shared_with") @ignore
-  view_count      Int?                    @map("view_count") @ignore
-  
-  // Relations
-  uploadedBy       User?                   @relation(fields: [uploadedById], references: [id])
-  versions         CompanyAssetVersion[]   @relation("AssetVersions")
+  uploadedById     String?          @map("uploaded_by_id")
+  parentId         String?          @map("parent_id")
+  path             String?          @db.VarChar(1000)
+  sortOrder        Int              @default(0)
+  type             AssetType        @default(FILE)
+  folderName       String?          @map("folder_name") @db.VarChar(255)
+  isPublic         Boolean          @default(false) @map("is_public")
+  thumbnailUrl     String?          @map("thumbnail_url") @db.VarChar(2000)
+  checksum         String?          @db.VarChar(255)
+  metadata         Json?
+  accessLevel      String?          @default("private") @map("access_level") @db.VarChar(50)
+  is_archived      Boolean?         @map("is_archived") @ignore
+  is_favorite      Boolean?         @map("is_favorite") @ignore
+  view_count       Int?             @map("view_count") @ignore
+  shared_with      Json?            @map("shared_with") @ignore
+  parent           CompanyAsset?    @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children         CompanyAsset[]   @relation("FolderHierarchy")
+  uploadedBy       User?            @relation(fields: [uploadedById], references: [id])
 
-  @@index([folderName])
-  @@index([isPublic])
-  @@index([parentId, type])
+  @@index([folderName], map: "idx_company_assets_folder_name")
+  @@index([isPublic], map: "idx_company_assets_is_public")
+  @@index([parentId, type], map: "idx_company_assets_parent_type")
   @@map("company_assets")
 }
 
 model Embedding {
-  projectId String?                 @map("project_id")
-  fileId    String?                 @map("file_id")
-  chunkId   String                  @map("chunk_id")
-  content   String
-  metadata  Json?
-  embedding Unsupported("vector")
+  id          String   @id
+  document_id String?
+  asset_id    String?
+  content     String
+  embedding   String
+  metadata    Json?
+  created_at  DateTime @default(now())
 
   @@map("embeddings")
   @@ignore
 }
 
 model CompanyAssetVersion {
-  id                String        @id @default(cuid())
-  createdAt         DateTime      @map("created_at") @default(now())
-  assetId           String        @map("asset_id")
-  versionNumber     Int           @map("version_number")
-  fileUrl           String        @map("file_url") @db.VarChar(2000)
-  fileSize          Int           @map("file_size")
-  checksum          String?       @db.VarChar(255)
-  changeDescription String?       @map("change_description") @db.VarChar(1000)
-  uploadedById      String?       @map("uploaded_by_id")
-  isCurrent         Boolean       @map("is_current") @default(false)
-  
-  // Relations
-  asset             CompanyAsset  @relation("AssetVersions", fields: [assetId], references: [id], onDelete: Cascade)
-  uploadedBy        User?         @relation(fields: [uploadedById], references: [id])
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now()) @map("created_at")
+  assetId           String   @map("asset_id")
+  versionNumber     Int      @map("version_number")
+  fileUrl           String   @map("file_url") @db.VarChar(2000)
+  fileSize          Int      @map("file_size")
+  checksum          String?  @db.VarChar(255)
+  changeDescription String?  @map("change_description") @db.VarChar(1000)
+  uploadedById      String?  @map("uploaded_by_id")
+  isCurrent         Boolean  @default(false) @map("is_current")
 
-  @@index([assetId])
-  @@index([assetId, isCurrent])
+  @@index([assetId], map: "idx_asset_versions_asset_id")
+  @@index([assetId, isCurrent], map: "idx_asset_versions_current")
   @@map("company_asset_versions")
 }
 
@@ -934,6 +922,61 @@ model GeneratedDocumentMeta {
   template    DocumentTemplate? @relation(fields: [templateId], references: [id])
 
   @@map("generated_document_meta")
+}
+
+model Email {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  messageId    String?   @map("message_id")
+  threadId     String?   @map("thread_id")
+  senderId     String    @map("sender_id")
+  senderEmail  String    @map("sender_email")
+  senderName   String?   @map("sender_name")
+  toEmails     String[]  @map("to_emails")
+  toNames      String[]  @map("to_names")
+  ccEmails     String[]  @map("cc_emails")
+  bccEmails    String[]  @map("bcc_emails")
+  replyTo      String?   @map("reply_to")
+  subject      String
+  bodyText     String?   @map("body_text")
+  bodyHtml     String?   @map("body_html")
+  emailType    String    @default("general") @map("email_type")
+  status       String    @default("sent")
+  priority     String?   @default("normal")
+  projectId    String?   @map("project_id")
+  customerId   String?   @map("customer_id")
+  taskId       String?   @map("task_id")
+  attachments  Json?
+  sentAt       DateTime? @map("sent_at")
+  deliveredAt  DateTime? @map("delivered_at")
+  openedAt     DateTime? @map("opened_at")
+  clickedAt    DateTime? @map("clicked_at")
+  bouncedAt    DateTime? @map("bounced_at")
+  failedAt     DateTime? @map("failed_at")
+  errorMessage String?   @map("error_message")
+  tags         Json?
+  metadata     Json?
+  isDeleted    Boolean   @default(false) @map("is_deleted")
+  deletedAt    DateTime? @map("deleted_at")
+
+  @@index([senderId])
+  @@index([projectId])
+  @@index([customerId])
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+  @@index([emailType])
+  @@index([messageId])
+  @@index([threadId])
+  @@map("emails")
+}
+
+model document_annotations {
+  id          BigInt    @id @default(autoincrement())
+  document_id String
+  user_id     String?
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  annotations Json?
 }
 
 enum WorkflowState {
