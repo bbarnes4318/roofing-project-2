@@ -388,6 +388,16 @@ router.get('/', asyncHandler(async (req, res) => {
           include: {
             customer: true,
             leadSource: true,
+            projectManager: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                role: true
+              }
+            },
             workflowTrackers: {
               select: {
                 id: true,
