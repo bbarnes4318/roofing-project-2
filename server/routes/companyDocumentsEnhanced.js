@@ -576,8 +576,8 @@ router.patch('/assets/:id', authenticateToken, asyncHandler(async (req, res) => 
     updateData.fileSize = req.file.size;
     updateData.checksum = checksum;
 
-    // Create new version
-    const currentVersion = asset.versions[0]?.versionNumber || 0;
+    // Create new version (no versions relation in CompanyAsset)
+    const currentVersion = 0;
     await prisma.companyAssetVersion.create({
       data: {
         assetId: id,
@@ -787,8 +787,7 @@ router.post('/assets/:id/make-public', authenticateToken, asyncHandler(async (re
 
   // Find asset
   let asset = await prisma.companyAsset.findUnique({
-    where: { id },
-    include: { versions: { where: { isCurrent: true }, take: 1 } }
+    where: { id }
   });
 
   if (!asset) {
@@ -811,7 +810,7 @@ router.post('/assets/:id/make-public', authenticateToken, asyncHandler(async (re
   if (!asset) throw new AppError('Asset not found', 404);
   if (asset.type !== 'FILE') throw new AppError('Cannot make folders public', 400);
 
-  const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
+  const fileUrl = asset.fileUrl;
   const key = extractSpacesKey(fileUrl);
 
   if (!key) {
@@ -1032,8 +1031,8 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
     throw new AppError('Access denied', 403);
   }
 
-  // Use current version if available
-  const fileUrl = asset.versions[0]?.fileUrl || asset.fileUrl;
+  // Use file URL directly (no versions in CompanyAsset)
+  const fileUrl = asset.fileUrl;
   const key = extractSpacesKey(fileUrl);
 
   if (!key) {
