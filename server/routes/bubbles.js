@@ -1537,10 +1537,21 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   const mentionsFileName = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
   const mentionsChecklist = lower.includes('checklist') || lower.includes('start the day') || lower.includes('upfront');
   const asksForSteps = lower.includes('steps') || lower.includes('step') || lower.includes('give me') || lower.includes('list') || lower.includes('what is the other point');
+  
+  console.log('🔍 BUBBLES DEBUG:', {
+    message,
+    mentionsFileName,
+    mentionsChecklist,
+    asksForSteps
+  });
+  
   // Broaden trigger: if they mention a checklist (like "Upfront Start The Day Checklist"), attempt doc retrieval
   if (mentionsFileName || mentionsChecklist) {
     try {
+      console.log('🔍 BUBBLES: Attempting to find asset for message:', message);
       const asset = await findAssetByMention(prisma, message);
+      console.log('🔍 BUBBLES: Asset lookup result:', asset ? { id: asset.id, title: asset.title } : 'null');
+      
       if (!asset) {
         const notFound = 'I couldn\'t find that document in Company Documents. Try opening Documents & Resources and copy the exact file name.';
         contextManager.addToHistory(req.user.id, message, notFound, projectContext || null);

@@ -455,6 +455,9 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             }))
           }));
         }
+      } else if (response.status === 404) {
+        // Task not found - silently handle this case
+        console.log(`Task ${taskId} not found, skipping comment fetch`);
       }
     } catch (error) {
       console.error('Error fetching comments:', error);

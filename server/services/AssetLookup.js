@@ -30,7 +30,7 @@ async function findAssetByMention(prisma, message, opts = {}) {
       .map(t => t.replace(/[^a-z0-9]/g, '').trim())
       .filter(t => t && t.length >= 4 && !['document','file','files','pdf','doc','docx'].includes(t));
 
-    const commonInclude = { versions: { where: { is_current: true }, take: 1 } };
+    const commonInclude = {};
     const commonWhere = { isActive: true, type: 'FILE' };
 
     // 1) Exact-ish contains across fields

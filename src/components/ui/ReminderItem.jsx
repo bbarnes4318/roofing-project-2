@@ -276,11 +276,14 @@ const ReminderItem = ({
             </span>
             
             {/* Dropdown arrow - expand/collapse indicator */}
-            <div className={`p-1 rounded transition-colors transform duration-200 ${isExpanded ? 'rotate-180' : ''} text-gray-600`}>
+            <button 
+              onClick={handleToggleExpanded}
+              className={`p-1 rounded transition-colors transform duration-200 hover:bg-gray-100 ${isExpanded ? 'rotate-180' : ''} text-gray-600`}
+            >
               <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
+            </button>
           </div>
         </div>
       </div>

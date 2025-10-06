@@ -487,19 +487,6 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                 </svg>
                             </button>
                             
-                            {/* Dropdown arrow - visual indicator only */}
-                            <div
-                                className={`p-1 rounded transition-colors transform duration-200 ${expanded ? 'rotate-180' : ''} ${
-                                    colorMode
-                                        ? 'text-gray-300'
-                                        : 'text-gray-600'
-                                }`}
-                                title={expanded ? "Collapse message" : "Expand message"}
-                            >
-                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
                         </div>
                         
                         {/* Timestamp */}

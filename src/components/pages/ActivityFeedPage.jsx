@@ -10,11 +10,24 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     const [completedTasks, setCompletedTasks] = useState(new Set());
     const [activeCommTab, setActiveCommTab] = useState('messages');
     const [selectedDocument, setSelectedDocument] = useState(null);
+    const [allMessagesExpanded, setAllMessagesExpanded] = useState(false);
     const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
     
     const messagesData = activities?.filter(a => a.type === 'message') || [];
     const calendarEvents = activities?.filter(a => a.type === 'task' || a.type === 'reminder') || [];
     const { alerts: workflowAlerts } = useWorkflowAlerts({ status: 'active' });
+
+    // Expand/Collapse handlers
+    const handleExpandAllMessages = () => {
+        const allIds = new Set(activities?.map(item => item.id) || []);
+        setExpandedMessages(allIds);
+        setAllMessagesExpanded(true);
+    };
+
+    const handleCollapseAllMessages = () => {
+        setExpandedMessages(new Set());
+        setAllMessagesExpanded(false);
+    };
 
     // Build Activity Feed items - EXACT SAME logic as Dashboard
     const activityFeedItems = useMemo(() => {
@@ -127,6 +140,39 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                 {expandedMessages.size} of {getCurrentItems().length} {activeCommTab}{getCurrentItems().length !== 1 ? 's' : ''} expanded
                             </p>
                         )}
+                    </div>
+                    
+                    {/* Expand/Collapse Controls */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleExpandAllMessages}
+                            className={`px-2 py-1 text-xs font-medium rounded-md border transition-all duration-300 ${
+                                expandedMessages.size === getCurrentItems().length && getCurrentItems().length > 0
+                                    ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
+                                    : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
+                            }`}
+                            title="Expand all"
+                            disabled={getCurrentItems().length === 0 || expandedMessages.size === getCurrentItems().length}
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </button>
+                        
+                        <button
+                            onClick={handleCollapseAllMessages}
+                            className={`px-2 py-1 text-xs font-medium rounded-md border transition-all duration-300 ${
+                                expandedMessages.size === 0
+                                    ? 'bg-gray-500 text-white border-gray-500'
+                                    : 'bg-white/80 text-gray-600 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                            }`}
+                            title="Collapse all"
+                            disabled={expandedMessages.size === 0}
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
                 
@@ -316,12 +362,6 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                         </div>
                                                     )}
                                                     
-                                                    {/* Dropdown arrow */}
-                                                    <div className={`p-1 rounded transition-colors transform duration-200 ${expandedMessages.has(item.id) ? 'rotate-180' : ''} text-gray-600`}>
-                                                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                        </svg>
-                                                    </div>
                                                 </div>
                                             </div>
                                             

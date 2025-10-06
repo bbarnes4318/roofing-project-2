@@ -973,6 +973,8 @@ router.get('/:taskId/comments', asyncHandler(async (req, res) => {
   });
 
   if (!task) {
+    // Log as info instead of error since this is expected when tasks are deleted
+    console.log(`Task ${taskId} not found - likely deleted`);
     throw new AppError('Task not found', 404);
   }
 
