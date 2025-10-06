@@ -802,9 +802,9 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         // Find or create project folder
         const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
         
-        // Use the correct format: "Project [number] - [customer name]"
-        const customerName = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || project.customerName || 'Unknown';
-        const name = `Project ${project.projectNumber} - ${customerName}`;
+        // Use the correct format: "Project Number - Primary Customer Contact"
+        const primaryContact = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || project.customerName || 'Unknown';
+        const name = `${project.projectNumber} - ${primaryContact}`;
         
         // FIRST: Try to find by project number in metadata (most reliable)
         let projectFolder = null;
@@ -827,7 +827,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           const metadata = {
             projectId: project.id,
             projectNumber: project.projectNumber,
-            customerName: customerName,
+            customerName: primaryContact,
             address: project.projectName || project.name || '',
             isProjectFolder: true
           };

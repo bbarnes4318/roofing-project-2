@@ -777,7 +777,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
 
     // Create project folder in Documents & Resources
     try {
-      const { assetsService } = require('../../src/services/assetsService');
+      const assetsService = require('../../src/services/assetsService').assetsService;
       
       // Get or create Projects root folder
       const roots = await assetsService.listFolders({ parentId: null, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
@@ -786,9 +786,9 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
         projectsRoot = await assetsService.createFolder({ name: 'Projects', parentId: null });
       }
       
-      // Create project folder with correct format: "Project [number] - [customer name]"
-      const customerName = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || 'Unknown';
-      const folderName = `Project ${project.projectNumber} - ${customerName}`;
+      // Create project folder with correct format: "Project Number - Primary Customer Contact"
+      const primaryContact = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || 'Unknown';
+      const folderName = `${project.projectNumber} - ${primaryContact}`;
       
       const projectFolder = await assetsService.createFolder({
         name: folderName,
@@ -796,7 +796,7 @@ router.post('/', projectValidation, asyncHandler(async (req, res, next) => {
         metadata: {
           projectId: project.id,
           projectNumber: project.projectNumber,
-          customerName: customerName,
+          customerName: primaryContact,
           address: project.projectName,
           isProjectFolder: true
         }

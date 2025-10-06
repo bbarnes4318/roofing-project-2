@@ -472,9 +472,9 @@ const ProjectProfilePage = ({
             const children = await assetsService.listFolders({ parentId: root.id, sortBy: 'title', sortOrder: 'asc', limit: 1000 });
             console.log('Children folders:', children);
             
-            // Use the correct format: "Project [number] - [customer name]"
-            const customerName = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || project.customerName || 'Unknown';
-            const name = `Project ${project.projectNumber} - ${customerName}`;
+            // Use the correct format: "Project Number - Primary Customer Contact"
+            const primaryContact = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || project.customerName || 'Unknown';
+            const name = `${project.projectNumber} - ${primaryContact}`;
             
             // First try to find by exact name match
             let pf = children.find(c => (c.folderName || c.title) === name);
@@ -492,7 +492,7 @@ const ProjectProfilePage = ({
                 const metadata = {
                     projectId: project.id,
                     projectNumber: project.projectNumber,
-                    customerName: customerName,
+                    customerName: primaryContact,
                     address: project.projectName || project.name || '',
                     isProjectFolder: true
                 };
