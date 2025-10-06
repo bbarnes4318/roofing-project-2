@@ -214,25 +214,8 @@ class DocumentService {
       
       if (!asset) return false;
       
-      // Admin has access to everything
-      if (userRole === 'ADMIN') return true;
-      
-      // Public assets are accessible to all (either isPublic flag or accessLevel === 'public')
-      const isPublicAccess = asset.isPublic === true || String(asset.accessLevel || '').toLowerCase() === 'public';
-      if (isPublicAccess) return true;
-      
-      // Owner has access
-      if (asset.uploadedById === userId) return true;
-      
-      // Check specific access rules in metadata
-      if (asset.metadata?.allowedUsers?.includes(userId)) return true;
-      if (asset.metadata?.allowedRoles?.includes(userRole)) return true;
-      
-      // Check access level
-      if (asset.accessLevel === 'public') return true;
-      if (asset.accessLevel === 'internal' && userRole !== 'CLIENT') return true;
-      
-      return false;
+      // Allow all users to access all documents - no access restrictions
+      return true;
     } catch (error) {
       console.error('Error checking access:', error);
       return false;

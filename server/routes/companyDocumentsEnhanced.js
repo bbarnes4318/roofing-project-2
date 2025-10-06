@@ -896,11 +896,8 @@ router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, r
   if (!asset) throw new AppError('Asset not found', 404);
   if (asset.type !== 'FILE') throw new AppError('Cannot view folders', 400);
 
-  // Check access
-  const isPublicAccess = String(asset.accessLevel || '').toLowerCase() === 'public';
-  if (!isPublicAccess && req.user.role !== 'ADMIN' && asset.uploadedById !== req.user.id) {
-    throw new AppError('Access denied', 403);
-  }
+  // Allow all users to view all documents - no access restrictions
+  // All documents are now viewable by all users
 
   // Use file URL directly (no versions in CompanyAsset)
   const fileUrl = asset.fileUrl;
@@ -1015,11 +1012,8 @@ router.get('/assets/:id/download', authenticateToken, asyncHandler(async (req, r
   if (!asset) throw new AppError('Asset not found', 404);
   if (asset.type !== 'FILE') throw new AppError('Cannot download folders', 400);
 
-  // Check access (prefer accessLevel; treat 'public' as open)
-  const isPublicAccess = String(asset.accessLevel || '').toLowerCase() === 'public';
-  if (!isPublicAccess && req.user.role !== 'ADMIN' && asset.uploadedById !== req.user.id) {
-    throw new AppError('Access denied', 403);
-  }
+  // Allow all users to download all documents - no access restrictions
+  // All documents are now downloadable by all users
 
   // Use file URL directly (no versions in CompanyAsset)
   const fileUrl = asset.fileUrl;

@@ -700,20 +700,8 @@ function hasDocumentAccess(document, user) {
   console.log('🔍 hasDocumentAccess - document.uploadedById:', document?.uploadedById);
   console.log('🔍 hasDocumentAccess - user.id:', user?.id);
   
-  // Public documents
-  if (document.isPublic) return true;
-
-  // No user context means no access beyond public
-  if (!user) return false;
-
-  // Admins always allowed
-  if (user.role === 'ADMIN') return true;
-
-  // Owner allowed
-  if (document.uploadedById && document.uploadedById === user.id) return true;
-
-  // Basic project-based allowance could be implemented here if needed
-  return false;
+  // Allow all users to access all documents - no access restrictions
+  return true;
 }
 
 module.exports = router;

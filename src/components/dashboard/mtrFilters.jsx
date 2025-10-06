@@ -90,12 +90,28 @@ const MTRFilters = ({
         <button
           onClick={handleCollapseAllMessages}
           className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
-            expandedMessages.size === 0
-              ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
-              : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
+            (() => {
+              const currentCount = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message').length :
+                                 activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task').length :
+                                 activityFeedItems.filter(i => i.type === 'reminder').length;
+              const currentExpanded = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message' && expandedMessages.has(i.id)).length :
+                                    activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task' && expandedMessages.has(i.id)).length :
+                                    activityFeedItems.filter(i => i.type === 'reminder' && expandedMessages.has(i.id)).length;
+              return currentExpanded === 0
+                ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
+                : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft';
+            })()
           }`}
           title="Collapse all alert details"
-          disabled={expandedMessages.size === 0}
+          disabled={(() => {
+            const currentCount = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message').length :
+                               activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task').length :
+                               activityFeedItems.filter(i => i.type === 'reminder').length;
+            const currentExpanded = activeCommTab === 'messages' ? activityFeedItems.filter(i => i.type === 'message' && expandedMessages.has(i.id)).length :
+                                  activeCommTab === 'tasks' ? activityFeedItems.filter(i => i.type === 'task' && expandedMessages.has(i.id)).length :
+                                  activityFeedItems.filter(i => i.type === 'reminder' && expandedMessages.has(i.id)).length;
+            return currentExpanded === 0;
+          })()}
         >
           <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
