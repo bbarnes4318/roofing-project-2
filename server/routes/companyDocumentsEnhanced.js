@@ -861,6 +861,8 @@ router.post('/assets/:id/make-public', authenticateToken, asyncHandler(async (re
 
 router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
+  
+  console.log('🔍 View URL request - ID:', id, 'User:', req.user?.id);
 
   // Try to find in CompanyAsset first
   let asset = await prisma.companyAsset.findUnique({
@@ -872,13 +874,18 @@ router.get('/assets/:id/view-url', authenticateToken, asyncHandler(async (req, r
       }
     }
   });
+  
+  console.log('🔍 CompanyAsset lookup result:', !!asset);
 
   // If not found in CompanyAsset, try Document table
   let isFromDocumentTable = false;
   if (!asset) {
+    console.log('🔍 Trying Document table lookup...');
     const doc = await prisma.document.findUnique({
       where: { id }
     });
+    
+    console.log('🔍 Document lookup result:', !!doc);
 
     if (doc) {
       asset = {
