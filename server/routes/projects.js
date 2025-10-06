@@ -828,8 +828,16 @@ router.post('/', authenticateToken, projectValidation, asyncHandler(async (req, 
       }
       
       // Create project folder with correct format: "Project Number - Primary Customer Contact"
-      const primaryContact = project.customer?.primaryName || project.customer?.firstName + ' ' + project.customer?.lastName || 'Unknown';
+      console.log('🔍 Project customer data:', project.customer);
+      console.log('🔍 Project customer primaryName:', project.customer?.primaryName);
+      console.log('🔍 Project customer firstName/lastName:', project.customer?.firstName, project.customer?.lastName);
+      
+      const primaryContact = project.customer?.primaryName || 
+                            (project.customer?.firstName && project.customer?.lastName ? 
+                             `${project.customer.firstName} ${project.customer.lastName}` : 
+                             project.customer?.firstName || 'Unknown');
       const folderName = `${project.projectNumber} - ${primaryContact}`;
+      console.log('🔍 Generated folder name:', folderName);
       
       // Check if project folder already exists
       const existingFolder = await prisma.companyAsset.findFirst({
@@ -844,15 +852,19 @@ router.post('/', authenticateToken, projectValidation, asyncHandler(async (req, 
       if (!existingFolder) {
         // Get system user or use a default user ID
         let systemUserId = null;
+        console.log('🔍 req.user:', req.user);
         if (req.user && req.user.id) {
           systemUserId = req.user.id;
+          console.log('🔍 Using req.user.id:', systemUserId);
         } else {
           // Find the first admin user or use system
+          console.log('🔍 req.user not available, looking for admin user...');
           const systemUser = await prisma.user.findFirst({
             where: { role: 'ADMIN' },
             select: { id: true }
           });
           systemUserId = systemUser?.id || 'system';
+          console.log('🔍 Found system user:', systemUserId);
         }
         
         const projectFolder = await prisma.companyAsset.create({
