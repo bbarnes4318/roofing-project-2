@@ -358,19 +358,52 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
 router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
   const { firstName, lastName, phone, position, department, bio, theme, language, timezone } = req.body;
 
+  // Validate field lengths to prevent database errors
+  const validationErrors = [];
+  
+  if (firstName && firstName.length > 100) {
+    validationErrors.push('First name must be 100 characters or less');
+  }
+  if (lastName && lastName.length > 100) {
+    validationErrors.push('Last name must be 100 characters or less');
+  }
+  if (phone && phone.length > 20) {
+    validationErrors.push('Phone number must be 20 characters or less');
+  }
+  if (position && position.length > 100) {
+    validationErrors.push('Position must be 100 characters or less');
+  }
+  if (department && department.length > 100) {
+    validationErrors.push('Department must be 100 characters or less');
+  }
+  if (bio && bio.length > 500) {
+    validationErrors.push('Bio must be 500 characters or less');
+  }
+
+  if (validationErrors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: validationErrors
+    });
+  }
+
+  // Truncate fields to fit database constraints
+  const updateData = {
+    firstName: firstName ? firstName.substring(0, 100) : undefined,
+    lastName: lastName ? lastName.substring(0, 100) : undefined,
+    phone: phone ? phone.substring(0, 20) : undefined,
+    position: position ? position.substring(0, 100) : undefined,
+    department: department ? department.substring(0, 100) : undefined,
+    bio: bio ? bio.substring(0, 500) : undefined,
+    theme,
+    language,
+    timezone
+  };
+
   const updatedUser = await prisma.user.update({
     where: { id: req.user.id },
-    data: {
-      firstName,
-      lastName,
-      phone,
-      position,
-      department,
-      bio,
-      theme,
-      language,
-      timezone
-    },
+    data: updateData,
     select: {
       id: true,
       firstName: true,

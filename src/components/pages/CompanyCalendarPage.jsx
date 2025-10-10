@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon, PlusCircleIcon } from '../common/Icons';
+import { authService } from '../../services/api';
 
 // Simple ChevronRightIcon component
 const ChevronRightIcon = ({ className = "w-5 h-5" }) => (
@@ -18,6 +19,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     const [showAddEventModal, setShowAddEventModal] = useState(false);
     const [calendarEvents, setCalendarEvents] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
     const [newEvent, setNewEvent] = useState({
         title: '',
         type: 'meeting',
@@ -42,6 +44,19 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             titleLower.includes('alert')
         );
     };
+
+    // Fetch current user
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const user = await authService.getCurrentUser();
+                setCurrentUser(user);
+            } catch (error) {
+                console.error('Failed to fetch current user:', error);
+            }
+        };
+        fetchUser();
+    }, []);
 
     // Fetch calendar events from database
     const fetchCalendarEvents = async () => {
@@ -404,13 +419,12 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             // Create the event object for API
             const eventData = {
                 title: newEvent.title,
-                type: newEvent.type,
-                date: newEvent.date,
-                time: timeDisplay,
                 description: newEvent.description,
-                priority: newEvent.priority,
-                projectId: newEvent.projectId ? parseInt(newEvent.projectId) : undefined,
-                color: getEventColor(newEvent.type)
+                startTime: new Date(`${newEvent.date}T${newEvent.time}:00`).toISOString(),
+                endTime: new Date(`${newEvent.date}T${newEvent.time}:00`).toISOString(),
+                eventType: newEvent.type.toUpperCase(),
+                organizerId: currentUser?.id,
+                projectId: newEvent.projectId || undefined
             };
 
             // Make API call to save event

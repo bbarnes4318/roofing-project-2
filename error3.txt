@@ -1,0 +1,347 @@
+Oct 10 13:51:43  10.244.19.138 - - [10/Oct/2025:13:51:43 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:51:53  10.244.19.138 - - [10/Oct/2025:13:51:53 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:52:00  🚨 SERVER ERROR: {
+Oct 10 13:52:00    "timestamp": "2025-10-10T13:52:00.665Z",
+Oct 10 13:52:00    "method": "PUT",
+Oct 10 13:52:00    "url": "/api/auth/profile",
+Oct 10 13:52:00    "ip": "10.244.0.217",
+Oct 10 13:52:00    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+Oct 10 13:52:00    "userId": "cmflr2qss0000dk0dgmp132rn",
+Oct 10 13:52:00    "error": {
+Oct 10 13:51:34  10.244.43.29 - - [10/Oct/2025:13:51:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:51:38  🔍 ROLES API: Fetching role assignments
+Oct 10 13:51:38  ✅ ROLES API: Found 4 role assignments
+Oct 10 13:51:38  10.244.3.89 - - [10/Oct/2025:13:51:38 +0000] "GET /api/roles HTTP/1.1" 200 725 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:51:44  10.244.43.29 - - [10/Oct/2025:13:51:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:51:54  10.244.43.29 - - [10/Oct/2025:13:51:54 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 10 13:52:04  10.244.43.29 - - [10/Oct/2025:13:52:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:14  10.244.43.29 - - [10/Oct/2025:13:52:14 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:52:24  10.244.43.29 - - [10/Oct/2025:13:52:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:34  10.244.43.29 - - [10/Oct/2025:13:52:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:44  10.244.43.29 - - [10/Oct/2025:13:52:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:54  10.244.43.29 - - [10/Oct/2025:13:52:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:00      "name": "PrismaClientKnownRequestError",
+Oct 10 13:52:00      "message": "\nInvalid `prisma.user.update()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:00      "statusCode": 500
+Oct 10 13:52:00    }
+Oct 10 13:52:00  }
+Oct 10 13:52:00  10.244.0.217 - - [10/Oct/2025:13:52:00 +0000] "PUT /api/auth/profile HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:52:00  ERROR 💥 {
+Oct 10 13:52:00    code: 'P2000',
+Oct 10 13:52:00    meta: { modelName: 'User', column_name: '(not available)' },
+Oct 10 13:52:00    clientVersion: '6.14.0',
+Oct 10 13:52:00    name: 'PrismaClientKnownRequestError',
+Oct 10 13:52:00    message: '\n' +
+Oct 10 13:52:00      'Invalid `prisma.user.update()` invocation:\n' +
+Oct 10 13:52:00      '\n' +
+Oct 10 13:52:00      '\n' +
+Oct 10 13:52:00      "The provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:00    statusCode: 500
+Oct 10 13:52:00  }
+Oct 10 13:53:04  10.244.43.29 - - [10/Oct/2025:13:53:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:14  10.244.43.29 - - [10/Oct/2025:13:53:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:24  10.244.43.29 - - [10/Oct/2025:13:53:24 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:53:34  10.244.43.29 - - [10/Oct/2025:13:53:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:44  10.244.43.29 - - [10/Oct/2025:13:53:44 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:53:54  10.244.43.29 - - [10/Oct/2025:13:53:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:04  10.244.43.29 - - [10/Oct/2025:13:54:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:13  🔄 ROLES API: Synchronizing role assignments: {
+Oct 10 13:54:13    projectManager: [ 'cmflovwaf0006j8g4kb57rd0f', 'cmflovvn10004j8g4k7fy807f' ],
+Oct 10 13:54:13    fieldDirector: [ 'cmflo3ns50003j8g48bwa06n4' ],
+Oct 10 13:54:13    officeStaff: [ 'cmflo3nqx0002j8g4u4cykcb5' ],
+Oct 10 13:54:13    administration: [ 'cmflovvc00003j8g4h3ngxt75' ]
+Oct 10 13:54:13  }
+Oct 10 13:54:13  prisma:error 
+Oct 10 13:54:13  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 13:54:13  
+Oct 10 13:54:13  
+Oct 10 13:54:13  Unique constraint failed on the fields: (`role_type`)
+Oct 10 13:54:13  ❌ ROLES API: Error synchronizing roles: PrismaClientKnownRequestError: 
+Oct 10 13:54:13  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 13:54:13  
+Oct 10 13:52:02  🚨 SERVER ERROR: {
+Oct 10 13:52:02    "timestamp": "2025-10-10T13:52:02.436Z",
+Oct 10 13:52:02    "method": "PUT",
+Oct 10 13:52:02    "url": "/api/auth/profile",
+Oct 10 13:52:02    "ip": "10.244.0.217",
+Oct 10 13:52:02    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+Oct 10 13:52:02    "userId": "cmflr2qss0000dk0dgmp132rn",
+Oct 10 13:52:02    "error": {
+Oct 10 13:52:02      "name": "PrismaClientKnownRequestError",
+Oct 10 13:52:02      "message": "\nInvalid `prisma.user.update()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:02      "statusCode": 500
+Oct 10 13:52:02    }
+Oct 10 13:52:02  }
+Oct 10 13:52:02  ERROR 💥 {
+Oct 10 13:52:02    code: 'P2000',
+Oct 10 13:52:02    meta: { modelName: 'User', column_name: '(not available)' },
+Oct 10 13:52:02    clientVersion: '6.14.0',
+Oct 10 13:52:02    name: 'PrismaClientKnownRequestError',
+Oct 10 13:52:02    message: '\n' +
+Oct 10 13:52:02      'Invalid `prisma.user.update()` invocation:\n' +
+Oct 10 13:54:13  
+Oct 10 13:54:13  Unique constraint failed on the fields: (`role_type`)
+Oct 10 13:54:13      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 10 13:54:13      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 10 13:54:13      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 10 13:54:13      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 10 13:54:13      at async /app/routes/roles.js:355:9 {
+Oct 10 13:54:13    code: 'P2002',
+Oct 10 13:54:13    meta: { modelName: 'RoleAssignment', target: [ 'role_type' ] },
+Oct 10 13:54:13    clientVersion: '6.14.0'
+Oct 10 13:54:13  }
+Oct 10 13:54:13  10.244.26.231 - - [10/Oct/2025:13:54:13 +0000] "POST /api/roles/sync HTTP/1.1" 500 192 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:54:14  10.244.43.29 - - [10/Oct/2025:13:54:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:23  🔄 ROLES API: Synchronizing role assignments: {
+Oct 10 13:54:23    projectManager: [ 'cmflovwaf0006j8g4kb57rd0f' ],
+Oct 10 13:54:23    fieldDirector: [ 'cmflo3ns50003j8g48bwa06n4' ],
+Oct 10 13:54:23    officeStaff: [ 'cmflo3nqx0002j8g4u4cykcb5' ],
+Oct 10 13:52:02      '\n' +
+Oct 10 13:52:02      '\n' +
+Oct 10 13:52:02      "The provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:02    statusCode: 500
+Oct 10 13:52:02  }
+Oct 10 13:52:02  10.244.0.217 - - [10/Oct/2025:13:52:02 +0000] "PUT /api/auth/profile HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:52:03  10.244.19.138 - - [10/Oct/2025:13:52:03 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:05  🚨 SERVER ERROR: {
+Oct 10 13:52:05    "timestamp": "2025-10-10T13:52:05.717Z",
+Oct 10 13:52:05    "method": "PUT",
+Oct 10 13:52:05    "url": "/api/auth/profile",
+Oct 10 13:52:05    "ip": "10.244.0.217",
+Oct 10 13:52:05    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+Oct 10 13:52:05    "userId": "cmflr2qss0000dk0dgmp132rn",
+Oct 10 13:52:05    "error": {
+Oct 10 13:52:05      "name": "PrismaClientKnownRequestError",
+Oct 10 13:52:05      "message": "\nInvalid `prisma.user.update()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:05      "statusCode": 500
+Oct 10 13:52:05    }
+Oct 10 13:52:05  }
+Oct 10 13:52:05  ERROR 💥 {
+Oct 10 13:54:23    administration: [ 'cmflovvc00003j8g4h3ngxt75', 'cmfld60ef0000bi0d8ky8hlot' ]
+Oct 10 13:54:23  }
+Oct 10 13:54:23  prisma:error 
+Oct 10 13:54:23  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 13:54:23  
+Oct 10 13:54:23  
+Oct 10 13:54:23  Unique constraint failed on the fields: (`role_type`)
+Oct 10 13:54:23  ❌ ROLES API: Error synchronizing roles: PrismaClientKnownRequestError: 
+Oct 10 13:52:05    code: 'P2000',
+Oct 10 13:52:05    meta: { modelName: 'User', column_name: '(not available)' },
+Oct 10 13:52:05    clientVersion: '6.14.0',
+Oct 10 13:52:05    name: 'PrismaClientKnownRequestError',
+Oct 10 13:52:05    message: '\n' +
+Oct 10 13:52:05      'Invalid `prisma.user.update()` invocation:\n' +
+Oct 10 13:52:05      '\n' +
+Oct 10 13:52:05      '\n' +
+Oct 10 13:52:05      "The provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:05    statusCode: 500
+Oct 10 13:52:05  }
+Oct 10 13:52:05  10.244.0.217 - - [10/Oct/2025:13:52:05 +0000] "PUT /api/auth/profile HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:52:07  🚨 SERVER ERROR: {
+Oct 10 13:52:07    "timestamp": "2025-10-10T13:52:07.469Z",
+Oct 10 13:52:07    "method": "PUT",
+Oct 10 13:52:07    "url": "/api/auth/profile",
+Oct 10 13:52:07    "ip": "10.244.0.217",
+Oct 10 13:52:07    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+Oct 10 13:52:07    "userId": "cmflr2qss0000dk0dgmp132rn",
+Oct 10 13:52:07    "error": {
+Oct 10 13:54:23  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 13:54:23  
+Oct 10 13:54:23  
+Oct 10 13:54:23  Unique constraint failed on the fields: (`role_type`)
+Oct 10 13:54:23      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 10 13:54:23      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 10 13:54:23      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 10 13:54:23      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 10 13:54:23      at async /app/routes/roles.js:355:9 {
+Oct 10 13:54:23    code: 'P2002',
+Oct 10 13:54:23    meta: { modelName: 'RoleAssignment', target: [ 'role_type' ] },
+Oct 10 13:54:23    clientVersion: '6.14.0'
+Oct 10 13:54:23  }
+Oct 10 13:54:23  10.244.26.231 - - [10/Oct/2025:13:54:23 +0000] "POST /api/roles/sync HTTP/1.1" 500 192 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:54:24  10.244.43.29 - - [10/Oct/2025:13:54:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:07      "name": "PrismaClientKnownRequestError",
+Oct 10 13:54:34  10.244.43.29 - - [10/Oct/2025:13:54:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:07      "message": "\nInvalid `prisma.user.update()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:07      "statusCode": 500
+Oct 10 13:52:07    }
+Oct 10 13:52:07  }
+Oct 10 13:52:07  ERROR 💥 {
+Oct 10 13:52:07    code: 'P2000',
+Oct 10 13:52:07    meta: { modelName: 'User', column_name: '(not available)' },
+Oct 10 13:52:07    clientVersion: '6.14.0',
+Oct 10 13:52:07    name: 'PrismaClientKnownRequestError',
+Oct 10 13:52:07    message: '\n' +
+Oct 10 13:52:07      'Invalid `prisma.user.update()` invocation:\n' +
+Oct 10 13:52:07      '\n' +
+Oct 10 13:52:07      '\n' +
+Oct 10 13:52:07      "The provided value for the column is too long for the column's type. Column: (not available)",
+Oct 10 13:52:07    statusCode: 500
+Oct 10 13:52:07  }
+Oct 10 13:52:07  10.244.0.217 - - [10/Oct/2025:13:52:07 +0000] "PUT /api/auth/profile HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:52:13  10.244.19.138 - - [10/Oct/2025:13:52:13 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:44  10.244.43.29 - - [10/Oct/2025:13:54:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:54  10.244.43.29 - - [10/Oct/2025:13:54:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:00  🔍 Checking workflow alerts...
+Oct 10 13:55:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 10 13:55:00  🚀 Generating alerts for 21 active projects
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 10 13:52:23  10.244.19.138 - - [10/Oct/2025:13:52:23 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:33  10.244.19.138 - - [10/Oct/2025:13:52:33 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:52:43  10.244.19.138 - - [10/Oct/2025:13:52:43 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:52:53  10.244.19.138 - - [10/Oct/2025:13:52:53 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:53:03  10.244.19.138 - - [10/Oct/2025:13:53:03 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:13  10.244.19.138 - - [10/Oct/2025:13:53:13 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:23  10.244.19.138 - - [10/Oct/2025:13:53:23 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:33  10.244.19.138 - - [10/Oct/2025:13:53:33 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:43  10.244.19.138 - - [10/Oct/2025:13:53:43 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:53:53  10.244.19.138 - - [10/Oct/2025:13:53:53 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:54:03  10.244.19.138 - - [10/Oct/2025:13:54:03 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:13  10.244.19.138 - - [10/Oct/2025:13:54:13 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:54:19  🔄 ROLES API: Synchronizing role assignments: {
+Oct 10 13:54:19    projectManager: [ 'cmflovwaf0006j8g4kb57rd0f' ],
+Oct 10 13:54:19    fieldDirector: [ 'cmflo3ns50003j8g48bwa06n4' ],
+Oct 10 13:54:19    officeStaff: [ 'cmflo3nqx0002j8g4u4cykcb5', 'cmflovwlc0007j8g4c0sjszys' ],
+Oct 10 13:54:19    administration: [ 'cmflovvc00003j8g4h3ngxt75' ]
+Oct 10 13:54:19  }
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 10 13:55:00  No new alerts to create
+Oct 10 13:55:00  ✅ Generated 0 new alerts
+Oct 10 13:55:04  10.244.43.29 - - [10/Oct/2025:13:55:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:14  10.244.43.29 - - [10/Oct/2025:13:55:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:24  10.244.43.29 - - [10/Oct/2025:13:55:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:34  10.244.43.29 - - [10/Oct/2025:13:55:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:19  prisma:error 
+Oct 10 13:54:19  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 13:54:19  
+Oct 10 13:54:19  
+Oct 10 13:54:19  Unique constraint failed on the fields: (`role_type`)
+Oct 10 13:54:19  ❌ ROLES API: Error synchronizing roles: PrismaClientKnownRequestError: 
+Oct 10 13:54:19  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 13:54:19  
+Oct 10 13:54:19  
+Oct 10 13:54:19  Unique constraint failed on the fields: (`role_type`)
+Oct 10 13:54:19      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 10 13:55:44  10.244.43.29 - - [10/Oct/2025:13:55:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:54  10.244.43.29 - - [10/Oct/2025:13:55:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:56:04  10.244.43.29 - - [10/Oct/2025:13:56:04 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:56:14  10.244.43.29 - - [10/Oct/2025:13:56:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:56:24  10.244.43.29 - - [10/Oct/2025:13:56:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:56:34  10.244.43.29 - - [10/Oct/2025:13:56:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:56:44  10.244.43.29 - - [10/Oct/2025:13:56:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:56:54  10.244.43.29 - - [10/Oct/2025:13:56:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:57:04  10.244.43.29 - - [10/Oct/2025:13:57:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:57:14  10.244.43.29 - - [10/Oct/2025:13:57:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:57:24  10.244.43.29 - - [10/Oct/2025:13:57:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:57:34  10.244.43.29 - - [10/Oct/2025:13:57:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:57:44  10.244.43.29 - - [10/Oct/2025:13:57:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:57:54  10.244.43.29 - - [10/Oct/2025:13:57:54 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:58:04  10.244.43.29 - - [10/Oct/2025:13:58:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:58:14  10.244.43.29 - - [10/Oct/2025:13:58:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:58:24  10.244.43.29 - - [10/Oct/2025:13:58:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:19      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 10 13:54:19      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 10 13:54:19      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 10 13:54:19      at async /app/routes/roles.js:355:9 {
+Oct 10 13:54:19    code: 'P2002',
+Oct 10 13:54:19    meta: { modelName: 'RoleAssignment', target: [ 'role_type' ] },
+Oct 10 13:54:19    clientVersion: '6.14.0'
+Oct 10 13:54:19  }
+Oct 10 13:54:19  10.244.26.231 - - [10/Oct/2025:13:54:19 +0000] "POST /api/roles/sync HTTP/1.1" 500 192 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+Oct 10 13:54:23  10.244.19.138 - - [10/Oct/2025:13:54:23 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:33  10.244.19.138 - - [10/Oct/2025:13:54:33 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:43  10.244.19.138 - - [10/Oct/2025:13:54:43 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:54:53  10.244.19.138 - - [10/Oct/2025:13:54:53 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:00  🔍 Checking workflow alerts...
+Oct 10 13:55:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 10 13:55:00  🚀 Generating alerts for 21 active projects
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 10 13:58:34  10.244.43.29 - - [10/Oct/2025:13:58:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:58:44  10.244.43.29 - - [10/Oct/2025:13:58:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:58:54  10.244.43.29 - - [10/Oct/2025:13:58:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:59:04  10.244.43.29 - - [10/Oct/2025:13:59:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:59:14  10.244.43.29 - - [10/Oct/2025:13:59:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:59:24  10.244.43.29 - - [10/Oct/2025:13:59:24 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:59:34  10.244.43.29 - - [10/Oct/2025:13:59:34 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:59:44  10.244.43.29 - - [10/Oct/2025:13:59:44 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:59:54  10.244.43.29 - - [10/Oct/2025:13:59:54 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 14:00:00  🔍 Checking workflow alerts...
+Oct 10 14:00:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 10 14:00:00  🚀 Generating alerts for 21 active projects
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 10 14:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 10 14:00:00  No new alerts to create
+Oct 10 14:00:00  ✅ Generated 0 new alerts
+Oct 10 14:00:00  🔄 ROLES API: Synchronizing role assignments: {
+Oct 10 14:00:00    projectManager: [ 'cmflovwaf0006j8g4kb57rd0f', 'cmft08dp600007n0dsyckkygd' ],
+Oct 10 14:00:00    fieldDirector: [ 'cmflo3ns50003j8g48bwa06n4' ],
+Oct 10 14:00:00    officeStaff: [ 'cmflo3nqx0002j8g4u4cykcb5' ],
+Oct 10 14:00:00    administration: [ 'cmflovvc00003j8g4h3ngxt75' ]
+Oct 10 14:00:00  }
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 10 13:55:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 10 13:55:00  No new alerts to create
+Oct 10 13:55:00  ✅ Generated 0 new alerts
+Oct 10 13:55:03  10.244.19.138 - - [10/Oct/2025:13:55:03 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:55:13  10.244.19.138 - - [10/Oct/2025:13:55:13 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 14:00:00  prisma:error 
+Oct 10 14:00:00  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 14:00:00  
+Oct 10 14:00:00  
+Oct 10 14:00:00  Unique constraint failed on the fields: (`role_type`)
+Oct 10 14:00:00  ❌ ROLES API: Error synchronizing roles: PrismaClientKnownRequestError: 
+Oct 10 14:00:00  Invalid `prisma.roleAssignment.create()` invocation:
+Oct 10 14:00:00  
+Oct 10 14:00:00  
+Oct 10 14:00:00  Unique constraint failed on the fields: (`role_type`)
+Oct 10 14:00:00      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 10 14:00:00      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 10 14:00:00      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 10 14:00:00      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 10 14:00:00      at async /app/routes/roles.js:355:9 {
+Oct 10 14:00:00    code: 'P2002',
+Oct 10 14:00:00    meta: { modelName: 'RoleAssignment', target: [ 'role_type' ] },
+Oct 10 14:00:00    clientVersion: '6.14.0'
+Oct 10 14:00:00  }
+Oct 10 14:00:00  10.244.26.231 - - [10/Oct/2025:14:00:00 +0000] "POST /api/roles/sync HTTP/1.1" 500 192 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"

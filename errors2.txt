@@ -1,0 +1,109 @@
+Oct 10 13:36:29  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 10 13:36:29  🚨 ALERTS ROUTE: Found 16 alerts from database
+Oct 10 13:36:29  10.244.0.217 - - [10/Oct/2025:13:36:29 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:04  10.244.43.29 - - [10/Oct/2025:13:36:04 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:36:14  10.244.43.29 - - [10/Oct/2025:13:36:14 +0000] "GET /api/health HTTP/1.1" 200 384 "-" "kube-probe/1.31"
+Oct 10 13:36:29  10.244.3.89 - - [10/Oct/2025:13:36:29 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  10.244.3.89 - - [10/Oct/2025:13:36:29 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  🚨 SERVER ERROR: {
+Oct 10 13:36:29    "timestamp": "2025-10-10T13:36:29.416Z",
+Oct 10 13:36:29    "method": "POST",
+Oct 10 13:36:29    "url": "/api/calendar-events",
+Oct 10 13:36:29    "ip": "10.244.30.98",
+Oct 10 13:36:29    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+Oct 10 13:36:29    "userId": "Anonymous",
+Oct 10 13:36:29    "error": {
+Oct 10 13:36:29      "name": "PrismaClientValidationError",
+Oct 10 13:36:29      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
+Oct 10 13:36:29      "statusCode": 500
+Oct 10 13:36:29    }
+Oct 10 13:36:23  10.244.30.98 - - [10/Oct/2025:13:36:23 +0000] "GET /api/company-docs-enhanced/assets?parentId=null&page=1&limit=100&type=FOLDER HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:24  10.244.43.29 - - [10/Oct/2025:13:36:24 +0000] "GET /api/health HTTP/1.1" 200 383 "-" "kube-probe/1.31"
+Oct 10 13:36:29  🎯 API: Getting project position for: cmgf79ee000059e0dz4y2y467
+Oct 10 13:36:29  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
+Oct 10 13:36:29  🎯 API: Found position: {
+Oct 10 13:36:29    projectId: 'cmgf79ee000059e0dz4y2y467',
+Oct 10 13:36:29    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 10 13:36:29    phaseType: 'LEAD',
+Oct 10 13:36:29    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 10 13:36:29    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 10 13:36:29    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 10 13:36:29  }
+Oct 10 13:36:29  10.244.30.98 - - [10/Oct/2025:13:36:29 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  10.244.0.217 - - [10/Oct/2025:13:36:29 +0000] "GET /api/project-messages/cmflohsmj005oj8g4l83pis99?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfmku5np0000a80daz7aj7is...
+Oct 10 13:36:29  10.244.26.231 - - [10/Oct/2025:13:36:29 +0000] "GET /api/project-messages/cmflohnpe000pj8g48atcp9f4?page=1&limit=10&includeReplies=true HTTP/1.1" 200 967 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  10.244.0.217 - - [10/Oct/2025:13:36:29 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  🚨 SERVER ERROR: {
+Oct 10 13:36:29    "timestamp": "2025-10-10T13:36:29.776Z",
+Oct 10 13:36:29    "method": "POST",
+Oct 10 13:36:29    "url": "/api/calendar-events",
+Oct 10 13:36:29    "ip": "10.244.30.98",
+Oct 10 13:36:29    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+Oct 10 13:36:29    "userId": "Anonymous",
+Oct 10 13:36:29    "error": {
+Oct 10 13:36:29      "name": "PrismaClientValidationError",
+Oct 10 13:36:29      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
+Oct 10 13:36:29      "statusCode": 500
+Oct 10 13:36:29    }
+Oct 10 13:36:29    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 10 13:36:29    currentLineItemName: 'Answer phone call',
+Oct 10 13:36:29    sectionDisplayName: 'Initial Contact',
+Oct 10 13:36:29    phaseName: 'Lead'
+Oct 10 13:36:29  }
+Oct 10 13:36:29  10.244.3.89 - - [10/Oct/2025:13:36:29 +0000] "GET /api/workflow-data/project-position/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  🎯 API: Found position: {
+Oct 10 13:36:29    projectId: 'cmflohmur000fj8g4uv12pin3',
+Oct 10 13:36:29    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 10 13:36:29    phaseType: 'LEAD',
+Oct 10 13:36:29    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 10 13:36:29    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 10 13:36:29    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 10 13:36:29    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 10 13:36:29    currentLineItemName: 'Answer phone call',
+Oct 10 13:36:29    sectionDisplayName: 'Initial Contact',
+Oct 10 13:36:29    phaseName: 'Lead'
+Oct 10 13:36:29  }
+Oct 10 13:36:29  10.244.30.98 - - [10/Oct/2025:13:36:29 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  🔍 Where clause: { archived: false }
+Oct 10 13:36:29  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 10 13:36:29  🚨 SERVER ERROR: {
+Oct 10 13:36:29    "timestamp": "2025-10-10T13:36:29.281Z",
+Oct 10 13:36:29    "method": "POST",
+Oct 10 13:36:29  }
+Oct 10 13:36:29  10.244.30.98 - - [10/Oct/2025:13:36:29 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  🚨 SERVER ERROR: {
+Oct 10 13:36:29    "timestamp": "2025-10-10T13:36:29.864Z",
+Oct 10 13:36:29    "method": "POST",
+Oct 10 13:36:29    "url": "/api/calendar-events",
+Oct 10 13:36:29    "ip": "10.244.30.98",
+Oct 10 13:36:29    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+Oct 10 13:36:29    "userId": "Anonymous",
+Oct 10 13:36:29    "error": {
+Oct 10 13:36:29      "name": "PrismaClientValidationError",
+Oct 10 13:36:29    "url": "/api/calendar-events",
+Oct 10 13:36:29    "ip": "10.244.30.98",
+Oct 10 13:36:29    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+Oct 10 13:36:29    "userId": "Anonymous",
+Oct 10 13:36:29    "error": {
+Oct 10 13:36:29      "name": "PrismaClientValidationError",
+Oct 10 13:36:29      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
+Oct 10 13:36:29      "statusCode": 500
+Oct 10 13:36:29    }
+Oct 10 13:36:29  }
+Oct 10 13:36:29  10.244.30.98 - - [10/Oct/2025:13:36:29 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+Oct 10 13:36:29  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
+Oct 10 13:36:29  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
+Oct 10 13:36:29  🚨 SERVER ERROR: {
+Oct 10 13:36:29    "timestamp": "2025-10-10T13:36:29.692Z",
+Oct 10 13:36:29    "method": "POST",
+Oct 10 13:36:29    "url": "/api/calendar-events",
+Oct 10 13:36:29    "ip": "10.244.30.98",
+Oct 10 13:36:29    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+Oct 10 13:36:29    "userId": "Anonymous",
+Oct 10 13:36:29    "error": {
+Oct 10 13:36:29      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n+   id: String\n  }\n}\n\nArgument `id` must not be null.",
+Oct 10 13:36:29      "statusCode": 500
+Oct 10 13:36:29    }
+Oct 10 13:36:29  }
+Oct 10 13:36:29  10.244.30.98 - - [10/Oct/2025:13:36:29 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"

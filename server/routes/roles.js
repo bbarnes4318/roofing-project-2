@@ -352,14 +352,35 @@ router.post('/sync', authenticateToken, async (req, res) => {
           continue;
         }
 
-        await prisma.roleAssignment.create({
-          data: {
+        // Check if this user already has this role assignment
+        const existingAssignment = await prisma.roleAssignment.findFirst({
+          where: {
             roleType: normalizedRoleType,
-            userId: userId,
-            assignedAt: new Date(),
-            assignedById: req.user?.id || userId
+            userId: userId
           }
         });
+
+        if (existingAssignment) {
+          console.log(`ℹ️ User ${userId} already has role ${normalizedRoleType}, skipping`);
+          continue;
+        }
+
+        try {
+          await prisma.roleAssignment.create({
+            data: {
+              roleType: normalizedRoleType,
+              userId: userId,
+              assignedAt: new Date(),
+              assignedById: req.user?.id || userId
+            }
+          });
+        } catch (error) {
+          if (error.code === 'P2002') {
+            console.log(`ℹ️ User ${userId} already has role ${normalizedRoleType}, skipping duplicate`);
+            continue;
+          }
+          throw error;
+        }
       }
 
       if (toAdd.length > 0) {

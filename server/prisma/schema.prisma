@@ -513,7 +513,7 @@ model RoleAssignment {
   id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  roleType     RoleType @unique @map("role_type")
+  roleType     RoleType @map("role_type")
   userId       String   @map("user_id")
   assignedAt   DateTime @map("assigned_at")
   assignedById String?  @map("assigned_by_id")
@@ -521,6 +521,7 @@ model RoleAssignment {
   assignedBy   User?    @relation("AssignedRoles", fields: [assignedById], references: [id])
   user         User     @relation("RoleAssignments", fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([roleType, userId])
   @@index([userId])
   @@index([roleType])
   @@index([assignedAt])
