@@ -113,6 +113,14 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
         } catch (_) {}
     }, []);
 
+    // Close document browser when recipient selection is needed
+    useEffect(() => {
+        const hasRecipientSelection = messages.some(msg => msg.requiresRecipientSelection);
+        if (hasRecipientSelection && showDocumentBrowser) {
+            setShowDocumentBrowser(false);
+        }
+    }, [messages, showDocumentBrowser]);
+
     // Fetch available documents for the document browser
     useEffect(() => {
         const fetchDocuments = async () => {
@@ -1788,6 +1796,9 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 setPendingAction(response.data.response.pendingAction);
                 setTeamMembers(response.data.response.availableRecipients || []);
                 setPendingActionRecipients([]);
+                
+                // Close document browser to prevent UI blocking
+                setShowDocumentBrowser(false);
 
                 setMessages(prev => {
                     const [lastUserMsg, ...rest] = prev;
@@ -2481,8 +2492,17 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                                 key={doc.id}
                                                 className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer group"
                                                 onClick={() => {
-                                                    setInput(input + (input ? ' ' : '') + `"${docName}"`);
-                                                    inputRef.current?.focus();
+                                                    const newInput = input + (input ? ' ' : '') + `"${docName}"`;
+                                                    setInput(newInput);
+                                                    // Move cursor to end of text after state update
+                                                    setTimeout(() => {
+                                                        if (inputRef.current) {
+                                                            inputRef.current.focus();
+                                                            // Set cursor position to end of text
+                                                            const length = newInput.length;
+                                                            inputRef.current.setSelectionRange(length, length);
+                                                        }
+                                                    }, 0);
                                                 }}
                                                 title={`Click to insert "${docName}" into message`}
                                             >
