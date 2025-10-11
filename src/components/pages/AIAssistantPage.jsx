@@ -2589,7 +2589,9 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
           wordBreak: 'normal',
           overflowWrap: 'break-word',
           whiteSpace: 'normal',
-          textAlign: 'left'
+          textAlign: 'left',
+          maxWidth: '100%',
+          width: '100%'
         }}
         role="log"
         aria-live="polite"
@@ -2597,7 +2599,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
         aria-relevant="additions text"
       >
         {(() => {
-  // Render finalized lines (deduped) plus the in-progress live line (only if new)
+  // Render as continuous text instead of separate lines
   const rawLines = Array.isArray(voiceTranscript) ? voiceTranscript : [];
   const normalize = (s) => cleanMojibake(String(s || '')).trim();
 
@@ -2618,13 +2620,14 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
   const lastFinal = safeLines.length > 0 ? safeLines[safeLines.length - 1] : '';
   const showLive = !!live && live !== lastFinal;
 
+  // Combine all finalized text into one continuous string
+  const finalizedText = safeLines.join(' ');
+  
   return (
-    <div className="space-y-1.5">
-      {safeLines.map((ln, idx) => (
-        <div key={idx} className="whitespace-pre-wrap break-words">{ln}</div>
-      ))}
+    <div className="whitespace-pre-wrap break-words">
+      {finalizedText}
       {showLive && (
-        <div className="whitespace-pre-wrap break-words opacity-80">{live}</div>
+        <span className="opacity-80"> {live}</span>
       )}
     </div>
   );

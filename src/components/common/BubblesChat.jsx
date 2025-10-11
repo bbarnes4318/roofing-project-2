@@ -1311,9 +1311,9 @@ const BubblesChat = ({
             <div className={`text-xs mt-2 border rounded p-2 ${
               colorMode ? 'border-slate-600 bg-slate-800 text-gray-300' : 'border-gray-200 bg-white text-gray-600'
             }`}>
-              {voiceTranscript.slice(-3).map((t, i) => (
-                <div key={i} className="truncate">{t}</div>
-              ))}
+              <div className="whitespace-pre-wrap break-words">
+                {voiceTranscript.slice(-3).join(' ')}
+              </div>
             </div>
           )}
         </div>
