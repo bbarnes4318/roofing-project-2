@@ -146,20 +146,41 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             if (!showDocumentBrowser) return;
             setDocumentsLoading(true);
             try {
-                // Use a more efficient approach - fetch all files at once with a higher limit
-                const response = await assetsService.list({ 
-                    parentId: null, // Get all files from root
-                    limit: 5000, // Increased limit to get more files at once
-                    type: 'FILE' // Only get files, not folders
-                });
+                console.log('Fetching documents...');
+                // Fetch all documents recursively from all folders
+                const allFiles = [];
+                const foldersToProcess = [null]; // Start with root
+                const processedFolders = new Set();
                 
-                if (response && response.assets && Array.isArray(response.assets)) {
-                    const files = response.assets.filter(item => item.type === 'FILE');
-                    console.log('Found documents:', files.length, files);
-                    setAvailableDocuments(files);
-                } else {
-                    setAvailableDocuments([]);
+                while (foldersToProcess.length > 0) {
+                    const currentParentId = foldersToProcess.shift();
+                    const folderKey = currentParentId || 'root';
+                    
+                    if (processedFolders.has(folderKey)) continue;
+                    processedFolders.add(folderKey);
+                    
+                    try {
+                        const response = await assetsService.list({ 
+                            parentId: currentParentId, 
+                            limit: 1000 
+                        });
+                        
+                        if (response && response.assets && Array.isArray(response.assets)) {
+                            // Add files to our list
+                            const files = response.assets.filter(item => item.type === 'FILE');
+                            allFiles.push(...files);
+                            
+                            // Add folders to process queue
+                            const folders = response.assets.filter(item => item.type === 'FOLDER');
+                            folders.forEach(folder => foldersToProcess.push(folder.id));
+                        }
+                    } catch (err) {
+                        console.error(`Failed to fetch from folder ${folderKey}:`, err);
+                    }
                 }
+                
+                console.log('Found documents:', allFiles.length, allFiles);
+                setAvailableDocuments(allFiles);
             } catch (error) {
                 console.error('Failed to fetch documents:', error);
                 setAvailableDocuments([]);
