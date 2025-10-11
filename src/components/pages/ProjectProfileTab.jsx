@@ -7,6 +7,7 @@ import { documentService } from '../../services/documentService';
 import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from '../../utils/projectTypeFormatter';
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
+import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { 
   PhoneIcon, 
@@ -312,11 +313,11 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 </div>
               ) : (
           <div className="flex items-center gap-2 w-full">
-                  <input
-                    type="text"
+                  <GoogleMapsAutocomplete
+                    name="address"
                     value={editFormData.address}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
-              className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Project address"
                     autoFocus
                   />

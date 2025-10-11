@@ -6,6 +6,7 @@ import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
 import FollowUpTracking from '../ui/FollowUpTracking';
 import { API_BASE_URL, authService } from '../../services/api';
+import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
 // Removed mock user; use real authenticated user via props
 
@@ -1678,10 +1679,12 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       <div>
         <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Company Address</label>
-        <textarea
-          rows={2}
-          className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+        <GoogleMapsAutocomplete
+          name="companyAddress"
+          value=""
+          onChange={() => {}}
           placeholder="Enter company address"
+          className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
         />
       </div>
 

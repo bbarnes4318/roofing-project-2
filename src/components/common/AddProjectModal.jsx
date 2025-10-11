@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { API_BASE_URL } from '../../services/api';
+import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
 const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [formData, setFormData] = useState({
@@ -557,15 +558,15 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Project Address <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <GoogleMapsAutocomplete
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
+                        placeholder="Full project address"
                         className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
                           errors.address ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                         }`}
-                        placeholder="Full project address"
+                        required
                       />
                       {errors.address && (
                         <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
