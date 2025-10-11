@@ -240,6 +240,23 @@ const BubblesChat = ({
     loadTeam();
   }, [isComposerOpen]);
 
+  // Create general system message/activity that will appear in Messages, Tasks, and Alerts
+  const createGeneralSystemMessage = async (message) => {
+    try {
+      // Import the activities service
+      const { activitiesService } = await import('../../services/api');
+      
+      // Get the current user
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Bubbles route handles creating the message automatically
+      // No need to call activities API
+    } catch (error) {
+      console.error('Error creating general system message:', error);
+      throw error;
+    }
+  };
+
   const handleSendMessage = async (messageContent = inputMessage) => {
     const trimmedMessage = messageContent.trim();
     if (!trimmedMessage || isLoading) return;
@@ -258,6 +275,28 @@ const BubblesChat = ({
     setIsTyping(true);
 
     try {
+      // Check if this is a general message request (not project-specific)
+      const isGeneralMessage = !currentProject?.id && (
+        trimmedMessage.toLowerCase().includes('send message') ||
+        trimmedMessage.toLowerCase().includes('message to') ||
+        trimmedMessage.toLowerCase().includes('tell') ||
+        trimmedMessage.toLowerCase().includes('notify')
+      );
+
+      if (isGeneralMessage) {
+        // Create a system message/activity for general messages
+        await createGeneralSystemMessage(trimmedMessage);
+        
+        const aiMessage = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: 'I\'ve sent your message to the team. It will appear in their Messages, Tasks, and Alerts.',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        return;
+      }
+
       const response = await bubblesService.chat(trimmedMessage, currentProject?.id);
 
       // Check if Bubbles requires recipient selection

@@ -389,6 +389,38 @@ router.post('/', taskValidation, asyncHandler(async (req, res, next) => {
     }
   });
 
+  // Create follow-up if user has follow-up settings enabled
+  try {
+    const FollowUpService = require('../services/followUpService');
+    const assignedUserId = assignedToId || createdById;
+    
+    // Check if user has follow-up settings enabled
+    const userSettings = await prisma.followUpSettings.findUnique({
+      where: { userId: assignedUserId }
+    });
+
+    if (userSettings && userSettings.isEnabled) {
+      await FollowUpService.createFollowUp({
+        originalItemId: task.id,
+        originalItemType: 'TASK',
+        projectId: task.projectId,
+        assignedToId: assignedUserId,
+        followUpDays: userSettings.taskFollowUpDays,
+        followUpHours: userSettings.taskFollowUpHours,
+        followUpMinutes: userSettings.taskFollowUpMinutes,
+        followUpMessage: userSettings.followUpMessage,
+        metadata: {
+          taskTitle: task.title,
+          taskPriority: task.priority,
+          taskDueDate: task.dueDate
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error creating follow-up for task:', error);
+    // Don't fail the task creation if follow-up creation fails
+  }
+
   res.status(201).json({
     success: true,
     message: 'Task created successfully',

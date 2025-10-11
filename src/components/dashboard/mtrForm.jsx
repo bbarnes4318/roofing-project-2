@@ -4,6 +4,7 @@ import { projectMessagesService, calendarService } from '../../services/api';
 import CheatSheet, { CheatSheetModal } from '../common/CheatSheet';
 import { queryKeys } from '../../hooks/useQueryApi';
 import toast from 'react-hot-toast';
+import GranularTimingControls from '../ui/GranularTimingControls';
 
 const MTRForm = ({
   activeCommTab,
@@ -55,7 +56,16 @@ const MTRForm = ({
   // Callbacks
   setMessagesData,
   setFeed,
-  uiProjects
+  uiProjects,
+  // Granular timing props
+  taskTiming,
+  setTaskTiming,
+  taskFollowUpTiming,
+  setTaskFollowUpTiming,
+  reminderTiming,
+  setReminderTiming,
+  reminderFollowUpTiming,
+  setReminderFollowUpTiming
 }) => {
   const queryClient = useQueryClient();
   const recipients = Array.isArray(availableUsers) ? availableUsers : [];
@@ -422,7 +432,10 @@ const MTRForm = ({
                 eventType: 'DEADLINE',
                 organizerId: userId,
                 projectId: tasksProjectFilter || undefined,
-                attendees: quickTaskAssignAll ? availableUsers.map(u => ({ userId: u.id })) : (quickTaskAssigneeId ? [{ userId: quickTaskAssigneeId }] : [])
+                attendees: quickTaskAssignAll ? availableUsers.map(u => ({ userId: u.id })) : (quickTaskAssigneeId ? [{ userId: quickTaskAssigneeId }] : []),
+                // Granular timing data
+                timing: taskTiming,
+                followUpTiming: taskFollowUpTiming.enabled ? taskFollowUpTiming : null
               };
               
               console.log('Creating task with payload:', payload);
@@ -523,7 +536,7 @@ const MTRForm = ({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
-                <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Due <span className="text-red-500">*</span></label>
+                <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Task Due Date <span className="text-red-500">*</span></label>
                 <input type="datetime-local" value={quickTaskDue} onChange={(e)=>setQuickTaskDue(e.target.value)} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} />
               </div>
               <div>
@@ -548,6 +561,17 @@ const MTRForm = ({
               <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Description</label>
               <textarea value={quickTaskDescription} onChange={(e)=>setQuickTaskDescription(e.target.value)} rows={2} className={`w-full px-2 py-1 border rounded text-xs resize-none ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} />
             </div>
+            
+            {/* Granular Timing Controls for Tasks */}
+            <GranularTimingControls
+              colorMode={colorMode}
+              timing={taskTiming}
+              onTimingChange={setTaskTiming}
+              showFollowUp={true}
+              followUpTiming={taskFollowUpTiming}
+              onFollowUpTimingChange={setTaskFollowUpTiming}
+              label="Start Task"
+            />
             <div className="flex items-center">
               <label className={`text-xs font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <input type="checkbox" className="mr-1" checked={quickTaskAssignAll} onChange={(e)=>{ setQuickTaskAssignAll(e.target.checked); if (e.target.checked) setQuickTaskAssigneeId(''); }} /> Send to all users
@@ -587,7 +611,10 @@ const MTRForm = ({
                 eventType: 'REMINDER',
                 organizerId: userId,
                 projectId: remindersProjectFilter || undefined,
-                attendees: reminderAllUsers ? availableUsers.map(u => ({ userId: u.id })) : (reminderUserIds.length ? reminderUserIds.map(id => ({ userId: id })) : [])
+                attendees: reminderAllUsers ? availableUsers.map(u => ({ userId: u.id })) : (reminderUserIds.length ? reminderUserIds.map(id => ({ userId: id })) : []),
+                // Granular timing data
+                timing: reminderTiming,
+                followUpTiming: reminderFollowUpTiming.enabled ? reminderFollowUpTiming : null
               };
               
               console.log('Creating reminder with payload:', payload);
@@ -637,6 +664,17 @@ const MTRForm = ({
               <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Description</label>
               <textarea value={reminderDescription} onChange={(e)=>setReminderDescription(e.target.value)} rows={2} className={`w-full px-2 py-1 border rounded text-xs resize-none ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} />
             </div>
+            
+            {/* Granular Timing Controls for Reminders */}
+            <GranularTimingControls
+              colorMode={colorMode}
+              timing={reminderTiming}
+              onTimingChange={setReminderTiming}
+              showFollowUp={true}
+              followUpTiming={reminderFollowUpTiming}
+              onFollowUpTimingChange={setReminderFollowUpTiming}
+              label="Start Reminder"
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div>
                 <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Recipients</label>

@@ -8,7 +8,8 @@ const ROLE_MAPPINGS = {
   'FIELD_DIRECTOR': 'FOREMAN', // Map to existing DB role
   'OFFICE_STAFF': 'WORKER',   // Map to existing DB role
   'OWNER': 'ADMIN',           // Owner gets admin privileges
-  'PROJECT_MANAGER': 'PROJECT_MANAGER'
+  'PROJECT_MANAGER': 'PROJECT_MANAGER',
+  'LOCATION_MANAGER': 'LOCATION_MANAGER'
 };
 
 const OnboardingFlow = ({ currentUser, onComplete }) => {

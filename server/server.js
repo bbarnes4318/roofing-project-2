@@ -873,6 +873,7 @@ app.use('/api/complete-excel-data', completeExcelDataRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/transcripts', require('./routes/transcripts'));
 app.use('/api/voice-transcripts', require('./routes/voiceTranscripts'));
+app.use('/api/follow-up', require('./routes/followUp'));
 // RAG + Files + Upload microservice endpoints
 app.use('/api', uploadRoutes);
 app.use('/api', filesRoutes);
@@ -1080,6 +1081,12 @@ server.listen(PORT, '0.0.0.0', (err) => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API Base URL: http://0.0.0.0:${PORT}/api`);
   console.log(`📡 Socket.IO server ready for real-time connections`);
+  
+  // Start follow-up scheduler
+  const followUpScheduler = require('./jobs/followUpScheduler');
+  followUpScheduler.start();
+  console.log(`⏰ Follow-up scheduler started`);
+  
   console.log(`✅ Server startup completed successfully`);
 });
 

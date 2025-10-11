@@ -301,7 +301,7 @@ export const useRecentActivities = (limit = 10) => {
     queryKey: queryKeys.recentActivities(limit),
     queryFn: () => activitiesService.getRecent(limit),
     select: (data) => data?.data || data || [],
-    staleTime: 1 * 60 * 1000, // 1 minute for recent activities
+    staleTime: 30000, // 30 seconds cache
   });
 };
 

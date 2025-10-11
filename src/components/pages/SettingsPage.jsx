@@ -4,6 +4,7 @@ import { useSubjects } from '../../contexts/SubjectsContext';
 import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
+import FollowUpTracking from '../ui/FollowUpTracking';
 import { API_BASE_URL, authService } from '../../services/api';
 
 // Removed mock user; use real authenticated user via props
@@ -71,6 +72,23 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
+
+  // Follow-up settings state
+  const [followUpSettings, setFollowUpSettings] = useState({
+    isEnabled: false,
+    taskFollowUpDays: 7,
+    taskFollowUpHours: 0,
+    taskFollowUpMinutes: 0,
+    reminderFollowUpDays: 3,
+    reminderFollowUpHours: 0,
+    reminderFollowUpMinutes: 0,
+    alertFollowUpDays: 5,
+    alertFollowUpHours: 0,
+    alertFollowUpMinutes: 0,
+    maxFollowUpAttempts: 3,
+    followUpMessage: ''
+  });
+  const [isLoadingFollowUp, setIsLoadingFollowUp] = useState(false);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -224,7 +242,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         fieldDirector: 'FIELD_DIRECTOR',
         officeStaff: 'OFFICE_STAFF',
         administration: 'ADMINISTRATION',
-        subcontractor: 'SUBCONTRACTOR'
+        subcontractor: 'SUBCONTRACTOR',
+        locationManager: 'LOCATION_MANAGER'
       };
 
       const backendRoleType = roleTypeMapping[roleType] || roleType;
@@ -274,9 +293,12 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const getRoleDisplayName = (roleType) => {
     const roleNames = {
       productManager: 'Project Manager',
+      projectManager: 'Project Manager',
       fieldDirector: 'Field Director',
       officeStaff: 'Office Staff',
-      administration: 'Administration'
+      administration: 'Administration',
+      subcontractor: 'Subcontractor',
+      locationManager: 'Location Manager'
     };
     return roleNames[roleType] || roleType;
   };
@@ -311,7 +333,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             projectManager: [], // Changed from productManager to projectManager
             fieldDirector: [],
             officeStaff: [],
-            administration: []
+            administration: [],
+            subcontractor: [],
+            locationManager: []
           };
 
           // Handle existing assignments if they exist
@@ -532,6 +556,58 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     fetchWorkflowTemplates();
   }, []);
 
+  // Load follow-up settings
+  const loadFollowUpSettings = async () => {
+    try {
+      const response = await fetch('/api/follow-up/settings', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFollowUpSettings(data.data.settings);
+      }
+    } catch (error) {
+      console.error('Error loading follow-up settings:', error);
+    }
+  };
+
+  // Save follow-up settings
+  const saveFollowUpSettings = async () => {
+    setIsLoadingFollowUp(true);
+    try {
+      const response = await fetch('/api/follow-up/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(followUpSettings)
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSuccessMessage('Follow-up settings saved successfully!');
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        throw new Error(data.message || 'Failed to save follow-up settings');
+      }
+    } catch (error) {
+      console.error('Error saving follow-up settings:', error);
+      setSuccessMessage('Failed to save follow-up settings');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } finally {
+      setIsLoadingFollowUp(false);
+    }
+  };
+
+  // Load follow-up settings on component mount
+  useEffect(() => {
+    loadFollowUpSettings();
+  }, []);
+
   // Get visible tabs based on user permissions
   const getVisibleTabs = () => {
     const baseTabs = [
@@ -540,6 +616,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       // Note: Notifications section hidden per requirements
       { id: 'security', label: 'Security', icon: '🔒' },
       { id: 'roles', label: 'Roles', icon: '👥' },
+      { id: 'follow-up', label: 'Follow-ups', icon: '⏰' },
       // Note: Excel Data section hidden per requirements
       { id: 'subjects', label: 'Subjects', icon: '📝' }
     ];
@@ -2286,6 +2363,240 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     </div>
   );
 
+  const renderFollowUpTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+          Follow-up Settings
+        </h3>
+        <button
+          onClick={saveFollowUpSettings}
+          disabled={isLoadingFollowUp}
+          className={`px-4 py-2 rounded text-sm font-semibold transition-all duration-200 ${
+            isLoadingFollowUp
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : colorMode
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+        >
+          {isLoadingFollowUp ? 'Saving...' : 'Save Settings'}
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        {/* Enable Follow-ups */}
+        <div className="flex items-center justify-between p-3 rounded border">
+          <div>
+            <label className={`block text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+              Enable Automatic Follow-ups
+            </label>
+            <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Automatically send follow-up reminders for tasks and alerts
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={followUpSettings.isEnabled}
+              onChange={(e) => setFollowUpSettings(prev => ({ ...prev, isEnabled: e.target.checked }))}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+
+        {/* Follow-up Timing Settings */}
+        {followUpSettings.isEnabled && (
+          <div className="space-y-4">
+            {/* Task Follow-up Timing */}
+            <div className="border rounded p-4">
+              <h4 className={`text-sm font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                Task Follow-up Timing
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Days
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={followUpSettings.taskFollowUpDays}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, taskFollowUpDays: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Hours
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    value={followUpSettings.taskFollowUpHours}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, taskFollowUpHours: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Minutes
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={followUpSettings.taskFollowUpMinutes}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, taskFollowUpMinutes: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Reminder Follow-up Timing */}
+            <div className="border rounded p-4">
+              <h4 className={`text-sm font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                Reminder Follow-up Timing
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Days
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={followUpSettings.reminderFollowUpDays}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, reminderFollowUpDays: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Hours
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    value={followUpSettings.reminderFollowUpHours}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, reminderFollowUpHours: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Minutes
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={followUpSettings.reminderFollowUpMinutes}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, reminderFollowUpMinutes: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Alert Follow-up Timing */}
+            <div className="border rounded p-4">
+              <h4 className={`text-sm font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                Alert Follow-up Timing
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Days
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={followUpSettings.alertFollowUpDays}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, alertFollowUpDays: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Hours
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    value={followUpSettings.alertFollowUpHours}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, alertFollowUpHours: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Minutes
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={followUpSettings.alertFollowUpMinutes}
+                    onChange={(e) => setFollowUpSettings(prev => ({ ...prev, alertFollowUpMinutes: parseInt(e.target.value) || 0 }))}
+                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                Max Follow-up Attempts
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={followUpSettings.maxFollowUpAttempts}
+                onChange={(e) => setFollowUpSettings(prev => ({ ...prev, maxFollowUpAttempts: parseInt(e.target.value) || 3 }))}
+                className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                Custom Follow-up Message
+              </label>
+              <textarea
+                value={followUpSettings.followUpMessage}
+                onChange={(e) => setFollowUpSettings(prev => ({ ...prev, followUpMessage: e.target.value }))}
+                placeholder="Enter a custom message for follow-up notifications..."
+                rows={3}
+                maxLength={1000}
+                className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+              />
+              <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                {followUpSettings.followUpMessage.length}/1000 characters
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Follow-up Tracking */}
+        <div className="mt-6">
+          <h4 className={`text-md font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+            Follow-up Tracking
+          </h4>
+          <FollowUpTracking colorMode={colorMode} />
+        </div>
+      </div>
+    </div>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -2296,6 +2607,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         return renderSecurityTab();
       case 'roles':
         return renderRolesTab();
+      case 'follow-up':
+        return renderFollowUpTab();
       // Note: Excel Data section hidden per requirements
       case 'complete-excel':
         return <CompleteExcelDataManager colorMode={colorMode} />;

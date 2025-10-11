@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChartBarIcon, DocumentTextIcon, CogIcon, CheckCircleIcon, ExclamationTriangleIcon, UserGroupIcon, ChevronDownIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, ChevronLeftIcon, TrashIcon, FolderIcon, SparklesIcon } from '../common/Icons';
 import { bubblesService, projectsService, projectMessagesService, usersService } from '../../services/api';
 import api from '../../services/api';
@@ -11,6 +12,7 @@ import assetsService from '../../services/assetsService';
 // Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
+    const queryClient = useQueryClient();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +31,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const messagesContainerRef = useRef(null);
     const headerRef = useRef(null);
     const inputRef = useRef(null);
+    const actualInputRef = useRef(null);
     const composerRef = useRef(null);
     const containerRef = useRef(null);
     const liveTranscriptScrollRef = useRef(null);
@@ -1169,11 +1172,39 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
         setCustomEmails(prev => prev.filter(e => e !== email));
     };
 
+    // Create actual system message/activity that will appear in Messages, Tasks, and Alerts
+    const createSystemMessage = async (action, recipients, customEmails, queryClient) => {
+        try {
+            // Import the activities service
+            const { activitiesService } = await import('../../services/api');
+            
+            // Get the current user
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            // Bubbles route handles creating the message automatically
+            // Just invalidate cache to refresh the feed
+            if (queryClient) {
+                console.log('🔄 Invalidating activities cache...');
+                queryClient.invalidateQueries({ queryKey: ['activities'] });
+                queryClient.invalidateQueries({ queryKey: ['activities', 'recent', 50] });
+                // Force refetch
+                queryClient.refetchQueries({ queryKey: ['activities', 'recent', 50] });
+            }
+        } catch (error) {
+            console.error('Error creating system message:', error);
+            throw error;
+        }
+    };
+
     const handleCompletePendingAction = async () => {
         if (!pendingAction || (pendingActionRecipients.length === 0 && customEmails.length === 0)) return;
 
         setIsLoading(true);
         try {
+            // First, create the actual message/activity in the system
+            await createSystemMessage(pendingAction, pendingActionRecipients, customEmails, queryClient);
+
+            // Then complete the Bubbles action
             const response = await bubblesService.completeAction(
                 pendingAction,
                 pendingActionRecipients,
@@ -1183,7 +1214,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
             const confirmationMessage = {
                 id: Date.now(),
                 type: 'assistant',
-                content: response.data?.response?.content || 'Action completed successfully.',
+                content: response.data?.response?.content || 'Message sent successfully!',
                 timestamp: new Date()
             };
 
@@ -2212,6 +2243,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
             <div ref={inputRef} className="flex-shrink-0 p-1 px-3 md:px-4 border-b border-gray-200 bg-gray-50">
                 <form onSubmit={handleSubmit} className="w-full max-w-2xl flex items-center gap-1">
                     <input
+                        ref={actualInputRef}
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -2496,11 +2528,11 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                                     setInput(newInput);
                                                     // Move cursor to end of text after state update
                                                     setTimeout(() => {
-                                                        if (inputRef.current) {
-                                                            inputRef.current.focus();
+                                                        if (actualInputRef.current) {
+                                                            actualInputRef.current.focus();
                                                             // Set cursor position to end of text
                                                             const length = newInput.length;
-                                                            inputRef.current.setSelectionRange(length, length);
+                                                            actualInputRef.current.setSelectionRange(length, length);
                                                         }
                                                     }, 0);
                                                 }}

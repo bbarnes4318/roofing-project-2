@@ -78,7 +78,9 @@ const ProjectRoleDropdowns = ({ project, colorMode, onRoleAssignmentUpdate, isEx
                 projectManager: roleType === 'projectManager' ? userId : projectRoles.projectManager?.id,
                 fieldDirector: roleType === 'fieldDirector' ? userId : projectRoles.fieldDirector?.id,
                 officeStaff: roleType === 'officeStaff' ? userId : projectRoles.officeStaff?.id,
-                administration: roleType === 'administration' ? userId : projectRoles.administration?.id
+                administration: roleType === 'administration' ? userId : projectRoles.administration?.id,
+                subcontractor: roleType === 'subcontractor' ? userId : projectRoles.subcontractor?.id,
+                locationManager: roleType === 'locationManager' ? userId : projectRoles.locationManager?.id
             };
 
             // Call API to update role assignments

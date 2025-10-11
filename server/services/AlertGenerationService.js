@@ -175,6 +175,41 @@ class AlertGenerationService {
         }
       });
 
+      // Create follow-ups for new alerts
+      try {
+        const FollowUpService = require('./followUpService');
+        for (const alert of createdAlerts) {
+          if (alert.assignedToId) {
+            // Check if user has follow-up settings enabled
+            const userSettings = await prisma.followUpSettings.findUnique({
+              where: { userId: alert.assignedToId }
+            });
+
+            if (userSettings && userSettings.isEnabled) {
+              await FollowUpService.createFollowUp({
+                originalItemId: alert.id,
+                originalItemType: 'WORKFLOW_ALERT',
+                projectId: alert.projectId,
+                assignedToId: alert.assignedToId,
+                followUpDays: userSettings.alertFollowUpDays,
+                followUpHours: userSettings.alertFollowUpHours,
+                followUpMinutes: userSettings.alertFollowUpMinutes,
+                followUpMessage: userSettings.followUpMessage,
+                metadata: {
+                  alertTitle: alert.title,
+                  alertPriority: alert.priority,
+                  alertDueDate: alert.dueDate,
+                  stepName: alert.stepName
+                }
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error creating follow-ups for alerts:', error);
+        // Don't fail alert creation if follow-up creation fails
+      }
+
       return createdAlerts;
       
     } catch (error) {

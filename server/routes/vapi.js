@@ -268,15 +268,63 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
         } catch (_) {}
       }
 
-      // Optional short content after phrases like "message saying"
+      // Extract message content - improved logic to capture user's actual message
       let userContent = '';
+      
+      // First try to extract from specific patterns
       const sayingIdx = lower.indexOf('message saying');
       if (sayingIdx !== -1) {
-        userContent = query.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+        let extracted = query.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+        // If the content is quoted, extract just the quoted part with proper quote handling
+        const doubleQuoteMatch = extracted.match(/^"([^"]+)"$/);
+        if (doubleQuoteMatch) {
+          userContent = doubleQuoteMatch[1].trim();
+        } else {
+          const singleQuoteMatch = extracted.match(/^'([^']+)'$/);
+          if (singleQuoteMatch) {
+            userContent = singleQuoteMatch[1].trim();
+          } else {
+            userContent = extracted;
+          }
+        }
       }
       if (!userContent) {
         const withIdx = lower.indexOf('with a message');
-        if (withIdx !== -1) userContent = query.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+        if (withIdx !== -1) {
+          let extracted = query.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+          // If the content is quoted, extract just the quoted part with proper quote handling
+          const doubleQuoteMatch = extracted.match(/^"([^"]+)"$/);
+          if (doubleQuoteMatch) {
+            userContent = doubleQuoteMatch[1].trim();
+          } else {
+            const singleQuoteMatch = extracted.match(/^'([^']+)'$/);
+            if (singleQuoteMatch) {
+              userContent = singleQuoteMatch[1].trim();
+            } else {
+              userContent = extracted;
+            }
+          }
+        }
+      }
+      
+      // If no specific patterns found, try to extract the main message content
+      if (!userContent) {
+        let cleanMessage = query;
+        
+        // Remove document references (quoted filenames)
+        cleanMessage = cleanMessage.replace(/["'][^"']*\.(pdf|docx?|txt|jpg|png|gif)["']/gi, '');
+        
+        // Remove common attachment phrases
+        cleanMessage = cleanMessage.replace(/\b(attach|send|share|include)\s+(this\s+)?(document|file|pdf|doc)\b/gi, '');
+        cleanMessage = cleanMessage.replace(/\b(with|and)\s+(this\s+)?(document|file|pdf|doc)\b/gi, '');
+        
+        // Clean up extra whitespace
+        cleanMessage = cleanMessage.replace(/\s+/g, ' ').trim();
+        
+        // If we have meaningful content left, use it
+        if (cleanMessage.length > 3 && !cleanMessage.match(/^(send|attach|share|include)$/i)) {
+          userContent = cleanMessage;
+        }
       }
 
       // Build attachment

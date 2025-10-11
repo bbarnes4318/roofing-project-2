@@ -409,6 +409,24 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const [quickTaskAssignAll, setQuickTaskAssignAll] = useState(false);
   const [quickTaskAssigneeId, setQuickTaskAssigneeId] = useState('');
   
+  // Granular timing for tasks
+  const [taskTiming, setTaskTiming] = useState({ days: 0, hours: 0, minutes: 0 });
+  const [taskFollowUpTiming, setTaskFollowUpTiming] = useState({ 
+    enabled: false, 
+    days: 0, 
+    hours: 0, 
+    minutes: 0 
+  });
+  
+  // Granular timing for reminders
+  const [reminderTiming, setReminderTiming] = useState({ days: 0, hours: 0, minutes: 0 });
+  const [reminderFollowUpTiming, setReminderFollowUpTiming] = useState({ 
+    enabled: false, 
+    days: 0, 
+    hours: 0, 
+    minutes: 0 
+  });
+  
   // Completed tasks state
   const [completedTasks, setCompletedTasks] = useState(new Set());
   
@@ -639,6 +657,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
 
   // Get real activities from API
   const { data: realActivities = [], isLoading: activitiesLoading } = useRecentActivities(50);
+  
+  // Debug logging
   const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ page: 1, limit: 20 });
   const { data: realCalendarEvents = [], isLoading: calendarLoading } = useCalendarEvents({ limit: 20 });
   
@@ -723,6 +743,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   // Build activity feed items from real data + fallback synthesis
   const activityFeedItems = useMemo(() => {
     try {
+      
       // Start with locally added items (messages/tasks/reminders) so they appear immediately
       const realItems = Array.isArray(feed) ? [...feed] : [];
       // Track seen items using stable composite keys: `${type}:${rawId}`
@@ -811,7 +832,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       }
       
       // Sort by timestamp (newest first)
-      return realItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const sortedItems = realItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      return sortedItems;
     } catch (error) {
       console.error('Error building activity feed:', error);
       const synthesized = generateActivitiesFromProjects(uiProjects || []);
@@ -1506,6 +1528,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
               setMessagesData={setMessagesData}
               setFeed={setFeed}
               uiProjects={uiProjects}
+              // Granular timing props
+              taskTiming={taskTiming}
+              setTaskTiming={setTaskTiming}
+              taskFollowUpTiming={taskFollowUpTiming}
+              setTaskFollowUpTiming={setTaskFollowUpTiming}
+              reminderTiming={reminderTiming}
+              setReminderTiming={setReminderTiming}
+              reminderFollowUpTiming={reminderFollowUpTiming}
+              setReminderFollowUpTiming={setReminderFollowUpTiming}
             />
             
             <div className="space-y-2 mt-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">

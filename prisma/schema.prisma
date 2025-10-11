@@ -44,6 +44,7 @@ model User {
   experience                                              Int?
   emergencyContact                                        Json?
   address                                                 Json?
+  followUpSettings                                        FollowUpSettings?
   eventAttendees                                          CalendarEventAttendee[]
   calendar_event_comments                                 calendar_event_comments[]
   calendarEvents                                          CalendarEvent[]              @relation("Organizer")
@@ -78,6 +79,7 @@ model User {
   webauthn_credentials                                    webauthn_credentials[]
   assignedAlerts                                          WorkflowAlert[]              @relation("AlertAssignedTo")
   createdAlerts                                           WorkflowAlert[]              @relation("AlertCreatedBy")
+  followUpTracking                                         FollowUpTracking[]
 
   @@map("users")
 }
@@ -144,6 +146,7 @@ model Project {
   tasks                     Task[]
   voice_transcripts         voice_transcripts[]
   workflowAlerts            WorkflowAlert[]
+  followUpTracking          FollowUpTracking[]
 
   @@map("projects")
 }
@@ -1199,6 +1202,21 @@ enum OutputFormat {
   HTML
 }
 
+enum FollowUpItemType {
+  TASK
+  REMINDER
+  ALERT
+  WORKFLOW_ALERT
+}
+
+enum FollowUpStatus {
+  PENDING
+  SENT
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
 enum SecurityEventType {
   LOGIN_SUCCESS
   LOGIN_FAILURE
@@ -1296,4 +1314,54 @@ model embeddings {
   @@index([documentId])
   @@index([assetId])
   @@map("embeddings")
+}
+
+model FollowUpSettings {
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  userId                String   @unique @map("user_id")
+  isEnabled             Boolean  @default(false) @map("is_enabled")
+  taskFollowUpDays      Int      @default(7) @map("task_follow_up_days")
+  taskFollowUpHours     Int      @default(0) @map("task_follow_up_hours")
+  taskFollowUpMinutes   Int      @default(0) @map("task_follow_up_minutes")
+  reminderFollowUpDays  Int      @default(3) @map("reminder_follow_up_days")
+  reminderFollowUpHours Int      @default(0) @map("reminder_follow_up_hours")
+  reminderFollowUpMinutes Int   @default(0) @map("reminder_follow_up_minutes")
+  alertFollowUpDays     Int      @default(5) @map("alert_follow_up_days")
+  alertFollowUpHours    Int      @default(0) @map("alert_follow_up_hours")
+  alertFollowUpMinutes  Int      @default(0) @map("alert_follow_up_minutes")
+  maxFollowUpAttempts   Int      @default(3) @map("max_follow_up_attempts")
+  followUpMessage       String?  @map("follow_up_message") @db.VarChar(1000)
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_settings")
+}
+
+model FollowUpTracking {
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  originalItemId        String   @map("original_item_id")
+  originalItemType      FollowUpItemType @map("original_item_type")
+  projectId             String   @map("project_id")
+  assignedToId          String   @map("assigned_to_id")
+  followUpDays          Int      @map("follow_up_days")
+  scheduledFor          DateTime @map("scheduled_for")
+  status                FollowUpStatus @default(PENDING)
+  attempts              Int      @default(0)
+  lastAttemptAt         DateTime? @map("last_attempt_at")
+  completedAt           DateTime? @map("completed_at")
+  cancelledAt           DateTime? @map("cancelled_at")
+  cancelledReason       String?  @map("cancelled_reason") @db.VarChar(500)
+  followUpMessage       String?  @map("follow_up_message") @db.VarChar(1000)
+  metadata              Json?
+  assignedTo            User     @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledFor])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([originalItemId, originalItemType])
+  @@map("follow_up_tracking")
 }

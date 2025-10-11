@@ -178,7 +178,9 @@ router.post('/', asyncHandler(async (req, res) => {
     recurrenceRule,
     projectId,
     organizerId,
-    attendees
+    attendees,
+    timing,
+    followUpTiming
   } = req.body;
 
   // Verify organizer exists
@@ -290,6 +292,48 @@ router.post('/', asyncHandler(async (req, res) => {
       }
     }
   });
+  
+  // Create follow-up if timing data is provided and user has follow-up settings enabled
+  if (timing && (eventType === 'DEADLINE' || eventType === 'REMINDER')) {
+    try {
+      const FollowUpService = require('../services/followUpService');
+      
+      // Get the assigned user (first attendee or organizer)
+      const assignedUserId = attendees && attendees.length > 0 ? attendees[0].userId : organizerId;
+      
+      // Check if user has follow-up settings enabled
+      const userSettings = await prisma.followUpSettings.findUnique({
+        where: { userId: assignedUserId }
+      });
+
+      if (userSettings && userSettings.isEnabled) {
+        // Use custom follow-up timing if provided, otherwise use user's default settings
+        const followUpDays = followUpTiming ? followUpTiming.days : userSettings.taskFollowUpDays;
+        const followUpHours = followUpTiming ? followUpTiming.hours : userSettings.taskFollowUpHours;
+        const followUpMinutes = followUpTiming ? followUpTiming.minutes : userSettings.taskFollowUpMinutes;
+        
+        await FollowUpService.createFollowUp({
+          originalItemId: event.id,
+          originalItemType: eventType === 'DEADLINE' ? 'TASK' : 'REMINDER',
+          projectId: event.projectId,
+          assignedToId: assignedUserId,
+          followUpDays,
+          followUpHours,
+          followUpMinutes,
+          followUpMessage: userSettings.followUpMessage,
+          metadata: {
+            eventTitle: event.title,
+            eventDescription: event.description,
+            eventType: event.eventType,
+            eventStartTime: event.startTime
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error creating follow-up for calendar event:', error);
+      // Don't fail the event creation if follow-up creation fails
+    }
+  }
   
   res.status(201).json({
     success: true,

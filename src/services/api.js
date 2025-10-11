@@ -483,10 +483,10 @@ export const activitiesService = {
   },
 
   // Get recent activities (for dashboard)
-  getRecent: async (limit = 10) => {
-    const response = await api.get('/activities/recent', { params: { limit } });
-    return response.data;
-  },
+    getRecent: async (limit = 10) => {
+      const response = await api.get('/activities/recent', { params: { limit } });
+      return response.data;
+    },
 
   // Get activities by project
   getByProject: async (projectId) => {

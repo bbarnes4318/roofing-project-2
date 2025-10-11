@@ -32,7 +32,7 @@ const transformMessageToActivity = (message, currentUserId) => {
     projectName: projectName,
     projectNumber: message.projectNumber,
     project_id: message.projectId,
-    type: 'project_message',
+    type: 'message',
     messageType: message.messageType,
     priority: message.priority?.toLowerCase() || 'medium',
     phase: message.phase,
@@ -232,7 +232,7 @@ router.get('/recent', asyncHandler(async (req, res) => {
 
     // Fetch recent messages, tasks, and reminders
     const fetchSize = limitNum * 3;
-    const [messages, tasks, events] = await Promise.all([
+    const [projectMessages, tasks, events] = await Promise.all([
       prisma.projectMessage.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -282,7 +282,7 @@ router.get('/recent', asyncHandler(async (req, res) => {
     ]);
 
     const activities = [
-      ...messages.map(m => transformMessageToActivity(m, req.user.id)),
+      ...projectMessages.map(m => transformMessageToActivity(m, req.user.id)),
       ...tasks.map(t => transformTaskToActivity(t)),
       ...events.map(e => transformEventToActivity(e))
     ]
@@ -338,29 +338,54 @@ router.post('/', asyncHandler(async (req, res) => {
       targetConversationId = conversation.id;
     }
 
-    // Create the message
-    const newMessage = await prisma.message.create({
+    // Find or create a "General Project" for general messages
+    let generalProject = await prisma.project.findFirst({
+      where: { projectName: 'General Project' }
+    });
+    
+    if (!generalProject) {
+      generalProject = await prisma.project.create({
+        data: {
+          projectName: 'General Project',
+          projectNumber: 99999,
+          projectType: 'GENERAL',
+          status: 'ACTIVE',
+          projectManagerId: req.user?.id || 'demo-sarah-owner-id'
+        }
+      });
+    }
+
+    // Create the message EXACTLY like attachment messages do
+    const newMessage = await prisma.projectMessage.create({
       data: {
-        text: content.trim(),
-        messageType: 'TEXT',
-        conversationId: targetConversationId,
-        senderId: req.user?.id || 'demo-sarah-owner-id', // Use demo user if no auth
-        systemData: projectId ? { projectId } : null
+        content: content.trim(),
+        subject: subject || 'Message from Bubbles AI Assistant',
+        messageType: 'USER_MESSAGE',
+        priority: 'MEDIUM',
+        authorId: req.user?.id || 'demo-sarah-owner-id',
+        authorName: 'Bubbles AI Assistant',
+        authorRole: 'AI_ASSISTANT',
+        projectId: generalProject.id,
+        projectNumber: generalProject.projectNumber,
+        isSystemGenerated: false,
+        isWorkflowMessage: false,
+        metadata: {}
       },
       include: {
-        sender: {
+        author: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
-            email: true
+            email: true,
+            role: true
           }
         },
-        conversation: {
+        project: {
           select: {
             id: true,
-            title: true,
-            isGroup: true
+            projectName: true,
+            projectNumber: true
           }
         }
       }
@@ -378,7 +403,7 @@ router.post('/', asyncHandler(async (req, res) => {
       console.log('📡 ACTIVITIES: Emitted real-time activity update');
     }
 
-    sendSuccess(res, activity, 'Activity created successfully', 201);
+    sendSuccess(res, 201, activity, 'Activity created successfully');
   } catch (error) {
     console.error('❌ ACTIVITIES: Error creating activity:', error);
     throw new AppError('Failed to create activity', 500);
@@ -485,7 +510,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 
     console.log('🗑️ ACTIVITIES: Marked message as deleted:', id);
 
-    sendSuccess(res, { id }, 'Activity deleted successfully');
+    sendSuccess(res, 200, { id }, 'Activity deleted successfully');
   } catch (error) {
     console.error('❌ ACTIVITIES: Error deleting activity:', error);
     throw new AppError('Failed to delete activity', 500);

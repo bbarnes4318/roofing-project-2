@@ -139,6 +139,15 @@ const CompactRoleDropZone = ({ roleType, roleName, icon, colorScheme, users, onA
         text: colorMode ? 'text-white' : 'text-gray-900',
         subtext: colorMode ? 'text-gray-300' : 'text-gray-600',
         accent: 'red'
+      },
+      teal: {
+        bg: colorMode ? 'bg-[#232b4d]' : 'bg-white',
+        border: colorMode ? 'border-gray-600' : 'border-gray-300',
+        hoverBg: colorMode ? 'bg-[#2a3555]' : 'bg-gray-50',
+        hoverBorder: colorMode ? 'border-teal-400' : 'border-teal-400',
+        text: colorMode ? 'text-white' : 'text-gray-900',
+        subtext: colorMode ? 'text-gray-300' : 'text-gray-600',
+        accent: 'teal'
       }
     };
     return colorMap[scheme] || colorMap.purple;
@@ -300,7 +309,8 @@ const RolesTabComponentFixed = ({
       fieldDirector: 'Field Director',
       officeStaff: 'Office Staff',
       administration: 'Administration',
-      subcontractor: 'Subcontractor'
+      subcontractor: 'Subcontractor',
+      locationManager: 'Location Manager'
     };
     return roleNames[roleType] || roleType;
   };
@@ -427,6 +437,17 @@ const RolesTabComponentFixed = ({
                 icon="🔨"
                 colorScheme="blue"
                 users={roleAssignments.subcontractor || []}
+                onAddUser={handleAddUserToRole}
+                onRemoveUser={handleRemoveUserFromRole}
+                colorMode={colorMode}
+              />
+
+              <CompactRoleDropZone
+                roleType="locationManager"
+                roleName="Location Manager"
+                icon="📍"
+                colorScheme="teal"
+                users={roleAssignments.locationManager || []}
                 onAddUser={handleAddUserToRole}
                 onRemoveUser={handleRemoveUserFromRole}
                 colorMode={colorMode}

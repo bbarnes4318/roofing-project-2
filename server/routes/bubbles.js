@@ -1316,12 +1316,47 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
     }
 
     if (pendingAction.type === 'send_simple_message') {
-      // Send a simple message without project context
-      // Create a direct message or notification to selected recipients
+      console.log('🔍 BUBBLES: Entering send_simple_message block');
+      // Create a project message EXACTLY like attachment messages do
       const messageContent = pendingAction.message || 'Message from Bubbles AI';
+      
+      // Use the General Project (hardcoded)
+      const generalProject = {
+        id: 'cmflohx5j00fjj8g4wm8ens5z', // Use existing project ID
+        projectNumber: 99999 // General Project number
+      };
+      
+      console.log('🔍 BUBBLES: Using hardcoded project:', generalProject);
+      
+      // Create project message (like attachment messages)
+      const pm = await prisma.projectMessage.create({
+        data: {
+          content: messageContent,
+          subject: 'Message from Bubbles AI Assistant',
+          messageType: 'USER_MESSAGE',
+          priority: 'MEDIUM',
+          authorId: req.user.id,
+          authorName: `${req.user.firstName || 'Bubbles'} ${req.user.lastName || 'AI'}`.trim(),
+          authorRole: req.user.role || 'AI_ASSISTANT',
+          projectId: generalProject.id,
+          projectNumber: generalProject.projectNumber,
+          isSystemGenerated: false,
+          isWorkflowMessage: false,
+          metadata: {}
+        }
+      });
 
-      // For now, we'll create a system notification for each recipient
-      // In the future, this could create direct messages in a messaging system
+      // Add recipients (only team members, not custom emails)
+      const teamMemberRecipients = allRecipients.filter(r => !r.isCustom);
+      console.log('🔍 COMPLETE-ACTION: Team member recipients to add:', teamMemberRecipients);
+      if (teamMemberRecipients.length > 0) {
+        const recipientData = teamMemberRecipients.map(r => ({ messageId: pm.id, userId: r.id }));
+        console.log('🔍 COMPLETE-ACTION: Creating ProjectMessageRecipient records:', recipientData);
+        await prisma.projectMessageRecipient.createMany({
+          data: recipientData
+        });
+      }
+
       const recipientNames = allRecipients.map(r =>
         r.isCustom ? r.email : `${r.firstName} ${r.lastName}`
       ).join(', ');
@@ -1484,14 +1519,28 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
     // Extract message content
     let messageContent = '';
-    const sayingMatch = message.match(/(?:says?|saying)[:\s]+["']?([^"'\n]+)["']?/i);
-    if (sayingMatch) {
-      messageContent = sayingMatch[1].trim();
+    
+    // First try to extract from "says" or "saying" patterns with proper quote handling
+    // Use separate patterns for double quotes and single quotes to handle apostrophes correctly
+    const doubleQuoteMatch = message.match(/(?:says?|saying)[:\s]+"([^"]+)"/i);
+    if (doubleQuoteMatch) {
+      messageContent = doubleQuoteMatch[1].trim();
     } else {
-      // Try to extract quoted content
-      const quotedMatch = message.match(/["']([^"']+)["']/);
-      if (quotedMatch) {
-        messageContent = quotedMatch[1].trim();
+      const singleQuoteMatch = message.match(/(?:says?|saying)[:\s]+'([^']+)'/i);
+      if (singleQuoteMatch) {
+        messageContent = singleQuoteMatch[1].trim();
+      } else {
+        // Try without quotes after "says/saying"
+        const sayingMatchNoQuotes = message.match(/(?:says?|saying)[:\s]+(.+?)(?:\s+to\s+|\s+for\s+|$)/i);
+        if (sayingMatchNoQuotes) {
+          messageContent = sayingMatchNoQuotes[1].trim();
+        } else {
+          // Try to extract quoted content
+          const quotedMatch = message.match(/["']([^"']+)["']/);
+          if (quotedMatch) {
+            messageContent = quotedMatch[1].trim();
+          }
+        }
       }
     }
 
@@ -1613,18 +1662,61 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
             ]
           });
 
-          // Extract user content for the message
+          // Extract user content for the message - improved logic
           let userContent = '';
+          
+          console.log('🔍 BUBBLES: Extracting user content from message (recipient selection):', message);
+          
+          // First try to extract from specific patterns
           const sayingIdx = lower.indexOf('message saying');
           if (sayingIdx !== -1) {
             userContent = message.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+            console.log('🔍 BUBBLES: Found "message saying" pattern, extracted:', userContent);
           }
           if (!userContent) {
             const withIdx = lower.indexOf('with a message');
             if (withIdx !== -1) {
               userContent = message.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+              console.log('🔍 BUBBLES: Found "with a message" pattern, extracted:', userContent);
             }
           }
+          if (!userContent) {
+            // Try "that says" pattern
+            const thatSaysIdx = lower.indexOf('that says');
+            if (thatSaysIdx !== -1) {
+              userContent = message.slice(thatSaysIdx + 'that says'.length).replace(/^[:\s-]+/, '').trim();
+              console.log('🔍 BUBBLES: Found "that says" pattern, extracted:', userContent);
+            }
+          }
+          
+          // If no specific patterns found, try to extract the main message content
+          if (!userContent) {
+            let cleanMessage = message;
+            console.log('🔍 BUBBLES: No specific patterns found, cleaning message:', cleanMessage);
+            
+            // Remove document references (quoted filenames)
+            cleanMessage = cleanMessage.replace(/["'][^"']*\.(pdf|docx?|txt|jpg|png|gif)["']/gi, '');
+            console.log('🔍 BUBBLES: After removing document references:', cleanMessage);
+            
+            // Remove common attachment phrases
+            cleanMessage = cleanMessage.replace(/\b(attach|send|share|include)\s+(this\s+)?(document|file|pdf|doc)\b/gi, '');
+            cleanMessage = cleanMessage.replace(/\b(with|and)\s+(this\s+)?(document|file|pdf|doc)\b/gi, '');
+            console.log('🔍 BUBBLES: After removing attachment phrases:', cleanMessage);
+            
+            // Clean up extra whitespace
+            cleanMessage = cleanMessage.replace(/\s+/g, ' ').trim();
+            console.log('🔍 BUBBLES: After cleaning whitespace:', cleanMessage);
+            
+            // If we have meaningful content left, use it
+            if (cleanMessage.length > 3 && !cleanMessage.match(/^(send|attach|share|include)$/i)) {
+              userContent = cleanMessage;
+              console.log('🔍 BUBBLES: Using cleaned message as userContent:', userContent);
+            } else {
+              console.log('🔍 BUBBLES: Cleaned message too short or matches exclusion pattern');
+            }
+          }
+          
+          console.log('🔍 BUBBLES: Final userContent (recipient selection):', userContent);
 
           // Determine if user wants email or internal message
           const wantsEmail = lower.includes('email') || lower.includes('e-mail');
@@ -1656,19 +1748,62 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         // At this point, recipients have been explicitly selected via UI
         // Proceed with sending the document message
 
-        // Extract a short message content if present (e.g., "with a message saying ...")
+        // Extract message content - improved logic to capture user's actual message
         let userContent = '';
+        
+        console.log('🔍 BUBBLES: Extracting user content from message:', message);
+        
+        // First try to extract from specific patterns
         const sayingIdx = lower.indexOf('message saying');
         if (sayingIdx !== -1) {
           userContent = message.slice(sayingIdx + 'message saying'.length).replace(/^[:\s-]+/, '').trim();
+          console.log('🔍 BUBBLES: Found "message saying" pattern, extracted:', userContent);
         }
         if (!userContent) {
-          // Fallback to anything after the word "with a message"
           const withIdx = lower.indexOf('with a message');
           if (withIdx !== -1) {
             userContent = message.slice(withIdx + 'with a message'.length).replace(/^[:\s-]+/, '').trim();
+            console.log('🔍 BUBBLES: Found "with a message" pattern, extracted:', userContent);
           }
         }
+        if (!userContent) {
+          // Try "that says" pattern
+          const thatSaysIdx = lower.indexOf('that says');
+          if (thatSaysIdx !== -1) {
+            userContent = message.slice(thatSaysIdx + 'that says'.length).replace(/^[:\s-]+/, '').trim();
+            console.log('🔍 BUBBLES: Found "that says" pattern, extracted:', userContent);
+          }
+        }
+        
+        // If no specific patterns found, try to extract the main message content
+        // by removing document references and common attachment phrases
+        if (!userContent) {
+          let cleanMessage = message;
+          console.log('🔍 BUBBLES: No specific patterns found, cleaning message:', cleanMessage);
+          
+          // Remove document references (quoted filenames)
+          cleanMessage = cleanMessage.replace(/["'][^"']*\.(pdf|docx?|txt|jpg|png|gif)["']/gi, '');
+          console.log('🔍 BUBBLES: After removing document references:', cleanMessage);
+          
+          // Remove common attachment phrases
+          cleanMessage = cleanMessage.replace(/\b(attach|send|share|include)\s+(this\s+)?(document|file|pdf|doc)\b/gi, '');
+          cleanMessage = cleanMessage.replace(/\b(with|and)\s+(this\s+)?(document|file|pdf|doc)\b/gi, '');
+          console.log('🔍 BUBBLES: After removing attachment phrases:', cleanMessage);
+          
+          // Clean up extra whitespace
+          cleanMessage = cleanMessage.replace(/\s+/g, ' ').trim();
+          console.log('🔍 BUBBLES: After cleaning whitespace:', cleanMessage);
+          
+          // If we have meaningful content left, use it
+          if (cleanMessage.length > 3 && !cleanMessage.match(/^(send|attach|share|include)$/i)) {
+            userContent = cleanMessage;
+            console.log('🔍 BUBBLES: Using cleaned message as userContent:', userContent);
+          } else {
+            console.log('🔍 BUBBLES: Cleaned message too short or matches exclusion pattern');
+          }
+        }
+        
+        console.log('🔍 BUBBLES: Final userContent:', userContent);
 
         // Build attachment metadata
         const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl || null;

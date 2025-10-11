@@ -48,6 +48,14 @@ const AVAILABLE_ROLES = [
     icon: UserGroupIcon,
     color: 'bg-indigo-500',
     features: ['Project Coordination', 'Timeline Management', 'Resource Planning', 'Client Relations']
+  },
+  {
+    id: 'LOCATION_MANAGER',
+    name: 'Location Manager',
+    description: 'Manage site-specific operations, coordinate with local teams, and oversee location-based project activities',
+    icon: BuildingOfficeIcon,
+    color: 'bg-teal-500',
+    features: ['Site Management', 'Local Coordination', 'Location Oversight', 'Regional Operations']
   }
 ];
 
