@@ -26,6 +26,45 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [displayName, setDisplayName] = useState('');
+
+  // Profile picture upload handlers
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setSuccessMessage('Please select a valid image file');
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setSuccessMessage('Image size must be less than 5MB');
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+        return;
+      }
+      
+      setProfilePicture(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfilePicturePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeProfilePicture = () => {
+    setProfilePicture(null);
+    setProfilePicturePreview(null);
+  };
 
   // Subjects context and local UI state
   const { subjects, addSubject, editSubject, deleteSubject, resetToDefaults } = useSubjects();
@@ -101,7 +140,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         lastName: lastName || undefined,
         phone: phone || undefined,
         timezone,
-        language
+        language,
+        displayName: displayName || undefined
       };
       const res = await authService.updateUserProfile(payload);
       if (res?.success && res?.data?.user) {
@@ -609,6 +649,18 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     loadFollowUpSettings();
   }, []);
 
+  // Initialize form data from current user
+  useEffect(() => {
+    if (currentUser) {
+      setFirstName(currentUser.firstName || '');
+      setLastName(currentUser.lastName || '');
+      setEmail(currentUser.email || '');
+      setPhone(currentUser.phone || '');
+      setDisplayName(currentUser.displayName || '');
+      setName(`${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim());
+    }
+  }, [currentUser]);
+
   // Get visible tabs based on user permissions
   const getVisibleTabs = () => {
     const baseTabs = [
@@ -617,7 +669,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       // Note: Notifications section hidden per requirements
       { id: 'security', label: 'Security', icon: '🔒' },
       { id: 'roles', label: 'Roles', icon: '👥' },
-      { id: 'follow-up', label: 'Follow-ups', icon: '⏰' },
+      { id: 'follow-up', label: 'Bubbles AI', icon: '🤖' },
       // Note: Excel Data section hidden per requirements
       { id: 'subjects', label: 'Subjects', icon: '📝' }
     ];
@@ -632,11 +684,47 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const renderProfileTab = () => (
     <div className="space-y-3">
       <div className="flex items-center gap-3 mb-3">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${colorMode ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'}`}>
-          {`${(currentUser?.firstName || 'U').charAt(0).toUpperCase()}${(currentUser?.lastName || '').charAt(0).toUpperCase()}`}
+        <div className="relative">
+          {profilePicturePreview ? (
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
+              <img 
+                src={profilePicturePreview} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${colorMode ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'}`}>
+              {`${(currentUser?.firstName || 'U').charAt(0).toUpperCase()}${(currentUser?.lastName || '').charAt(0).toUpperCase()}`}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => document.getElementById('profile-picture-upload').click()}
+            className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-blue-600 transition-colors"
+            title="Change profile picture"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+          {profilePicturePreview && (
+            <button
+              type="button"
+              onClick={removeProfilePicture}
+              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+              title="Remove profile picture"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
         <div>
-          <div className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'User'}</div>
+          <div className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+            {displayName || name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'User'}
+          </div>
           <div className={`text-xs ${colorMode ? 'text-blue-200' : 'text-blue-600'}`}>
             {(() => {
               const roleUpper = String(currentUser?.role || '').toUpperCase();
@@ -648,6 +736,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           <div className={`text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>{email}</div>
         </div>
       </div>
+
+      {/* Hidden file input */}
+      <input
+        id="profile-picture-upload"
+        type="file"
+        accept="image/*"
+        onChange={handleProfilePictureChange}
+        className="hidden"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
@@ -694,6 +791,19 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             placeholder="(555) 555-5555"
             className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
           />
+        </div>
+        <div className="md:col-span-2">
+          <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Display Name</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={e => setDisplayName(e.target.value)}
+            placeholder="How your name appears in the Bubbles system"
+            className={`w-full p-2 rounded border focus:ring-1 focus:ring-blue-400 transition-all text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+          />
+          <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            How your name is displayed in the Bubbles system
+          </p>
         </div>
         {/* Note: Company field removed per requirements */}
       </div>
