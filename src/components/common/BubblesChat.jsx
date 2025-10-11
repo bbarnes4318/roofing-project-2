@@ -48,6 +48,37 @@ const BubblesChat = ({
   const [voiceTranscript, setVoiceTranscript] = useState([]); // last lines
   const [showTranscript, setShowTranscript] = useState(false);
 
+  // Cleans common mojibake/garbled sequences from transcript text
+  const cleanMojibake = (s) => {
+    if (s == null) return '';
+    let out = String(s);
+    
+    // Remove common mojibake patterns
+    out = out.replace(/ÃƒÆ'Ã‚Â¢|Ã¢â‚¬Å¡Ã‚Â¬|Ã‚Â¢/g, '•');
+    out = out.replace(/ÃƒÆ'[^\s]*\|[^\s]*\|[^\s]*/g, '');
+    out = out.replace(/Ãƒâ€š/g, '');
+    out = out.replace(/ÃƒÂ°/g, '');
+    out = out.replace(/Ã…Â¸/g, '');
+    out = out.replace(/Â¤/g, '');
+    out = out.replace(/Å½/g, '');
+    out = out.replace(/Â¡/g, '');
+    out = out.replace(/ÃƒÂ°/g, '');
+    out = out.replace(/Ã…Â¸/g, '');
+    out = out.replace(/Ã…Â¸/g, '');
+    
+    // Remove other common mojibake sequences
+    out = out.replace(/[ÃƒÂ°Ã…Â¸Ã…Â¸Â¤Å½Â¡]/g, '');
+    out = out.replace(/[ÃƒÂ°Ã…Â¸Ã…Â¸Â¤Å½Â¡]/g, '');
+    
+    // Clean up any remaining garbled characters
+    out = out.replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '');
+    
+    // Normalize whitespace
+    out = out.replace(/\s{2,}/g, ' ').trim();
+    
+    return out;
+  };
+
   // Chat History state
   const [chatHistory, setChatHistory] = useState([]);
   const [showChatHistory, setShowChatHistory] = useState(false);
@@ -203,7 +234,7 @@ const BubblesChat = ({
           vapiRef.current.on('message', (message) => {
             if (message.type === 'transcript' && message.transcript) {
               setVoiceTranscript(prev => {
-                const text = String(message.transcript).trim();
+                const text = cleanMojibake(String(message.transcript)).trim();
                 return text ? [...prev, text].slice(-3) : prev;
               });
             }

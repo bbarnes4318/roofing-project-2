@@ -65,14 +65,30 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
     const cleanMojibake = (s) => {
         if (s == null) return '';
         let out = String(s);
-        // Replace common bullet/separators
-        out = out.split('ÃƒÆ’Ã‚Â¢|Ã¢â‚¬Å¡Ã‚Â¬|Ã‚Â¢').join('Ã¢â‚¬Â¢');
-        // Remove clusters like 'ÃƒÆ’...|...|...'
-        out = out.replace(/ÃƒÆ’[^\s]*\|[^\s]*\|[^\s]*/g, '');
-        // Remove stray 'Ãƒâ€š'
+        
+        // Remove common mojibake patterns
+        out = out.replace(/ÃƒÆ'Ã‚Â¢|Ã¢â‚¬Å¡Ã‚Â¬|Ã‚Â¢/g, '•');
+        out = out.replace(/ÃƒÆ'[^\s]*\|[^\s]*\|[^\s]*/g, '');
         out = out.replace(/Ãƒâ€š/g, '');
+        out = out.replace(/ÃƒÂ°/g, '');
+        out = out.replace(/Ã…Â¸/g, '');
+        out = out.replace(/Â¤/g, '');
+        out = out.replace(/Å½/g, '');
+        out = out.replace(/Â¡/g, '');
+        out = out.replace(/ÃƒÂ°/g, '');
+        out = out.replace(/Ã…Â¸/g, '');
+        out = out.replace(/Ã…Â¸/g, '');
+        
+        // Remove other common mojibake sequences
+        out = out.replace(/[ÃƒÂ°Ã…Â¸Ã…Â¸Â¤Å½Â¡]/g, '');
+        out = out.replace(/[ÃƒÂ°Ã…Â¸Ã…Â¸Â¤Å½Â¡]/g, '');
+        
+        // Clean up any remaining garbled characters
+        out = out.replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '');
+        
         // Normalize whitespace
         out = out.replace(/\s{2,}/g, ' ').trim();
+        
         return out;
     };
 
@@ -130,42 +146,23 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             if (!showDocumentBrowser) return;
             setDocumentsLoading(true);
             try {
-                // Fetch all documents recursively from all folders
-                const allFiles = [];
-                const foldersToProcess = [null]; // Start with root
-                const processedFolders = new Set();
+                // Use a more efficient approach - fetch all files at once with a higher limit
+                const response = await assetsService.list({ 
+                    parentId: null, // Get all files from root
+                    limit: 5000, // Increased limit to get more files at once
+                    type: 'FILE' // Only get files, not folders
+                });
                 
-                while (foldersToProcess.length > 0) {
-                    const currentParentId = foldersToProcess.shift();
-                    const folderKey = currentParentId || 'root';
-                    
-                    if (processedFolders.has(folderKey)) continue;
-                    processedFolders.add(folderKey);
-                    
-                    try {
-                        const response = await assetsService.list({ 
-                            parentId: currentParentId, 
-                            limit: 1000 
-                        });
-                        
-                        if (response && response.assets && Array.isArray(response.assets)) {
-                            // Add files to our list
-                            const files = response.assets.filter(item => item.type === 'FILE');
-                            allFiles.push(...files);
-                            
-                            // Add folders to process queue
-                            const folders = response.assets.filter(item => item.type === 'FOLDER');
-                            folders.forEach(folder => foldersToProcess.push(folder.id));
-                        }
-                    } catch (err) {
-                        console.error(`Failed to fetch from folder ${folderKey}:`, err);
-                    }
+                if (response && response.assets && Array.isArray(response.assets)) {
+                    const files = response.assets.filter(item => item.type === 'FILE');
+                    console.log('Found documents:', files.length, files);
+                    setAvailableDocuments(files);
+                } else {
+                    setAvailableDocuments([]);
                 }
-                
-                console.log('Found documents:', allFiles.length, allFiles);
-                setAvailableDocuments(allFiles);
             } catch (error) {
                 console.error('Failed to fetch documents:', error);
+                setAvailableDocuments([]);
             } finally {
                 setDocumentsLoading(false);
             }
@@ -2481,9 +2478,16 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 </div>
             )}
 
-            {/* Document Browser Sidebar */}
+            {/* Document Browser Popup */}
             {showDocumentBrowser && (
-                <div className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col overflow-hidden">
+                <>
+                    {/* Backdrop */}
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-25 z-40"
+                        onClick={() => setShowDocumentBrowser(false)}
+                    />
+                    {/* Popup */}
+                    <div className="fixed top-4 right-4 w-80 max-h-[80vh] z-50 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-gray-200 bg-white">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-gray-800">Available Documents</h3>
@@ -2507,7 +2511,12 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     </div>
                     <div className="flex-1 overflow-y-auto p-3">
                         {documentsLoading ? (
-                            <div className="text-center py-8 text-gray-500 text-sm">Loading documents...</div>
+                            <div className="text-center py-8 text-gray-500 text-sm">
+                                <div className="inline-flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                                    Loading documents...
+                                </div>
+                            </div>
                         ) : availableDocuments.length === 0 ? (
                             <div className="text-center py-8 text-gray-500 text-sm">No documents found</div>
                         ) : (
@@ -2557,7 +2566,8 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             </div>
                         )}
                     </div>
-                </div>
+                    </div>
+                </>
             )}
             
             {/* Messages Area - Centered, wider column for more visible text */}
