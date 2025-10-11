@@ -1434,7 +1434,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     {activePage === 'Alerts' ? 'Project Alerts' :
                                         activePage === 'Company Calendar' ? 'Company Calendar' :
                                         activePage === 'Email History' ? 'Email History' :
-                                        activePage === 'AI Assistant' ? 'Bubbles' :
+                                        activePage === 'AI Assistant' ? '' :
                                         activePage === 'AI Tools' ? 'AI Training Tools' :
                                         activePage === 'Archived Projects' ? 'Archived Projects' :
                                         activePage === 'Project Messages' ? 'Messages' :
@@ -1448,7 +1448,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                         activePage === 'Project Schedules' ? 'Plan and organize project timelines and milestones' :
                                         activePage === 'Company Calendar' ? 'Company-wide events, meetings, and project schedules' :
                                         activePage === 'Email History' ? 'View all sent emails with tracking, attachments, and project associations' :
-                                        activePage === 'AI Assistant' ? 'Get help from Bubbles with your project management tasks' :
+                                        activePage === 'AI Assistant' ? '' :
                                         activePage === 'AI Tools' ? 'Advanced AI-powered construction management tools' :
                                         activePage === 'Archived Projects' ? 'Completed projects and historical records' :
                                         activePage === 'Project Messages' ? 'Stay up-to-date with activity feeds and manage important project messages in one place.' :

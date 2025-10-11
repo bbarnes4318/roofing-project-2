@@ -159,8 +159,8 @@ const ActivityFeedSection = ({
   };
   return (
     <>
-    <div className="w-full" data-section="activity-feed">
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
+    <div className="w-full flex flex-col" data-section="activity-feed">
+      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible flex-1 min-h-[800px]">
         <div className="mb-3">
           <div className="flex items-center justify-between">
             <div>
@@ -241,9 +241,9 @@ const ActivityFeedSection = ({
         </div>
         
         {/* Activity Feed Content - Conditionally rendered based on expansion state */}
-        {/* Max height for ~8 items (80px each = 640px) with internal scrollbar */}
+        {/* Extended height to match Project Workflow Line Items container */}
         {isActivityFeedExpanded && (
-          <div className="space-y-3 max-h-[640px] overflow-y-auto custom-scrollbar">
+          <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {(() => {
             // Use centralized state items
             const allItems = state.items || [];

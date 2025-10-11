@@ -95,9 +95,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           sessionStorage.setItem('user', JSON.stringify(updated));
         } catch (_) {}
         if (typeof onUserUpdated === 'function') onUserUpdated(updated);
-        setSuccessMessage('Profile updated');
+        setSuccessMessage('Profile updated successfully!');
         setSuccess(true);
-        setTimeout(() => setSuccess(false), 2000);
+        setTimeout(() => setSuccess(false), 4000);
       } else {
         throw new Error(res?.message || 'Failed to update profile');
       }
@@ -2343,15 +2343,27 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                 <div className="flex justify-end pt-3 border-t border-gray-200 mt-4">
                   <button
                     type="submit"
+                    disabled={isSaving}
                     className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm ${
-                      colorMode
+                      isSaving
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : colorMode
                         ? 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-900/20'
                         : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white shadow-blue-600/20'
                     } hover:shadow-md transform hover:scale-105`}
                   >
                     <span className="flex items-center gap-2">
-                      <span>💾</span>
-                      Save Changes
+                      {isSaving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>💾</span>
+                          <span>Save Changes</span>
+                        </>
+                      )}
                     </span>
                   </button>
                 </div>
@@ -2359,10 +2371,19 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             </form>
 
             {success && (
-              <div className={`fixed top-4 right-4 p-3 rounded shadow-sm z-50 ${colorMode ? 'bg-green-800 text-white' : 'bg-green-100 text-green-800'}`}>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">✅</span>
-                  <span className="font-semibold text-sm">{String(successMessage)}</span>
+              <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 border-2 ${colorMode ? 'bg-green-800 border-green-600 text-white' : 'bg-green-100 border-green-300 text-green-800'}`}>
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm">Success!</div>
+                    <div className="text-sm opacity-90">{String(successMessage)}</div>
+                  </div>
                 </div>
               </div>
             )}
