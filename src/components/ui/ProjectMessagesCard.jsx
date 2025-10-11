@@ -790,14 +790,6 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 <div className={`px-3 py-3 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-white border-gray-200'}`} style={colorMode ? {} : {backgroundColor: 'white'}}>
                     <div className="space-y-3">
                         {/* Thread header - More professional */}
-                        <div className={`${colorMode ? 'text-gray-300' : 'text-gray-700'} flex items-center justify-between`}>
-                            <div className="flex items-center gap-2">
-                                <div className={`${colorMode ? 'bg-blue-400' : 'bg-blue-500'} w-2 h-2 rounded-full`}></div>
-                                <span className="text-xs font-semibold">
-                                    {conversation.length} message{conversation.length !== 1 ? 's' : ''}
-                                </span>
-                            </div>
-                        </div>
 
                         {/* Message thread - Professional layout */}
                         <div className={`max-h-48 overflow-y-auto space-y-3 ${colorMode ? 'scrollbar-dark' : 'scrollbar-light'}`}>

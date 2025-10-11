@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ActivityProvider } from '../../contexts/ActivityContext';
 // Icons removed; not used directly in this file
-import AddProjectModal from '../common/AddProjectModal';
 import ActivityFeedSection from '../dashboard/ActivityFeedSection';
 import MessagesSection from '../dashboard/MessagesSection';
 import TasksSection from '../dashboard/TasksSection';
@@ -838,8 +837,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     }
   };
 
-  // Add Project modal + error
-  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  // Project error state
   const [projectError, setProjectError] = useState('');
 
   // Projects grouped by phase for ProjectsByPhaseSection
@@ -1409,18 +1407,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   return (
     <ActivityProvider>
   <div className="min-h-screen bg-gray-100 text-gray-900">
-      {/* Top Actions */}
-      <div className="mb-4 flex items-center justify-end">
-        <button
-          onClick={() => setShowAddProjectModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5 border border-blue-500/20"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <span>Add Project</span>
-        </button>
-      </div>
 
       {/* Current Projects by Phase (original table view) */}
       <CurrentProjectsByPhase
@@ -1662,26 +1648,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       {/* Draggable alert popups removed (handled in ProjectWorkflowLineItemsSection) */}
       
-      {/* Add Project Modal - BEAUTIFUL & MODERN */}
-      <AddProjectModal
-        isOpen={showAddProjectModal}
-        onClose={() => {
-        setShowAddProjectModal(false);
-          setProjectError('');
-        }}
-        onProjectCreated={(newProject) => {
-          // Refresh projects data
-          queryClient.invalidateQueries(['projects']);
-          queryClient.invalidateQueries(['project-stats']);
-          
-          // Show success message
-          toast.success(`Project "${newProject.projectName}" created successfully!`);
-          
-          // Close modal
-                  setShowAddProjectModal(false);
-          setProjectError('');
-        }}
-      />
       
     </div>
     </ActivityProvider>

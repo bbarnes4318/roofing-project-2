@@ -78,8 +78,8 @@ const CurrentProjectsByPhase = ({
             }`}
             style={{ minWidth: 72 }}
           >
-            <div className="h-8 w-8 rounded-full bg-blue-600 flex-shrink-0 shadow-sm flex items-center justify-center text-white text-xs font-bold">
-              {Array.isArray(projects) ? projects.length : 0}
+            <div className="h-5 w-5 bg-blue-600 flex-shrink-0 shadow-sm flex items-center justify-center text-white text-sm font-bold transform rotate-45">
+              <span className="transform -rotate-45">{Array.isArray(projects) ? projects.length : 0}</span>
             </div>
             <span className="text-xs font-semibold">All</span>
           </button>
@@ -90,24 +90,38 @@ const CurrentProjectsByPhase = ({
               const phaseCount = Array.isArray(projects)
                 ? projects.filter((p) => String(getProjectPhase(p)).toUpperCase() === String(phase.id).toUpperCase()).length
                 : 0;
+              
+              // Get the correct text color for this phase
+              const getPhaseTextColor = (phaseId) => {
+                switch (phaseId) {
+                  case 'LEAD': return 'text-black';
+                  case 'PROSPECT': return 'text-white';
+                  case 'APPROVED': return 'text-black';
+                  case 'EXECUTION': return 'text-white';
+                  case 'SECOND_SUPPLEMENT': return 'text-white';
+                  case 'COMPLETION': return 'text-white';
+                  default: return 'text-black';
+                }
+              };
+              
               return (
                 <button
                   key={phase.id}
                   onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
                   className={`min-h-14 py-2 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
                     selectedPhase === phase.id
-                      ? 'border-gray-400 bg-gray-50 shadow-medium text-gray-900'
+                      ? 'border-blue-500 bg-blue-50 shadow-medium text-blue-900'
                       : 'border-gray-200 bg-white/90 text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
                   }`}
                 >
                   <div
-                    className="h-8 w-8 rounded-full flex-shrink-0 shadow-sm flex items-center justify-center text-white text-xs font-bold"
+                    className={`h-12 w-12 flex-shrink-0 shadow-sm flex items-center justify-center text-lg font-bold transform rotate-45 ${getPhaseTextColor(phase.id)}`}
                     style={{ backgroundColor: phase.color }}
                     title={`${phase.name} projects`}
                   >
-                    {phaseCount}
+                    <span className="transform -rotate-45">{phaseCount}</span>
                   </div>
-                  <span className="text-[11px] leading-tight text-center whitespace-normal break-words">{phase.name}</span>
+                  <span className="text-base font-semibold leading-tight text-center whitespace-normal break-words">{phase.name}</span>
                 </button>
               );
             })}

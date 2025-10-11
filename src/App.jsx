@@ -30,6 +30,7 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { projectsService, activitiesService } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
+import AddProjectModal from './components/common/AddProjectModal';
 import { SubjectsProvider } from './contexts/SubjectsContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import './App.css';
@@ -68,6 +69,7 @@ export default function App() {
     });
     const [colorMode, setColorMode] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const [showAddProjectModal, setShowAddProjectModal] = useState(false);
     // No default demo user in production auth
     const defaultUser = null;
     
@@ -1473,6 +1475,17 @@ const apiUrl = window.location.hostname === 'localhost'
                     
                     {/* User Profile & Settings Area */}
                     <div className="flex items-center gap-3 flex-shrink-0">
+                        {/* Add Project Button */}
+                        <button
+                            onClick={() => setShowAddProjectModal(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5 border border-blue-500/20"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span>Add Project</span>
+                        </button>
+                        
                         {/* Notifications */}
                         <button className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
                             <BellIcon />
@@ -1577,6 +1590,26 @@ const apiUrl = window.location.hostname === 'localhost'
                 </div>
             </main>
         </div>
+        
+        {/* Add Project Modal */}
+        <AddProjectModal
+            isOpen={showAddProjectModal}
+            onClose={() => setShowAddProjectModal(false)}
+            onProjectCreated={(project) => {
+                console.log('Project created:', project);
+                setShowAddProjectModal(false);
+                // Refresh projects if needed
+                if (projectsService && projectsService.getProjects) {
+                    projectsService.getProjects().then(response => {
+                        if (response.data && response.data.success) {
+                            setProjects(response.data.data);
+                        }
+                    }).catch(error => {
+                        console.error('Error refreshing projects:', error);
+                    });
+                }
+            }}
+        />
         
         </SubjectsProvider>
         </NavigationProvider>

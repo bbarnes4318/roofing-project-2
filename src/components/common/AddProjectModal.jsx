@@ -48,6 +48,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     { value: 'MOLD', label: 'Mold', icon: '🦠', description: 'Mold remediation and prevention' },
     { value: 'WINDOWS', label: 'Windows', icon: '🪟', description: 'Window installation and replacement' },
     { value: 'SIDING', label: 'Siding', icon: '🏘️', description: 'Siding installation and repair' },
+    { value: 'DECKS', label: 'Decks', icon: '🏗️', description: 'Deck construction and repair' },
     { value: 'REPAIR_EXTERIOR', label: 'Repair - Exterior', icon: '🔧', description: 'Exterior repairs and maintenance' },
     { value: 'REPAIR_INTERIOR', label: 'Repair - Interior', icon: '🛠️', description: 'Interior repairs and maintenance' }
   ];

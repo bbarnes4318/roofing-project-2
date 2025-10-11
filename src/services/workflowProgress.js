@@ -431,17 +431,25 @@ class WorkflowProgressService {
         // Convert hex colors to Tailwind background classes
         const colorToBg = {
             '#EAB308': 'bg-yellow-500',    // Lead - Yellow
-            '#F97316': 'bg-orange-500',    // Prospect - Orange
+            '#F97316': 'bg-orange-600',    // Prospect - Orange (correct shade for #F97316)
             '#10B981': 'bg-emerald-500',   // Approved - Emerald Green (stays the same)
             '#D946EF': 'bg-fuchsia-500',   // Execution - Fuchsia
             '#8B5CF6': 'bg-violet-500',    // Second Supplement - Vivid Violet (stays the same)
             '#0EA5E9': 'bg-sky-500'        // Completion - Bright Cyan-Teal (stays the same)
         };
         
-        // Lead and Prospect need dark text for better contrast
-        const tailwindTextColor = (normalizedPhase === 'LEAD' || normalizedPhase === 'PROSPECT')
-            ? 'text-gray-900'
-            : (textColor === 'white' ? 'text-white' : 'text-black');
+        // Custom text colors for optimal contrast based on Lᶜ values
+        const tailwindTextColor = (() => {
+            switch (normalizedPhase) {
+                case 'LEAD': return 'text-black';        // #000000 (black) — Lᶜ = +70.23
+                case 'PROSPECT': return 'text-white';    // #FFFFFF (white) — Lᶜ = −61.11
+                case 'APPROVED': return 'text-black';   // #000000 (black) — Lᶜ = +57.60
+                case 'EXECUTION': return 'text-white';  // #FFFFFF (white) — Lᶜ = −69.12
+                case 'SECOND_SUPPLEMENT': return 'text-white'; // #FFFFFF (white) — Lᶜ = −76.91
+                case 'COMPLETION': return 'text-white'; // #FFFFFF (white) — Lᶜ = −60.77
+                default: return 'text-black';
+            }
+        })();
         
         return {
             initials,
