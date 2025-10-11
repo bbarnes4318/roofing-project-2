@@ -1202,7 +1202,8 @@ router.post('/line-items',
     body('description').optional().isString().isLength({ max: 2000 }).withMessage('Description must be less than 2000 characters'),
     body('displayOrder').optional().isInt({ min: 0 }).withMessage('Display order must be a positive integer'),
     body('estimatedMinutes').optional().isInt({ min: 1 }).withMessage('Estimated minutes must be a positive integer'),
-    body('alertDays').optional().isInt({ min: 1 }).withMessage('Alert days must be a positive integer')
+    body('alertDays').optional().isInt({ min: 1 }).withMessage('Alert days must be a positive integer'),
+    body('addToAllWorkflows').optional().isBoolean().withMessage('Add to all workflows must be a boolean')
   ],
   asyncHandler(async (req, res) => {
     const errors = validationResult(req);
@@ -1214,7 +1215,7 @@ router.post('/line-items',
       });
     }
 
-    const { sectionId, itemName, responsibleRole, description, displayOrder, estimatedMinutes, alertDays } = req.body;
+    const { sectionId, itemName, responsibleRole, description, displayOrder, estimatedMinutes, alertDays, addToAllWorkflows } = req.body;
     
     console.log(`📝 WORKFLOW: Creating new line item "${itemName}" for section ${sectionId}`);
     
@@ -1317,6 +1318,90 @@ router.post('/line-items',
       }
       
       console.log(`✅ WORKFLOW: Successfully created line item ${newLineItem.id}`);
+      
+      // If addToAllWorkflows is true, add this line item to all existing workflows of the same type
+      if (addToAllWorkflows) {
+        try {
+          console.log(`🔄 WORKFLOW: Adding line item to all workflows of type ${section.phase.phaseType}`);
+          
+          // Get all projects with workflows of the same type
+          const projectsWithSameWorkflowType = await prisma.project.findMany({
+            where: {
+              workflowType: section.phase.phaseType,
+              status: {
+                not: 'COMPLETED'
+              }
+            },
+            select: {
+              id: true,
+              projectNumber: true,
+              projectName: true
+            }
+          });
+          
+          console.log(`📊 WORKFLOW: Found ${projectsWithSameWorkflowType.length} projects with ${section.phase.phaseType} workflow type`);
+          
+          // For each project, find the corresponding section and add the line item
+          for (const project of projectsWithSameWorkflowType) {
+            try {
+              // Find the corresponding section in this project's workflow
+              const correspondingSection = await prisma.workflowSection.findFirst({
+                where: {
+                  phase: {
+                    workflowType: section.phase.phaseType
+                  },
+                  sectionNumber: section.sectionNumber,
+                  displayName: section.displayName
+                },
+                include: {
+                  phase: true
+                }
+              });
+              
+              if (correspondingSection) {
+                // Check if line item already exists in this section
+                const existingLineItem = await prisma.workflowLineItem.findFirst({
+                  where: {
+                    sectionId: correspondingSection.id,
+                    itemName: itemName
+                  }
+                });
+                
+                if (!existingLineItem) {
+                  // Create the line item in this section
+                  const newLineItemForProject = await prisma.workflowLineItem.create({
+                    data: {
+                      itemLetter: newLineItem.itemLetter,
+                      itemName: itemName,
+                      responsibleRole: prismaRole,
+                      displayOrder: newLineItem.displayOrder,
+                      description: description,
+                      estimatedMinutes: estimatedMinutes || 30,
+                      alertDays: alertDays || 1,
+                      sectionId: correspondingSection.id,
+                      workflowType: section.phase.phaseType
+                    }
+                  });
+                  
+                  console.log(`✅ WORKFLOW: Added line item to project ${project.projectNumber} (${project.projectName})`);
+                } else {
+                  console.log(`⚠️ WORKFLOW: Line item already exists in project ${project.projectNumber}`);
+                }
+              } else {
+                console.log(`⚠️ WORKFLOW: No corresponding section found in project ${project.projectNumber}`);
+              }
+            } catch (projectError) {
+              console.error(`❌ WORKFLOW: Error adding line item to project ${project.projectNumber}:`, projectError);
+              // Continue with other projects even if one fails
+            }
+          }
+          
+          console.log(`✅ WORKFLOW: Completed adding line item to all workflows`);
+        } catch (addToAllError) {
+          console.error('❌ WORKFLOW: Error adding line item to all workflows:', addToAllError);
+          // Don't fail the main operation if this fails
+        }
+      }
       
       res.status(201).json({
         success: true,

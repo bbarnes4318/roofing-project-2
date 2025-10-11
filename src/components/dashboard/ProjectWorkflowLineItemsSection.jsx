@@ -25,6 +25,19 @@ const ProjectWorkflowLineItemsSection = ({
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedAlertForAssign, setSelectedAlertForAssign] = useState(null);
   const [assignToUser, setAssignToUser] = useState('');
+  
+  // Add Line Item states
+  const [showAddLineItemModal, setShowAddLineItemModal] = useState(false);
+  const [addLineItemData, setAddLineItemData] = useState({
+    itemName: '',
+    responsibleRole: 'OFFICE',
+    description: '',
+    estimatedMinutes: 30,
+    alertDays: 1,
+    addToAllWorkflows: false
+  });
+  const [selectedSectionForLineItem, setSelectedSectionForLineItem] = useState(null);
+  const [creatingLineItem, setCreatingLineItem] = useState(false);
 
   // Refs for popup triggers
   const alertContactButtonRefs = useRef({});

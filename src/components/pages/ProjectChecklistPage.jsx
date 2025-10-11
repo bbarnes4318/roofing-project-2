@@ -221,7 +221,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     responsibleRole: 'OFFICE',
     description: '',
     estimatedMinutes: 30,
-    alertDays: 1
+    alertDays: 1,
+    addToAllWorkflows: false
   });
   const [selectedSectionForLineItem, setSelectedSectionForLineItem] = useState(null);
   const [creatingLineItem, setCreatingLineItem] = useState(false);
@@ -454,7 +455,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         responsibleRole: normalizeRoleForServer(createLineItemData.responsibleRole),
         description: createLineItemData.description.trim() ? createLineItemData.description.trim() : undefined,
         estimatedMinutes: parseInt(createLineItemData.estimatedMinutes) || 30,
-        alertDays: parseInt(createLineItemData.alertDays) || 1
+        alertDays: parseInt(createLineItemData.alertDays) || 1,
+        addToAllWorkflows: createLineItemData.addToAllWorkflows
       };
       
       console.log('🔍 CREATE LINE ITEM: Sending request data:', requestData);
@@ -474,7 +476,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           responsibleRole: 'WORKER',
           description: '',
           estimatedMinutes: 30,
-          alertDays: 1
+          alertDays: 1,
+          addToAllWorkflows: false
         });
         setSelectedSectionForLineItem(null);
         setShowCreateLineItemModal(false);
@@ -1438,57 +1441,73 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                               + Add Line Item
                             </button>
                             {inlineNewLineItem[item.id] && (
-                              <form
-                                onSubmit={async (e) => {
-                                  e.preventDefault();
-                                  const val = inlineNewLineItem[item.id].name?.trim();
-                                  if (!val) return;
-                                  setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], saving: true } }));
-                                  try {
-                                    const payload = {
-                                      sectionId: item.id,
-                                      itemName: val,
-                                      responsibleRole: normalizeRoleForServer(inlineNewLineItem[item.id].role || 'OFFICE')
-                                    };
-                                    const resp = await api.post('/workflows/line-items', payload);
-                                    if (resp.data?.success) {
-                                      const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
-                                      if (workflowResponse.data.success) {
-                                        setWorkflowData(workflowResponse.data.data);
+                              <>
+                                <form
+                                  onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const val = inlineNewLineItem[item.id].name?.trim();
+                                    if (!val) return;
+                                    setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], saving: true } }));
+                                    try {
+                                      const payload = {
+                                        sectionId: item.id,
+                                        itemName: val,
+                                        responsibleRole: normalizeRoleForServer(inlineNewLineItem[item.id].role || 'OFFICE'),
+                                        addToAllWorkflows: inlineNewLineItem[item.id]?.addToAllWorkflows || false
+                                      };
+                                      const resp = await api.post('/workflows/line-items', payload);
+                                      if (resp.data?.success) {
+                                        const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                        if (workflowResponse.data.success) {
+                                          setWorkflowData(workflowResponse.data.data);
+                                        }
+                                        setInlineNewLineItem(prev => ({ ...prev, [item.id]: undefined }));
                                       }
-                                      setInlineNewLineItem(prev => ({ ...prev, [item.id]: undefined }));
+                                    } catch (err) {
+                                      alert(err?.response?.data?.message || 'Failed to add line item');
+                                      setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], saving: false } }));
                                     }
-                                  } catch (err) {
-                                    alert(err?.response?.data?.message || 'Failed to add line item');
-                                    setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], saving: false } }));
-                                  }
-                                }}
-                                className="flex items-center gap-2 mt-2"
-                              >
-                                <input
-                                  autoFocus
-                                  type="text"
-                                  value={inlineNewLineItem[item.id]?.name || ''}
-                                  onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], name: e.target.value } }))}
-                                  className="px-2 py-1 border border-gray-300 rounded-md text-sm"
-                                  placeholder="Line item name"
-                                />
-                                <select
-                                  value={inlineNewLineItem[item.id]?.role || 'OFFICE'}
-                                  onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], role: e.target.value } }))}
-                                  className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                  }}
+                                  className="flex items-center gap-2 mt-2"
                                 >
-                                  <option value="OFFICE">Office</option>
-                                  <option value="ADMINISTRATION">Administration</option>
-                                  <option value="PROJECT_MANAGER">Project Manager</option>
-                                  <option value="FIELD_DIRECTOR">Field Director</option>
-                                  <option value="ROOF_SUPERVISOR">Roof Supervisor</option>
-                                  <option value="OFFICE_STAFF">Office Staff</option>
-                                </select>
-                                <button type="submit" disabled={inlineNewLineItem[item.id]?.saving} className="px-2 py-1 text-xs text-white bg-[var(--color-success-green)] rounded-md disabled:opacity-50">
-                                  {inlineNewLineItem[item.id]?.saving ? 'Saving...' : 'Save'}
-                                </button>
-                              </form>
+                                  <input
+                                    autoFocus
+                                    type="text"
+                                    value={inlineNewLineItem[item.id]?.name || ''}
+                                    onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], name: e.target.value } }))}
+                                    className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                    placeholder="Line item name"
+                                  />
+                                  <select
+                                    value={inlineNewLineItem[item.id]?.role || 'OFFICE'}
+                                    onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], role: e.target.value } }))}
+                                    className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                  >
+                                    <option value="OFFICE">Office</option>
+                                    <option value="ADMINISTRATION">Administration</option>
+                                    <option value="PROJECT_MANAGER">Project Manager</option>
+                                    <option value="FIELD_DIRECTOR">Field Director</option>
+                                    <option value="ROOF_SUPERVISOR">Roof Supervisor</option>
+                                    <option value="OFFICE_STAFF">Office Staff</option>
+                                  </select>
+                                  <button type="submit" disabled={inlineNewLineItem[item.id]?.saving} className="px-2 py-1 text-xs text-white bg-[var(--color-success-green)] rounded-md disabled:opacity-50">
+                                    {inlineNewLineItem[item.id]?.saving ? 'Saving...' : 'Save'}
+                                  </button>
+                                </form>
+                                <div className="mt-2">
+                                  <label className="flex items-center text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={inlineNewLineItem[item.id]?.addToAllWorkflows || false}
+                                      onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], addToAllWorkflows: e.target.checked } }))}
+                                      className="mr-1 h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <span className="text-xs text-gray-600">
+                                      Add to all workflows permanently
+                                    </span>
+                                  </label>
+                                </div>
+                              </>
                             )}
                           </div>
                         </div>
@@ -1730,6 +1749,24 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   </div>
                 </div>
                 
+                {/* Add to all workflows checkbox */}
+                <div className="mb-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={createLineItemData.addToAllWorkflows}
+                      onChange={(e) => setCreateLineItemData(prev => ({ ...prev, addToAllWorkflows: e.target.checked }))}
+                      className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Add this line item to every workflow permanently
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    When checked, this line item will be added to all existing and future workflows of the same type
+                  </p>
+                </div>
+                
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
@@ -1740,7 +1777,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                         responsibleRole: 'WORKER',
                         description: '',
                         estimatedMinutes: 30,
-                        alertDays: 1
+                        alertDays: 1,
+                        addToAllWorkflows: false
                       });
                       setSelectedSectionForLineItem(null);
                     }}
