@@ -664,12 +664,6 @@ const CurrentProjectsByPhase = ({
           </table>
         </div>
 
-        {/* Empty indicator when no filter selected */}
-        {selectedPhase == null && (
-          <div className={`p-4 rounded border mt-2 ${colorMode ? 'bg-slate-800/40 border-slate-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
-            Select a phase above to view projects, or choose All.
-          </div>
-        )}
       </div>
     </div>
   );
