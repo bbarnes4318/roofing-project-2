@@ -3,6 +3,10 @@ const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const multer = require('multer');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getS3 } = require('../config/spaces');
+const { generateUniqueFilename } = require('../utils/fileUtils');
 const { 
   asyncHandler, 
   AppError, 
@@ -16,6 +20,7 @@ const {
 } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
 // Dev fallback store when DB is not connected
 let DevUserStore;
 try {
@@ -426,6 +431,135 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     message: 'Profile updated successfully',
     data: { user: updatedUser }
   });
+}));
+
+// @desc    Upload profile picture
+// @route   POST /api/auth/upload-avatar
+// @access  Private
+router.post('/upload-avatar', authenticateToken, upload.single('avatar'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: 'No file uploaded'
+    });
+  }
+
+  // Validate file type
+  if (!req.file.mimetype.startsWith('image/')) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please upload a valid image file'
+    });
+  }
+
+  // Validate file size (max 5MB)
+  if (req.file.size > 5 * 1024 * 1024) {
+    return res.status(400).json({
+      success: false,
+      message: 'Image size must be less than 5MB'
+    });
+  }
+
+  try {
+    // Upload to Spaces
+    const filename = generateUniqueFilename(req.file.originalname);
+    const key = `avatars/${req.user.id}/${filename}`;
+
+    const s3 = getS3();
+    const bucket = process.env.DO_SPACES_NAME;
+
+    if (!bucket) {
+      return res.status(500).json({
+        success: false,
+        message: 'Digital Ocean Spaces not configured'
+      });
+    }
+
+    await s3.send(new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype || 'application/octet-stream',
+      ACL: 'public-read' // Make avatar publicly accessible
+    }));
+
+    const avatarUrl = `spaces://${key}`;
+
+    // Update user's avatar in database
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatar: avatarUrl },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        avatar: true,
+        phone: true,
+        position: true,
+        department: true,
+        bio: true,
+        theme: true,
+        language: true,
+        timezone: true
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile picture updated successfully',
+      data: { user: updatedUser }
+    });
+
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload profile picture'
+    });
+  }
+}));
+
+// @desc    Remove profile picture
+// @route   DELETE /api/auth/remove-avatar
+// @access  Private
+router.delete('/remove-avatar', authenticateToken, asyncHandler(async (req, res) => {
+  try {
+    // Update user's avatar to null in database
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatar: null },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        avatar: true,
+        phone: true,
+        position: true,
+        department: true,
+        bio: true,
+        theme: true,
+        language: true,
+        timezone: true
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile picture removed successfully',
+      data: { user: updatedUser }
+    });
+
+  } catch (error) {
+    console.error('Avatar removal error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove profile picture'
+    });
+  }
 }));
 
 // @desc    Change password

@@ -61,9 +61,42 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     }
   };
 
-  const removeProfilePicture = () => {
-    setProfilePicture(null);
-    setProfilePicturePreview(null);
+  const removeProfilePicture = async () => {
+    try {
+      const response = await fetch('/api/auth/remove-avatar', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // Update the current user state
+        const updatedUser = result.data.user;
+        try {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        } catch (_) {}
+        if (typeof onUserUpdated === 'function') onUserUpdated(updatedUser);
+        
+        // Clear local state
+        setProfilePicture(null);
+        setProfilePicturePreview(null);
+        
+        setSuccessMessage('Profile picture removed successfully!');
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        throw new Error(result.message || 'Failed to remove profile picture');
+      }
+    } catch (err) {
+      console.error('Remove profile picture failed:', err);
+      setSuccessMessage(String(err?.message || 'Failed to remove profile picture'));
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    }
   };
 
   // Subjects context and local UI state
@@ -135,6 +168,32 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     if (isSaving) return;
     setIsSaving(true);
     try {
+      // First, upload profile picture if one is selected
+      let updatedUser = null;
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append('avatar', profilePicture);
+        
+        const uploadRes = await fetch('/api/auth/upload-avatar', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+        
+        const uploadResult = await uploadRes.json();
+        if (uploadResult.success) {
+          updatedUser = uploadResult.data.user;
+          // Clear the profile picture state after successful upload
+          setProfilePicture(null);
+          setProfilePicturePreview(null);
+        } else {
+          throw new Error(uploadResult.message || 'Failed to upload profile picture');
+        }
+      }
+
+      // Then update other profile information
       const payload = {
         firstName: firstName || undefined,
         lastName: lastName || undefined,
@@ -693,6 +752,17 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                 className="w-full h-full object-cover"
               />
             </div>
+          ) : currentUser?.avatar ? (
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
+              <img 
+                src={currentUser.avatar.startsWith('spaces://') 
+                  ? `https://${process.env.REACT_APP_DO_SPACES_NAME}.${process.env.REACT_APP_DO_SPACES_ENDPOINT}/${currentUser.avatar.replace('spaces://', '')}`
+                  : currentUser.avatar
+                } 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            </div>
           ) : (
             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${colorMode ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'}`}>
               {`${(currentUser?.firstName || 'U').charAt(0).toUpperCase()}${(currentUser?.lastName || '').charAt(0).toUpperCase()}`}
@@ -708,15 +778,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </button>
-          {profilePicturePreview && (
+          {(profilePicturePreview || currentUser?.avatar) && (
             <button
               type="button"
               onClick={removeProfilePicture}
-              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+              className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
               title="Remove profile picture"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-1.5 h-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           )}
