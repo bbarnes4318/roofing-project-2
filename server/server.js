@@ -871,6 +871,7 @@ app.use('/api/workflow-data', workflowDataRoutes);
 app.use('/api/excel-data', excelDataRoutes);
 app.use('/api/complete-excel-data', completeExcelDataRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/permissions', require('./routes/permissions'));
 app.use('/api/transcripts', require('./routes/transcripts'));
 app.use('/api/voice-transcripts', require('./routes/voiceTranscripts'));
 app.use('/api/follow-up', require('./routes/followUp'));

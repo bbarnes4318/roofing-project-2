@@ -5,6 +5,9 @@ import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
 import FollowUpTracking from '../ui/FollowUpTracking';
+import PermissionManagementPage from './PermissionManagementPage';
+import PermissionMatrix from './PermissionMatrix';
+import RoleHierarchy from './RoleHierarchy';
 import { API_BASE_URL, authService } from '../../services/api';
 import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
@@ -687,6 +690,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       // Note: Notifications section hidden per requirements
       { id: 'security', label: 'Security', icon: '🔒' },
       { id: 'roles', label: 'Roles', icon: '👥' },
+      { id: 'permissions', label: 'Permissions', icon: '🔐' },
+      { id: 'permission-matrix', label: 'Permission Matrix', icon: '📊' },
+      { id: 'role-hierarchy', label: 'Role Hierarchy', icon: '🏗️' },
       { id: 'follow-up', label: 'Bubbles AI', icon: '🤖' }
       // Note: Excel Data section hidden per requirements
       // Note: Subjects tab removed per requirements
@@ -2539,6 +2545,12 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         return renderSecurityTab();
       case 'roles':
         return renderRolesTab();
+      case 'permissions':
+        return <PermissionManagementPage colorMode={colorMode} />;
+      case 'permission-matrix':
+        return <PermissionMatrix colorMode={colorMode} />;
+      case 'role-hierarchy':
+        return <RoleHierarchy colorMode={colorMode} />;
       case 'follow-up':
         return renderFollowUpTab();
       // Note: Excel Data section hidden per requirements
