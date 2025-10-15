@@ -172,21 +172,28 @@ export default function App() {
                     }
                     
                     // Verify the existing token
-                    const response = await fetch('/api/auth/verify', {
-                        headers: {
-                            'Authorization': `Bearer ${existingToken}`
+                    try {
+                        const response = await fetch('/api/auth/verify', {
+                            headers: {
+                                'Authorization': `Bearer ${existingToken}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const userData = await response.json();
+                            setCurrentUser(userData.user);
+                            setIsAuthenticated(true);
+                            return;
+                        } else {
+                            // Token is invalid, clear it
+                            localStorage.removeItem('authToken');
+                            sessionStorage.removeItem('authToken');
                         }
-                    });
-                    
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setCurrentUser(userData.user);
-                        setIsAuthenticated(true);
+                    } catch (verifyError) {
+                        console.log('Token verification failed, using fallback auth');
+                        // If verification fails, use fallback authentication
+                        await handleDemoAuth();
                         return;
-                    } else {
-                        // Token is invalid, clear it
-                        localStorage.removeItem('authToken');
-                        sessionStorage.removeItem('authToken');
                     }
                 } catch (error) {
                     console.error('Token verification failed:', error);

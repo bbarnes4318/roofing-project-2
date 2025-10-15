@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 
 // GET /api/feedback - List feedback with filters
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
+  try {
   const {
     type,
     status,
@@ -165,6 +166,14 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     limit: parseInt(limit),
     totalPages: Math.ceil(total / parseInt(limit))
   });
+  } catch (error) {
+    console.error('Error in feedback route:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed. Please try again later.',
+      timestamp: new Date().toISOString()
+    });
+  }
 }));
 
 // GET /api/feedback/:id - Get single feedback item

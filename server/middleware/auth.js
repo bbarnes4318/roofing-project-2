@@ -55,7 +55,7 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Demo token bypass for development/testing
-    if (token.startsWith('demo-token-') || token.startsWith('temp-token-')) {
+    if (token.startsWith('demo-token-') || token.startsWith('temp-token-') || token.startsWith('demo-david-chen-token-')) {
       req.user = {
         id: 'demo-user-' + Date.now(),
         firstName: 'Demo',

@@ -47,12 +47,15 @@ model User {
   eventAttendees           CalendarEventAttendee[]
   calendarEventComments    CalendarEventComment[]
   calendarEvents           CalendarEvent[]           @relation("Organizer")
+  comments                 Comment[]                 @relation("CommentAuthor")
   companyAssets            CompanyAsset[]
   completedWorkflowItems   CompletedWorkflowItem[]
   conversationParticipants ConversationParticipant[]
   downloadedDocuments      DocumentDownload[]
   documentTemplates        DocumentTemplate[]
   uploadedDocuments        Document[]                @relation("UploadedBy")
+  feedbackAssigned         Feedback[]                @relation("FeedbackAssignee")
+  feedbackAuthored         Feedback[]                @relation("FeedbackAuthor")
   generatedDocuments       GeneratedDocumentMeta[]
   readMessages             MessageRead[]
   sentMessages             Message[]                 @relation("Sender")
@@ -69,19 +72,16 @@ model User {
   taskComments             TaskComment[]
   assignedTasks            Task[]                    @relation("AssignedUser")
   createdTasks             Task[]                    @relation("CreatedByUser")
+  userBadges               UserBadge[]               @relation("UserBadges")
   behaviorPattern          UserBehaviorPattern?      @relation("UserBehavior")
   devices                  UserDevice[]              @relation("UserDevices")
   mfaSettings              UserMFA[]                 @relation("UserMFA")
+  userProfile              UserProfile?              @relation("UserProfile")
   voiceTranscripts         VoiceTranscript[]
+  votes                    Vote[]                    @relation("UserVotes")
   webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
   assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
-  feedbackAuthored         Feedback[]                @relation("FeedbackAuthor")
-  feedbackAssigned         Feedback[]                @relation("FeedbackAssignee")
-  comments                 Comment[]                 @relation("CommentAuthor")
-  votes                    Vote[]                    @relation("UserVotes")
-  userBadges               UserBadge[]               @relation("UserBadges")
-  userProfile              UserProfile?              @relation("UserProfile")
 
   @@map("users")
 }
@@ -986,6 +986,124 @@ model document_annotations {
   annotations Json?
 }
 
+model Feedback {
+  id                     String            @id @default(cuid())
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  type                   FeedbackType
+  title                  String            @db.VarChar(255)
+  description            String
+  status                 FeedbackStatus    @default(OPEN)
+  severity               FeedbackSeverity?
+  tags                   String[]
+  voteCount              Int               @default(0)
+  commentCount           Int               @default(0)
+  developerResponseCount Int               @default(0)
+  attachments            Json?
+  url                    String?           @db.VarChar(500)
+  environment            Json?
+  authorId               String            @map("author_id")
+  assigneeId             String?           @map("assignee_id")
+  comments               Comment[]
+  assignee               User?             @relation("FeedbackAssignee", fields: [assigneeId], references: [id])
+  author                 User              @relation("FeedbackAuthor", fields: [authorId], references: [id])
+  votes                  Vote[]
+
+  @@index([type])
+  @@index([status])
+  @@index([severity])
+  @@index([authorId])
+  @@index([assigneeId])
+  @@index([createdAt])
+  @@index([voteCount])
+  @@map("feedback")
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  body        String
+  isDeveloper Boolean   @default(false)
+  isPinned    Boolean   @default(false)
+  authorId    String    @map("author_id")
+  feedbackId  String    @map("feedback_id")
+  parentId    String?   @map("parent_id")
+  author      User      @relation("CommentAuthor", fields: [authorId], references: [id])
+  feedback    Feedback  @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  parent      Comment?  @relation("CommentThread", fields: [parentId], references: [id])
+  children    Comment[] @relation("CommentThread")
+
+  @@index([feedbackId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Vote {
+  id         String     @id @default(cuid())
+  createdAt  DateTime   @default(now())
+  userId     String     @map("user_id")
+  feedbackId String     @map("feedback_id")
+  action     VoteAction
+  feedback   Feedback   @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  user       User       @relation("UserVotes", fields: [userId], references: [id])
+
+  @@unique([userId, feedbackId])
+  @@index([feedbackId])
+  @@index([userId])
+  @@map("votes")
+}
+
+model Badge {
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  code        String        @unique @db.VarChar(50)
+  name        String        @db.VarChar(100)
+  description String        @db.VarChar(255)
+  icon        String        @db.VarChar(50)
+  category    BadgeCategory
+  points      Int           @default(0)
+  isActive    Boolean       @default(true)
+  userBadges  UserBadge[]
+
+  @@index([code])
+  @@index([category])
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String   @map("user_id")
+  badgeId   String   @map("badge_id")
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  user      User     @relation("UserBadges", fields: [userId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@map("user_badges")
+}
+
+model UserProfile {
+  id               String    @id @default(cuid())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  userId           String    @unique @map("user_id")
+  points           Int       @default(0)
+  level            Int       @default(1)
+  streak           Int       @default(0)
+  lastActivityDate DateTime? @map("last_activity_date")
+  user             User      @relation("UserProfile", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([points])
+  @@index([level])
+  @@map("user_profiles")
+}
+
 enum WorkflowState {
   PENDING
   ACTIVE
@@ -1337,132 +1455,6 @@ enum OutputFormat {
   HTML
 }
 
-// Feedback System Models
-model Feedback {
-  id                String        @id @default(cuid())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  type              FeedbackType
-  title             String        @db.VarChar(255)
-  description       String        @db.Text
-  status            FeedbackStatus @default(OPEN)
-  severity          FeedbackSeverity?
-  tags              String[]
-  voteCount         Int           @default(0)
-  commentCount      Int           @default(0)
-  developerResponseCount Int      @default(0)
-  attachments       Json?
-  url               String?       @db.VarChar(500)
-  environment       Json?
-  authorId          String        @map("author_id")
-  assigneeId        String?       @map("assignee_id")
-  
-  author            User          @relation("FeedbackAuthor", fields: [authorId], references: [id])
-  assignee          User?         @relation("FeedbackAssignee", fields: [assigneeId], references: [id])
-  votes             Vote[]
-  comments          Comment[]
-  
-  @@index([type])
-  @@index([status])
-  @@index([severity])
-  @@index([authorId])
-  @@index([assigneeId])
-  @@index([createdAt])
-  @@index([voteCount])
-  @@map("feedback")
-}
-
-model Comment {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  body        String   @db.Text
-  isDeveloper Boolean  @default(false)
-  isPinned    Boolean  @default(false)
-  authorId    String   @map("author_id")
-  feedbackId  String   @map("feedback_id")
-  parentId    String?  @map("parent_id")
-  
-  author      User     @relation("CommentAuthor", fields: [authorId], references: [id])
-  feedback    Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
-  parent      Comment? @relation("CommentThread", fields: [parentId], references: [id])
-  children    Comment[] @relation("CommentThread")
-  
-  @@index([feedbackId])
-  @@index([authorId])
-  @@index([parentId])
-  @@index([createdAt])
-  @@map("comments")
-}
-
-model Vote {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  userId     String   @map("user_id")
-  feedbackId String   @map("feedback_id")
-  action     VoteAction
-  
-  user       User     @relation("UserVotes", fields: [userId], references: [id])
-  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, feedbackId])
-  @@index([feedbackId])
-  @@index([userId])
-  @@map("votes")
-}
-
-model Badge {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  code        String   @unique @db.VarChar(50)
-  name        String   @db.VarChar(100)
-  description String   @db.VarChar(255)
-  icon        String   @db.VarChar(50)
-  category    BadgeCategory
-  points      Int      @default(0)
-  isActive    Boolean  @default(true)
-  
-  userBadges  UserBadge[]
-  
-  @@index([code])
-  @@index([category])
-  @@map("badges")
-}
-
-model UserBadge {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  userId    String   @map("user_id")
-  badgeId   String   @map("badge_id")
-  
-  user      User     @relation("UserBadges", fields: [userId], references: [id])
-  badge     Badge    @relation(fields: [badgeId], references: [id])
-  
-  @@unique([userId, badgeId])
-  @@index([userId])
-  @@index([badgeId])
-  @@map("user_badges")
-}
-
-model UserProfile {
-  id                String   @id @default(cuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  userId            String   @unique @map("user_id")
-  points            Int      @default(0)
-  level             Int      @default(1)
-  streak            Int      @default(0)
-  lastActivityDate  DateTime? @map("last_activity_date")
-  
-  user              User     @relation("UserProfile", fields: [userId], references: [id])
-  
-  @@index([userId])
-  @@index([points])
-  @@index([level])
-  @@map("user_profiles")
-}
-
-// Enums for Feedback System
 enum FeedbackType {
   BUG
   IMPROVEMENT

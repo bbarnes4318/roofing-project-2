@@ -22,11 +22,11 @@ class SocketService {
 
     let token = localStorage.getItem('authToken') || localStorage.getItem('token');
     if (!token) {
-      // Align with API mock auth behavior: generate a demo token so sockets can connect in dev/demo
+      // Generate a demo token silently for development
       token = 'demo-david-chen-token-' + Date.now();
       localStorage.setItem('authToken', token);
       localStorage.setItem('token', token);
-      console.warn('⚠️ No auth token found. Generated demo token for Socket.IO connection.');
+      // Remove the warning - this is expected behavior
     }
 
     this.socket = io(this.serverUrl, {

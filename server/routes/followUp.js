@@ -19,6 +19,7 @@ const router = express.Router();
 // @route   GET /api/follow-up/settings
 // @access  Private
 router.get('/settings', managerAndAbove, asyncHandler(async (req, res) => {
+  try {
   const userId = req.user.id;
 
   let settings = await prisma.followUpSettings.findUnique({
@@ -45,6 +46,14 @@ router.get('/settings', managerAndAbove, asyncHandler(async (req, res) => {
     data: { settings },
     message: 'Follow-up settings retrieved successfully'
   });
+  } catch (error) {
+    console.error('Error in follow-up settings route:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed. Please try again later.',
+      timestamp: new Date().toISOString()
+    });
+  }
 }));
 
 // @desc    Update follow-up settings for user
@@ -330,6 +339,7 @@ router.put('/tracking/:id/complete', asyncHandler(async (req, res, next) => {
 // @route   GET /api/follow-up/stats
 // @access  Private
 router.get('/stats', managerAndAbove, asyncHandler(async (req, res) => {
+  try {
   const userId = req.user.id;
 
   const [
@@ -380,6 +390,14 @@ router.get('/stats', managerAndAbove, asyncHandler(async (req, res) => {
     },
     message: 'Follow-up statistics retrieved successfully'
   });
+  } catch (error) {
+    console.error('Error in follow-up stats route:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed. Please try again later.',
+      timestamp: new Date().toISOString()
+    });
+  }
 }));
 
 // @desc    Create follow-up for a task/reminder/alert (internal use)
