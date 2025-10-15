@@ -442,7 +442,7 @@ const ProjectsByPhaseSection = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${phase.color} text-white text-xs font-bold`}>
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center ${phase.color} text-white text-sm font-bold`}>
                       {phaseProjects.length}
                     </div>
                     <div>

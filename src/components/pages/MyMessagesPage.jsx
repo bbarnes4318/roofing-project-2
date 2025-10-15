@@ -353,8 +353,8 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
         </div>
 
         {/* Page Header */}
-        <div className="mb-6">
-          <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+        <div className="mb-3">
+          <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-1`}>
             My Messages
           </h1>
           <p className={`text-lg ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>
@@ -641,21 +641,18 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                       }`}>
                         Subject <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <input
+                        type="text"
+                        placeholder="Enter subject line..."
                         value={newMessageSubject}
                         onChange={(e) => setNewMessageSubject(e.target.value)}
                         required
                         className={`w-full px-2 py-1 border rounded text-xs ${
                           colorMode 
-                            ? 'bg-[#232b4d] border-gray-600 text-white' 
-                            : 'bg-white border-gray-300 text-gray-800'
+                            ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
                         }`}
-                      >
-                        <option value="">Select Subject</option>
-                        {subjects.map(subject => (
-                          <option key={subject} value={subject}>{subject}</option>
-                        ))}
-                      </select>
+                      />
                     </div>
                     
                     <div>

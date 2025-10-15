@@ -55,8 +55,8 @@ const CurrentProjectsByPhase = ({
       : projects.filter((p) => String(getProjectPhase(p)).toUpperCase() === String(selectedPhase).toUpperCase());
 
   return (
-    <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="project-phases">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-4" data-section="project-phases">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
             Current Projects by Phase
@@ -66,7 +66,7 @@ const CurrentProjectsByPhase = ({
       </div>
 
       {/* Phase Filter Row */}
-      <div className="mb-6">
+      <div className="mb-3">
         <div className="w-full flex items-center gap-3">
           {/* All Projects */}
           <button
@@ -115,7 +115,7 @@ const CurrentProjectsByPhase = ({
                   }`}
                 >
                   <div
-                    className={`h-12 w-12 flex-shrink-0 shadow-sm flex items-center justify-center text-lg font-bold transform rotate-45 ${getPhaseTextColor(phase.id)}`}
+                    className={`h-8 w-8 flex-shrink-0 shadow-sm flex items-center justify-center text-sm font-bold transform rotate-45 ${getPhaseTextColor(phase.id)}`}
                     style={{ backgroundColor: phase.color }}
                     title={`${phase.name} projects`}
                   >
@@ -130,7 +130,7 @@ const CurrentProjectsByPhase = ({
       </div>
 
       {/* Projects Table (only when a filter is selected or All) */}
-      <div className="mb-4 overflow-x-auto">
+      <div className="overflow-x-auto">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-full">
             {(() => {

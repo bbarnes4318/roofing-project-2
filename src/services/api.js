@@ -1242,5 +1242,38 @@ export const workflowImportService = {
   }
 };
 
+// Feedback Service
+export const feedbackService = {
+  getFeedback: (params = {}) => api.get('/feedback', { params }),
+  getFeedbackById: (id) => api.get(`/feedback/${id}`),
+  createFeedback: (feedbackData) => api.post('/feedback', feedbackData),
+  updateFeedback: (id, updates) => api.patch(`/feedback/${id}`, updates),
+  deleteFeedback: (id) => api.delete(`/feedback/${id}`),
+  vote: (feedbackId, action) => api.post(`/feedback/${feedbackId}/vote`, { action }),
+  updateStatus: (feedbackId, updates) => api.patch(`/feedback/${feedbackId}/status`, updates),
+  addComment: (feedbackId, commentData) => api.post(`/feedback/${feedbackId}/comments`, commentData),
+  getComments: (feedbackId) => api.get(`/feedback/${feedbackId}/comments`),
+  uploadFile: (file, type = 'attachment') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    return api.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  getNotifications: (userId) => api.get(`/users/${userId}/notifications`),
+  markNotificationAsRead: (notificationId) => api.patch(`/notifications/${notificationId}/read`),
+  markAllNotificationsAsRead: (userId) => api.patch(`/users/${userId}/notifications/read-all`),
+  subscribeToFeedback: (feedbackId) => api.post(`/feedback/${feedbackId}/subscribe`),
+  unsubscribeFromFeedback: (feedbackId) => api.delete(`/feedback/${feedbackId}/subscribe`),
+  getFeedbackAnalytics: (params = {}) => api.get('/feedback/analytics', { params }),
+  getFeedbackStats: () => api.get('/feedback/stats'),
+  searchFeedback: (query, filters = {}) => api.get('/feedback/search', { params: { q: query, ...filters } }),
+  getTags: () => api.get('/tags'),
+  createTag: (tagData) => api.post('/tags', tagData),
+  findDuplicates: (feedbackId) => api.get(`/feedback/${feedbackId}/duplicates`),
+  mergeFeedback: (sourceId, targetId) => api.post(`/feedback/${sourceId}/merge`, { targetId })
+};
+
 // Export the main API instance for custom requests
 export default api; 

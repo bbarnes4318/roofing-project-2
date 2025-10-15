@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useSubjects } from '../../contexts/SubjectsContext';
+// Note: useSubjects import removed per requirements
 import WorkflowImportPage from './WorkflowImportPage';
 import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
@@ -99,12 +99,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     }
   };
 
-  // Subjects context and local UI state
-  const { subjects, addSubject, editSubject, deleteSubject, resetToDefaults } = useSubjects();
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newSubject, setNewSubject] = useState('');
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [editingText, setEditingText] = useState('');
+  // Note: subjects-related state variables removed per requirements
 
   // Roles/users state
   const [roleAssignments, setRoleAssignments] = useState({
@@ -229,43 +224,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     }
   };
 
-  const handleAddSubject = () => {
-    if (addSubject(newSubject)) {
-      showSuccessMessage('Subject added successfully!');
-      setNewSubject('');
-      setShowAddForm(false);
-    }
-  };
-
-  const handleEditSubject = (index, originalSubject) => {
-    setEditingSubject(index);
-    setEditingText(originalSubject);
-  };
-
-  const handleSaveEdit = (index) => {
-    if (editSubject(index, editingText)) {
-      showSuccessMessage('Subject updated successfully!');
-      setEditingSubject(null);
-      setEditingText('');
-    }
-  };
-
-  const handleDeleteSubject = (index) => {
-    deleteSubject(index);
-    showSuccessMessage('Subject deleted successfully!');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingSubject(null);
-    setEditingText('');
-  };
-
-  const handleResetToDefaults = () => {
-    if (window.confirm('Are you sure you want to reset all subjects to defaults? This will remove any custom subjects you\'ve added.')) {
-      resetToDefaults();
-      showSuccessMessage('Subjects reset to defaults!');
-    }
-  };
+  // Note: subjects-related functions removed per requirements
 
   // Role assignment functions
   // New function to save array-based role assignments
@@ -728,9 +687,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       // Note: Notifications section hidden per requirements
       { id: 'security', label: 'Security', icon: '🔒' },
       { id: 'roles', label: 'Roles', icon: '👥' },
-      { id: 'follow-up', label: 'Bubbles AI', icon: '🤖' },
+      { id: 'follow-up', label: 'Bubbles AI', icon: '🤖' }
       // Note: Excel Data section hidden per requirements
-      { id: 'subjects', label: 'Subjects', icon: '📝' }
+      // Note: Subjects tab removed per requirements
     ];
 
     // Admin import tabs are hidden for all users for now
@@ -1604,217 +1563,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     </div>
 );
 
-  const renderSubjectsTab = () => (
-    <div className="space-y-4">
-      {/* Header with Add Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Message Subjects</h3>
-          <p className={`text-xs mt-1 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Manage subjects available in Project Messages dropdown ({subjects.length} subjects)
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="px-3 py-1.5 bg-[var(--color-primary-blueprint-blue)] text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
-          >
-            <span>+</span>
-            Add Subject
-          </button>
-          <button
-            type="button"
-            onClick={handleResetToDefaults}
-            className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${
-              colorMode
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            Reset to Defaults
-          </button>
-        </div>
-      </div>
-
-      {/* Add New Subject Form */}
-      {showAddForm && (
-        <div className={`p-3 rounded border ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={newSubject}
-              onChange={(e) => setNewSubject(e.target.value)}
-              placeholder="Enter new subject..."
-              className={`flex-1 p-2 rounded border text-sm ${
-                colorMode
-                  ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
-              }`}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddSubject();
-                } else if (e.key === 'Escape') {
-                  setShowAddForm(false);
-                  setNewSubject('');
-                }
-              }}
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={handleAddSubject}
-              disabled={!newSubject.trim() || subjects.includes(newSubject.trim())}
-              className={`px-3 py-2 text-xs font-medium rounded transition-colors ${
-                newSubject.trim() && !subjects.includes(newSubject.trim())
-                  ? 'bg-[var(--color-success-green)] text-white hover:bg-green-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Add
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowAddForm(false);
-                setNewSubject('');
-              }}
-              className={`px-3 py-2 text-xs font-medium rounded border transition-colors ${
-                colorMode
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Cancel
-            </button>
-          </div>
-          {newSubject.trim() && subjects.includes(newSubject.trim()) && (
-            <p className="text-xs text-red-500 mt-1">This subject already exists</p>
-          )}
-        </div>
-      )}
-
-      {/* Subjects List */}
-      <div className={`max-h-96 overflow-y-auto border rounded ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
-        {subjects.length === 0 ? (
-          <div className="p-4 text-center">
-            <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>No subjects found</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {subjects.map((subject, index) => (
-              <div key={index} className={`p-3 hover:bg-opacity-50 transition-colors ${
-                colorMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-              }`}>
-                <div className="flex items-center justify-between">
-                  {editingSubject === index ? (
-                    // Edit mode
-                    <div className="flex items-center gap-2 flex-1">
-                      <input
-                        type="text"
-                        value={editingText}
-                        onChange={(e) => setEditingText(e.target.value)}
-                        className={`flex-1 p-1.5 rounded border text-sm ${
-                          colorMode
-                            ? 'bg-[#232b4d] border-gray-600 text-white'
-                            : 'bg-white border-gray-300 text-gray-800'
-                        }`}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleSaveEdit(index);
-                          } else if (e.key === 'Escape') {
-                            handleCancelEdit();
-                          }
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleSaveEdit(index)}
-                        disabled={!editingText.trim() || subjects.includes(editingText.trim())}
-                        className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                          editingText.trim() && !subjects.includes(editingText.trim())
-                            ? 'bg-[var(--color-success-green)] text-white hover:bg-green-700'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEdit}
-                        className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${
-                          colorMode
-                            ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    // View mode
-                    <>
-                      <div className="flex-1">
-                        <span className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                          {subject}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleEditSubject(index, subject)}
-                          className={`p-1.5 rounded transition-colors ${
-                            colorMode
-                              ? 'text-blue-400 hover:bg-blue-900/20'
-                              : 'text-blue-600 hover:bg-blue-50'
-                          }`}
-                          title="Edit subject"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete "${subject}"?`)) {
-                              handleDeleteSubject(index);
-                            }
-                          }}
-                          className={`p-1.5 rounded transition-colors ${
-                            colorMode
-                              ? 'text-red-400 hover:bg-red-900/20'
-                              : 'text-red-600 hover:bg-red-50'
-                          }`}
-                          title="Delete subject"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-                {editingSubject === index && editingText.trim() && subjects.includes(editingText.trim()) && (
-                  <p className="text-xs text-red-500 mt-1">This subject already exists</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Footer Info */}
-      <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        <p>💡 Changes are saved automatically and will appear in Project Messages dropdowns immediately.</p>
-        <p className="mt-1">📝 Use "Reset to Defaults" to restore the original subject list.</p>
-      </div>
-    </div>
-  );
+  // Note: renderSubjectsTab function removed per requirements
 
   const renderCompanyTab = () => (
     <div className="space-y-3">
@@ -2800,8 +2549,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         return renderProjectImportTab();
       case 'workflow-import':
         return <WorkflowImportPage />;
-      case 'subjects':
-        return renderSubjectsTab();
+      // Note: Subjects tab removed per requirements
       default:
         return renderProfileTab();
     }

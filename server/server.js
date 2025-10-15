@@ -874,6 +874,10 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/transcripts', require('./routes/transcripts'));
 app.use('/api/voice-transcripts', require('./routes/voiceTranscripts'));
 app.use('/api/follow-up', require('./routes/followUp'));
+// Feedback System Routes
+app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/feedback', require('./routes/comments'));
+app.use('/api/users', require('./routes/userProfile'));
 // RAG + Files + Upload microservice endpoints
 app.use('/api', uploadRoutes);
 app.use('/api', filesRoutes);

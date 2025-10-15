@@ -93,7 +93,7 @@ const MTRForm = ({
         <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
           <form onSubmit={(e) => {
             e.preventDefault();
-            const finalSubject = newMessageSubject === 'CUSTOM_SUBJECT' ? newMessageCustomSubject : newMessageSubject;
+            const finalSubject = newMessageSubject;
             if (newMessageProject && finalSubject && newMessageText.trim() && newMessageRecipients.length > 0) {
               const selectedProject = projects.find(p => p.id === parseInt(newMessageProject));
               
@@ -309,42 +309,18 @@ const MTRForm = ({
               }`}>
                 Subject <span className="text-red-500">*</span>
               </label>
-              <select
-                value={newMessageSubject === 'CUSTOM_SUBJECT' ? 'CUSTOM_SUBJECT' : newMessageSubject}
-                onChange={(e) => {
-                  if (e.target.value === 'CUSTOM_SUBJECT') {
-                    setNewMessageSubject('CUSTOM_SUBJECT');
-                  } else {
-                    setNewMessageSubject(e.target.value);
-                  }
-                }}
+              <input
+                type="text"
+                placeholder="Enter subject line..."
+                value={newMessageSubject}
+                onChange={(e) => setNewMessageSubject(e.target.value)}
                 required
-                className={`w-full px-2 py-1 border rounded text-xs mb-2 ${
+                className={`w-full px-2 py-1 border rounded text-xs ${
                   colorMode 
-                    ? 'bg-[#232b4d] border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-800'
+                    ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
                 }`}
-              >
-                <option value="">Select Subject</option>
-                <option value="CUSTOM_SUBJECT">+ Add Custom Subject</option>
-                {subjects.map(subject => (
-                  <option key={subject} value={subject}>{subject}</option>
-                ))}
-              </select>
-              
-              {newMessageSubject === 'CUSTOM_SUBJECT' && (
-                <input
-                  type="text"
-                  placeholder="Enter custom subject..."
-                  value={newMessageCustomSubject || ''}
-                  onChange={(e) => setNewMessageCustomSubject(e.target.value)}
-                  className={`w-full px-2 py-1 border rounded text-xs ${
-                    colorMode 
-                      ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
-                  }`}
-                />
-              )}
+              />
             </div>
             
             <div>
@@ -423,12 +399,21 @@ const MTRForm = ({
             }
             
             try {
+              // Calculate endTime by adding timing duration to startTime
+              const startTime = new Date(quickTaskDue);
+              // Ensure minimum 1 minute duration if no timing is set
+              const totalDuration = (taskTiming.days * 24 * 60 * 60 * 1000) + 
+                (taskTiming.hours * 60 * 60 * 1000) + 
+                (taskTiming.minutes * 60 * 1000);
+              const duration = totalDuration > 0 ? totalDuration : 60 * 1000; // Default to 1 minute
+              const endTime = new Date(startTime.getTime() + duration);
+              
               // Create as calendar DEADLINE event; project optional
               const payload = {
                 title: quickTaskSubject.trim(),
                 description: quickTaskDescription || '',
                 startTime: quickTaskDue,
-                endTime: quickTaskDue,
+                endTime: endTime.toISOString().slice(0, 16), // Format as datetime-local
                 eventType: 'DEADLINE',
                 organizerId: userId,
                 projectId: tasksProjectFilter || undefined,
@@ -603,11 +588,20 @@ const MTRForm = ({
             }
             
             try {
+              // Calculate endTime by adding timing duration to startTime
+              const startTime = new Date(reminderWhen);
+              // Ensure minimum 1 minute duration if no timing is set
+              const totalDuration = (reminderTiming.days * 24 * 60 * 60 * 1000) + 
+                (reminderTiming.hours * 60 * 60 * 1000) + 
+                (reminderTiming.minutes * 60 * 1000);
+              const duration = totalDuration > 0 ? totalDuration : 60 * 1000; // Default to 1 minute
+              const endTime = new Date(startTime.getTime() + duration);
+              
               const payload = {
                 title: reminderTitle.trim(),
                 description: reminderDescription || '',
                 startTime: reminderWhen,
-                endTime: reminderWhen,
+                endTime: endTime.toISOString().slice(0, 16), // Format as datetime-local
                 eventType: 'REMINDER',
                 organizerId: userId,
                 projectId: remindersProjectFilter || undefined,

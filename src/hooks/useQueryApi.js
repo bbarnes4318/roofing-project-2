@@ -13,7 +13,8 @@ import {
   aiService,
   workflowAlertsService,
   usersService,
-  rolesService
+  rolesService,
+  feedbackService
 } from '../services/api';
 
 // Import workflow service separately since it might be in a different location
@@ -64,6 +65,11 @@ export const queryKeys = {
   // Project Messages
   projectMessages: (projectId, params) => ['project-messages', projectId, params],
   projectMessageThread: (messageId) => ['project-messages', 'thread', messageId],
+  
+  // Feedback
+  feedback: ['feedback'],
+  feedbackByType: (type) => ['feedback', 'type', type],
+  feedbackByUser: (userId) => ['feedback', 'user', userId],
   // Search
   search: (query, type = 'general') => ['search', type, query],
   
@@ -413,6 +419,44 @@ export const useWorkflowAlertsByProject = (projectId) => {
     queryFn: () => workflowAlertsService.getByProject(projectId),
     select: (data) => data?.data || data || [],
     enabled: !!projectId,
+  });
+};
+
+/**
+ * FEEDBACK HOOKS
+ */
+
+export const useFeedback = (params = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.feedback, params],
+    queryFn: () => feedbackService.getFeedback(params),
+    select: (data) => {
+      console.log('🔍 FEEDBACK HOOK: Raw data:', data);
+      console.log('🔍 FEEDBACK HOOK: Raw data.data:', data?.data);
+      console.log('🔍 FEEDBACK HOOK: Raw data.data.data:', data?.data?.data);
+      
+      // Handle Axios response structure: data.data.data contains the actual array
+      const result = Array.isArray(data?.data?.data) ? data.data.data : 
+                    Array.isArray(data?.data) ? data.data : 
+                    Array.isArray(data) ? data : [];
+      
+      console.log('🔍 FEEDBACK HOOK: Selected data:', result);
+      console.log('🔍 FEEDBACK HOOK: Selected data type:', typeof result);
+      console.log('🔍 FEEDBACK HOOK: Selected data length:', Array.isArray(result) ? result.length : 'not array');
+      return result;
+    },
+    staleTime: 0, // Always fresh - feedback needs immediate updates
+    retry: false,
+    refetchOnWindowFocus: true,
+  });
+};
+
+export const useFeedbackByType = (type, params = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.feedbackByType(type), params],
+    queryFn: () => feedbackService.getFeedback({ ...params, type }),
+    select: (data) => data?.data || data || [],
+    enabled: !!type,
   });
 };
 

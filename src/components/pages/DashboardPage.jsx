@@ -17,7 +17,7 @@ import ProjectCubes from '../dashboard/ProjectCubes';
 import CurrentProjectsByPhase from '../dashboard/CurrentProjectsByPhase';
 import { mockProjects, mockMessages, mockTasks, mockReminders } from '../../data/mockData';
 import { formatPhoneNumber } from '../../utils/helpers';
-import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, queryKeys } from '../../hooks/useQueryApi';
+import { useProjects, useProjectStats, useTasks, useRecentActivities, useWorkflowAlerts, useCreateProject, useCustomers, useCalendarEvents, useCurrentUser, useFeedback, queryKeys } from '../../hooks/useQueryApi';
 import { DashboardStatsSkeleton, ActivityFeedSkeleton, ErrorState } from '../ui/SkeletonLoaders';
 import { useSocket, useRealTimeUpdates, useRealTimeNotifications } from '../../hooks/useSocket';
 import api, { API_BASE_URL, authService, messagesService, customersService, usersService, projectMessagesService, calendarService, activitiesService, tasksService } from '../../services/api';
@@ -662,6 +662,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
   const { data: realTasks = [], isLoading: tasksLoading } = useTasks({ page: 1, limit: 20 });
   const { data: realCalendarEvents = [], isLoading: calendarLoading } = useCalendarEvents({ limit: 20 });
   
+  // Get feedback data for Activity Feed
+  console.log('🔍 DASHBOARD: About to call useFeedback hook');
+  const { data: realFeedback = [], isLoading: feedbackLoading, error: feedbackError } = useFeedback({ limit: 20 });
+  console.log('🔍 DASHBOARD FEEDBACK DEBUG: realFeedback:', realFeedback);
+  console.log('🔍 DASHBOARD FEEDBACK DEBUG: feedbackLoading:', feedbackLoading);
+  console.log('🔍 DASHBOARD FEEDBACK DEBUG: feedbackError:', feedbackError);
+  console.log('🔍 DASHBOARD FEEDBACK DEBUG: realFeedback type:', typeof realFeedback);
+  console.log('🔍 DASHBOARD FEEDBACK DEBUG: realFeedback length:', Array.isArray(realFeedback) ? realFeedback.length : 'not array');
+  
   // Convert mock data to real database entries
   const [mockDataConverted, setMockDataConverted] = useState(false);
   
@@ -712,6 +721,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
                 description: mockReminder.description,
                 projectId: displayProjects[0]?.id || null,
                 startTime: mockReminder.date || mockReminder.when || new Date().toISOString(),
+                endTime: mockReminder.date || mockReminder.when || new Date().toISOString(),
                 eventType: 'REMINDER',
                 organizerId: currentUser?.id || null
               });
@@ -825,6 +835,42 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         }
       });
       
+      // Add feedback items to activity feed
+      console.log('🔍 FEEDBACK DEBUG: realFeedback:', realFeedback);
+      if (Array.isArray(realFeedback) && realFeedback.length > 0) {
+        console.log('🔍 FEEDBACK DEBUG: Adding', realFeedback.length, 'feedback items to activity feed');
+        realFeedback.forEach(feedback => {
+          const key = `feedback:${feedback.id}`;
+          if (!seenKeys.has(key)) {
+            console.log('🔍 FEEDBACK DEBUG: Adding feedback item:', feedback.title);
+            realItems.push({
+              id: `feedback_${feedback.id}`,
+              type: 'feedback',
+              title: feedback.title,
+              subject: feedback.title,
+              content: feedback.description,
+              description: feedback.description,
+              user: feedback.author ? `${feedback.author.firstName} ${feedback.author.lastName}` : 'Anonymous',
+              timestamp: feedback.createdAt || feedback.timestamp || new Date().toISOString(),
+              projectId: feedback.projectId,
+              projectName: feedback.projectName,
+              priority: feedback.severity || 'medium',
+              // Feedback-specific fields
+              feedbackType: feedback.type,
+              severity: feedback.severity,
+              status: feedback.status,
+              voteCount: feedback.voteCount || 0,
+              commentCount: feedback.commentCount || 0,
+              authorId: feedback.authorId || feedback.author?.id,
+              tags: feedback.tags || []
+            });
+            markSeen('feedback', feedback.id);
+          }
+        });
+      } else {
+        console.log('🔍 FEEDBACK DEBUG: No feedback data available');
+      }
+      
       // Fallback to synthesized activities if no real data
       if (realItems.length === 0) {
         const synthesized = generateActivitiesFromProjects(uiProjects || []);
@@ -833,6 +879,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       // Sort by timestamp (newest first)
       const sortedItems = realItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      console.log('🔍 ACTIVITY FEED DEBUG: Final items count:', sortedItems.length);
+      console.log('🔍 ACTIVITY FEED DEBUG: Items by type:', sortedItems.reduce((acc, item) => {
+        acc[item.type] = (acc[item.type] || 0) + 1;
+        return acc;
+      }, {}));
       return sortedItems;
     } catch (error) {
       console.error('Error building activity feed:', error);
@@ -1038,7 +1089,8 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       const reminderPayload = {
         title: reminderData.title,
         description: reminderData.description,
-        startDate: reminderData.when,
+        startTime: reminderData.when,
+        endTime: reminderData.when, // Use same time for reminders
         projectId: reminderData.projectId,
         createdBy: currentUser?.id,
         userIds: reminderData.allUsers ? usersForUi.map(u => u.id) : reminderData.userIds || []

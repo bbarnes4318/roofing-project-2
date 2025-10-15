@@ -387,21 +387,18 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                                 }`}>
                                                     Subject <span className="text-red-500">*</span>
                                                 </label>
-                                                <select
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter subject line..."
                                                     value={newMessageSubject}
                                                     onChange={(e) => setNewMessageSubject(e.target.value)}
                                                     required
                                                     className={`w-full px-2 py-1 border rounded text-xs ${
                                                         colorMode 
-                                                            ? 'bg-[#232b4d] border-gray-600 text-white' 
-                                                            : 'bg-white border-gray-300 text-gray-800'
+                                                            ? 'bg-[#232b4d] border-gray-600 text-white placeholder-gray-400' 
+                                                            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
                                                     }`}
-                                                >
-                                                    <option value="">Select Subject</option>
-                                                    {subjects.map(subject => (
-                                                        <option key={subject} value={subject}>{subject}</option>
-                                                    ))}
-                                                </select>
+                                                />
                                             </div>
                                             
                                             <div>

@@ -27,6 +27,11 @@
   --color-brand-aqua-blue-dark-shade: #005F99;
   --color-accent-vibrant-green-dark: #6BC22E;
   --color-danger-light-tint: #F8D7DA;
+  
+  /* Feedback Hub Colors */
+  --color-feedback-primary: #EF946C;
+  --color-feedback-light-tint: #FDF2E9;
+  --color-feedback-dark-shade: #E67E22;
 
   /* Shared elevations */
   --shadow-soft: 0 2px 8px rgba(0, 137, 209, 0.08);

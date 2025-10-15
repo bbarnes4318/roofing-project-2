@@ -4,6 +4,7 @@ import ProjectMessagesCard from '../ui/ProjectMessagesCard';
 import assetsService from '../../services/assetsService';
 import TaskItem from '../ui/TaskItem';
 import ReminderItem from '../ui/ReminderItem';
+import FeedbackItem from './FeedbackItem';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useActivity } from '../../contexts/ActivityContext';
 import DocumentViewerModal from '../ui/DocumentViewerModal';
@@ -41,6 +42,9 @@ const ActivityFeedSection = ({
       case 'reminder':
         // ORANGE for reminders - ORANGE. ORANGE. ORANGE. REMINDERS ARE ORANGE.
         return { stripe: 'bg-orange-500', container: 'bg-orange-100 border-orange-200' };
+      case 'feedback':
+        // Custom feedback color #EF946C for Feedback Hub messages
+        return { stripe: 'bg-[#EF946C]', container: 'bg-[#FDF2E9] border-[#EF946C]/30' };
       default:
         return { stripe: 'bg-gray-300', container: 'bg-gray-50/40 border-gray-100' };
     }
@@ -237,6 +241,7 @@ const ActivityFeedSection = ({
             <option value="message">Messages</option>
             <option value="task">Tasks</option>
             <option value="reminder">Reminders</option>
+            <option value="feedback">Feedback</option>
           </select>
         </div>
         
@@ -365,6 +370,23 @@ const ActivityFeedSection = ({
                   <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden shadow-md`}>
                     <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
                     <ReminderItem
+                      item={item}
+                      projects={projects || []}
+                      colorMode={colorMode}
+                      onProjectSelect={handleProjectSelectWithScroll}
+                      availableUsers={availableUsers}
+                      currentUser={currentUser}
+                      onDelete={() => handleDeleteItem(item)}
+                      isDeleting={isDeleting}
+                    />
+                  </div>
+                );
+              } else if (item.type === 'feedback') {
+                // Feedback item with colored stripe and soft background
+                return (
+                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden shadow-md`}>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
+                    <FeedbackItem
                       item={item}
                       projects={projects || []}
                       colorMode={colorMode}

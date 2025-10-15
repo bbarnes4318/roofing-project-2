@@ -21,6 +21,7 @@ import ProjectSchedulesPage from './components/pages/ProjectSchedulesPage';
 import DocumentsResourcesPage from './components/pages/DocumentsResourcesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import EmailHistoryPage from './components/pages/EmailHistoryPage';
+import FeedbackHubPage from './components/pages/FeedbackHubPage';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
@@ -33,6 +34,7 @@ import GlobalSearch from './components/common/GlobalSearch';
 import AddProjectModal from './components/common/AddProjectModal';
 import { SubjectsProvider } from './contexts/SubjectsContext';
 import { NavigationProvider } from './contexts/NavigationContext';
+import { AuthProvider } from './hooks/useAuth';
 import './App.css';
 
 // Create a client for React Query
@@ -1094,6 +1096,7 @@ const apiUrl = window.location.hostname === 'localhost'
         { name: 'Project Schedules', icon: <CalendarIcon />, page: 'Project Schedules', isDisabled: true },
         { name: 'Documents & Resources', icon: <DocumentTextIcon />, page: 'Documents & Resources' },
         { name: 'AI Knowledge Base', icon: <ChatBubbleLeftRightIcon />, page: 'Training & Knowledge Base' },
+        { name: 'Feedback Hub', icon: <BellIcon />, page: 'Feedback Hub' },
         { name: 'Archived Projects', icon: <ArchiveBoxIcon />, page: 'Archived Projects' },
     ];
 
@@ -1134,6 +1137,7 @@ const apiUrl = window.location.hostname === 'localhost'
             );
             case 'Project Schedules': return <ProjectSchedulesPage />;
             case 'Company Calendar': return <CompanyCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
+            case 'Feedback Hub': return <FeedbackHubPage colorMode={colorMode} currentUser={currentUser} />;
             case 'Documents & Resources': return <DocumentsResourcesPage />;
             case 'Alerts Calendar': return <AlertsCalendarPage projects={projects} tasks={tasks} activities={activities} onProjectSelect={handleProjectSelect} colorMode={colorMode} />;
             case 'AI Tools': return <AIToolsPage colorMode={colorMode} />;
@@ -1204,10 +1208,12 @@ const apiUrl = window.location.hostname === 'localhost'
     if (needsOnboarding && onboardingChecked) {
         return (
             <QueryClientProvider client={queryClient}>
-                <OnboardingFlow 
-                    currentUser={currentUser}
-                    onComplete={handleOnboardingComplete}
-                />
+                <AuthProvider>
+                    <OnboardingFlow 
+                        currentUser={currentUser}
+                        onComplete={handleOnboardingComplete}
+                    />
+                </AuthProvider>
                 <Toaster />
             </QueryClientProvider>
         );
@@ -1217,13 +1223,15 @@ const apiUrl = window.location.hostname === 'localhost'
     if (!onboardingChecked) {
         return (
             <QueryClientProvider client={queryClient}>
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
-                        <p className="text-gray-600">Please wait while we prepare everything for you.</p>
+                <AuthProvider>
+                    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
+                            <p className="text-gray-600">Please wait while we prepare everything for you.</p>
+                        </div>
                     </div>
-                </div>
+                </AuthProvider>
                 <Toaster />
             </QueryClientProvider>
         );
@@ -1233,13 +1241,16 @@ const apiUrl = window.location.hostname === 'localhost'
     if (window.location.pathname === '/reset-password') {
         return (
             <QueryClientProvider client={queryClient}>
-                <ResetPassword />
+                <AuthProvider>
+                    <ResetPassword />
+                </AuthProvider>
             </QueryClientProvider>
         );
     }
 
     return (
         <QueryClientProvider client={queryClient}>
+            <AuthProvider>
             <NavigationProvider>
             <SubjectsProvider>
             <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
@@ -1626,6 +1637,7 @@ const apiUrl = window.location.hostname === 'localhost'
         
         </SubjectsProvider>
         </NavigationProvider>
+        </AuthProvider>
         <Toaster />
         </QueryClientProvider>
     );
