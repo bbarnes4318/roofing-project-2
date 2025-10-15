@@ -7,7 +7,7 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // GET /api/feedback - List feedback with filters
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   const {
     type,
     status,
@@ -168,7 +168,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // GET /api/feedback/:id - Get single feedback item
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { userId } = req.user;
 

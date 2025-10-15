@@ -142,7 +142,7 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
   
   // API Configuration Debug
   console.log('=== API CONFIGURATION ===');
-  console.log('API Base URL:', process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
+  console.log('API Base URL:', window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : `${window.location.protocol}//${window.location.host}/api`);
   console.log('Current User:', currentUser?.id);
   console.log('=== END API CONFIG ===');
 

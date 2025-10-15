@@ -18,7 +18,7 @@ const router = express.Router();
 // @desc    Get follow-up settings for user
 // @route   GET /api/follow-up/settings
 // @access  Private
-router.get('/settings', asyncHandler(async (req, res) => {
+router.get('/settings', managerAndAbove, asyncHandler(async (req, res) => {
   const userId = req.user.id;
 
   let settings = await prisma.followUpSettings.findUnique({
@@ -329,7 +329,7 @@ router.put('/tracking/:id/complete', asyncHandler(async (req, res, next) => {
 // @desc    Get follow-up statistics
 // @route   GET /api/follow-up/stats
 // @access  Private
-router.get('/stats', asyncHandler(async (req, res) => {
+router.get('/stats', managerAndAbove, asyncHandler(async (req, res) => {
   const userId = req.user.id;
 
   const [
