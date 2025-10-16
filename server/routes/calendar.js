@@ -1,14 +1,19 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
+const { authenticateToken } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
 const router = express.Router();
+
+// Apply authentication to all calendar routes
+router.use(authenticateToken);
 
 // @desc    Get all calendar events
 // @route   GET /api/calendar-events
 // @access  Private
 router.get('/', asyncHandler(async (req, res) => {
+  console.log('📅 CALENDAR: GET /api/calendar-events - Request received');
   const { startDate, endDate, eventType, projectId, organizerId } = req.query;
   let where = {};
   
@@ -165,6 +170,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
 // @route   POST /api/calendar-events
 // @access  Private
 router.post('/', asyncHandler(async (req, res) => {
+  console.log('📅 CALENDAR: POST /api/calendar-events - Request received');
   const {
     title,
     description,

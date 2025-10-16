@@ -1086,14 +1086,19 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     try {
       console.log('📅 DASHBOARD: Submitting reminder:', reminderData);
       
+      // For reminders, set endTime to be 1 hour after startTime to satisfy validation
+      const startTime = new Date(reminderData.when);
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Add 1 hour
+      
       const reminderPayload = {
         title: reminderData.title,
         description: reminderData.description,
-        startTime: reminderData.when,
-        endTime: reminderData.when, // Use same time for reminders
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        eventType: 'REMINDER',
+        organizerId: currentUser?.id,
         projectId: reminderData.projectId,
-        createdBy: currentUser?.id,
-        userIds: reminderData.allUsers ? usersForUi.map(u => u.id) : reminderData.userIds || []
+        attendees: reminderData.allUsers ? usersForUi.map(u => ({ userId: u.id })) : (reminderData.userIds || []).map(id => ({ userId: id }))
       };
       
       const response = await calendarService.create(reminderPayload);
