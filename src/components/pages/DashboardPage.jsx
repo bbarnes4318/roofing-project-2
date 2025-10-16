@@ -716,12 +716,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
           console.log('📅 Converting mock reminders to real calendar events...');
           for (const mockReminder of mockReminders.slice(0, 5)) { // Only convert first 5
             try {
+              const startTime = new Date(mockReminder.date || mockReminder.when || new Date());
+              const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Add 1 hour
+              
               await calendarService.create({
                 title: mockReminder.title,
                 description: mockReminder.description,
                 projectId: displayProjects[0]?.id || null,
-                startTime: mockReminder.date || mockReminder.when || new Date().toISOString(),
-                endTime: mockReminder.date || mockReminder.when || new Date().toISOString(),
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
                 eventType: 'REMINDER',
                 organizerId: currentUser?.id || null
               });

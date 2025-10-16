@@ -438,11 +438,14 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
             });
 
             // Create the event object for API
+            const startTime = new Date(`${newEvent.date}T${newEvent.time}:00`);
+            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Add 1 hour
+            
             const eventData = {
                 title: newEvent.title,
                 description: newEvent.description,
-                startTime: new Date(`${newEvent.date}T${newEvent.time}:00`).toISOString(),
-                endTime: new Date(`${newEvent.date}T${newEvent.time}:00`).toISOString(),
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
                 eventType: newEvent.type.toUpperCase(),
                 organizerId: currentUser?.id,
                 projectId: newEvent.projectId || undefined
