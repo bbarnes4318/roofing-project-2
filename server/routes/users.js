@@ -1,10 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/prisma');
 const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
 // Authentication middleware removed - all users can manage users
 const { authenticateToken, authorize } = require('../middleware/auth');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // @desc    Get all users

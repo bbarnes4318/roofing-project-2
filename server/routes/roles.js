@@ -1,5 +1,4 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { authenticateToken } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
 

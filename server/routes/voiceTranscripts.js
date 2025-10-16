@@ -1,5 +1,5 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/prisma');
 const { authenticateToken } = require('../middleware/auth');
 const { 
     asyncHandler, 
@@ -8,7 +8,6 @@ const {
     AppError 
 } = require('../middleware/errorHandler');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Apply authentication to all routes

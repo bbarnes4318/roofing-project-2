@@ -1,14 +1,13 @@
 const express = require('express');
+const { prisma } = require('../config/prisma');
 const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/auth');
 const { createPresignedPutUrl, getS3 } = require('../config/spaces');
-const { PrismaClient } = require('@prisma/client');
 const IngestionService = require('../services/IngestionService');
 const multer = require('multer');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 // In-memory pending uploads registry (replace with Redis/BullMQ if needed)

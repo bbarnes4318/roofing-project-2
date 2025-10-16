@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/prisma');
 const { 
   asyncHandler, 
   sendSuccess, 
@@ -12,7 +12,6 @@ const {
   managerAndAbove 
 } = require('../middleware/auth');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // @desc    Get all notifications for logged-in user

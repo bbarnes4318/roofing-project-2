@@ -1,10 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/prisma');
 const { authenticateToken } = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/users/:userId/profile - Get user profile with gamification data
 router.get('/:userId/profile', authenticateToken, asyncHandler(async (req, res) => {

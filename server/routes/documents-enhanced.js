@@ -1,7 +1,7 @@
 const express = require('express');
+const { prisma } = require('../config/prisma');
 const multer = require('multer');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
 const { body, validationResult, query } = require('express-validator');
@@ -9,7 +9,6 @@ const { getS3, getObjectPresignedUrl } = require('../config/spaces');
 const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const IngestionService = require('../services/IngestionService');
 
 // Helper functions

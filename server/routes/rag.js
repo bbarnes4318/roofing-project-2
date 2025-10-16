@@ -1,10 +1,9 @@
 const express = require('express');
+const { prisma } = require('../config/prisma');
 const { authenticateToken } = require('../middleware/auth');
 const EmbeddingService = require('../services/EmbeddingService');
-const { PrismaClient } = require('@prisma/client');
 const OpenAI = require('openai');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || process.env.OPENAI_MODEL || 'gpt-4o';

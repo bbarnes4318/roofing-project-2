@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/prisma');
 const { 
   asyncHandler, 
   sendSuccess, 
@@ -10,7 +10,6 @@ const {
 } = require('../middleware/errorHandler');
 // Authentication middleware removed - all users can manage tasks
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Helper function to update project progress based on task completion

@@ -8,9 +8,7 @@ const {
 } = require('../middleware/errorHandler');
 const transcriptAIService = require('../services/TranscriptAIService');
 const pdfGeneratorService = require('../services/PDFGeneratorService');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
 const router = express.Router();
 
 // Apply authentication to all routes

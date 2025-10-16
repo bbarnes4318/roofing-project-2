@@ -2,11 +2,11 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
 const multer = require('multer');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getS3 } = require('../config/spaces');
 const { generateUniqueFilename } = require('../utils/fileUtils');
+const { prisma } = require('../config/prisma');
 const { 
   asyncHandler, 
   AppError, 
@@ -19,7 +19,6 @@ const {
   userRateLimit 
 } = require('../middleware/auth');
 
-const prisma = new PrismaClient();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
 // Dev fallback store when DB is not connected
 let DevUserStore;

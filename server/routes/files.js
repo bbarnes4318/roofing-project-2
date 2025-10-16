@@ -1,11 +1,10 @@
 const express = require('express');
+const { prisma } = require('../config/prisma');
 const { authenticateToken } = require('../middleware/auth');
-const { PrismaClient } = require('@prisma/client');
 const EmbeddingService = require('../services/EmbeddingService');
 const { getObjectPresignedUrl, getS3 } = require('../config/spaces');
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 function extractSpacesKey(fileUrl) {

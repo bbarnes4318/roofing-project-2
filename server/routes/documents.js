@@ -1,8 +1,8 @@
 const express = require('express');
+const { prisma } = require('../config/prisma');
 const multer = require('multer');
 const path = require('path');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
 const {
   asyncHandler,
   sendSuccess,
@@ -18,7 +18,6 @@ const {
 const { getS3, getObjectPresignedUrl } = require('../config/spaces');
 const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Use memory storage - files go directly to Spaces

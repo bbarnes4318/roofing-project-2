@@ -1,9 +1,7 @@
 const express = require('express');
+const { prisma } = require('../config/prisma');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
 const asyncHandler = require('../middleware/asyncHandler');
-
-const prisma = new PrismaClient();
 
 // Advanced Natural Language Search Endpoint
 router.post('/advanced', asyncHandler(async (req, res) => {

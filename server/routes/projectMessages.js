@@ -10,9 +10,7 @@ const {
 const { authenticateToken } = require('../middleware/auth');
 const ProjectMessageService = require('../services/ProjectMessageService');
 const ProjectInitializationService = require('../services/ProjectInitializationService');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
 const router = express.Router();
 
 // Apply authentication to all routes
