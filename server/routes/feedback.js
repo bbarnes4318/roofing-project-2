@@ -167,11 +167,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   });
   } catch (error) {
     console.error('Error in feedback route:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Database connection failed. Please try again later.',
-      timestamp: new Date().toISOString()
-    });
+    throw error; // Let the global error handler deal with it
   }
 }));
 

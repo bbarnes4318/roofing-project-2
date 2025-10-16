@@ -173,7 +173,7 @@ export default function App() {
                     
                     // Verify the existing token
                     try {
-                        const response = await fetch('/api/auth/verify', {
+                        const response = await fetch('/api/auth/me', {
                             headers: {
                                 'Authorization': `Bearer ${existingToken}`
                             }
