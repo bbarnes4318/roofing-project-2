@@ -198,7 +198,25 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/role/:role', authenticateToken, async (req, res) => {
   try {
     const { role } = req.params;
-    const rolePermissions = ROLE_PERMISSIONS[role.toUpperCase()] || [];
+    
+    // Try to get permissions from database first
+    const dbPermissions = await prisma.rolePermission.findUnique({
+      where: {
+        role: role.toUpperCase()
+      }
+    });
+    
+    let rolePermissions = [];
+    
+    if (dbPermissions && dbPermissions.permissions) {
+      // Use permissions from database
+      rolePermissions = dbPermissions.permissions;
+      console.log(`📊 PERMISSIONS API: Loaded permissions for ${role} from database:`, rolePermissions);
+    } else {
+      // Fallback to default permissions
+      rolePermissions = ROLE_PERMISSIONS[role.toUpperCase()] || [];
+      console.log(`📊 PERMISSIONS API: Using default permissions for ${role}:`, rolePermissions);
+    }
     
     res.json({
       success: true,
@@ -253,9 +271,27 @@ router.put('/role/:role', authenticateToken, async (req, res) => {
       });
     }
     
-    // In a real implementation, you would save this to the database
-    // For now, we'll just return success
-    console.log(`🔐 PERMISSIONS API: Updated permissions for role ${role}:`, permissions);
+    // Save permissions to the database
+    console.log(`🔐 PERMISSIONS API: Saving permissions for role ${role} to database:`, permissions);
+    
+    // Update or create role permissions in the database
+    await prisma.rolePermission.upsert({
+      where: {
+        role: role.toUpperCase()
+      },
+      update: {
+        permissions: permissions,
+        updatedAt: new Date()
+      },
+      create: {
+        role: role.toUpperCase(),
+        permissions: permissions,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
+    
+    console.log(`✅ PERMISSIONS API: Successfully saved permissions for role ${role} to database`);
     
     res.json({
       success: true,

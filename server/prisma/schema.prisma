@@ -1489,3 +1489,13 @@ enum BadgeCategory {
   EXPERTISE
   SPECIAL
 }
+
+model RolePermission {
+  id          String   @id @default(cuid())
+  role        String   @unique @db.VarChar(50)
+  permissions String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("role_permissions")
+}

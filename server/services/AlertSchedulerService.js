@@ -1,7 +1,5 @@
 const cron = require('node-cron');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
 const hasDatabaseUrl = !!process.env.DATABASE_URL;
 
 class AlertSchedulerService {
@@ -61,15 +59,20 @@ class AlertSchedulerService {
       // MODERNIZED: Use the new workflow tracker system instead of legacy ProjectWorkflow
       console.log('📊 Using modernized alert generation via AlertGenerationService');
       
-      // Get all projects with active workflow trackers
-      const activeProjects = await prisma.projectWorkflowTracker.findMany({
-        where: {
-          currentLineItemId: { not: null } // Has active line items
-        },
-        select: {
-          projectId: true
-        }
-      });
+      // Get all projects with active workflow trackers with timeout handling
+      const activeProjects = await Promise.race([
+        prisma.projectWorkflowTracker.findMany({
+          where: {
+            currentLineItemId: { not: null } // Has active line items
+          },
+          select: {
+            projectId: true
+          }
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 15000)
+        )
+      ]);
 
       if (activeProjects.length === 0) {
         console.log('📭 No active projects with workflow trackers found');
@@ -90,6 +93,14 @@ class AlertSchedulerService {
       }
     } catch (error) {
       console.error('❌ Error checking workflow alerts:', error);
+      
+      // Handle specific database connection errors
+      if (error.code === 'P2024') {
+        console.error('🔌 Database connection pool exhausted. Consider increasing connection limits.');
+        console.error('💡 Try restarting the server or reducing concurrent database operations.');
+      } else if (error.message === 'Database query timeout') {
+        console.error('⏰ Database query timed out. The database may be overloaded.');
+      }
     }
   }
 

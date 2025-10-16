@@ -169,7 +169,7 @@ class PDFFormFillerService {
     try {
       // Get template information
       const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const { prisma } = require('../config/prisma');
       
       const template = await prisma.documentTemplate.findUnique({
         where: { id: templateId },

@@ -72,7 +72,7 @@ class PDFOverlayService {
     try {
       // Get template from database to find the file path
       const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const { prisma } = require('../config/prisma');
       
       const template = await prisma.documentTemplate.findUnique({
         where: { id: templateId }

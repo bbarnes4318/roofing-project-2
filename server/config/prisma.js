@@ -18,13 +18,10 @@ envPaths.forEach(envPath => {
 
 // Database URL is already set correctly in server.js
 
-const { PrismaClient } = require('@prisma/client');
+const { getPrismaClient, checkConnectionHealth, disconnectPrisma } = require('./database');
 
-// Initialize Prisma Client with logging and error handling
-const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-  errorFormat: 'pretty',
-});
+// Use the optimized Prisma client
+const prisma = getPrismaClient();
 
 // Database connection function with retry logic
 const connectDatabase = async (maxRetries = 5, baseDelay = 1000) => {
@@ -56,12 +53,7 @@ const connectDatabase = async (maxRetries = 5, baseDelay = 1000) => {
 
 // Graceful shutdown function
 const disconnectDatabase = async () => {
-  try {
-    await prisma.$disconnect();
-    console.log('✅ Disconnected from PostgreSQL database');
-  } catch (error) {
-    console.error('❌ Error disconnecting from database:', error);
-  }
+  await disconnectPrisma();
 };
 
 // Handle application termination
@@ -84,23 +76,24 @@ process.on('SIGTERM', async () => {
 // Health check function with timeout
 const checkDBHealth = async () => {
   try {
-    // Set a timeout for the health check
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database health check timeout')), 5000);
-    });
+    const health = await checkConnectionHealth(5000);
     
-    const healthCheckPromise = prisma.user.count();
-    
-    // Race between the query and timeout
-    const userCount = await Promise.race([healthCheckPromise, timeoutPromise]);
-    
-    return {
-      status: 'connected',
-      host: 'PostgreSQL via Prisma',
-      name: 'kenstruction_db',
-      collections: userCount,
-      message: 'PostgreSQL database is healthy'
-    };
+    if (health.status === 'healthy') {
+      const userCount = await prisma.user.count();
+      return {
+        status: 'connected',
+        host: 'PostgreSQL via Prisma',
+        name: 'kenstruction_db',
+        collections: userCount,
+        message: 'PostgreSQL database is healthy'
+      };
+    } else {
+      return {
+        status: 'error',
+        error: health.error,
+        message: 'PostgreSQL database connection failed'
+      };
+    }
   } catch (error) {
     return {
       status: 'error',
