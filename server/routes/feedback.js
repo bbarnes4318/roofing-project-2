@@ -7,180 +7,164 @@ const router = express.Router();
 
 // GET /api/feedback - List feedback with filters
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
-  // Temporary workaround - return empty array until database is fixed
-  res.json({
-    success: true,
-    data: [],
-    pagination: {
-      page: 1,
-      limit: 20,
-      total: 0,
-      pages: 0
-    }
-  });
-}));
-
-// Original route commented out temporarily
-/*
-router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   try {
-  const {
-    type,
-    status,
-    severity,
-    authorId,
-    assigneeId,
-    search,
-    sortBy = 'newest',
-    page = 1,
-    limit = 20
-  } = req.query;
+    const {
+      type,
+      status,
+      severity,
+      authorId,
+      assigneeId,
+      search,
+      sortBy = 'newest',
+      page = 1,
+      limit = 20
+    } = req.query;
 
-  const where = {};
-  
-  if (type && type !== 'all') {
-    if (type === 'MINE') {
-      // Filter for current user's feedback
-      where.authorId = req.user.id;
-    } else if (type === 'FOLLOWING') {
-      // Filter for feedback with developer responses
-      where.developerResponseCount = { gt: 0 };
-    } else {
-      where.type = type.toUpperCase();
+    const where = {};
+    
+    if (type && type !== 'all') {
+      if (type === 'MINE') {
+        // Filter for current user's feedback
+        where.authorId = req.user.id;
+      } else if (type === 'FOLLOWING') {
+        // Filter for feedback with developer responses
+        where.developerResponseCount = { gt: 0 };
+      } else {
+        where.type = type.toUpperCase();
+      }
     }
-  }
-  
-  if (status && status !== 'all') {
-    where.status = status.toUpperCase();
-  }
-  
-  if (severity && severity !== 'all') {
-    where.severity = severity.toUpperCase();
-  }
-  
-  if (authorId) {
-    where.authorId = authorId;
-  }
-  
-  if (assigneeId) {
-    where.assigneeId = assigneeId;
-  }
-  
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-      { tags: { has: search } }
-    ];
-  }
+    
+    if (status && status !== 'all') {
+      where.status = status.toUpperCase();
+    }
+    
+    if (severity && severity !== 'all') {
+      where.severity = severity.toUpperCase();
+    }
+    
+    if (authorId) {
+      where.authorId = authorId;
+    }
+    
+    if (assigneeId) {
+      where.assigneeId = assigneeId;
+    }
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { tags: { has: search } }
+      ];
+    }
 
-  const orderBy = {};
-  switch (sortBy) {
-    case 'newest':
-      orderBy.createdAt = 'desc';
-      break;
-    case 'oldest':
-      orderBy.createdAt = 'asc';
-      break;
-    case 'most_voted':
-      orderBy.voteCount = 'desc';
-      break;
-    case 'most_commented':
-      orderBy.commentCount = 'desc';
-      break;
-    default:
-      orderBy.createdAt = 'desc';
-  }
+    const orderBy = {};
+    switch (sortBy) {
+      case 'newest':
+        orderBy.createdAt = 'desc';
+        break;
+      case 'oldest':
+        orderBy.createdAt = 'asc';
+        break;
+      case 'most_voted':
+        orderBy.voteCount = 'desc';
+        break;
+      case 'most_commented':
+        orderBy.commentCount = 'desc';
+        break;
+      default:
+        orderBy.createdAt = 'desc';
+    }
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
-  const take = parseInt(limit);
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
 
-  const [feedback, total] = await Promise.all([
-    prisma.feedback.findMany({
-      where,
-      orderBy,
-      skip,
-      take,
-      include: {
-        author: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            role: true
-          }
-        },
-        assignee: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            role: true
-          }
-        },
-        _count: {
-          select: {
-            votes: true,
-            comments: true
-          }
-        },
-        comments: {
-          select: {
-            isDeveloper: true
+    const [feedback, total] = await Promise.all([
+      prisma.feedback.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+        include: {
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              role: true
+            }
+          },
+          assignee: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              role: true
+            }
+          },
+          _count: {
+            select: {
+              votes: true,
+              comments: true
+            }
+          },
+          comments: {
+            select: {
+              isDeveloper: true
+            }
           }
         }
-      }
-    }),
-    prisma.feedback.count({ where })
-  ]);
+      }),
+      prisma.feedback.count({ where })
+    ]);
 
-  // Transform the data to match frontend expectations
-  const transformedFeedback = feedback.map(item => {
-    // Calculate actual developer response count from comments - ensure it's 0 if no comments
-    const actualDeveloperResponseCount = item.comments ? item.comments.filter(comment => comment.isDeveloper).length : 0;
-    
-    return {
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      description: item.description,
-      status: item.status,
-      severity: item.severity,
-      tags: item.tags,
-      voteCount: item.voteCount,
-      commentCount: item.commentCount || 0,
-      developerResponseCount: actualDeveloperResponseCount,
-      attachments: item.attachments,
-      url: item.url,
-      environment: item.environment,
-      author: {
-        id: item.author.id,
-        name: `${item.author.firstName} ${item.author.lastName}`,
-        avatar: item.author.avatar,
-        role: item.author.role
-      },
-      assignee: item.assignee ? {
-        id: item.assignee.id,
-        name: `${item.assignee.firstName} ${item.assignee.lastName}`,
-        avatar: item.assignee.avatar,
-        role: item.assignee.role
-      } : null,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-      hasVoted: false // Will be set based on user's votes
-    };
-  });
+    // Transform the data to match frontend expectations
+    const transformedFeedback = feedback.map(item => {
+      // Calculate actual developer response count from comments - ensure it's 0 if no comments
+      const actualDeveloperResponseCount = item.comments ? item.comments.filter(comment => comment.isDeveloper).length : 0;
+      
+      return {
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        status: item.status,
+        severity: item.severity,
+        tags: item.tags,
+        voteCount: item.voteCount,
+        commentCount: item.commentCount || 0,
+        developerResponseCount: actualDeveloperResponseCount,
+        attachments: item.attachments,
+        url: item.url,
+        environment: item.environment,
+        author: {
+          id: item.author.id,
+          name: `${item.author.firstName} ${item.author.lastName}`,
+          avatar: item.author.avatar,
+          role: item.author.role
+        },
+        assignee: item.assignee ? {
+          id: item.assignee.id,
+          name: `${item.assignee.firstName} ${item.assignee.lastName}`,
+          avatar: item.assignee.avatar,
+          role: item.assignee.role
+        } : null,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        hasVoted: false // Will be set based on user's votes
+      };
+    });
 
-  res.json({
-    success: true,
-    data: transformedFeedback,
-    total,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    totalPages: Math.ceil(total / parseInt(limit))
-  });
+    res.json({
+      success: true,
+      data: transformedFeedback,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / parseInt(limit))
+    });
   } catch (error) {
     console.error('Error in feedback route:', error);
     throw error; // Let the global error handler deal with it
