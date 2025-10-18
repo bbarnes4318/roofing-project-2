@@ -49,6 +49,9 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 } else {
   console.log('✅ DATABASE_URL configured from environment');
+  // Debug database connection for feedback table issue
+  const maskedUrl = process.env.DATABASE_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+  console.log('🔍 DATABASE_URL:', maskedUrl);
 }
 
 console.log('✅ Required modules loaded successfully');
