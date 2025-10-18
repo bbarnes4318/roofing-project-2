@@ -26,8 +26,8 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
       // Filter for current user's feedback
       where.authorId = req.user.id;
     } else if (type === 'FOLLOWING') {
-      // Filter for feedback with developer responses
-      where.developerResponseCount = { gt: 0 };
+      // Filter for feedback with at least one developer comment
+      where.comments = { some: { isDeveloper: true } };
     } else {
       where.type = type.toUpperCase();
     }
@@ -163,7 +163,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
 // GET /api/feedback/:id - Get single feedback item
 router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { userId } = req.user;
+  const userId = req.user.id;
 
   const feedback = await prisma.feedback.findUnique({
     where: { id },
@@ -339,7 +339,8 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
 router.patch('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, severity, assigneeId, tags } = req.body;
-  const { userId, role } = req.user;
+  const userId = req.user.id;
+  const role = req.user.role;
 
   const feedback = await prisma.feedback.findUnique({
     where: { id },
@@ -404,7 +405,8 @@ router.patch('/:id', authenticateToken, asyncHandler(async (req, res) => {
 // DELETE /api/feedback/:id - Delete feedback
 router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { userId, role } = req.user;
+  const userId = req.user.id;
+  const role = req.user.role;
 
   const feedback = await prisma.feedback.findUnique({
     where: { id },
@@ -443,7 +445,7 @@ router.delete('/:id', authenticateToken, asyncHandler(async (req, res) => {
 router.post('/:id/vote', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { action } = req.body;
-  const { userId } = req.user;
+  const userId = req.user.id;
 
   if (!action || !['upvote', 'downvote'].includes(action)) {
     return res.status(400).json({
@@ -541,7 +543,8 @@ router.post('/:id/vote', authenticateToken, asyncHandler(async (req, res) => {
 router.patch('/:id/status', authenticateToken, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, assigneeId, tags } = req.body;
-  const { userId, role } = req.user;
+  const userId = req.user.id;
+  const role = req.user.role;
 
   // Check if user is developer or admin
   if (role !== 'DEVELOPER' && role !== 'ADMIN') {
