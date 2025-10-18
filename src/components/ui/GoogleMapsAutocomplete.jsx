@@ -28,19 +28,7 @@ const GoogleMapsAutocomplete = ({
   }, []);
 
   const loadGoogleMapsAPI = () => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-    
-    console.log('🔍 GOOGLE MAPS DEBUG: Starting Google Maps API load');
-    console.log('🔍 GOOGLE MAPS DEBUG: API Key exists:', !!apiKey);
-    console.log('🔍 GOOGLE MAPS DEBUG: API Key value:', apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined');
-    console.log('🔍 GOOGLE MAPS DEBUG: All env vars:', Object.keys(process.env).filter(key => key.includes('GOOGLE')));
-    
-    if (!apiKey) {
-      setError('Google Maps API key not configured');
-      console.warn('REACT_APP_GOOGLE_MAPS_API_KEY environment variable is required');
-      console.error('🔍 GOOGLE MAPS DEBUG: API key is missing or undefined');
-      return;
-    }
+    const apiKey = 'AIzaSyBL-BzpAUPd-Deu8LndaoQO367iokdlehM';
 
     // Check if script is already loaded
     if (document.querySelector('script[src*="maps.googleapis.com"]')) {
