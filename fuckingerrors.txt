@@ -1,0 +1,677 @@
+Oct 18 00:30:20  prisma:error 
+Oct 18 00:30:20  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:30:20  
+Oct 18 00:30:20  
+Oct 18 00:30:20  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:20  🚨 SERVER ERROR: {
+Oct 18 00:30:20    "timestamp": "2025-10-18T00:30:20.172Z",
+Oct 18 00:30:20    "method": "GET",
+Oct 18 00:30:20    "url": "/api/feedback?limit=20",
+Oct 18 00:30:20    "ip": "10.244.0.217",
+Oct 18 00:30:20    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:30:20    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:30:20    "error": {
+Oct 18 00:30:20      "name": "PrismaClientKnownRequestError",
+Oct 18 00:30:20      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:30:20      "statusCode": 500
+Oct 18 00:30:20    }
+Oct 18 00:30:20  }
+Oct 18 00:30:20  ERROR 💥 {
+Oct 18 00:30:20    code: 'P2021',
+Oct 18 00:30:20    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:30:20    clientVersion: '6.14.0',
+Oct 18 00:30:20    name: 'PrismaClientKnownRequestError',
+Oct 18 00:30:20    message: '\n' +
+Oct 18 00:30:20      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:30:20      '\n' +
+Oct 18 00:30:20      '\n' +
+Oct 18 00:30:20      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:30:20    statusCode: 500
+Oct 18 00:30:20  }
+Oct 18 00:30:20  10.244.0.217 - - [18/Oct/2025:00:30:20 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:20  prisma:error 
+Oct 18 00:30:20  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:30:20  
+Oct 18 00:30:20  
+Oct 18 00:30:22    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 00:30:22    "ip": "10.244.26.231",
+Oct 18 00:30:22    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:30:22    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:30:22    "error": {
+Oct 18 00:30:22      "name": "PrismaClientKnownRequestError",
+Oct 18 00:30:22      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:30:22      "statusCode": 500
+Oct 18 00:30:22    }
+Oct 18 00:30:22  }
+Oct 18 00:30:22  ERROR 💥 {
+Oct 18 00:30:22    code: 'P2021',
+Oct 18 00:30:22    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:30:22    clientVersion: '6.14.0',
+Oct 18 00:30:22    name: 'PrismaClientKnownRequestError',
+Oct 18 00:30:22    message: '\n' +
+Oct 18 00:30:22      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:30:22      '\n' +
+Oct 18 00:30:22      '\n' +
+Oct 18 00:30:22      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:30:22    statusCode: 500
+Oct 18 00:30:22  }
+Oct 18 00:30:22  10.244.26.231 - - [18/Oct/2025:00:30:22 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:22  prisma:error 
+Oct 18 00:30:22  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:30:22  
+Oct 18 00:30:22  
+Oct 18 00:30:22  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:25  prisma:error 
+Oct 18 00:30:25  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:30:20  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:20  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
+Oct 18 00:30:20  🎯 API: Found position: {
+Oct 18 00:30:20    projectId: 'cmflohmur000fj8g4uv12pin3',
+Oct 18 00:30:20    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 00:30:20    phaseType: 'LEAD',
+Oct 18 00:30:20    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 00:30:20    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 00:30:20    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 00:30:20    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 00:30:20    currentLineItemName: 'Answer phone call',
+Oct 18 00:30:20    sectionDisplayName: 'Initial Contact',
+Oct 18 00:30:20    phaseName: 'Lead'
+Oct 18 00:30:20  }
+Oct 18 00:30:20  10.244.30.98 - - [18/Oct/2025:00:30:20 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:20  🎯 API: Getting project position for: cmg8qpzr9000l960dvy6s4oum
+Oct 18 00:30:20  🎯 API: Found position: {
+Oct 18 00:30:20    projectId: 'cmg8qpzr9000l960dvy6s4oum',
+Oct 18 00:30:20    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 00:30:20    phaseType: 'LEAD',
+Oct 18 00:30:20    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 00:30:20    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 00:30:20    currentLineItem: 'cmflogzp80008j8a49q7kj67v',
+Oct 18 00:30:20    currentLineItemId: 'cmflogzp80008j8a49q7kj67v',
+Oct 18 00:30:20    currentLineItemName: 'Create Calendar Appointment in AL',
+Oct 18 00:30:20    sectionDisplayName: 'Initial Contact',
+Oct 18 00:30:20    phaseName: 'Lead'
+Oct 18 00:30:20  }
+Oct 18 00:30:20  10.244.3.89 - - [18/Oct/2025:00:30:20 +0000] "GET /api/workflow-data/project-position/cmg8qpzr9000l960dvy6s4oum HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:20  🎯 API: Getting project position for: cmglwyzqf0001co0dui9sa9l4
+Oct 18 00:30:20  🎯 API: Found position: {
+Oct 18 00:30:20    projectId: 'cmglwyzqf0001co0dui9sa9l4',
+Oct 18 00:30:20    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 00:30:20    phaseType: 'LEAD',
+Oct 18 00:30:20    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 00:30:25  
+Oct 18 00:30:25  
+Oct 18 00:30:25  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:25  🚨 SERVER ERROR: {
+Oct 18 00:30:25    "timestamp": "2025-10-18T00:30:25.005Z",
+Oct 18 00:30:25    "method": "GET",
+Oct 18 00:30:25    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 00:30:25    "ip": "10.244.26.231",
+Oct 18 00:30:25    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:30:25    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:30:25    "error": {
+Oct 18 00:30:25      "name": "PrismaClientKnownRequestError",
+Oct 18 00:30:25      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:30:25      "statusCode": 500
+Oct 18 00:30:25    }
+Oct 18 00:30:25  }
+Oct 18 00:30:25  ERROR 💥 {
+Oct 18 00:30:25    code: 'P2021',
+Oct 18 00:30:25    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:30:25    clientVersion: '6.14.0',
+Oct 18 00:30:25    name: 'PrismaClientKnownRequestError',
+Oct 18 00:30:25    message: '\n' +
+Oct 18 00:30:25      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:30:25      '\n' +
+Oct 18 00:30:25      '\n' +
+Oct 18 00:30:25      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:30:25    statusCode: 500
+Oct 18 00:30:25  }
+Oct 18 00:30:25  10.244.26.231 - - [18/Oct/2025:00:30:25 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:25  prisma:error 
+Oct 18 00:30:20    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 00:30:20    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 00:30:20    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 00:30:20    currentLineItemName: 'Answer phone call',
+Oct 18 00:30:20    sectionDisplayName: 'Initial Contact',
+Oct 18 00:30:20    phaseName: 'Lead'
+Oct 18 00:30:20  }
+Oct 18 00:30:20  10.244.3.89 - - [18/Oct/2025:00:30:20 +0000] "GET /api/workflow-data/project-position/cmglwyzqf0001co0dui9sa9l4 HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:20  10.244.0.217 - - [18/Oct/2025:00:30:20 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:21  prisma:error 
+Oct 18 00:30:21  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:30:25  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:30:25  
+Oct 18 00:30:25  
+Oct 18 00:30:25  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:25  10.244.40.87 - - [18/Oct/2025:00:30:25 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:30:26  10.244.3.89 - - [18/Oct/2025:00:30:26 +0000] "GET /static/css/main.d2215abd.css.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:27  10.244.26.231 - - [18/Oct/2025:00:30:27 +0000] "GET /static/js/main.5b2f05b6.js.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:29  prisma:error 
+Oct 18 00:30:29  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:30:29  
+Oct 18 00:30:29  
+Oct 18 00:30:29  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:29  🚨 SERVER ERROR: {
+Oct 18 00:30:29    "timestamp": "2025-10-18T00:30:29.261Z",
+Oct 18 00:30:29    "method": "GET",
+Oct 18 00:30:29    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 00:30:29    "ip": "10.244.26.231",
+Oct 18 00:30:29    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:30:29    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:30:21  
+Oct 18 00:30:21  
+Oct 18 00:30:21  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:21  🚨 SERVER ERROR: {
+Oct 18 00:30:21    "timestamp": "2025-10-18T00:30:21.604Z",
+Oct 18 00:30:21    "method": "GET",
+Oct 18 00:30:21    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 00:30:21    "ip": "10.244.26.231",
+Oct 18 00:30:21    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:30:21    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:30:21    "error": {
+Oct 18 00:30:21      "name": "PrismaClientKnownRequestError",
+Oct 18 00:30:21      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:30:21      "statusCode": 500
+Oct 18 00:30:21    }
+Oct 18 00:30:21  }
+Oct 18 00:30:21  ERROR 💥 {
+Oct 18 00:30:21    code: 'P2021',
+Oct 18 00:30:21    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:30:21    clientVersion: '6.14.0',
+Oct 18 00:30:21    name: 'PrismaClientKnownRequestError',
+Oct 18 00:30:21    message: '\n' +
+Oct 18 00:30:21      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:30:21      '\n' +
+Oct 18 00:30:21      '\n' +
+Oct 18 00:30:29    "error": {
+Oct 18 00:30:29      "name": "PrismaClientKnownRequestError",
+Oct 18 00:30:29      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:30:29      "statusCode": 500
+Oct 18 00:30:29    }
+Oct 18 00:30:29  }
+Oct 18 00:30:29  ERROR 💥 {
+Oct 18 00:30:29    code: 'P2021',
+Oct 18 00:30:29    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:30:29    clientVersion: '6.14.0',
+Oct 18 00:30:29    name: 'PrismaClientKnownRequestError',
+Oct 18 00:30:29    message: '\n' +
+Oct 18 00:30:29      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:30:29      '\n' +
+Oct 18 00:30:29      '\n' +
+Oct 18 00:30:29      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:30:29    statusCode: 500
+Oct 18 00:30:29  }
+Oct 18 00:30:29  10.244.26.231 - - [18/Oct/2025:00:30:29 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:29  prisma:error 
+Oct 18 00:30:29  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:30:21      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:30:21    statusCode: 500
+Oct 18 00:30:21  }
+Oct 18 00:30:21  10.244.26.231 - - [18/Oct/2025:00:30:21 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:30:21  prisma:error 
+Oct 18 00:30:21  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:30:21  
+Oct 18 00:30:21  
+Oct 18 00:30:21  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:26  10.244.14.68 - - [18/Oct/2025:00:30:26 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:30:36  10.244.14.68 - - [18/Oct/2025:00:30:36 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:30:46  10.244.14.68 - - [18/Oct/2025:00:30:46 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:30:56  10.244.14.68 - - [18/Oct/2025:00:30:56 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:31:05  prisma:error 
+Oct 18 00:31:05  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:05  
+Oct 18 00:31:05  
+Oct 18 00:31:05  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:05  🚨 SERVER ERROR: {
+Oct 18 00:31:05    "timestamp": "2025-10-18T00:31:05.607Z",
+Oct 18 00:31:05    "method": "GET",
+Oct 18 00:31:05    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG",
+Oct 18 00:31:05    "ip": "10.244.26.231",
+Oct 18 00:31:05    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:05    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:05    "error": {
+Oct 18 00:30:29  
+Oct 18 00:30:29  
+Oct 18 00:30:29  The table `public.feedback` does not exist in the current database.
+Oct 18 00:30:35  10.244.40.87 - - [18/Oct/2025:00:30:35 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:30:45  10.244.40.87 - - [18/Oct/2025:00:30:45 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:31:05      "name": "PrismaClientKnownRequestError",
+Oct 18 00:30:55  10.244.40.87 - - [18/Oct/2025:00:30:55 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:31:04  prisma:error 
+Oct 18 00:31:04  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:04  
+Oct 18 00:31:04  
+Oct 18 00:31:04  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:04  🚨 SERVER ERROR: {
+Oct 18 00:31:04    "timestamp": "2025-10-18T00:31:04.409Z",
+Oct 18 00:31:04    "method": "GET",
+Oct 18 00:31:04    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG",
+Oct 18 00:31:04    "ip": "10.244.26.231",
+Oct 18 00:31:04    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:04    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:04    "error": {
+Oct 18 00:31:04      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:04      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:04      "statusCode": 500
+Oct 18 00:31:04    }
+Oct 18 00:31:04  }
+Oct 18 00:31:04  ERROR 💥 {
+Oct 18 00:31:04    code: 'P2021',
+Oct 18 00:31:05      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:05      "statusCode": 500
+Oct 18 00:31:05    }
+Oct 18 00:31:05  }
+Oct 18 00:31:05  ERROR 💥 {
+Oct 18 00:31:05    code: 'P2021',
+Oct 18 00:31:05    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:05    clientVersion: '6.14.0',
+Oct 18 00:31:05    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:05    message: '\n' +
+Oct 18 00:31:05      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:05      '\n' +
+Oct 18 00:31:05      '\n' +
+Oct 18 00:31:05      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:05    statusCode: 500
+Oct 18 00:31:05  }
+Oct 18 00:31:05  10.244.26.231 - - [18/Oct/2025:00:31:05 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:05  prisma:error 
+Oct 18 00:31:05  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:05  
+Oct 18 00:31:05  
+Oct 18 00:31:05  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:06  10.244.14.68 - - [18/Oct/2025:00:31:06 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:31:07  prisma:error 
+Oct 18 00:31:07  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:07  
+Oct 18 00:31:07  
+Oct 18 00:31:04    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:04    clientVersion: '6.14.0',
+Oct 18 00:31:04    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:04    message: '\n' +
+Oct 18 00:31:04      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:04      '\n' +
+Oct 18 00:31:04      '\n' +
+Oct 18 00:31:04      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:04    statusCode: 500
+Oct 18 00:31:04  }
+Oct 18 00:31:04  10.244.26.231 - - [18/Oct/2025:00:31:04 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:04  prisma:error 
+Oct 18 00:31:04  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:04  
+Oct 18 00:31:04  
+Oct 18 00:31:04  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:05  10.244.40.87 - - [18/Oct/2025:00:31:05 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:31:15  10.244.40.87 - - [18/Oct/2025:00:31:15 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:31:07  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:07  🚨 SERVER ERROR: {
+Oct 18 00:31:07    "timestamp": "2025-10-18T00:31:07.803Z",
+Oct 18 00:31:07    "method": "GET",
+Oct 18 00:31:07    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG",
+Oct 18 00:31:07    "ip": "10.244.26.231",
+Oct 18 00:31:07    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:07    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:07    "error": {
+Oct 18 00:31:07      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:07      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:07      "statusCode": 500
+Oct 18 00:31:07    }
+Oct 18 00:31:07  }
+Oct 18 00:31:07  ERROR 💥 {
+Oct 18 00:31:07    code: 'P2021',
+Oct 18 00:31:07    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:07    clientVersion: '6.14.0',
+Oct 18 00:31:07    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:07    message: '\n' +
+Oct 18 00:31:07      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:07      '\n' +
+Oct 18 00:31:07      '\n' +
+Oct 18 00:31:07      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:07    statusCode: 500
+Oct 18 00:31:07  }
+Oct 18 00:31:07  10.244.26.231 - - [18/Oct/2025:00:31:07 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:07  prisma:error 
+Oct 18 00:31:07  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:07  
+Oct 18 00:31:07  
+Oct 18 00:31:07  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:11  prisma:error 
+Oct 18 00:31:11  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:11  
+Oct 18 00:31:11  
+Oct 18 00:31:11  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:11  🚨 SERVER ERROR: {
+Oct 18 00:31:11    "timestamp": "2025-10-18T00:31:11.190Z",
+Oct 18 00:31:11    "method": "GET",
+Oct 18 00:31:11    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 00:31:11    "ip": "10.244.26.231",
+Oct 18 00:31:11    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:11    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:11    "error": {
+Oct 18 00:31:11      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:11      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:11      "statusCode": 500
+Oct 18 00:31:11    }
+Oct 18 00:31:11  }
+Oct 18 00:31:11  ERROR 💥 {
+Oct 18 00:31:11    code: 'P2021',
+Oct 18 00:31:11    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:11    clientVersion: '6.14.0',
+Oct 18 00:31:11    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:11    message: '\n' +
+Oct 18 00:31:11      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:11      '\n' +
+Oct 18 00:31:11      '\n' +
+Oct 18 00:31:11      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:11    statusCode: 500
+Oct 18 00:31:11  }
+Oct 18 00:31:11  10.244.26.231 - - [18/Oct/2025:00:31:11 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:11  prisma:error 
+Oct 18 00:31:11  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:11  
+Oct 18 00:31:11  
+Oct 18 00:31:11  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:12  prisma:error 
+Oct 18 00:31:12  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:12  
+Oct 18 00:31:12  
+Oct 18 00:31:12  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:12  🚨 SERVER ERROR: {
+Oct 18 00:31:12    "timestamp": "2025-10-18T00:31:12.249Z",
+Oct 18 00:31:12    "method": "GET",
+Oct 18 00:31:12    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=IMPROVEMENT",
+Oct 18 00:31:12    "ip": "10.244.26.231",
+Oct 18 00:31:12    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:12    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:12    "error": {
+Oct 18 00:31:12      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:12      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:12      "statusCode": 500
+Oct 18 00:31:12    }
+Oct 18 00:31:12  }
+Oct 18 00:31:12  ERROR 💥 {
+Oct 18 00:31:12    code: 'P2021',
+Oct 18 00:31:12    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:12    clientVersion: '6.14.0',
+Oct 18 00:31:12    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:12    message: '\n' +
+Oct 18 00:31:12      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:12      '\n' +
+Oct 18 00:31:12      '\n' +
+Oct 18 00:31:12      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:12    statusCode: 500
+Oct 18 00:31:12  }
+Oct 18 00:31:12  10.244.26.231 - - [18/Oct/2025:00:31:12 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=IMPROVEMENT HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:12  prisma:error 
+Oct 18 00:31:12  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:12  
+Oct 18 00:31:12  
+Oct 18 00:31:12  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:13  prisma:error 
+Oct 18 00:31:13  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:13  
+Oct 18 00:31:13  
+Oct 18 00:31:13  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:13  🚨 SERVER ERROR: {
+Oct 18 00:31:13    "timestamp": "2025-10-18T00:31:13.174Z",
+Oct 18 00:31:13    "method": "GET",
+Oct 18 00:31:13    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE",
+Oct 18 00:31:13    "ip": "10.244.3.89",
+Oct 18 00:31:13    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:13    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:13    "error": {
+Oct 18 00:31:13      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:13      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:13      "statusCode": 500
+Oct 18 00:31:13    }
+Oct 18 00:31:13  }
+Oct 18 00:31:13  ERROR 💥 {
+Oct 18 00:31:13    code: 'P2021',
+Oct 18 00:31:13    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:13    clientVersion: '6.14.0',
+Oct 18 00:31:13    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:13    message: '\n' +
+Oct 18 00:31:13      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:13      '\n' +
+Oct 18 00:31:13      '\n' +
+Oct 18 00:31:13      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:13    statusCode: 500
+Oct 18 00:31:13  }
+Oct 18 00:31:13  10.244.3.89 - - [18/Oct/2025:00:31:13 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:13  prisma:error 
+Oct 18 00:31:13  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:13  
+Oct 18 00:31:13  
+Oct 18 00:31:13  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:14  prisma:error 
+Oct 18 00:31:14  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:14  
+Oct 18 00:31:14  
+Oct 18 00:31:14  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:14  🚨 SERVER ERROR: {
+Oct 18 00:31:14    "timestamp": "2025-10-18T00:31:14.363Z",
+Oct 18 00:31:14    "method": "GET",
+Oct 18 00:31:14    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE",
+Oct 18 00:31:14    "ip": "10.244.3.89",
+Oct 18 00:31:14    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:14    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:14    "error": {
+Oct 18 00:31:14      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:14      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:14      "statusCode": 500
+Oct 18 00:31:14    }
+Oct 18 00:31:14  }
+Oct 18 00:31:14  ERROR 💥 {
+Oct 18 00:31:14    code: 'P2021',
+Oct 18 00:31:14    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:14    clientVersion: '6.14.0',
+Oct 18 00:31:14    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:14    message: '\n' +
+Oct 18 00:31:14      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:14      '\n' +
+Oct 18 00:31:14      '\n' +
+Oct 18 00:31:14      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:14    statusCode: 500
+Oct 18 00:31:14  }
+Oct 18 00:31:14  10.244.3.89 - - [18/Oct/2025:00:31:14 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:14  prisma:error 
+Oct 18 00:31:14  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:14  
+Oct 18 00:31:14  
+Oct 18 00:31:14  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:16  10.244.14.68 - - [18/Oct/2025:00:31:16 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:31:16  prisma:error 
+Oct 18 00:31:16  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:16  
+Oct 18 00:31:16  
+Oct 18 00:31:16  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:16  🚨 SERVER ERROR: {
+Oct 18 00:31:16    "timestamp": "2025-10-18T00:31:16.557Z",
+Oct 18 00:31:16    "method": "GET",
+Oct 18 00:31:16    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE",
+Oct 18 00:31:16    "ip": "10.244.3.89",
+Oct 18 00:31:16    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:16    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:16    "error": {
+Oct 18 00:31:16      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:16      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:16      "statusCode": 500
+Oct 18 00:31:16    }
+Oct 18 00:31:16  }
+Oct 18 00:31:16  ERROR 💥 {
+Oct 18 00:31:16    code: 'P2021',
+Oct 18 00:31:16    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:16    clientVersion: '6.14.0',
+Oct 18 00:31:16    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:16    message: '\n' +
+Oct 18 00:31:16      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:16      '\n' +
+Oct 18 00:31:16      '\n' +
+Oct 18 00:31:16      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:16    statusCode: 500
+Oct 18 00:31:16  }
+Oct 18 00:31:16  10.244.3.89 - - [18/Oct/2025:00:31:16 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:16  prisma:error 
+Oct 18 00:31:16  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:16  
+Oct 18 00:31:16  
+Oct 18 00:31:16  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:20  prisma:error 
+Oct 18 00:31:20  Invalid `prisma.feedback.count()` invocation:
+Oct 18 00:31:20  
+Oct 18 00:31:20  
+Oct 18 00:31:20  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:20  🚨 SERVER ERROR: {
+Oct 18 00:31:20    "timestamp": "2025-10-18T00:31:20.842Z",
+Oct 18 00:31:20    "method": "GET",
+Oct 18 00:31:20    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE",
+Oct 18 00:31:20    "ip": "10.244.3.89",
+Oct 18 00:31:20    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 00:31:20    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 00:31:20    "error": {
+Oct 18 00:31:20      "name": "PrismaClientKnownRequestError",
+Oct 18 00:31:20      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 00:31:20      "statusCode": 500
+Oct 18 00:31:20    }
+Oct 18 00:31:20  }
+Oct 18 00:31:20  ERROR 💥 {
+Oct 18 00:31:20    code: 'P2021',
+Oct 18 00:31:20    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 00:31:20    clientVersion: '6.14.0',
+Oct 18 00:31:20    name: 'PrismaClientKnownRequestError',
+Oct 18 00:31:20    message: '\n' +
+Oct 18 00:31:20      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 00:31:20      '\n' +
+Oct 18 00:31:20      '\n' +
+Oct 18 00:31:20      'The table `public.feedback` does not exist in the current database.',
+Oct 18 00:31:20    statusCode: 500
+Oct 18 00:31:20  }
+Oct 18 00:31:20  10.244.3.89 - - [18/Oct/2025:00:31:20 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=MINE HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 00:31:20  prisma:error 
+Oct 18 00:31:20  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 00:31:20  
+Oct 18 00:31:20  
+Oct 18 00:31:20  The table `public.feedback` does not exist in the current database.
+Oct 18 00:31:25  10.244.40.87 - - [18/Oct/2025:00:31:25 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:31:26  10.244.14.68 - - [18/Oct/2025:00:31:26 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Oct 18 00:31:35  10.244.40.87 - - [18/Oct/2025:00:31:35 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 00:31:36  10.244.14.68 - - [18/Oct/2025:00:31:36 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:31:45  10.244.40.87 - - [18/Oct/2025:00:31:45 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 18 00:31:46  10.244.14.68 - - [18/Oct/2025:00:31:46 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+
+Request URL
+https://goldfish-app-4yuma.ondigitalocean.app/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=
+Request Method
+GET
+Status Code
+500 Internal Server Error
+Remote Address
+[2606:4700:7::60]:443
+Referrer Policy
+no-referrer
+access-control-allow-credentials
+true
+alt-svc
+h3=":443"; ma=86400
+cache-control
+private
+cf-cache-status
+MISS
+cf-ray
+9903ed67ca65d1b5-ATL
+content-length
+125
+content-security-policy
+default-src 'self';style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;font-src 'self' data: https://fonts.gstatic.com;script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://sc.lfeeder.com https://cdn.jsdelivr.net https://c.daily.co https://*.daily.co;img-src 'self' data: https:;connect-src 'self' https: wss: ws: https://*.vapi.ai https://*.daily.co https://goldfish-app-4yuma.ondigitalocean.app;media-src 'self' https://*.daily.co blob:;frame-src 'self' https://*.daily.co https://*.digitaloceanspaces.com;object-src 'self' https://*.digitaloceanspaces.com;worker-src 'self' blob:;base-uri 'self';form-action 'self';frame-ancestors 'self';script-src-attr 'none';upgrade-insecure-requests
+content-type
+application/json; charset=utf-8
+cross-origin-opener-policy
+same-origin
+cross-origin-resource-policy
+same-origin
+date
+Sat, 18 Oct 2025 00:30:29 GMT
+etag
+W/"7d-tdKBr8yA+ElPzvnYnaILhAWR0iY"
+origin-agent-cluster
+?1
+priority
+u=1,i
+referrer-policy
+no-referrer
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+__cf_bm=HLIxu3tKWQMQeNNnsKXrAodJNvragzdfChmMs2SwioI-1760747429-1.0.1.1-NFCxpgSfwkDjLzxcVqSqTukowVagCQmdKixrz8Chin9xNwzPyFjtNDcpkVPkUsUaYJas2HvQDTYxo9fFFKO.pTI2s20JLVJpYv_2R3aXVuk; path=/; expires=Sat, 18-Oct-25 01:00:29 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
+strict-transport-security
+max-age=15552000; includeSubDomains
+vary
+Origin, Accept-Encoding
+x-content-type-options
+nosniff
+x-dns-prefetch-control
+off
+x-do-app-origin
+edf924d8-6fc4-4919-9a80-7c0b2dfbd910
+x-do-orig-status
+500
+x-download-options
+noopen
+x-frame-options
+SAMEORIGIN
+x-permitted-cross-domain-policies
+none
+x-xss-protection
+0
+:authority
+goldfish-app-4yuma.ondigitalocean.app
+:method
+GET
+:path
+/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=
+:scheme
+https
+accept
+application/json, text/plain, */*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+en-US,en;q=0.9
+authorization
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzYwNzQ3NDE5LCJleHAiOjE3NjMzMzk0MTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.b3fIrwGcnypNwEGRFGyAi3wD388RptgFCKS0pdj3Xrw
+priority
+u=1, i
+sec-ch-ua
+"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) Appl
+
+
+{success: false, message: "Something went wrong on our end. Please try again later.",…}
+message
+: 
+"Something went wrong on our end. Please try again later."
+success
+: 
+false
+timestamp
+: 
+"2025-10-18T00:30:29.262Z"
+
+
+{
+    "success": false,
+    "message": "Something went wrong on our end. Please try again later.",
+    "timestamp": "2025-10-18T00:30:29.262Z"
+}

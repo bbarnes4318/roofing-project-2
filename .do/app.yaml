@@ -23,6 +23,8 @@ services:
     value: "https://goldfish-app-4yuma.ondigitalocean.app/api"
   - key: REACT_APP_SOCKET_URL
     value: "https://goldfish-app-4yuma.ondigitalocean.app"
+  - key: REACT_APP_GOOGLE_MAPS_API_KEY
+    value: "AIzaSyBL-BzpAUPd-Deu8LndaoQO367iokdlehM"
   http_port: 8080
   routes:
   - path: /api
