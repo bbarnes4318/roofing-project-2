@@ -1,0 +1,1487 @@
+Oct 18 18:00:00  Error processing follow-ups: TypeError: Cannot read properties of undefined (reading 'findMany')
+Oct 18 18:00:00      at FollowUpService.processPendingFollowUps (/app/services/followUpService.js:101:60)
+Oct 18 18:00:00      at FollowUpScheduler.processFollowUps (/app/jobs/followUpScheduler.js:51:56)
+Oct 18 18:00:00      at job.cron.schedule.scheduled (/app/jobs/followUpScheduler.js:23:18)
+Oct 18 18:00:00      at Runner.onMatch (/app/node_modules/node-cron/dist/cjs/tasks/inline-scheduled-task.js:69:20)
+Oct 18 18:00:00      at Timeout._onTimeout (/app/node_modules/node-cron/dist/cjs/scheduler/runner.js:70:55)
+Oct 18 18:00:00      at listOnTimeout (node:internal/timers:581:17)
+Oct 18 18:00:00      at process.processTimers (node:internal/timers:519:7)
+Oct 18 17:32:23  10.244.40.87 - - [18/Oct/2025:17:32:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:32:33  10.244.40.87 - - [18/Oct/2025:17:32:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:32:43  10.244.40.87 - - [18/Oct/2025:17:32:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:32:53  10.244.40.87 - - [18/Oct/2025:17:32:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:33:03  10.244.40.87 - - [18/Oct/2025:17:33:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:33:13  10.244.40.87 - - [18/Oct/2025:17:33:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:33:23  10.244.40.87 - - [18/Oct/2025:17:33:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:33:33  10.244.40.87 - - [18/Oct/2025:17:33:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:33:43  10.244.40.87 - - [18/Oct/2025:17:33:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:33:53  10.244.40.87 - - [18/Oct/2025:17:33:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:34:03  10.244.40.87 - - [18/Oct/2025:17:34:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:34:13  10.244.40.87 - - [18/Oct/2025:17:34:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:34:23  10.244.40.87 - - [18/Oct/2025:17:34:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:34:33  10.244.40.87 - - [18/Oct/2025:17:34:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:00  🔍 Checking workflow alerts...
+Oct 18 18:00:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 17:34:43  10.244.40.87 - - [18/Oct/2025:17:34:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:34:53  10.244.40.87 - - [18/Oct/2025:17:34:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:35:00  🔍 Checking workflow alerts...
+Oct 18 17:35:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 17:35:00  🚀 Generating alerts for 23 active projects
+Oct 18 17:35:00 ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:00:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:00:00  No new alerts to create
+Oct 18 18:00:00  ✅ Generated 0 new alerts
+Oct 18 18:00:03  10.244.18.243 - - [18/Oct/2025:18:00:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 17:35:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 17:35:00  No new alerts to create
+Oct 18 17:35:00  ✅ Generated 0 new alerts
+Oct 18 17:35:03  10.244.40.87 - - [18/Oct/2025:17:35:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:35:13  10.244.40.87 - - [18/Oct/2025:17:35:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:35:23  10.244.40.87 - - [18/Oct/2025:17:35:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:35:33  10.244.40.87 - - [18/Oct/2025:17:35:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:13  10.244.18.243 - - [18/Oct/2025:18:00:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:00:23  10.244.18.243 - - [18/Oct/2025:18:00:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:00:33  10.244.18.243 - - [18/Oct/2025:18:00:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 17:35:43  10.244.40.87 - - [18/Oct/2025:17:35:43 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:35:53  10.244.40.87 - - [18/Oct/2025:17:35:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:36:03  10.244.40.87 - - [18/Oct/2025:17:36:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:36:13  10.244.40.87 - - [18/Oct/2025:17:36:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:36:23  10.244.40.87 - - [18/Oct/2025:17:36:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:36:33  10.244.40.87 - - [18/Oct/2025:17:36:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:36:43  10.244.40.87 - - [18/Oct/2025:17:36:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:36:53  10.244.40.87 - - [18/Oct/2025:17:36:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:37:03  10.244.40.87 - - [18/Oct/2025:17:37:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:37:13  10.244.40.87 - - [18/Oct/2025:17:37:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:37:23  10.244.40.87 - - [18/Oct/2025:17:37:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:37:33  10.244.40.87 - - [18/Oct/2025:17:37:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:37:43  10.244.40.87 - - [18/Oct/2025:17:37:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:37:53  10.244.40.87 - - [18/Oct/2025:17:37:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:38:03  10.244.40.87 - - [18/Oct/2025:17:38:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:38:13  10.244.40.87 - - [18/Oct/2025:17:38:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:38:23  10.244.40.87 - - [18/Oct/2025:17:38:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:38:33  10.244.40.87 - - [18/Oct/2025:17:38:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:38:43  10.244.40.87 - - [18/Oct/2025:17:38:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:38:53  10.244.40.87 - - [18/Oct/2025:17:38:53 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:39:03  10.244.40.87 - - [18/Oct/2025:17:39:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:39:13  10.244.40.87 - - [18/Oct/2025:17:39:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:39:23  10.244.40.87 - - [18/Oct/2025:17:39:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:39:33  10.244.40.87 - - [18/Oct/2025:17:39:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:39:43  10.244.40.87 - - [18/Oct/2025:17:39:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:39:53  10.244.40.87 - - [18/Oct/2025:17:39:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:40:00  🔍 Checking workflow alerts...
+Oct 18 17:40:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 17:40:00  🚀 Generating alerts for 23 active projects
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:00:43  10.244.18.243 - - [18/Oct/2025:18:00:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:00:53  10.244.18.243 - - [18/Oct/2025:18:00:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:01:03  10.244.18.243 - - [18/Oct/2025:18:01:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:01:13  10.244.18.243 - - [18/Oct/2025:18:01:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:23  10.244.18.243 - - [18/Oct/2025:18:01:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:33  10.244.18.243 - - [18/Oct/2025:18:01:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:01:43  10.244.18.243 - - [18/Oct/2025:18:01:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:01:53  10.244.18.243 - - [18/Oct/2025:18:01:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:02:03  10.244.18.243 - - [18/Oct/2025:18:02:03 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:02:13  10.244.18.243 - - [18/Oct/2025:18:02:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:02:23  10.244.18.243 - - [18/Oct/2025:18:02:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:02:33  10.244.18.243 - - [18/Oct/2025:18:02:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:02:43  10.244.18.243 - - [18/Oct/2025:18:02:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:02:53  10.244.18.243 - - [18/Oct/2025:18:02:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:03:03  10.244.18.243 - - [18/Oct/2025:18:03:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:03:13  10.244.18.243 - - [18/Oct/2025:18:03:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:03:23  10.244.18.243 - - [18/Oct/2025:18:03:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:03:33  10.244.18.243 - - [18/Oct/2025:18:03:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:03:43  10.244.18.243 - - [18/Oct/2025:18:03:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:03:53  10.244.18.243 - - [18/Oct/2025:18:03:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 17:40:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 17:40:00  No new alerts to create
+Oct 18 17:40:00  ✅ Generated 0 new alerts
+Oct 18 17:40:03  10.244.40.87 - - [18/Oct/2025:17:40:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:40:13  10.244.40.87 - - [18/Oct/2025:17:40:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:03  10.244.18.243 - - [18/Oct/2025:18:04:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:04:13  10.244.18.243 - - [18/Oct/2025:18:04:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:04:23  10.244.18.243 - - [18/Oct/2025:18:04:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:04:33  10.244.18.243 - - [18/Oct/2025:18:04:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:04:43  10.244.18.243 - - [18/Oct/2025:18:04:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:04:53  10.244.18.243 - - [18/Oct/2025:18:04:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:05:00  🔍 Checking workflow alerts...
+Oct 18 18:05:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:05:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 17:40:23  10.244.40.87 - - [18/Oct/2025:17:40:23 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:40:33  10.244.40.87 - - [18/Oct/2025:17:40:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:40:43  10.244.40.87 - - [18/Oct/2025:17:40:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:40:53  10.244.40.87 - - [18/Oct/2025:17:40:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:41:03  10.244.40.87 - - [18/Oct/2025:17:41:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:41:13  10.244.40.87 - - [18/Oct/2025:17:41:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:41:23  10.244.40.87 - - [18/Oct/2025:17:41:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:41:33  10.244.40.87 - - [18/Oct/2025:17:41:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:41:43  10.244.40.87 - - [18/Oct/2025:17:41:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:41:46  🔄 Running scheduled overdue alert check...
+Oct 18 17:41:46  ✅ No overdue alerts found
+Oct 18 17:41:53  10.244.40.87 - - [18/Oct/2025:17:41:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:42:03  10.244.40.87 - - [18/Oct/2025:17:42:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:42:13  10.244.40.87 - - [18/Oct/2025:17:42:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:42:23  10.244.40.87 - - [18/Oct/2025:17:42:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:42:33  10.244.40.87 - - [18/Oct/2025:17:42:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:42:43  10.244.40.87 - - [18/Oct/2025:17:42:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:42:53  10.244.40.87 - - [18/Oct/2025:17:42:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:43:03  10.244.40.87 - - [18/Oct/2025:17:43:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:43:13  10.244.40.87 - - [18/Oct/2025:17:43:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:43:23  10.244.40.87 - - [18/Oct/2025:17:43:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:43:33  10.244.40.87 - - [18/Oct/2025:17:43:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:43:43  10.244.40.87 - - [18/Oct/2025:17:43:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 17:43:53  10.244.40.87 - - [18/Oct/2025:17:43:53 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:44:03  10.244.40.87 - - [18/Oct/2025:17:44:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:44:13  10.244.40.87 - - [18/Oct/2025:17:44:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:44:23  10.244.40.87 - - [18/Oct/2025:17:44:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:44:33  10.244.40.87 - - [18/Oct/2025:17:44:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:44:43  10.244.40.87 - - [18/Oct/2025:17:44:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:44:53  10.244.40.87 - - [18/Oct/2025:17:44:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:45:00  🔍 Checking workflow alerts...
+Oct 18 17:45:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 17:45:00  🚀 Generating alerts for 23 active projects
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:05:00  No new alerts to create
+Oct 18 18:05:00  ✅ Generated 0 new alerts
+Oct 18 18:05:03  10.244.18.243 - - [18/Oct/2025:18:05:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:05:13  10.244.18.243 - - [18/Oct/2025:18:05:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:05:23  10.244.18.243 - - [18/Oct/2025:18:05:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:05:33  10.244.18.243 - - [18/Oct/2025:18:05:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:05:43  10.244.18.243 - - [18/Oct/2025:18:05:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:05:53  10.244.18.243 - - [18/Oct/2025:18:05:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:06:03  10.244.18.243 - - [18/Oct/2025:18:06:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:06:13  10.244.18.243 - - [18/Oct/2025:18:06:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:06:23  10.244.18.243 - - [18/Oct/2025:18:06:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:06:33  10.244.18.243 - - [18/Oct/2025:18:06:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:06:43  10.244.18.243 - - [18/Oct/2025:18:06:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:06:53  10.244.18.243 - - [18/Oct/2025:18:06:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:07:03  10.244.18.243 - - [18/Oct/2025:18:07:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:07:13  10.244.18.243 - - [18/Oct/2025:18:07:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 17:45:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 17:45:00  No new alerts to create
+Oct 18 17:45:00  ✅ Generated 0 new alerts
+Oct 18 17:45:03  10.244.40.87 - - [18/Oct/2025:17:45:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:45:13  10.244.40.87 - - [18/Oct/2025:17:45:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:45:23  10.244.40.87 - - [18/Oct/2025:17:45:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:45:33  10.244.40.87 - - [18/Oct/2025:17:45:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:45:43  10.244.40.87 - - [18/Oct/2025:17:45:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:45:53  10.244.40.87 - - [18/Oct/2025:17:45:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:46:03  10.244.40.87 - - [18/Oct/2025:17:46:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:46:13  10.244.40.87 - - [18/Oct/2025:17:46:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:23  10.244.18.243 - - [18/Oct/2025:18:07:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:07:33  10.244.18.243 - - [18/Oct/2025:18:07:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:07:43  10.244.18.243 - - [18/Oct/2025:18:07:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:07:53  10.244.18.243 - - [18/Oct/2025:18:07:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:08:03  10.244.18.243 - - [18/Oct/2025:18:08:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:08:13  10.244.18.243 - - [18/Oct/2025:18:08:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:08:23  10.244.18.243 - - [18/Oct/2025:18:08:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:08:33  10.244.18.243 - - [18/Oct/2025:18:08:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:08:43  10.244.18.243 - - [18/Oct/2025:18:08:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:08:53  10.244.18.243 - - [18/Oct/2025:18:08:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:09:03  10.244.18.243 - - [18/Oct/2025:18:09:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:09:13  10.244.18.243 - - [18/Oct/2025:18:09:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:09:23  10.244.18.243 - - [18/Oct/2025:18:09:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 17:46:23  10.244.40.87 - - [18/Oct/2025:17:46:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:46:33  10.244.40.87 - - [18/Oct/2025:17:46:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:46:43  10.244.40.87 - - [18/Oct/2025:17:46:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:46:53  10.244.40.87 - - [18/Oct/2025:17:46:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:47:03  10.244.40.87 - - [18/Oct/2025:17:47:03 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:47:13  10.244.40.87 - - [18/Oct/2025:17:47:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:47:23  10.244.40.87 - - [18/Oct/2025:17:47:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:47:33  10.244.40.87 - - [18/Oct/2025:17:47:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:47:43  10.244.40.87 - - [18/Oct/2025:17:47:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:47:53  10.244.40.87 - - [18/Oct/2025:17:47:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:48:03  10.244.40.87 - - [18/Oct/2025:17:48:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:48:13  10.244.40.87 - - [18/Oct/2025:17:48:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:48:23  10.244.40.87 - - [18/Oct/2025:17:48:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:48:33  10.244.40.87 - - [18/Oct/2025:17:48:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:48:43  10.244.40.87 - - [18/Oct/2025:17:48:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:48:53  10.244.40.87 - - [18/Oct/2025:17:48:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:49:03  10.244.40.87 - - [18/Oct/2025:17:49:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:49:13  10.244.40.87 - - [18/Oct/2025:17:49:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:09:33  10.244.18.243 - - [18/Oct/2025:18:09:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:09:43  10.244.18.243 - - [18/Oct/2025:18:09:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:09:53  10.244.18.243 - - [18/Oct/2025:18:09:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:10:00  🔍 Checking workflow alerts...
+Oct 18 18:10:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:10:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 17:49:23  10.244.40.87 - - [18/Oct/2025:17:49:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:49:33  10.244.40.87 - - [18/Oct/2025:17:49:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:49:43  10.244.40.87 - - [18/Oct/2025:17:49:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:49:53  10.244.40.87 - - [18/Oct/2025:17:49:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:50:00  🔍 Checking workflow alerts...
+Oct 18 17:50:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 17:50:00  🚀 Generating alerts for 23 active projects
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:10:00  No new alerts to create
+Oct 18 18:10:00  ✅ Generated 0 new alerts
+Oct 18 18:10:03  10.244.18.243 - - [18/Oct/2025:18:10:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:10:13  10.244.18.243 - - [18/Oct/2025:18:10:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:10:23  10.244.18.243 - - [18/Oct/2025:18:10:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:10:33  10.244.18.243 - - [18/Oct/2025:18:10:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:10:43  10.244.18.243 - - [18/Oct/2025:18:10:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:10:53  10.244.18.243 - - [18/Oct/2025:18:10:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:03  10.244.18.243 - - [18/Oct/2025:18:11:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:13  10.244.18.243 - - [18/Oct/2025:18:11:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:23  10.244.18.243 - - [18/Oct/2025:18:11:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:33  10.244.18.243 - - [18/Oct/2025:18:11:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:43  10.244.18.243 - - [18/Oct/2025:18:11:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:53  10.244.18.243 - - [18/Oct/2025:18:11:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:03  10.244.18.243 - - [18/Oct/2025:18:12:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:13  10.244.18.243 - - [18/Oct/2025:18:12:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:23  10.244.18.243 - - [18/Oct/2025:18:12:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:26  🔄 Running scheduled overdue alert check...
+Oct 18 18:12:26  ✅ No overdue alerts found
+Oct 18 18:12:33  10.244.18.243 - - [18/Oct/2025:18:12:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:43  10.244.18.243 - - [18/Oct/2025:18:12:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:53  10.244.18.243 - - [18/Oct/2025:18:12:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:13:03  10.244.18.243 - - [18/Oct/2025:18:13:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:13  10.244.18.243 - - [18/Oct/2025:18:13:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:23  10.244.18.243 - - [18/Oct/2025:18:13:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:13:33  10.244.18.243 - - [18/Oct/2025:18:13:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:43  10.244.18.243 - - [18/Oct/2025:18:13:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:53  10.244.18.243 - - [18/Oct/2025:18:13:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:03  10.244.18.243 - - [18/Oct/2025:18:14:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:13  10.244.18.243 - - [18/Oct/2025:18:14:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:23  10.244.26.231 - - [18/Oct/2025:18:14:23 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  📭 Cache miss: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"}
+Oct 18 18:14:23  🔍 ACTIVITIES: User from request: {
+Oct 18 18:14:23    id: 'cmfld60ef0000bi0d8ky8hlot',
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 17:50:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 17:50:00  No new alerts to create
+Oct 18 17:50:00  ✅ Generated 0 new alerts
+Oct 18 17:50:03  10.244.40.87 - - [18/Oct/2025:17:50:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:50:13  10.244.40.87 - - [18/Oct/2025:17:50:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:50:23  10.244.40.87 - - [18/Oct/2025:17:50:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:50:33  10.244.40.87 - - [18/Oct/2025:17:50:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:50:43  10.244.40.87 - - [18/Oct/2025:17:50:43 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:50:53  10.244.40.87 - - [18/Oct/2025:17:50:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:51:03  10.244.40.87 - - [18/Oct/2025:17:51:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:51:13  10.244.40.87 - - [18/Oct/2025:17:51:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:51:23  10.244.40.87 - - [18/Oct/2025:17:51:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:51:33  10.244.40.87 - - [18/Oct/2025:17:51:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:14:23    firstName: 'jimbosky35',
+Oct 18 18:14:23    lastName: '',
+Oct 18 18:14:23    email: 'jimbosky35@gmail.com',
+Oct 18 18:14:23    role: 'WORKER',
+Oct 18 18:14:23    permissions: [],
+Oct 18 18:14:23    isActive: true,
+Oct 18 18:14:23    theme: 'LIGHT',
+Oct 18 18:14:23    lastLogin: 2025-10-18T18:14:23.235Z,
+Oct 18 18:14:23    createdAt: 2025-09-15T16:54:10.310Z,
+Oct 18 18:14:23    updatedAt: 2025-10-18T18:14:23.237Z
+Oct 18 18:14:23  }
+Oct 18 18:14:23  🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...
+Oct 18 18:14:23  📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
+Oct 18 18:14:23  10.244.0.217 - - [18/Oct/2025:18:14:23 +0000] "GET /api/activities HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  10.244.26.231 - - [18/Oct/2025:18:14:23 +0000] "GET /kenstruction-logo.png HTTP/1.1" 200 61767 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  🔍 Where clause: { archived: false }
+Oct 18 18:14:23  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 18 18:14:23  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:23  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 17:51:43  10.244.40.87 - - [18/Oct/2025:17:51:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:51:53  10.244.40.87 - - [18/Oct/2025:17:51:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:52:03  10.244.40.87 - - [18/Oct/2025:17:52:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:52:13  10.244.40.87 - - [18/Oct/2025:17:52:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:52:23  10.244.40.87 - - [18/Oct/2025:17:52:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:52:33  10.244.40.87 - - [18/Oct/2025:17:52:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:52:43  10.244.40.87 - - [18/Oct/2025:17:52:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:52:53  10.244.40.87 - - [18/Oct/2025:17:52:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:53:03  10.244.40.87 - - [18/Oct/2025:17:53:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:53:13  10.244.40.87 - - [18/Oct/2025:17:53:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:14:23  prisma:error 
+Oct 18 18:14:23  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:23  
+Oct 18 18:14:23  
+Oct 18 18:14:23  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:23  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:23  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:23  
+Oct 18 18:14:23  
+Oct 18 18:14:23  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:23      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:23      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:23      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:23      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:23      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:23      at async Promise.all (index 1)
+Oct 18 18:14:23      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:23    code: 'P2021',
+Oct 18 18:14:23    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:23    clientVersion: '6.14.0'
+Oct 18 18:14:23  }
+Oct 18 17:53:23  10.244.40.87 - - [18/Oct/2025:17:53:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:53:33  10.244.40.87 - - [18/Oct/2025:17:53:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:53:43  10.244.40.87 - - [18/Oct/2025:17:53:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:53:53  10.244.40.87 - - [18/Oct/2025:17:53:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:54:03  10.244.40.87 - - [18/Oct/2025:17:54:03 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 17:54:13  10.244.40.87 - - [18/Oct/2025:17:54:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:54:23  10.244.40.87 - - [18/Oct/2025:17:54:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:54:33  10.244.40.87 - - [18/Oct/2025:17:54:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:54:43  10.244.40.87 - - [18/Oct/2025:17:54:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:54:53  10.244.40.87 - - [18/Oct/2025:17:54:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:55:00  🔍 Checking workflow alerts...
+Oct 18 17:55:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 17:55:00  🚀 Generating alerts for 23 active projects
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:14:23  🚨 SERVER ERROR: {
+Oct 18 18:14:23    "timestamp": "2025-10-18T18:14:23.724Z",
+Oct 18 18:14:23    "method": "GET",
+Oct 18 18:14:23    "url": "/api/feedback?limit=20",
+Oct 18 18:14:23    "ip": "10.244.0.217",
+Oct 18 18:14:23    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:23    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:23    "error": {
+Oct 18 18:14:23      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:23      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:23      "statusCode": 500
+Oct 18 18:14:23    }
+Oct 18 18:14:23  }
+Oct 18 18:14:23  ERROR 💥 {
+Oct 18 18:14:23    code: 'P2021',
+Oct 18 18:14:23    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:23    clientVersion: '6.14.0',
+Oct 18 18:14:23    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:23    message: '\n' +
+Oct 18 18:14:23      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:23      '\n' +
+Oct 18 18:14:23      '\n' +
+Oct 18 18:14:23      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:23    statusCode: 500
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 17:55:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 17:55:00  No new alerts to create
+Oct 18 17:55:00  ✅ Generated 0 new alerts
+Oct 18 17:55:03  10.244.40.87 - - [18/Oct/2025:17:55:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:55:13  10.244.40.87 - - [18/Oct/2025:17:55:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:55:23  10.244.40.87 - - [18/Oct/2025:17:55:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:14:23  }
+Oct 18 18:14:23  10.244.0.217 - - [18/Oct/2025:18:14:23 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  prisma:error 
+Oct 18 18:14:23  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:23  
+Oct 18 18:14:23  
+Oct 18 18:14:23  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:23  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
+Oct 18 18:14:23  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
+Oct 18 18:14:23  10.244.26.231 - - [18/Oct/2025:18:14:23 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+Oct 18 18:14:23  🎯 API: Getting project position for: cmflohmur000fj8g4uv12pin3
+Oct 18 18:14:23  10.244.18.243 - - [18/Oct/2025:18:14:23 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:14:24  🎯 API: Found position: {
+Oct 18 18:14:24    projectId: 'cmflohmur000fj8g4uv12pin3',
+Oct 18 18:14:24    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 18:14:24    phaseType: 'LEAD',
+Oct 18 18:14:24    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:24    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:24    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 18:14:24    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 18:14:24    currentLineItemName: 'Answer phone call',
+Oct 18 18:14:24    sectionDisplayName: 'Initial Contact',
+Oct 18 18:14:24    phaseName: 'Lead'
+Oct 18 18:14:24  }
+Oct 18 18:14:24  10.244.26.231 - - [18/Oct/2025:18:14:24 +0000] "GET /api/workflow-data/project-position/cmflohmur000fj8g4uv12pin3 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 17:55:33  10.244.40.87 - - [18/Oct/2025:17:55:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:55:43  10.244.40.87 - - [18/Oct/2025:17:55:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:55:53  10.244.40.87 - - [18/Oct/2025:17:55:53 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:56:03  10.244.40.87 - - [18/Oct/2025:17:56:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:56:13  10.244.40.87 - - [18/Oct/2025:17:56:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:56:23  10.244.40.87 - - [18/Oct/2025:17:56:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:56:33  10.244.40.87 - - [18/Oct/2025:17:56:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:56:43  10.244.40.87 - - [18/Oct/2025:17:56:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:56:53  10.244.40.87 - - [18/Oct/2025:17:56:53 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:57:03  10.244.40.87 - - [18/Oct/2025:17:57:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:57:13  10.244.40.87 - - [18/Oct/2025:17:57:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:57:23  10.244.40.87 - - [18/Oct/2025:17:57:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:57:33  10.244.40.87 - - [18/Oct/2025:17:57:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:57:43  10.244.40.87 - - [18/Oct/2025:17:57:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:57:53  10.244.40.87 - - [18/Oct/2025:17:57:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:58:03  10.244.40.87 - - [18/Oct/2025:17:58:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:58:13  10.244.40.87 - - [18/Oct/2025:17:58:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:58:23  10.244.40.87 - - [18/Oct/2025:17:58:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:58:33  10.244.40.87 - - [18/Oct/2025:17:58:33 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:58:43  10.244.40.87 - - [18/Oct/2025:17:58:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:58:53  10.244.40.87 - - [18/Oct/2025:17:58:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:59:03  10.244.40.87 - - [18/Oct/2025:17:59:03 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 17:59:13  10.244.40.87 - - [18/Oct/2025:17:59:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:59:23  10.244.40.87 - - [18/Oct/2025:17:59:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:59:33  10.244.40.87 - - [18/Oct/2025:17:59:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:59:43  10.244.40.87 - - [18/Oct/2025:17:59:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 17:59:53  10.244.40.87 - - [18/Oct/2025:17:59:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:00  Running follow-up scheduler...
+Oct 18 18:00:00  Error processing follow-ups: TypeError: Cannot read properties of undefined (reading 'findMany')
+Oct 18 18:00:00      at FollowUpService.processPendingFollowUps (/app/services/followUpService.js:101:60)
+Oct 18 18:00:00      at FollowUpScheduler.processFollowUps (/app/jobs/followUpScheduler.js:51:56)
+Oct 18 18:00:00      at job.cron.schedule.scheduled (/app/jobs/followUpScheduler.js:23:18)
+Oct 18 18:00:00      at Runner.onMatch (/app/node_modules/node-cron/dist/cjs/tasks/inline-scheduled-task.js:69:20)
+Oct 18 18:00:00      at Timeout._onTimeout (/app/node_modules/node-cron/dist/cjs/scheduler/runner.js:70:55)
+Oct 18 18:00:00      at listOnTimeout (node:internal/timers:581:17)
+Oct 18 18:00:00      at process.processTimers (node:internal/timers:519:7)
+Oct 18 18:00:00  🔍 Checking workflow alerts...
+Oct 18 18:00:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:00:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:14:24  10.244.30.98 - - [18/Oct/2025:18:14:24 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:24  10.244.3.89 - - [18/Oct/2025:18:14:24 +0000] "GET /api/project-messages/cmflohlx1000aj8g4p9renutq?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:24  10.244.0.217 - - [18/Oct/2025:18:14:24 +0000] "GET /api/project-messages/cmflohnad000kj8g4zylmftf3?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:28  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:28  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:28  prisma:error 
+Oct 18 18:14:28  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:28  
+Oct 18 18:14:28  
+Oct 18 18:14:28  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:28  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:28  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:28  
+Oct 18 18:14:28  
+Oct 18 18:14:28  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:28      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:28      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:28      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:28      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:28      at async /app/routes/feedback.js:125:16
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:14:28      at async Promise.all (index 1)
+Oct 18 18:14:28      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:28    code: 'P2021',
+Oct 18 18:14:28    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:28    clientVersion: '6.14.0'
+Oct 18 18:14:28  }
+Oct 18 18:14:28  🚨 SERVER ERROR: {
+Oct 18 18:14:28    "timestamp": "2025-10-18T18:14:28.675Z",
+Oct 18 18:14:28    "method": "GET",
+Oct 18 18:14:28    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:28    "ip": "10.244.30.98",
+Oct 18 18:14:28    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:28    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:28    "error": {
+Oct 18 18:14:28      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:28      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:28      "statusCode": 500
+Oct 18 18:14:28    }
+Oct 18 18:14:28  }
+Oct 18 18:14:28  ERROR 💥 {
+Oct 18 18:14:28    code: 'P2021',
+Oct 18 18:14:28    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:28    clientVersion: '6.14.0',
+Oct 18 18:14:28    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:28    message: '\n' +
+Oct 18 18:14:28      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:28      '\n' +
+Oct 18 18:14:28      '\n' +
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:14:28      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:28    statusCode: 500
+Oct 18 18:14:28  }
+Oct 18 18:14:28  10.244.30.98 - - [18/Oct/2025:18:14:28 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:28  prisma:error 
+Oct 18 18:14:28  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:28  
+Oct 18 18:14:28  
+Oct 18 18:14:28  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:33  10.244.18.243 - - [18/Oct/2025:18:14:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:38  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:38  🔍 FEEDBACK DEBUG: where clause: {
+Oct 18 18:14:38    "type": "BUG"
+Oct 18 18:14:38  }
+Oct 18 18:14:38  prisma:error 
+Oct 18 18:14:38  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:38  
+Oct 18 18:14:38  
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:00:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:00:00  No new alerts to create
+Oct 18 18:00:00  ✅ Generated 0 new alerts
+Oct 18 18:00:03  10.244.40.87 - - [18/Oct/2025:18:00:03 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:00:13  10.244.40.87 - - [18/Oct/2025:18:00:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:23  10.244.40.87 - - [18/Oct/2025:18:00:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:33  10.244.40.87 - - [18/Oct/2025:18:00:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:43  10.244.40.87 - - [18/Oct/2025:18:00:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:00:53  10.244.40.87 - - [18/Oct/2025:18:00:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:03  10.244.40.87 - - [18/Oct/2025:18:01:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:13  10.244.40.87 - - [18/Oct/2025:18:01:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:23  10.244.40.87 - - [18/Oct/2025:18:01:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:14:38  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:38  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:38  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:38  
+Oct 18 18:14:38  
+Oct 18 18:14:38  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:38      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:38      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:38      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:01:33  10.244.40.87 - - [18/Oct/2025:18:01:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:43  10.244.40.87 - - [18/Oct/2025:18:01:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:01:53  10.244.40.87 - - [18/Oct/2025:18:01:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:02:03  10.244.40.87 - - [18/Oct/2025:18:02:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:02:13  10.244.40.87 - - [18/Oct/2025:18:02:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:02:23  10.244.40.87 - - [18/Oct/2025:18:02:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:02:33  10.244.40.87 - - [18/Oct/2025:18:02:33 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:02:43  10.244.40.87 - - [18/Oct/2025:18:02:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:02:53  10.244.40.87 - - [18/Oct/2025:18:02:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:03:03  10.244.40.87 - - [18/Oct/2025:18:03:03 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:03:13  10.244.40.87 - - [18/Oct/2025:18:03:13 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:03:23  10.244.40.87 - - [18/Oct/2025:18:03:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:03:33  10.244.40.87 - - [18/Oct/2025:18:03:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:03:43  10.244.40.87 - - [18/Oct/2025:18:03:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:03:53  10.244.40.87 - - [18/Oct/2025:18:03:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:03  10.244.40.87 - - [18/Oct/2025:18:04:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:13  10.244.40.87 - - [18/Oct/2025:18:04:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:23  10.244.40.87 - - [18/Oct/2025:18:04:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:33  10.244.40.87 - - [18/Oct/2025:18:04:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:43  10.244.40.87 - - [18/Oct/2025:18:04:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:04:53  10.244.40.87 - - [18/Oct/2025:18:04:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:00  🔍 Checking workflow alerts...
+Oct 18 18:05:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:05:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:05:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:05:00  No new alerts to create
+Oct 18 18:05:00  ✅ Generated 0 new alerts
+Oct 18 18:05:03  10.244.40.87 - - [18/Oct/2025:18:05:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:13  10.244.40.87 - - [18/Oct/2025:18:05:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:23  10.244.40.87 - - [18/Oct/2025:18:05:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:33  10.244.40.87 - - [18/Oct/2025:18:05:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:43  10.244.40.87 - - [18/Oct/2025:18:05:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:05:53  10.244.40.87 - - [18/Oct/2025:18:05:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:06:03  10.244.40.87 - - [18/Oct/2025:18:06:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:06:13  10.244.40.87 - - [18/Oct/2025:18:06:13 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:06:23  10.244.40.87 - - [18/Oct/2025:18:06:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:06:33  10.244.40.87 - - [18/Oct/2025:18:06:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:06:43  10.244.40.87 - - [18/Oct/2025:18:06:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:06:53  10.244.40.87 - - [18/Oct/2025:18:06:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:03  10.244.40.87 - - [18/Oct/2025:18:07:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:13  10.244.40.87 - - [18/Oct/2025:18:07:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:23  10.244.40.87 - - [18/Oct/2025:18:07:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:33  10.244.40.87 - - [18/Oct/2025:18:07:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:43  10.244.40.87 - - [18/Oct/2025:18:07:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:07:53  10.244.40.87 - - [18/Oct/2025:18:07:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:08:03  10.244.40.87 - - [18/Oct/2025:18:08:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:08:13  10.244.40.87 - - [18/Oct/2025:18:08:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:08:23  10.244.40.87 - - [18/Oct/2025:18:08:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:08:33  10.244.40.87 - - [18/Oct/2025:18:08:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:08:43  10.244.40.87 - - [18/Oct/2025:18:08:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:08:53  10.244.40.87 - - [18/Oct/2025:18:08:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:09:03  10.244.40.87 - - [18/Oct/2025:18:09:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:09:13  10.244.40.87 - - [18/Oct/2025:18:09:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:09:23  10.244.40.87 - - [18/Oct/2025:18:09:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:09:33  10.244.40.87 - - [18/Oct/2025:18:09:33 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:09:43  10.244.40.87 - - [18/Oct/2025:18:09:43 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:09:53  10.244.40.87 - - [18/Oct/2025:18:09:53 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 18:10:00  🔍 Checking workflow alerts...
+Oct 18 18:10:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:10:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:10:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:10:00  No new alerts to create
+Oct 18 18:10:00  ✅ Generated 0 new alerts
+Oct 18 18:10:03  10.244.40.87 - - [18/Oct/2025:18:10:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:14:38      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:38      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:38      at async Promise.all (index 1)
+Oct 18 18:14:38      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:38    code: 'P2021',
+Oct 18 18:14:38    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:38    clientVersion: '6.14.0'
+Oct 18 18:14:38  }
+Oct 18 18:14:38  🚨 SERVER ERROR: {
+Oct 18 18:14:38    "timestamp": "2025-10-18T18:14:38.954Z",
+Oct 18 18:14:38    "method": "GET",
+Oct 18 18:14:38    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG",
+Oct 18 18:14:38    "ip": "10.244.0.217",
+Oct 18 18:14:38    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:38    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:38    "error": {
+Oct 18 18:14:38      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:38      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:38      "statusCode": 500
+Oct 18 18:14:38    }
+Oct 18 18:14:38  }
+Oct 18 18:14:38  ERROR 💥 {
+Oct 18 18:14:38    code: 'P2021',
+Oct 18 18:14:38    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:38    clientVersion: '6.14.0',
+Oct 18 18:14:38    name: 'PrismaClientKnownRequestError',
+Oct 18 18:10:13  10.244.40.87 - - [18/Oct/2025:18:10:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:10:23  10.244.40.87 - - [18/Oct/2025:18:10:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:10:33  10.244.40.87 - - [18/Oct/2025:18:10:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:10:43  10.244.40.87 - - [18/Oct/2025:18:10:43 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Oct 18 18:10:53  10.244.40.87 - - [18/Oct/2025:18:10:53 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 18 18:11:03  10.244.40.87 - - [18/Oct/2025:18:11:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:11:13  10.244.40.87 - - [18/Oct/2025:18:11:13 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:11:23  10.244.40.87 - - [18/Oct/2025:18:11:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:11:33  10.244.40.87 - - [18/Oct/2025:18:11:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:43  10.244.40.87 - - [18/Oct/2025:18:11:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:11:46  🔄 Running scheduled overdue alert check...
+Oct 18 18:11:46  ✅ No overdue alerts found
+Oct 18 18:11:53  10.244.40.87 - - [18/Oct/2025:18:11:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:03  10.244.40.87 - - [18/Oct/2025:18:12:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:13  10.244.40.87 - - [18/Oct/2025:18:12:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:23  10.244.40.87 - - [18/Oct/2025:18:12:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:33  10.244.40.87 - - [18/Oct/2025:18:12:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:43  10.244.40.87 - - [18/Oct/2025:18:12:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:12:53  10.244.40.87 - - [18/Oct/2025:18:12:53 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:14:38    message: '\n' +
+Oct 18 18:14:38      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:38      '\n' +
+Oct 18 18:14:38      '\n' +
+Oct 18 18:14:38      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:38    statusCode: 500
+Oct 18 18:14:38  }
+Oct 18 18:14:38  10.244.0.217 - - [18/Oct/2025:18:14:38 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=BUG HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:38  prisma:error 
+Oct 18 18:14:38  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:38  
+Oct 18 18:14:38  
+Oct 18 18:14:38  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:39  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:39  🔍 FEEDBACK DEBUG: where clause: {
+Oct 18 18:14:39    "type": "IMPROVEMENT"
+Oct 18 18:14:39  }
+Oct 18 18:14:39  prisma:error 
+Oct 18 18:14:39  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:13:03  10.244.40.87 - - [18/Oct/2025:18:13:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:13  10.244.40.87 - - [18/Oct/2025:18:13:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:23  10.244.40.87 - - [18/Oct/2025:18:13:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:33  10.244.40.87 - - [18/Oct/2025:18:13:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:43  10.244.40.87 - - [18/Oct/2025:18:13:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:13:53  10.244.40.87 - - [18/Oct/2025:18:13:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:03  10.244.40.87 - - [18/Oct/2025:18:14:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:13  10.244.40.87 - - [18/Oct/2025:18:14:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:21  10.244.26.231 - - [18/Oct/2025:18:14:21 +0000] "GET / HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:22  10.244.30.98 - - [18/Oct/2025:18:14:22 +0000] "GET /favicon.ico HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  10.244.26.231 - - [18/Oct/2025:18:14:23 +0000] "GET /api/auth/me HTTP/1.1" 200 493 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  🔍 Where clause: { archived: false }
+Oct 18 18:14:23  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 18 18:14:23  10.244.26.231 - - [18/Oct/2025:18:14:23 +0000] "POST /api/auth/supabase-token-exchange HTTP/1.1" 200 585 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
+Oct 18 18:14:23  📍 Workflow complete, using COMPLETION phase for project cmflohujv009fj8g4681eudhr
+Oct 18 18:14:39  
+Oct 18 18:14:39  
+Oct 18 18:14:39  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:39  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:39  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:39  
+Oct 18 18:14:39  
+Oct 18 18:14:39  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:39      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:39      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:39      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:39      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:39      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:39      at async Promise.all (index 1)
+Oct 18 18:14:39      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:39    code: 'P2021',
+Oct 18 18:14:39    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:39    clientVersion: '6.14.0'
+Oct 18 18:14:39  }
+Oct 18 18:14:39  🚨 SERVER ERROR: {
+Oct 18 18:14:39    "timestamp": "2025-10-18T18:14:39.363Z",
+Oct 18 18:14:39    "method": "GET",
+Oct 18 18:14:39    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=IMPROVEMENT",
+Oct 18 18:14:39    "ip": "10.244.0.217",
+Oct 18 18:14:23  10.244.0.217 - - [18/Oct/2025:18:14:23 +0000] "GET /api/projects HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 18 18:14:23  📅 CALENDAR: GET /api/calendar-events - Request received
+Oct 18 18:14:23  🚨 ALERTS ROUTE: Found 19 alerts from database
+Oct 18 18:14:23  10.244.0.217 - - [18/Oct/2025:18:14:23 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  10.244.30.98 - - [18/Oct/2025:18:14:23 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 200 136 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  10.244.3.89 - - [18/Oct/2025:18:14:23 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  👥 ROLES API: Fetching available users
+Oct 18 18:14:23  10.244.40.87 - - [18/Oct/2025:18:14:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:23  ✅ ROLES API: Found 22 active users
+Oct 18 18:14:23  10.244.30.98 - - [18/Oct/2025:18:14:23 +0000] "GET /api/roles/users HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:23  🎯 API: Getting project position for: cmgf79ee000059e0dz4y2y467
+Oct 18 18:14:23  🎯 API: Found position: {
+Oct 18 18:14:23    projectId: 'cmgf79ee000059e0dz4y2y467',
+Oct 18 18:14:23    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 18:14:23    phaseType: 'LEAD',
+Oct 18 18:14:39    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:39    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:39    "error": {
+Oct 18 18:14:39      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:39      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:39      "statusCode": 500
+Oct 18 18:14:39    }
+Oct 18 18:14:39  }
+Oct 18 18:14:39  ERROR 💥 {
+Oct 18 18:14:39    code: 'P2021',
+Oct 18 18:14:39    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:39    clientVersion: '6.14.0',
+Oct 18 18:14:39    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:39    message: '\n' +
+Oct 18 18:14:39      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:39      '\n' +
+Oct 18 18:14:23    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:23    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:23    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 18:14:23    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 18:14:23    currentLineItemName: 'Answer phone call',
+Oct 18 18:14:23    sectionDisplayName: 'Initial Contact',
+Oct 18 18:14:23    phaseName: 'Lead'
+Oct 18 18:14:23  }
+Oct 18 18:14:23  10.244.26.231 - - [18/Oct/2025:18:14:23 +0000] "GET /api/workflow-data/project-position/cmgf79ee000059e0dz4y2y467 HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:24  🎯 API: Getting project position for: cmglwyzqf0001co0dui9sa9l4
+Oct 18 18:14:24  🎯 API: Found position: {
+Oct 18 18:14:24    projectId: 'cmglwyzqf0001co0dui9sa9l4',
+Oct 18 18:14:24    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 18:14:24    phaseType: 'LEAD',
+Oct 18 18:14:24    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:24    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:24    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 18:14:24    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 18 18:14:24    currentLineItemName: 'Answer phone call',
+Oct 18 18:14:24    sectionDisplayName: 'Initial Contact',
+Oct 18 18:14:24    phaseName: 'Lead'
+Oct 18 18:14:39      '\n' +
+Oct 18 18:14:39      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:39    statusCode: 500
+Oct 18 18:14:39  }
+Oct 18 18:14:39  10.244.0.217 - - [18/Oct/2025:18:14:39 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=IMPROVEMENT HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:39  prisma:error 
+Oct 18 18:14:39  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:39  
+Oct 18 18:14:39  
+Oct 18 18:14:39  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:40  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:40  🔍 FEEDBACK DEBUG: where clause: {
+Oct 18 18:14:40    "type": "IMPROVEMENT"
+Oct 18 18:14:40  }
+Oct 18 18:14:40  prisma:error 
+Oct 18 18:14:40  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:40  
+Oct 18 18:14:40  
+Oct 18 18:14:40  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:40  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:40  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:24  }
+Oct 18 18:14:40  
+Oct 18 18:14:40  
+Oct 18 18:14:40  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:40      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:24  10.244.26.231 - - [18/Oct/2025:18:14:24 +0000] "GET /api/workflow-data/project-position/cmglwyzqf0001co0dui9sa9l4 HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:24  🎯 API: Getting project position for: cmg8qpzr9000l960dvy6s4oum
+Oct 18 18:14:24  🎯 API: Found position: {
+Oct 18 18:14:24    projectId: 'cmg8qpzr9000l960dvy6s4oum',
+Oct 18 18:14:24    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 18 18:14:24    phaseType: 'LEAD',
+Oct 18 18:14:24    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:24    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 18 18:14:24    currentLineItem: 'cmflogzp80008j8a49q7kj67v',
+Oct 18 18:14:24    currentLineItemId: 'cmflogzp80008j8a49q7kj67v',
+Oct 18 18:14:24    currentLineItemName: 'Create Calendar Appointment in AL',
+Oct 18 18:14:24    sectionDisplayName: 'Initial Contact',
+Oct 18 18:14:24    phaseName: 'Lead'
+Oct 18 18:14:24  }
+Oct 18 18:14:24  10.244.0.217 - - [18/Oct/2025:18:14:24 +0000] "GET /api/workflow-data/project-position/cmg8qpzr9000l960dvy6s4oum HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:24  10.244.26.231 - - [18/Oct/2025:18:14:24 +0000] "GET /api/project-messages/cmflohy0y00h2j8g4a1d220po?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:24  10.244.3.89 - - [18/Oct/2025:18:14:24 +0000] "GET /api/project-messages/cmflohx5j00fjj8g4wm8ens5z?page=1&limit=10&includeReplies=true HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:27  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:40      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:40      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:40      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:40      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:40      at async Promise.all (index 1)
+Oct 18 18:14:40      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:40    code: 'P2021',
+Oct 18 18:14:40    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:40    clientVersion: '6.14.0'
+Oct 18 18:14:40  }
+Oct 18 18:14:40  🚨 SERVER ERROR: {
+Oct 18 18:14:40    "timestamp": "2025-10-18T18:14:40.537Z",
+Oct 18 18:14:40    "method": "GET",
+Oct 18 18:14:40    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=IMPROVEMENT",
+Oct 18 18:14:40    "ip": "10.244.0.217",
+Oct 18 18:14:40    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:40    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:40    "error": {
+Oct 18 18:14:40      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:27  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:27  prisma:error 
+Oct 18 18:14:27  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:27  
+Oct 18 18:14:27  
+Oct 18 18:14:27  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:27  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:27  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:27  
+Oct 18 18:14:27  
+Oct 18 18:14:27  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:27      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:27      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:27      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:27      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:27      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:27      at async Promise.all (index 1)
+Oct 18 18:14:27      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:40      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:40      "statusCode": 500
+Oct 18 18:14:40    }
+Oct 18 18:14:40  }
+Oct 18 18:14:40  ERROR 💥 {
+Oct 18 18:14:40    code: 'P2021',
+Oct 18 18:14:40    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:40    clientVersion: '6.14.0',
+Oct 18 18:14:40    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:40    message: '\n' +
+Oct 18 18:14:40      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:40      '\n' +
+Oct 18 18:14:40      '\n' +
+Oct 18 18:14:40      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:40    statusCode: 500
+Oct 18 18:14:40  }
+Oct 18 18:14:40  10.244.0.217 - - [18/Oct/2025:18:14:40 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=&type=IMPROVEMENT HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:40  prisma:error 
+Oct 18 18:14:40  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:40  
+Oct 18 18:14:40  
+Oct 18 18:14:40  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:40  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:40  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:40  prisma:error 
+Oct 18 18:14:27    code: 'P2021',
+Oct 18 18:14:27    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:27    clientVersion: '6.14.0'
+Oct 18 18:14:27  }
+Oct 18 18:14:27  🚨 SERVER ERROR: {
+Oct 18 18:14:27    "timestamp": "2025-10-18T18:14:27.408Z",
+Oct 18 18:14:27    "method": "GET",
+Oct 18 18:14:27    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:40  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:40  
+Oct 18 18:14:40  
+Oct 18 18:14:40  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:40  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:40  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:40  
+Oct 18 18:14:40  
+Oct 18 18:14:40  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:40      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:40      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:40      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:40      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:40      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:40      at async Promise.all (index 1)
+Oct 18 18:14:40      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:40    code: 'P2021',
+Oct 18 18:14:40    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:40    clientVersion: '6.14.0'
+Oct 18 18:14:40  }
+Oct 18 18:14:40  🚨 SERVER ERROR: {
+Oct 18 18:14:40    "timestamp": "2025-10-18T18:14:40.706Z",
+Oct 18 18:14:40    "method": "GET",
+Oct 18 18:14:40    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:40    "ip": "10.244.30.98",
+Oct 18 18:14:40    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:27    "ip": "10.244.30.98",
+Oct 18 18:14:27    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:27    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:27    "error": {
+Oct 18 18:14:27      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:27      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:27      "statusCode": 500
+Oct 18 18:14:27    }
+Oct 18 18:14:27  }
+Oct 18 18:14:27  ERROR 💥 {
+Oct 18 18:14:27    code: 'P2021',
+Oct 18 18:14:27    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:27    clientVersion: '6.14.0',
+Oct 18 18:14:27    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:27    message: '\n' +
+Oct 18 18:14:27      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:27      '\n' +
+Oct 18 18:14:27      '\n' +
+Oct 18 18:14:27      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:27    statusCode: 500
+Oct 18 18:14:40    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:40    "error": {
+Oct 18 18:14:40      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:40      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:40      "statusCode": 500
+Oct 18 18:14:40    }
+Oct 18 18:14:40  }
+Oct 18 18:14:40  ERROR 💥 {
+Oct 18 18:14:40    code: 'P2021',
+Oct 18 18:14:40    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:27  }
+Oct 18 18:14:27  10.244.30.98 - - [18/Oct/2025:18:14:27 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:27  prisma:error 
+Oct 18 18:14:27  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:27  
+Oct 18 18:14:27  
+Oct 18 18:14:27  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:27  10.244.26.231 - - [18/Oct/2025:18:14:27 +0000] "GET /api/users/cmfld60ef0000bi0d8ky8hlot/notifications HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:30  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:30  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:30  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:30  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:30  
+Oct 18 18:14:30  
+Oct 18 18:14:30  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:30      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:30      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:30      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:40    clientVersion: '6.14.0',
+Oct 18 18:14:40    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:40    message: '\n' +
+Oct 18 18:14:40      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:40      '\n' +
+Oct 18 18:14:40      '\n' +
+Oct 18 18:14:40      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:40    statusCode: 500
+Oct 18 18:14:40  }
+Oct 18 18:14:40  10.244.30.98 - - [18/Oct/2025:18:14:40 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:40  prisma:error 
+Oct 18 18:14:40  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:40  
+Oct 18 18:14:40  
+Oct 18 18:14:40  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:41  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:41  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:41  prisma:error 
+Oct 18 18:14:41  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:41  
+Oct 18 18:14:30      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:30      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:30      at async Promise.all (index 1)
+Oct 18 18:14:30  prisma:error 
+Oct 18 18:14:30  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:30  
+Oct 18 18:14:30  
+Oct 18 18:14:30  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:30      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:30    code: 'P2021',
+Oct 18 18:14:30    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:30    clientVersion: '6.14.0'
+Oct 18 18:14:30  }
+Oct 18 18:14:30  🚨 SERVER ERROR: {
+Oct 18 18:14:30    "timestamp": "2025-10-18T18:14:30.850Z",
+Oct 18 18:14:30    "method": "GET",
+Oct 18 18:14:30    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:41  
+Oct 18 18:14:41  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:41  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:41  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:41  
+Oct 18 18:14:41  
+Oct 18 18:14:41  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:41      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:41      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:41      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:41      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:30    "ip": "10.244.30.98",
+Oct 18 18:14:30    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:30    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:30    "error": {
+Oct 18 18:14:30      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:30      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:30      "statusCode": 500
+Oct 18 18:14:30    }
+Oct 18 18:14:30  }
+Oct 18 18:14:30  ERROR 💥 {
+Oct 18 18:14:30    code: 'P2021',
+Oct 18 18:14:30    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:30    clientVersion: '6.14.0',
+Oct 18 18:14:30    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:30    message: '\n' +
+Oct 18 18:14:30      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:30      '\n' +
+Oct 18 18:14:30      '\n' +
+Oct 18 18:14:30      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:30    statusCode: 500
+Oct 18 18:14:30  }
+Oct 18 18:14:30  10.244.30.98 - - [18/Oct/2025:18:14:30 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:30  prisma:error 
+Oct 18 18:14:30  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:30  
+Oct 18 18:14:30  
+Oct 18 18:14:30  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:33  10.244.40.87 - - [18/Oct/2025:18:14:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:35  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:35  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:35  prisma:error 
+Oct 18 18:14:35  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:35  
+Oct 18 18:14:35  
+Oct 18 18:14:35  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:41      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:41      at async Promise.all (index 1)
+Oct 18 18:14:41      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:41    code: 'P2021',
+Oct 18 18:14:41    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:41    clientVersion: '6.14.0'
+Oct 18 18:14:41  }
+Oct 18 18:14:41  🚨 SERVER ERROR: {
+Oct 18 18:14:41    "timestamp": "2025-10-18T18:14:41.902Z",
+Oct 18 18:14:41    "method": "GET",
+Oct 18 18:14:41    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:41    "ip": "10.244.30.98",
+Oct 18 18:14:41    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:35  10.244.30.98 - - [18/Oct/2025:18:14:35 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:35  prisma:error 
+Oct 18 18:14:35  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:35  
+Oct 18 18:14:35  
+Oct 18 18:14:35  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:35  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:35  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:35  
+Oct 18 18:14:35  
+Oct 18 18:14:35  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:35      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:35      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:41    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:41    "error": {
+Oct 18 18:14:41      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:41      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:41      "statusCode": 500
+Oct 18 18:14:41    }
+Oct 18 18:14:41  }
+Oct 18 18:14:41  ERROR 💥 {
+Oct 18 18:14:41    code: 'P2021',
+Oct 18 18:14:41    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:41    clientVersion: '6.14.0',
+Oct 18 18:14:41    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:41    message: '\n' +
+Oct 18 18:14:41      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:41      '\n' +
+Oct 18 18:14:41      '\n' +
+Oct 18 18:14:41      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:41    statusCode: 500
+Oct 18 18:14:35      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:35      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:35      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:35      at async Promise.all (index 1)
+Oct 18 18:14:35      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:35    code: 'P2021',
+Oct 18 18:14:35    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:35    clientVersion: '6.14.0'
+Oct 18 18:14:35  }
+Oct 18 18:14:35  🚨 SERVER ERROR: {
+Oct 18 18:14:35    "timestamp": "2025-10-18T18:14:35.116Z",
+Oct 18 18:14:35    "method": "GET",
+Oct 18 18:14:35    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:35    "ip": "10.244.30.98",
+Oct 18 18:14:35    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:35    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:35    "error": {
+Oct 18 18:14:35      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:35      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:35      "statusCode": 500
+Oct 18 18:14:35    }
+Oct 18 18:14:41  }
+Oct 18 18:14:41  10.244.30.98 - - [18/Oct/2025:18:14:41 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:41  prisma:error 
+Oct 18 18:14:41  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:41  
+Oct 18 18:14:41  
+Oct 18 18:14:41  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:43  10.244.18.243 - - [18/Oct/2025:18:14:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:50  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:50  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:50  prisma:error 
+Oct 18 18:14:50  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:50  
+Oct 18 18:14:50  
+Oct 18 18:14:50  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:50  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:50  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:50  
+Oct 18 18:14:50  
+Oct 18 18:14:50  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:50      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:35  }
+Oct 18 18:14:35  ERROR 💥 {
+Oct 18 18:14:35    code: 'P2021',
+Oct 18 18:14:35    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:35    clientVersion: '6.14.0',
+Oct 18 18:14:35    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:35    message: '\n' +
+Oct 18 18:14:35      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:35      '\n' +
+Oct 18 18:14:35      '\n' +
+Oct 18 18:14:35      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:50      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:50      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:50      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:50      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:50      at async Promise.all (index 1)
+Oct 18 18:14:50      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:50    code: 'P2021',
+Oct 18 18:14:50    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:50    clientVersion: '6.14.0'
+Oct 18 18:14:50  }
+Oct 18 18:14:50  🚨 SERVER ERROR: {
+Oct 18 18:14:50    "timestamp": "2025-10-18T18:14:50.729Z",
+Oct 18 18:14:50    "method": "GET",
+Oct 18 18:14:50    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:50    "ip": "10.244.30.98",
+Oct 18 18:14:50    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:50    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:50    "error": {
+Oct 18 18:14:50      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:35    statusCode: 500
+Oct 18 18:14:35  }
+Oct 18 18:14:43  10.244.40.87 - - [18/Oct/2025:18:14:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:46  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 18 18:14:46  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 18 18:14:46  prisma:error 
+Oct 18 18:14:46  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:46  
+Oct 18 18:14:46  
+Oct 18 18:14:46  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:46  🔍 FEEDBACK DEBUG: Error in feedback.count: PrismaClientKnownRequestError: 
+Oct 18 18:14:46  Invalid `prisma.feedback.count()` invocation:
+Oct 18 18:14:46  
+Oct 18 18:14:46  
+Oct 18 18:14:46  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:46      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 18 18:14:46      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 18 18:14:46      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 18 18:14:46      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 18 18:14:50      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:50      "statusCode": 500
+Oct 18 18:14:50    }
+Oct 18 18:14:50  }
+Oct 18 18:14:50  ERROR 💥 {
+Oct 18 18:14:50    code: 'P2021',
+Oct 18 18:14:50    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:50    clientVersion: '6.14.0',
+Oct 18 18:14:50    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:50    message: '\n' +
+Oct 18 18:14:50      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:14:50      '\n' +
+Oct 18 18:14:50      '\n' +
+Oct 18 18:14:50      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:50    statusCode: 500
+Oct 18 18:14:50  }
+Oct 18 18:14:50  10.244.30.98 - - [18/Oct/2025:18:14:50 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:50  prisma:error 
+Oct 18 18:14:50  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:50  
+Oct 18 18:14:46      at async /app/routes/feedback.js:125:16
+Oct 18 18:14:46      at async Promise.all (index 1)
+Oct 18 18:14:46      at async /app/routes/feedback.js:89:29 {
+Oct 18 18:14:46    code: 'P2021',
+Oct 18 18:14:50  
+Oct 18 18:14:50  The table `public.feedback` does not exist in the current database.
+Oct 18 18:14:51  10.244.3.89 - - [18/Oct/2025:18:14:51 +0000] "GET /static/css/main.d2215abd.css.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:51  10.244.3.89 - - [18/Oct/2025:18:14:51 +0000] "GET /static/js/main.e8de5815.js.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:53  10.244.18.243 - - [18/Oct/2025:18:14:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:00  🔍 Checking workflow alerts...
+Oct 18 18:15:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:15:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:14:46    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:46    clientVersion: '6.14.0'
+Oct 18 18:14:46  }
+Oct 18 18:14:46  🚨 SERVER ERROR: {
+Oct 18 18:14:46    "timestamp": "2025-10-18T18:14:46.441Z",
+Oct 18 18:14:46    "method": "GET",
+Oct 18 18:14:46    "url": "/api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search=",
+Oct 18 18:14:46    "ip": "10.244.30.98",
+Oct 18 18:14:46    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 18 18:14:46    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Oct 18 18:14:46    "error": {
+Oct 18 18:14:46      "name": "PrismaClientKnownRequestError",
+Oct 18 18:14:46      "message": "\nInvalid `prisma.feedback.count()` invocation:\n\n\nThe table `public.feedback` does not exist in the current database.",
+Oct 18 18:14:46      "statusCode": 500
+Oct 18 18:14:46    }
+Oct 18 18:14:46  }
+Oct 18 18:14:46  ERROR 💥 {
+Oct 18 18:14:46    code: 'P2021',
+Oct 18 18:14:46    meta: { modelName: 'Feedback', table: 'public.feedback' },
+Oct 18 18:14:46    clientVersion: '6.14.0',
+Oct 18 18:14:46    name: 'PrismaClientKnownRequestError',
+Oct 18 18:14:46    message: '\n' +
+Oct 18 18:14:46      'Invalid `prisma.feedback.count()` invocation:\n' +
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:14:46      '\n' +
+Oct 18 18:14:46      '\n' +
+Oct 18 18:14:46      'The table `public.feedback` does not exist in the current database.',
+Oct 18 18:14:46    statusCode: 500
+Oct 18 18:14:46  }
+Oct 18 18:14:46  10.244.30.98 - - [18/Oct/2025:18:14:46 +0000] "GET /api/feedback?status=all&severity=all&dateRange=all&sortBy=newest&search= HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 18 18:14:46  prisma:error 
+Oct 18 18:14:46  Invalid `prisma.feedback.findMany()` invocation:
+Oct 18 18:14:46  
+Oct 18 18:14:46  
+Oct 18 18:14:46  The table `public.feedback` does not exist in the current database.
+Oct 18 18:15:00  No new alerts to create
+Oct 18 18:15:00  ✅ Generated 0 new alerts
+Oct 18 18:15:03  10.244.18.243 - - [18/Oct/2025:18:15:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:13  10.244.18.243 - - [18/Oct/2025:18:15:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:23  10.244.18.243 - - [18/Oct/2025:18:15:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:33  10.244.18.243 - - [18/Oct/2025:18:15:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:43  10.244.18.243 - - [18/Oct/2025:18:15:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:53  10.244.18.243 - - [18/Oct/2025:18:15:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:03  10.244.18.243 - - [18/Oct/2025:18:16:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:13  10.244.18.243 - - [18/Oct/2025:18:16:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:23  10.244.18.243 - - [18/Oct/2025:18:16:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:33  10.244.18.243 - - [18/Oct/2025:18:16:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:43  10.244.18.243 - - [18/Oct/2025:18:16:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:53  10.244.18.243 - - [18/Oct/2025:18:16:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:03  10.244.18.243 - - [18/Oct/2025:18:17:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:13  10.244.18.243 - - [18/Oct/2025:18:17:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:23  10.244.18.243 - - [18/Oct/2025:18:17:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:14:53  10.244.40.87 - - [18/Oct/2025:18:14:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:00  🔍 Checking workflow alerts...
+Oct 18 18:15:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 18 18:15:00  🚀 Generating alerts for 23 active projects
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10002
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Create Calendar Appointment in AL on project 10021
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Take site photos on project 10024
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10001
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Document work start on project 10012
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10014
+Oct 18 18:17:33  10.244.18.243 - - [18/Oct/2025:18:17:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:43  10.244.18.243 - - [18/Oct/2025:18:17:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:53  10.244.18.243 - - [18/Oct/2025:18:17:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:03  10.244.18.243 - - [18/Oct/2025:18:18:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:13  10.244.18.243 - - [18/Oct/2025:18:18:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:23  10.244.18.243 - - [18/Oct/2025:18:18:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:18:33  10.244.18.243 - - [18/Oct/2025:18:18:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:43  10.244.18.243 - - [18/Oct/2025:18:18:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:53  10.244.18.243 - - [18/Oct/2025:18:18:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:03  10.244.18.243 - - [18/Oct/2025:18:19:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:13  10.244.18.243 - - [18/Oct/2025:18:19:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10013
+Oct 18 18:15:00  No new alerts to create
+Oct 18 18:15:00  ✅ Generated 0 new alerts
+Oct 18 18:15:03  10.244.40.87 - - [18/Oct/2025:18:15:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:15:13  10.244.40.87 - - [18/Oct/2025:18:15:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:23  10.244.40.87 - - [18/Oct/2025:18:15:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:33  10.244.40.87 - - [18/Oct/2025:18:15:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:43  10.244.40.87 - - [18/Oct/2025:18:15:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:15:53  10.244.40.87 - - [18/Oct/2025:18:15:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:03  10.244.40.87 - - [18/Oct/2025:18:16:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:13  10.244.40.87 - - [18/Oct/2025:18:16:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:23  10.244.40.87 - - [18/Oct/2025:18:16:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:33  10.244.40.87 - - [18/Oct/2025:18:16:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:43  10.244.40.87 - - [18/Oct/2025:18:16:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:16:53  10.244.40.87 - - [18/Oct/2025:18:16:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:03  10.244.40.87 - - [18/Oct/2025:18:17:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:13  10.244.40.87 - - [18/Oct/2025:18:17:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:23  10.244.40.87 - - [18/Oct/2025:18:17:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:33  10.244.40.87 - - [18/Oct/2025:18:17:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:43  10.244.40.87 - - [18/Oct/2025:18:17:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:17:53  10.244.40.87 - - [18/Oct/2025:18:17:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:03  10.244.40.87 - - [18/Oct/2025:18:18:03 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:13  10.244.40.87 - - [18/Oct/2025:18:18:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:23  10.244.40.87 - - [18/Oct/2025:18:18:23 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:18:33  10.244.40.87 - - [18/Oct/2025:18:18:33 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:18:43  10.244.40.87 - - [18/Oct/2025:18:18:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:18:53  10.244.40.87 - - [18/Oct/2025:18:18:53 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:03  10.244.40.87 - - [18/Oct/2025:18:19:03 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 18 18:19:13  10.244.40.87 - - [18/Oct/2025:18:19:13 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:23  10.244.40.87 - - [18/Oct/2025:18:19:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:23  10.244.18.243 - - [18/Oct/2025:18:19:23 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:33  10.244.40.87 - - [18/Oct/2025:18:19:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:33  10.244.18.243 - - [18/Oct/2025:18:19:33 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:43  10.244.40.87 - - [18/Oct/2025:18:19:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 18 18:19:43  10.244.18.243 - - [18/Oct/2025:18:19:43 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"

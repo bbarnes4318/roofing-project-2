@@ -48,6 +48,12 @@ class FollowUpScheduler {
    */
   async processFollowUps() {
     try {
+      // Check if database connection is ready
+      if (!global.__DB_CONNECTED__) {
+        console.log('⏳ Database connection not ready, skipping follow-up processing');
+        return;
+      }
+      
       const processedFollowUps = await FollowUpService.processPendingFollowUps();
       console.log(`Processed ${processedFollowUps.length} follow-ups`);
     } catch (error) {
