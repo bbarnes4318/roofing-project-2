@@ -6,6 +6,8 @@ import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
 import FollowUpTracking from '../ui/FollowUpTracking';
 import RoofingPermissionsPage from './RoofingPermissionsPage';
+import AddTeamMemberPage from './AddTeamMemberPage';
+import UserManagementPage from './UserManagementPage';
 import { API_BASE_URL, authService } from '../../services/api';
 import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
@@ -689,6 +691,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       { id: 'security', label: 'Security', icon: '🔒' },
       { id: 'roles', label: 'Roles', icon: '👥' },
       { id: 'permissions', label: 'Permissions', icon: '🔐' },
+      { id: 'team-members', label: 'Team Members', icon: '👥' },
+      { id: 'add-team-member', label: 'Add Team Member', icon: '➕' },
       { id: 'follow-up', label: 'Bubbles AI', icon: '🤖' }
       // Note: Excel Data section hidden per requirements
       // Note: Subjects tab removed per requirements
@@ -2543,6 +2547,35 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         return renderRolesTab();
       case 'permissions':
         return <RoofingPermissionsPage colorMode={colorMode} />;
+      case 'team-members':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Team Member Management</h3>
+              <button
+                onClick={() => setActiveTab('add-team-member')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Add Team Member
+              </button>
+            </div>
+            <UserManagementPage colorMode={colorMode} />
+          </div>
+        );
+      case 'add-team-member':
+        return (
+          <div>
+            <div className="flex items-center mb-4">
+              <button
+                onClick={() => setActiveTab('team-members')}
+                className="mr-4 text-blue-600 hover:text-blue-800"
+              >
+                ← Back to Team Members
+              </button>
+            </div>
+            <AddTeamMemberPage colorMode={colorMode} />
+          </div>
+        );
       case 'follow-up':
         return renderFollowUpTab();
       // Note: Excel Data section hidden per requirements

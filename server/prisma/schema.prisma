@@ -17,6 +17,8 @@ model User {
   password                 String                    @db.VarChar(255)
   avatar                   String?                   @db.VarChar(2000)
   phone                    String?                   @db.VarChar(20)
+  secondaryPhone           String?                   @db.VarChar(20)
+  preferredPhone           String?                   @db.VarChar(20)
   position                 String?                   @db.VarChar(100)
   department               String?                   @db.VarChar(100)
   bio                      String?                   @db.VarChar(500)
