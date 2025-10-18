@@ -153,17 +153,15 @@ const AddTeamMemberPage = ({ colorMode }) => {
   }
 
   return (
-    <div className={`min-h-screen ${colorMode ? 'bg-[#0f172a]' : 'bg-gray-50'} py-8`}>
-      <div className="max-w-2xl mx-auto px-4">
-        <div className={`${colorMode ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-lg`}>
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">Add Team Member</h1>
-            <p className="text-gray-600 mt-1">Add a new team member to your organization</p>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <div className={`${colorMode ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-sm border border-gray-200`}>
+      <div className="px-4 py-3 border-b border-gray-200">
+        <h1 className="text-lg font-semibold text-gray-900">Add Team Member</h1>
+        <p className="text-sm text-gray-600">Add a new team member to your organization</p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="p-4 space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
                 <div className="flex">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -177,9 +175,9 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
                   First Name *
                 </label>
                 <input
@@ -194,7 +192,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
                   Last Name *
                 </label>
                 <input
@@ -210,7 +208,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address *
               </label>
               <input
@@ -224,9 +222,9 @@ const AddTeamMemberPage = ({ colorMode }) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                   Primary Phone
                 </label>
                 <input
@@ -241,7 +239,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </div>
 
               <div>
-                <label htmlFor="secondaryPhone" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="secondaryPhone" className="block text-sm font-medium text-gray-700 mb-1">
                   Secondary Phone
                 </label>
                 <input
@@ -258,10 +256,10 @@ const AddTeamMemberPage = ({ colorMode }) => {
 
             {(formData.phone || formData.secondaryPhone) && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Preferred Phone for Customer Communications
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {formData.phone && (
                     <label className="flex items-center">
                       <input
@@ -293,7 +291,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
             )}
 
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                 Role *
               </label>
               <select
@@ -312,7 +310,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </select>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-6">
+            <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
                 onClick={resetForm}
