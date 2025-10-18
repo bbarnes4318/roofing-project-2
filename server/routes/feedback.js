@@ -5,6 +5,14 @@ const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
+// Debug database connection
+console.log('🔍 FEEDBACK ROUTE DEBUG:');
+console.log('🔍 DATABASE_URL present:', !!process.env.DATABASE_URL);
+if (process.env.DATABASE_URL) {
+  const maskedUrl = process.env.DATABASE_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+  console.log('🔍 DATABASE_URL:', maskedUrl);
+}
+
 // GET /api/feedback - List feedback with filters
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   const {
@@ -110,7 +118,16 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
         }
       }
     }),
-    prisma.feedback.count({ where })
+    (async () => {
+      console.log('🔍 FEEDBACK DEBUG: About to query feedback table');
+      console.log('🔍 FEEDBACK DEBUG: where clause:', JSON.stringify(where, null, 2));
+      try {
+        return await prisma.feedback.count({ where });
+      } catch (error) {
+        console.error('🔍 FEEDBACK DEBUG: Error in feedback.count:', error);
+        throw error;
+      }
+    })()
   ]);
 
   // Transform the data to match frontend expectations
