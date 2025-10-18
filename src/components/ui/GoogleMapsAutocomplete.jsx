@@ -45,9 +45,9 @@ const GoogleMapsAutocomplete = ({
       return;
     }
 
-    // Load Google Maps API
+    // Load Google Maps API with Places API (New) support
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=3.56`;
     script.async = true;
     script.defer = true;
     
@@ -81,11 +81,11 @@ const GoogleMapsAutocomplete = ({
     }
 
     try {
-      console.log('🔍 GOOGLE MAPS DEBUG: Creating Autocomplete instance');
+      console.log('🔍 GOOGLE MAPS DEBUG: Creating Autocomplete instance with Places API (New)');
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['address'],
         componentRestrictions: { country: 'us' }, // Restrict to US addresses
-        fields: ['formatted_address', 'geometry', 'address_components', 'place_id']
+        fields: ['formatted_address', 'geometry', 'address_components', 'place_id', 'name', 'types']
       });
       console.log('🔍 GOOGLE MAPS DEBUG: Autocomplete instance created successfully');
 

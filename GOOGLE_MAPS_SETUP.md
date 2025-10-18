@@ -9,10 +9,11 @@ This application now includes Google Maps autocomplete integration for all addre
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
 3. Enable the following APIs:
-   - **Places API** (for autocomplete functionality)
+   - **Places API (New)** (for autocomplete functionality) - This is the new version
    - **Maps JavaScript API** (for map functionality)
 4. Go to "Credentials" and create a new API key
 5. Restrict the API key to your domain for security
+6. **Important**: Make sure to enable Places API (New) specifically, not the legacy Places API
 
 ### 2. Environment Variables
 Add the following environment variable to your `.env` file:
@@ -75,8 +76,9 @@ The Bubbles AI assistant can now understand and work with addresses mentioned in
 
 ### Common Issues:
 1. **"Google Maps API key not configured"** - Add REACT_APP_GOOGLE_MAPS_API_KEY to your .env file
-2. **"Failed to load Google Maps API"** - Check your API key and ensure Places API is enabled
-3. **No suggestions appearing** - Verify the API key has Places API enabled and is not restricted too much
+2. **"Failed to load Google Maps API"** - Check your API key and ensure Places API (New) is enabled
+3. **No suggestions appearing** - Verify the API key has Places API (New) enabled and is not restricted too much
+4. **"This API project is not authorized to use this API"** - Make sure you've enabled Places API (New) specifically, not the legacy version
 
 ### Testing:
 - Test in development with a valid API key

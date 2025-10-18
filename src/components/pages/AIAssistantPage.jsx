@@ -2510,7 +2510,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         onClick={() => setShowDocumentBrowser(false)}
                     />
                     {/* Popup */}
-                    <div className="fixed top-4 right-4 w-80 max-h-[80vh] z-50 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
+                    <div className="fixed top-20 right-4 w-80 max-h-[80vh] z-50 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-gray-200 bg-white">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-gray-800">Available Documents</h3>
