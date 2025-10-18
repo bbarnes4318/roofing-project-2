@@ -264,6 +264,7 @@ app.use(helmet({
         "blob:",  // Required for Vapi audio worklets
         "https://sc.lfeeder.com",
         "https://cdn.jsdelivr.net",
+        "https://maps.googleapis.com",  // Google Maps API
         "https://c.daily.co",  // Daily.co domain for Vapi
         "https://*.daily.co"   // Daily.co subdomains for Vapi
       ],

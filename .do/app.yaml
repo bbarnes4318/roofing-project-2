@@ -24,7 +24,45 @@ services:
   - key: REACT_APP_SOCKET_URL
     value: "https://goldfish-app-4yuma.ondigitalocean.app"
   - key: REACT_APP_GOOGLE_MAPS_API_KEY
-    value: "AIzaSyBL-BzpAUPd-Deu8LndaoQO367iokdlehM"
+    value: ${REACT_APP_GOOGLE_MAPS_API_KEY}
+  - key: REACT_APP_SUPABASE_URL
+    value: ${REACT_APP_SUPABASE_URL}
+  - key: REACT_APP_SUPABASE_ANON_KEY
+    value: ${REACT_APP_SUPABASE_ANON_KEY}
+  - key: OPENAI_API_KEY
+    value: ${OPENAI_API_KEY}
+  - key: OPENAI_MODEL
+    value: ${OPENAI_MODEL}
+  - key: OPENAI_FALLBACK_MODEL
+    value: ${OPENAI_FALLBACK_MODEL}
+  - key: REACT_APP_VAPI_PUBLIC_KEY
+    value: ${REACT_APP_VAPI_PUBLIC_KEY}
+  - key: REACT_APP_VAPI_ASSISTANT_ID
+    value: ${REACT_APP_VAPI_ASSISTANT_ID}
+  - key: VAPI_WEBHOOK_SECRET
+    value: ${VAPI_WEBHOOK_SECRET}
+  - key: DO_SPACES_KEY
+    value: ${DO_SPACES_KEY}
+  - key: DO_SPACES_SECRET
+    value: ${DO_SPACES_SECRET}
+  - key: DO_SPACES_NAME
+    value: ${DO_SPACES_NAME}
+  - key: DO_SPACES_REGION
+    value: ${DO_SPACES_REGION}
+  - key: DO_SPACES_ENDPOINT
+    value: ${DO_SPACES_ENDPOINT}
+  - key: DO_SPACES_CDN_HOST
+    value: ${DO_SPACES_CDN_HOST}
+  - key: VAPI_INTERNAL_KEY
+    value: ${VAPI_INTERNAL_KEY}
+  - key: OPENAI_EMBEDDING_MODEL
+    value: ${OPENAI_EMBEDDING_MODEL}
+  - key: RESEND_API_KEY
+    value: ${RESEND_API_KEY}
+  - key: RESEND_FROM_EMAIL
+    value: ${RESEND_FROM_EMAIL}
+  - key: RESEND_FROM_NAME
+    value: ${RESEND_FROM_NAME}
   http_port: 8080
   routes:
   - path: /api

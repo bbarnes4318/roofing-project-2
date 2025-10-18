@@ -30,9 +30,15 @@ const GoogleMapsAutocomplete = ({
   const loadGoogleMapsAPI = () => {
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
     
+    console.log('🔍 GOOGLE MAPS DEBUG: Starting Google Maps API load');
+    console.log('🔍 GOOGLE MAPS DEBUG: API Key exists:', !!apiKey);
+    console.log('🔍 GOOGLE MAPS DEBUG: API Key value:', apiKey ? `${apiKey.substring(0, 10)}...` : 'undefined');
+    console.log('🔍 GOOGLE MAPS DEBUG: All env vars:', Object.keys(process.env).filter(key => key.includes('GOOGLE')));
+    
     if (!apiKey) {
       setError('Google Maps API key not configured');
       console.warn('REACT_APP_GOOGLE_MAPS_API_KEY environment variable is required');
+      console.error('🔍 GOOGLE MAPS DEBUG: API key is missing or undefined');
       return;
     }
 
@@ -56,27 +62,44 @@ const GoogleMapsAutocomplete = ({
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
+    
+    console.log('🔍 GOOGLE MAPS DEBUG: Creating script with URL:', script.src);
+    
     script.onload = () => {
+      console.log('🔍 GOOGLE MAPS DEBUG: Script loaded successfully');
+      console.log('🔍 GOOGLE MAPS DEBUG: window.google exists:', !!window.google);
+      console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps exists:', !!(window.google && window.google.maps));
+      console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps.places exists:', !!(window.google && window.google.maps && window.google.maps.places));
       setIsLoaded(true);
       initializeAutocomplete();
     };
-    script.onerror = () => {
+    script.onerror = (error) => {
+      console.error('🔍 GOOGLE MAPS DEBUG: Script failed to load:', error);
       setError('Failed to load Google Maps API');
     };
     document.head.appendChild(script);
   };
 
   const initializeAutocomplete = () => {
+    console.log('🔍 GOOGLE MAPS DEBUG: Initializing autocomplete');
+    console.log('🔍 GOOGLE MAPS DEBUG: inputRef.current exists:', !!inputRef.current);
+    console.log('🔍 GOOGLE MAPS DEBUG: window.google exists:', !!window.google);
+    console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps exists:', !!(window.google && window.google.maps));
+    console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps.places exists:', !!(window.google && window.google.maps && window.google.maps.places));
+    
     if (!inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
+      console.error('🔍 GOOGLE MAPS DEBUG: Missing required components for autocomplete initialization');
       return;
     }
 
     try {
+      console.log('🔍 GOOGLE MAPS DEBUG: Creating Autocomplete instance');
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
         types: ['address'],
         componentRestrictions: { country: 'us' }, // Restrict to US addresses
         fields: ['formatted_address', 'geometry', 'address_components', 'place_id']
       });
+      console.log('🔍 GOOGLE MAPS DEBUG: Autocomplete instance created successfully');
 
       autocompleteRef.current.addListener('place_changed', () => {
         const place = autocompleteRef.current.getPlace();
