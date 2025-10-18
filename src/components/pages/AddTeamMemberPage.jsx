@@ -327,8 +327,6 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </button>
             </div>
           </form>
-        </div>
-      </div>
     </div>
   );
 };
