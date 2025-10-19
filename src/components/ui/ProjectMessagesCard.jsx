@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import WorkflowProgressService from '../../services/workflowProgress';
 import { useProjectMessages, useCreateProjectMessage, useMarkMessageAsRead } from '../../hooks/useProjectMessages';
+import { assetsService } from '../../services/api';
+import DocumentViewerModal from './DocumentViewerModal';
 
 const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, onQuickReply, isExpanded, onToggleExpansion, useRealData = false, sourceSection = 'Project Messages', onDelete = null, isDeleting = false }) => {
     // Use external expansion state if provided, otherwise use internal state
     const [internalExpanded, setInternalExpanded] = useState(false);
     const expanded = isExpanded !== undefined ? isExpanded : internalExpanded;
+    
+    // Document modal state
+    const [selectedDocument, setSelectedDocument] = useState(null);
+    const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
     const [showQuickReply, setShowQuickReply] = useState(false);
     const [quickReplyText, setQuickReplyText] = useState('');
     const quickReplyTextareaRef = useRef(null);
@@ -785,6 +791,54 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </form>
                 </div>
             )}
+            
+            {/* Attachments - Display outside expanded section so they're always visible */}
+            {Array.isArray(activity?.metadata?.attachments) && activity.metadata.attachments.length > 0 && (
+                <div className="px-3 pb-3">
+                    <div className="flex flex-col gap-1.5">
+                        {activity.metadata.attachments.map((att, idx) => {
+                            const fileName = att.title || att.fileName || att.originalName || 'Attachment';
+                            const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
+                            return (
+                                <div
+                                    key={idx}
+                                    className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg bg-white px-3 py-2 text-xs shadow-sm hover:shadow transition-shadow"
+                                >
+                                    {/* Document icon and name */}
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                                            <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="font-medium text-gray-900 truncate">{fileName}</div>
+                                            <div className="text-gray-500 text-xs">{fileExt.toUpperCase()}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Open button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedDocument(att);
+                                            setIsDocumentModalOpen(true);
+                                        }}
+                                        className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
+                                    >
+                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        View
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+            
             {/* Dropdown section - Professional message thread */}
             {expanded && (
                 <div className={`px-3 py-3 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-white border-gray-200'}`} style={colorMode ? {} : {backgroundColor: 'white'}}>
@@ -865,6 +919,16 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 </div>
             )}
         </div>
+        
+        {/* Document Viewer Modal */}
+        <DocumentViewerModal
+            isOpen={isDocumentModalOpen}
+            document={selectedDocument}
+            onClose={() => {
+                setIsDocumentModalOpen(false);
+                setSelectedDocument(null);
+            }}
+        />
     );
 };
 
