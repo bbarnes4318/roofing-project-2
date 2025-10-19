@@ -618,7 +618,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     </div>
 
                     <div>
-                                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Phone
                       </label>
                       <input
