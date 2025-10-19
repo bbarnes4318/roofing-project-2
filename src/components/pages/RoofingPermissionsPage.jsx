@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../../services/api';
-import PermissionService from '../../services/permissionService';
+import permissionService from '../../services/permissionService';
 
 const RoofingPermissionsPage = ({ colorMode }) => {
   const [selectedRole, setSelectedRole] = useState('PROJECT_MANAGER');
@@ -9,7 +9,7 @@ const RoofingPermissionsPage = ({ colorMode }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [permissionService] = useState(() => new PermissionService());
+  // Use the singleton instance directly
 
   // Real database roles from your schema
   const ROLES = [
@@ -190,7 +190,7 @@ const RoofingPermissionsPage = ({ colorMode }) => {
     };
 
     loadPermissions();
-  }, [permissionService]);
+  }, []);
 
   const currentPermissions = rolePermissions[selectedRole] || [];
   const selectedRoleData = ROLES.find(r => r.value === selectedRole);

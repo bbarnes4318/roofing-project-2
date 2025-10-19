@@ -6,11 +6,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [formData, setFormData] = useState({
     customerName: '',
     customerEmail: '',
-    customerPhones: [{ number: '', type: 'MOBILE', isPrimary: true }], // Multiple phone numbers with types
+    customerPhone: '',
     customerTypeOfContact: 'PRIMARY_CONTACT',
     secondaryName: '',
     secondaryEmail: '',
-    secondaryPhones: [{ number: '', type: 'MOBILE', isPrimary: true }], // Multiple phone numbers with types
+    secondaryPhone: '',
     secondaryTypeOfContact: 'SECONDARY_CONTACT',
     primaryContact: 'PRIMARY', // PRIMARY or SECONDARY
     address: '',
@@ -40,51 +40,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     'Social Media',
     'Word of Mouth'
   ];
-
-  // Phone type options
-  const PHONE_TYPES = [
-    { value: 'MOBILE', label: 'Mobile' },
-    { value: 'HOME', label: 'Home' },
-    { value: 'WORK', label: 'Work' }
-  ];
-
-  // Helper functions for managing phone numbers
-  const addPhoneNumber = (customerType) => {
-    const fieldName = customerType === 'primary' ? 'customerPhones' : 'secondaryPhones';
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: [...prev[fieldName], { number: '', type: 'MOBILE', isPrimary: false }]
-    }));
-  };
-
-  const removePhoneNumber = (customerType, index) => {
-    const fieldName = customerType === 'primary' ? 'customerPhones' : 'secondaryPhones';
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: prev[fieldName].filter((_, i) => i !== index)
-    }));
-  };
-
-  const updatePhoneNumber = (customerType, index, field, value) => {
-    const fieldName = customerType === 'primary' ? 'customerPhones' : 'secondaryPhones';
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: prev[fieldName].map((phone, i) => 
-        i === index ? { ...phone, [field]: value } : phone
-      )
-    }));
-  };
-
-  const setPrimaryPhone = (customerType, index) => {
-    const fieldName = customerType === 'primary' ? 'customerPhones' : 'secondaryPhones';
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: prev[fieldName].map((phone, i) => ({
-        ...phone,
-        isPrimary: i === index
-      }))
-    }));
-  };
 
   // Success Notification Component
   const SuccessNotification = () => {
@@ -160,86 +115,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       </div>
     );
   };
-
-  // Phone Number Input Component
-  const PhoneNumberInput = ({ customerType, phones, errors = {} }) => (
-    <div className="space-y-2">
-      <label className="block text-xs font-semibold text-gray-700 mb-1">
-        Phone Numbers
-      </label>
-      {phones.map((phone, index) => (
-        <div key={index} className="flex gap-2 items-start">
-          <div className="flex-1">
-            <input
-              type="tel"
-              value={phone.number}
-              onChange={(e) => {
-                const formattedValue = formatPhoneNumber(e.target.value);
-                updatePhoneNumber(customerType, index, 'number', formattedValue);
-              }}
-              className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm ${
-                phone.isPrimary ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-              }`}
-              placeholder="(865) 555-1212"
-            />
-          </div>
-          <div className="w-24">
-            <select
-              value={phone.type}
-              onChange={(e) => updatePhoneNumber(customerType, index, 'type', e.target.value)}
-              className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm ${
-                phone.isPrimary ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-              }`}
-            >
-              {PHONE_TYPES.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          {phones.length > 1 && (
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => setPrimaryPhone(customerType, index)}
-                className={`p-2 rounded-lg transition-colors ${
-                  phone.isPrimary 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                    : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200'
-                }`}
-                title={phone.isPrimary ? "Primary phone" : "Set as primary phone"}
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => removePhoneNumber(customerType, index)}
-                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                title="Remove phone number"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={() => addPhoneNumber(customerType)}
-        className="w-full p-2 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        Add Phone Number
-      </button>
-    </div>
-  );
 
   // Available trade types with icons
   const TRADE_TYPES = [
@@ -378,9 +253,15 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
+    // Apply phone formatting to phone fields
+    let formattedValue = value;
+    if (name === 'customerPhone' || name === 'secondaryPhone') {
+      formattedValue = formatPhoneNumber(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: formattedValue
     }));
     // Clear error when user starts typing
     if (errors[name]) {
@@ -431,7 +312,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       }
 
       // Validate secondary customer if provided
-      const hasSecondaryInfo = formData.secondaryName || formData.secondaryEmail || (formData.secondaryPhones.some(phone => phone.number.trim()));
+      const hasSecondaryInfo = formData.secondaryName || formData.secondaryEmail || formData.secondaryPhone;
       if (hasSecondaryInfo) {
         if (!formData.secondaryName.trim()) {
           newErrors.secondaryName = 'Secondary customer name is required when secondary info is provided';
@@ -486,21 +367,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       const customerData = {
         primaryName: formData.customerName.trim(),
         primaryEmail: formData.customerEmail.trim(),
-        primaryPhone: formData.customerPhones[0]?.number ? formData.customerPhones[0].number.trim() : '555-555-5555',
+        primaryPhone: formData.customerPhone ? formData.customerPhone.trim() : '555-555-5555',
         primaryContact: formData.primaryContact,
         address: formData.address.trim()
       };
-      
-      // Add primary phone numbers if they exist
-      if (formData.customerPhones.length > 0) {
-        customerData.primaryPhones = formData.customerPhones
-          .filter(phone => phone.number.trim())
-          .map(phone => ({
-            number: phone.number.trim(),
-            type: phone.type,
-            isPrimary: phone.isPrimary
-          }));
-      }
       
       // Only add secondary fields if they have values
       if (formData.secondaryName && formData.secondaryName.trim()) {
@@ -509,14 +379,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       if (formData.secondaryEmail && formData.secondaryEmail.trim()) {
         customerData.secondaryEmail = formData.secondaryEmail.trim();
       }
-      if (formData.secondaryPhones.length > 0) {
-        customerData.secondaryPhones = formData.secondaryPhones
-          .filter(phone => phone.number.trim())
-          .map(phone => ({
-            number: phone.number.trim(),
-            type: phone.type,
-            isPrimary: phone.isPrimary
-          }));
+      if (formData.secondaryPhone && formData.secondaryPhone.trim()) {
+        customerData.secondaryPhone = formData.secondaryPhone.trim();
       }
 
       console.log('🔍 Sending customer data:', customerData);
@@ -610,11 +474,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     setFormData({
       customerName: '',
       customerEmail: '',
-      customerPhones: [{ number: '', type: 'MOBILE', isPrimary: true }],
+      customerPhone: '',
       customerTypeOfContact: 'PRIMARY_CONTACT',
       secondaryName: '',
       secondaryEmail: '',
-      secondaryPhones: [{ number: '', type: 'MOBILE', isPrimary: true }],
+      secondaryPhone: '',
       secondaryTypeOfContact: 'SECONDARY_CONTACT',
       primaryContact: 'PRIMARY',
       address: '',
@@ -754,10 +618,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     </div>
 
                     <div>
-                      <PhoneNumberInput 
-                        customerType="primary" 
-                        phones={formData.customerPhones} 
-                        errors={errors}
+                                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        name="customerPhone"
+                        value={formData.customerPhone}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                        placeholder="(865) 555-1212"
                       />
                     </div>
 
@@ -836,7 +706,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             ...prev,
                             secondaryName: '',
                             secondaryEmail: '',
-                            secondaryPhones: [{ number: '', type: 'MOBILE', isPrimary: true }],
+                            secondaryPhone: '',
                             secondaryTypeOfContact: 'SECONDARY_CONTACT'
                           }));
                         }}
@@ -898,10 +768,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       </div>
 
                       <div>
-                        <PhoneNumberInput 
-                          customerType="secondary" 
-                          phones={formData.secondaryPhones} 
-                          errors={errors}
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          name="secondaryPhone"
+                          value={formData.secondaryPhone}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                          placeholder="(865) 555-1212"
                         />
                       </div>
 
@@ -1356,7 +1232,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Success Notification */}
       {showSuccessNotification && <SuccessNotification />}
     </div>
