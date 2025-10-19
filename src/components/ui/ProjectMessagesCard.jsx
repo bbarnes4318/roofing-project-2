@@ -918,17 +918,17 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                     </div>
                 </div>
             )}
+            
+            {/* Document Viewer Modal */}
+            <DocumentViewerModal
+                isOpen={isDocumentModalOpen}
+                document={selectedDocument}
+                onClose={() => {
+                    setIsDocumentModalOpen(false);
+                    setSelectedDocument(null);
+                }}
+            />
         </div>
-        
-        {/* Document Viewer Modal */}
-        <DocumentViewerModal
-            isOpen={isDocumentModalOpen}
-            document={selectedDocument}
-            onClose={() => {
-                setIsDocumentModalOpen(false);
-                setSelectedDocument(null);
-            }}
-        />
     );
 };
 
