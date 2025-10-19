@@ -406,20 +406,20 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     });
   }
 
-  // Truncate fields to fit database constraints
-  const updateData = {
-    firstName: firstName ? firstName.substring(0, 100) : undefined,
-    lastName: lastName ? lastName.substring(0, 100) : undefined,
-    phone: phone ? phone.substring(0, 20) : undefined,
-    position: position ? position.substring(0, 100) : undefined,
-    department: department ? department.substring(0, 100) : undefined,
-    bio: bio ? bio.substring(0, 500) : undefined,
-    theme,
-    language,
-    timezone,
-    displayName: displayName ? displayName.substring(0, 100) : undefined,
-    email: email ? email.substring(0, 255) : undefined
-  };
+  // Truncate fields to fit database constraints and filter out undefined values
+  const updateData = {};
+  
+  if (firstName !== undefined) updateData.firstName = firstName ? firstName.substring(0, 100) : null;
+  if (lastName !== undefined) updateData.lastName = lastName ? lastName.substring(0, 100) : null;
+  if (phone !== undefined) updateData.phone = phone ? phone.substring(0, 20) : null;
+  if (position !== undefined) updateData.position = position ? position.substring(0, 100) : null;
+  if (department !== undefined) updateData.department = department ? department.substring(0, 100) : null;
+  if (bio !== undefined) updateData.bio = bio ? bio.substring(0, 500) : null;
+  if (theme !== undefined) updateData.theme = theme;
+  if (language !== undefined) updateData.language = language;
+  if (timezone !== undefined) updateData.timezone = timezone;
+  if (displayName !== undefined) updateData.displayName = displayName ? displayName.substring(0, 100) : null;
+  if (email !== undefined) updateData.email = email ? email.substring(0, 255) : null;
 
   const updatedUser = await prisma.user.update({
     where: { id: req.user.id },

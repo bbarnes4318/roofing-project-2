@@ -193,18 +193,24 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
       // Then update other profile information
       const payload = {
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        phone: phone || undefined,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        email: email || '',
+        phone: phone || '',
         timezone,
         language,
-        displayName: displayName || undefined
+        displayName: displayName || ''
       };
+      console.log('🔍 PROFILE SAVE: Sending payload:', payload);
       const res = await authService.updateUserProfile(payload);
+      console.log('🔍 PROFILE SAVE: API response:', res);
       if (res?.success && res?.data?.user) {
         const updated = res.data.user;
         setFirstName(updated.firstName || '');
         setLastName(updated.lastName || '');
+        setEmail(updated.email || '');
+        setPhone(updated.phone || '');
+        setDisplayName(updated.displayName || '');
         setName(`${updated.firstName || ''} ${updated.lastName || ''}`.trim());
         try {
           localStorage.setItem('user', JSON.stringify(updated));
