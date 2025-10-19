@@ -8,3 +8,6 @@ All sections now navigate to Project Workflow with:
 - Same blue highlight as Current Alerts
 
 This file confirms the deployment went through.
+
+# Deployment trigger - 2024-01-15
+# Force deployment with Google Maps fixes and PermissionService fixes
