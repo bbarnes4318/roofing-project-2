@@ -103,7 +103,7 @@ const GoogleAddressSelector = ({
 
   return (
     <div className={`google-address-selector ${className}`} style={style}>
-      <style jsx>{`
+      <style>{`
         .google-address-selector {
           position: relative;
           width: 100%;

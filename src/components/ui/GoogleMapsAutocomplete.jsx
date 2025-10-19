@@ -98,7 +98,7 @@ const GoogleMapsAutocomplete = ({
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.id'
+            'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat'
           },
           body: JSON.stringify({
             input: query,
@@ -115,14 +115,24 @@ const GoogleMapsAutocomplete = ({
         
         if (data.suggestions && data.suggestions.length > 0) {
           // Transform the response to match our expected format
-          const transformedSuggestions = data.suggestions.map(suggestion => ({
-            place_id: suggestion.placePrediction?.placeId || suggestion.placePrediction?.id,
-            description: suggestion.placePrediction?.text?.text || suggestion.placePrediction?.displayName?.text,
-            structured_formatting: {
-              main_text: suggestion.placePrediction?.text?.text || suggestion.placePrediction?.displayName?.text,
-              secondary_text: suggestion.placePrediction?.structuredFormat?.secondaryText || ''
-            }
-          }));
+          const transformedSuggestions = data.suggestions.map(suggestion => {
+            console.log('🔍 GOOGLE MAPS DEBUG: Raw suggestion:', suggestion);
+            console.log('🔍 GOOGLE MAPS DEBUG: placePrediction:', suggestion.placePrediction);
+            console.log('🔍 GOOGLE MAPS DEBUG: text field:', suggestion.placePrediction?.text);
+            
+            return {
+              place_id: suggestion.placePrediction?.placeId,
+              description: typeof suggestion.placePrediction?.text === 'string' 
+                ? suggestion.placePrediction.text 
+                : suggestion.placePrediction?.text?.text || '',
+              structured_formatting: {
+                main_text: typeof suggestion.placePrediction?.text === 'string' 
+                  ? suggestion.placePrediction.text 
+                  : suggestion.placePrediction?.text?.text || '',
+                secondary_text: suggestion.placePrediction?.structuredFormat?.secondaryText || ''
+              }
+            };
+          });
           
           setSuggestions(transformedSuggestions);
           setShowSuggestions(true);
@@ -169,7 +179,7 @@ const GoogleMapsAutocomplete = ({
           method: 'GET',
           headers: {
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'displayName,formattedAddress,location,addressComponents,id,types'
+            'X-Goog-FieldMask': 'formattedAddress,location,addressComponents,id,types'
           }
         }
       );
@@ -186,7 +196,7 @@ const GoogleMapsAutocomplete = ({
             },
             addressComponents: place.addressComponents,
             placeId: place.id,
-            name: place.displayName?.text,
+            name: place.name,
             types: place.types
           });
         }
@@ -274,9 +284,11 @@ const GoogleMapsAutocomplete = ({
                 </svg>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-900 truncate">
-                    {suggestion.structured_formatting?.main_text || suggestion.description}
+                    {typeof suggestion.structured_formatting?.main_text === 'string' 
+                      ? suggestion.structured_formatting.main_text 
+                      : suggestion.description || ''}
                   </div>
-                  {suggestion.structured_formatting?.secondary_text && (
+                  {suggestion.structured_formatting?.secondary_text && typeof suggestion.structured_formatting.secondary_text === 'string' && (
                     <div className="text-xs text-gray-500 truncate">
                       {suggestion.structured_formatting.secondary_text}
                     </div>

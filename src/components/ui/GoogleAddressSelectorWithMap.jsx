@@ -130,12 +130,14 @@ const GoogleAddressSelectorWithMap = ({
 
   return (
     <div className={`google-address-selector-with-map ${className}`} style={style}>
-      <style jsx>{`
+      <style>{`
         .google-address-selector-with-map {
           display: flex;
           flex-direction: column;
           gap: 16px;
           width: 100%;
+          max-width: 100%;
+          overflow: hidden;
         }
         
         .address-section {
@@ -195,6 +197,14 @@ const GoogleAddressSelectorWithMap = ({
           border-radius: 8px;
           overflow: hidden;
           border: 1px solid #e5e7eb;
+          position: relative;
+          max-width: 100%;
+        }
+        
+        gmp-map {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
         }
         
         .loading-indicator {
@@ -223,16 +233,19 @@ const GoogleAddressSelectorWithMap = ({
         @media (min-width: 768px) {
           .google-address-selector-with-map {
             flex-direction: row;
+            max-width: 100%;
           }
           
           .address-section {
             flex: 1;
             min-width: 300px;
+            max-width: 50%;
           }
           
           .map-container {
             flex: 1;
             min-width: 300px;
+            max-width: 50%;
           }
         }
       `}</style>

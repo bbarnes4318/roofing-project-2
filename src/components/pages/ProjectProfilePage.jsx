@@ -6,7 +6,7 @@ import { formatPhoneNumber } from '../../utils/helpers';
 import Modal from '../common/Modal';
 import { useProjects, useCustomers, useCreateProject } from '../../hooks/useQueryApi';
 import { projectsService, customersService, usersService } from '../../services/api';
-import AddressField from '../ui/AddressField';
+import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 import { ProjectCardSkeleton, ErrorState, EmptyState } from '../ui/SkeletonLoaders';
 import { useWorkflowStates } from '../../hooks/useWorkflowState';
 import WorkflowProgressService from '../../services/workflowProgress';
@@ -1662,15 +1662,18 @@ const ProjectProfilePage = ({
                         </div>
                         
                         {/* Address */}
-                        <AddressField
-                            name="address"
-                            value={newProject.address}
-                            onChange={handleInputChange}
-                            placeholder="Project address"
-                            label="Project Address"
-                            showMap={true}
-                            mapHeight="300px"
-                        />
+                        <div>
+                            <label className={`block text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                Project Address
+                            </label>
+                            <GoogleMapsAutocomplete
+                                name="address"
+                                value={newProject.address}
+                                onChange={handleInputChange}
+                                placeholder="Project address"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
                         
                         {/* Budget */}
                         <div>
