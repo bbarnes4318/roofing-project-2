@@ -12,8 +12,6 @@ const GoogleMapsAutocomplete = ({
   id = null
 }) => {
   const inputRef = useRef(null);
-  const autocompleteServiceRef = useRef(null);
-  const placesServiceRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
@@ -21,14 +19,8 @@ const GoogleMapsAutocomplete = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   useEffect(() => {
-    // Check if Google Maps API is available
-    if (window.google && window.google.maps && window.google.maps.places) {
-      setIsLoaded(true);
-      initializeAutocomplete();
-    } else {
-      // Load Google Maps API if not already loaded
-      loadGoogleMapsAPI();
-    }
+    // Initialize Places API (New) REST endpoints
+    loadGoogleMapsAPI();
   }, []);
 
   const loadGoogleMapsAPI = () => {
@@ -46,70 +38,27 @@ const GoogleMapsAutocomplete = ({
       return;
     }
 
-    // Check if script is already loaded
-    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      // Script exists, wait for it to load
-      const checkGoogleMaps = () => {
-        if (window.google && window.google.maps && window.google.maps.places) {
-          setIsLoaded(true);
-          initializeAutocomplete();
-        } else {
-          setTimeout(checkGoogleMaps, 100);
-        }
-      };
-      checkGoogleMaps();
-      return;
-    }
-
-    // Load Google Maps API with Places API (New) support
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=3.56`;
-    script.async = true;
-    script.defer = true;
-    
-    console.log('🔍 GOOGLE MAPS DEBUG: Creating script with URL:', script.src);
-    
-    script.onload = () => {
-      console.log('🔍 GOOGLE MAPS DEBUG: Script loaded successfully');
-      console.log('🔍 GOOGLE MAPS DEBUG: window.google exists:', !!window.google);
-      console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps exists:', !!(window.google && window.google.maps));
-      console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps.places exists:', !!(window.google && window.google.maps && window.google.maps.places));
-      setIsLoaded(true);
-      initializeAutocomplete();
-    };
-    script.onerror = (error) => {
-      console.error('🔍 GOOGLE MAPS DEBUG: Script failed to load:', error);
-      setError('Failed to load Google Maps API');
-    };
-    document.head.appendChild(script);
+    // For Places API (New), we don't need to load the JavaScript API
+    // We'll use the REST API endpoints directly
+    console.log('🔍 GOOGLE MAPS DEBUG: Using Places API (New) REST endpoints');
+    setIsLoaded(true);
+    initializeAutocomplete();
   };
 
   const initializeAutocomplete = () => {
-    console.log('🔍 GOOGLE MAPS DEBUG: Initializing Places API (New) autocomplete');
+    console.log('🔍 GOOGLE MAPS DEBUG: Initializing Places API (New) REST endpoints');
     console.log('🔍 GOOGLE MAPS DEBUG: inputRef.current exists:', !!inputRef.current);
-    console.log('🔍 GOOGLE MAPS DEBUG: window.google exists:', !!window.google);
-    console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps exists:', !!(window.google && window.google.maps));
-    console.log('🔍 GOOGLE MAPS DEBUG: window.google.maps.places exists:', !!(window.google && window.google.maps && window.google.maps.places));
     
-    if (!inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
-      console.error('🔍 GOOGLE MAPS DEBUG: Missing required components for autocomplete initialization');
+    if (!inputRef.current) {
+      console.error('🔍 GOOGLE MAPS DEBUG: Input ref not available');
       return;
     }
 
     try {
-      console.log('🔍 GOOGLE MAPS DEBUG: Creating AutocompleteService and PlacesService');
-      
-      // Initialize AutocompleteService for getting suggestions
-      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-      
-      // Initialize PlacesService for getting place details
-      placesServiceRef.current = new window.google.maps.places.PlacesService(
-        document.createElement('div') // Dummy div for PlacesService
-      );
-      
-      console.log('🔍 GOOGLE MAPS DEBUG: Services created successfully');
+      console.log('🔍 GOOGLE MAPS DEBUG: Places API (New) REST endpoints ready');
+      // No need to initialize services - we'll use REST API directly
     } catch (err) {
-      console.error('Error initializing Google Maps autocomplete services:', err);
+      console.error('Error initializing Places API (New):', err);
       setError('Failed to initialize address autocomplete');
     }
   };
@@ -119,23 +68,68 @@ const GoogleMapsAutocomplete = ({
     onChange(e);
     setError(null);
     
-    if (query.length > 2 && autocompleteServiceRef.current) {
-      // Get autocomplete predictions
-      autocompleteServiceRef.current.getPlacePredictions({
-        input: query,
-        types: ['address'],
-        componentRestrictions: { country: 'us' }
-      }, (predictions, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-          setSuggestions(predictions);
+    if (query.length > 2) {
+      // Use Places API (New) REST endpoint for autocomplete
+      fetchAutocompleteSuggestions(query);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const fetchAutocompleteSuggestions = async (query) => {
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    
+    try {
+      console.log('🔍 GOOGLE MAPS DEBUG: Fetching suggestions from Places API (New)');
+      
+      const response = await fetch(
+        `https://places.googleapis.com/v1/places:autocomplete`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.id'
+          },
+          body: JSON.stringify({
+            input: query,
+            includedRegionCodes: ['US'],
+            languageCode: 'en',
+            regionCode: 'US'
+          })
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔍 GOOGLE MAPS DEBUG: Places API (New) response:', data);
+        
+        if (data.suggestions && data.suggestions.length > 0) {
+          // Transform the response to match our expected format
+          const transformedSuggestions = data.suggestions.map(suggestion => ({
+            place_id: suggestion.placePrediction?.placeId || suggestion.placePrediction?.id,
+            description: suggestion.placePrediction?.text?.text || suggestion.placePrediction?.displayName?.text,
+            structured_formatting: {
+              main_text: suggestion.placePrediction?.text?.text || suggestion.placePrediction?.displayName?.text,
+              secondary_text: suggestion.placePrediction?.structuredFormat?.secondaryText || ''
+            }
+          }));
+          
+          setSuggestions(transformedSuggestions);
           setShowSuggestions(true);
           setSelectedIndex(-1);
         } else {
           setSuggestions([]);
           setShowSuggestions(false);
         }
-      });
-    } else {
+      } else {
+        console.error('🔍 GOOGLE MAPS DEBUG: Places API (New) error:', response.status, response.statusText);
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } catch (error) {
+      console.error('🔍 GOOGLE MAPS DEBUG: Places API (New) fetch error:', error);
       setSuggestions([]);
       setShowSuggestions(false);
     }
@@ -147,25 +141,50 @@ const GoogleMapsAutocomplete = ({
     setShowSuggestions(false);
     setSuggestions([]);
     
-    // Get place details
-    if (placesServiceRef.current) {
-      placesServiceRef.current.getDetails({
-        placeId: suggestion.place_id,
-        fields: ['formatted_address', 'geometry', 'address_components', 'place_id', 'name', 'types']
-      }, (place, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
-          if (onPlaceSelect) {
-            onPlaceSelect({
-              formattedAddress: place.formatted_address,
-              geometry: place.geometry,
-              addressComponents: place.address_components,
-              placeId: place.place_id,
-              name: place.name,
-              types: place.types
-            });
+    // Get place details using Places API (New)
+    if (suggestion.place_id) {
+      fetchPlaceDetails(suggestion.place_id);
+    }
+  };
+
+  const fetchPlaceDetails = async (placeId) => {
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    
+    try {
+      console.log('🔍 GOOGLE MAPS DEBUG: Fetching place details from Places API (New)');
+      
+      const response = await fetch(
+        `https://places.googleapis.com/v1/places/${placeId}`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': 'displayName,formattedAddress,location,addressComponents,id,types'
           }
         }
-      });
+      );
+
+      if (response.ok) {
+        const place = await response.json();
+        console.log('🔍 GOOGLE MAPS DEBUG: Place details response:', place);
+        
+        if (onPlaceSelect) {
+          onPlaceSelect({
+            formattedAddress: place.formattedAddress,
+            geometry: {
+              location: place.location
+            },
+            addressComponents: place.addressComponents,
+            placeId: place.id,
+            name: place.displayName?.text,
+            types: place.types
+          });
+        }
+      } else {
+        console.error('🔍 GOOGLE MAPS DEBUG: Place details error:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('🔍 GOOGLE MAPS DEBUG: Place details fetch error:', error);
     }
   };
 
