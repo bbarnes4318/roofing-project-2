@@ -179,7 +179,7 @@ const GoogleMapsAutocomplete = ({
           method: 'GET',
           headers: {
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'formattedAddress,location,addressComponents,id,types'
+            'X-Goog-FieldMask': 'formattedAddress,location,addressComponents,id,types,addressComponents.postalCode,addressComponents.locality,addressComponents.administrativeAreaLevel1,addressComponents.country'
           }
         }
       );
