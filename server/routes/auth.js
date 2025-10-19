@@ -1127,46 +1127,29 @@ router.get('/security/events', authenticateToken, asyncHandler(async (req, res) 
 // @route   POST /api/auth/supabase-token-exchange
 // @access  Public
 router.post('/supabase-token-exchange', asyncHandler(async (req, res) => {
-  const { email, firstName, lastName, role } = req.body;
-
-  if (!email) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email is required'
+  try {
+    console.log('🔄 Supabase token exchange request received');
+    const { email, firstName, lastName, role } = req.body;
+    
+    console.log('📧 Token exchange data:', { 
+      email: email ? 'provided' : 'missing', 
+      firstName: firstName || 'not provided', 
+      lastName: lastName || 'not provided', 
+      role: role || 'not provided' 
     });
-  }
 
-  // Find or create user in database
-  let user = await prisma.user.findUnique({
-    where: { email: email },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      role: true,
-      permissions: true,
-      isActive: true,
-      theme: true,
-      lastLogin: true,
-      createdAt: true,
-      updatedAt: true
+    if (!email) {
+      console.log('❌ Token exchange failed: Email is required');
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
     }
-  });
 
-  // If user doesn't exist, create them
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        password: 'SUPABASE_MANAGED', // Placeholder since Supabase handles authentication
-        role: role || 'WORKER',
-        isActive: true,
-        theme: 'LIGHT',
-        lastLogin: new Date()
-      },
+    console.log('🔍 Looking up user in database...');
+    // Find or create user in database
+    let user = await prisma.user.findUnique({
+      where: { email: email },
       select: {
         id: true,
         firstName: true,
@@ -1181,29 +1164,79 @@ router.post('/supabase-token-exchange', asyncHandler(async (req, res) => {
         updatedAt: true
       }
     });
-  } else {
-    // Update last login
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLogin: new Date() }
-    });
-  }
 
-  if (!user.isActive) {
-    return res.status(401).json({
+    if (!user) {
+      console.log('👤 User not found, creating new user...');
+      // If user doesn't exist, create them
+      user = await prisma.user.create({
+        data: {
+          email: email,
+          firstName: firstName || email.split('@')[0],
+          lastName: lastName || '',
+          password: 'SUPABASE_MANAGED', // Placeholder since Supabase handles authentication
+          role: role || 'WORKER',
+          isActive: true,
+          theme: 'LIGHT',
+          lastLogin: new Date()
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          permissions: true,
+          isActive: true,
+          theme: true,
+          lastLogin: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+      console.log('✅ New user created:', user.id);
+    } else {
+      console.log('👤 Existing user found, updating last login...');
+      // Update last login
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() }
+      });
+      console.log('✅ User last login updated');
+    }
+
+    if (!user.isActive) {
+      console.log('❌ Token exchange failed: Account is deactivated');
+      return res.status(401).json({
+        success: false,
+        message: 'Account is deactivated.'
+      });
+    }
+
+    console.log('🔑 Generating JWT token...');
+    // Generate traditional JWT token
+    const token = generateToken(user.id, user.role);
+    console.log('✅ Token generated successfully');
+
+    console.log('🎉 Token exchange completed successfully');
+    res.json({
+      success: true,
+      token: token,
+      user: user
+    });
+  } catch (error) {
+    console.error('❌ Token exchange error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    
+    res.status(500).json({
       success: false,
-      message: 'Account is deactivated.'
+      message: 'Token exchange failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
-
-  // Generate traditional JWT token
-  const token = generateToken(user.id, user.role);
-
-  res.json({
-    success: true,
-    token: token,
-    user: user
-  });
 }));
 
 module.exports = router; 

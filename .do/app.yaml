@@ -24,7 +24,7 @@ services:
   - key: REACT_APP_SOCKET_URL
     value: "https://goldfish-app-4yuma.ondigitalocean.app"
   - key: REACT_APP_GOOGLE_MAPS_API_KEY
-    value: ${REACT_APP_GOOGLE_MAPS_API_KEY}
+    value: AIzaSyDG4h5i-2B13LGT1hj9__c9OnSq_45pOHs
   - key: REACT_APP_SUPABASE_URL
     value: ${REACT_APP_SUPABASE_URL}
   - key: REACT_APP_SUPABASE_ANON_KEY

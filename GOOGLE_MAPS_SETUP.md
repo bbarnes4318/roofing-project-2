@@ -9,17 +9,21 @@ This application now includes Google Maps autocomplete integration for all addre
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
 3. Enable the following APIs:
-   - **Places API** (for autocomplete functionality)
+   - **Places API (New)** (for autocomplete functionality)
    - **Maps JavaScript API** (for map functionality)
 4. Go to "Credentials" and create a new API key
 5. Restrict the API key to your domain for security
 
+**Current API Key:** `AIzaSyDG4h5i-2B13LGT1hj9__c9OnSq_45pOHs`
+
 ### 2. Environment Variables
-Add the following environment variable to your `.env` file:
+The Google Maps API key is configured in the DigitalOcean app settings:
 
 ```bash
-REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+REACT_APP_GOOGLE_MAPS_API_KEY=AIzaSyDG4h5i-2B13LGT1hj9__c9OnSq_45pOHs
 ```
+
+**Note:** This key is already configured in the production environment.
 
 ### 3. Production Environment
 For production deployment on DigitalOcean, add the environment variable to your app configuration:
