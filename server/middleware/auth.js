@@ -28,7 +28,7 @@ const authenticateToken = async (req, res, next) => {
     // Demo token bypass for development
     if (token.startsWith('demo-david-chen-token-')) {
       req.user = {
-        id: 'cmei0o5k50000um0867bwnhzu',
+        id: 'demo-david-chen-id',
         firstName: 'David',
         lastName: 'Chen',
         email: 'david.chen@demo.com',

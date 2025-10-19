@@ -315,6 +315,14 @@ router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, r
 // @route   GET /api/auth/me
 // @access  Private
 router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
+  // For demo tokens, return the user data directly from req.user
+  if (req.user.id.startsWith('demo-') || req.user.id.startsWith('temp-')) {
+    return res.json({
+      success: true,
+      user: req.user
+    });
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
     select: {
@@ -352,7 +360,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: { user }
+    user: user
   });
 }));
 

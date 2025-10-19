@@ -24,7 +24,7 @@ const GoogleMapsAutocomplete = ({
   }, []);
 
   const loadGoogleMapsAPI = () => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    const apiKey = 'AIzaSyC3KmPaCtYwN4n0G0m7ZVK3wXm_zu-nar0';
     
     console.log('🔍 GOOGLE MAPS DEBUG: Starting Google Maps API load');
     console.log('🔍 GOOGLE MAPS DEBUG: API Key exists:', !!apiKey);
@@ -78,10 +78,18 @@ const GoogleMapsAutocomplete = ({
   };
 
   const fetchAutocompleteSuggestions = async (query) => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    const apiKey = 'AIzaSyC3KmPaCtYwN4n0G0m7ZVK3wXm_zu-nar0';
+    
+    if (!apiKey) {
+      console.error('🔍 GOOGLE MAPS DEBUG: API key not found');
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
     
     try {
-      console.log('🔍 GOOGLE MAPS DEBUG: Fetching suggestions from Places API (New)');
+      console.log('🔍 GOOGLE MAPS DEBUG: Fetching suggestions from Google Places API (New)');
+      console.log('🔍 GOOGLE MAPS DEBUG: API Key present:', !!apiKey);
       
       const response = await fetch(
         `https://places.googleapis.com/v1/places:autocomplete`,
@@ -103,7 +111,7 @@ const GoogleMapsAutocomplete = ({
 
       if (response.ok) {
         const data = await response.json();
-        console.log('🔍 GOOGLE MAPS DEBUG: Places API (New) response:', data);
+        console.log('🔍 GOOGLE MAPS DEBUG: Google Places API response:', data);
         
         if (data.suggestions && data.suggestions.length > 0) {
           // Transform the response to match our expected format
@@ -124,7 +132,9 @@ const GoogleMapsAutocomplete = ({
           setShowSuggestions(false);
         }
       } else {
-        console.error('🔍 GOOGLE MAPS DEBUG: Places API (New) error:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('🔍 GOOGLE MAPS DEBUG: Google Places API error:', response.status, response.statusText);
+        console.error('🔍 GOOGLE MAPS DEBUG: Error response:', errorText);
         setSuggestions([]);
         setShowSuggestions(false);
       }
@@ -148,10 +158,10 @@ const GoogleMapsAutocomplete = ({
   };
 
   const fetchPlaceDetails = async (placeId) => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    const apiKey = 'AIzaSyC3KmPaCtYwN4n0G0m7ZVK3wXm_zu-nar0';
     
     try {
-      console.log('🔍 GOOGLE MAPS DEBUG: Fetching place details from Places API (New)');
+      console.log('🔍 GOOGLE MAPS DEBUG: Fetching place details from Google Places API (New)');
       
       const response = await fetch(
         `https://places.googleapis.com/v1/places/${placeId}`,
@@ -181,7 +191,9 @@ const GoogleMapsAutocomplete = ({
           });
         }
       } else {
+        const errorText = await response.text();
         console.error('🔍 GOOGLE MAPS DEBUG: Place details error:', response.status, response.statusText);
+        console.error('🔍 GOOGLE MAPS DEBUG: Error response:', errorText);
       }
     } catch (error) {
       console.error('🔍 GOOGLE MAPS DEBUG: Place details fetch error:', error);

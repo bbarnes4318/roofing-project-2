@@ -309,7 +309,7 @@ const projectValidation = [
 // @desc    Get all projects with filtering and pagination
 // @route   GET /api/projects
 // @access  Private
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   // Temporarily disabled cache: cacheService.middleware('projects', 60)
   const { 
     status, 
@@ -502,7 +502,7 @@ router.get('/', asyncHandler(async (req, res) => {
 // @desc    Get project by ID
 // @route   GET /api/projects/:id
 // @access  Private
-router.get('/:id', asyncHandler(async (req, res, next) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
   try {
     let project;
     try {

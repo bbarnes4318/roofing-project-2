@@ -139,6 +139,7 @@ const searchRoutes = require('./routes/search');
 const workflowDataRoutes = require('./routes/workflow-data');
 const excelDataRoutes = require('./routes/excelDataManager');
 const completeExcelDataRoutes = require('./routes/completeExcelDataManager');
+const oauthRoutes = require('./routes/oauth');
 
 let workflowRoutes;
 try {
@@ -883,6 +884,7 @@ app.use('/api/follow-up', require('./routes/followUp'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/feedback', require('./routes/comments'));
 app.use('/api/users', require('./routes/userProfile'));
+app.use('/api/oauth', oauthRoutes);
 // RAG + Files + Upload microservice endpoints
 app.use('/api', uploadRoutes);
 app.use('/api', filesRoutes);
