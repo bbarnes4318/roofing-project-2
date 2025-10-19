@@ -368,7 +368,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
-  const { firstName, lastName, phone, position, department, bio, theme, language, timezone } = req.body;
+  const { firstName, lastName, phone, position, department, bio, theme, language, timezone, displayName, email } = req.body;
 
   // Validate field lengths to prevent database errors
   const validationErrors = [];
@@ -391,6 +391,12 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
   if (bio && bio.length > 500) {
     validationErrors.push('Bio must be 500 characters or less');
   }
+  if (displayName && displayName.length > 100) {
+    validationErrors.push('Display name must be 100 characters or less');
+  }
+  if (email && email.length > 255) {
+    validationErrors.push('Email must be 255 characters or less');
+  }
 
   if (validationErrors.length > 0) {
     return res.status(400).json({
@@ -410,7 +416,9 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     bio: bio ? bio.substring(0, 500) : undefined,
     theme,
     language,
-    timezone
+    timezone,
+    displayName: displayName ? displayName.substring(0, 100) : undefined,
+    email: email ? email.substring(0, 255) : undefined
   };
 
   const updatedUser = await prisma.user.update({
@@ -429,7 +437,8 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
       bio: true,
       theme: true,
       language: true,
-      timezone: true
+      timezone: true,
+      displayName: true
     }
   });
 
