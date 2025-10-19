@@ -459,7 +459,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
         // Load available users
         console.log('📡 Fetching users from API...');
-        const usersResponse = await fetch(`${API_BASE_URL}/roles/users`, {
+        const usersResponse = await fetch(`${API_BASE_URL}/users/team-members`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -467,9 +467,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
-          console.log(`✅ Received ${usersData.data?.length || 0} users from API`);
-          if (isMounted && usersData.success && usersData.data) {
-            setAvailableUsers(usersData.data);
+          console.log(`✅ Received ${usersData.data?.teamMembers?.length || 0} users from API`);
+          if (isMounted && usersData.success && usersData.data?.teamMembers) {
+            setAvailableUsers(usersData.data.teamMembers);
           } else {
             console.warn('⚠️ API returned success but no data');
           }
