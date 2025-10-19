@@ -98,7 +98,7 @@ const GoogleMapsAutocomplete = ({
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat'
+            'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.structuredFormat.mainText,suggestions.placePrediction.structuredFormat.secondaryText'
           },
           body: JSON.stringify({
             input: query,
@@ -179,7 +179,7 @@ const GoogleMapsAutocomplete = ({
           method: 'GET',
           headers: {
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'formattedAddress,location,addressComponents,id,types,addressComponents.postalCode,addressComponents.locality,addressComponents.administrativeAreaLevel1,addressComponents.country'
+            'X-Goog-FieldMask': 'formattedAddress,location,addressComponents,id,types'
           }
         }
       );
@@ -187,14 +187,48 @@ const GoogleMapsAutocomplete = ({
       if (response.ok) {
         const place = await response.json();
         console.log('🔍 GOOGLE MAPS DEBUG: Place details response:', place);
+        console.log('🔍 GOOGLE MAPS DEBUG: Address components:', place.addressComponents);
+        if (place.addressComponents) {
+          console.log('🔍 GOOGLE MAPS DEBUG: All address components:', place.addressComponents);
+          place.addressComponents.forEach((component, index) => {
+            console.log(`🔍 GOOGLE MAPS DEBUG: Component ${index}:`, component);
+          });
+        }
         
+        // Parse address components to extract specific fields
+        const parsedComponents = {};
+        if (place.addressComponents) {
+          place.addressComponents.forEach(component => {
+            if (component.types) {
+              component.types.forEach(type => {
+                if (type === 'postal_code') {
+                  parsedComponents.postal_code = component.longText;
+                } else if (type === 'locality') {
+                  parsedComponents.locality = component.longText;
+                } else if (type === 'administrative_area_level_1') {
+                  parsedComponents.administrative_area_level_1 = component.longText;
+                } else if (type === 'country') {
+                  parsedComponents.country = component.longText;
+                } else if (type === 'street_number') {
+                  parsedComponents.street_number = component.longText;
+                } else if (type === 'route') {
+                  parsedComponents.route = component.longText;
+                }
+              });
+            }
+          });
+        }
+        
+        console.log('🔍 GOOGLE MAPS DEBUG: Parsed components:', parsedComponents);
+        console.log('🔍 GOOGLE MAPS DEBUG: Postal code found:', parsedComponents.postal_code);
+
         if (onPlaceSelect) {
           onPlaceSelect({
             formattedAddress: place.formattedAddress,
             geometry: {
               location: place.location
             },
-            addressComponents: place.addressComponents,
+            addressComponents: parsedComponents,
             placeId: place.id,
             name: place.name,
             types: place.types
