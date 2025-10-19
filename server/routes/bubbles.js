@@ -1061,6 +1061,8 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
   const { pendingAction, selectedRecipientIds = [], customEmails = [] } = req.body;
 
   console.log('🔍 COMPLETE-ACTION: Received request');
+  console.log('🔍 COMPLETE-ACTION: req.user:', req.user);
+  console.log('🔍 COMPLETE-ACTION: req.user.id:', req.user?.id);
   console.log('🔍 COMPLETE-ACTION: pendingAction:', JSON.stringify(pendingAction, null, 2));
   console.log('🔍 COMPLETE-ACTION: selectedRecipientIds:', selectedRecipientIds);
   console.log('🔍 COMPLETE-ACTION: customEmails:', customEmails);
@@ -1120,6 +1122,29 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
         thumbnailUrl: asset.thumbnailUrl || null
       };
 
+      // Find a valid user ID - use any real user from database if req.user.id is fake
+      let authorId = null;
+      if (req.user?.id && !req.user.id.startsWith('demo-') && !req.user.id.startsWith('temp-')) {
+        // Check if the user ID exists in the database
+        const userExists = await prisma.user.findUnique({
+          where: { id: req.user.id },
+          select: { id: true }
+        });
+        if (userExists) {
+          authorId = req.user.id;
+        }
+      }
+      
+      // If no valid user ID, find any real user from database
+      if (!authorId) {
+        const anyUser = await prisma.user.findFirst({
+          select: { id: true }
+        });
+        authorId = anyUser?.id || null;
+      }
+      
+      console.log('🔍 BUBBLES DOCUMENT: Using authorId:', authorId);
+      
       // Create project message
       const pm = await prisma.projectMessage.create({
         data: {
@@ -1127,9 +1152,9 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
           subject: `Document: ${attachment.title}`,
           messageType: 'USER_MESSAGE',
           priority: 'MEDIUM',
-          authorId: req.user.id,
-          authorName: `${req.user.firstName || 'Bubbles'} ${req.user.lastName || 'AI'}`.trim(),
-          authorRole: req.user.role || 'AI_ASSISTANT',
+          authorId: authorId,
+          authorName: `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim(),
+          authorRole: req.user?.role || 'AI_ASSISTANT',
           projectId: proj.id,
           projectNumber: proj.projectNumber,
           isSystemGenerated: false,
@@ -1328,6 +1353,29 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       
       console.log('🔍 BUBBLES: Using hardcoded project:', generalProject);
       
+      // Find a valid user ID - use any real user from database if req.user.id is fake
+      let authorId = null;
+      if (req.user?.id && !req.user.id.startsWith('demo-') && !req.user.id.startsWith('temp-')) {
+        // Check if the user ID exists in the database
+        const userExists = await prisma.user.findUnique({
+          where: { id: req.user.id },
+          select: { id: true }
+        });
+        if (userExists) {
+          authorId = req.user.id;
+        }
+      }
+      
+      // If no valid user ID, find any real user from database
+      if (!authorId) {
+        const anyUser = await prisma.user.findFirst({
+          select: { id: true }
+        });
+        authorId = anyUser?.id || null;
+      }
+      
+      console.log('🔍 BUBBLES: Using authorId:', authorId);
+      
       // Create project message (like attachment messages)
       const pm = await prisma.projectMessage.create({
         data: {
@@ -1335,7 +1383,7 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
           subject: 'Message from Bubbles AI Assistant',
           messageType: 'USER_MESSAGE',
           priority: 'MEDIUM',
-          authorId: req.user?.id || null, // Make authorId optional to avoid foreign key constraint
+          authorId: authorId, // Use validated authorId or null
           authorName: `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim(),
           authorRole: req.user?.role || 'AI_ASSISTANT',
           projectId: generalProject.id,
@@ -1384,6 +1432,29 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
         return sendSuccess(res, 404, { response: { content: 'Project not found.' } });
       }
 
+      // Find a valid user ID - use any real user from database if req.user.id is fake
+      let authorId = null;
+      if (req.user?.id && !req.user.id.startsWith('demo-') && !req.user.id.startsWith('temp-')) {
+        // Check if the user ID exists in the database
+        const userExists = await prisma.user.findUnique({
+          where: { id: req.user.id },
+          select: { id: true }
+        });
+        if (userExists) {
+          authorId = req.user.id;
+        }
+      }
+      
+      // If no valid user ID, find any real user from database
+      if (!authorId) {
+        const anyUser = await prisma.user.findFirst({
+          select: { id: true }
+        });
+        authorId = anyUser?.id || null;
+      }
+      
+      console.log('🔍 BUBBLES PROJECT MESSAGE: Using authorId:', authorId);
+      
       // Create project message
       const pm = await prisma.projectMessage.create({
         data: {
@@ -1391,9 +1462,9 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
           subject: `Message for Project #${proj.projectNumber}`,
           messageType: 'USER_MESSAGE',
           priority: 'MEDIUM',
-          authorId: req.user.id,
-          authorName: `${req.user.firstName || 'User'} ${req.user.lastName || ''}`.trim(),
-          authorRole: req.user.role || 'USER',
+          authorId: authorId,
+          authorName: `${req.user?.firstName || 'User'} ${req.user?.lastName || ''}`.trim(),
+          authorRole: req.user?.role || 'USER',
           projectId: proj.id,
           projectNumber: proj.projectNumber,
           isSystemGenerated: false,
@@ -1815,6 +1886,29 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
           thumbnailUrl: asset.thumbnailUrl || null
         };
 
+        // Find a valid user ID - use any real user from database if req.user.id is fake
+        let authorId = null;
+        if (req.user?.id && !req.user.id.startsWith('demo-') && !req.user.id.startsWith('temp-')) {
+          // Check if the user ID exists in the database
+          const userExists = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: { id: true }
+          });
+          if (userExists) {
+            authorId = req.user.id;
+          }
+        }
+        
+        // If no valid user ID, find any real user from database
+        if (!authorId) {
+          const anyUser = await prisma.user.findFirst({
+            select: { id: true }
+          });
+          authorId = anyUser?.id || null;
+        }
+        
+        console.log('🔍 BUBBLES ATTACHMENT: Using authorId:', authorId);
+        
         // Create a project message with attachment metadata
         const pm = await prisma.projectMessage.create({
           data: {
@@ -1822,7 +1916,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
             subject: `Document: ${attachment.title}`,
             messageType: 'USER_MESSAGE',
             priority: 'MEDIUM',
-            authorId: req.user?.id || null, // Make authorId optional to avoid foreign key constraint
+            authorId: authorId, // Use validated authorId or null
             authorName: `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim(),
             authorRole: req.user?.role || 'AI_ASSISTANT',
             projectId: proj.id,
