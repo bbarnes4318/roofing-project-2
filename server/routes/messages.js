@@ -9,7 +9,8 @@ const {
 } = require('../middleware/errorHandler');
 const { 
   managerAndAbove, 
-  projectManagerAndAbove 
+  projectManagerAndAbove,
+  authenticateToken 
 } = require('../middleware/auth');
 const { prisma } = require('../config/prisma');
 const router = express.Router();
@@ -44,7 +45,7 @@ const messageValidation = [
 // @desc    Get all messages with filtering and pagination
 // @route   GET /api/messages
 // @access  Private
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   const { 
     type, 
     projectId, 
@@ -135,7 +136,7 @@ router.get('/', asyncHandler(async (req, res) => {
 // @desc    Get all conversations with messages for dashboard
 // @route   GET /api/messages/conversations
 // @access  Private
-router.get('/conversations', asyncHandler(async (req, res) => {
+router.get('/conversations', authenticateToken, asyncHandler(async (req, res) => {
   const conversations = await prisma.conversation.findMany({
     include: {
       messages: {
@@ -165,7 +166,7 @@ router.get('/conversations', asyncHandler(async (req, res) => {
 // @desc    Get message by ID
 // @route   GET /api/messages/:id
 // @access  Private
-router.get('/:id', asyncHandler(async (req, res, next) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
   const message = await prisma.message.findUnique({
     where: { id: req.params.id },
     include: {
@@ -209,7 +210,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
 // @desc    Send new message
 // @route   POST /api/messages
 // @access  Private
-router.post('/', messageValidation, asyncHandler(async (req, res, next) => {
+router.post('/', authenticateToken, messageValidation, asyncHandler(async (req, res, next) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -283,7 +284,7 @@ router.post('/', messageValidation, asyncHandler(async (req, res, next) => {
 // @desc    Update message
 // @route   PUT /api/messages/:id
 // @access  Private (Only sender can update)
-router.put('/:id', [
+router.put('/:id', authenticateToken, [
   body('content').optional().trim().isLength({ min: 1, max: 5000 }),
   body('priority').optional().isIn(['LOW', 'MEDIUM', 'HIGH'])
 ], asyncHandler(async (req, res, next) => {
@@ -337,7 +338,7 @@ router.put('/:id', [
 // @desc    Delete message
 // @route   DELETE /api/messages/:id
 // @access  Private (Sender or Manager and above)
-router.delete('/:id', asyncHandler(async (req, res, next) => {
+router.delete('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
   const message = await prisma.message.findUnique({
     where: { id: req.params.id }
   });
@@ -364,7 +365,7 @@ router.delete('/:id', asyncHandler(async (req, res, next) => {
 // @desc    Mark message as read
 // @route   PATCH /api/messages/:id/read
 // @access  Private
-router.patch('/:id/read', asyncHandler(async (req, res, next) => {
+router.patch('/:id/read', authenticateToken, asyncHandler(async (req, res, next) => {
   const message = await prisma.message.findUnique({
     where: { id: req.params.id }
   });
@@ -401,7 +402,7 @@ router.patch('/:id/read', asyncHandler(async (req, res, next) => {
 // @desc    Get conversation between two users
 // @route   GET /api/messages/conversation/:userId
 // @access  Private
-router.get('/conversation/:userId', asyncHandler(async (req, res) => {
+router.get('/conversation/:userId', authenticateToken, asyncHandler(async (req, res) => {
   const otherUserId = req.params.userId;
   const { page = 1, limit = 50 } = req.query;
 
@@ -469,7 +470,7 @@ router.get('/conversation/:userId', asyncHandler(async (req, res) => {
 // @desc    Get project messages
 // @route   GET /api/messages/project/:projectId
 // @access  Private
-router.get('/project/:projectId', asyncHandler(async (req, res) => {
+router.get('/project/:projectId', authenticateToken, asyncHandler(async (req, res) => {
   const projectId = req.params.projectId;
   const { page = 1, limit = 50 } = req.query;
 
@@ -525,7 +526,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
 // @desc    Get unread messages count
 // @route   GET /api/messages/unread/count
 // @access  Private
-router.get('/unread/count', asyncHandler(async (req, res) => {
+router.get('/unread/count', authenticateToken, asyncHandler(async (req, res) => {
   const unreadCount = await prisma.message.count({
     where: {
       OR: [
@@ -617,7 +618,7 @@ router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => 
 // @desc    Search messages
 // @route   GET /api/messages/search/query
 // @access  Private
-router.get('/search/query', asyncHandler(async (req, res) => {
+router.get('/search/query', authenticateToken, asyncHandler(async (req, res) => {
   const { q, limit = 10 } = req.query;
 
   if (!q || q.trim().length < 2) {

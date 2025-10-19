@@ -5,8 +5,24 @@ const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
+// Debug database connection
+console.log('🔍 FEEDBACK ROUTE DEBUG:');
+console.log('🔍 DATABASE_URL present:', !!process.env.DATABASE_URL);
+if (process.env.DATABASE_URL) {
+  const maskedUrl = process.env.DATABASE_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+  console.log('🔍 DATABASE_URL:', maskedUrl);
+}
+
 // GET /api/feedback - List feedback with filters
 router.get('/', authenticateToken, asyncHandler(async (req, res) => {
+  // Check if prisma is available
+  if (!prisma) {
+    console.error('❌ FEEDBACK ROUTE: Prisma client is not available');
+    return res.status(500).json({
+      success: false,
+      message: 'Database connection not available'
+    });
+  }
   const {
     type,
     status,
@@ -78,40 +94,50 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const take = parseInt(limit);
 
-  const [feedback, total] = await Promise.all([
-    prisma.feedback.findMany({
-      where,
-      orderBy,
-      skip,
-      take,
-      include: {
-        author: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            role: true
-          }
-        },
-        assignee: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            role: true
-          }
-        },
-        comments: {
-          select: {
-            isDeveloper: true
+  try {
+    const [feedback, total] = await Promise.all([
+      prisma.feedback.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+        include: {
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              role: true
+            }
+          },
+          assignee: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              role: true
+            }
+          },
+          comments: {
+            select: {
+              isDeveloper: true
+            }
           }
         }
-      }
-    }),
-    prisma.feedback.count({ where })
-  ]);
+      }),
+      (async () => {
+        console.log('🔍 FEEDBACK DEBUG: About to query feedback table');
+        console.log('🔍 FEEDBACK DEBUG: where clause:', JSON.stringify(where, null, 2));
+        try {
+          return await prisma.feedback.count({ where });
+        } catch (error) {
+          console.error('🔍 FEEDBACK DEBUG: Error in feedback.count:', error);
+          throw error;
+        }
+      })()
+    ]);
 
   // Transform the data to match frontend expectations
   const transformedFeedback = feedback.map(item => {
@@ -150,14 +176,22 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     };
   });
 
-  res.json({
-    success: true,
-    data: transformedFeedback,
-    total,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    totalPages: Math.ceil(total / parseInt(limit))
-  });
+    res.json({
+      success: true,
+      data: transformedFeedback,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / parseInt(limit))
+    });
+  } catch (error) {
+    console.error('❌ FEEDBACK ROUTE: Error fetching feedback:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong on our end. Please try again later.',
+      timestamp: new Date().toISOString()
+    });
+  }
 }));
 
 // GET /api/feedback/:id - Get single feedback item

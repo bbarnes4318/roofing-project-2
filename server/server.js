@@ -49,6 +49,9 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 } else {
   console.log('✅ DATABASE_URL configured from environment');
+  // Debug database connection for feedback table issue
+  const maskedUrl = process.env.DATABASE_URL.replace(/:\/\/[^:]+:[^@]+@/, '://***:***@');
+  console.log('🔍 DATABASE_URL:', maskedUrl);
 }
 
 console.log('✅ Required modules loaded successfully');
@@ -1088,10 +1091,12 @@ server.listen(PORT, '0.0.0.0', (err) => {
   console.log(`🔗 API Base URL: http://0.0.0.0:${PORT}/api`);
   console.log(`📡 Socket.IO server ready for real-time connections`);
   
-  // Start follow-up scheduler
-  const followUpScheduler = require('./jobs/followUpScheduler');
-  followUpScheduler.start();
-  console.log(`⏰ Follow-up scheduler started`);
+  // Start follow-up scheduler with a delay to ensure database is fully ready
+  setTimeout(() => {
+    const followUpScheduler = require('./jobs/followUpScheduler');
+    followUpScheduler.start();
+    console.log(`⏰ Follow-up scheduler started`);
+  }, 5000); // 5 second delay to ensure database connection is fully established
   
   console.log(`✅ Server startup completed successfully`);
 });

@@ -6,6 +6,8 @@ import CompleteExcelDataManager from '../ui/CompleteExcelDataManager';
 import RolesTabComponentFixed from './RolesTabComponentFixed';
 import FollowUpTracking from '../ui/FollowUpTracking';
 import RoofingPermissionsPage from './RoofingPermissionsPage';
+import AddTeamMemberPage from './AddTeamMemberPage';
+import UserManagementPage from './UserManagementPage';
 import { API_BASE_URL, authService } from '../../services/api';
 import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
@@ -689,6 +691,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       { id: 'security', label: 'Security', icon: '🔒' },
       { id: 'roles', label: 'Roles', icon: '👥' },
       { id: 'permissions', label: 'Permissions', icon: '🔐' },
+      { id: 'team-members', label: 'Team Members', icon: '👥' },
+      { id: 'add-team-member', label: 'Add Team Member', icon: '➕' },
       { id: 'follow-up', label: 'Bubbles AI', icon: '🤖' }
       // Note: Excel Data section hidden per requirements
       // Note: Subjects tab removed per requirements
@@ -2298,15 +2302,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   );
 
   const renderFollowUpTab = () => (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className={`text-lg font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-          Follow-up Settings
+        <h3 className={`text-base font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+          Bubbles AI Settings
         </h3>
         <button
           onClick={saveFollowUpSettings}
           disabled={isLoadingFollowUp}
-          className={`px-4 py-2 rounded text-sm font-semibold transition-all duration-200 ${
+          className={`px-3 py-1.5 rounded text-xs font-semibold transition-all duration-200 ${
             isLoadingFollowUp
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : colorMode
@@ -2314,19 +2318,19 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
         >
-          {isLoadingFollowUp ? 'Saving...' : 'Save Settings'}
+          {isLoadingFollowUp ? 'Saving...' : 'Save'}
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-2">
         {/* Enable Follow-ups */}
-        <div className="flex items-center justify-between p-3 rounded border">
+        <div className="flex items-center justify-between p-2 rounded border">
           <div>
-            <label className={`block text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+            <label className={`block text-xs font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
               Enable Automatic Follow-ups
             </label>
             <p className={`text-xs ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Automatically send follow-up reminders for tasks and alerts
+              Send follow-up reminders for tasks and alerts
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -2342,15 +2346,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
         {/* Follow-up Timing Settings */}
         {followUpSettings.isEnabled && (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {/* Task Follow-up Timing */}
-            <div className="border rounded p-4">
-              <h4 className={`text-sm font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+            <div className="border rounded p-2">
+              <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                 Task Follow-up Timing
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Days
                   </label>
                   <input
@@ -2359,11 +2363,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="365"
                     value={followUpSettings.taskFollowUpDays}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, taskFollowUpDays: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Hours
                   </label>
                   <input
@@ -2372,11 +2376,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="23"
                     value={followUpSettings.taskFollowUpHours}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, taskFollowUpHours: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Minutes
                   </label>
                   <input
@@ -2385,20 +2389,20 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="59"
                     value={followUpSettings.taskFollowUpMinutes}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, taskFollowUpMinutes: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
               </div>
             </div>
 
             {/* Reminder Follow-up Timing */}
-            <div className="border rounded p-4">
-              <h4 className={`text-sm font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+            <div className="border rounded p-2">
+              <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                 Reminder Follow-up Timing
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Days
                   </label>
                   <input
@@ -2407,11 +2411,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="365"
                     value={followUpSettings.reminderFollowUpDays}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, reminderFollowUpDays: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Hours
                   </label>
                   <input
@@ -2420,11 +2424,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="23"
                     value={followUpSettings.reminderFollowUpHours}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, reminderFollowUpHours: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Minutes
                   </label>
                   <input
@@ -2433,20 +2437,20 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="59"
                     value={followUpSettings.reminderFollowUpMinutes}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, reminderFollowUpMinutes: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
               </div>
             </div>
 
             {/* Alert Follow-up Timing */}
-            <div className="border rounded p-4">
-              <h4 className={`text-sm font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+            <div className="border rounded p-2">
+              <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
                 Alert Follow-up Timing
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Days
                   </label>
                   <input
@@ -2455,11 +2459,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="365"
                     value={followUpSettings.alertFollowUpDays}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, alertFollowUpDays: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Hours
                   </label>
                   <input
@@ -2468,11 +2472,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="23"
                     value={followUpSettings.alertFollowUpHours}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, alertFollowUpHours: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-semibold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Minutes
                   </label>
                   <input
@@ -2481,51 +2485,54 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     max="59"
                     value={followUpSettings.alertFollowUpMinutes}
                     onChange={(e) => setFollowUpSettings(prev => ({ ...prev, alertFollowUpMinutes: parseInt(e.target.value) || 0 }))}
-                    className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                    className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
                   />
                 </div>
               </div>
             </div>
 
-            <div>
-              <label className={`block text-sm font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                Max Follow-up Attempts
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={followUpSettings.maxFollowUpAttempts}
-                onChange={(e) => setFollowUpSettings(prev => ({ ...prev, maxFollowUpAttempts: parseInt(e.target.value) || 3 }))}
-                className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                Custom Follow-up Message
-              </label>
-              <textarea
-                value={followUpSettings.followUpMessage}
-                onChange={(e) => setFollowUpSettings(prev => ({ ...prev, followUpMessage: e.target.value }))}
-                placeholder="Enter a custom message for follow-up notifications..."
-                rows={3}
-                maxLength={1000}
-                className={`w-full p-2 rounded border text-sm ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
-              />
-              <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                {followUpSettings.followUpMessage.length}/1000 characters
-              </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                  Max Follow-up Attempts
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={followUpSettings.maxFollowUpAttempts}
+                  onChange={(e) => setFollowUpSettings(prev => ({ ...prev, maxFollowUpAttempts: parseInt(e.target.value) || 3 }))}
+                  className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                  Custom Follow-up Message
+                </label>
+                <textarea
+                  value={followUpSettings.followUpMessage}
+                  onChange={(e) => setFollowUpSettings(prev => ({ ...prev, followUpMessage: e.target.value }))}
+                  placeholder="Custom message..."
+                  rows={2}
+                  maxLength={1000}
+                  className={`w-full px-2 py-1 rounded border text-xs ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
+                />
+                <p className={`text-xs mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {followUpSettings.followUpMessage.length}/1000
+                </p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Follow-up Tracking */}
-        <div className="mt-6">
-          <h4 className={`text-md font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+        {/* Follow-up Tracking - Compact */}
+        <div className="mt-2">
+          <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
             Follow-up Tracking
           </h4>
-          <FollowUpTracking colorMode={colorMode} />
+          <div className="text-xs text-gray-500">
+            <FollowUpTracking colorMode={colorMode} />
+          </div>
         </div>
       </div>
     </div>
@@ -2543,6 +2550,35 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         return renderRolesTab();
       case 'permissions':
         return <RoofingPermissionsPage colorMode={colorMode} />;
+      case 'team-members':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Team Member Management</h3>
+              <button
+                onClick={() => setActiveTab('add-team-member')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Add Team Member
+              </button>
+            </div>
+            <UserManagementPage colorMode={colorMode} />
+          </div>
+        );
+      case 'add-team-member':
+        return (
+          <div>
+            <div className="flex items-center mb-4">
+              <button
+                onClick={() => setActiveTab('team-members')}
+                className="mr-4 text-blue-600 hover:text-blue-800"
+              >
+                ← Back to Team Members
+              </button>
+            </div>
+            <AddTeamMemberPage colorMode={colorMode} />
+          </div>
+        );
       case 'follow-up':
         return renderFollowUpTab();
       // Note: Excel Data section hidden per requirements

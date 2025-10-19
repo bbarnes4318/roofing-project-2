@@ -26,6 +26,7 @@ import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import SetupProfilePage from './components/pages/SetupProfilePage';
 
 // Removed mock data import
 import { projectsService, activitiesService } from './services/api';
@@ -1360,6 +1361,17 @@ const apiUrl = window.location.hostname === 'localhost'
             <QueryClientProvider client={queryClient}>
                 <AuthProvider>
                     <ResetPassword />
+                </AuthProvider>
+            </QueryClientProvider>
+        );
+    }
+
+    // Check for setup profile route
+    if (window.location.pathname.startsWith('/setup-profile')) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    <SetupProfilePage colorMode={colorMode} />
                 </AuthProvider>
             </QueryClientProvider>
         );

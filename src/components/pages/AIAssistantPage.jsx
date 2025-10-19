@@ -2223,31 +2223,27 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     
                     {/* Header Actions */}
                     <div className="flex items-center gap-2">
-                        <PermissionGate permission={PERMISSIONS.DOCUMENTS_DOWNLOAD}>
-                            <button
-                                onClick={() => setShowDocumentBrowser(!showDocumentBrowser)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md ${
-                                    showDocumentBrowser 
-                                        ? 'bg-[#6BC22E] text-white hover:bg-[#5AB01D]' 
-                                        : 'bg-[#7ED242] text-white hover:bg-[#6BC22E]'
-                                }`}
-                                title="Show available documents"
-                            >
-                                <FolderIcon className="w-4 h-4" />
-                                <span className="hidden md:inline">Documents</span>
-                            </button>
-                        </PermissionGate>
-                        <PermissionGate permission={PERMISSIONS.AI_BUBBLES}>
-                            <button
-                                onClick={() => setShowPlaybook(true)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all shadow-md bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700"
-                                title="Bubbles Assistant Playbook"
-                            >
-                                <SparklesIcon className="w-4 h-4" />
-                                <span className="hidden md:inline">Assistant Playbook</span>
-                                <span className="md:hidden">Playbook</span>
-                            </button>
-                        </PermissionGate>
+                        <button
+                            onClick={() => setShowDocumentBrowser(!showDocumentBrowser)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md ${
+                                showDocumentBrowser 
+                                    ? 'bg-[#6BC22E] text-white hover:bg-[#5AB01D]' 
+                                    : 'bg-[#7ED242] text-white hover:bg-[#6BC22E]'
+                            }`}
+                            title="Show available documents"
+                        >
+                            <FolderIcon className="w-4 h-4" />
+                            <span className="hidden md:inline">Documents</span>
+                        </button>
+                        <button
+                            onClick={() => setShowPlaybook(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all shadow-md bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700"
+                            title="Bubbles Assistant Playbook"
+                        >
+                            <SparklesIcon className="w-4 h-4" />
+                            <span className="hidden md:inline">Assistant Playbook</span>
+                            <span className="md:hidden">Playbook</span>
+                        </button>
                         <button
                             onClick={() => {
                                 setMessages([]);
@@ -2514,7 +2510,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         onClick={() => setShowDocumentBrowser(false)}
                     />
                     {/* Popup */}
-                    <div className="fixed top-4 right-4 w-80 max-h-[80vh] z-50 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
+                    <div className="fixed top-20 right-4 w-80 max-h-[80vh] z-50 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-gray-200 bg-white">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-gray-800">Available Documents</h3>

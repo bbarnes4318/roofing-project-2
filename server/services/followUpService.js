@@ -2,6 +2,12 @@ const { PrismaClient } = require('@prisma/client');
 
 const { prisma } = require('../config/prisma');
 
+// Ensure prisma is available
+if (!prisma) {
+  console.error('❌ FollowUpService: Prisma client is not available');
+  throw new Error('Database connection not established');
+}
+
 class FollowUpService {
   /**
    * Create a follow-up for a task, reminder, or alert
@@ -95,10 +101,17 @@ class FollowUpService {
    * @returns {Promise<Array>} Array of processed follow-ups
    */
   static async processPendingFollowUps() {
-    const now = new Date();
-    
-    // Get all pending follow-ups that are due
-    const pendingFollowUps = await prisma.followUpTracking.findMany({
+    try {
+      const now = new Date();
+      
+      // Ensure prisma is available
+      if (!prisma) {
+        console.error('❌ FollowUpService: Prisma client is not available');
+        return [];
+      }
+      
+      // Get all pending follow-ups that are due
+      const pendingFollowUps = await prisma.followUpTracking.findMany({
       where: {
         status: 'PENDING',
         scheduledFor: { lte: now }
@@ -180,6 +193,10 @@ class FollowUpService {
     }
 
     return processedFollowUps;
+    } catch (error) {
+      console.error('❌ Error processing follow-ups:', error);
+      return [];
+    }
   }
 
   /**

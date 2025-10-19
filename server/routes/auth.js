@@ -1239,4 +1239,159 @@ router.post('/supabase-token-exchange', asyncHandler(async (req, res) => {
   }
 }));
 
+// @desc    Verify setup token for profile completion
+// @route   POST /api/auth/verify-setup-token
+// @access  Public
+router.post('/verify-setup-token', asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: 'Setup token is required'
+    });
+  }
+
+  try {
+    // Find user by email verification token
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: {
+          gt: new Date()
+        },
+        isVerified: false
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        secondaryPhone: true,
+        preferredPhone: true,
+        isActive: true,
+        isVerified: true
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired setup token'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { user },
+      message: 'Setup token is valid'
+    });
+
+  } catch (error) {
+    console.error('Error verifying setup token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify setup token',
+      error: error.message
+    });
+  }
+}));
+
+// @desc    Complete profile setup
+// @route   POST /api/auth/complete-profile-setup
+// @access  Public
+router.post('/complete-profile-setup', asyncHandler(async (req, res) => {
+  const { 
+    token, 
+    password, 
+    phone, 
+    secondaryPhone, 
+    preferredPhone, 
+    position, 
+    department, 
+    bio 
+  } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Setup token and password are required'
+    });
+  }
+
+  try {
+    // Find user by email verification token
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: {
+          gt: new Date()
+        },
+        isVerified: false
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired setup token'
+      });
+    }
+
+    // Hash the password
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Update user with completed profile
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        phone: phone || null,
+        secondaryPhone: secondaryPhone || null,
+        preferredPhone: preferredPhone || phone || null,
+        position: position || null,
+        department: department || null,
+        bio: bio || null,
+        isVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+        passwordChangedAt: new Date()
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        secondaryPhone: true,
+        preferredPhone: true,
+        position: true,
+        department: true,
+        bio: true,
+        isActive: true,
+        isVerified: true,
+        createdAt: true
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { user: updatedUser },
+      message: 'Profile setup completed successfully'
+    });
+
+  } catch (error) {
+    console.error('Error completing profile setup:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to complete profile setup',
+      error: error.message
+    });
+  }
+}));
+
 module.exports = router; 
