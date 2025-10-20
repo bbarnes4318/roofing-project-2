@@ -338,6 +338,7 @@ router.post('/', asyncHandler(async (req, res, next) => {
   }
   try {
     // Handle both new format (primaryName, primaryEmail, etc.) and legacy format (name, email, phone)
+    console.log('🔍 CUSTOMER CREATE: Request body:', JSON.stringify(req.body, null, 2));
     let customerData = {};
     
     if (req.body.primaryName || req.body.primaryEmail) {
@@ -369,12 +370,17 @@ router.post('/', asyncHandler(async (req, res, next) => {
     }
 
     // Check if customer with this email already exists
+    console.log('🔍 CUSTOMER CREATE: Checking for existing customer with email:', customerData.primaryEmail);
     const existingCustomer = await prisma.customer.findUnique({
       where: { primaryEmail: customerData.primaryEmail }
     });
 
+    console.log('🔍 CUSTOMER CREATE: Existing customer found:', existingCustomer ? 'YES' : 'NO');
     if (existingCustomer) {
-      return next(new AppError('Customer with this email already exists', 400));
+      console.log('🔍 CUSTOMER CREATE: Returning existing customer:', existingCustomer.id, existingCustomer.primaryName);
+      // Return existing customer instead of throwing error
+      const transformedCustomer = transformCustomerForFrontend(existingCustomer);
+      return sendSuccess(res, 200, transformedCustomer, 'Customer already exists');
     }
 
     // Create customer with contacts if provided

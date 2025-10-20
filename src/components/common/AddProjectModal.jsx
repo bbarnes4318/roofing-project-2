@@ -356,6 +356,12 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('🔍 FORM: Already submitting, ignoring duplicate submission');
+      return;
+    }
+    
     if (!validateStep(currentStep)) {
       return;
     }
@@ -1209,7 +1215,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               ) : (
                 <button
                   type="submit"
-                  onClick={handleSubmit}
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-sm"
                 >
