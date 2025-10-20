@@ -358,7 +358,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     
     // Prevent double submission
     if (isSubmitting) {
-      console.log('🔍 FORM: Already submitting, ignoring duplicate submission');
       return;
     }
     
@@ -553,7 +552,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
         {/* Form Content */}
         <div className="p-3 flex-1 overflow-y-auto modal-content">
-          <form>
+          <form onSubmit={handleSubmit}>
             {/* Step 1: Customer Information */}
             {currentStep === 1 && (
               <div className="space-y-3 animate-slide-up">
@@ -1214,8 +1213,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 </button>
               ) : (
                 <button
-                  type="button"
-                  onClick={handleSubmit}
+                  type="submit"
                   disabled={isSubmitting}
                   className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-sm"
                 >
