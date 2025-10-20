@@ -421,32 +421,46 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
   if (displayName !== undefined) updateData.displayName = displayName ? displayName.substring(0, 100) : null;
   if (email !== undefined) updateData.email = email ? email.substring(0, 255) : null;
 
-  const updatedUser = await prisma.user.update({
-    where: { id: req.user.id },
-    data: updateData,
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      role: true,
-      avatar: true,
-      phone: true,
-      position: true,
-      department: true,
-      bio: true,
-      theme: true,
-      language: true,
-      timezone: true,
-      displayName: true
-    }
-  });
-
-  res.json({
-    success: true,
-    message: 'Profile updated successfully',
-    data: { user: updatedUser }
-  });
+  console.log('🔍 PROFILE UPDATE: Starting update for user:', req.user.id);
+  console.log('🔍 PROFILE UPDATE: Update data:', updateData);
+  
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: updateData,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        avatar: true,
+        phone: true,
+        position: true,
+        department: true,
+        bio: true,
+        theme: true,
+        language: true,
+        timezone: true,
+        displayName: true
+      }
+    });
+    
+    console.log('🔍 PROFILE UPDATE: Update completed successfully');
+    
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: { user: updatedUser }
+    });
+  } catch (error) {
+    console.error('🔍 PROFILE UPDATE: Database error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Database error during profile update',
+      error: error.message
+    });
+  }
 }));
 
 // @desc    Upload profile picture
