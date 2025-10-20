@@ -1367,14 +1367,31 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       }
       
       // If no valid user ID, find any real user from database
+      let authorName = `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim();
+      let authorRole = req.user?.role || 'AI_ASSISTANT';
+      
       if (!authorId) {
         const anyUser = await prisma.user.findFirst({
-          select: { id: true }
+          select: { id: true, firstName: true, lastName: true, role: true }
         });
-        authorId = anyUser?.id || null;
+        if (anyUser) {
+          authorId = anyUser.id;
+          authorName = `${anyUser.firstName} ${anyUser.lastName}`.trim();
+          authorRole = anyUser.role;
+        }
+      } else {
+        // Get the actual user data from database for the authorId
+        const userData = await prisma.user.findUnique({
+          where: { id: authorId },
+          select: { firstName: true, lastName: true, role: true }
+        });
+        if (userData) {
+          authorName = `${userData.firstName} ${userData.lastName}`.trim();
+          authorRole = userData.role;
+        }
       }
       
-      console.log('🔍 BUBBLES: Using authorId:', authorId);
+      console.log('🔍 BUBBLES: Using authorId:', authorId, 'authorName:', authorName);
       
       // Create project message (like attachment messages)
       const pm = await prisma.projectMessage.create({
@@ -1384,8 +1401,8 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
           messageType: 'USER_MESSAGE',
           priority: 'MEDIUM',
           authorId: authorId, // Use validated authorId or null
-          authorName: `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim(),
-          authorRole: req.user?.role || 'AI_ASSISTANT',
+          authorName: authorName,
+          authorRole: authorRole,
           projectId: generalProject.id,
           projectNumber: generalProject.projectNumber,
           isSystemGenerated: false,
@@ -1900,14 +1917,31 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         }
         
         // If no valid user ID, find any real user from database
+        let authorName = `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim();
+        let authorRole = req.user?.role || 'AI_ASSISTANT';
+        
         if (!authorId) {
           const anyUser = await prisma.user.findFirst({
-            select: { id: true }
+            select: { id: true, firstName: true, lastName: true, role: true }
           });
-          authorId = anyUser?.id || null;
+          if (anyUser) {
+            authorId = anyUser.id;
+            authorName = `${anyUser.firstName} ${anyUser.lastName}`.trim();
+            authorRole = anyUser.role;
+          }
+        } else {
+          // Get the actual user data from database for the authorId
+          const userData = await prisma.user.findUnique({
+            where: { id: authorId },
+            select: { firstName: true, lastName: true, role: true }
+          });
+          if (userData) {
+            authorName = `${userData.firstName} ${userData.lastName}`.trim();
+            authorRole = userData.role;
+          }
         }
         
-        console.log('🔍 BUBBLES ATTACHMENT: Using authorId:', authorId);
+        console.log('🔍 BUBBLES ATTACHMENT: Using authorId:', authorId, 'authorName:', authorName);
         
         // Create a project message with attachment metadata
         const pm = await prisma.projectMessage.create({
@@ -1917,8 +1951,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
             messageType: 'USER_MESSAGE',
             priority: 'MEDIUM',
             authorId: authorId, // Use validated authorId or null
-            authorName: `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim(),
-            authorRole: req.user?.role || 'AI_ASSISTANT',
+            authorName: authorName,
+            authorRole: authorRole,
             projectId: proj.id,
             projectNumber: proj.projectNumber,
             isSystemGenerated: false,
