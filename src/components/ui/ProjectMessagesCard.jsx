@@ -87,7 +87,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
             const realMessages = projectMessagesData.data.flatMap(message => {
                 const mainMessage = {
                     id: message.id,
-                    user: message.author ? `${message.author.firstName} ${message.author.lastName}` : message.authorName || 'Unknown User',
+                    user: message.author ? `${message.author.firstName} ${message.author.lastName}` : (message.authorName || 'Unknown User'),
                     comment: message.content,
                     timestamp: message.createdAt,
                     recipients: message.recipients || [] // Include recipients from message data
@@ -95,7 +95,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
 
                 const replies = message.replies?.map(reply => ({
                     id: reply.id,
-                    user: reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : reply.authorName || 'Unknown User',
+                    user: reply.author ? `${reply.author.firstName} ${reply.author.lastName}` : (reply.authorName || 'Unknown User'),
                     comment: reply.content,
                     timestamp: reply.createdAt,
                     recipients: reply.recipients || []
@@ -797,7 +797,11 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 <div className="px-3 pb-3">
                     <div className="flex flex-col gap-1.5">
                         {activity.metadata.attachments.map((att, idx) => {
-                            const fileName = att.title || att.fileName || att.originalName || 'Attachment';
+                            // Show different document types based on source section
+                            const isActivityFeed = sourceSection === "Activity Feed";
+                            const fileName = isActivityFeed 
+                              ? (att.originalName || att.title || att.fileName || 'Attachment')
+                              : (att.title || att.fileName || att.originalName || 'Attachment');
                             const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
                             return (
                                 <div

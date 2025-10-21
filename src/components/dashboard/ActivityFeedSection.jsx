@@ -20,7 +20,8 @@ const ActivityFeedSection = ({
   setActivityTypeFilter,
   handleProjectSelectWithScroll,
   availableUsers = [],
-  currentUser = null
+  currentUser = null,
+  sourceSection = "Activity Feed"
 }) => {
   const { state, actions } = useActivity();
 
@@ -299,7 +300,11 @@ const ActivityFeedSection = ({
                       <div className="px-3 pb-3">
                         <div className="flex flex-col gap-1.5">
                           {item.metadata.attachments.map((att, idx) => {
-                            const fileName = att.title || att.fileName || att.originalName || 'Attachment';
+                            // Show different document types based on source section
+                            const isActivityFeed = sourceSection === "Activity Feed";
+                            const fileName = isActivityFeed 
+                              ? (att.originalName || att.title || att.fileName || 'Attachment')
+                              : (att.title || att.fileName || att.originalName || 'Attachment');
                             const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
                             return (
                               <div

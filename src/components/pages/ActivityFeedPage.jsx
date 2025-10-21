@@ -4,7 +4,7 @@ import WorkflowProgressService from '../../services/workflowProgress';
 import { assetsService } from '../../services/api';
 import DocumentViewerModal from '../ui/DocumentViewerModal';
 
-const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity, colorMode }) => {
+const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity, colorMode, currentUser }) => {
     // Dashboard sync state - EXACT same as Dashboard page
     const [expandedMessages, setExpandedMessages] = useState(new Set());
     const [completedTasks, setCompletedTasks] = useState(new Set());
@@ -41,11 +41,18 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 delete messageMetadata.attachments; // Remove attachments from activity feed
             }
             
+            // Get current user name for author field
+            const currentUserName = currentUser ? 
+                `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 
+                currentUser.name || 
+                currentUser.email?.split('@')[0] || 
+                'You' : 'You';
+            
             items.push({
                 id: `msg_${m.id}`,
                 type: 'message',
                 authorId: m.recipientId || null,
-                author: m.author || 'Team Member',
+                author: m.author || currentUserName,
                 projectId: m.projectId || null,
                 projectName: m.projectName || null,
                 projectNumber: m.projectNumber || '12345',
@@ -85,7 +92,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
         
         // Sort newest first
         return items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    }, [messagesData, calendarEvents, workflowAlerts, realProjects]);
+    }, [messagesData, calendarEvents, workflowAlerts, projects, currentUser]);
 
     // Expand all items by default on first load, mirroring Dashboard behavior
     const expandedInitRef = useRef(false);
@@ -135,6 +142,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     };
 
     return (
+        <>
         <div className="w-full max-w-full m-0 p-0">
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between mb-3 p-4">
@@ -256,7 +264,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                             </div>
                         ) : getCurrentItems().map(item => {
                             const isCompleted = completedTasks.has(item.id);
-                            const project = realProjects?.find(p => p.id === item.projectId);
+                            const project = projects?.find(p => p.id === item.projectId);
                             const projectNumber = project?.projectNumber || item.projectNumber || '12345';
                             const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
                             
@@ -512,6 +520,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 setSelectedDocument(null);
             }}
         />
+        </>
     );
 };
 

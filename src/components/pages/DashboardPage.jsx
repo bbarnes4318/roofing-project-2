@@ -1696,6 +1696,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             newCommentText={newCommentText}
             setNewCommentText={setNewCommentText}
             handleAddComment={handleAddComment}
+            sourceSection="Activity Feed"
           />
         </div>
 
