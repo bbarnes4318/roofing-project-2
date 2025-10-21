@@ -33,8 +33,14 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
     const activityFeedItems = useMemo(() => {
         const items = [];
         
-        // Messages
+        // Messages - exclude attachments to prevent duplication with Messages, Tasks, and Reminders section
         (messagesData || []).forEach(m => {
+            // Create a copy of the message metadata without attachments to prevent duplication
+            const messageMetadata = m.metadata ? { ...m.metadata } : {};
+            if (messageMetadata.attachments) {
+                delete messageMetadata.attachments; // Remove attachments from activity feed
+            }
+            
             items.push({
                 id: `msg_${m.id}`,
                 type: 'message',
@@ -47,6 +53,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 content: m.description || m.content || '',
                 timestamp: m.timestamp || m.createdAt || new Date().toISOString(),
                 recipient: m.recipient || 'You',
+                metadata: messageMetadata, // Use metadata without attachments
             });
         });
         

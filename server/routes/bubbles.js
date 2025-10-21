@@ -1371,14 +1371,9 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
       let authorRole = req.user?.role || 'AI_ASSISTANT';
       
       if (!authorId) {
-        const anyUser = await prisma.user.findFirst({
-          select: { id: true, firstName: true, lastName: true, role: true }
-        });
-        if (anyUser) {
-          authorId = anyUser.id;
-          authorName = `${anyUser.firstName} ${anyUser.lastName}`.trim();
-          authorRole = anyUser.role;
-        }
+        // Use the current user from the request instead of finding any random user
+        authorName = `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim();
+        authorRole = req.user?.role || 'AI_ASSISTANT';
       } else {
         // Get the actual user data from database for the authorId
         const userData = await prisma.user.findUnique({
@@ -1921,14 +1916,9 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         let authorRole = req.user?.role || 'AI_ASSISTANT';
         
         if (!authorId) {
-          const anyUser = await prisma.user.findFirst({
-            select: { id: true, firstName: true, lastName: true, role: true }
-          });
-          if (anyUser) {
-            authorId = anyUser.id;
-            authorName = `${anyUser.firstName} ${anyUser.lastName}`.trim();
-            authorRole = anyUser.role;
-          }
+          // Use the current user from the request instead of finding any random user
+          authorName = `${req.user?.firstName || 'Bubbles'} ${req.user?.lastName || 'AI'}`.trim();
+          authorRole = req.user?.role || 'AI_ASSISTANT';
         } else {
           // Get the actual user data from database for the authorId
           const userData = await prisma.user.findUnique({
