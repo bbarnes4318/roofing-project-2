@@ -1166,74 +1166,74 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 </div>
               </div>
             )}
-          </form>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="bg-gray-50 px-3 py-2 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 text-sm ${
-                currentStep === 1
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Previous
-            </button>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  resetForm();
-                  onClose();
-                }}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 text-sm"
-              >
-                Cancel
-              </button>
-              
-              {currentStep < 3 ? (
+            
+            {/* Form Actions */}
+            <div className="bg-gray-50 px-3 py-2 border-t border-gray-200 flex-shrink-0 -mx-3 -mb-3">
+              <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={nextStep}
-                  className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 text-sm"
+                  onClick={prevStep}
+                  disabled={currentStep === 1}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 text-sm ${
+                    currentStep === 1
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200'
+                  }`}
                 >
-                  Next
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
+                  Previous
                 </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-sm"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Creating...
-                    </>
-                  ) : (
-                    <>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetForm();
+                      onClose();
+                    }}
+                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 text-sm"
+                  >
+                    Cancel
+                  </button>
+                  
+                  {currentStep < 3 ? (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="px-4 py-2 bg-[var(--color-primary-blueprint-blue)] text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      Next
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                      Create Project
-                    </>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="px-4 py-2 bg-[var(--color-success-green)] text-white rounded-lg font-semibold hover:bg-green-700 transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Create Project
+                        </>
+                      )}
+                    </button>
                   )}
-                </button>
-              )}
+                </div>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
       </div>
 

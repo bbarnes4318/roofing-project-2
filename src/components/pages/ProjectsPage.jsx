@@ -1413,7 +1413,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             Cancel
                                         </button>
                                         <button
-                                            type="submit"
+                                            type="button"
+                                            onClick={handleSubmit}
                                             disabled={createProjectMutation.isLoading}
                                             className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl"
                                         >
