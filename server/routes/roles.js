@@ -35,8 +35,7 @@ router.get('/', authenticateToken, async (req, res) => {
       projectManager: [],
       fieldDirector: [],
       officeStaff: [],
-      administration: [],
-      subcontractor: []
+      administration: []
     };
 
     roleAssignments.forEach(assignment => {
@@ -101,8 +100,8 @@ router.post('/assign', authenticateToken, async (req, res) => {
       });
     }
 
-    // Validate role type (must match Prisma enum RoleType)
-    const validRoles = ['PROJECT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION', 'SUBCONTRACTOR'];
+    // Validate role type (must match Prisma enum role_types)
+    const validRoles = ['PROJECT_MANAGER', 'FIELD_DIRECTOR', 'OFFICE_STAFF', 'ADMINISTRATION'];
     // Normalize role type to handle various input formats
     let normalizedRoleType;
     const upperRoleType = roleType.toUpperCase();
@@ -125,9 +124,6 @@ router.post('/assign', authenticateToken, async (req, res) => {
         break;
       case 'ADMINISTRATION':
         normalizedRoleType = 'ADMINISTRATION';
-        break;
-      case 'SUBCONTRACTOR':
-        normalizedRoleType = 'SUBCONTRACTOR';
         break;
       default:
         // Try camelCase conversion for cases like "projectManager"
@@ -253,9 +249,6 @@ router.delete('/unassign', authenticateToken, async (req, res) => {
       case 'ADMINISTRATION':
         normalizedRoleType = 'ADMINISTRATION';
         break;
-      case 'SUBCONTRACTOR':
-        normalizedRoleType = 'SUBCONTRACTOR';
-        break;
       default:
         normalizedRoleType = upperRoleType.replace(/([a-z])([A-Z])/g, '$1_$2');
     }
@@ -305,9 +298,8 @@ router.post('/sync', authenticateToken, async (req, res) => {
       projectManager: 'PROJECT_MANAGER',
       fieldDirector: 'FIELD_DIRECTOR',
       officeStaff: 'OFFICE_STAFF',
-      administration: 'ADMINISTRATION',
-      subcontractor: 'SUBCONTRACTOR',
-      locationManager: 'LOCATION_MANAGER'
+      administration: 'ADMINISTRATION'
+      // Note: subcontractor and locationManager are not valid role types in the database
     };
 
     // Process each role type

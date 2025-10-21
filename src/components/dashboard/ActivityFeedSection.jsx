@@ -296,60 +296,6 @@ const ActivityFeedSection = ({
                       onDelete={() => handleDeleteItem(item)}
                       isDeleting={isDeleting}
                     />
-                    {Array.isArray(item?.metadata?.attachments) && item.metadata.attachments.length > 0 && (
-                      <div className="px-3 pb-3">
-                        <div className="flex flex-col gap-1.5">
-                          {item.metadata.attachments.map((att, idx) => {
-                            // Show different document types based on source section
-                            const isActivityFeed = sourceSection === "Activity Feed";
-                            const fileName = isActivityFeed 
-                              ? (att.originalName || att.title || att.fileName || 'Attachment')
-                              : (att.title || att.fileName || att.originalName || 'Attachment');
-                            const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
-                            return (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg bg-white px-3 py-2 text-xs shadow-sm hover:shadow transition-shadow"
-                              >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-gray-600 border border-gray-200">
-                                    <span className="text-[10px] font-semibold uppercase">
-                                      {fileExt ? fileExt.slice(0, 4) : 'DOC'}
-                                    </span>
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="font-medium text-gray-800 truncate" title={fileName}>{fileName}</div>
-                                    {att.description && (
-                                      <div className="text-[10px] text-gray-500 truncate" title={att.description}>{att.description}</div>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {att.fileSize && (
-                                    <span className="text-[10px] text-gray-400">{att.fileSize}</span>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedDocument(att);
-                                      setIsDocumentModalOpen(true);
-                                    }}
-                                    className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
-                                  >
-                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    View
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               } else if (item.type === 'task') {

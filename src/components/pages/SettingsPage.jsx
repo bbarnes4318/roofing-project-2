@@ -401,9 +401,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             projectManager: [], // Changed from productManager to projectManager
             fieldDirector: [],
             officeStaff: [],
-            administration: [],
-            subcontractor: [],
-            locationManager: []
+            administration: []
+            // Note: subcontractor and locationManager are not valid role types in the database
           };
 
           // Handle existing assignments if they exist
@@ -649,7 +648,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
         },
         body: JSON.stringify(followUpSettings)
       });
