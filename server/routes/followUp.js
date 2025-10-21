@@ -9,6 +9,7 @@ const {
   AppError 
 } = require('../middleware/errorHandler');
 const { 
+  authenticateToken,
   managerAndAbove 
 } = require('../middleware/auth');
 
@@ -17,7 +18,7 @@ const router = express.Router();
 // @desc    Get follow-up settings for user
 // @route   GET /api/follow-up/settings
 // @access  Private
-router.get('/settings', managerAndAbove, asyncHandler(async (req, res) => {
+router.get('/settings', authenticateToken, asyncHandler(async (req, res) => {
   try {
   const userId = req.user.id;
 
@@ -58,7 +59,7 @@ router.get('/settings', managerAndAbove, asyncHandler(async (req, res) => {
 // @desc    Update follow-up settings for user
 // @route   PUT /api/follow-up/settings
 // @access  Private
-router.put('/settings', [
+router.put('/settings', authenticateToken, [
   body('isEnabled')
     .optional()
     .isBoolean()

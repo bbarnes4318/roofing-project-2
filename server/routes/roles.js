@@ -306,7 +306,8 @@ router.post('/sync', authenticateToken, async (req, res) => {
       fieldDirector: 'FIELD_DIRECTOR',
       officeStaff: 'OFFICE_STAFF',
       administration: 'ADMINISTRATION',
-      subcontractor: 'SUBCONTRACTOR'
+      subcontractor: 'SUBCONTRACTOR',
+      locationManager: 'LOCATION_MANAGER'
     };
 
     // Process each role type

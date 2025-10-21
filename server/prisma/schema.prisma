@@ -1379,6 +1379,7 @@ enum RoleType {
   OFFICE_STAFF
   ADMINISTRATION
   SUBCONTRACTOR
+  LOCATION_MANAGER
 
   @@map("role_types")
 }
