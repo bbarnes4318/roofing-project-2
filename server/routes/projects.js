@@ -656,7 +656,14 @@ router.post('/', authenticateToken, projectValidation, asyncHandler(async (req, 
     console.log('🔍 Project manager validation - req.body.projectManagerId:', req.body.projectManagerId);
     if (req.body.projectManagerId) {
       const projectManager = await prisma.user.findUnique({
-        where: { id: req.body.projectManagerId }
+        where: { id: req.body.projectManagerId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true
+        }
       });
       console.log('🔍 Found project manager:', !!projectManager, projectManager?.firstName, projectManager?.lastName);
       if (projectManager) {
@@ -1039,7 +1046,14 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
     // Verify project manager exists if being updated
     if (req.body.projectManagerId) {
       const projectManager = await prisma.user.findUnique({
-        where: { id: req.body.projectManagerId }
+        where: { id: req.body.projectManagerId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true
+        }
       });
       if (!projectManager) {
         return next(new AppError('Project manager not found', 404));

@@ -1,0 +1,301 @@
+Oct 21 05:51:41  🔍 Project manager validation - req.body.projectManagerId: cmflo3nqx0002j8g4u4cykcb5
+Oct 21 05:51:41  prisma:error 
+Oct 21 05:51:41  Invalid `prisma.user.findUnique()` invocation:
+Oct 21 05:51:41  
+Oct 21 05:51:41  
+Oct 21 05:51:41  The column `users.secondaryPhone` does not exist in the current database.
+Oct 21 05:51:41  Error creating project: PrismaClientKnownRequestError: 
+Oct 21 05:51:41  Invalid `prisma.user.findUnique()` invocation:
+Oct 21 05:51:41  
+Oct 21 05:51:41  
+Oct 21 05:51:41  The column `users.secondaryPhone` does not exist in the current database.
+Oct 21 05:51:41      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 21 05:51:41      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 21 05:51:41      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 21 05:51:41      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 21 05:51:41      at async /app/routes/projects.js:658:30 {
+Oct 21 05:51:41    code: 'P2022',
+Oct 21 05:51:41    meta: { modelName: 'User', column: 'users.secondaryPhone' },
+Oct 21 05:51:41    clientVersion: '6.14.0'
+Oct 21 05:51:41  }
+Oct 21 05:51:41  🚨 SERVER ERROR: {
+Oct 21 05:51:41    "timestamp": "2025-10-21T05:51:41.787Z",
+Oct 21 05:51:41    "method": "POST",
+Oct 21 05:51:41    "url": "/api/projects",
+Oct 21 05:51:41    "ip": "10.244.0.217",
+Oct 21 05:51:41    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 21 05:51:41    "userId": "demo-user-1761025901756",
+Oct 21 05:51:41    "error": {
+Oct 21 05:51:41      "message": "Failed to create project",
+Oct 21 05:51:41      "statusCode": 500
+Oct 21 05:51:41    }
+Oct 21 05:51:41  }
+Oct 21 05:51:41  10.244.0.217 - - [21/Oct/2025:05:51:41 +0000] "POST /api/projects HTTP/1.1" 500 93 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:51:45  10.244.44.73 - - [21/Oct/2025:05:51:45 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:51:45  10.244.18.108 - - [21/Oct/2025:05:51:45 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:51:55  10.244.44.73 - - [21/Oct/2025:05:51:55 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:51:55  10.244.18.108 - - [21/Oct/2025:05:51:55 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:05  10.244.44.73 - - [21/Oct/2025:05:52:05 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:05  10.244.3.89 - - [21/Oct/2025:05:52:05 +0000] "GET /static/js/main.4aa0bd55.js.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:05  10.244.18.108 - - [21/Oct/2025:05:52:05 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:09  10.244.30.98 - - [21/Oct/2025:05:52:09 +0000] "GET /static/css/main.68be84a7.css.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:15  10.244.44.73 - - [21/Oct/2025:05:52:15 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:15  10.244.18.108 - - [21/Oct/2025:05:52:15 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:16  🔍 CUSTOMER CREATE: Request body: {
+Oct 21 05:52:16    "primaryName": "Samuel Sonderson",
+Oct 21 05:52:16    "primaryEmail": "ssonderson4949@aol.com",
+Oct 21 05:52:16    "primaryPhone": "(865) 858-5858",
+Oct 21 05:52:16    "primaryContact": "PRIMARY",
+Oct 21 05:52:16    "address": "10523 Kingston Pike, Knoxville, TN"
+Oct 21 05:52:16  }
+Oct 21 05:52:16  🔍 CUSTOMER CREATE: Checking for existing customer with email: ssonderson4949@aol.com
+Oct 21 05:52:16  🔍 CUSTOMER CREATE: Existing customer found: YES
+Oct 21 05:52:16  🔍 CUSTOMER CREATE: Returning existing customer: cmh05cq5d0000b90da7diabnp Samuel Sonderson
+Oct 21 05:52:16  10.244.0.217 - - [21/Oct/2025:05:52:16 +0000] "POST /api/customers HTTP/1.1" 200 532 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:16  🔍 Project manager validation - req.body.projectManagerId: cmflo3nqx0002j8g4u4cykcb5
+Oct 21 05:52:16  prisma:error 
+Oct 21 05:52:16  Invalid `prisma.user.findUnique()` invocation:
+Oct 21 05:52:16  
+Oct 21 05:52:16  
+Oct 21 05:52:16  The column `users.secondaryPhone` does not exist in the current database.
+Oct 21 05:52:16  10.244.0.217 - - [21/Oct/2025:05:52:16 +0000] "POST /api/projects HTTP/1.1" 500 93 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:16  Error creating project: PrismaClientKnownRequestError: 
+Oct 21 05:52:16  Invalid `prisma.user.findUnique()` invocation:
+Oct 21 05:52:16  
+Oct 21 05:52:16  
+Oct 21 05:52:16  The column `users.secondaryPhone` does not exist in the current database.
+Oct 21 05:52:16      at ei.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7283)
+Oct 21 05:52:16      at ei.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6608)
+Oct 21 05:52:16      at ei.request (/app/node_modules/@prisma/client/runtime/library.js:121:6315)
+Oct 21 05:52:16      at async a (/app/node_modules/@prisma/client/runtime/library.js:130:9551)
+Oct 21 05:52:16      at async /app/routes/projects.js:658:30 {
+Oct 21 05:52:16    code: 'P2022',
+Oct 21 05:52:16    meta: { modelName: 'User', column: 'users.secondaryPhone' },
+Oct 21 05:52:16    clientVersion: '6.14.0'
+Oct 21 05:52:16  }
+Oct 21 05:52:16  🚨 SERVER ERROR: {
+Oct 21 05:52:16    "timestamp": "2025-10-21T05:52:16.379Z",
+Oct 21 05:52:16    "method": "POST",
+Oct 21 05:52:16    "url": "/api/projects",
+Oct 21 05:52:16    "ip": "10.244.0.217",
+Oct 21 05:52:16    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+Oct 21 05:52:16    "userId": "demo-user-1761025936366",
+Oct 21 05:52:16    "error": {
+Oct 21 05:52:16      "message": "Failed to create project",
+Oct 21 05:52:16      "statusCode": 500
+Oct 21 05:52:16    }
+Oct 21 05:52:16  }
+Oct 21 05:52:25  10.244.44.73 - - [21/Oct/2025:05:52:25 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:25  10.244.18.108 - - [21/Oct/2025:05:52:25 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:35  10.244.44.73 - - [21/Oct/2025:05:52:35 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:35  10.244.18.108 - - [21/Oct/2025:05:52:35 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:45  10.244.44.73 - - [21/Oct/2025:05:52:45 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:45  10.244.18.108 - - [21/Oct/2025:05:52:45 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:48  🔍 Where clause: { archived: false }
+Oct 21 05:52:48  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 21 05:52:48  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 21 05:52:48  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 21 05:52:48  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 21 05:52:48  10.244.26.231 - - [21/Oct/2025:05:52:48 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:48  🚨 ALERTS ROUTE: Found 23 alerts from database
+Oct 21 05:52:48  10.244.26.231 - - [21/Oct/2025:05:52:48 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:49  10.244.0.217 - - [21/Oct/2025:05:52:49 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:52:55  10.244.44.73 - - [21/Oct/2025:05:52:55 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:52:55  10.244.18.108 - - [21/Oct/2025:05:52:55 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:05  10.244.44.73 - - [21/Oct/2025:05:53:05 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:05  10.244.18.108 - - [21/Oct/2025:05:53:05 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:14  🔍 Where clause: { archived: false }
+Oct 21 05:53:14  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 21 05:53:14  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 21 05:53:14  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 21 05:53:14  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 21 05:53:14  🚨 ALERTS ROUTE: Found 23 alerts from database
+Oct 21 05:53:14  10.244.26.231 - - [21/Oct/2025:05:53:14 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:14  10.244.26.231 - - [21/Oct/2025:05:53:14 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:14  10.244.0.217 - - [21/Oct/2025:05:53:14 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:15  10.244.44.73 - - [21/Oct/2025:05:53:15 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Oct 21 05:53:15  10.244.18.108 - - [21/Oct/2025:05:53:15 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:25  10.244.44.73 - - [21/Oct/2025:05:53:25 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:25  10.244.18.108 - - [21/Oct/2025:05:53:25 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:35  10.244.44.73 - - [21/Oct/2025:05:53:35 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:35  10.244.18.108 - - [21/Oct/2025:05:53:35 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:38  🔍 Where clause: { archived: false }
+Oct 21 05:53:38  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 21 05:53:38  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 21 05:53:38  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 21 05:53:38  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 21 05:53:38  🚨 ALERTS ROUTE: Found 23 alerts from database
+Oct 21 05:53:38  10.244.26.231 - - [21/Oct/2025:05:53:38 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:38  10.244.26.231 - - [21/Oct/2025:05:53:38 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:39  10.244.0.217 - - [21/Oct/2025:05:53:39 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:40  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 21 05:53:40  🔍 Where clause: { archived: false }
+Oct 21 05:53:40  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 21 05:53:40  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 21 05:53:40  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 21 05:53:40  🚨 ALERTS ROUTE: Found 23 alerts from database
+Oct 21 05:53:40  10.244.26.231 - - [21/Oct/2025:05:53:40 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:40  10.244.26.231 - - [21/Oct/2025:05:53:40 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:40  10.244.0.217 - - [21/Oct/2025:05:53:40 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 21 05:53:45  10.244.44.73 - - [21/Oct/2025:05:53:45 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Oct 21 05:53:45  10.244.18.108 - - [21/Oct/2025:05:53:45 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:55  10.244.44.73 - - [21/Oct/2025:05:53:55 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Oct 21 05:53:55  10.244.18.108 - - [21/Oct/2025:05:53:55 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+
+projectName: "10523 Kingston Pike, Knoxville, TN", projectType: "ROOFING", additionalTrades: [],…}
+additionalTrades
+: 
+[]
+budget
+: 
+1000
+customerId
+: 
+"cmh05cq5d0000b90da7diabnp"
+description
+: 
+""
+endDate
+: 
+"2026-01-19T05:52:15.758Z"
+leadSourceId
+: 
+"Website"
+projectManagerId
+: 
+"cmflo3nqx0002j8g4u4cykcb5"
+projectName
+: 
+"10523 Kingston Pike, Knoxville, TN"
+projectType
+: 
+"ROOFING"
+startDate
+: 
+"2025-10-21T05:52:15.758Z"
+startingPhase
+: 
+"LEAD"
+tradeTypes
+: 
+["ROOFING"]
+0
+: 
+"ROOFING"
+
+Request URL
+https://goldfish-app-4yuma.ondigitalocean.app/api/projects
+Request Method
+POST
+Status Code
+500 Internal Server Error
+Remote Address
+[2606:4700:7::60]:443
+Referrer Policy
+no-referrer
+access-control-allow-credentials
+true
+access-control-allow-origin
+https://goldfish-app-4yuma.ondigitalocean.app
+alt-svc
+h3=":443"; ma=86400
+cache-control
+private
+cf-cache-status
+DYNAMIC
+cf-ray
+991e7ce62c715869-ATL
+content-length
+93
+content-security-policy
+default-src 'self';style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;font-src 'self' data: https://fonts.gstatic.com;script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://sc.lfeeder.com https://cdn.jsdelivr.net https://maps.googleapis.com https://c.daily.co https://*.daily.co;img-src 'self' data: https:;connect-src 'self' https: wss: ws: https://*.vapi.ai https://*.daily.co https://goldfish-app-4yuma.ondigitalocean.app;media-src 'self' https://*.daily.co blob:;frame-src 'self' https://*.daily.co https://*.digitaloceanspaces.com;object-src 'self' https://*.digitaloceanspaces.com;worker-src 'self' blob:;base-uri 'self';form-action 'self';frame-ancestors 'self';script-src-attr 'none';upgrade-insecure-requests
+content-type
+application/json; charset=utf-8
+cross-origin-opener-policy
+same-origin
+cross-origin-resource-policy
+same-origin
+date
+Tue, 21 Oct 2025 05:52:16 GMT
+etag
+W/"5d-rcxec0qUVgNHCKSmLt94tBjsWaw"
+origin-agent-cluster
+?1
+priority
+u=1,i
+referrer-policy
+no-referrer
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+__cf_bm=btnq4Ma4ojWUTCWCMDkNHAiGeLfbxjTdWFh8WpmlNjo-1761025936-1.0.1.1-BJ2L8_pCBkJ2cmX3IC6R5zObzkt59O2FYL5fGIudUW22WD2O2g8M9YfyLKB_.YohjlJA60SJakF1i.scwSCbCOhPVDxSOmQGgeTYUpMpCcE; path=/; expires=Tue, 21-Oct-25 06:22:16 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
+strict-transport-security
+max-age=15552000; includeSubDomains
+vary
+Origin, Accept-Encoding
+x-content-type-options
+nosniff
+x-dns-prefetch-control
+off
+x-do-app-origin
+edf924d8-6fc4-4919-9a80-7c0b2dfbd910
+x-do-orig-status
+500
+x-download-options
+noopen
+x-frame-options
+SAMEORIGIN
+x-permitted-cross-domain-policies
+none
+x-xss-protection
+0
+:authority
+goldfish-app-4yuma.ondigitalocean.app
+:method
+POST
+:path
+/api/projects
+:scheme
+https
+accept
+application/json, text/plain, */*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+en-US,en;q=0.9
+authorization
+Bearer temp-token-1760878884330-78myrir5r
+content-length
+366
+content-type
+application/json
+origin
+https://goldfish-app-4yuma.ondigitalocean.app
+priority
+u=1, i
+sec-ch-ua
+"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+
+{
+    "success": false,
+    "message": "Failed to create project",
+    "timestamp": "2025-10-21T05:52:16.380Z"
+}
+
+
+
+
