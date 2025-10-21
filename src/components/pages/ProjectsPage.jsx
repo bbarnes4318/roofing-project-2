@@ -1393,49 +1393,48 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     </div>
                                 </div>
                             )}
+                            
+                            {/* Form Actions */}
+                            <div className="bg-gradient-to-r from-slate-50 to-gray-50 px-8 py-6 border-t border-slate-200 -mx-8 -mb-8">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-slate-600">
+                                        Fill in the required fields marked with <span className="text-red-500">*</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsModalOpen(false);
+                                                setNewProject(defaultNewProject);
+                                                setError('');
+                                            }}
+                                            className="px-8 py-4 text-slate-700 bg-white border-2 border-slate-300 rounded-xl font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={createProjectMutation.isLoading}
+                                            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl"
+                                        >
+                                            {createProjectMutation.isLoading ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                                                    <span>Creating Project...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                    <span>Create Project</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </form>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="bg-gradient-to-r from-slate-50 to-gray-50 px-8 py-6 border-t border-slate-200">
-                        <div className="flex items-center justify-between">
-                            <div className="text-sm text-slate-600">
-                                Fill in the required fields marked with <span className="text-red-500">*</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsModalOpen(false);
-                                        setNewProject(defaultNewProject);
-                                        setError('');
-                                    }}
-                                    className="px-8 py-4 text-slate-700 bg-white border-2 border-slate-300 rounded-xl font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    onClick={handleSubmit}
-                                    disabled={createProjectMutation.isLoading}
-                                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl"
-                                >
-                                    {createProjectMutation.isLoading ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                                            <span>Creating Project...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                            </svg>
-                                            <span>Create Project</span>
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </Modal>
