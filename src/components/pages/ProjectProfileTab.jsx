@@ -37,6 +37,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [editFormData, setEditFormData] = useState({
     address: '',
+    addressComponents: {}, // Store parsed address components
     customerName: '',
     customerPhone: '',
     customerEmail: '',
@@ -169,7 +170,23 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   }, [project]);
 
   const handleEditAddress = () => {
+    setEditFormData(prev => ({
+      ...prev,
+      address: project.address || project.customer?.address || '',
+      addressComponents: {} // Reset address components
+    }));
     setIsEditingAddress(true);
+  };
+
+  const handlePlaceSelect = (placeData) => {
+    console.log('🔍 ADDRESS DEBUG: Place selected in ProjectProfileTab:', placeData);
+    console.log('🔍 ADDRESS DEBUG: Address components:', placeData.addressComponents);
+    
+    setEditFormData(prev => ({
+      ...prev,
+      address: placeData.formattedAddress,
+      addressComponents: placeData.addressComponents || {}
+    }));
   };
 
   const handleEditContact = () => {
@@ -317,10 +334,50 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                     name="address"
                     value={editFormData.address}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+                    onPlaceSelect={handlePlaceSelect}
                     className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Project address"
                     autoFocus
                   />
+                  
+                  {/* Address Components Display */}
+                  {Object.keys(editFormData.addressComponents).length > 0 && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                      <div className="text-blue-800 font-semibold mb-1 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        Address Details
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        {editFormData.addressComponents.street_number && editFormData.addressComponents.route && (
+                          <div>
+                            <span className="text-gray-600">Street: </span>
+                            <span className="text-gray-800">{editFormData.addressComponents.street_number} {editFormData.addressComponents.route}</span>
+                          </div>
+                        )}
+                        {editFormData.addressComponents.locality && (
+                          <div>
+                            <span className="text-gray-600">City: </span>
+                            <span className="text-gray-800">{editFormData.addressComponents.locality}</span>
+                          </div>
+                        )}
+                        {editFormData.addressComponents.administrative_area_level_1 && (
+                          <div>
+                            <span className="text-gray-600">State: </span>
+                            <span className="text-gray-800">{editFormData.addressComponents.administrative_area_level_1}</span>
+                          </div>
+                        )}
+                        {editFormData.addressComponents.postal_code && (
+                          <div>
+                            <span className="text-gray-600">ZIP: </span>
+                            <span className="text-gray-800 font-semibold text-blue-700">{editFormData.addressComponents.postal_code}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <button
                     onClick={async () => {
                       try {

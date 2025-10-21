@@ -14,6 +14,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     secondaryTypeOfContact: 'SECONDARY_CONTACT',
     primaryContact: 'PRIMARY', // PRIMARY or SECONDARY
     address: '',
+    addressComponents: {}, // Store parsed address components
     projectTypes: [], // Multiple trade types
     description: '',
     startingPhase: 'LEAD', // Starting phase selection
@@ -266,6 +267,25 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handlePlaceSelect = (placeData) => {
+    console.log('🔍 ADDRESS DEBUG: Place selected:', placeData);
+    console.log('🔍 ADDRESS DEBUG: Address components:', placeData.addressComponents);
+    
+    setFormData(prev => ({
+      ...prev,
+      address: placeData.formattedAddress,
+      addressComponents: placeData.addressComponents || {}
+    }));
+    
+    // Clear address error when place is selected
+    if (errors.address) {
+      setErrors(prev => ({
+        ...prev,
+        address: ''
+      }));
     }
   };
 
@@ -662,12 +682,52 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
+                        onPlaceSelect={handlePlaceSelect}
                         placeholder="Full project address"
                         className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
                           errors.address ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                         }`}
                         required
                       />
+                      
+                      {/* Address Components Display */}
+                      {Object.keys(formData.addressComponents).length > 0 && (
+                        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                            </svg>
+                            Address Details
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {formData.addressComponents.street_number && formData.addressComponents.route && (
+                              <div className="flex flex-col">
+                                <span className="text-gray-600 font-medium">Street</span>
+                                <span className="text-gray-800">{formData.addressComponents.street_number} {formData.addressComponents.route}</span>
+                              </div>
+                            )}
+                            {formData.addressComponents.locality && (
+                              <div className="flex flex-col">
+                                <span className="text-gray-600 font-medium">City</span>
+                                <span className="text-gray-800">{formData.addressComponents.locality}</span>
+                              </div>
+                            )}
+                            {formData.addressComponents.administrative_area_level_1 && (
+                              <div className="flex flex-col">
+                                <span className="text-gray-600 font-medium">State</span>
+                                <span className="text-gray-800">{formData.addressComponents.administrative_area_level_1}</span>
+                              </div>
+                            )}
+                            {formData.addressComponents.postal_code && (
+                              <div className="flex flex-col">
+                                <span className="text-gray-600 font-medium">ZIP Code</span>
+                                <span className="text-gray-800 font-semibold text-blue-700">{formData.addressComponents.postal_code}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       {errors.address && (
                         <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
