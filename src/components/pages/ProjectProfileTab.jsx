@@ -341,7 +341,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   />
                   
                   {/* Address Components Display */}
-                  {Object.keys(editFormData.addressComponents).length > 0 && (
+                  {editFormData.addressComponents && typeof editFormData.addressComponents === 'object' && Object.keys(editFormData.addressComponents).length > 0 && (
                     <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
                       <div className="text-blue-800 font-semibold mb-1 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

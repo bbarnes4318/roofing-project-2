@@ -691,7 +691,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       />
                       
                       {/* Address Components Display */}
-                      {Object.keys(formData.addressComponents).length > 0 && (
+                      {formData.addressComponents && typeof formData.addressComponents === 'object' && Object.keys(formData.addressComponents).length > 0 && (
                         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-1">
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
