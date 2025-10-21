@@ -378,6 +378,7 @@ router.post('/sync', authenticateToken, async (req, res) => {
             console.log(`ℹ️ User ${userId} already has role ${normalizedRoleType}, skipping duplicate`);
             continue;
           }
+          console.error(`❌ Error creating role assignment for user ${userId}:`, error);
           throw error;
         }
       }
