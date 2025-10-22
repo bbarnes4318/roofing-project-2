@@ -2327,6 +2327,16 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         </button>
       </div>
 
+      {/* Follow-up Tracking - Moved to top */}
+      <div className="mb-4">
+        <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+          Follow-up Tracking
+        </h4>
+        <div className="text-xs text-gray-500">
+          <FollowUpTracking colorMode={colorMode} />
+        </div>
+      </div>
+
       <div className="space-y-2">
         {/* Enable Follow-ups */}
         <div className="flex items-center justify-between p-2 rounded border">
@@ -2530,15 +2540,6 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           </div>
         )}
 
-        {/* Follow-up Tracking - Compact */}
-        <div className="mt-2">
-          <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-            Follow-up Tracking
-          </h4>
-          <div className="text-xs text-gray-500">
-            <FollowUpTracking colorMode={colorMode} />
-          </div>
-        </div>
       </div>
     </div>
   );
