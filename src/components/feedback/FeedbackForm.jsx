@@ -81,8 +81,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
       const submissionData = {
         ...formData,
         environment,
-        attachments,
-        authorId: currentUser?.id
+        attachments
+        // authorId is handled by the backend from the JWT token
       };
 
       await onSubmit(submissionData);

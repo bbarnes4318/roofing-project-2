@@ -65,6 +65,11 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
   // Handle feedback submission
   const submitFeedbackMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('🚀 SUBMITTING FEEDBACK:');
+      console.log('Data being sent:', data);
+      console.log('Current user:', currentUser);
+      console.log('Auth token:', localStorage.getItem('authToken') || sessionStorage.getItem('authToken'));
+      
       // Use real API database
       const response = await feedbackService.createFeedback(data);
       console.log('Feedback created via API:', response.data);

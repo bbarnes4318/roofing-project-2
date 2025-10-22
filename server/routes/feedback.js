@@ -290,11 +290,47 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
   const { type, title, description, severity, tags = [], attachments, url, environment } = req.body;
   const userId = req.user.id;
 
+  console.log('🔍 FEEDBACK CREATION DEBUG:');
+  console.log('User ID from token:', userId);
+  console.log('User object:', req.user);
+  console.log('Request body:', req.body);
+
   if (!type || !title || !description) {
     return res.status(400).json({
       success: false,
       message: 'Type, title, and description are required'
     });
+  }
+
+  // Create user if they don't exist (handle Supabase auth edge case)
+  let userExists = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, firstName: true, lastName: true, email: true }
+  });
+
+  if (!userExists) {
+    console.log('Creating missing user:', userId);
+    try {
+      userExists = await prisma.user.create({
+        data: {
+          id: userId,
+          email: req.user.email || `user-${userId}@temp.com`,
+          firstName: req.user.firstName || 'User',
+          lastName: req.user.lastName || '',
+          password: 'SUPABASE_MANAGED',
+          role: req.user.role || 'WORKER',
+          isActive: true,
+          theme: 'LIGHT'
+        },
+        select: { id: true, firstName: true, lastName: true, email: true }
+      });
+    } catch (error) {
+      console.log('User creation failed:', error);
+      return res.status(400).json({
+        success: false,
+        message: 'User not found and could not be created'
+      });
+    }
   }
 
   const feedback = await prisma.feedback.create({
