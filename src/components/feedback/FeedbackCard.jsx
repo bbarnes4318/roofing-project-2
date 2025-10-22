@@ -120,14 +120,21 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, colorMode }) => 
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-        colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
-      } border rounded-lg p-4 hover:scale-[1.01]`}
+      className={`cursor-pointer transition-all duration-200 hover:shadow-lg mb-4 ${
+        colorMode 
+          ? 'bg-slate-800 border-slate-600 shadow-slate-900/20' 
+          : 'bg-white border-gray-300 shadow-gray-200/50'
+      } border-2 border-l-4 border-l-${typeColor}-500 rounded-xl p-5 hover:scale-[1.01] hover:shadow-xl`}
+      style={{
+        boxShadow: colorMode 
+          ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' 
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+      }}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-lg bg-${typeColor}-100`}>
+          <div className={`p-2 rounded-lg bg-${typeColor}-100 border border-${typeColor}-200`}>
             <TypeIcon className={`h-5 w-5 text-${typeColor}-600`} />
           </div>
           <div>

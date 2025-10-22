@@ -35,24 +35,44 @@ const UserManagementPage = ({ colorMode }) => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError('');
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       
-      const response = await fetch(`${API_BASE_URL}/users`, {
+      if (!token) {
+        setError('No authentication token found. Please log in again.');
+        return;
+      }
+      
+      console.log('📡 UserManagementPage: Fetching users from API...');
+      const response = await fetch(`${API_BASE_URL}/users/team-members`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      const result = await response.json();
+      console.log('📡 UserManagementPage: Response status:', response.status);
       
-      if (result.success) {
-        setUsers(result.data);
+      if (response.ok) {
+        const result = await response.json();
+        console.log('📡 UserManagementPage: API response:', result);
+        
+        if (result.success && result.data?.teamMembers) {
+          setUsers(result.data.teamMembers);
+          console.log(`✅ UserManagementPage: Loaded ${result.data.teamMembers.length} users`);
+        } else {
+          setError('No users found in response');
+          setUsers([]);
+        }
       } else {
-        setError('Failed to fetch users');
+        const errorText = await response.text();
+        console.error('❌ UserManagementPage: API error:', response.status, errorText);
+        setError(`Failed to fetch users (${response.status}): ${errorText}`);
+        setUsers([]);
       }
     } catch (err) {
-      setError('Network error. Please try again.');
-      console.error('Error fetching users:', err);
+      console.error('❌ UserManagementPage: Network error:', err);
+      setError('Network error. Please check your connection and try again.');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -108,10 +128,15 @@ const UserManagementPage = ({ colorMode }) => {
   };
 
   const filteredUsers = users.filter(user => {
+    // Safely handle missing user properties
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    const email = user.email || '';
+    
     const matchesSearch = 
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
     
@@ -252,16 +277,16 @@ const UserManagementPage = ({ colorMode }) => {
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                               <span className="text-sm font-medium text-gray-700">
-                                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                                {(user.firstName || 'U').charAt(0)}{(user.lastName || 'U').charAt(0)}
                               </span>
                             </div>
                           )}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
+                            {user.firstName || 'Unknown'} {user.lastName || 'User'}
                           </div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-sm text-gray-500">{user.email || 'No email'}</div>
                         </div>
                       </div>
                     </td>

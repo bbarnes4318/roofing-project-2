@@ -148,16 +148,38 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
 
   return (
     <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      {/* Simple Header */}
+      {/* Compact Header */}
       <div className={`border-b ${colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
               <NotificationBell 
                 notifications={unreadNotifications} 
                 colorMode={colorMode}
               />
+              
+              {/* Tabs - moved inline with notification bell */}
+              <div className="flex items-center space-x-1">
+                {['all', 'bugs', 'improvements', 'ideas', 'mine', 'following'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      activeTab === tab
+                        ? colorMode
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-blue-500 text-white'
+                        : colorMode
+                        ? 'text-gray-300 hover:text-white hover:bg-slate-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
+            
             <button
               onClick={() => setShowFeedbackForm(true)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -168,27 +190,6 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
             >
               Submit Feedback
             </button>
-          </div>
-          
-          {/* Tabs */}
-          <div className="flex items-center space-x-1 mt-3">
-            {['all', 'bugs', 'improvements', 'ideas', 'mine', 'following'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                  activeTab === tab
-                    ? colorMode
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-500 text-white'
-                    : colorMode
-                    ? 'text-gray-300 hover:text-white hover:bg-slate-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
           </div>
         </div>
       </div>
