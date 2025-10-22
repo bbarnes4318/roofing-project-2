@@ -26,7 +26,7 @@ const DraggableUser = ({ user, isAssigned = false, onRemove = null, colorMode, s
     <div
       ref={drag}
       className={`
-        flex items-center justify-between p-2 rounded cursor-move transition-all duration-200
+        flex items-center justify-between p-1.5 rounded cursor-move transition-all duration-200
         ${isDragging ? 'opacity-50 scale-95' : 'opacity-100'}
         ${isAssigned 
           ? (colorMode 
@@ -41,18 +41,18 @@ const DraggableUser = ({ user, isAssigned = false, onRemove = null, colorMode, s
         hover:shadow-sm
       `}
     >
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+      <div className="flex items-center gap-2">
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
           colorMode ? 'bg-[var(--color-primary-blueprint-blue)] text-white' : 'bg-blue-500 text-white'
         }`}>
           {user.firstName?.[0] || user.name?.[0] || '?'}
         </div>
-        <div>
-          <div className="font-medium text-sm">
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-xs truncate">
             {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.name}
           </div>
           {user.email && (
-            <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <div className={`text-xs truncate ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
               {user.email}
             </div>
           )}
@@ -74,7 +74,7 @@ const DraggableUser = ({ user, isAssigned = false, onRemove = null, colorMode, s
             e.stopPropagation();
             onRemove(user.id);
           }}
-          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs hover:scale-110 transition-transform ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs hover:scale-110 transition-transform ${
             colorMode 
               ? 'bg-red-900/50 text-red-300 hover:bg-red-800' 
               : 'bg-red-100 text-red-600 hover:bg-red-200'
@@ -159,20 +159,22 @@ const CompactRoleDropZone = ({ roleType, roleName, icon, colorScheme, users, onA
     <div
       ref={drop}
       className={`
-        border border-dashed rounded-lg p-3 min-h-[120px] transition-all duration-200 shadow-sm
+        border border-dashed rounded-lg p-2 min-h-[80px] transition-all duration-200 shadow-sm
         ${isOver && canDrop 
           ? `${colors.hoverBg} ${colors.hoverBorder} shadow-md` 
           : `${colors.bg} ${colors.border}`
         }
       `}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{icon}</span>
-        <h4 className={`font-semibold text-sm ${colors.text}`}>
-          {roleName}
-        </h4>
-        <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-          colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-1">
+          <span className="text-sm">{icon}</span>
+          <h4 className={`font-semibold text-xs ${colors.text}`}>
+            {roleName}
+          </h4>
+        </div>
+        <span className={`text-xs px-1 py-0.5 rounded ${
+          colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
         }`}>
           {users.length}
         </span>
@@ -324,70 +326,68 @@ const RolesTabComponentFixed = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-4">
-        {/* Header - Compact */}
-        <div className={`border rounded-lg p-3 shadow-sm ${
+      <div className="space-y-3">
+        {/* Compact Header */}
+        <div className={`border rounded-lg p-2 shadow-sm ${
           colorMode 
             ? 'bg-[#232b4d] border-gray-600' 
             : 'bg-white border-gray-300'
         }`}>
           <div className="flex items-center justify-between">
-            <h3 className={`font-bold text-base ${
-              colorMode ? 'text-white' : 'text-gray-900'
-            }`}>👥 Role Management</h3>
+            <div className="flex items-center gap-2">
+              <h3 className={`font-bold text-sm ${
+                colorMode ? 'text-white' : 'text-gray-900'
+              }`}>👥 Role Management</h3>
+              <span className={`text-xs px-2 py-1 rounded ${
+                colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {getUnassignedUsers().length} available
+              </span>
+            </div>
             {dragFeedback && (
-              <div className="text-sm font-medium text-blue-600">
+              <div className="text-xs font-medium text-blue-600">
                 {dragFeedback}
               </div>
             )}
           </div>
-          <p className={`text-xs mt-1 ${
-            colorMode ? 'text-gray-300' : 'text-gray-600'
-          }`}>
-            Drag users between roles or remove them entirely.
-          </p>
         </div>
 
-        {/* Main Content - Side by Side Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Compact Layout - 2 columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           
-          {/* Available Users - Sticky Sidebar */}
-          <div className="lg:col-span-1">
-            <div className={`sticky top-4 border rounded-lg p-3 max-h-[400px] shadow-sm ${
-              colorMode 
-                ? 'bg-[#232b4d] border-gray-600' 
-                : 'bg-white border-gray-300'
-            }`}>
-              <h4 className={`font-semibold text-sm mb-2 ${
-                colorMode ? 'text-white' : 'text-gray-900'
-              }`}>Available Users ({getUnassignedUsers().length})</h4>
-              
-              <div className="space-y-1 overflow-y-auto max-h-[300px]">
-                {getUnassignedUsers().map(user => (
-                  <DraggableUser 
-                    key={user.id} 
-                    user={user} 
-                    colorMode={colorMode}
-                    sourceRole={null}
-                  />
-                ))}
-              </div>
-              
-              {getUnassignedUsers().length === 0 && (
-                <div className={`text-center py-8 text-sm ${
-                  colorMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  <div className="mb-2 text-2xl">✅</div>
-                  All users assigned
-                </div>
-              )}
+          {/* Available Users - Compact */}
+          <div className={`border rounded-lg p-2 shadow-sm ${
+            colorMode 
+              ? 'bg-[#232b4d] border-gray-600' 
+              : 'bg-white border-gray-300'
+          }`}>
+            <h4 className={`font-semibold text-xs mb-2 ${
+              colorMode ? 'text-white' : 'text-gray-900'
+            }`}>Available Users</h4>
+            
+            <div className="space-y-1 max-h-[200px] overflow-y-auto">
+              {getUnassignedUsers().map(user => (
+                <DraggableUser 
+                  key={user.id} 
+                  user={user} 
+                  colorMode={colorMode}
+                  sourceRole={null}
+                />
+              ))}
             </div>
+            
+            {getUnassignedUsers().length === 0 && (
+              <div className={`text-center py-4 text-xs ${
+                colorMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                ✅ All users assigned
+              </div>
+            )}
           </div>
 
-          {/* Role Assignment Areas - Main Content */}
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <CompactRoleDropZone
+          {/* Role Assignment Areas - Compact Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <CompactRoleDropZone
                 roleType="projectManager"
                 roleName="Project Manager"
                 icon="🎯"
@@ -396,66 +396,64 @@ const RolesTabComponentFixed = ({
                 onAddUser={handleAddUserToRole}
                 onRemoveUser={handleRemoveUserFromRole}
                 colorMode={colorMode}
-              />
-              
-              <CompactRoleDropZone
-                roleType="fieldDirector"
-                roleName="Field Director"
-                icon="🏗️"
-                colorScheme="orange"
-                users={roleAssignments.fieldDirector || []}
-                onAddUser={handleAddUserToRole}
-                onRemoveUser={handleRemoveUserFromRole}
-                colorMode={colorMode}
-              />
-              
-              <CompactRoleDropZone
-                roleType="officeStaff"
-                roleName="Office Staff"
-                icon="📋"
-                colorScheme="green"
-                users={roleAssignments.officeStaff || []}
-                onAddUser={handleAddUserToRole}
-                onRemoveUser={handleRemoveUserFromRole}
-                colorMode={colorMode}
-              />
-              
-              <CompactRoleDropZone
-                roleType="administration"
-                roleName="Administration"
-                icon="⚙️"
-                colorScheme="red"
-                users={roleAssignments.administration || []}
-                onAddUser={handleAddUserToRole}
-                onRemoveUser={handleRemoveUserFromRole}
-                colorMode={colorMode}
-              />
+            />
+            
+            <CompactRoleDropZone
+              roleType="fieldDirector"
+              roleName="Field Director"
+              icon="🏗️"
+              colorScheme="orange"
+              users={roleAssignments.fieldDirector || []}
+              onAddUser={handleAddUserToRole}
+              onRemoveUser={handleRemoveUserFromRole}
+              colorMode={colorMode}
+            />
+            
+            <CompactRoleDropZone
+              roleType="officeStaff"
+              roleName="Office Staff"
+              icon="📋"
+              colorScheme="green"
+              users={roleAssignments.officeStaff || []}
+              onAddUser={handleAddUserToRole}
+              onRemoveUser={handleRemoveUserFromRole}
+              colorMode={colorMode}
+            />
+            
+            <CompactRoleDropZone
+              roleType="administration"
+              roleName="Administration"
+              icon="⚙️"
+              colorScheme="red"
+              users={roleAssignments.administration || []}
+              onAddUser={handleAddUserToRole}
+              onRemoveUser={handleRemoveUserFromRole}
+              colorMode={colorMode}
+            />
 
-              <CompactRoleDropZone
-                roleType="subcontractor"
-                roleName="Subcontractor"
-                icon="🔨"
-                colorScheme="blue"
-                users={roleAssignments.subcontractor || []}
-                onAddUser={handleAddUserToRole}
-                onRemoveUser={handleRemoveUserFromRole}
-                colorMode={colorMode}
-              />
+            <CompactRoleDropZone
+              roleType="subcontractor"
+              roleName="Subcontractor"
+              icon="🔨"
+              colorScheme="blue"
+              users={roleAssignments.subcontractor || []}
+              onAddUser={handleAddUserToRole}
+              onRemoveUser={handleRemoveUserFromRole}
+              colorMode={colorMode}
+            />
 
-              <CompactRoleDropZone
-                roleType="locationManager"
-                roleName="Location Manager"
-                icon="📍"
-                colorScheme="teal"
-                users={roleAssignments.locationManager || []}
-                onAddUser={handleAddUserToRole}
-                onRemoveUser={handleRemoveUserFromRole}
-                colorMode={colorMode}
-              />
-            </div>
+            <CompactRoleDropZone
+              roleType="locationManager"
+              roleName="Location Manager"
+              icon="📍"
+              colorScheme="teal"
+              users={roleAssignments.locationManager || []}
+              onAddUser={handleAddUserToRole}
+              onRemoveUser={handleRemoveUserFromRole}
+              colorMode={colorMode}
+            />
           </div>
         </div>
-
       </div>
     </DndProvider>
   );
