@@ -66,7 +66,9 @@ router.get('/team-members', authenticateToken, asyncHandler(async (req, res) => 
       email: true,
       role: true,
       position: true,
-      avatar: true
+      avatar: true,
+      isActive: true,
+      isVerified: true
     },
     orderBy: [
       { firstName: 'asc' },
@@ -192,6 +194,16 @@ router.post('/add-team-member', authenticateToken, authorize('ADMIN', 'MANAGER')
   const emailVerificationExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   try {
+    console.log('🔍 ADD-TEAM-MEMBER: Creating user with data:', {
+      firstName,
+      lastName,
+      email,
+      phone,
+      secondaryPhone,
+      preferredPhone,
+      role
+    });
+
     // Create new user
     const newUser = await prisma.user.create({
       data: {
@@ -218,14 +230,21 @@ router.post('/add-team-member', authenticateToken, authorize('ADMIN', 'MANAGER')
         email: true,
         role: true,
         phone: true,
-      secondaryPhone: true,
-      preferredPhone: true,
         secondaryPhone: true,
         preferredPhone: true,
         isActive: true,
-        isVerified: true,
+        isVerified: false,
         createdAt: true
       }
+    });
+
+    console.log('✅ ADD-TEAM-MEMBER: User created successfully:', {
+      id: newUser.id,
+      name: `${newUser.firstName} ${newUser.lastName}`,
+      email: newUser.email,
+      role: newUser.role,
+      isActive: newUser.isActive,
+      isVerified: newUser.isVerified
     });
 
     // Send invitation email
