@@ -8,6 +8,22 @@ if (!prisma) {
   throw new Error('Database connection not established');
 }
 
+// Add a method to check prisma availability
+const ensurePrismaConnection = () => {
+  if (!prisma) {
+    console.error('❌ FollowUpService: Prisma client is not available');
+    throw new Error('Database connection not established');
+  }
+  
+  // Check if prisma client has the required methods
+  if (typeof prisma.followUpTracking === 'undefined') {
+    console.error('❌ FollowUpService: Prisma client not properly initialized - followUpTracking model not available');
+    throw new Error('Database models not available');
+  }
+  
+  return prisma;
+};
+
 class FollowUpService {
   /**
    * Create a follow-up for a task, reminder, or alert
@@ -111,7 +127,8 @@ class FollowUpService {
       }
       
       // Get all pending follow-ups that are due
-      const pendingFollowUps = await prisma.followUpTracking.findMany({
+      const db = ensurePrismaConnection();
+      const pendingFollowUps = await db.followUpTracking.findMany({
       where: {
         status: 'PENDING',
         scheduledFor: { lte: now }
@@ -144,7 +161,7 @@ class FollowUpService {
         
         if (!isItemRelevant) {
           // Cancel follow-up if original item is no longer relevant
-          await prisma.followUpTracking.update({
+          await db.followUpTracking.update({
             where: { id: followUp.id },
             data: {
               status: 'CANCELLED',
@@ -159,7 +176,7 @@ class FollowUpService {
         await this.sendFollowUpNotification(followUp);
         
         // Update follow-up status
-        const updatedFollowUp = await prisma.followUpTracking.update({
+        const updatedFollowUp = await db.followUpTracking.update({
           where: { id: followUp.id },
           data: {
             status: 'SENT',
@@ -173,14 +190,14 @@ class FollowUpService {
         console.error(`Error processing follow-up ${followUp.id}:`, error);
         
         // Mark as failed if max attempts reached
-        const userSettings = await prisma.followUpSettings.findUnique({
+        const userSettings = await db.followUpSettings.findUnique({
           where: { userId: followUp.assignedToId }
         });
 
         const maxAttempts = userSettings?.maxFollowUpAttempts || 3;
         
         if (followUp.attempts + 1 >= maxAttempts) {
-          await prisma.followUpTracking.update({
+          await db.followUpTracking.update({
             where: { id: followUp.id },
             data: {
               status: 'FAILED',

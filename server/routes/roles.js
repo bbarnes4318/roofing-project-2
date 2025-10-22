@@ -178,7 +178,7 @@ router.post('/assign', authenticateToken, async (req, res) => {
         roleType: normalizedRoleType,
         userId: userId,
         assignedAt: new Date(),
-        assignedById: req.user?.id || userId // Use current user or fallback
+        assignedById: req.user?.id || null // Make it optional to avoid foreign key constraint
       },
       include: {
         user: {
@@ -358,12 +358,24 @@ router.post('/sync', authenticateToken, async (req, res) => {
         }
 
         try {
+          // Verify the assignedById user exists, otherwise use null
+          let assignedById = null;
+          if (req.user?.id) {
+            const assignedByUser = await prisma.user.findUnique({
+              where: { id: req.user.id },
+              select: { id: true }
+            });
+            if (assignedByUser) {
+              assignedById = req.user.id;
+            }
+          }
+          
           await prisma.roleAssignment.create({
             data: {
               roleType: normalizedRoleType,
               userId: userId,
               assignedAt: new Date(),
-              assignedById: req.user?.id || userId
+              assignedById: assignedById
             }
           });
         } catch (error) {
