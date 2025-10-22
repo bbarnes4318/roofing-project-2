@@ -56,47 +56,64 @@ class EmailService {
       throw new Error('Email service is not available. Please configure RESEND_API_KEY.');
     }
 
-    try {
-      // Ensure 'to' is an array
-      const recipients = Array.isArray(to) ? to : [to];
+    // Ensure 'to' is an array
+    const recipients = Array.isArray(to) ? to : [to];
 
-      // Validate recipients
-      if (!recipients.length || recipients.some(email => !this.isValidEmail(email))) {
-        throw new Error('Invalid recipient email address(es)');
-      }
-
-      // Process attachments
-      const processedAttachments = await this.processAttachments(attachments);
-
-      // Build email payload
-      const emailPayload = {
-        from: `${this.fromName} <${this.fromEmail}>`,
-        to: recipients,
-        subject,
-        text: text || this.stripHtml(html),
-        ...(html && { html }),
-        ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
-        ...(replyTo && { reply_to: replyTo }),
-        ...(Object.keys(tags).length > 0 && { tags })
-      };
-
-      // Send email via Resend
-      const result = await this.resend.emails.send(emailPayload);
-
-      console.log(`📧 Email sent successfully to ${recipients.join(', ')} (ID: ${result.data?.id})`);
-
-      return {
-        success: true,
-        messageId: result.data?.id,
-        to: recipients,
-        subject,
-        sentAt: new Date()
-      };
-
-    } catch (error) {
-      console.error('❌ Email sending failed:', error.message);
-      throw new Error(`Failed to send email: ${error.message}`);
+    // Validate recipients
+    if (!recipients.length || recipients.some(email => !this.isValidEmail(email))) {
+      throw new Error('Invalid recipient email address(es)');
     }
+
+    // Process attachments
+    const processedAttachments = await this.processAttachments(attachments);
+
+    // Build email payload
+    const emailPayload = {
+      from: `${this.fromName} <${this.fromEmail}>`,
+      to: recipients,
+      subject,
+      text: text || this.stripHtml(html),
+      ...(html && { html }),
+      ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
+      ...(replyTo && { reply_to: replyTo }),
+      ...(Object.keys(tags).length > 0 && { tags })
+    };
+
+    // Send email via Resend with retry logic
+    let lastError = null;
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📧 Sending email (attempt ${attempt}/${maxRetries}) to: ${recipients.join(', ')}`);
+        
+        const result = await this.resend.emails.send(emailPayload);
+        
+        console.log(`✅ Email sent successfully to ${recipients.join(', ')} (ID: ${result.data?.id})`);
+        
+        return {
+          success: true,
+          messageId: result.data?.id,
+          to: recipients,
+          subject,
+          sentAt: new Date()
+        };
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Email sending failed (attempt ${attempt}/${maxRetries}):`, error.message);
+        
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
+          console.log(`🔄 Retrying in ${delay/1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    // If all retries failed, throw the last error
+    console.error('❌ All email retry attempts failed');
+    throw new Error(`Failed to send email after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
   }
 
   /**
@@ -388,7 +405,7 @@ class EmailService {
    */
   resolveDocumentPath(filePath) {
     // Remove leading slashes and backslashes for consistent path handling
-    const cleanPath = String(filePath || '').replace(/^[\/\\]+/, '');
+    const cleanPath = String(filePath || '').replace(/^[/\\]+/, '');
 
     // Try multiple possible paths
     const candidates = [

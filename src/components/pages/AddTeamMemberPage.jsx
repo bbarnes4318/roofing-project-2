@@ -15,6 +15,8 @@ const AddTeamMemberPage = ({ colorMode }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [emailStatus, setEmailStatus] = useState(null);
+  const [setupLink, setSetupLink] = useState('');
 
   const roles = [
     { value: 'ADMIN', label: 'Administrator' },
@@ -101,6 +103,8 @@ const AddTeamMemberPage = ({ colorMode }) => {
 
       if (result.success) {
         setSuccess(true);
+        setEmailStatus(result.data.emailSent);
+        setSetupLink(result.data.setupLink || '');
         setFormData({
           firstName: '',
           lastName: '',
@@ -124,6 +128,8 @@ const AddTeamMemberPage = ({ colorMode }) => {
   const resetForm = () => {
     setSuccess(false);
     setError('');
+    setEmailStatus(null);
+    setSetupLink('');
   };
 
   if (success) {
@@ -137,9 +143,28 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Team Member Added Successfully!</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              An invitation email has been sent to {formData.email}. They will receive instructions to complete their profile setup.
-            </p>
+            {emailStatus ? (
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  ✅ An invitation email has been sent to {formData.email}. They will receive instructions to complete their profile setup.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-yellow-600 mb-4">
+                  ⚠️ Team member was added, but the invitation email failed to send. Please contact them directly with this setup link:
+                </p>
+                <div className="bg-gray-100 p-3 rounded-md mb-4">
+                  <code className="text-xs break-all">{setupLink}</code>
+                </div>
+                <button
+                  onClick={() => navigator.clipboard.writeText(setupLink)}
+                  className="text-blue-600 hover:text-blue-800 text-sm underline"
+                >
+                  Copy Setup Link
+                </button>
+              </div>
+            )}
             <button
               onClick={resetForm}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"

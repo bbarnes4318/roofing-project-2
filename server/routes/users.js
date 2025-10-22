@@ -3,7 +3,7 @@ const { prisma } = require('../config/prisma');
 const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
 // Authentication middleware removed - all users can manage users
 const { authenticateToken, authorize } = require('../middleware/auth');
-const { emailService } = require('../services/EmailService');
+const emailService = require('../services/EmailService');
 const crypto = require('crypto');
 
 const router = express.Router();
@@ -332,23 +332,43 @@ This link will expire in 7 days. If you have any questions, please contact your 
 This is an automated message from Kenstruction. Please do not reply to this email.
     `;
 
-    // Send the invitation email
-    await emailService.sendEmail({
-      to: email,
-      subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
-      html: emailHtml,
-      text: emailText,
-      tags: {
-        type: 'team_member_invitation',
-        sentBy: req.user.id,
-        newUserId: newUser.id
-      }
-    });
+    // Send the invitation email - now with built-in retry logic
+    let emailSent = false;
+    let emailError = null;
+    
+    try {
+      await emailService.sendEmail({
+        to: email,
+        subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
+        html: emailHtml,
+        text: emailText,
+        tags: {
+          type: 'team_member_invitation',
+          sentBy: req.user.id,
+          newUserId: newUser.id
+        }
+      });
+      emailSent = true;
+      console.log(`✅ Team member invitation email sent successfully to: ${email}`);
+    } catch (emailErr) {
+      emailError = emailErr.message;
+      console.error(`❌ Failed to send team member invitation email:`, emailErr.message);
+    }
+
+    // Return success with accurate email status
+    const responseMessage = emailSent 
+      ? 'Team member added successfully. Invitation email sent.'
+      : `Team member added successfully, but invitation email failed to send. Please contact ${email} directly with this setup link: ${setupLink}`;
 
     res.json({
       success: true,
-      data: { user: newUser },
-      message: 'Team member added successfully. Invitation email sent.'
+      data: { 
+        user: newUser,
+        emailSent,
+        emailError: emailError || null,
+        setupLink: emailSent ? null : setupLink // Include setup link if email failed
+      },
+      message: responseMessage
     });
 
   } catch (error) {
@@ -356,6 +376,179 @@ This is an automated message from Kenstruction. Please do not reply to this emai
     res.status(500).json({
       success: false,
       message: 'Failed to add team member',
+      error: error.message
+    });
+  }
+}));
+
+// @desc    Resend invitation email to team member
+// @route   POST /api/users/resend-invitation
+// @access  Private (Admin/Manager only)
+router.post('/resend-invitation', authenticateToken, authorize('ADMIN', 'MANAGER'), asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: 'User ID is required'
+    });
+  }
+
+  try {
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        secondaryPhone: true,
+        preferredPhone: true,
+        isVerified: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'User has already completed their profile setup'
+      });
+    }
+
+    // Generate new email verification token
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // Update user with new token
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        emailVerificationToken,
+        emailVerificationExpires
+      }
+    });
+
+    // Create setup link
+    const setupLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/setup-profile?token=${emailVerificationToken}`;
+    
+    // Create email content
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to Kenstruction</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .button:hover { background: #5a6fd8; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome to Kenstruction!</h1>
+            <p>You've been invited to join our team</p>
+          </div>
+          <div class="content">
+            <h2>Hello ${user.firstName}!</h2>
+            <p>You've been added to our Kenstruction team as a ${user.role}. We're excited to have you on board!</p>
+            <p>To get started, please complete your profile setup by clicking the button below:</p>
+            <a href="${setupLink}" class="button">Complete Your Profile Setup</a>
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #666;">${setupLink}</p>
+            <p>This link will expire in 7 days. If you have any questions, please contact your team administrator.</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated message from Kenstruction. Please do not reply to this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const emailText = `
+Welcome to Kenstruction!
+
+Hello ${user.firstName}!
+
+You've been added to our Kenstruction team as a ${user.role}. We're excited to have you on board!
+
+To get started, please complete your profile setup by visiting this link:
+${setupLink}
+
+This link will expire in 7 days. If you have any questions, please contact your team administrator.
+
+This is an automated message from Kenstruction. Please do not reply to this email.
+    `;
+
+    // Send the invitation email with retry
+    let emailSent = false;
+    let emailError = null;
+    const maxRetries = 2;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await emailService.sendEmail({
+          to: user.email,
+          subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
+          html: emailHtml,
+          text: emailText,
+          tags: {
+            type: 'team_member_invitation_resent',
+            sentBy: req.user.id,
+            userId: user.id
+          }
+        });
+        emailSent = true;
+        console.log(`✅ Resent invitation email successfully to: ${user.email} (attempt ${attempt})`);
+        break;
+      } catch (emailErr) {
+        emailError = emailErr.message;
+        console.error(`❌ Failed to resend invitation email (attempt ${attempt}/${maxRetries}):`, emailErr.message);
+        
+        if (attempt < maxRetries) {
+          console.log(`🔄 Retrying email send in 2 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+    }
+
+    const responseMessage = emailSent 
+      ? 'Invitation email resent successfully.'
+      : `Failed to resend invitation email. Please contact ${user.email} directly with this setup link: ${setupLink}`;
+
+    res.json({
+      success: true,
+      data: { 
+        user,
+        emailSent,
+        emailError: emailError || null,
+        setupLink: emailSent ? null : setupLink
+      },
+      message: responseMessage
+    });
+
+  } catch (error) {
+    console.error('Error resending invitation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to resend invitation',
       error: error.message
     });
   }
