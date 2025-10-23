@@ -163,6 +163,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
             </label>
             <input
               type="text"
+              id="feedback-title"
+              name="title"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Brief, descriptive title..."
@@ -184,6 +186,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
                   Steps to Reproduce
                 </label>
                 <textarea
+                  id="feedback-steps-to-reproduce"
+                  name="stepsToReproduce"
                   value={formData.stepsToReproduce}
                   onChange={(e) => handleInputChange('stepsToReproduce', e.target.value)}
                   placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."
@@ -203,6 +207,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
                     Expected Behavior
                   </label>
                   <textarea
+                    id="feedback-expected-behavior"
+                    name="expectedBehavior"
                     value={formData.expectedBehavior}
                     onChange={(e) => handleInputChange('expectedBehavior', e.target.value)}
                     placeholder="What should happen..."
@@ -219,6 +225,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
                     Actual Behavior
                   </label>
                   <textarea
+                    id="feedback-actual-behavior"
+                    name="actualBehavior"
                     value={formData.actualBehavior}
                     onChange={(e) => handleInputChange('actualBehavior', e.target.value)}
                     placeholder="What actually happens..."
@@ -270,6 +278,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
                   {formData.type === 'improvement' ? 'Current Problem' : 'Use Case'}
                 </label>
                 <textarea
+                  id="feedback-problem"
+                  name="problem"
                   value={formData.problem}
                   onChange={(e) => handleInputChange('problem', e.target.value)}
                   placeholder="Describe the current issue or use case..."
@@ -288,6 +298,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
                   {formData.type === 'improvement' ? 'Proposed Solution' : 'Idea Description'}
                 </label>
                 <textarea
+                  id="feedback-proposal"
+                  name="proposal"
                   value={formData.proposal}
                   onChange={(e) => handleInputChange('proposal', e.target.value)}
                   placeholder="Describe your solution or idea..."
@@ -306,6 +318,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
                   Expected Impact
                 </label>
                 <textarea
+                  id="feedback-impact"
+                  name="impact"
                   value={formData.impact}
                   onChange={(e) => handleInputChange('impact', e.target.value)}
                   placeholder="How would this benefit users? What's the impact?"
@@ -350,6 +364,8 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
               />
             ) : (
               <textarea
+                id="feedback-description"
+                name="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Describe your feedback in detail... (Markdown supported)"
