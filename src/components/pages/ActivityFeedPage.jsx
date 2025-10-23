@@ -458,44 +458,132 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                     {/* Attachments - Display outside expanded section so they're always visible */}
                                     {Array.isArray(item?.metadata?.attachments) && item.metadata.attachments.length > 0 && (
                                         <div className="px-3 pb-3">
-                                            <div className="flex flex-col gap-1.5">
+                                            <div className="flex flex-col gap-2">
                                                 {item.metadata.attachments.map((att, idx) => {
                                                     const fileName = att.title || att.fileName || att.originalName || 'Attachment';
-                                                    const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
+                                                    const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString().toLowerCase();
+                                                    
+                                                    // Get file type icon and color
+                                                    const getFileIcon = (ext) => {
+                                                        switch (ext) {
+                                                            case 'pdf':
+                                                                return {
+                                                                    icon: (
+                                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                                                                        </svg>
+                                                                    ),
+                                                                    color: 'bg-red-50 border-red-200 text-red-600'
+                                                                };
+                                                            case 'doc':
+                                                            case 'docx':
+                                                                return {
+                                                                    icon: (
+                                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                                                                        </svg>
+                                                                    ),
+                                                                    color: 'bg-blue-50 border-blue-200 text-blue-600'
+                                                                };
+                                                            case 'xls':
+                                                            case 'xlsx':
+                                                                return {
+                                                                    icon: (
+                                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                                                                        </svg>
+                                                                    ),
+                                                                    color: 'bg-green-50 border-green-200 text-green-600'
+                                                                };
+                                                            case 'jpg':
+                                                            case 'jpeg':
+                                                            case 'png':
+                                                            case 'gif':
+                                                            case 'webp':
+                                                                return {
+                                                                    icon: (
+                                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z" />
+                                                                        </svg>
+                                                                    ),
+                                                                    color: 'bg-purple-50 border-purple-200 text-purple-600'
+                                                                };
+                                                            default:
+                                                                return {
+                                                                    icon: (
+                                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                                                                        </svg>
+                                                                    ),
+                                                                    color: 'bg-gray-50 border-gray-200 text-gray-600'
+                                                                };
+                                                        }
+                                                    };
+                                                    
+                                                    const fileInfo = getFileIcon(fileExt);
+                                                    
                                                     return (
                                                         <div
                                                             key={idx}
-                                                            className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg bg-white px-3 py-2 text-xs shadow-sm hover:shadow transition-shadow"
+                                                            className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300"
                                                         >
-                                                            <div className="flex items-center gap-2 min-w-0">
-                                                                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                                                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                    </svg>
+                                                            <div className="flex items-center p-4">
+                                                                {/* File Icon */}
+                                                                <div className={`flex-shrink-0 w-12 h-12 rounded-lg border-2 flex items-center justify-center ${fileInfo.color}`}>
+                                                                    {fileInfo.icon}
                                                                 </div>
-                                                                <div className="min-w-0">
-                                                                    <div className="font-medium text-gray-900 truncate">{fileName}</div>
-                                                                    {fileExt && (
-                                                                        <div className="text-[10px] text-gray-500 uppercase">{fileExt}</div>
+                                                                
+                                                                {/* File Info */}
+                                                                <div className="flex-1 min-w-0 ml-4">
+                                                                    <h4 className="text-sm font-semibold text-gray-900 truncate">
+                                                                        {fileName}
+                                                                    </h4>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 uppercase">
+                                                                            {fileExt || 'FILE'}
+                                                                        </span>
+                                                                        {att.fileSize && (
+                                                                            <span className="text-xs text-gray-500">
+                                                                                {(att.fileSize / 1024).toFixed(1)} KB
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {/* Action Buttons */}
+                                                                <div className="flex items-center gap-2 ml-4">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setSelectedDocument(att);
+                                                                            setIsDocumentModalOpen(true);
+                                                                        }}
+                                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                        </svg>
+                                                                        View
+                                                                    </button>
+                                                                    
+                                                                    {att.fileUrl && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                window.open(att.fileUrl, '_blank', 'noopener,noreferrer');
+                                                                            }}
+                                                                            className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                                            </svg>
+                                                                            Open
+                                                                        </button>
                                                                     )}
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex-shrink-0">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setSelectedDocument(att);
-                                                                        setIsDocumentModalOpen(true);
-                                                                    }}
-                                                                    className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"
-                                                                >
-                                                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                                    </svg>
-                                                                    View
-                                                                </button>
                                                             </div>
                                                         </div>
                                                     );

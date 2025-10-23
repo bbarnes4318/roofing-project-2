@@ -332,33 +332,50 @@ This link will expire in 7 days. If you have any questions, please contact your 
 This is an automated message from Kenstruction. Please do not reply to this email.
     `;
 
+    // Check if email service is available
+    console.log('🔍 Email service available:', emailService.isAvailable());
+    console.log('🔍 RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
+    
     // Send the invitation email - now with built-in retry logic
     let emailSent = false;
     let emailError = null;
     
-    try {
-      await emailService.sendEmail({
-        to: email,
-        subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
-        html: emailHtml,
-        text: emailText,
-        tags: {
-          type: 'team_member_invitation',
-          sentBy: req.user.id,
-          newUserId: newUser.id
-        }
-      });
-      emailSent = true;
-      console.log(`✅ Team member invitation email sent successfully to: ${email}`);
-    } catch (emailErr) {
-      emailError = emailErr.message;
-      console.error(`❌ Failed to send team member invitation email:`, emailErr.message);
+    if (!emailService.isAvailable()) {
+      emailError = 'Email service not configured - missing RESEND_API_KEY';
+      console.error('❌ Email service not available:', emailError);
+    } else {
+      try {
+        await emailService.sendEmail({
+          to: email,
+          subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
+          html: emailHtml,
+          text: emailText,
+          tags: {
+            type: 'team_member_invitation',
+            sentBy: req.user.id,
+            newUserId: newUser.id
+          }
+        });
+        emailSent = true;
+        console.log(`✅ Team member invitation email sent successfully to: ${email}`);
+      } catch (emailErr) {
+        emailError = emailErr.message;
+        console.error(`❌ Failed to send team member invitation email:`, emailErr.message);
+      }
     }
 
     // Return success with accurate email status
     const responseMessage = emailSent 
       ? 'Team member added successfully. Invitation email sent.'
       : `Team member added successfully, but invitation email failed to send. Please contact ${email} directly with this setup link: ${setupLink}`;
+    
+    // Include setup link in response for manual sharing if email fails
+    const responseData = {
+      user: newUser,
+      emailSent,
+      setupLink: emailSent ? null : setupLink,
+      emailError: emailSent ? null : emailError
+    };
 
     res.json({
       success: true,
