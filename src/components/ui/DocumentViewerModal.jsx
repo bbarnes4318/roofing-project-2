@@ -58,8 +58,17 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       if (possibleUrl && possibleUrl.trim()) {
         let finalUrl = possibleUrl;
         
+        // Handle spaces:// URIs - convert to proper DigitalOcean Spaces HTTPS URLs
+        if (possibleUrl.startsWith('spaces://')) {
+          const spacesPath = possibleUrl.replace('spaces://', '');
+          const [bucket, ...pathParts] = spacesPath.split('/');
+          const key = pathParts.join('/');
+          // DigitalOcean Spaces format: https://{bucket}.{region}.digitaloceanspaces.com/{key}
+          finalUrl = `https://${bucket}.nyc3.digitaloceanspaces.com/${key}`;
+          console.log('🔄 Converted spaces:// URL to HTTPS:', finalUrl);
+        }
         // Make absolute URL if needed
-        if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
+        else if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
           const baseUrl = window.location.origin;
           finalUrl = possibleUrl.startsWith('/') ? `${baseUrl}${possibleUrl}` : `${baseUrl}/${possibleUrl}`;
         }
