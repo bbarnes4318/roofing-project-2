@@ -76,20 +76,27 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
         }
       }
 
-      // PRIORITY 2: Try direct URL as fallback (only valid HTTP/HTTPS URLs)
+      // PRIORITY 2: Try direct URL as fallback
       const possibleUrl = document.url || document.fileUrl || document.signedUrl || document.streamUrl;
       
       if (possibleUrl && possibleUrl.trim()) {
-        // REJECT invalid URL schemes (spaces://, file://, etc.)
-        if (possibleUrl.startsWith('spaces://') || possibleUrl.startsWith('file://')) {
-          console.error('❌ Invalid URL scheme detected:', possibleUrl);
-          throw new Error('Document stored in cloud but could not retrieve access URL. Please contact support.');
-        }
-        
         let finalUrl = possibleUrl;
         
+        // Handle spaces:// URIs by converting to DigitalOcean Spaces HTTPS URLs
+        if (possibleUrl.startsWith('spaces://')) {
+          const spacesPath = possibleUrl.replace('spaces://', '');
+          // Format: spaces://bucket/path/to/file.pdf
+          // Convert to: https://bucket.region.digitaloceanspaces.com/path/to/file.pdf
+          const parts = spacesPath.split('/');
+          const bucket = parts[0]; // First part is bucket name
+          const key = parts.slice(1).join('/'); // Rest is the file path
+          
+          // DigitalOcean Spaces format (default to nyc3 region)
+          finalUrl = `https://${bucket}.nyc3.digitaloceanspaces.com/${key}`;
+          console.log('🔄 Converted spaces:// to HTTPS:', possibleUrl, '->', finalUrl);
+        }
         // Make absolute URL if needed (for relative paths like /uploads/...)
-        if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
+        else if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
           const baseUrl = window.location.origin;
           finalUrl = possibleUrl.startsWith('/') ? `${baseUrl}${possibleUrl}` : `${baseUrl}/${possibleUrl}`;
         }
