@@ -195,15 +195,21 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         });
         
         const uploadResult = await uploadRes.json();
+        console.log('🔄 AVATAR UPLOAD: Upload result:', uploadResult);
         if (uploadResult.success) {
           updatedUser = uploadResult.data.user;
+          console.log('🔄 AVATAR UPLOAD: Updated user:', updatedUser);
+          console.log('🔄 AVATAR UPLOAD: Avatar URL:', updatedUser?.avatar);
           // Update local storage and session storage with new user data
           try {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             sessionStorage.setItem('user', JSON.stringify(updatedUser));
           } catch (_) {}
           // Call the onUserUpdated callback to update the parent component
-          if (typeof onUserUpdated === 'function') onUserUpdated(updatedUser);
+          if (typeof onUserUpdated === 'function') {
+            console.log('🔄 AVATAR UPLOAD: Calling onUserUpdated callback');
+            onUserUpdated(updatedUser);
+          }
           // Clear the profile picture state after successful upload
           setProfilePicture(null);
           setProfilePicturePreview(null);

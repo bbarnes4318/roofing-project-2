@@ -1306,7 +1306,15 @@ const apiUrl = window.location.hostname === 'localhost'
                 <SettingsPage 
                     colorMode={colorMode} 
                     currentUser={currentUser}
-                    onUserUpdated={(u) => { try { setCurrentUser(u); localStorage.setItem('user', JSON.stringify(u)); sessionStorage.setItem('user', JSON.stringify(u)); } catch (_) {} }}
+                    onUserUpdated={(u) => { 
+                        console.log('🔄 USER UPDATED: Received updated user:', u);
+                        console.log('🔄 USER UPDATED: Avatar URL:', u?.avatar);
+                        try { 
+                            setCurrentUser(u); 
+                            localStorage.setItem('user', JSON.stringify(u)); 
+                            sessionStorage.setItem('user', JSON.stringify(u)); 
+                        } catch (_) {} 
+                    }}
                 />
             );
             case 'Estimator': return <EstimateComparisonTool />;
@@ -1648,7 +1656,11 @@ const apiUrl = window.location.hostname === 'localhost'
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 console.error('Profile image failed to load:', e);
+                                                console.error('Avatar URL:', currentUser.avatar);
                                                 e.target.style.display = 'none';
+                                            }}
+                                            onLoad={() => {
+                                                console.log('Profile image loaded successfully:', currentUser.avatar);
                                             }}
                                         />
                                     </div>
