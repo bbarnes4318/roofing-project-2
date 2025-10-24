@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { assetsService } from '../../services/assetsService';
 
 const DocumentViewerModal = ({ document, isOpen, onClose }) => {
@@ -94,12 +95,13 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm"
       onClick={handleBackdropClick}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
-      <div className="relative w-[95vw] h-[90vh] max-w-7xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+      <div className="relative w-[95vw] h-[95vh] max-w-[1920px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-300" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white border-b border-gray-200">
           <div className="flex items-center gap-4">
@@ -308,6 +310,8 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default DocumentViewerModal;

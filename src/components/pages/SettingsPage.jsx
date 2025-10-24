@@ -161,6 +161,20 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   });
   const [isLoadingFollowUp, setIsLoadingFollowUp] = useState(false);
 
+  // Initialize form fields with current user data
+  useEffect(() => {
+    if (currentUser) {
+      setFirstName(currentUser.firstName || '');
+      setLastName(currentUser.lastName || '');
+      setEmail(currentUser.email || '');
+      setPhone(currentUser.phone || '');
+      setDisplayName(currentUser.displayName || '');
+      setName(`${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim());
+      setTimezone(currentUser.timezone || 'America/New_York');
+      setLanguage(currentUser.language || 'English');
+    }
+  }, [currentUser]);
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (isSaving) return;
@@ -183,6 +197,13 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         const uploadResult = await uploadRes.json();
         if (uploadResult.success) {
           updatedUser = uploadResult.data.user;
+          // Update local storage and session storage with new user data
+          try {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            sessionStorage.setItem('user', JSON.stringify(updatedUser));
+          } catch (_) {}
+          // Call the onUserUpdated callback to update the parent component
+          if (typeof onUserUpdated === 'function') onUserUpdated(updatedUser);
           // Clear the profile picture state after successful upload
           setProfilePicture(null);
           setProfilePicturePreview(null);
@@ -198,8 +219,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         email: email || '',
         phone: phone || '',
         timezone,
-        language,
-        displayName: displayName || ''
+        language
+        // Note: displayName is not supported in the backend User model
       };
       console.log('🔍 PROFILE SAVE: Sending payload:', payload);
       const res = await authService.updateUserProfile(payload);
@@ -726,11 +747,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
               <img 
                 src={currentUser.avatar.startsWith('spaces://') 
-                  ? `https://${process.env.REACT_APP_DO_SPACES_NAME}.${process.env.REACT_APP_DO_SPACES_ENDPOINT}/${currentUser.avatar.replace('spaces://', '')}`
+                  ? `https://${process.env.REACT_APP_DO_SPACES_NAME || 'kenstruction'}.${process.env.REACT_APP_DO_SPACES_ENDPOINT || 'nyc3.digitaloceanspaces.com'}/${currentUser.avatar.replace('spaces://', '')}`
                   : currentUser.avatar
                 } 
                 alt="Profile" 
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('Profile image failed to load:', e);
+                  e.target.style.display = 'none';
+                }}
               />
             </div>
           ) : (

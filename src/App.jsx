@@ -1641,11 +1641,15 @@ const apiUrl = window.location.hostname === 'localhost'
                                     <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-500">
                                         <img 
                                             src={currentUser.avatar.startsWith('spaces://') 
-                                                ? `https://${process.env.REACT_APP_DO_SPACES_NAME}.${process.env.REACT_APP_DO_SPACES_ENDPOINT}/${currentUser.avatar.replace('spaces://', '')}`
+                                                ? `https://${process.env.REACT_APP_DO_SPACES_NAME || 'kenstruction'}.${process.env.REACT_APP_DO_SPACES_ENDPOINT || 'nyc3.digitaloceanspaces.com'}/${currentUser.avatar.replace('spaces://', '')}`
                                                 : currentUser.avatar
                                             } 
                                             alt="Profile" 
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                console.error('Profile image failed to load:', e);
+                                                e.target.style.display = 'none';
+                                            }}
                                         />
                                     </div>
                                 ) : (
