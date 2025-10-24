@@ -835,8 +835,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     
                                     {/* Open button */}
                                     <button
+                                        type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
+                                            e.preventDefault();
                                             // Map attachment to proper document structure
                                             const documentData = {
                                                 ...att,
@@ -848,6 +850,7 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                                 id: att.assetId || att.id,
                                                 assetId: att.assetId || att.id
                                             };
+                                            console.log('🔵 View button clicked, opening modal with:', documentData);
                                             setSelectedDocument(documentData);
                                             setIsDocumentModalOpen(true);
                                         }}
