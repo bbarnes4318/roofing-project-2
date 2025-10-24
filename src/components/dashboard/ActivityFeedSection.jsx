@@ -130,7 +130,7 @@ const ActivityFeedSection = ({
       let realId = String(item.id || '');
       
       // Remove common prefixes
-      realId = realId.replace(/^(task_|cal_|activity_|reminder_|msg_)/, '');
+      realId = realId.replace(/^(task_|cal_|activity_|reminder_|msg_|feedback_)/, '');
       
       console.log('🗑️ Delete attempt:', {
         originalId: item.id,

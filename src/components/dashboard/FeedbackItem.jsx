@@ -29,7 +29,9 @@ const FeedbackItem = ({
   const loadReplies = async () => {
     setIsLoadingReplies(true);
     try {
-      const response = await feedbackService.getComments(item.id);
+      // Remove feedback_ prefix if present
+      const feedbackId = item.id.replace(/^feedback_/, '');
+      const response = await feedbackService.getComments(feedbackId);
       setReplies(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to load replies:', error);
@@ -44,7 +46,9 @@ const FeedbackItem = ({
 
     setIsSubmittingReply(true);
     try {
-      const response = await feedbackService.addComment(item.id, {
+      // Remove feedback_ prefix if present
+      const feedbackId = item.id.replace(/^feedback_/, '');
+      const response = await feedbackService.addComment(feedbackId, {
         body: newReply,
         isDeveloper: currentUser?.role === 'DEVELOPER' || currentUser?.role === 'ADMIN',
         parentId: null
