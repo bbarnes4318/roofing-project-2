@@ -2408,8 +2408,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       </div>
 
       {/* Follow-up Tracking - Moved to top */}
-      <div className="mb-4">
-        <h4 className={`text-xs font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+      <div className="mb-2">
+        <h4 className={`text-xs font-semibold mb-1 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
           Follow-up Tracking
         </h4>
         <div className="text-xs text-gray-500">

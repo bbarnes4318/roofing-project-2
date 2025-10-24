@@ -4,16 +4,15 @@ const FollowUpTracking = ({ colorMode }) => {
   const [tracking, setTracking] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     loadFollowUpData();
-  }, [statusFilter]);
+  }, []);
 
   const loadFollowUpData = async () => {
     try {
       const [trackingResponse, statsResponse] = await Promise.all([
-        fetch(`/api/follow-up/tracking?status=${statusFilter === 'all' ? '' : statusFilter}`, {
+        fetch('/api/follow-up/tracking', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -117,45 +116,29 @@ const FollowUpTracking = ({ colorMode }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className={`p-3 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
           <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Total</div>
           <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.total || 0}</div>
         </div>
-        <div className={`p-3 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
+        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
           <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Pending</div>
           <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.pending || 0}</div>
         </div>
-        <div className={`p-3 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
+        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
           <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Completed</div>
           <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.completed || 0}</div>
         </div>
-        <div className={`p-3 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
+        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
           <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Cancelled</div>
           <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.cancelled || 0}</div>
         </div>
-        <div className={`p-3 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
+        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
           <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Overdue</div>
           <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.overdue || 0}</div>
         </div>
-      </div>
-
-      {/* Filter */}
-      <div className="flex gap-2">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className={`px-3 py-1 rounded text-sm border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6] text-white' : 'border-gray-300 bg-white'}`}
-        >
-          <option value="all">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="SENT">Sent</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="CANCELLED">Cancelled</option>
-          <option value="FAILED">Failed</option>
-        </select>
       </div>
 
       {/* Follow-up List */}
