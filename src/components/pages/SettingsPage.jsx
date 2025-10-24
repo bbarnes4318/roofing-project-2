@@ -210,7 +210,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   });
   const [isLoadingFollowUp, setIsLoadingFollowUp] = useState(false);
 
-  // Initialize form fields with current user data
+  // Initialize form fields with current user data (ONLY ONCE on mount or when user ID changes)
+  const currentUserId = currentUser?.id;
   useEffect(() => {
     if (currentUser) {
       setFirstName(currentUser.firstName || '');
@@ -222,7 +223,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       setTimezone(currentUser.timezone || 'America/New_York');
       setLanguage(currentUser.language || 'English');
     }
-  }, [currentUser]);
+  }, [currentUserId]); // Only run when user ID changes, not on every currentUser update
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -511,18 +512,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     }
   };
 
-  // Keep local fields in sync with currentUser
-  useEffect(() => {
-    const fullName = currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '';
-    setName(fullName);
-    setFirstName(currentUser?.firstName || '');
-    setLastName(currentUser?.lastName || '');
-    setEmail(currentUser?.email || '');
-    setPhone(currentUser?.phone || '');
-    setCompany(currentUser?.company || '');
-    setTimezone(currentUser?.timezone || 'America/New_York');
-    setLanguage(currentUser?.language || 'English');
-  }, [currentUser]);
+  // REMOVED: This was a duplicate useEffect that was causing form fields to reset
 
   // Load users and role assignments from API on mount
   useEffect(() => {
@@ -751,17 +741,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     loadFollowUpSettings();
   }, []);
 
-  // Initialize form data from current user
-  useEffect(() => {
-    if (currentUser) {
-      setFirstName(currentUser.firstName || '');
-      setLastName(currentUser.lastName || '');
-      setEmail(currentUser.email || '');
-      setPhone(currentUser.phone || '');
-      setDisplayName(currentUser.displayName || '');
-      setName(`${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim());
-    }
-  }, [currentUser]);
+  // REMOVED: This was another duplicate useEffect that was causing form fields to reset
 
   // Get visible tabs based on user permissions
   const getVisibleTabs = () => {

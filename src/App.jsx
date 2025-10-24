@@ -1304,7 +1304,8 @@ const apiUrl = window.location.hostname === 'localhost'
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
             case 'Settings': return (
                 <SettingsPage 
-                    colorMode={colorMode} 
+                    colorMode={colorMode}
+                    setColorMode={setColorMode}
                     currentUser={currentUser}
                     onUserUpdated={(u) => { 
                         console.log('🔄 USER UPDATED: Received updated user:', u);
