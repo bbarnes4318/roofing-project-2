@@ -18,6 +18,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
         URL.revokeObjectURL(documentUrl);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, document]);
 
   const loadDocument = async () => {
@@ -108,6 +109,11 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
   };
 
   if (!isOpen) return null;
+  
+  // Safety check for document.body (use window.document since 'document' is a prop name)
+  if (typeof window === 'undefined' || !window.document || !window.document.body) {
+    return null;
+  }
 
   const modalContent = (
     <div
@@ -333,7 +339,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
     </div>
   );
 
-  return ReactDOM.createPortal(modalContent, document.body);
+  return ReactDOM.createPortal(modalContent, window.document.body);
 };
 
 export default DocumentViewerModal;
