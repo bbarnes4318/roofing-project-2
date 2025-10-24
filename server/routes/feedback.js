@@ -309,26 +309,34 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
   });
 
   if (!userExists) {
-    console.log('Creating missing user:', userId);
+    console.log('⚠️ Creating missing user:', userId);
+    console.log('User data from JWT:', req.user);
     try {
       userExists = await prisma.user.create({
         data: {
           id: userId,
-          email: req.user.email || `user-${userId}@temp.com`,
-          firstName: req.user.firstName || 'User',
-          lastName: req.user.lastName || '',
-          password: 'SUPABASE_MANAGED',
+          email: req.user.email || `user-${userId}@example.com`,
+          firstName: req.user.firstName || req.user.given_name || req.user.name || 'User',
+          lastName: req.user.lastName || req.user.family_name || 'User',
+          password: 'SUPABASE_AUTH_MANAGED',
           role: req.user.role || 'WORKER',
           isActive: true,
           theme: 'LIGHT'
         },
         select: { id: true, firstName: true, lastName: true, email: true }
       });
+      console.log('✅ User created successfully:', userExists);
     } catch (error) {
-      console.log('User creation failed:', error);
+      console.error('❌ User creation failed with error:', error);
+      console.error('Error details:', {
+        code: error.code,
+        meta: error.meta,
+        message: error.message
+      });
       return res.status(400).json({
         success: false,
-        message: 'User not found and could not be created'
+        message: 'User not found and could not be created',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   }
