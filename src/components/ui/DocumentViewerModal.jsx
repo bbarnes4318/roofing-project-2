@@ -52,41 +52,14 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
 
       setFileType(type);
 
-      // Try direct URL FIRST (fastest, most reliable for existing documents)
-      const possibleUrl = document.url || document.fileUrl || document.signedUrl || document.streamUrl;
-      
-      if (possibleUrl && possibleUrl.trim()) {
-        let finalUrl = possibleUrl;
-        
-        // Handle spaces:// URIs - convert to proper DigitalOcean Spaces HTTPS URLs
-        if (possibleUrl.startsWith('spaces://')) {
-          const spacesPath = possibleUrl.replace('spaces://', '');
-          const [bucket, ...pathParts] = spacesPath.split('/');
-          const key = pathParts.join('/');
-          // DigitalOcean Spaces format: https://{bucket}.{region}.digitaloceanspaces.com/{key}
-          finalUrl = `https://${bucket}.nyc3.digitaloceanspaces.com/${key}`;
-          console.log('🔄 Converted spaces:// URL to HTTPS:', finalUrl);
-        }
-        // Make absolute URL if needed
-        else if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
-          const baseUrl = window.location.origin;
-          finalUrl = possibleUrl.startsWith('/') ? `${baseUrl}${possibleUrl}` : `${baseUrl}/${possibleUrl}`;
-        }
-        
-        console.log('✅ Using direct document URL:', finalUrl);
-        setDocumentUrl(finalUrl);
-        setLoading(false);
-        return;
-      }
-
-      // Fallback: Try to fetch using assetId if no direct URL
+      // PRIORITY 1: Use assetId to get presigned URL (most reliable for DigitalOcean Spaces)
       if (document.assetId || document.id) {
         const assetId = document.assetId || document.id;
-        console.log('🔑 No direct URL, fetching using assetId:', assetId);
+        console.log('🔑 Fetching document using assetId:', assetId);
 
         try {
           const viewData = await assetsService.getViewUrl(assetId);
-          console.log('✅ Got presigned view URL:', viewData);
+          console.log('✅ Got presigned view URL from server:', viewData);
 
           if (viewData?.url) {
             console.log('✅ Using presigned URL:', viewData.url);
@@ -95,12 +68,36 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
             return;
           }
 
-          throw new Error('No presigned URL returned');
+          console.warn('⚠️ No presigned URL returned, trying fallback...');
 
         } catch (err) {
           console.error('❌ Failed to get presigned URL:', err);
-          throw new Error('Could not load document from server');
+          console.warn('⚠️ Trying direct URL fallback...');
         }
+      }
+
+      // PRIORITY 2: Try direct URL as fallback (only valid HTTP/HTTPS URLs)
+      const possibleUrl = document.url || document.fileUrl || document.signedUrl || document.streamUrl;
+      
+      if (possibleUrl && possibleUrl.trim()) {
+        // REJECT invalid URL schemes (spaces://, file://, etc.)
+        if (possibleUrl.startsWith('spaces://') || possibleUrl.startsWith('file://')) {
+          console.error('❌ Invalid URL scheme detected:', possibleUrl);
+          throw new Error('Document stored in cloud but could not retrieve access URL. Please contact support.');
+        }
+        
+        let finalUrl = possibleUrl;
+        
+        // Make absolute URL if needed (for relative paths like /uploads/...)
+        if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
+          const baseUrl = window.location.origin;
+          finalUrl = possibleUrl.startsWith('/') ? `${baseUrl}${possibleUrl}` : `${baseUrl}/${possibleUrl}`;
+        }
+        
+        console.log('✅ Using direct document URL:', finalUrl);
+        setDocumentUrl(finalUrl);
+        setLoading(false);
+        return;
       }
 
       // No valid way to load document
