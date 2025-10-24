@@ -34,7 +34,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   const [displayName, setDisplayName] = useState('');
 
   // Profile picture upload handlers
-  const handleProfilePictureChange = (e) => {
+  const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -61,6 +61,55 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         setProfilePicturePreview(e.target.result);
       };
       reader.readAsDataURL(file);
+
+      // IMMEDIATELY upload the profile picture and update the top-right icon
+      try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        const uploadRes = await fetch('/api/auth/upload-avatar', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+        
+        const uploadResult = await uploadRes.json();
+        console.log('🔄 IMMEDIATE AVATAR UPLOAD: Upload result:', uploadResult);
+        if (uploadResult.success) {
+          const updatedUser = uploadResult.data.user;
+          console.log('🔄 IMMEDIATE AVATAR UPLOAD: Updated user:', updatedUser);
+          console.log('🔄 IMMEDIATE AVATAR UPLOAD: Avatar URL:', updatedUser?.avatar);
+          
+          // Update local storage and session storage with new user data
+          try {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            sessionStorage.setItem('user', JSON.stringify(updatedUser));
+          } catch (_) {}
+          
+          // IMMEDIATELY call the onUserUpdated callback to update the top-right icon
+          if (typeof onUserUpdated === 'function') {
+            console.log('🔄 IMMEDIATE AVATAR UPLOAD: Calling onUserUpdated callback');
+            onUserUpdated(updatedUser);
+          }
+          
+          // Clear the profile picture state after successful upload
+          setProfilePicture(null);
+          setProfilePicturePreview(null);
+          
+          setSuccessMessage('Profile picture updated successfully!');
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 3000);
+        } else {
+          throw new Error(uploadResult.message || 'Failed to upload profile picture');
+        }
+      } catch (err) {
+        console.error('Immediate avatar upload failed:', err);
+        setSuccessMessage(String(err?.message || 'Failed to upload profile picture'));
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      }
     }
   };
 

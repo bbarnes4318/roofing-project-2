@@ -1313,6 +1313,8 @@ const apiUrl = window.location.hostname === 'localhost'
                             setCurrentUser(u); 
                             localStorage.setItem('user', JSON.stringify(u)); 
                             sessionStorage.setItem('user', JSON.stringify(u)); 
+                            // Force a re-render by updating a timestamp
+                            setCurrentUser({...u, _lastUpdated: Date.now()});
                         } catch (_) {} 
                     }}
                 />
@@ -1648,6 +1650,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                 {currentUser?.avatar ? (
                                     <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-500">
                                         <img 
+                                            key={currentUser.avatar} // Force re-render when avatar changes
                                             src={currentUser.avatar.startsWith('spaces://') 
                                                 ? `https://${process.env.REACT_APP_DO_SPACES_NAME || 'kenstruction'}.${process.env.REACT_APP_DO_SPACES_ENDPOINT || 'nyc3.digitaloceanspaces.com'}/${currentUser.avatar.replace('spaces://', '')}`
                                                 : currentUser.avatar
