@@ -839,10 +839,15 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             e.preventDefault();
+                                            
+                                            // Get valid URL - filter out empty, "/", or invalid values
+                                            const validUrl = [att.fileUrl, att.url, att.signedUrl]
+                                                .find(url => url && url.trim() && url !== '/' && url.length > 1);
+                                            
                                             // Map attachment to proper document structure
                                             const documentData = {
                                                 ...att,
-                                                url: att.fileUrl || att.url || att.signedUrl,
+                                                ...(validUrl ? { url: validUrl, fileUrl: validUrl } : {}),
                                                 fileName: att.originalName || att.fileName || att.title || att.name || 'Document',
                                                 title: att.title || att.originalName || att.fileName || att.name || 'Document',
                                                 fileSize: att.fileSize || att.size,

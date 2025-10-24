@@ -27,6 +27,8 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
 
     try {
       console.log('📄 Loading document:', document);
+      console.log('📄 Document keys:', Object.keys(document || {}));
+      console.log('📄 Full document object:', JSON.stringify(document, null, 2));
 
       // Determine file type from document
       const fileName = document.fileName || document.title || document.name || '';
@@ -50,29 +52,29 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
 
       setFileType(type);
 
-      // Try multiple URL sources with fallbacks
+      // Try direct URL FIRST (fastest, most reliable for existing documents)
       const possibleUrl = document.url || document.fileUrl || document.signedUrl || document.streamUrl;
       
-      if (possibleUrl) {
-        // Make sure URL is absolute
+      if (possibleUrl && possibleUrl.trim()) {
         let finalUrl = possibleUrl;
+        
+        // Make absolute URL if needed
         if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
-          // Construct absolute URL
           const baseUrl = window.location.origin;
           finalUrl = possibleUrl.startsWith('/') ? `${baseUrl}${possibleUrl}` : `${baseUrl}/${possibleUrl}`;
         }
         
-        console.log('✅ Using document URL:', finalUrl);
+        console.log('✅ Using direct document URL:', finalUrl);
         setDocumentUrl(finalUrl);
         setLoading(false);
         return;
       }
 
-      // If document has an assetId, fetch from backend
+      // Fallback: Try to fetch using assetId if no direct URL
       if (document.assetId || document.id) {
         const assetId = document.assetId || document.id;
+        console.log('🔑 No direct URL, fetching using assetId:', assetId);
 
-        // Get presigned URL for viewing from Digital Ocean Spaces
         try {
           const viewData = await assetsService.getViewUrl(assetId);
           console.log('✅ Got presigned view URL:', viewData);
@@ -87,13 +89,13 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
           throw new Error('No presigned URL returned');
 
         } catch (err) {
-          console.error('Failed to get presigned URL:', err);
+          console.error('❌ Failed to get presigned URL:', err);
           throw new Error('Could not load document from server');
         }
       }
 
-      // If no URL and no asset ID, show error
-      throw new Error('Unable to load document. Missing URL or asset ID.');
+      // No valid way to load document
+      throw new Error('Unable to load document. No valid URL or asset ID found.');
 
     } catch (err) {
       console.error('Error loading document:', err);

@@ -172,33 +172,65 @@ router.get('/:projectId', asyncHandler(async (req, res, next) => {
     prisma.projectMessage.count({ where })
   ]);
 
-  // Transform messages to match frontend expectations
-  const transformedMessages = messages.map(message => ({
-    id: message.id,
-    projectId: message.projectId,
-    projectNumber: message.projectNumber,
-    projectName: message.project?.projectName || null,
-    subject: message.subject,
-    content: message.content,
-    messageType: message.messageType,
-    priority: message.priority,
-    author: message.author,
-    authorName: message.authorName,
-    authorRole: message.authorRole,
-    phase: message.phase,
-    section: message.section,
-    lineItem: message.lineItem,
-    stepName: message.stepName,
-    isSystemGenerated: message.isSystemGenerated,
-    isWorkflowMessage: message.isWorkflowMessage,
-    readBy: message.readBy,
-    readCount: message.readCount,
-    metadata: message.metadata,
-    createdAt: message.createdAt,
-    updated_at: message.updated_at,
-    recipients: message.recipients || [],
-    replies: message.replies || [],
-    conversationCount: (message.replies?.length || 0) + 1
+  // Transform messages to match frontend expectations and populate attachment URLs
+  const transformedMessages = await Promise.all(messages.map(async (message) => {
+    let metadata = message.metadata;
+    
+    // If metadata has attachments, ensure they have valid fileUrls
+    if (metadata?.attachments && Array.isArray(metadata.attachments)) {
+      const enrichedAttachments = await Promise.all(metadata.attachments.map(async (att) => {
+        // If attachment has assetId but no fileUrl, fetch it
+        if (att.assetId && !att.fileUrl) {
+          try {
+            const asset = await prisma.companyAsset.findUnique({
+              where: { id: att.assetId },
+              select: { fileUrl: true, title: true, mimeType: true, thumbnailUrl: true }
+            });
+            if (asset) {
+              return {
+                ...att,
+                fileUrl: asset.fileUrl,
+                title: att.title || asset.title,
+                mimeType: att.mimeType || asset.mimeType,
+                thumbnailUrl: att.thumbnailUrl || asset.thumbnailUrl
+              };
+            }
+          } catch (err) {
+            console.error(`Failed to fetch asset ${att.assetId}:`, err);
+          }
+        }
+        return att;
+      }));
+      metadata = { ...metadata, attachments: enrichedAttachments };
+    }
+    
+    return {
+      id: message.id,
+      projectId: message.projectId,
+      projectNumber: message.projectNumber,
+      projectName: message.project?.projectName || null,
+      subject: message.subject,
+      content: message.content,
+      messageType: message.messageType,
+      priority: message.priority,
+      author: message.author,
+      authorName: message.authorName,
+      authorRole: message.authorRole,
+      phase: message.phase,
+      section: message.section,
+      lineItem: message.lineItem,
+      stepName: message.stepName,
+      isSystemGenerated: message.isSystemGenerated,
+      isWorkflowMessage: message.isWorkflowMessage,
+      readBy: message.readBy,
+      readCount: message.readCount,
+      metadata,
+      createdAt: message.createdAt,
+      updated_at: message.updated_at,
+      recipients: message.recipients || [],
+      replies: message.replies || [],
+      conversationCount: (message.replies?.length || 0) + 1
+    };
   }));
 
   sendPaginatedResponse(res, transformedMessages, pageNum, limitNum, total, 'Project messages retrieved successfully');
