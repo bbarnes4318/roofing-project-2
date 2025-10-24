@@ -556,7 +556,18 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                         type="button"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            setSelectedDocument(att);
+                                                                            // Map attachment to proper document structure
+                                                                            const documentData = {
+                                                                                ...att,
+                                                                                url: att.fileUrl || att.url || att.signedUrl,
+                                                                                fileName: att.originalName || att.fileName || att.title || att.name || 'Document',
+                                                                                title: att.title || att.originalName || att.fileName || att.name || 'Document',
+                                                                                fileSize: att.fileSize || att.size,
+                                                                                mimeType: att.mimeType || att.contentType,
+                                                                                id: att.assetId || att.id,
+                                                                                assetId: att.assetId || att.id
+                                                                            };
+                                                                            setSelectedDocument(documentData);
                                                                             setIsDocumentModalOpen(true);
                                                                         }}
                                                                         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
@@ -573,7 +584,18 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                                                                             type="button"
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                setSelectedDocument(att);
+                                                                                // Map attachment to proper document structure
+                                                                                const documentData = {
+                                                                                    ...att,
+                                                                                    url: att.fileUrl || att.url || att.signedUrl,
+                                                                                    fileName: att.originalName || att.fileName || att.title || att.name || 'Document',
+                                                                                    title: att.title || att.originalName || att.fileName || att.name || 'Document',
+                                                                                    fileSize: att.fileSize || att.size,
+                                                                                    mimeType: att.mimeType || att.contentType,
+                                                                                    id: att.assetId || att.id,
+                                                                                    assetId: att.assetId || att.id
+                                                                                };
+                                                                                setSelectedDocument(documentData);
                                                                                 setIsDocumentModalOpen(true);
                                                                             }}
                                                                             className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"

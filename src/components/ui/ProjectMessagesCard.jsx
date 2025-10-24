@@ -837,7 +837,18 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setSelectedDocument(att);
+                                            // Map attachment to proper document structure
+                                            const documentData = {
+                                                ...att,
+                                                url: att.fileUrl || att.url || att.signedUrl,
+                                                fileName: att.originalName || att.fileName || att.title || att.name || 'Document',
+                                                title: att.title || att.originalName || att.fileName || att.name || 'Document',
+                                                fileSize: att.fileSize || att.size,
+                                                mimeType: att.mimeType || att.contentType,
+                                                id: att.assetId || att.id,
+                                                assetId: att.assetId || att.id
+                                            };
+                                            setSelectedDocument(documentData);
                                             setIsDocumentModalOpen(true);
                                         }}
                                         className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-100"

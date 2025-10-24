@@ -30,26 +30,39 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
       // Determine file type from document
       const fileName = document.fileName || document.title || document.name || '';
       const extension = fileName.split('.').pop()?.toLowerCase();
+      
+      // Also check mimeType for more accurate file type detection
+      const mimeType = document.mimeType || document.contentType || '';
 
       let type = 'unknown';
-      if (['pdf'].includes(extension)) {
+      if (['pdf'].includes(extension) || mimeType.includes('pdf')) {
         type = 'pdf';
-      } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
+      } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension) || mimeType.startsWith('image/')) {
         type = 'image';
-      } else if (['doc', 'docx'].includes(extension)) {
+      } else if (['doc', 'docx'].includes(extension) || mimeType.includes('word') || mimeType.includes('document')) {
         type = 'word';
-      } else if (['xls', 'xlsx'].includes(extension)) {
+      } else if (['xls', 'xlsx'].includes(extension) || mimeType.includes('excel') || mimeType.includes('spreadsheet')) {
         type = 'excel';
-      } else if (['txt', 'md'].includes(extension)) {
+      } else if (['txt', 'md'].includes(extension) || mimeType.includes('text/plain')) {
         type = 'text';
       }
 
       setFileType(type);
 
-      // If document has a URL, use it directly
-      if (document.url) {
-        console.log('✅ Using direct URL:', document.url);
-        setDocumentUrl(document.url);
+      // Try multiple URL sources with fallbacks
+      const possibleUrl = document.url || document.fileUrl || document.signedUrl || document.streamUrl;
+      
+      if (possibleUrl) {
+        // Make sure URL is absolute
+        let finalUrl = possibleUrl;
+        if (!possibleUrl.startsWith('http://') && !possibleUrl.startsWith('https://') && !possibleUrl.startsWith('blob:')) {
+          // Construct absolute URL
+          const baseUrl = window.location.origin;
+          finalUrl = possibleUrl.startsWith('/') ? `${baseUrl}${possibleUrl}` : `${baseUrl}/${possibleUrl}`;
+        }
+        
+        console.log('✅ Using document URL:', finalUrl);
+        setDocumentUrl(finalUrl);
         setLoading(false);
         return;
       }
@@ -78,7 +91,8 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
         }
       }
 
-      throw new Error('Document has no URL or asset ID');
+      // If no URL and no asset ID, show error
+      throw new Error('Unable to load document. Missing URL or asset ID.');
 
     } catch (err) {
       console.error('Error loading document:', err);
@@ -97,15 +111,15 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md"
       onClick={handleBackdropClick}
       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
-      <div className="relative w-[95vw] h-[95vh] max-w-[1920px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-300" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white border-b border-gray-200">
+      <div className="relative w-[90vw] h-[90vh] max-w-[1600px] bg-white rounded-xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Professional Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white border-b border-slate-600 shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -121,7 +135,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                   </span>
                 )}
                 {fileType && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white bg-opacity-20 text-white uppercase">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-white/15 backdrop-blur-sm text-white uppercase tracking-wider border border-white/20">
                     {fileType}
                   </span>
                 )}
@@ -135,7 +149,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                   window.open(documentUrl, '_blank', 'noopener,noreferrer');
                 }
               }}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-white bg-opacity-20 text-white text-sm font-medium rounded-lg hover:bg-opacity-30 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-lg hover:bg-white/20 transition-all duration-200 border border-white/20"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -144,36 +158,44 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="h-[calc(100%-5rem)] overflow-hidden bg-gray-50">
+        {/* Content Area */}
+        <div className="h-[calc(100%-5rem)] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
           {loading && (
             <div className="flex flex-col items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
-              <p className="text-gray-600">Loading document...</p>
+              <div className="relative mb-6">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-blue-600"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-gray-700 text-lg font-medium">Loading document...</p>
+              <p className="text-gray-500 text-sm mt-2">Please wait while we prepare your file</p>
             </div>
           )}
 
           {error && (
             <div className="flex flex-col items-center justify-center h-full">
-              <div className="w-20 h-20 mb-4 bg-red-100 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 mb-6 bg-red-100 rounded-full flex items-center justify-center">
                 <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Failed to Load Document</h3>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <h3 className="text-xl font-bold text-gray-800 mb-3">Failed to Load Document</h3>
+              <p className="text-gray-600 mb-6 max-w-md text-center">{error}</p>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Close
               </button>
@@ -199,7 +221,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                           iframe.contentWindow.print();
                         }
                       }}
-                      className="px-3 py-2 bg-white bg-opacity-90 text-gray-700 text-sm font-medium rounded-lg hover:bg-opacity-100 transition-colors shadow-lg flex items-center gap-2"
+                      className="px-4 py-2.5 bg-white/95 backdrop-blur-sm text-gray-700 text-sm font-medium rounded-lg hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 border border-gray-200"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -209,7 +231,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                     <a
                       href={documentUrl}
                       download={document?.fileName || document?.title || 'document.pdf'}
-                      className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-lg flex items-center gap-2"
+                      className="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 transform hover:-translate-y-0.5"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
