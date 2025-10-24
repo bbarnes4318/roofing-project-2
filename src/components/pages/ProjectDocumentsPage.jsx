@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { documentsService, API_ORIGIN } from '../../services/api';
 import { assetsService } from '../../services/assetsService';
 import toast from 'react-hot-toast';
+import DocumentViewerModal from '../ui/DocumentViewerModal';
 import {
   FolderIcon,
   FolderOpenIcon,
@@ -146,6 +147,10 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
   const [draggingId, setDraggingId] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // Document modal state
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   
   // Mock folder structure (you'll need to implement actual backend for this)
   const [folders, setFolders] = useState([
@@ -408,18 +413,18 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
 
   const handleView = async (doc) => {
     const directUrl = buildDocumentUrl(doc);
-    const openInTab = (blobUrl) => {
-      const newWindow = window.open('', '_blank', 'noopener');
-      if (newWindow) {
-        newWindow.location.href = blobUrl;
-      } else {
-        toast.error('Unable to open new tab. Please allow pop-ups.');
-      }
-    };
 
     try {
       if (directUrl) {
-        window.open(directUrl, '_blank', 'noopener');
+        // Create document object for modal
+        const documentForModal = {
+          ...doc,
+          url: directUrl,
+          fileName: doc.fileName || doc.name || 'Document'
+        };
+        
+        setSelectedDocument(documentForModal);
+        setIsDocumentModalOpen(true);
         return;
       }
 
@@ -430,8 +435,23 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
 
       const response = await documentsService.download(doc.id);
       const blobUrl = window.URL.createObjectURL(response.data);
-      openInTab(blobUrl);
-      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000 * 60);
+      
+      // Create document object for modal
+      const documentForModal = {
+        ...doc,
+        url: blobUrl,
+        fileName: doc.fileName || doc.name || 'Document'
+      };
+      
+      setSelectedDocument(documentForModal);
+      setIsDocumentModalOpen(true);
+      
+      // Clean up blob URL after modal closes
+      setTimeout(() => {
+        if (!isDocumentModalOpen) {
+          window.URL.revokeObjectURL(blobUrl);
+        }
+      }, 60000);
     } catch (viewError) {
       console.error('Document view failed:', viewError);
       toast.error('Unable to open document preview.');
@@ -926,6 +946,16 @@ const ProjectDocumentsPage = ({ project, onBack, colorMode }) => {
           </div>
         </div>
       )}
+      
+      {/* Document Viewer Modal */}
+      <DocumentViewerModal
+        document={selectedDocument}
+        isOpen={isDocumentModalOpen}
+        onClose={() => {
+          setIsDocumentModalOpen(false);
+          setSelectedDocument(null);
+        }}
+      />
     </div>
   );
 };

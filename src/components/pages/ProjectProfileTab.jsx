@@ -8,6 +8,7 @@ import { formatProjectType, getProjectTypeColor, getProjectTypeColorDark } from 
 import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
 import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
+import DocumentViewerModal from '../ui/DocumentViewerModal';
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { 
   PhoneIcon, 
@@ -31,6 +32,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const progressChartRefs = useRef({});
   const [expandedProgress, setExpandedProgress] = useState({});
   const [progressExpanded, setProgressExpanded] = useState(false);
+  
+  // Document modal state
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   
   // Edit states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -1002,8 +1007,23 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                   const response = await documentsService.download(d.id);
                   const blob = response.data;
                   const url = window.URL.createObjectURL(blob);
-                  window.open(url, '_blank', 'noopener');
-                  setTimeout(() => window.URL.revokeObjectURL(url), 60000); // Clean up after 1 minute
+                  
+                  // Create document object for modal
+                  const documentForModal = {
+                    ...d,
+                    url: url,
+                    fileName: d.fileName || d.name || 'Document'
+                  };
+                  
+                  setSelectedDocument(documentForModal);
+                  setIsDocumentModalOpen(true);
+                  
+                  // Clean up blob URL after modal closes
+                  setTimeout(() => {
+                    if (!isDocumentModalOpen) {
+                      window.URL.revokeObjectURL(url);
+                    }
+                  }, 60000);
                 } catch (error) {
                   console.error('Preview failed:', error);
                   toast.error('Failed to preview document');
@@ -1321,6 +1341,16 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           <SubcontractorsPanel />
         </div>
       </div>
+      
+      {/* Document Viewer Modal */}
+      <DocumentViewerModal
+        document={selectedDocument}
+        isOpen={isDocumentModalOpen}
+        onClose={() => {
+          setIsDocumentModalOpen(false);
+          setSelectedDocument(null);
+        }}
+      />
     </div>
   );
 };
