@@ -2582,20 +2582,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       case 'permissions':
         return <RoofingPermissionsPage colorMode={colorMode} />;
       case 'team-members':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">Team Member Management</h3>
-              <button
-                onClick={() => setActiveTab('add-team-member')}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Add Team Member
-              </button>
-            </div>
-            <UserManagementPage colorMode={colorMode} />
-          </div>
-        );
+        return <UserManagementPage colorMode={colorMode} />;
       case 'add-team-member':
         return (
           <div>

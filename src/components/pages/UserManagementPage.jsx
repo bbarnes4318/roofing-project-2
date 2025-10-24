@@ -174,9 +174,7 @@ const UserManagementPage = ({ colorMode }) => {
   }
 
   return (
-    <div className={`min-h-screen ${colorMode ? 'bg-[#0f172a]' : 'bg-gray-50'} py-8`}>
-      <div className="max-w-7xl mx-auto px-4">
-        <div className={`${colorMode ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-lg`}>
+    <div className={`${colorMode ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-lg`}>
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div>
@@ -343,8 +341,6 @@ const UserManagementPage = ({ colorMode }) => {
               </div>
             </div>
           )}
-        </div>
-      </div>
 
       {/* Edit Modal */}
       {editingUser && (
