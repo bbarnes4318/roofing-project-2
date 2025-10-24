@@ -56,11 +56,14 @@ const authenticateToken = async (req, res, next) => {
 
     // Demo token bypass for development/testing
     if (token.startsWith('demo-token-') || token.startsWith('temp-token-') || token.startsWith('demo-david-chen-token-')) {
+      // Extract a consistent user ID from the token itself to avoid creating new IDs each request
+      const tokenParts = token.split('-');
+      const tokenId = tokenParts[tokenParts.length - 1]; // Use the last part as stable identifier
       req.user = {
-        id: 'demo-user-' + Date.now(),
+        id: `demo-user-${tokenId}`,
         firstName: 'Demo',
         lastName: 'User',
-        email: 'demo@roofingapp.com',
+        email: `demo-${tokenId}@roofingapp.com`,
         role: 'ADMIN',
         permissions: [],
         isActive: true,

@@ -42,7 +42,6 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
         params.type = typeMapping[activeTab] || activeTab.toUpperCase();
       }
       const response = await feedbackService.getFeedback(params);
-      console.log('API Response for', activeTab, ':', response.data);
       return response.data;
     }
   });
@@ -55,7 +54,6 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
       try {
         return await feedbackService.getNotifications(currentUser?.id);
       } catch (error) {
-        console.log('Using mock notifications service');
         return await mockFeedbackService.getNotifications(currentUser?.id);
       }
     },
@@ -65,33 +63,23 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
   // Handle feedback submission
   const submitFeedbackMutation = useMutation({
     mutationFn: async (data) => {
-      console.log('🚀 SUBMITTING FEEDBACK:');
-      console.log('Data being sent:', data);
-      console.log('Current user:', currentUser);
-      console.log('Auth token:', localStorage.getItem('authToken') || sessionStorage.getItem('authToken'));
-      
-      // Use real API database
       const response = await feedbackService.createFeedback(data);
-      console.log('Feedback created via API:', response.data);
       return response.data;
     },
     onSuccess: (data) => {
-      console.log('Feedback submitted successfully:', data);
       toast.success('Feedback submitted successfully!');
       queryClient.invalidateQueries(['feedback']);
     },
     onError: (error) => {
       console.error('Failed to submit feedback:', error);
-      toast.error('Failed to submit feedback');
+      toast.error('Failed to submit feedback. Please try again.');
     }
   });
 
   // Handle voting
   const voteMutation = useMutation({
     mutationFn: async ({ feedbackId, action }) => {
-      // Use real API database
       const response = await feedbackService.vote(feedbackId, action);
-      console.log('Vote recorded via API:', response.data);
       return response.data;
     },
     onSuccess: () => {
@@ -102,9 +90,7 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
   // Handle status change (developer only)
   const statusChangeMutation = useMutation({
     mutationFn: async ({ feedbackId, status, assigneeId, tags }) => {
-      // Use real API database
       const response = await feedbackService.updateStatus(feedbackId, { status, assigneeId, tags });
-      console.log('Status updated via API:', response.data);
       return response.data;
     },
     onSuccess: () => {
@@ -132,24 +118,6 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
   
   const filteredFeedback = Array.isArray(feedbackData?.data) ? feedbackData.data : [];
   const unreadNotifications = Array.isArray(notifications) ? notifications.filter(n => !n.read) : [];
-  
-  console.log('=== FEEDBACK DEBUG ===');
-  console.log('Current activeTab:', activeTab);
-  console.log('feedbackData:', feedbackData);
-  console.log('feedbackData type:', typeof feedbackData);
-  console.log('feedbackData.data:', feedbackData?.data);
-  console.log('feedbackData.data type:', typeof feedbackData?.data);
-  console.log('filteredFeedback length:', filteredFeedback.length);
-  console.log('filteredFeedback:', filteredFeedback);
-  console.log('isLoading:', isLoading);
-  console.log('error:', error);
-  console.log('=== END DEBUG ===');
-  
-  // API Configuration Debug
-  console.log('=== API CONFIGURATION ===');
-  console.log('API Base URL:', window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : `${window.location.protocol}//${window.location.host}/api`);
-  console.log('Current User:', currentUser?.id);
-  console.log('=== END API CONFIG ===');
 
   return (
     <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>

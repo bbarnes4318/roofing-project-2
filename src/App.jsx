@@ -157,15 +157,52 @@ export default function App() {
     // On mount, check Supabase auth state and perform token exchange
     useEffect(() => {
         const checkAuthState = async () => {
-            // First check if we already have a valid JWT token stored
+            // IMMEDIATE FIX: Clear all temp/demo tokens to force re-auth with consistent IDs
             const existingToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-            if (existingToken) {
+            const storedUser = localStorage.getItem('user');
+            
+            if (existingToken && (existingToken.startsWith('demo-') || existingToken.startsWith('temp-token-'))) {
+                if (storedUser) {
+                    try {
+                        const userData = JSON.parse(storedUser);
+                        const tokenParts = existingToken.split('-');
+                        const tokenId = tokenParts[tokenParts.length - 1];
+                        const expectedUserId = `demo-user-${tokenId}`;
+                        
+                        // If IDs don't match, clear everything and re-auth
+                        if (userData.id !== expectedUserId) {
+                            console.log('🔄 CLEARING INCONSISTENT AUTH DATA - Will re-authenticate...');
+                            localStorage.removeItem('authToken');
+                            localStorage.removeItem('user');
+                            sessionStorage.removeItem('authToken');
+                            sessionStorage.removeItem('user');
+                            // Force re-authentication by continuing below
+                        } else {
+                            // IDs match, proceed with existing auth
+                            setCurrentUser(userData);
+                            setIsAuthenticated(true);
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing stored user:', e);
+                        // Clear corrupted data
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('user');
+                        sessionStorage.removeItem('authToken');
+                        sessionStorage.removeItem('user');
+                    }
+                }
+            }
+            
+            // Re-check token after potential cleanup
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            if (token) {
                 try {
                     // Check if it's a demo token (bypass verification)
-                    if (existingToken.startsWith('demo-') || existingToken.startsWith('temp-token-')) {
-                        const storedUser = localStorage.getItem('user');
-                        if (storedUser) {
-                            const userData = JSON.parse(storedUser);
+                    if (token.startsWith('demo-') || token.startsWith('temp-token-')) {
+                        const user = localStorage.getItem('user');
+                        if (user) {
+                            const userData = JSON.parse(user);
                             setCurrentUser(userData);
                             setIsAuthenticated(true);
                             return;
@@ -319,9 +356,17 @@ const apiUrl = window.location.hostname === 'localhost'
     const handleFallbackAuth = async (supabaseUser) => {
         console.log('Using fallback authentication for user:', supabaseUser.email);
         
-        // Create a temporary user object
+        // Create a temporary token (this is just for demo purposes)
+        const tempToken = 'temp-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        
+        // Extract the consistent user ID that the backend will use (last part of token)
+        const tokenParts = tempToken.split('-');
+        const tokenId = tokenParts[tokenParts.length - 1];
+        const userId = `demo-user-${tokenId}`;
+        
+        // Create a temporary user object with ID matching what backend will extract
         const fallbackUser = {
-            id: supabaseUser.id || 'temp-' + Date.now(),
+            id: userId,
             email: supabaseUser.email,
             firstName: supabaseUser.user_metadata?.firstName || supabaseUser.email?.split('@')[0] || 'User',
             lastName: supabaseUser.user_metadata?.lastName || '',
@@ -329,9 +374,6 @@ const apiUrl = window.location.hostname === 'localhost'
             isActive: true,
             theme: 'LIGHT'
         };
-        
-        // Create a temporary token (this is just for demo purposes)
-        const tempToken = 'temp-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         
         // Store the temporary data
         sessionStorage.setItem('authToken', tempToken);
@@ -342,26 +384,31 @@ const apiUrl = window.location.hostname === 'localhost'
         setCurrentUser(fallbackUser);
         setIsAuthenticated(true);
         
-        console.log('Fallback authentication completed for:', fallbackUser.email);
+        console.log('Fallback authentication completed for:', fallbackUser.email, 'with ID:', userId);
     };
 
     // Demo authentication for development/testing
     const handleDemoAuth = async () => {
         console.log('Using demo authentication for development');
         
-        // Create a demo user
+        // Create a demo token
+        const demoToken = 'demo-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        
+        // Extract the consistent user ID that the backend will use (last part of token)
+        const tokenParts = demoToken.split('-');
+        const tokenId = tokenParts[tokenParts.length - 1];
+        const userId = `demo-user-${tokenId}`;
+        
+        // Create a demo user with ID matching what backend will extract
         const demoUser = {
-            id: 'demo-user-' + Date.now(),
-            email: 'demo@roofingapp.com',
+            id: userId,
+            email: `demo-${tokenId}@roofingapp.com`,
             firstName: 'Demo',
             lastName: 'User',
             role: 'ADMIN',
             isActive: true,
             theme: 'LIGHT'
         };
-        
-        // Create a demo token
-        const demoToken = 'demo-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         
         // Store the demo data
         sessionStorage.setItem('authToken', demoToken);
@@ -372,7 +419,7 @@ const apiUrl = window.location.hostname === 'localhost'
         setCurrentUser(demoUser);
         setIsAuthenticated(true);
         
-        console.log('Demo authentication completed for:', demoUser.email);
+        console.log('Demo authentication completed for:', demoUser.email, 'with ID:', userId);
     };
 
 

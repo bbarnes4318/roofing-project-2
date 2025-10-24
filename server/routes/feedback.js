@@ -308,24 +308,40 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     select: { id: true, firstName: true, lastName: true, email: true }
   });
 
+  let actualUserId = userId; // Track the actual user ID to use
+
   if (!userExists) {
-    console.log('⚠️ Creating missing user:', userId);
+    console.log('⚠️ User not found by ID:', userId);
     console.log('User data from JWT:', req.user);
     try {
-      userExists = await prisma.user.create({
-        data: {
-          id: userId,
-          email: req.user.email || `user-${userId}@example.com`,
-          firstName: req.user.firstName || req.user.given_name || req.user.name || 'User',
-          lastName: req.user.lastName || req.user.family_name || 'User',
-          password: 'SUPABASE_AUTH_MANAGED',
-          role: req.user.role || 'WORKER',
-          isActive: true,
-          theme: 'LIGHT'
-        },
+      // Check if a user with this email already exists
+      const existingByEmail = await prisma.user.findUnique({
+        where: { email: req.user.email || `user-${userId}@example.com` },
         select: { id: true, firstName: true, lastName: true, email: true }
       });
-      console.log('✅ User created successfully:', userExists);
+      
+      if (existingByEmail) {
+        console.log('✅ Found existing user by email:', existingByEmail.email, 'with ID:', existingByEmail.id);
+        // Use the existing user instead
+        userExists = existingByEmail;
+        actualUserId = existingByEmail.id; // Use the existing user's ID
+      } else {
+        console.log('📝 Creating new user with ID:', userId);
+        userExists = await prisma.user.create({
+          data: {
+            id: userId,
+            email: req.user.email || `user-${userId}@example.com`,
+            firstName: req.user.firstName || req.user.given_name || req.user.name || 'User',
+            lastName: req.user.lastName || req.user.family_name || 'User',
+            password: 'SUPABASE_AUTH_MANAGED',
+            role: req.user.role || 'WORKER',
+            isActive: true,
+            theme: 'LIGHT'
+          },
+          select: { id: true, firstName: true, lastName: true, email: true }
+        });
+        console.log('✅ User created successfully:', userExists);
+      }
     } catch (error) {
       console.error('❌ User creation failed with error:', error);
       console.error('Error details:', {
@@ -351,7 +367,7 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
       attachments,
       url,
       environment,
-      authorId: userId
+      authorId: actualUserId // Use the actual user ID (might be different from token)
     },
     include: {
       author: {
@@ -368,13 +384,13 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
 
   // Award points for creating feedback
   await prisma.userProfile.upsert({
-    where: { userId },
+    where: { userId: actualUserId },
     update: { 
       points: { increment: 5 },
       lastActivityDate: new Date()
     },
     create: {
-      userId,
+      userId: actualUserId,
       points: 5,
       level: 1,
       lastActivityDate: new Date()
