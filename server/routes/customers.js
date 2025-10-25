@@ -400,9 +400,9 @@ router.post('/', asyncHandler(async (req, res, next) => {
         secondaryPhone: req.body.secondaryPhone || null,
         secondaryPhoneType: req.body.secondaryPhoneType || 'MOBILE',
         primaryContact: req.body.primaryContact || 'PRIMARY',
-        primaryPhoneContact: req.body.primaryPhone || 'PRIMARY',
-        address: req.body.address || 'No address provided',
-        notes: req.body.notes || null
+        primaryPhoneContact: req.body.primaryPhoneContact || 'PRIMARY',
+        address: req.body.address || 'No address provided'
+        // notes field removed - not being sent from frontend
       };
     } else {
       // Legacy format - map to new schema
@@ -419,8 +419,8 @@ router.post('/', asyncHandler(async (req, res, next) => {
         secondaryPhoneType: 'MOBILE',
         primaryContact: 'PRIMARY',
         primaryPhoneContact: 'PRIMARY',
-        address: req.body.address || 'No address provided',
-        notes: req.body.notes || null
+        address: req.body.address || 'No address provided'
+        // notes field removed - not being sent from frontend
       };
     }
 
@@ -439,14 +439,14 @@ router.post('/', asyncHandler(async (req, res, next) => {
     }
 
     // Create customer with contacts if provided
-    const createData = {
-      data: customerData
-    };
+    console.log('🔍 CUSTOMER CREATE: Creating customer with data:', customerData);
 
     // Contacts are now stored directly in the Customer model fields (primaryName, secondaryName, etc.)
     // No separate Contact table needed
 
-    const customer = await prisma.customer.create(createData);
+    const customer = await prisma.customer.create({
+      data: customerData
+    });
 
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(customer);
