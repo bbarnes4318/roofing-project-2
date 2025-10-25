@@ -830,13 +830,17 @@ model CompanyAsset {
   path             String?          @db.VarChar(1000)
   sortOrder        Int              @default(0)
   type             AssetType        @default(FILE)
+  isDeleted        Boolean          @default(false) @map("is_deleted")
+  deletedAt        DateTime?        @map("deleted_at")
+  deletedById      String?          @map("deleted_by_id")
+  trashExpiryDate  DateTime?        @map("trash_expiry_date")
   folderName       String?          @map("folder_name") @db.VarChar(255)
   isPublic         Boolean          @default(false) @map("is_public")
   thumbnailUrl     String?          @map("thumbnail_url") @db.VarChar(2000)
   checksum         String?          @db.VarChar(255)
   metadata         Json?
   accessLevel      String?          @default("private") @map("access_level") @db.VarChar(50)
-  is_archived      Boolean?         @map("is_archived") @ignore
+  isArchived       Boolean?         @default(false) @map("is_archived")
   is_favorite      Boolean?         @map("is_favorite") @ignore
   view_count       Int?             @map("view_count") @ignore
   shared_with      Json?            @map("shared_with") @ignore
