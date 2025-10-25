@@ -82,6 +82,7 @@ model User {
   followUpTracking                                         FollowUpTracking[]
   feedbackAuthored                                         Feedback[]                   @relation("FeedbackAuthor")
   feedbackAssigned                                         Feedback[]                   @relation("FeedbackAssignee")
+  deletedAssets                                            CompanyAsset[]               @relation("AssetDeleter")
 
   @@map("users")
 }
@@ -437,6 +438,10 @@ model CompanyAsset {
   path             String?               @db.VarChar(1000)
   sortOrder        Int                   @default(0)
   type             AssetType             @default(FILE)
+  isDeleted        Boolean               @default(false) @map("is_deleted")
+  deletedAt        DateTime?             @map("deleted_at")
+  deletedById      String?               @map("deleted_by_id")
+  trashExpiryDate  DateTime?             @map("trash_expiry_date")
   folderName       String?               @map("folder_name") @db.VarChar(255)
   isPublic         Boolean?              @default(false) @map("is_public")
   thumbnail_url    String?               @db.VarChar(2000)
@@ -451,10 +456,12 @@ model CompanyAsset {
   parent           CompanyAsset?         @relation("FolderHierarchy", fields: [parentId], references: [id])
   children         CompanyAsset[]        @relation("FolderHierarchy")
   uploadedBy       User?                 @relation(fields: [uploadedById], references: [id])
+  deletedBy        User?                 @relation("AssetDeleter", fields: [deletedById], references: [id])
 
   @@index([folderName], map: "idx_company_assets_folder_name")
   @@index([isPublic], map: "idx_company_assets_is_public")
   @@index([parentId, type], map: "idx_company_assets_parent_type")
+  @@index([isDeleted, trashExpiryDate], map: "idx_company_assets_trash")
   @@map("company_assets")
 }
 

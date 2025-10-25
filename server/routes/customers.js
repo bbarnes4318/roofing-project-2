@@ -116,7 +116,27 @@ const customerValidation = [
     .trim()
     .optional({ checkFalsy: true })
     .isLength({ min: 5, max: 500 })
-    .withMessage('Address must be between 5 and 500 characters')
+    .withMessage('Address must be between 5 and 500 characters'),
+  body('primaryEmailType')
+    .optional()
+    .isIn(['PERSONAL', 'WORK'])
+    .withMessage('Primary email type must be PERSONAL or WORK'),
+  body('primaryPhoneType')
+    .optional()
+    .isIn(['MOBILE', 'HOME', 'WORK'])
+    .withMessage('Primary phone type must be MOBILE, HOME, or WORK'),
+  body('secondaryEmailType')
+    .optional()
+    .isIn(['PERSONAL', 'WORK'])
+    .withMessage('Secondary email type must be PERSONAL or WORK'),
+  body('secondaryPhoneType')
+    .optional()
+    .isIn(['MOBILE', 'HOME', 'WORK'])
+    .withMessage('Secondary phone type must be MOBILE, HOME, or WORK'),
+  body('primaryPhoneContact')
+    .optional()
+    .isIn(['PRIMARY', 'SECONDARY'])
+    .withMessage('Primary phone contact must be PRIMARY or SECONDARY')
 ];
 
 // Validation rules for updating customers (more lenient)
@@ -159,7 +179,27 @@ const customerUpdateValidation = [
     .optional()
     .trim()
     .isLength({ min: 5, max: 500 })
-    .withMessage('Address must be between 5 and 500 characters')
+    .withMessage('Address must be between 5 and 500 characters'),
+  body('primaryEmailType')
+    .optional()
+    .isIn(['PERSONAL', 'WORK'])
+    .withMessage('Primary email type must be PERSONAL or WORK'),
+  body('primaryPhoneType')
+    .optional()
+    .isIn(['MOBILE', 'HOME', 'WORK'])
+    .withMessage('Primary phone type must be MOBILE, HOME, or WORK'),
+  body('secondaryEmailType')
+    .optional()
+    .isIn(['PERSONAL', 'WORK'])
+    .withMessage('Secondary email type must be PERSONAL or WORK'),
+  body('secondaryPhoneType')
+    .optional()
+    .isIn(['MOBILE', 'HOME', 'WORK'])
+    .withMessage('Secondary phone type must be MOBILE, HOME, or WORK'),
+  body('primaryPhoneContact')
+    .optional()
+    .isIn(['PRIMARY', 'SECONDARY'])
+    .withMessage('Primary phone contact must be PRIMARY or SECONDARY')
 ];
 
 // Legacy validation for backward compatibility
@@ -464,10 +504,15 @@ router.put('/:id', customerUpdateValidation, asyncHandler(async (req, res, next)
       if (req.body.primaryName !== undefined) updateData.primaryName = req.body.primaryName;
       if (req.body.primaryEmail !== undefined) updateData.primaryEmail = req.body.primaryEmail;
       if (req.body.primaryPhone !== undefined) updateData.primaryPhone = req.body.primaryPhone;
+      if (req.body.primaryEmailType !== undefined) updateData.primaryEmailType = req.body.primaryEmailType;
+      if (req.body.primaryPhoneType !== undefined) updateData.primaryPhoneType = req.body.primaryPhoneType;
       if (req.body.secondaryName !== undefined) updateData.secondaryName = req.body.secondaryName;
       if (req.body.secondaryEmail !== undefined) updateData.secondaryEmail = req.body.secondaryEmail;
+      if (req.body.secondaryEmailType !== undefined) updateData.secondaryEmailType = req.body.secondaryEmailType;
       if (req.body.secondaryPhone !== undefined) updateData.secondaryPhone = req.body.secondaryPhone;
+      if (req.body.secondaryPhoneType !== undefined) updateData.secondaryPhoneType = req.body.secondaryPhoneType;
       if (req.body.primaryContact !== undefined) updateData.primaryContact = req.body.primaryContact;
+      if (req.body.primaryPhoneContact !== undefined) updateData.primaryPhoneContact = req.body.primaryPhoneContact;
     } else {
       // Legacy format - map to new schema
       if (req.body.name !== undefined) updateData.primaryName = req.body.name;

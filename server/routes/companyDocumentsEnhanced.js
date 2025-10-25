@@ -120,6 +120,13 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   // Build where clause
   const where = { isActive: true };
   
+  // Handle trash filtering
+  if (req.query.trash === 'true') {
+    where.isDeleted = true;
+  } else {
+    where.isDeleted = false; // Only show non-deleted items by default
+  }
+  
   // Enhanced search across multiple fields
   if (search) {
     where.OR = [
@@ -690,6 +697,96 @@ router.post('/bulk-operation', authenticateToken, asyncHandler(async (req, res) 
           data: { isActive: false }
         });
       }
+      break;
+      
+    case 'moveToTrash':
+      // Move to trash with 90-day retention
+      const allIds = await collectDescendantIds(assetIds.map(String));
+      const trashExpiryDate = new Date();
+      trashExpiryDate.setDate(trashExpiryDate.getDate() + 90); // 90 days from now
+      
+      result = await prisma.companyAsset.updateMany({
+        where: { id: { in: allIds } },
+        data: { 
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedById: req.user.id,
+          trashExpiryDate: trashExpiryDate
+        }
+      });
+      break;
+      
+    case 'restore':
+      // Restore from trash
+      result = await prisma.companyAsset.updateMany({
+        where: { id: { in: assetIds } },
+        data: { 
+          isDeleted: false,
+          deletedAt: null,
+          deletedById: null,
+          trashExpiryDate: null
+        }
+      });
+      break;
+      
+    case 'reorder':
+      // Reorder assets by updating sortOrder
+      const { newOrder } = req.body;
+      if (!newOrder || !Array.isArray(newOrder)) {
+        return res.status(400).json({
+          success: false,
+          message: 'newOrder array is required for reorder operation'
+        });
+      }
+      
+      // Update sortOrder for each asset
+      const updatePromises = newOrder.map((item, index) => 
+        prisma.companyAsset.update({
+          where: { id: item.id },
+          data: { sortOrder: index }
+        })
+      );
+      
+      await Promise.all(updatePromises);
+      result = { count: newOrder.length };
+      break;
+      
+    case 'rename':
+      // Rename asset (folder or file)
+      const { newName } = req.body;
+      if (!newName || typeof newName !== 'string' || newName.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'newName is required for rename operation'
+        });
+      }
+      
+      // Check if name already exists in the same parent folder
+      const parentId = req.body.parentId || null;
+      const existingAsset = await prisma.companyAsset.findFirst({
+        where: {
+          parentId: parentId,
+          title: newName.trim(),
+          isActive: true,
+          isDeleted: false,
+          id: { not: assetIds[0] } // Exclude the current asset being renamed
+        }
+      });
+      
+      if (existingAsset) {
+        return res.status(400).json({
+          success: false,
+          message: 'An asset with this name already exists in this location'
+        });
+      }
+      
+      result = await prisma.companyAsset.updateMany({
+        where: { id: { in: assetIds } },
+        data: { 
+          title: newName.trim(),
+          folderName: newName.trim() // Update folderName for folders
+        }
+      });
       break;
     
     case 'purge':

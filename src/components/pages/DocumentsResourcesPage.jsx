@@ -8,12 +8,17 @@ import {
   SparklesIcon,
   PlusIcon,
   ChevronRightIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  PencilIcon,
+  TrashIcon as TrashIconSolid,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { assetsService } from '../../services/assetsService';
 import { CheatSheetModal } from '../common/CheatSheet';
 import DocumentViewerModal from '../ui/DocumentViewerModal';
 import FileRenameModal from '../ui/FileRenameModal';
+import DeleteConfirmationModal from '../ui/DeleteConfirmationModal';
+import FolderRenameModal from '../ui/FolderRenameModal';
 import { getFileTypeInfo } from '../../utils/fileTypeUtils';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -37,6 +42,13 @@ const DocumentsResourcesPage = () => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [filesToRename, setFilesToRename] = useState([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [folderRenameModalOpen, setFolderRenameModalOpen] = useState(false);
+  const [folderToRename, setFolderToRename] = useState(null);
+  const [showTrash, setShowTrash] = useState(false);
+  const [trashItems, setTrashItems] = useState([]);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   // Load folders for sidebar tree - optimized with smaller limit
   const loadAllFolders = async () => {
@@ -65,6 +77,7 @@ const DocumentsResourcesPage = () => {
   // Optimized loading - folders load once, items reload on folder/search change
   useEffect(() => {
     loadAllFolders();
+    loadTrashItems();
   }, []); // Only load folders once on mount
 
   useEffect(() => {
@@ -109,17 +122,68 @@ const DocumentsResourcesPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this item?')) return;
+  const handleDelete = (item) => {
+    setItemToDelete(item);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
     try {
-      await assetsService.bulkOperation({ operation: 'delete', assetIds: [id] });
+      // Move to trash instead of permanent delete
+      await assetsService.bulkOperation({ 
+        operation: 'moveToTrash', 
+        assetIds: [itemToDelete.id] 
+      });
+      await Promise.all([
+        loadItems(currentFolder),
+        loadAllFolders(),
+        loadTrashItems()
+      ]);
+      toast.success(`${itemToDelete.type === 'FOLDER' ? 'Folder' : 'File'} moved to trash`);
+    } catch (err) {
+      toast.error('Delete failed');
+    } finally {
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
+  const loadTrashItems = async () => {
+    try {
+      const data = await assetsService.list({ type: 'TRASH', limit: 100 });
+      setTrashItems(data?.assets || []);
+    } catch (err) {
+      console.error('Failed to load trash items');
+    }
+  };
+
+  const handleRenameFolder = (folder) => {
+    setFolderToRename(folder);
+    setFolderRenameModalOpen(true);
+  };
+
+  const confirmRenameFolder = async (newName) => {
+    if (!folderToRename) return;
+    
+    try {
+      await assetsService.bulkOperation({
+        operation: 'rename',
+        assetIds: [folderToRename.id],
+        newName: newName,
+        parentId: folderToRename.parentId
+      });
       await Promise.all([
         loadItems(currentFolder),
         loadAllFolders()
       ]);
-      toast.success('Deleted');
+      toast.success('Folder renamed successfully');
     } catch (err) {
-      toast.error('Delete failed');
+      toast.error('Rename failed');
+    } finally {
+      setFolderRenameModalOpen(false);
+      setFolderToRename(null);
     }
   };
 
@@ -228,6 +292,31 @@ const DocumentsResourcesPage = () => {
     }
   };
 
+  // Handle reordering within the same parent
+  const handleReorder = async (draggedItem, targetIndex, items) => {
+    if (!draggedItem) return;
+    
+    try {
+      // Create new order array with updated sortOrder values
+      const newOrder = items.map((item, index) => ({
+        id: item.id,
+        sortOrder: index
+      }));
+      
+      await assetsService.bulkOperation({
+        operation: 'reorder',
+        assetIds: items.map(item => item.id),
+        newOrder: newOrder
+      });
+
+      await loadAllFolders();
+      await loadItems(currentFolder);
+      toast.success(`Reordered ${draggedItem.title}`);
+    } catch (err) {
+      toast.error('Reorder failed');
+    }
+  };
+
   const toggleFolder = (folderId) => {
     const newExpanded = new Set(expandedFolders);
     if (newExpanded.has(folderId)) {
@@ -280,12 +369,20 @@ const DocumentsResourcesPage = () => {
           >
             {folder.title}
           </span>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleDelete(folder.id); }}
-            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 rounded"
-          >
-            <TrashIcon className="h-4 w-4 text-red-600" />
-          </button>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleRenameFolder(folder); }}
+              className="p-1 hover:bg-blue-100 rounded"
+            >
+              <PencilIcon className="h-4 w-4 text-blue-600" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleDelete(folder); }}
+              className="p-1 hover:bg-red-100 rounded"
+            >
+              <TrashIcon className="h-4 w-4 text-red-600" />
+            </button>
+          </div>
         </div>
         {isExpanded && children.map(child => (
           <FolderTreeItem key={child.id} folder={child} level={level + 1} />
@@ -353,6 +450,20 @@ const DocumentsResourcesPage = () => {
               Playbook
             </button>
             <button
+              onClick={() => {
+                setShowTrash(!showTrash);
+                if (!showTrash) loadTrashItems();
+              }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                showTrash 
+                  ? 'bg-red-500 text-white hover:bg-red-600' 
+                  : 'bg-white/20 hover:bg-white/30'
+              }`}
+            >
+              <TrashIconSolid className="h-4 w-4 inline mr-1.5" />
+              {showTrash ? 'Hide Trash' : 'Trash'}
+            </button>
+            <button
               onClick={() => setUploadModalOpen(true)}
               className="px-3 py-1.5 bg-[#7ED242] text-white rounded-lg text-sm font-medium hover:bg-[#6BC22E] hover:shadow-lg transition"
             >
@@ -387,9 +498,23 @@ const DocumentsResourcesPage = () => {
 
         {/* MAIN CONTENT AREA */}
         <div className="flex-1 flex flex-col overflow-hidden">
-
-          {/* Files & Folders Grid */}
-          <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+          {/* Drag and Drop Zone */}
+          <div
+            onDrop={(e) => {
+              e.preventDefault();
+              const files = Array.from(e.dataTransfer.files);
+              if (files.length > 0) {
+                setFilesToRename(files);
+                setRenameModalOpen(true);
+              }
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            className={`border-2 border-dashed border-transparent hover:border-blue-300 transition-colors ${
+              showTrash ? 'bg-red-50' : 'bg-slate-50'
+            }`}
+          >
+            {/* Files & Folders Grid */}
+            <div className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0089D1]"></div>
@@ -430,12 +555,20 @@ const DocumentsResourcesPage = () => {
                         <p className="text-xs font-medium text-center leading-tight break-words">{folder.title}</p>
                       )}
 
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(folder.id); }}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
-                      >
-                        <TrashIcon className="h-4 w-4 text-red-600" />
-                      </button>
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRenameFolder(folder); }}
+                          className="p-1 bg-blue-50 rounded hover:bg-blue-100"
+                        >
+                          <PencilIcon className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(folder); }}
+                          className="p-1 bg-red-50 rounded hover:bg-red-100"
+                        >
+                          <TrashIcon className="h-4 w-4 text-red-600" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -472,7 +605,7 @@ const DocumentsResourcesPage = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(file.id);
+                          handleDelete(file);
                         }}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
                       >
@@ -483,9 +616,64 @@ const DocumentsResourcesPage = () => {
                 })}
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Trash View */}
+      {showTrash && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <TrashIconSolid className="h-6 w-6 text-red-600" />
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Trash</h3>
+                  <p className="text-sm text-gray-600">Items will be permanently deleted after 90 days</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTrash(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <XMarkIcon className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {trashItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <TrashIconSolid className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Trash is empty</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {trashItems.map(item => (
+                    <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {item.type === 'FOLDER' ? (
+                          <FolderIcon className="h-8 w-8 text-amber-500" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <span className="text-lg">{getFileTypeInfo(item.mimeType, item.title).icon}</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                          <p className="text-xs text-gray-500">
+                            Deleted {new Date(item.deletedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Upload Modal */}
       {uploadModalOpen && (
@@ -542,6 +730,29 @@ const DocumentsResourcesPage = () => {
           setIsViewerOpen(false);
           setPreviewDocument(null);
         }}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        itemName={itemToDelete?.title || ''}
+        itemType={itemToDelete?.type === 'FOLDER' ? 'folder' : 'file'}
+        colorMode={false}
+      />
+
+      <FolderRenameModal
+        isOpen={folderRenameModalOpen}
+        onClose={() => {
+          setFolderRenameModalOpen(false);
+          setFolderToRename(null);
+        }}
+        onConfirm={confirmRenameFolder}
+        currentName={folderToRename?.title || ''}
+        colorMode={false}
       />
     </div>
   );
