@@ -10,6 +10,8 @@ const GoogleMapModal = ({ isOpen, onClose, address }) => {
     // Load Google Maps API
     const loadGoogleMaps = async () => {
       try {
+        const apiKey = 'AIzaSyC3KmPaCtYwN4n0G0m7ZVK3wXm_zu-nar0';
+        
         // Check if Google Maps is already loaded
         if (window.google && window.google.maps) {
           initializeMap();
@@ -18,7 +20,7 @@ const GoogleMapModal = ({ isOpen, onClose, address }) => {
 
         // Load the script
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
         script.async = true;
         script.defer = true;
         script.onload = initializeMap;

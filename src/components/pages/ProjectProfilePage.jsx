@@ -892,18 +892,10 @@ const ProjectProfilePage = ({
                                         </button>
                                     </div>
 
-                                    {/* Primary Customer Name and Lead Source */}
+                                    {/* Lead Source and Primary Customer */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {/* Primary Customer Name */}
-                                        <div>
-                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Primary Customer</div>
-                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'} font-semibold`}>
-                                                {selectedProject.customer?.primaryName || selectedProject.customer?.name || 'Not Set'}
-                                            </div>
-                                        </div>
-
                                         {/* Lead Source */}
-                                        <div>
+                                        <div className="md:col-span-2">
                                             <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Lead Source</div>
                                             <div className={`flex items-center gap-3 p-3 rounded-md ${colorMode ? 'bg-slate-700/40' : 'bg-white'} border ${colorMode ? 'border-slate-600' : 'border-gray-100'}`}>
                                                 <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 font-semibold">
@@ -992,25 +984,11 @@ const ProjectProfilePage = ({
                                             </div>
                                         </div>
 
-                                        {/* Customer Address */}
+                                        {/* Primary Customer Name */}
                                         <div>
-                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Customer Address</div>
-                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                                {(() => {
-                                                    // For customer address, prioritize direct customer fields and avoid project contamination
-                                                    const address = selectedProject.customer?.address || selectedProject.client?.address || selectedProject.clientAddress;
-                                                    if (!address || address === selectedProject.projectName) return 'Address not available';
-                                                    const parts = address.split(',');
-                                                    if (parts.length >= 2) {
-                                                        return (
-                                                            <div>
-                                                                <div>{parts[0]?.trim()}</div>
-                                                                <div>{parts.slice(1).join(',').trim()}</div>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return address;
-                                                })()}
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Primary Customer</div>
+                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'} font-semibold`}>
+                                                {selectedProject.customer?.primaryName || selectedProject.customer?.name || 'Not Set'}
                                             </div>
                                         </div>
 
