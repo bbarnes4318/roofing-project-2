@@ -306,13 +306,13 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const HeaderSection = () => (
     <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-        {/* Left: Number, Name */}
+        {/* Left: Number, Primary Customer Name */}
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-sm font-bold text-blue-700">
             {String(project.projectNumber || project.id || '')}
           </span>
           <h1 className="text-base font-semibold text-gray-900 truncate">
-              {project.projectName || project.name || 'Project Profile'}
+              {project.customer?.primaryName || project.customer?.name || 'Customer Name'}
             </h1>
           </div>
         {/* Right: Type */}

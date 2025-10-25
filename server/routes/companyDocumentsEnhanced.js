@@ -15,7 +15,14 @@ const router = express.Router();
 // Helper functions
 function extractSpacesKey(fileUrl) {
   if (!fileUrl) return null;
-  if (fileUrl.startsWith('spaces://')) return fileUrl.replace('spaces://', '');
+  if (fileUrl.startsWith('spaces://')) {
+    // Format: spaces://bucket-name/path/to/file.pdf
+    // We need to extract just the path (everything after the bucket name)
+    const withoutProtocol = fileUrl.replace('spaces://', '');
+    const firstSlashIndex = withoutProtocol.indexOf('/');
+    if (firstSlashIndex === -1) return withoutProtocol; // No bucket separator, return as-is
+    return withoutProtocol.substring(firstSlashIndex + 1); // Return path after bucket name
+  }
   if (fileUrl.startsWith('/uploads/')) return fileUrl.replace('/uploads/', '');
   return fileUrl;
 }
