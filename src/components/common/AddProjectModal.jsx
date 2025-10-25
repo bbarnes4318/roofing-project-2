@@ -228,6 +228,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
     if (isOpen) {
       fetchUsersAndRoles();
+      // Scroll to top when modal opens
+      setTimeout(() => {
+        const modalContent = document.querySelector('.modal-content');
+        if (modalContent) {
+          modalContent.scrollTop = 0;
+        }
+      }, 100);
     } else {
       // Reset form and secondary customer state when modal is closed
       resetForm();
@@ -261,7 +268,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     
     // Apply phone formatting to phone fields
     let formattedValue = value;
-    if (name === 'customerPhone' || name === 'secondaryPhone') {
+    if (name === 'primaryPhone' || name === 'secondaryPhone') {
       formattedValue = formatPhoneNumber(value);
     }
     
@@ -590,7 +597,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         </div>
 
         {/* Form Content */}
-        <div className="p-3 flex-1 overflow-y-auto modal-content">
+        <div className="p-3 flex-1 overflow-y-auto modal-content scroll-smooth">
           <form onSubmit={handleSubmit}>
             {/* Step 1: Customer Information */}
             {currentStep === 1 && (
@@ -641,6 +648,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Email <span className="text-red-500">*</span>
                       </label>
+                      <p className="text-xs text-gray-500 mb-2">Email type: Personal or Work</p>
                       <div className="flex gap-2">
                         <input
                           type="email"
@@ -657,7 +665,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           name="primaryEmailType"
                           value={formData.primaryEmailType}
                           onChange={handleInputChange}
-                          className="w-20 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                          className="w-24 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                          title="Email type: Personal or Work"
                         >
                           <option value="PERSONAL">Personal</option>
                           <option value="WORK">Work</option>
@@ -677,12 +686,17 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Phone <span className="text-red-500">*</span>
                       </label>
+                      <p className="text-xs text-gray-500 mb-2">Phone type: Mobile, Home, or Work</p>
                       <div className="flex gap-2">
                         <input
                           type="tel"
                           name="primaryPhone"
                           value={formData.primaryPhone}
                           onChange={handleInputChange}
+                          onBlur={(e) => {
+                            const formatted = formatPhoneNumber(e.target.value);
+                            setFormData(prev => ({ ...prev, primaryPhone: formatted }));
+                          }}
                           className={`flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
                             errors.primaryPhone ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                           }`}
@@ -866,6 +880,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         <label className="block text-xs font-semibold text-gray-700 mb-1">
                           Email
                         </label>
+                        <p className="text-xs text-gray-500 mb-2">Email type: Personal or Work</p>
                         <div className="flex gap-2">
                           <input
                             type="email"
@@ -901,12 +916,17 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         <label className="block text-xs font-semibold text-gray-700 mb-1">
                           Phone
                         </label>
+                        <p className="text-xs text-gray-500 mb-2">Phone type: Mobile, Home, or Work</p>
                         <div className="flex gap-2">
                           <input
                             type="tel"
                             name="secondaryPhone"
                             value={formData.secondaryPhone}
                             onChange={handleInputChange}
+                            onBlur={(e) => {
+                              const formatted = formatPhoneNumber(e.target.value);
+                              setFormData(prev => ({ ...prev, secondaryPhone: formatted }));
+                            }}
                             className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
                             placeholder="(865) 555-1212"
                           />
