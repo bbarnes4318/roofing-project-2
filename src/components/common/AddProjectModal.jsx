@@ -726,6 +726,37 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Secondary Phone (Optional)
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">Phone type: Mobile, Home, or Work</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="tel"
+                          name="secondaryPhone"
+                          value={formData.secondaryPhone}
+                          onChange={handleInputChange}
+                          onBlur={(e) => {
+                            const formatted = formatPhoneNumber(e.target.value);
+                            setFormData(prev => ({ ...prev, secondaryPhone: formatted }));
+                          }}
+                          className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm border-gray-200 hover:border-gray-300"
+                          placeholder="(865) 555-1212"
+                        />
+                        <select
+                          name="secondaryPhoneType"
+                          value={formData.secondaryPhoneType}
+                          onChange={handleInputChange}
+                          className="w-24 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                        >
+                          <option value="MOBILE">Mobile</option>
+                          <option value="HOME">Home</option>
+                          <option value="WORK">Work</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Type of Contact
                       </label>
                       <select
